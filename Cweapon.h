@@ -1,7 +1,7 @@
 /*
 	CWeapon.h:		Weapon class handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class declaration for Weapon
@@ -34,10 +34,17 @@ typedef struct Proj
   geFloat LifeTime;
   int Decal;
   char *Explosion;
+  char *ActorExplosion;
+  float ShakeAmt;
+  float ShakeDecay;
   float Damage;
   float RadiusDamage;
   float Radius;
   char *Attribute;
+// changed RF063
+  float AltDamage;
+  char *AltAttribute;
+// end change RF063
 } Proj;
 
 typedef struct DefaultProj
@@ -55,7 +62,13 @@ typedef struct DefaultProj
   geFloat LifeTime;
   int Decal;
   char Explosion[64];
+  char ActorExplosion[64];
+  float ShakeAmt;
+  float ShakeDecay;
   float Damage;
+// changed RF063
+  float AltDamage;
+// end change RF063
   float RadiusDamage;
   float Radius;
   float Scale;
@@ -84,12 +97,19 @@ typedef struct DefaultWeapons
 	char HitSound[64];
 	char EmptySound[64];
 	float MeleeDamage;
+	char MeleeExplosion[64];
 	char Attribute[64];
+// changed RF063
+    char AltAttribute[64];
+	float MeleeAltDamage;
+	bool WorksUnderwater;
+// end change RF063
 	char Ammunition[64];
 	int AmmoPerShot;
 	char MuzzleFlash[64];
 	geBitmap *CrossHair;
 	bool CrossHairFixed;
+	int ZoomAmt;
 
 	geActor *VActor;
 	geActor_Def	*VActorDef;
@@ -106,12 +126,25 @@ typedef struct DefaultWeapons
 	char VWalk[64];
 	geVec3d VOffset;
 	char VBone[64];
+// changed RF063
+	float JerkAmt;
+	float JerkDecay;
+// end change RF063
 
-	char PActorName[64];
+	geActor *PActor;
+	geActor_Def	*PActorDef;
 	geVec3d PActorRotation;
 	geVec3d POffset;
+	char PBone[64];
 	float PScale;
-
+	char Animations[ANIMMAX][64];
+// changed RF063
+	float PMOffset;
+	char DieAnim[5][64];
+	int DieAnimAmt;
+	char InjuryAnim[5][64];
+	int InjuryAnimAmt;
+// end change RF063
 	geFloat F, H, J;
 	geFloat G, K, L, Z;
 } DefaultWeapons;
@@ -122,6 +155,7 @@ typedef struct DefaultWeapons
 typedef enum
 {
 	VWEPCHANGE = 0,
+	VWEPHOLSTER,
 	VWEPIDLE,
 	VWEPWALK,
 	VWEPATTACK,
@@ -138,17 +172,29 @@ public:
   void Tick(float dwTicks);
   int ReSynchronize();
   void Display();
+  void Holster();
   void DoAttack();
+// changed RF063
+  int SaveTo(FILE *SaveFD);
+  int RestoreFrom(FILE *RestoreFD);
+  void ChangeWeapon(char *name);
+  char *DieAnim();
+  char *InjuryAnim();
+// end change RF063
   void SetWeapon(int value);
   void WeaponData();
   void Attack(bool Alternate);
-  void Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *Projectile, char *PAttribute);
+// changed RF063
+  void Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *Projectile, char *PAttribute, char *PAltAttribute);
+// end change RF063
   bool CrossHair();
   bool CrossHairFixed();
   void DisplayCrossHair();
   geBitmap *GetCrossHair();
+  int ZoomAmount();
   void ReSetWeapon(int value);
   void ClearWeapon();
+  char *PlayerAnim(int index);
   int GetSlot(int index)
   { return Slot[index];}
   void SetSlot(int index, int flag)
@@ -161,10 +207,19 @@ public:
   { return CrossPoint; }
   void SetView(int value)
   { ViewPoint = value; }
+  bool GetAttackFlag()
+  { return AttackFlag;}
+  void SetAttackFlag(bool flag)
+  { AttackFlag = flag;}
+// changed RF063
+  geVec3d GetProjectedPoint()
+  { return ProjectedPoint; }
+// end change RF063
 private:
+  void DisplayThirdPerson(int index);
   void DisplayFirstPerson(int index);
   void Sound(bool Attack, geVec3d Origin, bool Empty);
-  void MeleeAttack(geActor *theActor, geVec3d theRotation, geVec3d thePosition, bool player);
+  void MeleeAttack();
   void ProjectileAttack();
   int PlaySound(geSound_Def *SoundDef, geVec3d Pos, bool Loop);
   void LoadDefaults();
@@ -191,6 +246,9 @@ private:
 	DefaultWeapons WeaponD[MAX_WEAPONS];
 
 	geVec3d CrossPoint;
+// changed RF063
+	geVec3d ProjectedPoint;
+// end change RF063
 };
 
 #endif

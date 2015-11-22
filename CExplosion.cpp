@@ -180,13 +180,14 @@ CExplosionInit::~CExplosionInit()
 	pool = Bottom;
 	while	(pool!= NULL)
 	{
-		temp = pool->next;
+		temp = pool->prev;
 		geRam_Free(pool);
 		pool = temp;
 	}
 }
 
-void CExplosionInit::AddExplosion(char *Name, geVec3d Position)
+// changed RF063
+void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone)
 {
 	int i;
 
@@ -217,6 +218,11 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position)
 									pool->Offset = Explosions[i].Offset[j];
 									pool->Delay = Explosions[i].Delay[j];
 									pool->Position = Position;
+									pool->Attached = false;
+									pool->Actor = theActor;
+									pool->Bone[0] = '\0';
+									if(theBone!=NULL)
+										strcpy(pool->Bone, theBone);
 									break;
 								}
 							}
@@ -238,22 +244,105 @@ void CExplosionInit::Tick(geFloat dwTicks)
 	{
 		temp = pool->prev;
 		pool->Delay-=(dwTicks*0.001f);
-		if(pool->Delay<=0.0f)
+		if(!pool->Attached)
 		{
-			CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
-			if(Bottom == pool)
-				Bottom = pool->prev;
-			if(pool->prev != NULL)
-				pool->prev->next = pool->next;
-			if(pool->next != NULL)
-				pool->next->prev = pool->prev;
-			geRam_Free(pool);
-			pool = NULL;
+			if(pool->Delay<=0.0f)
+			{
+				pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
+				if(!pool->Actor)
+				{
+					if(Bottom == pool)
+						Bottom = pool->prev;
+					if(pool->prev != NULL)
+						pool->prev->next = pool->next;
+					if(pool->next != NULL)
+						pool->next->prev = pool->prev;
+					geRam_Free(pool);
+					pool = NULL;
+				}
+				else
+					pool->Attached = true;
+			}
+		}
+		else
+		{
+			if(CCD->EffectManager()->Item_Alive(pool->index))
+			{
+				geXForm3d Xf;
+				if(pool->Bone[0]!='\0')
+					geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
+				else
+					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+				geVec3d Position = Xf.Translation;
+
+				int type = CCD->Effect()->EffectType(pool->index);
+				switch(type)
+				{
+				case EFF_SPRAY:
+					Spray Sp;
+					geVec3d	In;
+					geXForm3d	Xf;
+					geVec3d_Copy( &(Position ), &( Sp.Source ) );
+					geVec3d_Add( &( Sp.Source ), &pool->Offset,&(Sp.Source) );
+					geXForm3d_SetIdentity( &( Xf ) );
+					geXForm3d_RotateX( &( Xf ), Sp.Dest.X / 57.3f );  
+					geXForm3d_RotateY( &( Xf ), ( Sp.Dest.Y - 90.0f ) / 57.3f );  
+					geXForm3d_RotateZ( &( Xf ), Sp.Dest.Z / 57.3f ); 
+					geXForm3d_GetIn( &( Xf ), &In );
+					geVec3d_Inverse( &In );
+					geVec3d_Add( &( Sp.Source ), &In,&( Sp.Dest ) );
+					CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
+					break;
+				case EFF_LIGHT:
+					Glow Lite;
+					geVec3d_Copy( &(Position ), &( Lite.Pos) );
+					geVec3d_Add( &(Lite.Pos), &pool->Offset,&(Lite.Pos) );
+					CCD->EffectManager()->Item_Modify(EFF_LIGHT, pool->index, &Lite, GLOW_POS);
+					break;
+				case EFF_SND:
+					Snd Sound;
+					geVec3d_Copy( &(Position ), &( Sound.Pos) );
+					geVec3d_Add( &(Sound.Pos), &pool->Offset,&(Sound.Pos) );
+					CCD->EffectManager()->Item_Modify(EFF_SND, pool->index, &Sound, SND_POS);
+					break;
+				case EFF_SPRITE:
+					Sprite S;
+					geVec3d_Copy( &(Position ), &( S.Pos) );
+					geVec3d_Add( &(S.Pos), &pool->Offset,&(S.Pos) );
+					CCD->EffectManager()->Item_Modify(EFF_SPRITE, pool->index, &S, SPRITE_POS);
+					break;
+				case EFF_CORONA:
+					EffCorona C;
+					C.Vertex.X = Position.X + pool->Offset.X;
+					C.Vertex.Y = Position.Y + pool->Offset.Y;
+					C.Vertex.Z = Position.Z + pool->Offset.Z;
+					CCD->EffectManager()->Item_Modify(EFF_CORONA, pool->index, &C, CORONA_POS);
+					break;
+				case EFF_BOLT:
+					EBolt Bl;
+					geVec3d_Copy( &(Position ), &(Bl.Start) );
+					geVec3d_Add( &(Bl.Start), &pool->Offset,&(Bl.Start) );
+					geVec3d_Add( &(Bl.Start), &(Bl.End),&(Bl.End) );
+					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_END);
+					break;
+				}
+			}
+			else
+			{
+				if(Bottom == pool)
+					Bottom = pool->prev;
+				if(pool->prev != NULL)
+					pool->prev->next = pool->next;
+				if(pool->next != NULL)
+					pool->next->prev = pool->prev;
+				geRam_Free(pool);
+				pool = NULL;
+			}
 		}
 		pool = temp;
 	} 
 }
-
+// end change RF063
 
 CExplosion::CExplosion()
 {
@@ -320,14 +409,19 @@ void CExplosion::Tick(float dwTicks)
 				{
 					if(pSource->active==GE_FALSE)
 					{
-						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
+// changed RF063
+						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin, NULL, NULL);
+						if(pSource->ShakeAmt>0.0f)
+							CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
 						pSource->active=GE_TRUE;
 						if(!EffectC_IsStringNull(pSource->DamageAttribute))
 						{
 							if(pSource->Radius>0.0f)
 							{
-								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute);
-								CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute);
+// changed RF063
+								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+								CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+// end change RF063
 							}
 						}
 					}
@@ -344,14 +438,19 @@ void CExplosion::Tick(float dwTicks)
 			{
 				if(pSource->active==GE_FALSE)
 				{
-					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
+// changed RF063
+					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin, NULL, NULL);
+					if(pSource->ShakeAmt>0.0f)
+						CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
 					pSource->active=GE_TRUE;
 					if(!EffectC_IsStringNull(pSource->DamageAttribute))
 					{
 						if(pSource->Radius>0.0f)
 						{
-							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute);
-							CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute);
+// changed RF063
+							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+							CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+// end change RF063
 						}
 					}
 				}

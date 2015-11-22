@@ -1,10 +1,10 @@
 /*
-	RabidFramework.h:	Rabid Games Game Framework Header File
+	RabidFramework.h:	Reality factory Header File
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file includes ALL of the headers necessary to use the
-Rabid Games Framework (RGF) for creating Genesis3D-based games.
+Reality Factory (RGF) for creating Genesis3D-based games.
 */
 
 //	Disable unknown pragma warnings (GEdit #pragmas used here)
@@ -24,29 +24,6 @@ Rabid Games Framework (RGF) for creating Genesis3D-based games.
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-//	** First integration, third-person code **
-
-typedef enum
-{
-	ACTORIDLE = 0,
-	ACTORI2WALK,
-	ACTORWALK,
-	ACTORW2IDLE,
-	ACTORJUMP,
-	ACTORSTARTJUMP,
-	ACTORFALL,
-	ACTORLAND,
-	ACTORSLIDELEFT,
-	ACTORSLIDERIGHT,
-	ACTORSHOOT,
-	ACTORAIM,
-	ACTORWALKSHOOT,
-	ACTORSLIDELEFTSHOOT,
-	ACTORSLIDERIGHTSHOOT,
-	ACTORFALLSHOOT,
-	ACTORJUMPSHOOT
-} ActorAction;
-
 typedef enum
 {
 	MOVEIDLE = 0,
@@ -57,41 +34,13 @@ typedef enum
 	MOVEJUMP
 } MoveAction;
 
-#define ANIMIDLE "Idle"
-#define ANIMI2WALK "I2Walk"
-#define ANIMI2RUN "I2Run"
-#define ANIMWALK "Walk"
-#define ANIMW2IDLE "W2Idle"
-#define ANIMRUN "Run"
-#define ANIMJUMP "Jump"
-#define ANIMSTARTJUMP "JumpStart"
-#define ANIMFALL "Fall"
-#define ANIMLAND "Land"
-#define ANIMSLIDELEFT "StrafeLeft"
-#define ANIMRUNSLIDELEFT "StrafeRLeft"
-#define ANIMSLIDERIGHT "StrafeRight"
-#define ANIMRUNSLIDERIGHT "StrafeRRight"
-
-#define ANIMSHOOT "Shoot"
-#define ANIMAIM "Aim"
-#define ANIMWALKSHOOT "WalkShoot"
-#define ANIMRUNSHOOT "RunShoot"
-#define ANIMSLIDELEFTSHOOT "SStrafeLeft"
-#define ANIMRUNSLIDELEFTSHOOT "SStrafeLeft"
-#define ANIMSLIDERIGHTSHOOT "SStrafeRight"
-#define ANIMRUNSLIDERIGHTSHOOT "SStrafeRight"
-#define ANIMJUMPSHOOT "JumpShoot"
-#define ANIMFALLSHOOT "FallShoot"
-// CROUCH
-#define ANIMCRAWL "Crawl"
-#define ANIMCIDLE "C_Idle"
-#define ANIMCAIM "C_Aim"
-#define ANIMCSHOOT "C_Shoot"
-#define ANIMC2IDLE "C2Idle"
-#define ANIMCSTARTJUMP "C_JumpStart"
-#define ANIMCLAND "C_Land"
-#define ANIMSLIDECLEFT "StrafeCLeft"
-#define ANIMSLIDECRIGHT "StrafeCRight"
+enum
+{
+	FIRSTPERSON = 0,
+	THIRDPERSON,
+	ISOMETRIC,
+	FIXEDCAMERA
+};
 
 //	Standard Windows include
 
@@ -116,6 +65,14 @@ typedef enum
 #include <math.h>
 #include <assert.h>
 
+#include <commdlg.h>
+#include <string.h>
+#include <evcode.h>
+#include <objbase.h>
+#include <strmif.h>
+#include <control.h>
+#include <uuids.h>
+
 //	Genesis3D includes
 
 #include <Genesis.h>
@@ -139,9 +96,13 @@ class CCommonData;
 #include "RGFEvents.h"							// Event codes, etc.
 #include "RGFTypes.h"								// Types, defs, etc.
 #include "CRGFComponent.h"					// RGF base component interface
+// changed RF063
+#include "CAnimGif.h"
+// end change RF063
 #include "Collider.h"								// Collision utility class
 #include "CCameraManager.h"					// Camera Manager class
 #include "CAudioManager.h"					// Audio entity manager subsystem
+#include "CMp3.h"
 #include "CActorManager.h"					// Actor management subsystem
 #include "CModelManager.h"					// Model management subsystem
 #include "CPersistentAttributes.h"	// Persistent attributes class
@@ -178,9 +139,15 @@ class CCommonData;
 #include "CMenu.h"									// Ralph Deane's Menu Manager
 #include "CAIController.h"					// AI Controller class
 #include "Utilities.h"							// Ralph Deane's Utility Code
+#ifdef RF063
+#include "CTrack.h"
+#endif
 #include "track.h"
 #include "CNPCPathPoint.h"
 #include "CNPC.h"										// Non-Player Character Manager
+#ifdef RF063
+#include "CEnemy.h"
+#endif
 #include "CTriggers.h"							// Ralph Deane's Generic Triggers
 #include "CLogic.h"									// Ralph Deane's Trigger Logic
 #include "CMessage.h"
@@ -194,6 +161,13 @@ class CCommonData;
 #include "CExplosion.h"
 #include "CEffects.h"
 #include "CChangeLevel.h"
+#include "CShake.h"
+#include "CFixedCamera.h"
+// changed RF063
+#include "CViewSwitch.h"
+#include "CInventory.h"
+#include "CLiquid.h"
+// end change RF063
 #include "CCommonData.h"						// Common data handler component
 
 //	Various zone constants.  A "zone" is an area, defined by a brush, that
@@ -211,7 +185,11 @@ const int kSlowMotionZone = 0x0080;	// Entity is in slow-motion zone
 const int kFastMotionZone = 0x0100;	// Entity is in fast-motion zone
 const int kImpassibleZone = 0x0200;	// Entity is in an impassible zone
 const int kClimbLaddersZone = 0x0400;
-
+// changed RF063
+const int kUnclimbableZone = 0x0800;
+const int kLiquidZone = 0x1000;
+const int kInLiquidZone = 0x2000;
+// end change RF063
 //	Various support and implementation constants
 
 const geFloat kFogDensity = 1500.0f;			// Baseline teleport/field fog density
@@ -265,6 +243,7 @@ const int kCameraTrackThirdPerson = 0x0004;	// Camera tracks "third person" mode
 // Mode
 const int kCameraTrackFree = 0x0008;		// allows free floating camera
 const int kCameraTrackIso = 0x0010;			// Camera tracks isometric view
+const int kCameraTrackFixed = 0x0020;
 
 //	Various utility consts
 

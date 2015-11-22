@@ -1,7 +1,7 @@
 /*
 	CRGFComponent.cpp:		RGF component base class
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains error-reporting implementations of the common
 base class member functions.  Typically RGF component writers will

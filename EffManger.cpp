@@ -362,6 +362,15 @@ void EffManager::Item_Pause(int Itype, int Index, geBoolean Flag)
       //Bolt_Pause((Bolt *)Item[Index].Data, Flag);
 }
 
+// changed RF063
+bool EffManager::Item_Alive(int Index)
+{
+    if(Item[Index].Active==GE_TRUE)
+		return true;
+	return false;
+}
+// end change RF063
+
 //---------------------------------------------------------------------
 //   Private Functions to handle each effect
 //
@@ -1099,11 +1108,14 @@ static geBoolean Snd_Get3dSoundValues(Snd *Data,
 
 	// locals
 	const geXForm3d	*SoundXf;
+// changed RF063
+	geXForm3d CamXf;
 	geFloat	VolDelta, PanDelta;
 
 	// get the camera xform
-	SoundXf = &CCD->Player()->ViewPoint();
-
+	CamXf = CCD->CameraManager()->ViewPoint();
+	SoundXf = &CamXf;
+// end change RF063
 	// get 3d sound values
 	geSound3D_GetConfig(
 			CCD->World(),

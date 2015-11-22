@@ -199,6 +199,8 @@ public:
   void Item_Modify(int Itype, int Index, void *Data, uint32 Flags);
   void Item_Delete(int Itype, int Index);
   void Item_Pause(int Itype, int Index, geBoolean Flag);
+// changed RF063
+  bool Item_Alive(int Index);
 
 private:
   void *Spray_Add(void *Data);

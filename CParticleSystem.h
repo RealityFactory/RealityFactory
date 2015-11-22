@@ -1,7 +1,7 @@
 /*
 	CParticleSystem.h:	Particle Systems Handler header file
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration and data types for
 the RGF particle system handler classes.

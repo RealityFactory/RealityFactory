@@ -1,7 +1,7 @@
 /*
 	CMovingPlatforms.h:		Moving Platform Handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the CMovingPlatforms
 class that encapsulates moving platform handling in the RGF.
@@ -23,7 +23,8 @@ class CMovingPlatforms : public CRGFComponent
 public:
   CMovingPlatforms();	// Constructor
   ~CMovingPlatforms();													// Destructor
-  bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall);
+// changed RF063
+  bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor);
   void TriggerNextPlatform(geWorld_Model *pModel, bool bTriggerCall);
 	bool IsAPlatform(geWorld_Model *theModel);				// Is this model a platform?
 	void Tick(geFloat dwTicks);					// Increment animation time

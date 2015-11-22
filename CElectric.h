@@ -52,6 +52,7 @@ public:
   ~CElectric();	
   int Create(geVec3d Origin, ElectricBolt *pBolt);
   geBoolean Tick(float dwTicks);
+  void CheckCollision(ElectricBolt *Bolt);
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
 private:

@@ -1,7 +1,7 @@
 /*
 	CAVIPlayer.h	:	Play AVI file into G3D engine
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the CAVIPlayer
 class.  This class will take an AVI file and play it back into

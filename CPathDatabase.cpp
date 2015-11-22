@@ -1,7 +1,7 @@
 /*
 	CPathDatabase.cpp:		Path and pathpoint in-memory database
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the implementation of the CPathDatabase in-
 memory path and pathpoint database.  This database is used to drive

@@ -45,6 +45,9 @@ public:
   bool CheckForCollision(geVec3d *Min, geVec3d *Max,
 			geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
 			geActor *Actor);
+  bool CheckForWCollision(geVec3d *Min, geVec3d *Max,
+			geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
+			geActor *Actor);
 	// CheckModelMotion checks to see if an animated world model can move
 	// ..from Point A to Point B, given a potential obstructing object
 	// ..of size 'ObstructionSize' at position 'ObstructionPosition'.

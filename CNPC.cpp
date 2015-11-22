@@ -3157,31 +3157,52 @@ geBoolean NPC_Shoot(void *Data, geVec3d *ShootPosition, float Time)
 
 	if(DBot->Melee)
 	{
-		geVec3d Forward, Up, theRotation;
+		geVec3d Forward, theRotation;
 		GE_Collision Collision;
 		geXForm3d Xf;
-		theBox.Min.Y += (theBox.Max.Y-theBox.Min.Y)/2.0f;
+		Pos.Y += theBox.Max.Y/2.0f;
+		float temp = (theBox.Max.Y-theBox.Min.Y)/4.0f;
+		theBox.Min.Y = -temp;
+		theBox.Max.Y = temp;
 		CCD->ActorManager()->GetRotate(DBot->Actor, &theRotation);
 		geXForm3d_SetIdentity(&Xf);
 		geXForm3d_RotateZ(&Xf, theRotation.Z);
 		geXForm3d_RotateX(&Xf, theRotation.X);
 		geXForm3d_RotateY(&Xf, theRotation.Y);
 		geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-		geXForm3d_GetUp (&Xf, &Up);
-		geVec3d_AddScaled (&Xf.Translation, &Up, -(theBox.Max.Y-theBox.Min.Y)*1.7f, &Xf.Translation);
 		geXForm3d_GetIn (&Xf, &Forward);
 		float distance = 2.0f * (((theBox.Max.X) < (theBox.Max.Z)) ? (theBox.Max.X) : (theBox.Max.Z));
 		geVec3d_AddScaled (&Xf.Translation, &Forward, distance, &Pos);
 		Collision.Actor = NULL;
 		Collision.Model = NULL;
-		bool result = CCD->Collision()->CheckForCollision(&theBox.Min, &theBox.Max,
-			Xf.Translation, Pos, &Collision, DBot->Actor);
+		bool result = false;
+		geWorld_Model *pModel;
+		geActor *pActor;
+		theBox.Min.X += Pos.X;
+		theBox.Min.Y += Pos.Y;
+		theBox.Min.Z += Pos.Z;
+		theBox.Max.X += Pos.X;
+		theBox.Max.Y += Pos.Y;
+		theBox.Max.Z += Pos.Z;
+		if(CCD->ActorManager()->DoesBoxHitActor(Pos, theBox, &pActor, DBot->Actor) == GE_TRUE)
+		{
+			Collision.Model = NULL;
+			Collision.Actor = pActor;		// Actor we hit
+			result=true;
+		}
+		else if(CCD->ModelManager()->DoesBoxHitModel(Pos, theBox, &pModel) == GE_TRUE)
+		{
+			Collision.Actor = NULL;
+			Collision.Model = pModel;		// Model we hit
+			result=true;
+		}
+
 		if(result)
 		{
 			if(Collision.Actor!=NULL)
-				CCD->Damage()->DamageActor(Collision.Actor, DBot->DamageAmt, DBot->DamageAttribute);
+				CCD->Damage()->DamageActor(Collision.Actor, DBot->DamageAmt, DBot->DamageAttribute, DBot->DamageAmt, DBot->DamageAttribute);
 			if(Collision.Model)
-				CCD->Damage()->DamageModel(Collision.Model, DBot->DamageAmt, DBot->DamageAttribute);
+				CCD->Damage()->DamageModel(Collision.Model, DBot->DamageAmt, DBot->DamageAttribute, DBot->DamageAmt, DBot->DamageAttribute);
 		}
 	}
 	else
@@ -3215,7 +3236,7 @@ geBoolean NPC_Shoot(void *Data, geVec3d *ShootPosition, float Time)
 				Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
 				// roll is zero - always!!?
 				Orient.Z = 0.0;
-				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, DBot->Projectile, DBot->DamageAttribute);
+				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, DBot->Projectile, DBot->DamageAttribute, DBot->DamageAttribute);
 			}
 		}
 	}

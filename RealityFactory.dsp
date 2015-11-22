@@ -54,7 +54,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 winmm.lib vfw32.lib dxguid.lib genesis.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
+# ADD LINK32 genesis.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib strmbase.lib decrypt.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
+# SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
 
@@ -80,8 +81,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 winmm.lib vfw32.lib dxguid.lib genesisd.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
-# SUBTRACT LINK32 /incremental:no /nodefaultlib
+# ADD LINK32 genesisd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib strmbasd.lib decrypt.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
 
@@ -103,6 +104,10 @@ SOURCE=.\C3DAudioSource.cpp
 # Begin Source File
 
 SOURCE=.\CActorManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CAnimGif.cpp
 # End Source File
 # Begin Source File
 
@@ -166,6 +171,10 @@ SOURCE=.\CElectric.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CEnemy.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CEntityRegistry.cpp
 # End Source File
 # Begin Source File
@@ -175,6 +184,10 @@ SOURCE=.\CExplosion.cpp
 # Begin Source File
 
 SOURCE=.\CFirePoint.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFixedCamera.cpp
 # End Source File
 # Begin Source File
 
@@ -206,6 +219,14 @@ SOURCE=.\CInput.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CInventory.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CLiquid.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CLogic.cpp
 # End Source File
 # Begin Source File
@@ -231,6 +252,10 @@ SOURCE=.\CMorphingFields.cpp
 # Begin Source File
 
 SOURCE=.\CMovingPlatforms.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CMp3.cpp
 # End Source File
 # Begin Source File
 
@@ -278,6 +303,10 @@ SOURCE=.\CRGFComponent.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CShake.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CSoundtrackToggle.cpp
 # End Source File
 # Begin Source File
@@ -294,11 +323,19 @@ SOURCE=.\CTeleporter.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CTrack.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CTriggers.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\CVideoTexture.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CViewSwitch.cpp
 # End Source File
 # Begin Source File
 
@@ -406,6 +443,10 @@ SOURCE=.\CActorManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CAnimGif.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CAttribute.h
 # End Source File
 # Begin Source File
@@ -466,6 +507,10 @@ SOURCE=.\CElectric.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CEnemy.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CEntityRegistry.h
 # End Source File
 # Begin Source File
@@ -475,6 +520,10 @@ SOURCE=.\CExplosion.h
 # Begin Source File
 
 SOURCE=.\CFirePoint.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFixedCamera.h
 # End Source File
 # Begin Source File
 
@@ -506,6 +555,14 @@ SOURCE=.\CInput.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CInventory.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CLiquid.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Clogic.h
 # End Source File
 # Begin Source File
@@ -531,6 +588,10 @@ SOURCE=.\CMorphingFields.h
 # Begin Source File
 
 SOURCE=.\CMovingPlatforms.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CMp3.h
 # End Source File
 # Begin Source File
 
@@ -578,6 +639,10 @@ SOURCE=.\CRGFComponent.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CShake.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CSoundtrackToggle.h
 # End Source File
 # Begin Source File
@@ -594,11 +659,19 @@ SOURCE=.\CTeleporter.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CTrack.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CTriggers.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\CVideoTexture.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CViewSwitch.h
 # End Source File
 # Begin Source File
 
@@ -663,6 +736,10 @@ SOURCE=.\Utilities.h
 # Begin Source File
 
 SOURCE=.\mainfram.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\rficon.ico
 # End Source File
 # End Group
 # End Target

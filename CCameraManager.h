@@ -11,12 +11,25 @@ CCameraManager.h:		Camera positioning, rotation, and motion manager
 #ifndef __CCAMERAMANAGER_H_
 #define __CCAMERAMANAGER_H_
 
+#define DEFAULTFOV 2.0f
+
 class CCameraManager: public CRGFComponent
 {
 public:
 	CCameraManager();
 	~CCameraManager();
 	void Defaults();
+// changed RF063
+	int SaveTo(FILE *SaveFD);
+	int RestoreFrom(FILE *RestoreFD);
+	void SaveToS();
+	void RestoreFromS();
+	void SetJerk(float MaxAmount, geFloat Decay);
+// end change RF063
+	void Tick(float dwTicks);
+	void SetZoom(bool flag);
+	void SetShake(float MaxAmount, geFloat Decay, geVec3d Pos);
+	void GetShake(float *x, float *y);
 	int Position(geVec3d thePosition);	// Set camera position
 	int Rotate(geVec3d theRotation);		// Set camera rotation
 	int TurnLeft(geFloat fAmount);			// Turn camera LEFT
@@ -25,6 +38,8 @@ public:
 	int TiltDown(geFloat fAmount);			// Tilt camera DOWN
 	int TiltXUp(geFloat fAmount);				// Tilt camera UP
 	int TiltXDown(geFloat fAmount);			// Tilt camera DOWN
+	float GetTiltPercent();
+	float GetTilt();
 	int Center();												// Center camera view
 	int GetPosition(geVec3d *thePosition);	// Get camera position
 	int GetRotation(geVec3d *theRotation);		// Get camera rotation
@@ -47,9 +62,9 @@ public:
 				{ return TrackingFlags;}
 	inline geCamera *Camera() { return EngineCamera;}
 	void CameraRotX(bool direction);
-	void CameraRotY(bool direction);
+	void CameraRotY(bool direction, float Speed);
 	void ResetCamera();
-	void ChangeDistance(bool direction);
+	void ChangeDistance(bool direction, float Speed);
 	geXForm3d ViewPoint();
 	// eaa3 12/18/2000 Head bob functions
 	void SetHeadBobOffset(geFloat fOffset)
@@ -60,7 +75,55 @@ public:
 	// eaa3 12/18/2000 end
 	void Get3rdData(float *distance, float *camerax, float *cameray);
 	void Set3rdData(float distance, float camerax, float cameray);
-	void SetLook(geFloat lookup, geFloat lookdwn);
+	void SetFOV(geFloat Fov)
+	{ FOV = Fov; }
+	geFloat GetFOV()
+	{ return FOV; }
+	void SetShakeMin(float Min)
+	{ shakemin = Min; }
+
+	float GetViewHeight()
+	{ return viewheight; }
+	float GetPlayerHeight()
+	{ return playerheight; }
+	float GetPlayerAngleUp()
+	{ return playerangleup; }
+	float GetPlayerDistance()
+	{ return playerdistance; }
+	float GetPlayerMinDistance()
+	{ return playermindistance; }
+	float GetPlayerMaxDistance()
+	{ return playermaxdistance; }
+	bool GetPlayerZoom()
+	{ return playerzoom; }
+	bool GetPlayerAllowLook()
+	{ return playerallowlook; }
+	bool GetPlayerMouseRotation()
+	{ return playermouserotation; }
+	float GetIsoHeight()
+	{ return isoheight; }
+	float GetIsoAngleUp()
+	{ return isoangleup; }
+	float GetIsoAngleAround()
+	{ return isoanglearound; }
+	float GetIsoDistance()
+	{ return isodistance; }
+	bool GetIsoFlag()
+	{ return IsoCollFlag; }
+	bool GetSwitchAllowed()
+	{ return switchallowed; }
+	bool GetSwitch1st()
+	{ return switch1st; }
+	bool GetSwitch3rd()
+	{ return switch3rd; }
+	bool GetSwitchIso()
+	{ return switchiso; }
+// changed RF063
+	bool GetZooming()
+	{ return zoommode; }
+	float GetJerk()
+	{ return jerkamt; }
+// end change RF063
 private:
 	//	Member functions
 	void DoThirdPersonTracking();				// Handle actor-locked third person view
@@ -92,6 +155,47 @@ private:
 	// eaa3 12/20/2000 end
 	geFloat m_LookUp;
 	geFloat m_LookDwn;
+	bool IsoCollFlag;
+	geFloat FOV;
+	bool zooming;
+	bool zoommode;
+	bool shake;
+	float shakeamt;
+	float shakedecay;
+	float shakex, shakey;
+	float shakemin;
+	float viewheight;
+	float playerheight;
+	float playerangleup;
+	float playerdistance;
+	float playermindistance;
+	float playermaxdistance;
+	bool playerzoom;
+	bool playerallowlook;
+	bool playermouserotation;
+	float isoheight;
+	float isoangleup;
+	float isoanglearound;
+	float isodistance;
+	bool switchallowed;
+	bool switch1st;
+	bool switch3rd;
+	bool switchiso;
+// changed RF063
+	bool jerk;
+	float jerkamt;
+	float jerkdecay;
+	geVec3d sTranslation;
+	geVec3d sRotation;
+	geVec3d sCameraOffsetTranslation;
+	geVec3d sCameraOffsetRotation;
+	geFloat sm_defaultdistance;
+	geFloat sm_currentdistance;
+	geFloat sm_cameraX;
+	geFloat sm_cameraY;
+	geFloat sm_oldrotationx;
+	geFloat sFOV;
+// end change RF063
 };
 
 #endif

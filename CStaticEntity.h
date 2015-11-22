@@ -1,7 +1,7 @@
 /*
 	CStaticEntity.h:		Static Entity Handling Class
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the Static Entity
 handling class.  Static entities are Genesis3D actors that do not
@@ -21,7 +21,7 @@ public:
 	~CStaticEntity();														// Default destructor
   void Render(geXForm3d ViewPoint, DWORD  dwTime);	
 																							// Render all static entities
-  int HandleCollision(geActor *pActor, geActor *theActor, bool Gravity);
+  int HandleCollision(geActor *pActor, geActor *theActor, bool Gravity, bool UseKey);
   void ClearHit();
   void Tick(geFloat dwTicks);
 																		// Handle time-based action, if any

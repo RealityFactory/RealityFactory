@@ -7,6 +7,10 @@
 #define NUM_TITLES       15
 #define NUM_IMAGES       150
 #define NUM_FONTS        30
+#define NUM_SELECT		 10
+// changed RF063
+#define NUM_ANIM		 70
+// end change RF063
 
 // Message
 //------------------------------
@@ -66,6 +70,12 @@ typedef struct Font
   geBitmap *Bitmap;   // font bitmap
 } Font;
 
+typedef struct Selection
+{
+  char Name[64];
+  geBitmap *Bitmap;   // image bitmap
+} Selection;
+
 
 typedef struct	SoundList
 {
@@ -81,15 +91,23 @@ public:
   CRFMenu();		// Default constructor
   ~CRFMenu();	
   int DoMenu(char *levelname);
+  int ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number);
+  void DrawBitmap(const geBitmap *Bitmap, geRect *Source, uint32 x, uint32 y);
+// changed RF063
+  void DoGame(bool editor);
+  void ChangeCurrent(bool direction);
+// end change RF063
   void GameLoop();
   void GameLevel();
   void MenuInitalize();
   void DisplaySplash(char *szSplashBMP);
+  void MFontRect(char *s, int FontNumber, int x, int y);
   void FontRect(char *s, int FontNumber, int x, int y);
   void ScreenShot();
   geSound *PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef, geFloat Volume, geFloat Pan, geFloat Frequency, geBoolean Loop);
   geBoolean StopSound(geSound_System *SoundS, geSound *Sound);
   void DeleteSound();
+  void StopMenuMusic();
   char *GetLevelName()
   { return LevelName; }
   void SetLevelName(char *level)
@@ -143,15 +161,17 @@ public:
   { return Crosshair; }
   geBitmap *GetFCrossHair()
   { return FCrosshair; }
-  void StopMenuMusic()
-  { m_Streams->Stop(); }
+// changed RF063
+  char *GetLoadmsg()
+  { return Loadmsg; }
+  int GetLoadFont()
+  { return LoadFont; }
+// end change RF063
 private:
-  int ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number);
   void ClearVol();
   void DisplayCrossHair();
 
-//  void FontRect(char letter, int FontNumber);
-
+  geBitmap	 *ScreenBmp;
   geBitmap	 *Backgrounds[NUM_BACKGROUNDS];
   geBitmap	 *Titles[NUM_TITLES];
   geBitmap	 *Images[NUM_IMAGES];
@@ -165,6 +185,10 @@ private:
   char		 LevelName[256];
   int		 MainBack;
   int		 MainTitle;
+// changed RF063
+  int		 SelectBack;
+  int		 SelectTitle;
+// end change RF063
   int		 Screen;
   bool		 ScrnWait;
   int		 ingame;
@@ -185,6 +209,19 @@ private:
   int musictype;
   StreamingAudio *m_Streams;
   LPDIRECTSOUND m_dsPtr;
+// changed RF063
+  Selection CharSelect[NUM_SELECT];
+  int MaxSelect;
+  int CurrentSelect;
+  float savetime;
+  float SavingTime;
+  char	Savemsg[256];
+  int   SaveFont;
+  char	Loadmsg[256];
+  int   LoadFont;
+  CAnimGif *Animation[NUM_ANIM];
+  int AnimCursor;
+// end change RF063
 };
 
 

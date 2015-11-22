@@ -1,7 +1,7 @@
 /*
 CHeadsUpDisplay.h:		HUD display handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class declaration for the CHeadsUpDisplay
 	class that encapsulates player status display functionality.
@@ -10,6 +10,7 @@ CHeadsUpDisplay.h:		HUD display handler
 #ifndef __RGF_CHEADSUPDISPLAY_H_
 #define __RGF_CHEADSUPDISPLAY_H_
 
+#define MAXHUD   100
 
 typedef enum 
 {
@@ -17,7 +18,9 @@ typedef enum
 		HORIZ,
 		VALUE,
 		PPOS,
-		COMPASS
+		COMPASS,
+// changed RF063
+		RADAR
 } HUDTYPE;
 
 struct HUDEntry
@@ -26,6 +29,8 @@ struct HUDEntry
 	char szAttributeName[64];		// Attribute name to display
 	geBitmap *Identifier;				// Identifier bitmap
 	geBitmap *Indicator;				// Indicator (level) bitmap
+// changed RF063
+	geBitmap *Indicator2;
 	int nTop, nLeft;						// Top/left point of HUD display element
 	int iTopOffset, iLeftOffset;
 	int iHeight;
@@ -33,6 +38,11 @@ struct HUDEntry
 	HUDTYPE Type;
 	char format[16];
 	bool display;
+	bool modify;
+	int direction;
+	float DisplayTime;
+	float CurrentTime;
+	int OldAmount;
 };
 
 class CHeadsUpDisplay : public CRGFComponent
@@ -46,11 +56,11 @@ public:
 	int Deactivate();						// Turn HUD off
 	int RemoveElement(char *szAttributeName);		// Remove element from HUD
 	int ActivateElement(char *szAttributeName, bool activate);
-	int Render();	
-	// Render the HUD out
+	int Render();	// Render the HUD out
+	void Tick(geFloat dwTick);
 private:
 	bool m_bHUDActive;						// HUD displayed flag
-	HUDEntry m_theHUD[12];				// HUD display array, up to 12 items
+	HUDEntry m_theHUD[MAXHUD];				// HUD display array, up to 12 items
 };
 
 #endif

@@ -1,7 +1,7 @@
 /*
 	CInput.h:		Keyboard and mouse input handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the CInput
 class that encapsulates all mouse and keyboard input for

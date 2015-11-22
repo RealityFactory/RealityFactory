@@ -1,7 +1,7 @@
 /*
 	CSountrackToggle.h:		Soundtrack Toggle Entity Handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the Soundtrack Toggle
 Entity handling class.  A soundtrack toggle switches between two

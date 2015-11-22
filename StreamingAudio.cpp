@@ -1,22 +1,13 @@
 /*
 		StreamingAudio.cpp:	Streaming audio encapsulation class
 
-		Authored		10/07/1998	Edward A. Averill, III
-		Updated			10/07/1998	Edward A. Averill, III
-
-		Migrated to Rabid Game Framework (RGF) ALPHA3 11/08/1999
-
-		(c) 1998 Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 * PURPOSE *
 
 		This file contains the implementation of audio streaming
 services, based on the SoundServices functionality.
 
-* MODIFICATION HISTORY *
-
-	11/08/1999		eaa		Moved to RGF to supplement Genesis3D audio system
-	10/07/1998		eaa3	First cut.
 */
 
 //	As always, we include the One True Header File
@@ -41,6 +32,7 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 	m_pDS = lpDS;									// Save DSound pointer
 	m_fEOF = false;								// Not at end of file
 	m_bLoops = false;							// Assume no looping
+	Mpeg3 = NULL;
 
   return;
 }
@@ -51,6 +43,17 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 
 StreamingAudio::~StreamingAudio()
 {
+	if(mp3)
+	{
+		if(Mpeg3)
+		{
+			Mpeg3->StopMp3();
+			delete Mpeg3;
+			Mpeg3 = NULL;
+		}
+		return;
+	}
+
   m_fActive = FALSE;							// Inactive now
 
   timeKillEvent(m_nTimerID);			// Stop the timer
@@ -84,6 +87,19 @@ int StreamingAudio::Create(char *szFileName)
 
   if(szFileName == NULL)
 	  return RGF_FAILURE;											// Wrong.
+
+  int len = strlen(szFileName)-4;
+  if(stricmp((szFileName+len),".mp3")==0)
+  {
+	  if(Mpeg3 != NULL)
+		return RGF_FAILURE;	
+	  Mpeg3 = new CMp3Manager;
+	  Mpeg3->OpenMediaFile(szFileName);
+	  mp3 = true;
+	  m_fActive = TRUE;
+	  return RGF_SUCCESS;
+  }
+  mp3 = false;
 
 //	Check for stream availability
   if(m_pStream != NULL)
@@ -169,6 +185,16 @@ int StreamingAudio::Create(char *szFileName)
 
 int StreamingAudio::Play(bool bLooping)
 {
+	if(mp3)
+	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+		m_fActive = TRUE;
+		m_bLoops = bLooping;
+		Mpeg3->PlayMp3(0, bLooping);
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -187,6 +213,15 @@ int StreamingAudio::Play(bool bLooping)
 
 int StreamingAudio::Stop()
 {
+	if(mp3)
+	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+		Mpeg3->StopMp3();
+		m_fActive = FALSE;
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -204,6 +239,23 @@ int StreamingAudio::Stop()
 
 int StreamingAudio::Pause()
 {
+	if(mp3)
+	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+		if(m_fActive == FALSE)
+		{
+			m_fActive = TRUE;
+			Mpeg3->PlayMp3(0, m_bLoops);
+		}
+		else
+		{
+			m_fActive = FALSE;
+			Mpeg3->StopMp3();
+		}
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -222,6 +274,16 @@ int StreamingAudio::Pause()
 
 int StreamingAudio::Delete()
 {
+	if(mp3)
+	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+		Mpeg3->StopMp3();
+		delete Mpeg3;
+		Mpeg3 = NULL;
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -239,6 +301,13 @@ int StreamingAudio::Delete()
 
 int StreamingAudio::Rewind()
 {
+	if(mp3)
+	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -266,6 +335,11 @@ int StreamingAudio::Rewind()
 
 bool StreamingAudio::IsPlaying()
 {
+	if(mp3)
+	{
+		return false;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return false;									// No stream
@@ -282,6 +356,11 @@ bool StreamingAudio::IsPlaying()
 
 int StreamingAudio::SetVolume(LONG nVolume)
 {
+	if(mp3)
+	{
+		return RGF_SUCCESS;
+	}
+
 //	Sanity check parameter
   if((m_pStream == NULL) || (nVolume > 0))
 	  return RGF_FAILURE;						// Bad parameter

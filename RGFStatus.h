@@ -1,7 +1,7 @@
 /*
-	RGFStatus.h:		Rabid Game Framework defines file
+	RGFStatus.h:		Reality Factory defines file
 
-	(C) 1999 Edward A. Averill, III.  All rights reserved.
+	(C) 2001 Ralph Deane  All rights reserved.
 
 	This file contains all the various status, error, key, and
 result code defines used throughout the RGF system.
@@ -80,6 +80,13 @@ typedef enum
 	RGF_K_HUD,
 	RGF_K_LOOKMODE,
 	RGF_K_SCRNSHOT,
+	RGF_K_ZOOM_WEAPON,
+	RGF_K_HOLSTER_WEAPON,
+	RGF_K_LIGHT,
+// changed RF063
+	RGF_K_USE,
+	RGF_K_INVENTORY,
+// end change RF063
 	RGF_K_NOACTION
 } ACTIONCODES;
 

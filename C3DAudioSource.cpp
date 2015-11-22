@@ -1,7 +1,7 @@
 /*
 	C3DAudioSource.cpp:		3D Audio Source class implementation
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class implementation for 3D audio source

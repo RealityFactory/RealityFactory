@@ -9,6 +9,8 @@ CCameraManager.cpp:		Camera positioning, rotation, and motion manager
 */
 
 #include "RabidFramework.h"				// The One True Include File
+// changed RF063
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
 
 //	Default constructor
 
@@ -28,7 +30,7 @@ CCameraManager::CCameraManager()
 	
 	// Create the Genesis3D camera
 	
-	EngineCamera = geCamera_Create(2.0f, &theCameraRect);
+	EngineCamera = geCamera_Create(FOV, &theCameraRect);
 	
 	if(!EngineCamera) 
 	{	
@@ -57,8 +59,124 @@ void CCameraManager::Defaults()
 	m_HeadBobOffset = 0.0f;					// No offset
 	m_HeadBob = false;						// Default to no bobbing
 	// eaa3 12/18/2000 end
-	m_LookUp = 1.0f;
-	m_LookDwn = 1.0f;
+	zooming = false;
+	zoommode = false;
+	shake = false;
+	shakex = shakey = shakemin = 0.0f; 
+// changed RF063
+	jerkamt = 0.0f;
+	jerk = false;
+// end change RF063
+
+	CIniFile AttrFile("camera.ini");
+	if(!AttrFile.ReadFile())
+	{
+		CCD->ReportError("Can't open camera initialization file", false);
+		exit(-1);
+	}
+	CString KeyName = AttrFile.FindFirstKey();
+	CString Type;
+	while(KeyName != "")
+	{
+		if(KeyName=="General")
+		{
+			FOV = (float)AttrFile.GetValueF(KeyName, "fieldofview");
+			if(FOV==0.0f)
+				FOV = DEFAULTFOV;
+			m_LookUp = (float)AttrFile.GetValueF(KeyName, "lookupangle") * 0.0174532925199433f;
+			if(m_LookUp==0.0f)
+				m_LookUp = 1.0f;
+			m_LookDwn = (float)AttrFile.GetValueF(KeyName, "lookdownangle") * 0.0174532925199433f;
+			if(m_LookDwn==0.0f)
+				m_LookDwn = 1.0f;
+			switchallowed = false;
+			Type = AttrFile.GetValue(KeyName, "viewswitchallowed");
+			if(Type=="true")
+				switchallowed = true;
+			switch1st = false;
+			Type = AttrFile.GetValue(KeyName, "switchto1stpersonallowed");
+			if(Type=="true")
+				switch1st = true;
+			switch3rd = false;
+			Type = AttrFile.GetValue(KeyName, "switchto3rdpersonallowed");
+			if(Type=="true")
+				switch3rd = true;
+			switchiso = false;
+			Type = AttrFile.GetValue(KeyName, "switchtoisopersonallowed");
+			if(Type=="true")
+				switchiso = true;
+		}
+		else if(KeyName=="FirstPerson")
+		{
+			Type = AttrFile.GetValue(KeyName, "height");
+			if(Type=="auto" || Type=="")
+			{
+				viewheight = -1.0f;
+			}
+			else
+			{
+				viewheight = (float)AttrFile.GetValueF(KeyName, "height");
+			}
+		}
+		else if(KeyName=="ThirdPerson")
+		{
+			Type = AttrFile.GetValue(KeyName, "height");
+			if(Type=="auto" || Type=="")
+			{
+				playerheight = -1.0f;
+			}
+			else
+			{
+				playerheight = (float)AttrFile.GetValueF(KeyName, "height");
+			}
+			playerangleup = (float)AttrFile.GetValueF(KeyName, "angleup") * 0.0174532925199433f;
+			playerdistance = (float)AttrFile.GetValueF(KeyName, "distance");
+			playerzoom = false;
+			Type = AttrFile.GetValue(KeyName, "allowzoom");
+			if(Type=="true")
+			{
+				playerzoom = true;
+				playermindistance = (float)AttrFile.GetValueF(KeyName, "minimumdistance");
+				playermaxdistance = (float)AttrFile.GetValueF(KeyName, "maximumdistance");
+			}
+			playermouserotation = true;
+			Type = AttrFile.GetValue(KeyName, "mouserotation");
+			if(Type=="false")
+			{
+				playermouserotation = false;
+				playerallowlook = false;
+				Type = AttrFile.GetValue(KeyName, "allowlook");
+				if(Type=="true")
+					playerallowlook = true;
+			}
+		}
+		else if(KeyName=="Isometric")
+		{
+			Type = AttrFile.GetValue(KeyName, "height");
+			if(Type=="auto" || Type=="")
+			{
+				isoheight = -1.0f;
+			}
+			else
+			{
+				isoheight = (float)AttrFile.GetValueF(KeyName, "height");
+			}
+			isoangleup = (float)AttrFile.GetValueF(KeyName, "angleup") * 0.0174532925199433f;
+			isoanglearound = (float)AttrFile.GetValueF(KeyName, "anglearound") * 0.0174532925199433f;
+			isodistance = (float)AttrFile.GetValueF(KeyName, "distance");
+			IsoCollFlag = false;
+			Type = AttrFile.GetValue(KeyName, "collisiondetection");
+			if(Type=="true")
+				IsoCollFlag = true;
+		}
+		else if(KeyName=="MultipleFixed")
+		{
+		}
+		else if(KeyName=="Moving")
+		{
+		}
+		KeyName = AttrFile.FindNextKey();
+	}
 }
 //	Default destructor
 
@@ -70,6 +188,166 @@ CCameraManager::~CCameraManager()
 	EngineCamera = NULL;
 	
 	return;
+}
+
+// changed RF063
+int CCameraManager::SaveTo(FILE *SaveFD)
+{
+	fwrite(&Translation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&Rotation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&CameraOffsetTranslation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&CameraOffsetRotation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&m_defaultdistance, sizeof(geFloat), 1, SaveFD);
+	fwrite(&m_currentdistance, sizeof(geFloat), 1, SaveFD);
+	fwrite(&m_cameraX, sizeof(geFloat), 1, SaveFD);
+	fwrite(&m_cameraY, sizeof(geFloat), 1, SaveFD);
+	fwrite(&m_oldrotationx, sizeof(geFloat), 1, SaveFD);
+	fwrite(&shakemin, sizeof(float), 1, SaveFD);
+
+	return RGF_SUCCESS;
+}
+
+int CCameraManager::RestoreFrom(FILE *RestoreFD)
+{
+	fread(&Translation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&Rotation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&CameraOffsetTranslation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&CameraOffsetRotation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&m_defaultdistance, sizeof(geFloat), 1, RestoreFD);
+	fread(&m_currentdistance, sizeof(geFloat), 1, RestoreFD);
+	fread(&m_cameraX, sizeof(geFloat), 1, RestoreFD);
+	fread(&m_cameraY, sizeof(geFloat), 1, RestoreFD);
+	fread(&m_oldrotationx, sizeof(geFloat), 1, RestoreFD);
+	fread(&shakemin, sizeof(float), 1, RestoreFD);
+
+	return RGF_SUCCESS;
+}
+
+void CCameraManager::SaveToS()
+{
+	sTranslation = Translation;
+	sRotation = Rotation;
+	sCameraOffsetTranslation = CameraOffsetTranslation;
+	sCameraOffsetRotation = CameraOffsetRotation;
+	sm_defaultdistance = m_defaultdistance;
+	sm_currentdistance = m_currentdistance;
+	sm_cameraX = m_cameraX;
+	sm_cameraY = m_cameraY;
+	sm_oldrotationx = m_oldrotationx;
+	sFOV = FOV;
+}
+
+void CCameraManager::RestoreFromS()
+{
+	Translation = sTranslation;
+	Rotation = sRotation;
+	CameraOffsetTranslation = sCameraOffsetTranslation;
+	CameraOffsetRotation = sCameraOffsetRotation;
+	m_defaultdistance = sm_defaultdistance;
+	m_currentdistance = sm_currentdistance;
+	m_cameraX = sm_cameraX;
+	m_cameraY = sm_cameraY;
+	m_oldrotationx = sm_oldrotationx;
+	FOV = sFOV;
+}
+
+void CCameraManager::SetJerk(float MaxAmount, geFloat Decay)
+{
+	if(jerk)
+	{
+		if(jerkamt>MaxAmount)
+			return;
+	}
+	jerkamt = MaxAmount;
+	jerkdecay = Decay;
+	jerk = true;
+}
+
+// end change RF063
+void CCameraManager::Tick(float dwTicks)
+{
+	int zoomamt = CCD->Weapons()->ZoomAmount();
+
+	if(zoomamt>0)
+	{
+		if(zooming)
+		{
+			if(zoommode)
+			{
+				if(FOV>(DEFAULTFOV/(float)zoomamt))
+				{
+					FOV -= ((dwTicks*0.001f) * 0.75f);
+					if(FOV<(DEFAULTFOV/(float)zoomamt))
+						FOV = (DEFAULTFOV/(float)zoomamt);
+				}
+			}
+			else
+			{
+				FOV = DEFAULTFOV;
+			}
+		}
+	}
+	else
+		FOV = DEFAULTFOV;
+	if(shake)
+	{
+		shakeamt -= ((dwTicks*0.001f) * shakedecay);
+		if(shakeamt<=0.0f)
+		{
+			shakex = shakey = 0.0f;
+			shake = false;
+		}
+		else
+		{
+			shakex = EffectC_Frand(-shakeamt, shakeamt);
+			shakey = EffectC_Frand(-shakeamt, shakeamt);
+		}
+	}
+// changed RF063
+	if(jerk)
+	{
+		jerkamt -= ((dwTicks*0.001f) * jerkdecay);
+		if(jerkamt<=0.0f)
+		{
+			jerkamt = 0.0f;
+			jerk = false;
+		}
+	}
+// end change RF063
+}
+
+void CCameraManager::GetShake(float *x, float *y)
+{
+	*x = shakex;
+	*y = shakey;
+}
+
+void CCameraManager::SetZoom(bool flag)
+{ 
+	zooming = flag;
+	if(flag)
+		zoommode = !zoommode;
+}
+
+void CCameraManager::SetShake(float MaxAmount, geFloat Decay, geVec3d Pos)
+{
+	float dist = (float)fabs(geVec3d_DistanceBetween(&Pos, &Translation));
+	if(dist>shakemin)
+		MaxAmount = MaxAmount * (shakemin/dist);
+	if(shake)
+	{
+		if(shakeamt < MaxAmount)
+		{
+			shakeamt = MaxAmount;
+			shakedecay = Decay;
+		}
+	}
+	else
+	{
+		shakeamt = MaxAmount;
+		shakedecay = Decay;
+		shake = true;
+	}
 }
 
 //	Position
@@ -183,13 +461,25 @@ int CCameraManager::TiltXDown(geFloat fAmount)
 	return RGF_SUCCESS;
 }
 
-
-void CCameraManager::SetLook(geFloat lookup, geFloat lookdwn)
+float CCameraManager::GetTiltPercent()
 {
-	if(lookup>0.0f)
-		m_LookUp = lookup;
-	if(lookdwn>0.0f)
-		m_LookDwn = lookdwn;
+	float Percent = 0.5f;
+	if((TrackingFlags & kCameraTrackFree) != 0)
+		Percent = 1.0f-((CameraOffsetRotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
+	else if((TrackingFlags & kCameraTrackPosition) != 0)
+		Percent = ((Rotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
+
+	return Percent; 
+}
+
+float CCameraManager::GetTilt()
+{
+	if((TrackingFlags & kCameraTrackFree) != 0)
+		return CameraOffsetRotation.X;
+	else if((TrackingFlags & kCameraTrackPosition) != 0)
+		return Rotation.X;
+
+	return 0.0f; 
 }
 
 //	GetPosition
@@ -198,8 +488,27 @@ void CCameraManager::SetLook(geFloat lookup, geFloat lookdwn)
 
 int CCameraManager::GetPosition(geVec3d *thePosition)
 {
-	*thePosition = Translation;
+// changed RF063
+	geXForm3d theViewPoint;
+
+	geXForm3d_SetIdentity(&theViewPoint); // Clear the matrix
 	
+	geXForm3d_RotateZ(&theViewPoint, Rotation.Z); // Rotate then translate
+	geXForm3d_RotateX(&theViewPoint, Rotation.X);
+	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
+	
+	geXForm3d_Translate(&theViewPoint, Translation.X, Translation.Y,
+		Translation.Z);
+	if(jerk)
+	{
+		geVec3d Direction;
+		geXForm3d_GetIn(&theViewPoint, &Direction);
+		geVec3d_AddScaled (&theViewPoint.Translation, &Direction, -jerkamt, &theViewPoint.Translation);
+	}
+
+	//*thePosition = Translation;
+	*thePosition = theViewPoint.Translation;
+// end change RF063	
 	return RGF_SUCCESS;
 }
 
@@ -380,6 +689,20 @@ int CCameraManager::TrackMotion()
 			Rotation.Z += CameraOffsetRotation.Z;
 		}
 	}
+	else
+	{
+		if((TrackingFlags & kCameraTrackFixed) != 0)
+		{
+			FixedCamera *pSource = CCD->FixedCameras()->GetCamera();
+			Translation.X = pSource->origin.X;
+			Translation.Y = pSource->origin.Y;
+			Translation.Z = pSource->origin.Z;
+			Rotation.X = pSource->Rotation.X;
+			Rotation.Y = pSource->Rotation.Y;
+			Rotation.Z = pSource->Rotation.Z;
+			FOV = pSource->FieldofView;
+		}
+	}
 	
 	return RGF_SUCCESS;
 }
@@ -391,23 +714,67 @@ int CCameraManager::TrackMotion()
 int CCameraManager::RenderView()
 {
 	geXForm3d theViewPoint;
-	
+
 	geXForm3d_SetIdentity(&theViewPoint); // Clear the matrix
 	
 	geXForm3d_RotateZ(&theViewPoint, Rotation.Z); // Rotate then translate
 	geXForm3d_RotateX(&theViewPoint, Rotation.X);
 	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
 	
-	geXForm3d_Translate(&theViewPoint, Translation.X, Translation.Y,
+	geXForm3d_Translate(&theViewPoint, Translation.X+shakex, Translation.Y+shakey,
 		Translation.Z);
-	
+
+// changed RF063
+	GE_Contents ZoneContents;
+	geExtBox ExtBox;
+	geVec3d Direction, Pos;
+	GE_LVertex	Vertex;
+
+	ExtBox.Min.X = ExtBox.Min.Z = -1.0f;
+	ExtBox.Min.Y = 0.0f;
+	ExtBox.Max.Y = 1.0f;
+	ExtBox.Max.X = ExtBox.Max.Z = 1.0f;
+
+	if(geWorld_GetContents(CCD->World(), &Translation, &ExtBox.Min, 
+		&ExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	{
+		Liquid * LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
+		if(LQ)
+		{
+			geXForm3d_GetIn(&theViewPoint, &Direction);
+			geVec3d_AddScaled (&Translation, &Direction, 10.0f, &Pos);
+
+			Vertex.r = LQ->TintColor.r; 
+			Vertex.g = LQ->TintColor.g;
+			Vertex.b = LQ->TintColor.b;
+			Vertex.a = LQ->Transparency;
+
+			Vertex.u = 0.0f;
+			Vertex.v = 0.0f;
+
+			Vertex.X = Pos.X;
+			Vertex.Y = Pos.Y;
+			Vertex.Z = Pos.Z;
+
+			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, 
+				LQ->Texture, 
+				GE_TEXTURED_POINT  , GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
+		}
+	}
+	if(jerk)
+	{
+		geVec3d Direction;
+		geXForm3d_GetIn(&theViewPoint, &Direction);
+		geVec3d_AddScaled (&theViewPoint.Translation, &Direction, -jerkamt, &theViewPoint.Translation);
+	}
+
+// end change RF063
 	//	Set up camera attributes just prior to rendering the world.
 	
 	geRect Rect;
 	geCamera_SetWorldSpaceXForm(EngineCamera, &theViewPoint);
 	geCamera_GetClippingRect(EngineCamera, &Rect);
-	geCamera_SetAttributes(EngineCamera, 2.0, &Rect);
-	//geCamera_SetAttributes(EngineCamera, 2.0, &theCameraRect);
+	geCamera_SetAttributes(EngineCamera, FOV, &Rect);
 	
 	return RGF_SUCCESS;
 }
@@ -483,21 +850,17 @@ void CCameraManager::CameraRotX(bool direction)
 	}
 }
 
-void CCameraManager::CameraRotY(bool direction)
+void CCameraManager::CameraRotY(bool direction, float Speed)
 {
 	if((TrackingFlags & kCameraTrackFree) != 0)
 	{
 		if(direction)
 		{
-			m_cameraY+=5.0f;
-			if(m_cameraY>=360.0f)
-				m_cameraY = 0.0f;
+			m_cameraY+=Speed;
 		}
 		else
 		{
-			m_cameraY-=5.0f;
-			if(m_cameraY<0.0f)
-				m_cameraY = 360.0f-m_cameraY;
+			m_cameraY-=Speed;
 		}
 	}
 }
@@ -510,24 +873,27 @@ void CCameraManager::ResetCamera()
 	Rotation.X = m_oldrotationx;
 }
 
-void CCameraManager::ChangeDistance(bool direction)
+void CCameraManager::ChangeDistance(bool direction, float Speed)
 {
 	if((TrackingFlags & kCameraTrackFree) != 0)
 	{
-		if(m_defaultdistance>m_currentdistance)
-			m_defaultdistance = m_currentdistance;
-		
-		if(direction)
+		if(playerzoom)
 		{
-			m_defaultdistance+=5.0f;
-			if(m_defaultdistance>(CameraOffsetTranslation.Z * 2.0f))
-				m_defaultdistance = CameraOffsetTranslation.Z * 2.0f;
-		}
-		else
-		{
-			m_defaultdistance-=5.0f;
-			if(m_defaultdistance<5.0f)
-				m_defaultdistance = 5.0f;
+			if(m_defaultdistance>m_currentdistance)
+				m_defaultdistance = m_currentdistance;
+			
+			if(direction)
+			{
+				m_defaultdistance+=Speed;
+				if(m_defaultdistance>playermaxdistance)
+					m_defaultdistance = playermaxdistance;
+			}
+			else
+			{
+				m_defaultdistance-=Speed;
+				if(m_defaultdistance<playermindistance)
+					m_defaultdistance = playermindistance;
+			}
 		}
 	}
 }
@@ -633,6 +999,7 @@ void CCameraManager::DoIsoTracking()
 {
 	geXForm3d theViewPoint;
 	geVec3d Pos;
+	GE_Collision Collision;
 	geVec3d Front, Back;
 	geVec3d Direction;
 	geFloat CurrentDistance;
@@ -661,9 +1028,39 @@ void CCameraManager::DoIsoTracking()
 	geXForm3d_GetIn(&theViewPoint, &Direction);
 	geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
 	geVec3d_AddScaled (&Pos, &Direction, 0.0f, &Front);
-	
-	CurrentDistance = m_defaultdistance*ActorScale;
+
+	if(IsoCollFlag)
+	{
+		if(geWorld_Collision(CCD->World(), &CameraExtBox.Min, &CameraExtBox.Max, &Front, 
+		&Back, GE_VISIBLE_CONTENTS, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
+		{
+			CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
+			if(CurrentDistance < 0.0f)
+				CurrentDistance = 0.0f;
+			if(CurrentDistance > (m_defaultdistance*ActorScale))
+				CurrentDistance = m_defaultdistance*ActorScale;
+			geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
+		}
+	}
+
 	m_currentdistance = CurrentDistance/ActorScale;
+
+	if(IsoCollFlag)
+	{
+		geFloat fAlpha = 255.0f;
+	
+		if(CurrentDistance < (40.0f*ActorScale))
+		{
+			fAlpha = (10.0f*((CurrentDistance-((geFloat)fabs(ActorExtBox.Min.Z)+1.0f))/ActorScale))+30.0f;
+			if(fAlpha < (15.0f*ActorScale))
+				fAlpha = 0.0f;
+			if(fAlpha > 255.0f)
+				fAlpha = 255.0f;
+		}
+	
+		CCD->ActorManager()->SetAlpha(theActor, fAlpha);			// Adjust actor alpha
+	
+	}
 
 	geVec3d_Subtract( &Pos, &Back, &Orient );
 	
@@ -680,7 +1077,7 @@ void CCameraManager::DoIsoTracking()
 	
 	Rotation = Orient;										// Set camera orientation
 	Translation = Back;										// Set camera translation
-	
+
 	return;
 }
 

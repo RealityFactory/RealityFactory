@@ -1,7 +1,7 @@
 /*
-CVideoTexture.cpp:		Automatic door handler
+CVideoTexture.cpp:		
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the CVideoTexture
 	class that encapsulates video texture replacement handling in the RGF.
@@ -24,7 +24,10 @@ CVideoTexture::CVideoTexture()
 	m_TextureCount = 0;					// No video textures
 	
 	for(int nTemp = 0; nTemp < 40; nTemp++)
+	{
 		m_VidList[nTemp] = NULL;	// Nothing doing right now
+		m_GifList[nTemp] = NULL;
+	}
 	
 	//	Ok, check to see if there are video textures in this world
 	
@@ -47,23 +50,40 @@ CVideoTexture::CVideoTexture()
 		// ..we're going to initialize it and get the first frame
 		// ..loaded.  This prevents a short (but noticable!) delay from
 		// ..happening if we need to initialize the texture later.
-		if((m_VidList[m_TextureCount-1] = new CAVIPlayer()) == NULL)
+		CString File = pTex->szVideoName;
+		File.MakeLower();
+		int i = File.Find(".gif");
+		if(i>=0 && i<File.GetLength())
 		{
-			CCD->ReportError("Can't create new CAVIPlayer", false);
-			continue;
+			pTex->Gif = true;
+			if((m_GifList[m_TextureCount-1] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
+			{
+				CCD->ReportError("Can't create new CAnimGif", false);
+				continue;
+			}
+			m_GifList[m_TextureCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
 		}
-		if(m_VidList[m_TextureCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
+		else
 		{
-			char szBug[256];
-			sprintf(szBug,"Can't open video texture '%s'", pTex->szVideoName);
-			CCD->ReportError(szBug, false);
-			delete m_VidList[m_TextureCount-1];
-			m_VidList[m_TextureCount-1] = NULL;
-			continue;
+			pTex->Gif = false;
+			if((m_VidList[m_TextureCount-1] = new CAVIPlayer()) == NULL)
+			{
+				CCD->ReportError("Can't create new CAVIPlayer", false);
+				continue;
+			}
+			if(m_VidList[m_TextureCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
+			{
+				char szBug[256];
+				sprintf(szBug,"Can't open video texture '%s'", pTex->szVideoName);
+				CCD->ReportError(szBug, false);
+				delete m_VidList[m_TextureCount-1];
+				m_VidList[m_TextureCount-1] = NULL;
+				continue;
+			}
+			// Ok, the thing's open, initialize it
+			m_VidList[m_TextureCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
+			// Initialize texture playback
 		}
-		// Ok, the thing's open, initialize it
-		m_VidList[m_TextureCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
-		// Initialize texture playback
 	}
 	
 	//	Ok, we've counted the texture replacers and reset 'em all to their 
@@ -85,6 +105,11 @@ CVideoTexture::~CVideoTexture()
 			m_VidList[nTemp]->Close();
 			delete m_VidList[nTemp];
 			m_VidList[nTemp] = NULL;
+		}
+		if(m_GifList[nTemp] != NULL)
+		{
+			delete m_GifList[nTemp];
+			m_GifList[nTemp] = NULL;
 		}
 	}
 	
@@ -120,8 +145,13 @@ void CVideoTexture::Tick(geFloat dwTicks)
 		VideoTextureReplacer *pTex = (VideoTextureReplacer*)geEntity_GetUserData(pEntity);
 		if(pTex->Radius == 0.0 || (pTex->OnlyPlayInRadius == GE_FALSE))
 		{
-			// Play next frame of running video texture
-			m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);
+			if(!pTex->Gif)
+				// Play next frame of running video texture
+				m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);
+			else
+			{
+				m_GifList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);
+			}
 		}
 		else
 		{
@@ -136,29 +166,47 @@ void CVideoTexture::Tick(geFloat dwTicks)
 			pTex->Playing = GE_TRUE;			// Playback triggered
 			// Ok, we're in range!  If we don't have the video allocated,
 			// ..do so now.
-			if(m_VidList[nSlot] == NULL)
+			if(!pTex->Gif)
 			{
-				// Set up for texture playback
-				if((m_VidList[nSlot] = new CAVIPlayer()) == NULL)
+				if(m_VidList[nSlot] == NULL)
 				{
-					CCD->ReportError("vidtex start: can't make new CAVIPlayer", false);
-					return;
+					// Set up for texture playback
+					if((m_VidList[nSlot] = new CAVIPlayer()) == NULL)
+					{
+						CCD->ReportError("vidtex start: can't make new CAVIPlayer", false);
+						return;
+					}
+					if(m_VidList[nSlot]->Open(pTex->szVideoName) != RGF_SUCCESS)
+					{
+						char szBug[256];
+						sprintf(szBug,"Can't open range texture '%s'", pTex->szVideoName);
+						CCD->ReportError(szBug, false);
+						return;
+					}
+					// Feh, after all that, let's do something REAL!
+					m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, true);		// First frame out!
+					nSlot++;
+					continue;					// Next victim
 				}
-				if(m_VidList[nSlot]->Open(pTex->szVideoName) != RGF_SUCCESS)
-				{
-					char szBug[256];
-					sprintf(szBug,"Can't open range texture '%s'", pTex->szVideoName);
-					CCD->ReportError(szBug, false);
-					return;
-				}
-				// Feh, after all that, let's do something REAL!
-				m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, true);		// First frame out!
-				nSlot++;
-				continue;					// Next victim
+				// Ok, we're in range and this isn't the first frame,
+				// ..play the next frame
+				m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);		// Next frame out!
 			}
-			// Ok, we're in range and this isn't the first frame,
-			// ..play the next frame
-			m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);		// Next frame out!
+			else
+			{
+				if(m_GifList[nSlot] == NULL)
+				{
+					if((m_GifList[nSlot] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
+					{
+						CCD->ReportError("Can't create new CAnimGif", false);
+						return;
+					}
+					m_GifList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, true);	
+					nSlot++;
+					continue;
+				}
+				m_GifList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, false);
+			}
 		}
 		nSlot++;
 	}

@@ -1,22 +1,13 @@
 /*
 		StreamingAudio.h:	Streaming audio encapsulation class
 
-		Authored		10/07/1998	Edward A. Averill, III
-		Updated			10/07/1998	Edward A. Averill, III
-
-		Ported over to Rabid Game Framework 11/08/1999
-
-		(c) 1998 Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 * PURPOSE *
 
 		This file contains the class definitions for audio streaming
 functionality, based on the SoundServices functionality.
 
-* MODIFICATION HISTORY *
-
-	11/08/1999	  eaa3	Ported class to RGF
-	10/07/1998		eaa3	First cut.
 */
 
 //	* Local defines, constants
@@ -63,6 +54,8 @@ private:
 	bool m_fEOF;															// At end of WAVE file
 	int m_nOffset;
 	bool m_bLoops;														// Loop this WAVE or not?
+	bool mp3;
+	CMp3Manager *Mpeg3;
 };
 
 //	=========================================================================

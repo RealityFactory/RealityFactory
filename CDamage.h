@@ -1,7 +1,7 @@
 /*
 	CDamage.h:		Damage class handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class declaration for damage
@@ -17,10 +17,14 @@ public:
   CDamage();
   ~CDamage();
   void Tick(float dwTicks);
-  void DamageActor(geActor *Actor, float amount, char *Attr);
-  void DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr);
-  void DamageModel(geWorld_Model *Model, float amount, char *Attr);
-  void DamageModelInRange(geVec3d Point, geFloat Range, float amount, char *Attr);
+// changed RF063
+  int SaveTo(FILE *SaveFD);
+  int RestoreFrom(FILE *RestoreFD);
+  void DamageActor(geActor *Actor, float amount, char *Attr, float Altamount, char *AltAttr);
+  void DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr);
+  void DamageModel(geWorld_Model *Model, float amount, char *Attr, float Altamount, char *AltAttr);
+  void DamageModelInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr);
+// end change RF063
   bool IsDestroyable(geWorld_Model *Model, int *Percentage);
   int ReSynchronize();
   int LocateEntity(char *szName, void **pEntityData);

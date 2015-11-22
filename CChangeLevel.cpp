@@ -1,7 +1,7 @@
 /*
 	CChangeLevel.h:		Changelevel class handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class declaration for ChangeLevel
@@ -65,6 +65,16 @@ void CChangeLevel::Tick(float dwTicks)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+// change RF063
+		if(!EffectC_IsStringNull(pItem->TriggerChange))
+		{
+			if(GetTriggerState(pItem->TriggerChange))
+			{
+				CCD->SetChangeLevelData(pItem);
+				return;
+			}
+		}
+// end change RF063
 		if(pItem->CallBack==GE_TRUE)
 		{
 			pItem->CallBackCount-=1;
@@ -74,7 +84,7 @@ void CChangeLevel::Tick(float dwTicks)
 	}
 }
 
-bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel)
+bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -95,6 +105,9 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel)
 		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
 		if(pItem->Model == theModel)
 		{
+			if(UseKey && !pItem->UseKey)
+				return false;
+
 			if(!EffectC_IsStringNull(pItem->Trigger))
 			{
 				if(!GetTriggerState(pItem->Trigger))

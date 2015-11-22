@@ -30,6 +30,12 @@ typedef struct DelayExp
 	geVec3d Position;
 	geVec3d Offset;
 	float Delay;
+	bool Attached;
+// changed RF063
+	geActor *Actor;
+	char Bone[64];
+	int index;
+// end change RF063
 } DelayExp;
 
 class CExplosionInit : public CRGFComponent
@@ -37,7 +43,7 @@ class CExplosionInit : public CRGFComponent
 public:
   CExplosionInit();
   ~CExplosionInit();	
-  void AddExplosion(char *Name, geVec3d Position);
+  void AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone);
   void Tick(geFloat dwTicks);
 private:
 	preExplosion Explosions[MAXEXP];

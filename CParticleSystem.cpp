@@ -1,7 +1,7 @@
 /*
 	CParticleSystem.cpp:	Particle Systems Handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class implementation for the RGF particle 
 system handler.

@@ -2,7 +2,7 @@
 ActorManager.h:		Actor Manager
 
   This file contains the class declaration of the Actor Manager
-  system for the Rabid Game Framework.
+  system for the Reality factory.
   
 	It's the Actor Manager's job to load, remove, translate,
 	rotate, and scale all the actors in the system.  The Actor Manager
@@ -31,11 +31,13 @@ struct ActorInstanceList
 	geVec3d localRotation;				// Actor rotation
 	geVec3d BaseRotation;					// Actor baseline rotation
 	geFloat AnimationTime;				// Time in current animation
+	geFloat PrevAnimationTime;
+	geMotion *pMotion;
+	geMotion *pBMotion;
 	bool AllowTilt;					// allow actor to tilt up/down
 	geFloat TiltX;
 	bool BoxChange;					// allow BB to change
 	bool NoCollision;				// allow no collision detection
-	bool Blend;						// do motion blending
 	geFloat ActorAnimationSpeed;	// Speed of actor animation
 	geFloat Scale;								// Actors current scale
 	geFloat Health;								// Actors health, 0 = destroyed
@@ -46,15 +48,26 @@ struct ActorInstanceList
 	geFloat ForceLevel[4];				// Current level force is acting at
 	geFloat ForceDecay[4];				// Decay speed of force, in units/second
 	geVec3d PositionHistory[128];	// Actors position history
+// changed RF063
+	float ShadowSize;
+	bool Moving;
+	int CurrentZone;
+	int OldZone;
+	int GravityCoeff;
+	Liquid *LQ;
+// end change RF063
 	char szMotionName[128];				// Name of current motion
 	char szNextMotionName[128];		// Name of next motion in queue
 	char szDefaultMotionName[128];	// Default motion for this actor
-	char szBlendMotionName1[128];
-	char szBlendMotionName2[128];
-	char szBlendMotionName3[128];
-	char szBlendMotionName4[128];
+	char szBlendMotionName[128];
+	float BlendAmount;
+	bool BlendFlag;
+	char szBlendNextMotionName[128];
+	float BlendNextAmount;
+	bool BlendNextFlag;
 	int CollDetLevel;
 	bool HoldAtEnd;
+	bool slide;
 	bool fAutoStepUp;							// Actor auto step up flag
 	geFloat MaxStepHeight;				// Actors max step height, in world units
 	geActor *Vehicle;							// If riding on anything
@@ -104,6 +117,7 @@ public:
 	int TurnLeft(geActor *theActor, geFloat theAmount);	// Turn actor LEFT
 	int TurnRight(geActor *theActor, geFloat theAmount);	// Turn actor RIGHT
 	int ReallyFall(geActor *theActor);
+	int CheckReallyFall(geActor *theActor, geVec3d StartPos);
 	int UpVector(geActor *theActor, geVec3d *UpVector);		// Get UP vector
 	int InVector(geActor *theActor, geVec3d *InVector);		// Get IN vector
 	int LeftVector(geActor *theActor, geVec3d *LeftVector);	// Get LEFT vector
@@ -124,16 +138,25 @@ public:
 	int SetDefaultMotion(geActor *theActor, char *MotionName);	// Set default motion
 	int ClearMotionToDefault(geActor *theActor);		// Force motion to default motion
 	//	Actor lighting control, Oh Joy.
-	int EnableActorDynamicLighting(geActor *theActor, bool fEnable);
+	int SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor, GE_RGBA AmbientColor);
 	//	It's possible to add a FORCE to an actor.  This FORCE (seperate from gravity)
 	//	..effects an actors translation over time.
 	int SetForce(geActor *theActor, int nForceNumber, geVec3d fVector, geFloat InitialValue, geFloat Decay);
+// changed RF063
+	int GetForce(geActor *theActor, int nForceNumber, geVec3d *ForceVector, geFloat *ForceLevel, geFloat *ForceDecay);
+	int SetBlendMot(geActor *theActor, char *name1, char *name2, float Amount);
+	void SetMoving(geActor *theActor);
+	bool GetMoving(geActor *theActor);
+	int GetStepHeight(geActor *theActor, geFloat *fMaxStep);
+	int GetActorOldZone(geActor *theActor, int *ZoneType);
+	Liquid *GetLiquid(geActor *theActor);
+// end change RF063
 	int RemoveForce(geActor *theActor, int nForceNumber);
 	geBoolean ForceActive(geActor *theActor, int nForceNumber);
 	int SetColDetLevel(geActor *theActor, int ColDetLevel);
 	int GetColDetLevel(geActor *theActor, int *ColDetLevel);
-	int SetBlend(geActor *theActor, bool flag);
-	int SetBlendMotion(geActor *theActor, char *name1, char *name2, char *name3, char *name4);
+	int SetBlendMotion(geActor *theActor, char *name1, char *name2, float Amount);
+	int SetBlendNextMotion(geActor *theActor, char *name1, char *name2, float Amount);
 	//	Important note: to set the BASELINE for scale, etc.for all actors
 	//	..of a specific type use nHandle = (-1).
 	int SetScale(geActor *theActor, geFloat fScale);				// Scale actor
@@ -142,7 +165,7 @@ public:
 	int SetAlpha(geActor *theActor, geFloat fAlpha);		// Set actor alpha
 	int GetAlpha(geActor *theActor, geFloat *fAlpha);		// Get actor alpha
 	int GetBoundingBox(geActor *theActor, geExtBox *theBox);	// Get current BBox
-	void SetBBox(geActor *theActor, float Size);
+	void SetBBox(geActor *theActor, float SizeX, float SizeY, float SizeZ);
 	geBoolean DoesBoxHitActor(geVec3d thePoint, geExtBox theBox, 
 		geActor **theActor);					// Actor-actor collision check
 	geBoolean DoesBoxHitActor(geVec3d thePoint, geExtBox theBox, 
@@ -175,6 +198,8 @@ public:
 	int SetTilt(geActor *theActor, bool Flag);
 	int TiltUp(geActor *theActor, geFloat theAmount);
 	int TiltDown(geActor *theActor, geFloat theAmount);
+	float GetTiltX(geActor *theActor);
+	int SetSlide(geActor *theActor, bool Flag);
 	int CheckAnimation(geActor *theActor, char *Animation);
 	int SetBoxChange(geActor *theActor, bool Flag);
 	void SetBoundingBox(geActor *theActor, char *Animation);
@@ -184,6 +209,11 @@ public:
 	int CountActors();
 	void SetHoldAtEnd(geActor *theActor, bool State);
 	bool EndAnimation(geActor *theActor);
+	int SetShadow(geActor *theActor, geFloat fSize);
+	float GetAnimationTime(geActor *theActor);
+	geMotion *GetpMotion(geActor *theActor);
+	geMotion *GetpBMotion(geActor *theActor);
+	float GetBlendAmount(geActor *theActor);
 private:
 	//	Private member functions
 	void RemoveAllActors(LoadedActorList *theEntry);

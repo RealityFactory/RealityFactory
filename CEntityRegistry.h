@@ -1,7 +1,7 @@
 /*
 	CEntityRegistry.h:		Entity name and type registry
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the Entity Registry.
 The Entity Registry is used to maintain a list of entity names and

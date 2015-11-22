@@ -1,7 +1,7 @@
 /*
 CGenesisEngine.h:		Genesis3D engine encapsulation
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class declaration for the Genesis3D
 	engine wrapper.  This wrapper hides many of the gory details
@@ -148,6 +148,8 @@ private:
 	GE_RGBA FogColor;							// Color for distance fog
 	geFloat fFogStart, fFogEnd;			// Fog start, end distances
 	geFloat FarClipPlaneDistance;		// Distance to far clip plane
+// changed RF063
+	bool Voodoo;
 };
 
 #endif

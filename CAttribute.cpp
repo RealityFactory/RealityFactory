@@ -1,7 +1,7 @@
 /*
 CAttribute.cpp:		Attribute class implementation
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   All Rights Reserved
   
 	This file contains the class declaration for Attribute
@@ -79,6 +79,25 @@ CAttribute::CAttribute()
 				SPool_Sound(pSource->szReSpawnSound);
 		}
 	}
+
+// changed RF063
+
+	// ModifyAttribute
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "ModifyAttribute");
+	
+	if(pSet) 
+	{
+		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		
+		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+		{
+			ModifyAttribute *pSource = (ModifyAttribute*)geEntity_GetUserData(pEntity);
+			pSource->active = false;
+		}
+	}
+// end change RF063
 }
 
 CAttribute::~CAttribute()
@@ -176,6 +195,8 @@ void CAttribute::Tick(float dwTicks)
 						CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 						if(pSource->Gravity)
 							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+						CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
 						pSource->active=GE_TRUE;
 						pSource->bState = GE_TRUE;
 					}
@@ -202,12 +223,51 @@ void CAttribute::Tick(float dwTicks)
 					CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 					if(pSource->Gravity)
 						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+					CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
 					pSource->active=GE_TRUE;
 					pSource->bState = GE_TRUE;
 				}
 			}
 		}
 	}
+
+// changed RF063
+
+	// ModifyAttribute
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "ModifyAttribute");
+	
+	if(pSet) 
+	{
+		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		
+		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+		{
+			ModifyAttribute *pSource = (ModifyAttribute*)geEntity_GetUserData(pEntity);
+			if(!EffectC_IsStringNull(pSource->TriggerName))
+			{
+				if(GetTriggerState(pSource->TriggerName))
+				{
+					if(pSource->active==GE_FALSE)
+					{
+						CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+						if(theInv->Has(pSource->Attribute))
+						{
+							theInv->Modify(pSource->Attribute, pSource->Amount);
+							pSource->active = true;
+						}
+					}
+				}
+				else
+				{
+					pSource->active = false;
+				}
+			}
+		}
+	}
+// end change RF063
 }
 
 
@@ -231,45 +291,138 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor)
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
 		if(pSource->Actor != pActor)
 			continue;	  // Not this one, keep looking
+// changed RF063
+		if(pSource->PlayerOnly && theTarget!=CCD->Player()->GetActor())
+			return false;
+// end change RF063
 		if(pSource->active == GE_FALSE)
 			continue;
-		
-		CCD->ActorManager()->RemoveActor(pSource->Actor);
-		geActor_Destroy(&pSource->Actor);
-		
-		pSource->active=GE_FALSE;
-		pSource->bState = GE_FALSE;
-		pSource->alive=GE_FALSE;
-		pSource->Tick=0.0f;
-		
+// changed RF063		
+		bool flag = false;
+
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theTarget);
-		if(theInv->Value(pSource->AttributeName)<theInv->High(pSource->AttributeName))
-			theInv->Modify(pSource->AttributeName, pSource->AttributeAmount);
-		else
+		if(!EffectC_IsStringNull(pSource->AttributeName))
+		{
+			if(theInv->Has(pSource->AttributeName))
+			{
+				if(theInv->Value(pSource->AttributeName)<theInv->High(pSource->AttributeName)
+					|| pSource->AttributeAmount<0)
+				{
+					theInv->Modify(pSource->AttributeName, pSource->AttributeAmount);
+					flag = true;
+				}
+			}
+		}
+		if(!flag)
 		{
 			if(!EffectC_IsStringNull(pSource->AttributeAltName))
 			{
-				if(theInv->Value(pSource->AttributeAltName)<theInv->High(pSource->AttributeAltName))
-					theInv->Modify(pSource->AttributeAltName, pSource->AttributeAltAmount);
+				if(theInv->Has(pSource->AttributeAltName))
+				{
+					if(theInv->Value(pSource->AttributeAltName)<theInv->High(pSource->AttributeAltName)
+						|| pSource->AttributeAltAmount<0)
+					{
+						theInv->Modify(pSource->AttributeAltName, pSource->AttributeAltAmount);
+						flag = true;
+					}
+				}
 			}
 		}
-		pSource->CallBack = GE_TRUE;
-		pSource->CallBackCount = 2;
-		if(!EffectC_IsStringNull(pSource->szSoundFile))
+
+		if(flag)
 		{
-			Snd 	Sound;
-			memset( &Sound, 0, sizeof( Sound ) );
-			geVec3d_Copy( &(pSource->origin), &( Sound.Pos ) );
-			Sound.Min=kAudibleRadius;
-			Sound.Loop=GE_FALSE;
-			Sound.SoundDef=SPool_Sound(pSource->szSoundFile);
-			if(Sound.SoundDef!=NULL)
-				CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
-		} 
-		return true;
+			CCD->ActorManager()->RemoveActor(pSource->Actor);
+			geActor_Destroy(&pSource->Actor);
+			
+			pSource->active=GE_FALSE;
+			pSource->bState = GE_FALSE;
+			pSource->alive=GE_FALSE;
+			pSource->Tick=0.0f;
+			pSource->CallBack = GE_TRUE;
+			pSource->CallBackCount = 2;
+			if(!EffectC_IsStringNull(pSource->szSoundFile))
+			{
+				Snd 	Sound;
+				memset( &Sound, 0, sizeof( Sound ) );
+				geVec3d_Copy( &(pSource->origin), &( Sound.Pos ) );
+				Sound.Min=kAudibleRadius;
+				Sound.Loop=GE_FALSE;
+				Sound.SoundDef=SPool_Sound(pSource->szSoundFile);
+				if(Sound.SoundDef!=NULL)
+					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+			} 
+			return true;
+		}
+// end change RF063
 	}
 	return false;
 }
+
+// changed RF063
+//	SaveTo
+//
+//	Save Attributes to a supplied file
+
+int CAttribute::SaveTo(FILE *SaveFD)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+	//	Ok, check to see if there are Attributes in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;									// No fields
+	
+	//	Ok, we have Attributes somewhere.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+		fwrite(&pSource->alive, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pSource->Tick, sizeof(geFloat), 1, SaveFD);
+		fwrite(&pSource->CallBack, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pSource->CallBackCount, sizeof(int), 1, SaveFD);
+		fwrite(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
+	}
+	
+	return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore Attributes from a supplied file
+
+int CAttribute::RestoreFrom(FILE *RestoreFD)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+	//	Ok, check to see if there are Attributes in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;	
+	
+	//	Ok, we have Attributes somewhere.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+		fread(&pSource->alive, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pSource->Tick, sizeof(geFloat), 1, RestoreFD);
+		fread(&pSource->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pSource->CallBackCount, sizeof(int), 1, RestoreFD);
+		fread(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
+	}
+	
+	return RGF_SUCCESS;
+}
+// end change RF063
 
 //	******************** CRGF Overrides ********************
 

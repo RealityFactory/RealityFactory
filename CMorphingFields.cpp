@@ -1,7 +1,7 @@
 /*
 CMorphingFields.cpp:		Morphing Fields class handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   All Rights Reserved
   
 	This file contains the class implementation for morphing fields

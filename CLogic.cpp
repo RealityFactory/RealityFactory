@@ -1,7 +1,7 @@
 /*
 	CLogic.cpp:		Logic Gate class implementation
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class implementation for Logic Gate
@@ -178,7 +178,8 @@ void CLogic::Tick(float dwTicks)
 				pSource->bState = false;
 				if(theInv->Has(pSource->Trigger1Name))
 				{
-					if(theInv->Value(pSource->Trigger1Name)>0)
+// changed RF063
+					if(theInv->Value(pSource->Trigger1Name)>pSource->Amount)
 						pSource->bState = true;
 				}
 				break;
@@ -187,9 +188,40 @@ void CLogic::Tick(float dwTicks)
 				if(pSource->bState || state)
 					pSource->bState = true;
 				break;
+// changed RF063
+			case 10: // Use attribute
+				pSource->bState = false;
+				if(!EffectC_IsStringNull(CCD->Player()->GetUseAttribute()))
+				{
+					if(!strcmp(CCD->Player()->GetUseAttribute(), pSource->Trigger1Name))
+					{
+						pSource->bState = true;
+					}
+				}
+				break;
+			case 11: // Clear Use Attribute
+				state = GetLTriggerState(pSource->Trigger1Name);
+				if(state)
+				{
+					if(!pSource->OldState)
+					{
+						if(!strcmp(CCD->Player()->GetUseAttribute(), pSource->Trigger2Name))
+						{
+							if(!EffectC_IsStringNull(CCD->Player()->GetUseAttribute()))
+								CCD->HUD()->ActivateElement(CCD->Player()->GetUseAttribute(), false);
+							CCD->Player()->SetUseAttribute(" ");
+						}
+						pSource->OldState = true;
+					}
+				}
+				else
+					pSource->OldState = false;
+				break;
+// end change RF063
 		}
 
 	}
+
 	LState *pool, *temp;
 	pool = Bottom;
 	while	(pool!= NULL)

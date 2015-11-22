@@ -1,7 +1,7 @@
 /*
 	CVideoTexture.h:		Video surface texture handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the CVideoTexture
 class that encapsulates video surface texture handling in the RGF.
@@ -23,6 +23,7 @@ public:
 private:
   int m_TextureCount;				// Count of doors in world
 	CAVIPlayer *m_VidList[40];	// Up to 40 concurrent video textures
+	CAnimGif *m_GifList[40];
 };
 
 #endif

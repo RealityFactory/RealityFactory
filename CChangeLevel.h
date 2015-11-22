@@ -1,7 +1,7 @@
 /*
 	CChangeLevel.h:		Changelevel class handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class declaration for ChangeLevel
@@ -17,7 +17,7 @@ public:
   CChangeLevel();
   ~CChangeLevel();
   void Tick(float dwTicks);
-  bool CheckChangeLevel(geWorld_Model *theModel);
+  bool CheckChangeLevel(geWorld_Model *theModel, bool UseKey);
   int LocateEntity(char *szName, void **pEntityData);
 };
 

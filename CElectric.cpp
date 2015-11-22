@@ -450,6 +450,12 @@ CElectric::CElectric()
     		continue;
 		}
 		Electric_BoltEffectSetColorInfo(pBolt->Bolt, &pBolt->Color, pBolt->DominantColor);
+		pBolt->bState = false;
+		pBolt->DoingDamage = false;
+// changed RF063
+		if(!EffectC_IsStringNull(pBolt->SoundFile))
+			SPool_Sound(pBolt->SoundFile); 
+// end change RF063
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
@@ -471,6 +477,13 @@ CElectric::CElectric()
 		}
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pTerminus->szEntityName, "ElectricBoltTerminus");
+		pTerminus->OriginOffset = pTerminus->origin;
+		if(pTerminus->Model)
+		{
+			geVec3d ModelOrigin;
+	    	geWorld_GetModelRotationalCenter(CCD->World(), pTerminus->Model, &ModelOrigin);
+			geVec3d_Subtract(&pTerminus->origin, &ModelOrigin, &pTerminus->OriginOffset);
+  		}
 	}
 	return;
 }
@@ -585,6 +598,12 @@ geBoolean CElectric::Tick(float dwTicks)
 		int32			Leaf;
 
 		Bolt = (ElectricBolt *)geEntity_GetUserData(Entity);
+		if(Bolt->DoingDamage)
+		{
+			Bolt->DTime += dwTicks*0.001f;
+			if(Bolt->DTime>=Bolt->DamageTime)
+				Bolt->DoingDamage = false;
+		}
 		if(!EffectC_IsStringNull(Bolt->TriggerName))
 		{
 			if(GetTriggerState(Bolt->TriggerName))
@@ -623,34 +642,35 @@ geBoolean CElectric::Tick(float dwTicks)
 			geVec3d_AddScaled(&Bolt->origin, &MidPoint, 0.5f, &MidPoint);
 
 			geWorld_GetLeaf(CCD->World(), &MidPoint, &Leaf);
-		
-			if (geWorld_MightSeeLeaf(CCD->World(), Leaf) == GE_TRUE)
+			
+			Bolt->LastTime += dwTicks;
+			
+			if	((Bolt->Intermittent == GE_FALSE) ||
+				(Bolt->LastTime - Bolt->LastBoltTime > frand(Bolt->MaxFrequency, Bolt->MinFrequency)))
 			{
-				Bolt->LastTime += dwTicks;
-
-				if	((Bolt->Intermittent == GE_FALSE) ||
-					(Bolt->LastTime - Bolt->LastBoltTime > frand(Bolt->MaxFrequency, Bolt->MinFrequency)))
-				{
-					Electric_BoltEffectAnimate(Bolt->Bolt,
-						   &Bolt->origin,
-						   &Bolt->Terminus->origin);
-
-					if	(Bolt->Intermittent)
-						Create(Bolt->origin, Bolt);
-
-					Bolt->LastBoltTime = Bolt->LastTime;
-				}
-
-				if	((Bolt->Intermittent == GE_FALSE))
-				{
-					Snd Sound;
-					geVec3d_Copy( &(MidPoint), &(Sound.Pos) );
-					if(Bolt->effect[0]!=-1)
-      					CCD->EffectManager()->Item_Modify(EFF_SND, Bolt->effect[0], (void *)&Sound, SND_POS);
-				} 
-
-				if	(Bolt->LastTime - Bolt->LastBoltTime <= LIGHTNINGSTROKEDURATION)
+				Electric_BoltEffectAnimate(Bolt->Bolt,
+					&Bolt->origin,
+					&Bolt->Terminus->origin);
+				
+				if	(Bolt->Intermittent)
+					Create(Bolt->origin, Bolt);
+				
+				Bolt->LastBoltTime = Bolt->LastTime;
+			}
+			
+			if	((Bolt->Intermittent == GE_FALSE))
+			{
+				Snd Sound;
+				geVec3d_Copy( &(MidPoint), &(Sound.Pos) );
+				if(Bolt->effect[0]!=-1)
+					CCD->EffectManager()->Item_Modify(EFF_SND, Bolt->effect[0], (void *)&Sound, SND_POS);
+			} 
+			
+			if	(Bolt->LastTime - Bolt->LastBoltTime <= LIGHTNINGSTROKEDURATION)
+			{
+				if (geWorld_MightSeeLeaf(CCD->World(), Leaf) == GE_TRUE)
 					Electric_BoltEffectRender(Bolt->Bolt, &XForm);
+				CheckCollision(Bolt);
 			}
 		}
 
@@ -658,6 +678,43 @@ geBoolean CElectric::Tick(float dwTicks)
 	}
 
 	return GE_TRUE;
+}
+
+void CElectric::CheckCollision(ElectricBolt *Bolt)
+{
+	GE_Collision	Collision;
+	Electric_BoltEffect *be = Bolt->Bolt;
+
+	Bolt->bState = false;
+	for	(int i = 0; i < be->beNumPoints - 1; i++)
+	{
+		if(CCD->Collision()->CheckForWCollision(NULL, NULL,
+							be->beCenterPoints[i], be->beCenterPoints[i + 1], &Collision, NULL))
+		{
+			int percent;
+			if(!CCD->Damage()->IsDestroyable(Collision.Model, &percent))
+				Collision.Model = NULL;
+			if(Collision.Actor || Collision.Model)
+			{
+				Bolt->bState = true;
+				if(Bolt->DoDamage)
+				{
+					if(!Bolt->DoingDamage)
+					{
+						Bolt->DoingDamage = true;
+						Bolt->DTime = 0.0f;
+// change RF063
+						if(Collision.Actor)
+							CCD->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
+						if(Collision.Model)
+							CCD->Damage()->DamageModel(Collision.Model, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
+// end change RF063
+						return;
+					}
+				}
+			}
+		}
+	}
 }
 
 //	******************** CRGF Overrides ********************

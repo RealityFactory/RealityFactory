@@ -1,7 +1,7 @@
 /*
 	CInput.cpp:		Keyboard and mouse input handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class implementation for the CInput
 class that encapsulates all mouse and keyboard input for
@@ -46,7 +46,7 @@ void CInput::Default()
 	m_WindowKeys[KEY_9] = 0x39;				m_RGFKeys[KEY_9] = RGF_K_WEAPON_9;
 	m_WindowKeys[KEY_0] = 0x30;				m_RGFKeys[KEY_0] = RGF_K_WEAPON_0;
 	m_WindowKeys[KEY_MINUS] = VK_SUBTRACT;	m_RGFKeys[KEY_MINUS] = RGF_K_ZOOM_IN;
-	m_WindowKeys[KEY_BACK] = VK_BACK;
+	m_WindowKeys[KEY_BACK] = VK_BACK;		m_RGFKeys[KEY_BACK] = RGF_K_ZOOM_WEAPON;
 	m_WindowKeys[KEY_TAB] = VK_TAB;			m_RGFKeys[KEY_TAB] = RGF_K_HUD;
 	m_WindowKeys[KEY_Q] = 0x51;
 	m_WindowKeys[KEY_W] = 0x57;
@@ -54,20 +54,22 @@ void CInput::Default()
 	m_WindowKeys[KEY_R] = 0x52;
 	m_WindowKeys[KEY_T] = 0x54;
 	m_WindowKeys[KEY_Y] = 0x59;
-	m_WindowKeys[KEY_U] = 0x55;
-	m_WindowKeys[KEY_I] = 0x49;
+// changed RF063
+	m_WindowKeys[KEY_U] = 0x55;				m_RGFKeys[KEY_U] = RGF_K_USE;
+	m_WindowKeys[KEY_I] = 0x49;				m_RGFKeys[KEY_I] = RGF_K_INVENTORY;
+// end change RF063
 	m_WindowKeys[KEY_O] = 0x4f;
 	m_WindowKeys[KEY_P] = 0x50;
-	m_WindowKeys[KEY_RETURN] = VK_RETURN;
+	m_WindowKeys[KEY_RETURN] = VK_RETURN;	
 	m_WindowKeys[KEY_A] = 0x41;				m_RGFKeys[KEY_A] = RGF_K_CROUCH;
 	m_WindowKeys[KEY_S] = 0x53;				m_RGFKeys[KEY_S] = RGF_K_FORWARD;
 	m_WindowKeys[KEY_D] = 0x44;				m_RGFKeys[KEY_D] = RGF_K_JUMP;
 	m_WindowKeys[KEY_F] = 0x46;
 	m_WindowKeys[KEY_G] = 0x47;
-	m_WindowKeys[KEY_H] = 0x48;
+	m_WindowKeys[KEY_H] = 0x48;				m_RGFKeys[KEY_H] = RGF_K_HOLSTER_WEAPON;
 	m_WindowKeys[KEY_J] = 0x4a;
 	m_WindowKeys[KEY_K] = 0x4b;
-	m_WindowKeys[KEY_L] = 0x4c;
+	m_WindowKeys[KEY_L] = 0x4c;				m_RGFKeys[KEY_L] = RGF_K_LIGHT;
 	m_WindowKeys[KEY_SHIFT] = VK_SHIFT;		m_RGFKeys[KEY_SHIFT] = RGF_K_RUN;
 	m_WindowKeys[KEY_Z] = 0x5a;				m_RGFKeys[KEY_Z] = RGF_K_LEFT; 
 	m_WindowKeys[KEY_X] = 0x58;				m_RGFKeys[KEY_X] = RGF_K_BACKWARD;

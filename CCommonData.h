@@ -1,7 +1,7 @@
 /*
 CCommonData.h:		Global Data Pool class
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   All Rights Reserved
   
 	This file contains the class declaration for the Global Data
@@ -23,6 +23,11 @@ public:
 	void ShutdownLevel();							// Clean up & shutdown level
 	bool HandleGameInput();						// Process MENU commands, etc.
 	bool HandleMenuInput();						// Process keystrokes in GAME LOOP
+// changed RF063
+	int SaveTo(FILE *SaveFD);
+	int RestoreFrom(FILE *RestoreFD);
+	void Play(char *szFile, int XPos, int YPos, bool Center);
+// end change RF063
 	int DispatchTick();								// Send time tick to components
 	bool ProcessLevelChange();				// Process a level change
 	void RenderComponents();					// Render all components
@@ -79,6 +84,9 @@ public:
 	inline CRFMenu *MenuManager() { return theMenu; }
 	inline CAttribute *Attributes() { return theAttribute; }
 	inline CNPC *NPCManager() { return theNPC;}
+#ifdef RF063
+	inline CEnemy *EnemyManager() { return theEnemy;}
+#endif
 	inline Collider *Collision() { return theCollider;}
 	inline CActorManager *ActorManager() { return theActorManager;}
 	inline CModelManager *ModelManager() { return theModelManager;}
@@ -88,6 +96,10 @@ public:
 	inline CLogic *Logic() { return theLogic;}
 	inline CDamage *Damage() { return theDamage;}
 	inline CTrack *Track() { return theTrack;}
+#ifdef RF063
+	inline CTrackPoint *TrackPoints() { return theTrackPoints;}
+	inline CTrackStart *TrackStarts() { return theTrackStarts;}
+#endif
 	inline CNPCPathPoint *NPCPoint() { return theNPCPoint;}
 	inline bool InGameMode() { return m_InGameLoop;}
 	// Time inlines
@@ -119,6 +131,8 @@ public:
 	inline CExplosion *CExplosions() { return theCExplosion;}
 	inline CPreEffect *Effect() { return thePreEffect;}
 	inline CChangeLevel *Changelevel() { return theChangeLevel;}
+	inline CShake *SShake() { return theShake;}
+	inline CFixedCamera *FixedCameras() { return theFixedCamera;}
 	inline geVec3d PRotation() { return m_playerotation;}
 	inline geVec3d CRotation() { return theRotation;}
 	inline geVec3d POffset() { return Offset;}
@@ -129,6 +143,14 @@ public:
 	inline char *SplashScreen1() { return m_SplashScreen1;}
 	inline char *SplashAudio1() { return m_SplashAudio1;}
 	inline char *CutScene1() { return m_CutScene1;}
+// changed RF063
+	inline bool GetCSelect() { return CSelect;}
+	inline bool GetSaving() { return saving;}
+	inline void SetSaving(bool flag) { saving = flag;}
+	inline CViewSwitch *ViewSwitchs() { return theViewSwitch;}
+	inline CInventory *Inventory() { return theInventory;}
+	inline CLiquid *Liquids() { return theLiquid;}
+// end change RF063
 	inline bool GetPaused() { return Paused;}
 	inline void SetPaused(bool flag) { Paused = flag;}
 	inline GE_RGBA GetFogColor() { return cColor;}
@@ -170,6 +192,9 @@ private:
 	Chaos *theChaos;									// Ralph Deane's Chaos Procedural
 	CRFMenu *theMenu;										// Ralph Deane's Menu Manager
 	CNPC *theNPC;											// Non-Player Character Manager
+#ifdef RF063
+	CEnemy *theEnemy;
+#endif
 	Collider *theCollider;						// Collision detection subsystem
 	CActorManager *theActorManager;		// Actor manager subsystem
 	CModelManager *theModelManager;		// Model manager subsystem
@@ -189,7 +214,18 @@ private:
 	CExplosion  *theCExplosion;
 	CPreEffect  *thePreEffect;
 	CChangeLevel *theChangeLevel;
+	CShake *theShake;
+	CFixedCamera *theFixedCamera;
+// changed RF063
+	CViewSwitch *theViewSwitch;
+	CInventory * theInventory;
+	CLiquid * theLiquid;
+// end change RF063
 	CTrack *theTrack;
+#ifdef RF063
+	CTrackPoint *theTrackPoints;
+	CTrackStart *theTrackStarts;
+#endif
 	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information
 	__int64 PerformanceFrequency;			// Performance Counter Frequency
@@ -215,6 +251,7 @@ private:
 	geVec3d theRotation;
 	geVec3d Offset;
 	char m_StartPointName[256];
+	bool KeepAttributes;
 	float m_defaultdistance, m_cameraX, m_cameraY;
 	geVec3d theTranslation, theRotate;
 	int ViewPoint;
@@ -236,9 +273,23 @@ private:
 	char m_MIDIDirectory[256];				// MIDI file directory
 	char m_MenuDirectory[256];				// menu ini file directory
 	char m_VirtualFile[256];
+// changed RF063
+	bool CSelect;
+// end change RF063
 	bool m_headbob;
 	bool m_weaponposition;
 	bool jumpkey;
+	bool runkey;
+	bool crouchkey;
+	bool zoomkey;
+	bool lightkey;
+// changed RF063
+	bool loadkey;
+	bool savekey;
+	bool saving;
+	bool usekey;
+	bool invkey;
+// end change RF063
 	geVFile *VFS;
 };
 

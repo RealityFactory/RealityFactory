@@ -1,7 +1,7 @@
 /*
 CHeadsUpDisplay.cpp:		HUD display handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the CHeadsUpDisplay
 	class that encapsulates player status display functionality.
@@ -21,7 +21,7 @@ CHeadsUpDisplay::CHeadsUpDisplay()
 	
 	//	Clear the HUD array
 	
-	for(int nTemp = 0; nTemp < 12; nTemp++)
+	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 		m_theHUD[nTemp].active = false;
@@ -36,12 +36,16 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 {
 	//	Clean up all the HUD bitmaps
 	
-	for(int nTemp = 0; nTemp < 12; nTemp++)
+	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
 		if(m_theHUD[nTemp].Identifier != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
 		if(m_theHUD[nTemp].Indicator != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
+// changed RF063
+		if(m_theHUD[nTemp].Indicator2 != NULL)
+			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
+// end change RF063
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 	
@@ -84,31 +88,45 @@ int CHeadsUpDisplay::LoadConfiguration()
 	
 	//	Something is there, so let's clean up all the HUD bitmaps to prepare
 	
-	for(int nTemp = 0; nTemp < 12; nTemp++)
+	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
 		if(m_theHUD[nTemp].Identifier != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
 		if(m_theHUD[nTemp].Indicator != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
+// changed RF063
+		if(m_theHUD[nTemp].Indicator2 != NULL)
+			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
+// end change RF063
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 	
 	CString KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
 	CString Tname, Talpha;
-	geBitmap *TempBmp1, *TempBmp2;
-	bool valid, active;
-	int nTop, nLeft, iTopOffset, iLeftOffset, Height;
+// changed RF063
+	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
+	bool valid, active, modify;
+	int nTop, nLeft, iTopOffset, iLeftOffset, Height, direction;
 	HUDTYPE Type;
-	float Font;
+	float Font, DisplayTime;
 	char format[16];
 	while(KeyName != "")
 	{
-		strcpy(szType,KeyName);
+// changed RF063
+		if(KeyName[0]=='~')
+			strcpy(szType,KeyName.Mid(1));
+		else
+			strcpy(szType,KeyName);
+// end change RF063
 		valid = false;
 		active = true;
+		modify = false;
+		direction = 0;
 		TempBmp1 = NULL;
 		TempBmp2 = NULL;
+// changed RF063
+		TempBmp3 = NULL;
 		Font = 0.0f;
 		Height = 0;
 		nTop = nLeft = iTopOffset = iLeftOffset = 0;
@@ -129,6 +147,39 @@ int CHeadsUpDisplay::LoadConfiguration()
 				TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
 			}
 		}
+// changed RF063
+		else if(!stricmp(szType,"radar"))
+		{
+			Type = RADAR;
+			strcpy(szAttr,"radar");
+			valid = true;
+			Tname = AttrFile.GetValue(KeyName, "indicator");
+			if(Tname!="")
+			{
+				Talpha = AttrFile.GetValue(KeyName, "indicatoralpha");
+				if(Talpha=="")
+					Talpha = Tname;
+				strcpy(szName,Tname);
+				strcpy(szAlpha,Talpha);
+				TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+			}
+			Tname = AttrFile.GetValue(KeyName, "npcindicator");
+			if(Tname!="")
+			{
+				Talpha = AttrFile.GetValue(KeyName, "npcindicatoralpha");
+				if(Talpha=="")
+					Talpha = Tname;
+				strcpy(szName,Tname);
+				strcpy(szAlpha,Talpha);
+				TempBmp3 = CreateFromFileAndAlphaNames(szName, szAlpha);
+				if(!TempBmp3)
+					TempBmp3 = TempBmp2;
+			}
+			else
+				TempBmp3 = TempBmp2;
+			Font = (float)AttrFile.GetValueI(KeyName, "range");
+		}
+// end change RF063
 		else if(!stricmp(szType,"position"))
 		{
 			Type = PPOS;
@@ -150,7 +201,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 		}
 		else
 		{
-			strcpy(szAttr,KeyName);
+// changed RF063
+			strcpy(szAttr,szType);
+// end change RF063
 			Tname = AttrFile.GetValue(KeyName, "type");
 			if(Tname!="")
 			{
@@ -238,20 +291,40 @@ int CHeadsUpDisplay::LoadConfiguration()
 			iTopOffset = AttrFile.GetValueI(KeyName, "indicatoroffsety");
 			if(AttrFile.GetValue(KeyName, "active")=="false")
 				active = false;
+			if(AttrFile.GetValue(KeyName, "active")=="modify")
+			{
+				active = false;
+				modify = true;
+			}
+			DisplayTime = (float)AttrFile.GetValueF(KeyName, "displaytime");
+			if(AttrFile.GetValue(KeyName, "modifydirection")=="down")
+				direction = 1;
+			if(AttrFile.GetValue(KeyName, "modifydirection")=="both")
+				direction = 2;
 			if(TempBmp1)
 				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp1);
 			if(TempBmp2)
 				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp2);
-			for(int nItem = 0; nItem < 12; nItem++)
+// changed RF063
+			if(TempBmp3)
+				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp3);
+// end change RF063
+			for(int nItem = 0; nItem < MAXHUD; nItem++)
 				if(!m_theHUD[nItem].active)
 					break;
-				if(nItem < 12)
+				if(nItem < MAXHUD)
 				{
 					m_theHUD[nItem].active = true;
 					m_theHUD[nItem].display = active;
+					m_theHUD[nItem].modify = modify;
+					m_theHUD[nItem].OldAmount = -99999;
+					m_theHUD[nItem].direction = direction;
 					m_theHUD[nItem].Type = Type;
+					m_theHUD[nItem].DisplayTime = DisplayTime;
 					m_theHUD[nItem].Identifier = TempBmp1;
 					m_theHUD[nItem].Indicator = TempBmp2;
+// changed RF063
+					m_theHUD[nItem].Indicator2 = TempBmp3;
 					strcpy(m_theHUD[nItem].szAttributeName, szAttr);
 					strcpy(m_theHUD[nItem].format, format);
 					m_theHUD[nItem].nTop = nTop;
@@ -298,7 +371,7 @@ int CHeadsUpDisplay::Deactivate()
 
 int CHeadsUpDisplay::RemoveElement(char *szAttributeName)
 {
-	for(int nItem = 0; nItem < 12; nItem++)
+	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -319,19 +392,74 @@ int CHeadsUpDisplay::RemoveElement(char *szAttributeName)
 
 int CHeadsUpDisplay::ActivateElement(char *szAttributeName, bool activate)
 {
-	for(int nItem = 0; nItem < 12; nItem++)
+// changed RF063
+	bool flag = false;
+	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
 			m_theHUD[nItem].display = activate;
-			return RGF_SUCCESS;					// It's outta here
+			flag = true;;					// It's outta here
 		}
 	}
 	
+	if(flag)
+		return RGF_SUCCESS;
+// end change RF063
 	//	Ooops, HUD attribute not found.
 	
 	return RGF_FAILURE;
 }
+
+// changed RF063
+void CHeadsUpDisplay::Tick(geFloat dwTick)
+{
+	for(int nItem = 0; nItem < MAXHUD; nItem++)
+	{
+		if(!m_theHUD[nItem].modify)
+			continue;
+		if(m_theHUD[nItem].Type == VERT || m_theHUD[nItem].Type == HORIZ || m_theHUD[nItem].Type == VALUE)
+		{
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			int HudValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+				HudValue = CCD->Player()->LightValue();
+
+			if(m_theHUD[nItem].OldAmount == -99999)
+			{
+				m_theHUD[nItem].OldAmount = HudValue;
+			}
+			else
+			{
+				if(m_theHUD[nItem].OldAmount != HudValue)
+				{
+					bool flag = false;
+					if(m_theHUD[nItem].direction==0 && (m_theHUD[nItem].OldAmount < theInv->Value(m_theHUD[nItem].szAttributeName)))
+						flag = true;
+					else if(m_theHUD[nItem].direction==1 && (m_theHUD[nItem].OldAmount > HudValue))
+						flag = true;
+					else if(m_theHUD[nItem].direction==2 && (m_theHUD[nItem].OldAmount != HudValue))
+						flag = true;
+					if(flag)
+					{
+						m_theHUD[nItem].CurrentTime = 0.0f;
+						m_theHUD[nItem].display = true;
+					}
+					m_theHUD[nItem].OldAmount = HudValue;
+				}
+				if(m_theHUD[nItem].display)
+				{
+					m_theHUD[nItem].CurrentTime += dwTick*0.001f;
+					if(m_theHUD[nItem].CurrentTime>=m_theHUD[nItem].DisplayTime)
+					{
+						m_theHUD[nItem].display = false;
+					}
+				}
+			}
+		}
+	}
+}
+// end change RF063
 
 //	Render
 //
@@ -340,7 +468,7 @@ int CHeadsUpDisplay::ActivateElement(char *szAttributeName, bool activate)
 int CHeadsUpDisplay::Render()
 {
 	geRect theRect;
-	int nValue;
+	int nValue, nLow, nHigh;
 	
 	if(!m_bHUDActive)
 		return RGF_SUCCESS;				// Ignore the call
@@ -348,7 +476,7 @@ int CHeadsUpDisplay::Render()
 	//	Iterate through the HUD element list, displaying each place there
 	//	..is an entry in the slot.
 	
-	for(int nItem = 0; nItem < 12; nItem++)
+	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{
 		if(!m_theHUD[nItem].active)
 			continue;								// No item in slot
@@ -363,7 +491,17 @@ int CHeadsUpDisplay::Render()
 					NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
-			m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)theInv->High(m_theHUD[nItem].szAttributeName) - (float)theInv->Low(m_theHUD[nItem].szAttributeName));
+// changed RF063
+			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
+			nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+			{
+				nValue = CCD->Player()->LightValue();
+				nLow = 0;
+				nHigh = CCD->Player()->LightLife();
+			}
+			m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)nHigh - (float)nLow);
+// end change RF063
 			// Compute the rectangle to draw for the level indicator
 			if(m_theHUD[nItem].Indicator)
 			{
@@ -384,7 +522,17 @@ int CHeadsUpDisplay::Render()
 				NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
-			m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)theInv->High(m_theHUD[nItem].szAttributeName) - (float)theInv->Low(m_theHUD[nItem].szAttributeName));
+// changed RF063
+			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
+			nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+			{
+				nValue = CCD->Player()->LightValue();
+				nLow = 0;
+				nHigh = CCD->Player()->LightLife();
+			}
+			m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)nHigh - (float)nLow);
+// end change RF063
 			// Compute the rectangle to draw for the level indicator
 			if(m_theHUD[nItem].Indicator)
 			{
@@ -406,6 +554,12 @@ int CHeadsUpDisplay::Render()
 				NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+// changed RF063
+			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+			{
+				nValue = CCD->Player()->LightValue();
+			}
+// end change RF063
 			char szBug[256];
 			sprintf(szBug, m_theHUD[nItem].format, nValue);
 			CCD->MenuManager()->FontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
@@ -421,7 +575,111 @@ int CHeadsUpDisplay::Render()
 			geVec3d Pos = CCD->Player()->Position();
 			sprintf(szBug, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
 			CCD->MenuManager()->FontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+		} 
+// changed RF063
+		// Radar
+		if(m_theHUD[nItem].Type == RADAR)
+		{
+			// Draw the identifier icon
+			if(m_theHUD[nItem].Identifier)
+				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
+					NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+			geActor *ActorsInRange[512];
+			geVec3d Pos, RPos, Orient;
+			Pos = CCD->Player()->Position();
+			int nActorCount = CCD->ActorManager()->GetActorsInRange(Pos, 
+								m_theHUD[nItem].PixelsPerIncrement, 512, &ActorsInRange[0]);
+			if(nActorCount != 0 && m_theHUD[nItem].Indicator)
+			{
+				float scale = ((float)geBitmap_Height(m_theHUD[nItem].Identifier)*0.5f)/m_theHUD[nItem].PixelsPerIncrement;
+				CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &RPos);
+				while(RPos.Y<0.0f)
+				{
+					RPos.Y+=(GE_PI*2);
+				}
+				while(RPos.Y>(GE_PI*2))
+				{
+					RPos.Y-=(GE_PI*2);
+				}
+				for(int nTemp = 0; nTemp < nActorCount; nTemp++)
+				{
+					if(ActorsInRange[nTemp]!=CCD->Player()->GetActor())
+					{
+						geVec3d APos;
+						int ActorType;
+						bool flag = false;
+						int offx, offy;
+						if(CCD->ActorManager()->GetType(ActorsInRange[nTemp], &ActorType)!=RGF_NOT_FOUND)
+						{
+							if(ActorType==ENTITY_NPC)
+								flag = true;
+						}
+						CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &APos);
+						float dist = ((float)fabs(geVec3d_DistanceBetween(&Pos, &APos)))*scale;;
+						geVec3d_Subtract(&APos,&Pos,&Orient);
+						Orient.Y = (float)atan2(Orient.X , Orient.Z ) + GE_PI;
+						float angle = RPos.Y - Orient.Y;
+						float mulx = -1.0f;
+						float muly = 1.0f;
+						if(!flag)
+						{
+							offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator)/2);
+							offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator)/2);
+						}
+						else
+						{
+							offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator2)/2);
+							offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator2)/2);
+						}
+						if(angle<0.0f)
+							mulx = 1.0f;
+						if((float)fabs(angle)>(GE_PI/2.0f))
+							muly = -1.0f;
+						if((float)fabs(angle)==0.0f || (float)fabs(angle)==GE_PI)
+						{
+							offy += (int)(muly*dist);
+						}
+						else if((float)fabs(angle)==(GE_PI/2.0f))
+						{
+							offx += (int)(mulx*dist);
+						}
+						else
+						{
+							angle = (float)fabs(angle);
+							if(muly==-1.0f)
+							{
+								angle = GE_PI - angle;
+							}
+							if(angle<=(GE_PI/4.0f))
+							{
+								if(!flag)
+									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator,NULL,
+										offx-(int)(sin(angle)*dist*mulx), 
+										offy-(int)(cos(angle)*dist*muly));
+								else
+									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator2,NULL,
+										offx-(int)(sin(angle)*dist*mulx), 
+										offy-(int)(cos(angle)*dist*muly));
+							}
+							else
+							{
+								angle = (GE_PI/2.0f) - angle;
+								if(!flag)
+									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator,NULL,
+										offx-(int)(cos(angle)*dist*mulx), 
+										offy-(int)(sin(angle)*dist*muly));
+								else
+									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator2,NULL,
+										offx-(int)(cos(angle)*dist*mulx), 
+										offy-(int)(sin(angle)*dist*muly));
+							}
+						}
+
+					}
+				}
+			} 
 		}
+// end change RF063
 		// Compass
 		if(m_theHUD[nItem].Type == COMPASS)
 		{

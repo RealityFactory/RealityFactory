@@ -1,7 +1,7 @@
 /*
 		RGFTypes.h:		RGF Types, Defines, etc.
 
-		Authored	07/11/2000		Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 		This file contains various types, defines, etc. used througout
 an RGF-based program.
@@ -12,8 +12,7 @@ an RGF-based program.
 
 typedef enum
 {
-  ENTITY_DOOR = 0,						// DOOR entity
-// Weapon
+	ENTITY_DOOR = 0,						// DOOR entity
 	ENTITY_WEAPON,							// Weapon entity
 	ENTITY_PROJECTILE,						// Projectile Entity
 	ENTITY_VIEWEAPON,						// 1st person view weapon
@@ -24,6 +23,7 @@ typedef enum
 	ENTITY_NPC,									// NPC entity
 	ENTITY_VEHICLE,							// Vehicle entity
 	ENTITY_ATTRIBUTE_MOD,				// Attribute modifier (powerup/ammo/health)
+	ENTITY_LIQUID,	
 	ENTITY_GENERIC							// Generic "thing"
 } RGFEntityTypes;
 

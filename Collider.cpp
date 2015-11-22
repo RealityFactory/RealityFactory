@@ -197,7 +197,7 @@ bool Collider::CheckActorCollision(geVec3d *Position, geActor *theActor)
 	tmpBox.Max.Y -= Position->Y;
 	tmpBox.Max.Z -= Position->Z;
 	
-	if(CCD->MenuManager()->GetBoundBox())
+	if(CCD->MenuManager()->GetBoundBox() && theActor==CCD->Player()->GetActor())
 		DrawBoundBox(CCD->World(), Position, &tmpBox.Min, &tmpBox.Max);
 	
 	if(CanOccupyPosition(Position, &theBox) == GE_TRUE)
@@ -234,7 +234,7 @@ bool Collider::CheckActorCollision(geVec3d Start, geVec3d End, geActor *theActor
 	tBox.Max.Y -= Start.Y;
 	tBox.Max.Z -= Start.Z;
 	
-	if(CCD->MenuManager()->GetBoundBox())
+	if(CCD->MenuManager()->GetBoundBox() && theActor==CCD->Player()->GetActor())
 		DrawBoundBox(CCD->World(), &End, &tBox.Min, &tBox.Max);
 	
 	if(CheckForCollision(&tBox.Min, &tBox.Max, Start, End) == false)
@@ -281,7 +281,7 @@ bool Collider::CheckActorCollision(geVec3d Start, geVec3d End, geActor *theActor
 	theBox.Max.Y -= Start.Y;
 	theBox.Max.Z -= Start.Z;
 
-	if(CCD->MenuManager()->GetBoundBox())
+	if(CCD->MenuManager()->GetBoundBox() && theActor==CCD->Player()->GetActor())
 		DrawBoundBox(CCD->World(), &End, &theBox.Min, &theBox.Max);
 
 	if((CheckForCollision(&theBox.Min, &theBox.Max, Start, End, Collision, theActor)) == false)
@@ -592,10 +592,20 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
 	{
 		Collision->Actor = NULL;
-		Result = GE_TRUE;
+		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		{
+			Result = GE_TRUE;
+			Collision->Impact = OldPosition;
+		}
+		else
+			Collision->Model = NULL;
 	}
 	else
+	{
 		Collision->Model = NULL;
+		if(Result == GE_TRUE)
+			Collision->Impact = OldPosition;
+	}
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
 	{
@@ -640,7 +650,90 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		return true;							// Collision confirmed
 	}
 	else
+	{
+		Collision->Impact = NewPosition;
 		return false;							// Naah, we didn't hit anything
+	}
+}
+
+
+bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
+								 geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
+								 geActor *Actor)
+{
+	GE_Contents Contents;
+	int Result, Result2;
+
+	memset(Collision, 0, sizeof(GE_Collision));
+
+	Result = geWorld_Collision(CCD->World(), Min, 
+		Max, &OldPosition, &NewPosition, kCollideFlags, 
+		GE_COLLIDE_ACTORS, 0xffffffff, CBExclusion, Actor, Collision);
+
+	if((Result == GE_FALSE) && (geWorld_Collision(CCD->World(), Min, 
+		Max, &OldPosition, &NewPosition, kCollideFlags, 
+		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
+	{
+		Collision->Actor = NULL;
+		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		{
+			Result = GE_TRUE;
+		}
+		else
+			Collision->Model = NULL;
+	}
+	else
+	{
+		Collision->Model = NULL;
+	}
+
+	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
+	{
+		geExtBox theBBox;
+		theBBox.Min = *Min;
+		theBBox.Max = *Max;
+		Result2 = CanOccupyPosition(&NewPosition, &theBBox, Actor, &Contents);
+		if(!Result2)
+		{
+			// Fill collision struct with information
+			Collision->Mesh = Contents.Mesh;
+			Collision->Model = Contents.Model;
+			Collision->Actor = Contents.Actor;
+			Collision->Impact = OldPosition;
+			Result2 = GE_TRUE;
+		} 
+		else
+			Result2 = GE_FALSE;
+	}
+	else 
+		Result2 = GE_FALSE;							// No contents checking
+	
+	//	Set collision reason
+	
+	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	
+	if(Result == GE_FALSE)
+		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+	
+	if(Result2 == GE_FALSE)
+	{
+		if(Contents.Actor != NULL)
+			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+		if(Contents.Model != NULL)
+			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+		if(Contents.Mesh != NULL)
+			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+	}
+	
+	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
+	{
+		return true;							// Collision confirmed
+	}
+	else
+	{
+		Collision->Impact = NewPosition;
+		return false;							// Naah, we didn't hit anything
+	}
 }
 
 // CheckModelMotion checks to see if an animated world model can move
@@ -750,6 +843,10 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox)
 	{
 		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 			Result = GE_FALSE;
+		else if((Contents.Contents & GE_CONTENTS_HINT))
+		{
+			Result = GE_FALSE;
+		}
 		else
 		{
 			Result = GE_TRUE;
@@ -819,6 +916,10 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 		Contents.Actor = NULL;
 		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 			Result = GE_FALSE;
+		else if((Contents.Contents & GE_CONTENTS_HINT))
+		{
+			Result = GE_FALSE;
+		}
 		else
 		{
 			Result = GE_TRUE;
@@ -891,10 +992,15 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 		Contents->Actor = NULL;
 		if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 			Result = GE_FALSE;
+		else if((Contents->Contents & GE_CONTENTS_HINT))
+		{
+			Result = GE_FALSE;
+		}
 		else
 		{
 			Result = GE_TRUE;
 			if(CCD->Doors()->IsADoor(Contents->Model))
+			//if((CCD->Doors()->IsADoor(Contents->Model) && CCD->ModelManager()->IsRunning(Contents->Model)))
 				Result = GE_FALSE; 
 		}
 	}
@@ -1434,18 +1540,25 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 		// ..we know about.
 		if(!bShoot)
 		{
-			if(CCD->Changelevel()->CheckChangeLevel(theCollision.Model) && theActor == CCD->Player()->GetActor())// && !bShoot)
+			if(CCD->Changelevel()->CheckChangeLevel(theCollision.Model, false) && theActor == CCD->Player()->GetActor())// && !bShoot)
 			{
 				CCD->SetChangeLevel(true);			// We hit a change level
 				return kCollideWorldModel;
 			}
 		}
 		// ..all the other possibilities now.
-		if(CCD->Doors()->HandleCollision(theCollision.Model, bShoot))
-			return kCollideDoor;					// Hit, and processed
-		if(CCD->Platforms()->HandleCollision(theCollision.Model, bShoot))
+		if(CCD->Doors()->HandleCollision(theCollision.Model, bShoot, false, theActor))
+		{
+			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
+			return kCollideDoor; // Hit, and processed
+		}
+		if(CCD->Platforms()->HandleCollision(theCollision.Model, bShoot, false, theActor))
+		{
+			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 			return kCollidePlatform;						// Hit, and processed
-		int Result = CCD->Triggers()->HandleCollision(theCollision.Model, bShoot);
+		}
+		int Result = CCD->Triggers()->HandleCollision(theCollision.Model, bShoot, false, theActor);
+		CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 		if(Result == RGF_SUCCESS)
 			return kCollideWorldModel;
 		if(Result == RGF_EMPTY)
@@ -1491,7 +1604,7 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 			return kCollideVehicle;
 			break;
 		case ENTITY_PROP: // StaticEntityProxy
-			result = CCD->Props()->HandleCollision(theCollision.Actor, theActor, Gravity);
+			result = CCD->Props()->HandleCollision(theCollision.Actor, theActor, Gravity, false);
 			if(result==RGF_SUCCESS)
 				return kCollideActor;
 			if(result==RGF_RECHECK)
@@ -1505,7 +1618,8 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 			break;
 		case ENTITY_ATTRIBUTE_MOD: // Attribute
 			if(!bShoot)
-				CCD->Attributes()->HandleCollision(CCD->Player()->GetActor(), theCollision.Actor);
+// changed RF063
+				CCD->Attributes()->HandleCollision(theActor, theCollision.Actor);
 			return kNoCollision;
 			break;
 		default:
@@ -1541,6 +1655,9 @@ bool Collider::CheckActorCollisionD(geVec3d Start, geVec3d End, geActor *theActo
 
 	if(CCD->MenuManager()->GetBoundBox())
 		DrawBoundBox(CCD->World(), &End, &theBox.Min, &theBox.Max);
+
+	Flag2 = 0;
+	Flag3 = 0;
 
 	if((CheckForCollisionD(&theBox.Min, &theBox.Max, Start, End, Collision, theActor)) == false)
 	{
@@ -1611,6 +1728,7 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 		Collision->Actor = NULL;
 		Result = GE_TRUE;
 	}
+
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
 	{
@@ -1700,11 +1818,17 @@ bool Collider::CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 		thePoint, &theBox->Min, &theBox->Max, GE_COLLIDE_MODELS, 
 		0xffffffff, NULL, NULL, Contents);
 
+	Flag2 = Contents->Contents & GE_CONTENTS_HINT;
+
 	if((Result == GE_FALSE) && (Result1 == GE_TRUE))
 	{
 		Contents->Actor = NULL;
 		if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 			Result = GE_FALSE;
+		else if((Contents->Contents & GE_CONTENTS_HINT))
+		{
+			Result = GE_FALSE;
+		}
 		else
 		{
 			Result = GE_TRUE;
@@ -1775,7 +1899,7 @@ bool Collider::CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 void Collider::Debug()
 {
 	char szData[256];
-	sprintf(szData,"Collide Flag1 =  %s, Collide Flag2 = %d Collide Flag3 = %d", Flag1, Flag2,Flag3);
-	CCD->MenuManager()->FontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40);
+	sprintf(szData,"Collide Flag2 = %d Collide Flag3 = %d", Flag2,Flag3);
+	CCD->MenuManager()->FontRect(szData, FONT14, 5, CCD->Engine()->Height()- 40);
 
 }

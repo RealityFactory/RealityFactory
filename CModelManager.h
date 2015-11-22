@@ -2,7 +2,7 @@
 CModelManager.h:		Animated World Model Manager
 
   This file contains the class declaration of the Model Manager
-  system for the Rabid Game Framework.
+  system for the Reality Factory.
   
 	The Model Manager handles starting, stopping, and moving all of
 	the various types of Animated World Models in the level.
@@ -41,6 +41,7 @@ struct ModelInstanceList
 	bool ListWrapAround;                // Indicates when the list index is wrapping from max to 0 or 0 to max
 	
 	bool bReverse;
+	bool bAllowInside;
 	bool bRotating;
 	int SoundEffectHandle;				// Sound effect to play while moving
 	bool bLoopAudioWhileMoving;		// TRUE loops the audio effect while moving
@@ -75,6 +76,7 @@ public:
 	
 	int SetReverseOnCollide(geWorld_Model *theModel, bool bReverseIt);
 	int SetReverse(geWorld_Model *theModel, bool bReverseIt);
+	int SetAllowInside(geWorld_Model *theModel, bool bAllowInside);
 	int SetRotating(geWorld_Model *theModel, bool bRotating);
 	int SetAnimationSpeed(geWorld_Model *theModel, geFloat fSpeed);	// Set anim. speed
 	void Tick(geFloat dwTicks);			// Process passage of time

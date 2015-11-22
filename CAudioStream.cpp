@@ -1,7 +1,7 @@
 /*
 	CAudioStream.cpp:		Steaming audio handler class
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class implementation for the CAudioStream
 class that handles streaming large WAVE files from mass storage

@@ -1,7 +1,7 @@
 /*
 	CPersistentAttributes.h:		Persistent attributes class
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the declaration of the CPersistentAttribute
 class, which holds attribute data that persists for entities across

@@ -1,7 +1,7 @@
 /*
 	CAVIPlayer.cpp	:	Play AVI file into G3D engine
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class implementation for the CAVIPlayer
 class.  This class will take an AVI file and play it back into
@@ -916,103 +916,103 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, char *szTextureName)
 
 int CAVIPlayer::DisplayNextFrameTexture(char *szTextureName,	bool bFirstFrame)
 {
-  static int OldTime = 0;
+	static int OldTime = 0;
 	static int FrameTime = 0;
-  static geBitmap *theBitmap;
-  static geBitmap_Info Info;
-  static LPBITMAPINFO pVideoFormat;
+	static geBitmap *theBitmap;
+	static geBitmap_Info Info;
+	static LPBITMAPINFO pVideoFormat;
 	static int nWidth, nHeight;
 	static gePixelFormat nFormat;
 	static int nAlignValue;
-  int nStatus = RGF_FAILURE;			// Assume failure
+	int nStatus = RGF_FAILURE;			// Assume failure
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
-  geBitmap *LockedBMP;
+	geBitmap *LockedBMP;
 	unsigned char *wptr ,*pptr;
 	int y, nTemp, nTemp2;
-
-//	If this is the first frame, clear out all the timing variables
-
-  if(bFirstFrame)
-	  {
+	
+	//	If this is the first frame, clear out all the timing variables
+	
+	if(bFirstFrame)
+	{
 		OldTime = CCD->FreeRunningCounter();				// Prime the time
 		FrameTime = 0;									// No time passed yet
 		StartVideoRetrieve(0);					// Prime the video pump
 		// Locate the bitmap to be replaced in the world.
-	  theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
-	  if(theBitmap == NULL)
-	    return RGF_FAILURE;					// Doesn't exist?
-    geBitmap_ClearMips(theBitmap);
-    geBitmap_GetInfo(theBitmap,&Info,NULL);
-	  geBitmap_ClearMips(theBitmap);
-	  pVideoFormat = GetVideoFormat(0);	// Video format
-    nWidth = pVideoFormat->bmiHeader.biWidth;
-    nHeight = pVideoFormat->bmiHeader.biHeight;
+		theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
+		if(theBitmap == NULL)
+			return RGF_FAILURE;					// Doesn't exist?
+		geBitmap_ClearMips(theBitmap);
+		geBitmap_GetInfo(theBitmap,&Info,NULL);
+		geBitmap_ClearMips(theBitmap);
+		pVideoFormat = GetVideoFormat(0);	// Video format
+		nWidth = pVideoFormat->bmiHeader.biWidth;
+		nHeight = pVideoFormat->bmiHeader.biHeight;
 		//	Here's how it shakes down: 16bit color is always RGB/555,
 		//	..24bit color is always BGR, and 32bit color is always
 		//	..BGR with the high byte unused (worthless).  I'm NOT supporting
 		//	..8bit color from video files, if you want it, put it in.
 		switch(pVideoFormat->bmiHeader.biBitCount)
-			{
-			case 8:
-				CCD->ReportError("8-bit video unsupported", false);
-				EndVideoRetrieve(0);
-				Close();
-				return RGF_FAILURE;
-				break;
-			case 16:
-				nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-				nAlignValue = (nWidth * 2) + ((nWidth*2) % 4);
-				break;
-			case 24:
-				nFormat = GE_PIXELFORMAT_24BIT_BGR;
-				nAlignValue = (nWidth * 3) + ((nWidth*3) % 4);
-				break;
-			case 32:
-				nFormat = GE_PIXELFORMAT_32BIT_XBGR;
-				nAlignValue = nWidth * 4;
-				break;
-			}
+		{
+		case 8:
+			CCD->ReportError("8-bit video unsupported", false);
+			EndVideoRetrieve(0);
+			Close();
+			return RGF_FAILURE;
+			break;
+		case 16:
+			nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
+			nAlignValue = (nWidth * 2) + ((nWidth*2) % 4);
+			break;
+		case 24:
+			nFormat = GE_PIXELFORMAT_24BIT_BGR;
+			nAlignValue = (nWidth * 3) + ((nWidth*3) % 4);
+			break;
+		case 32:
+			nFormat = GE_PIXELFORMAT_32BIT_XBGR;
+			nAlignValue = nWidth * 4;
+			break;
 		}
-
-//	Compute the time between passes so we can pick the right frame
-
-  int ElapsedTime = CCD->FreeRunningCounter() - OldTime;
-
-//	We don't want this routine entered more often than once
-//	..every 40msec (which is more than a 20fps. rendering rate!)
-//	..or the whole system crawls like a swatted fly.
-
-  if(ElapsedTime < 40)
-	  return RGF_SUCCESS;
-
-  if(ElapsedTime > 60)
-	  ElapsedTime = 60;					// Correct for stalls somewhere else
-
+	}
+	
+	//	Compute the time between passes so we can pick the right frame
+	
+	int ElapsedTime = CCD->FreeRunningCounter() - OldTime;
+	
+	//	We don't want this routine entered more often than once
+	//	..every 40msec (which is more than a 20fps. rendering rate!)
+	//	..or the whole system crawls like a swatted fly.
+	
+	if(ElapsedTime < 40)
+		return RGF_SUCCESS;
+	
+	if(ElapsedTime > 60)
+		ElapsedTime = 60;					// Correct for stalls somewhere else
+	
 	FrameTime += ElapsedTime;
 	OldTime = CCD->FreeRunningCounter();
-
-//	Ok, grab out the appropriate video frame for processing
-
+	
+	//	Ok, grab out the appropriate video frame for processing
+	
 	pBmp = NULL;
-  GetVideoFrameAtTime(0, FrameTime, &pBmp);
-
+	GetVideoFrameAtTime(0, FrameTime, &pBmp);
+	
 	if(pBmp)
-	  {
+	{
 		// Lock the created bitmap for write!
 		LockedBMP = NULL;
-	  geBitmap_LockForWriteFormat(theBitmap,&LockedBMP,0,0, nFormat);
+		geBitmap_LockForWriteFormat(theBitmap,&LockedBMP,0,0, nFormat);
 		// The following block of code comes to us courtesy of
 		// ..Ralph Deane, who discovered that the lock sometimes
 		// ..failed and how to fix it!
 		if(LockedBMP == NULL)
-			{
+		{
 			geBitmap_SetFormat(theBitmap,nFormat,GE_TRUE,0,NULL);
 			geBitmap_LockForWriteFormat(theBitmap,&LockedBMP,0,0, nFormat);
 			if(LockedBMP == NULL)
 				return RGF_FAILURE;
-			}
-	  wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-	  pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+		}
+		wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
+		pptr = ((LPBYTE)pBmp) + pBmp->biSize;
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -1024,67 +1024,67 @@ int CAVIPlayer::DisplayNextFrameTexture(char *szTextureName,	bool bFirstFrame)
 		// ..optimized as it could be.  However, for now, it does seem
 		// ..to be Good Enough.
 		switch(nFormat)
-		  {
-			case GE_PIXELFORMAT_16BIT_555_RGB:
-				nTemp2 = Info.Stride * 2;
-			  for(y=0; y < Info.Height; y++)
-				  {
-					__asm
-					  {
-						mov esi, pptr
+		{
+		case GE_PIXELFORMAT_16BIT_555_RGB:
+			nTemp2 = Info.Stride * 2;
+			for(y=0; y < Info.Height; y++)
+			{
+				__asm
+				{
+					mov esi, pptr
 						mov edi, wptr
 						mov ecx, nWidth
 						rep movsw
-						}
-				  wptr += nTemp2;
-				  pptr -= nAlignValue;
-					}
-				break;
-			case GE_PIXELFORMAT_24BIT_BGR:
-			  nTemp = nWidth * 3;
-				nTemp2 = Info.Stride * 3;
-			  for(y=0; y < Info.Height; y++)
-				  {
-					__asm
-					  {
-						mov esi, pptr
+				}
+				wptr += nTemp2;
+				pptr -= nAlignValue;
+			}
+			break;
+		case GE_PIXELFORMAT_24BIT_BGR:
+			nTemp = nWidth * 3;
+			nTemp2 = Info.Stride * 3;
+			for(y=0; y < Info.Height; y++)
+			{
+				__asm
+				{
+					mov esi, pptr
 						mov edi, wptr
 						mov ecx, nTemp
 						rep movs
-						}
-				  wptr += nTemp2;
-				  pptr -= nAlignValue;
-					}
-				break;
-			case GE_PIXELFORMAT_32BIT_XBGR:
-				nTemp2 = Info.Stride * 4;
-			  for(y=0; y < Info.Height; y++)
-				  {
-					__asm
-					  {
-						mov esi, pptr
+				}
+				wptr += nTemp2;
+				pptr -= nAlignValue;
+			}
+			break;
+		case GE_PIXELFORMAT_32BIT_XBGR:
+			nTemp2 = Info.Stride * 4;
+			for(y=0; y < Info.Height; y++)
+			{
+				__asm
+				{
+					mov esi, pptr
 						mov edi, wptr
 						mov ecx, nWidth
 						rep movsd
-						}
-				  wptr += nTemp2;
-				  pptr -= nAlignValue;
-					}
-				break;
+				}
+				wptr += nTemp2;
+				pptr -= nAlignValue;
 			}
+			break;
+		}
 		geBitmap_UnLock(LockedBMP);
 		nStatus = RGF_SUCCESS;
-		}
+	}
 	else
-	  {
+	{
 		// End of video, let's "rewind" it automatically
 		OldTime = CCD->FreeRunningCounter();				// Prime the time
 		FrameTime = 0;									// No time passed yet
-		}
-
-//	Ok, we (hopefully!) did it!  Let's bail out.
-
-  return nStatus;
+	}
+	
+	//	Ok, we (hopefully!) did it!  Let's bail out.
+	
+	return nStatus;
 }
 
 //	******************** PRIVATE MEMBER FUNCTIONS ***********************

@@ -140,7 +140,9 @@ void CFirePoint::Tick(float dwTicks)
 			if(Fire->Tick>=Fire->FireRate)
 			{
 				Fire->Tick=0.0f;
-				CCD->Weapons()->Add_Projectile(Fire->origin, Fire->origin, Fire->RealAngle, Fire->Projectile, Fire->Attribute);
+// changed RF063
+				CCD->Weapons()->Add_Projectile(Fire->origin, Fire->origin, Fire->RealAngle, Fire->Projectile, Fire->Attribute, Fire->AltAttribute);
+// end change RF063
 				Fire->FireRate = EffectC_Frand(Fire->MinFireRate, Fire->MaxFireRate);
 				if(!EffectC_IsStringNull(Fire->szSoundFile))
 				{

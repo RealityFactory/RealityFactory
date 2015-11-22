@@ -1,7 +1,7 @@
 /*
 		CMIDIAudio.cpp:		MIDI Audio Playback Class
 
-		(c) 1999 Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 		This file contains the class implementation for the CMIDIAudio
 MIDI file playback class.

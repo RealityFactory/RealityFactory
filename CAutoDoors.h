@@ -1,7 +1,7 @@
 /*
 	CAutoDoors.h:		Automatic door handler
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the class declaration for the CAutoDoors
 class that encapsulates automatic-door handling in the RGF.
@@ -19,7 +19,8 @@ public:
   CAutoDoors();				// Constructor
 	~CAutoDoors();																// Destructor
   void Render(geXForm3d ViewPoint, DWORD  dwTime);			// Render all doors
-  bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall);
+// changed RF063
+  bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor);
   void TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall);
 													// Follow door trigger chain
 	bool IsADoor(geWorld_Model *theModel);				// Is this model a door?

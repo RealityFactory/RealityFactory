@@ -196,6 +196,12 @@ bool GetTriggerState(char *TriggerName)
 			CCD->NPCManager()->LocateEntity(TriggerName, (void**)&pProxy);
 			return pProxy->bState;
 		}
+		if(!stricmp(EntityType, "ElectricBolt"))
+		{
+			ElectricBolt *pProxy = NULL;
+			CCD->ElectricEffects()->LocateEntity(TriggerName, (void**)&pProxy);
+			return pProxy->bState;
+		}
 	}
 	
 	return false;
@@ -604,16 +610,18 @@ geVec3d Extract(char *Vector)
 	temp = strtok(Vector," ");
 	if(temp)
 	{
-		values.X = (float)atoi(temp);
+// changed RF063 - atoi -> atof
+		values.X = (float)atof(temp);
 		temp = strtok(NULL," \n");
 		if(temp)
 		{
-			values.Y = (float)atoi(temp);
+			values.Y = (float)atof(temp);
 			temp = strtok(NULL," \n");
 			if(temp)
 			{
-				values.Z = (float)atoi(temp);
+				values.Z = (float)atof(temp);
 			}
+// end change RF063
 		}
 	}
 	return values;
@@ -758,6 +766,20 @@ geBoolean CanSeeActorToPoint(geActor *Actor, geVec3d *Pos2)
 	CCD->ActorManager()->GetPosition(Actor, &thePosition);
 	thePosition.Y += (theBox.Max.Y*0.75f);
 	return CanSeePointToPoint(&thePosition, Pos2);
+}
+
+//=====================================================================================
+//	CanSeePointToActor
+//=====================================================================================
+geBoolean CanSeePointToActor(geVec3d *Pos2, geActor *Actor)
+{
+	geExtBox theBox;
+	geVec3d thePosition;
+
+	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
+	CCD->ActorManager()->GetPosition(Actor, &thePosition);
+	thePosition.Y += (theBox.Max.Y*0.50f);
+	return CanSeePointToPoint(Pos2, &thePosition);
 }
 
 //=====================================================================================

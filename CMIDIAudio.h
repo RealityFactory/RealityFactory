@@ -1,7 +1,7 @@
 /*
 		CMIDIAudio.h:		MIDI Audio Playback Class
 
-		(c) 1999 Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 		This file contains the class declaration for the CMIDIAudio
 MIDI file playback class.

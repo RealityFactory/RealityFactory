@@ -1,7 +1,7 @@
 /*
 CTriggers.cpp:		Trigger handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the CTriggers
 	class that encapsulates trigger handling in the RGF.
@@ -110,8 +110,8 @@ CTriggers::~CTriggers()
 //	HandleCollision
 //
 //	Handle a collision with a  trigger
-
-int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType)
+// changed RF063
+int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey, geActor *theActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -138,13 +138,17 @@ int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType)
 		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
 		if(pTrigger->Model == pModel)
 		{
-			if((!pTrigger->bShoot) && (HitType == true))
+// changed RF063
+			if(pTrigger->PlayerOnly && theActor!=CCD->Player()->GetActor())
+				return false;
+			if((UseKey && !pTrigger->UseKey) || (!pTrigger->bShoot && HitType) || (pTrigger->bShoot && !HitType))
 			{
 				FreeState();
 				if(CCD->ModelManager()->EmptyContent(pTrigger->Model))
 					return RGF_EMPTY;
 				return RGF_FAILURE;
 			}
+// end change RF063
 			state = true;
 			if(!EffectC_IsStringNull(pTrigger->TriggerName))
 				state = GetTTriggerState(pTrigger->TriggerName);
@@ -221,8 +225,9 @@ bool CTriggers::HandleTriggerEvent(char *TName)
 			{
 				pTrigger->bState=true;
 				pTrigger->bTrigger= true;			// It's this one, trigger the animation
-                //Let the model's tick routine start the animation
-				//				CCD->ModelManager()->Start(pTrigger->Model);
+// changed RF063
+				CCD->ModelManager()->Start(pTrigger->Model);
+// end change RF063
 				pTrigger->SoundHandle = PlaySound(pTrigger->theSound, pTrigger->origin, pTrigger->bAudioLoops);
 				pTrigger->isHit= true;
 				pTrigger->time= 0.0f;

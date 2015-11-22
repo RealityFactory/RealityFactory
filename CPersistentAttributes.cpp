@@ -1,7 +1,7 @@
 /*
 CPersistentAttributes.cpp:		Persistent attributes class
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the implementation of the CPersistentAttribute
 	class, which holds attribute data that persists for entities across

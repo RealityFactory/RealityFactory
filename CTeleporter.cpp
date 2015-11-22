@@ -1,7 +1,7 @@
 /*
 CTeleporter.cpp:		Teleporter class handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for teleporter handling.
 */
@@ -164,6 +164,10 @@ bool CTeleporter::HandleCollision(geWorld_Model *pModel, geActor *theActor)
 		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
 		if(pTeleport->Model == pModel)
 		{
+// changed RF063
+			if(pTeleport->PlayerOnly && theActor!=CCD->Player()->GetActor())
+				return false;
+// end change RF063
 			if(pTeleport->bActive == GE_FALSE || pTeleport->active == false)
 				return true;								// Hit, yes, something happened, no
 			// Ok, now we search the list of teleport targets, looking for one

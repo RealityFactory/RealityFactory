@@ -1,7 +1,7 @@
 /*
 CCommonData.cpp:		Global Data Pool class
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   All Rights Reserved
   
 	This file contains the class implementation for the Global Data
@@ -12,6 +12,11 @@ CCommonData.cpp:		Global Data Pool class
 */
 
 #include "RabidFramework.h"
+
+// changed RF063
+extern geVFile *PassWord(char *m_VirtualFile, bool encrypt);
+extern void CloseFile();
+// end change RF063
 
 //	Constructor
 //
@@ -52,6 +57,9 @@ CCommonData::CCommonData()
 	theFlame = NULL;						// Ralph Deane's Flame Effect
 	theMenu = NULL;							// Ralph Deane's Menu Manager
 	theNPC = NULL;							// Non-Player Character Manager
+#ifdef RF063
+	theEnemy = NULL;
+#endif
 	theCollider = NULL;					// Collision Detection Subsystem
 	theActorManager = NULL;			// Actor Manager subsystem
 	theModelManager = NULL;			// Model Manager subsystem
@@ -71,8 +79,19 @@ CCommonData::CCommonData()
 	theCExplosion = NULL;
 	thePreEffect = NULL;
 	theTrack = NULL;
+#ifdef RF063
+	theTrackPoints = NULL;
+	theTrackStarts = NULL;
+#endif
+	theShake = NULL;
+	theFixedCamera = NULL;
 	theNPCPoint = NULL;
 	theChangeLevel = NULL;
+// changed RF063
+	theViewSwitch = NULL;
+	theInventory = NULL;
+	theLiquid = NULL;
+// end change RF063
 	
 	//	Initialize game state data
 	
@@ -104,7 +123,20 @@ CCommonData::CCommonData()
 	Paused = true;
 	UseAngle = true;
 	jumpkey = false;
+	runkey = false;
+	crouchkey = false;
+	zoomkey = false;
+	lightkey = false;
 	ShowTrack = false;
+	KeepAttributes = true;
+// changed RF063
+	CSelect = false;
+	loadkey = false;
+	savekey = false;
+	saving = false;
+	usekey = false;
+	invkey = false;
+// end change RF063
 	
 	//	Debug tracing time
 	
@@ -132,11 +164,14 @@ CCommonData::~CCommonData()
 	
 	ShutdownLevel();
 	ShutdownCommon();
+// changed RF063
+	geVFile_CloseAPI();
 
 	if(VFS!=NULL)
-		geVFile_Close(VFS);
-	geVFile_CloseAPI();
-	
+	{
+		CloseFile();
+	}
+// end change RF063
 	return;
 }
 
@@ -165,7 +200,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	
 	//	Ok, let's see if we have an initialization file, and if so,
 	//	..read it in and parse it.
-	
+
 	if((fd=CCD->OpenRFFile(kRawFile, ".\\RealityFactory.ini", "rt")) != NULL)
 	{
 		// File there, parse it!
@@ -251,6 +286,15 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				else
 					ShowTrack = false;
 			}
+// changed RF063
+			else if(!stricmp(szAtom,"usecharselect"))
+			{
+				if(!stricmp(szArg,"true"))
+					CSelect = true;
+				else
+					CSelect = false;
+			}
+// end change RF063
 			else if(!stricmp(szAtom,"usefirst"))
 			{
 				if(!stricmp(szArg,"true"))
@@ -372,6 +416,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 						chTheDriver = '(';				// Use Direct3D in fullscreen
 					else if(!stricmp(szArg,"opengl"))
 						chTheDriver = 'O';	
+					else if(!stricmp(szArg,"wire"))
+						chTheDriver = 'W';	
 					//////////////////////////////
 					//Dee 07-07-00
 					//////////////////////////////
@@ -432,6 +478,22 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			m_SplashScreen1[0] = '\0';
 			m_CutScene1[0] = '\0';
 		}
+// changed RF063
+		FILE *fdInput = NULL;
+		char szInputString[16];
+		if((fdInput = fopen(m_VirtualFile, "rt")) == NULL)
+		{
+			VFS = NULL;
+		}
+		else
+		{
+			fread(szInputString, 4, 1, fdInput);
+			fclose(fdInput);
+			if(memcmp(szInputString, "CF00", 4)==0)
+				VFS = PassWord(m_VirtualFile, true);
+			else
+				VFS = PassWord(m_VirtualFile, false);
+		}
 
 		//	First, initialize the Genesis3D game engine
 		
@@ -446,8 +508,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		if(m_DebugLevel != kNoDebugOutput)
 			theGameEngine->SetDebugging(true);			// Activate engine debugging
 		
-		geEngine_SetGamma(theGameEngine->Engine(), fGamma);
-		
 		//	Fire up a camera for us to see through
 		
 		theCameraManager = new CCameraManager();
@@ -457,22 +517,9 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			return -93;
 		}
 		
-		FILE *fdInput = NULL;
-		char szInputString[16];
-		if((fdInput = fopen(m_VirtualFile, "rt")) == NULL)
-		{
-			VFS = NULL;
-		}
-		else
-		{
-			fread(szInputString, 4, 1, fdInput);
-			fclose(fdInput);
-			if(memcmp(szInputString, "CF00", 4)==0)
-				VFS = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_VIRTUAL, m_VirtualFile, "abcd", GE_VFILE_OPEN_READONLY | GE_VFILE_OPEN_DIRECTORY);
-			else
-				VFS = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_VIRTUAL, m_VirtualFile, NULL, GE_VFILE_OPEN_READONLY | GE_VFILE_OPEN_DIRECTORY);
-		}
-				
+// end change RF063		
+		geEngine_SetGamma(theGameEngine->Engine(), fGamma);
+
 		//	We have a 3D engine, now initialize the user input subsystem
 		
 		theUserInput = new CInput();
@@ -497,7 +544,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		theMIDIPlayer = new CMIDIAudio();
 		if(theMIDIPlayer == NULL)
 			theGameEngine->ReportError("MIDI Player failed to instantiate", false);
-		
+
 		//	Set up the heads-up display (HUD) for the game
 		
 		theHUD = new CHeadsUpDisplay();
@@ -566,7 +613,7 @@ void CCommonData::ShutdownCommon()
 	if(theMIDIPlayer != NULL)
 		delete theMIDIPlayer;
 	theMIDIPlayer = NULL;
-	
+
 	if(theUserInput != NULL)
 		delete theUserInput;
 	theUserInput = NULL;
@@ -672,7 +719,14 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		
 	//	Now various other level-specific items
 	
-
+	theFixedCamera = new CFixedCamera();
+	if(theFixedCamera == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create FixedCamera handling class",
+			false);
+		return -11;
+	}
+	
 	thePlayer->LoadConfiguration();
 	
 	//	Set up automatic door handling
@@ -875,6 +929,29 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		theGameEngine->ReportError("Couldn't create NPC handler", false);
 		return -40;
 	}
+
+#ifdef RF063
+	theTrackPoints = new CTrackPoint();
+	if(theTrackPoints == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create TrackPoint handler", false);
+		return -40;
+	}
+	
+	theTrackStarts = new CTrackStart();
+	if(theTrackStarts == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create TrackStart handler", false);
+		return -40;
+	}
+			
+	theEnemy = new CEnemy();
+	if(theEnemy == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Enemy handler", false);
+		return -40;
+	}
+#endif
 	
 	//	Set up triggers
 	
@@ -983,6 +1060,36 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7;
 	}
 
+	theShake = new CShake();
+	if(theShake == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create ScreenShake handler", false);
+		return -40;
+	}
+
+// changed RF063
+	theViewSwitch = new CViewSwitch();
+	if(theViewSwitch == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create ViewSwitch handler", false);
+		return -40;
+	}
+
+	theInventory = new CInventory();
+	if(theInventory == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Inventory handler", false);
+		return -40;
+	}
+	
+	theLiquid = new CLiquid();
+	if(theLiquid == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Liquid handler", false);
+		return -40;
+	}
+// end change RF063	
+	
 	//	All level classes up! Let's **PLAY**
 	
 	return 0;
@@ -995,7 +1102,24 @@ int CCommonData::InitializeLevel(char *szLevelName)
 
 void CCommonData::ShutdownLevel()
 {
+// changed RF063
+	if(theLiquid != NULL)
+		delete theLiquid;
+	theLiquid = NULL;
 
+	if(theInventory != NULL)
+		delete theInventory;
+	theInventory = NULL;
+
+	if(theViewSwitch != NULL)
+		delete theViewSwitch;
+	theViewSwitch = NULL;
+// end change RF063	
+	
+	if(theShake != NULL)
+		delete theShake;
+	theShake = NULL;
+	
 	if(theChangeLevel != NULL)
 		delete theChangeLevel;
 	theChangeLevel = NULL;
@@ -1055,7 +1179,21 @@ void CCommonData::ShutdownLevel()
 	if(theNPC != NULL)
 		delete theNPC;
 	theNPC = NULL;
+
+#ifdef RF063
+	if(theEnemy != NULL)
+		delete theEnemy;
+	theEnemy = NULL;
 	
+	if(theTrackPoints != NULL)
+		delete theTrackPoints;
+	theTrackPoints = NULL;
+	
+	if(theTrackStarts != NULL)
+		delete theTrackStarts;
+	theTrackStarts = NULL;
+#endif
+
 	if(theLogic != NULL)
 		delete theLogic;
 	theLogic = NULL;
@@ -1139,7 +1277,11 @@ void CCommonData::ShutdownLevel()
 	if(thePlatforms != NULL)
 		delete thePlatforms;
 	thePlatforms = NULL;
-	
+
+	if(theFixedCamera != NULL)
+		delete theFixedCamera;
+	theFixedCamera = NULL;
+		
 	if(theAutoDoors != NULL)
 		delete theAutoDoors;
 	theAutoDoors = NULL;
@@ -1209,21 +1351,23 @@ bool CCommonData::HandleGameInput()
 	if(Paused==true)
 		return bKeepPlaying;
 	
+	if(thePlayer->GetDying())
+		return bKeepPlaying;
+
 	frun = flook = fcamera = false;				// Clear modifiers
-	// update #1
-	bool screen, jump;
+// changed RF063
+	bool screen, jump, run, crouch, zoom, light, save, load, use, inv;
 	static int nLoopTimer = timeGetTime();	// Loop timer
 	
 	frun = fhud = flook = fcamera = screen = jump = false;				// Clear modifiers
-	// update #1
+	run = crouch = zoom = light = save = load = use = inv = false;
+// end change RF063
 	
 	// Check for input from the user, building a keystroke queue,
 	
 	nInputEvent = theUserInput->GetFirstInput();
 	thePlayer->Moving(MOVEIDLE);				// 03/22/2000 eaa3 Ralph Deane fix added
 	thePlayer->SetSlideWalk(MOVEIDLE);
-	thePlayer->SetCrouch(GE_FALSE);
-	thePlayer->SetRunning(GE_FALSE);
 	thePlayer->SetJumping(GE_FALSE);
 	
 	int nFoo = 0;
@@ -1246,7 +1390,12 @@ bool CCommonData::HandleGameInput()
 			thePlayer->Moving(MOVEWALKBACKWARD);
 			break;
 		case RGF_K_RUN:
-			thePlayer->SetRunning(GE_TRUE);
+			run = true;
+			if(!runkey)
+			{
+				thePlayer->FlipRunning();
+				runkey = true;
+			}
 			break;
 		case RGF_K_CAMERA:
 			fcamera = true;
@@ -1254,6 +1403,24 @@ bool CCommonData::HandleGameInput()
 		case RGF_K_LOOKMODE:
 			flook = true;
 			break;
+// changed RF063
+		case RGF_K_USE:
+			use = true;
+			if(!usekey)
+			{
+				thePlayer->UseItem();
+				usekey = true;
+			}
+			break;
+		case RGF_K_INVENTORY:
+			inv = true;
+			if(!invkey)
+			{
+				theInventory->Display();
+				invkey = true;
+			}
+			break;
+// end change RF063
 		case RGF_K_JUMP:
 			jump = true;
 			if(!jumpkey)
@@ -1280,13 +1447,13 @@ bool CCommonData::HandleGameInput()
 			break;
 		case RGF_K_TURN_LEFT:
 			if(fcamera)
-				theCameraManager->CameraRotY(GE_FALSE); // Mode
+				theCameraManager->CameraRotY(GE_FALSE, 5.0f); // Mode
 			else // update #2
 				keyrotate |= 2;
 			break;
 		case RGF_K_TURN_RIGHT:
 			if(fcamera)
-				theCameraManager->CameraRotY(GE_TRUE); // Mode
+				theCameraManager->CameraRotY(GE_TRUE, 5.0f); // Mode
 			else // update #2
 				keyrotate |= 4;
 			break;
@@ -1295,6 +1462,17 @@ bool CCommonData::HandleGameInput()
 				theCameraManager->CameraRotX(GE_TRUE); // Mode
 			else // update #2
 				keyrotate |= 8;
+			break;
+		case RGF_K_ZOOM_WEAPON:
+			zoom = true;
+			if(!zoomkey)
+			{
+				theCameraManager->SetZoom(true);
+				zoomkey = true;
+			}
+			break;
+		case RGF_K_HOLSTER_WEAPON:
+			theWeapon->Holster();
 			break;
 		case RGF_K_WEAPON_1:
 			theWeapon->SetWeapon(0);
@@ -1332,19 +1510,17 @@ bool CCommonData::HandleGameInput()
 		case RGF_K_ALTFIRE:
 			theWeapon->Attack(GE_TRUE);
 			break;
-			//	NO SWITCHING VIEWPOINT ALLOWED!  This would screw up the
-			//	..animation since third-person will use a WHOLE actor and
-			//	..first-person will use the infamous "weapon and arm"
-			//	..approach.
-
 		case RGF_K_FIRST_PERSON_VIEW:
-			thePlayer->SwitchCamera(0);
+			if(CCD->CameraManager()->GetSwitchAllowed() && CCD->CameraManager()->GetSwitch1st())
+				thePlayer->SwitchCamera(0);
 			break;
 		case RGF_K_THIRD_PERSON_VIEW:
-			thePlayer->SwitchCamera(1);
+			if(CCD->CameraManager()->GetSwitchAllowed() && CCD->CameraManager()->GetSwitch3rd())
+				thePlayer->SwitchCamera(1);
 			break;
 		case RGF_K_ISO_VIEW:
-			thePlayer->SwitchCamera(2);
+			if(CCD->CameraManager()->GetSwitchAllowed() && CCD->CameraManager()->GetSwitchIso())
+				thePlayer->SwitchCamera(2);
 			break;
 
 		case RGF_K_SCRNSHOT:
@@ -1359,64 +1535,124 @@ bool CCommonData::HandleGameInput()
 			CCD->CameraManager()->ResetCamera();
 			break;
 		case RGF_K_ZOOM_OUT:
-			CCD->CameraManager()->ChangeDistance(GE_TRUE);
+			CCD->CameraManager()->ChangeDistance(GE_TRUE, 5.0f);
 			break;
 		case RGF_K_ZOOM_IN:
-			CCD->CameraManager()->ChangeDistance(GE_FALSE);
+			CCD->CameraManager()->ChangeDistance(GE_FALSE, 5.0f);
 			break;
 		case RGF_K_CROUCH:
-			thePlayer->SetCrouch(GE_TRUE);
+			crouch = true;
+			if(!crouchkey)
+			{
+				thePlayer->FlipCrouch();
+				crouchkey = true;
+			}
+			break;
+		case RGF_K_LIGHT:
+			light = true;
+			if(!lightkey)
+			{
+				thePlayer->FlipLight();
+				lightkey = true;
+			}
 			break;
 		case RGF_K_QUICKSAVE:
 			{
-				FILE *outFD = CCD->OpenRFFile(kSavegameFile, "savegame.rgf", "wb");
-				if(outFD == NULL)
+// changed RF063
+				save = true;
+				if(!savekey)
 				{
-					CCD->ReportError("Can't create savegame file!", false);
-					break;
+/*
+					FILE *outFD = CCD->OpenRFFile(kSavegameFile, "savegame.rgf", "wb");
+					if(outFD == NULL)
+					{
+						CCD->ReportError("Can't create savegame file!", false);
+						break;
+					}
+					theGameEngine->SaveTo(outFD);
+					thePlayer->SaveTo(outFD);
+					theAutoDoors->SaveTo(outFD);
+					thePlatforms->SaveTo(outFD);
+					theProps->SaveTo(outFD);
+					theTeleports->SaveTo(outFD);
+					theFields->SaveTo(outFD);
+					theMIDIPlayer->SaveTo(outFD);					
+					theCDPlayer->SaveTo(outFD);
+					theTriggers->SaveTo(outFD);
+					theLogic->SaveTo(outFD);
+					theAttribute->SaveTo(outFD);
+					theDamage->SaveTo(outFD);
+					theCameraManager->SaveTo(outFD);
+					theWeapon->SaveTo(outFD);
+					SaveTo(outFD);
+					fclose(outFD);
+					savekey = true;
+					saving = true;
+*/
 				}
-				theGameEngine->SaveTo(outFD);
-				thePlayer->SaveTo(outFD);
-				theAutoDoors->SaveTo(outFD);
-				thePlatforms->SaveTo(outFD);
-				theProps->SaveTo(outFD);
-				theTeleports->SaveTo(outFD);
-				theFields->SaveTo(outFD);
-				theMIDIPlayer->SaveTo(outFD);					
-				theCDPlayer->SaveTo(outFD);
-				theTriggers->SaveTo(outFD);
-				theLogic->SaveTo(outFD);
-				fclose(outFD);
+// end change RF063
 			}
 			break;
 		case RGF_K_QUICKLOAD:
 			{
-				FILE *inFD = CCD->OpenRFFile(kSavegameFile, "savegame.rgf", "rb");
-				if(inFD == NULL)
+// Changed RF063
+				load = true;
+				if(!loadkey)
 				{
-					theGameEngine->ReportError("No savegame.rgf file to restore", false);
-					break;
+/*
+					FILE *inFD = CCD->OpenRFFile(kSavegameFile, "savegame.rgf", "rb");
+					if(inFD == NULL)
+					{
+						theGameEngine->ReportError("No savegame.rgf file to restore", false);
+						break;
+					}
+					geRect 	 M_CameraRect;
+					geCamera 	 *M_Camera;
+					M_CameraRect.Left = 0;
+					M_CameraRect.Right = CCD->Engine()->Width() - 1;
+					M_CameraRect.Top = 0;
+					M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
+					M_Camera = geCamera_Create(2.0f, &M_CameraRect);
+					geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+					int width = CCD->MenuManager()->FontWidth(CCD->MenuManager()->GetLoadFont(), CCD->MenuManager()->GetLoadmsg());
+					int height = CCD->MenuManager()->FontHeight(CCD->MenuManager()->GetLoadFont());
+					int xoffset = (CCD->Engine()->Width()-width)/2;
+					int yoffset = (CCD->Engine()->Height()-height)/2;
+					CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
+					geEngine_EndFrame(CCD->Engine()->Engine());
+					geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+					CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
+					geEngine_EndFrame(CCD->Engine()->Engine());			
+					geCamera_Destroy(&M_Camera);
+					// Restoring will do a level change to the level that
+					// ..is in the savegame file
+					ShutdownLevel();
+					if(theCDPlayer)
+						theCDPlayer->Stop();
+					if(theMIDIPlayer)
+						theMIDIPlayer->Stop();
+					theGameEngine->RestoreFrom(inFD);
+					InitializeLevel(theGameEngine->LevelName());
+					thePlayer->RestoreFrom(inFD);
+					theAutoDoors->RestoreFrom(inFD);
+					thePlatforms->RestoreFrom(inFD);
+					theProps->RestoreFrom(inFD);
+					theTeleports->RestoreFrom(inFD);
+					theFields->RestoreFrom(inFD);
+					theMIDIPlayer->RestoreFrom(inFD);
+					theCDPlayer->RestoreFrom(inFD);
+					theTriggers->RestoreFrom(inFD);
+					theLogic->RestoreFrom(inFD);
+					theAttribute->RestoreFrom(inFD);
+					theDamage->RestoreFrom(inFD);
+					theCameraManager->RestoreFrom(inFD);
+					theWeapon->RestoreFrom(inFD);
+					RestoreFrom(inFD);
+					fclose(inFD);
+					loadkey = true;
+*/
 				}
-				// Restoring will do a level change to the level that
-				// ..is in the savegame file
-				ShutdownLevel();
-				if(theCDPlayer)
-					theCDPlayer->Stop();
-				if(theMIDIPlayer)
-					theMIDIPlayer->Stop();
-				theGameEngine->RestoreFrom(inFD);
-				InitializeLevel(theGameEngine->LevelName());
-				thePlayer->RestoreFrom(inFD);
-				theAutoDoors->RestoreFrom(inFD);
-				thePlatforms->RestoreFrom(inFD);
-				theProps->RestoreFrom(inFD);
-				theTeleports->RestoreFrom(inFD);
-				theFields->RestoreFrom(inFD);
-				theMIDIPlayer->RestoreFrom(inFD);
-				theCDPlayer->RestoreFrom(inFD);
-				theTriggers->RestoreFrom(inFD);
-				theLogic->RestoreFrom(inFD);
-				fclose(inFD);
+// end change RF063
 			}
 			break;
 			
@@ -1430,6 +1666,27 @@ bool CCommonData::HandleGameInput()
 			theMenu->SetShot(false);
 		if(!jump)
 			jumpkey = false;
+		if(!run)
+			runkey = false;
+		if(!crouch)
+			crouchkey = false;
+		if(!light)
+			lightkey = false;
+// changed RF063
+		if(!load)
+			loadkey = false;
+		if(!save)
+			savekey = false;
+		if(!use)
+			usekey = false;
+		if(!inv)
+			invkey = false;
+// end change RF063
+		if(!zoom)
+		{
+			theCameraManager->SetZoom(false);
+			zoomkey = false;
+		}
 		
 		if(!thePlayer->FirstPersonView())
 			thePlayer->LookMode(flook);				// Set lookmode
@@ -1443,6 +1700,68 @@ bool CCommonData::HandleGameInput()
 		return bKeepPlaying;
 }
 
+// changed RF063
+int CCommonData::SaveTo(FILE *SaveFD)
+{
+	fwrite(&jumpkey, sizeof(bool), 1, SaveFD);
+	fwrite(&runkey, sizeof(bool), 1, SaveFD);
+	fwrite(&crouchkey, sizeof(bool), 1, SaveFD);
+	fwrite(&lightkey, sizeof(bool), 1, SaveFD);
+	fwrite(&m_NewLevel, sizeof(char), 256, SaveFD);
+	fwrite(&m_SplashScreen, sizeof(char), 256, SaveFD);
+	fwrite(&m_SplashAudio, sizeof(char), 256, SaveFD);
+	fwrite(&m_CutScene, sizeof(char), 256, SaveFD);
+	fwrite(&m_Message, sizeof(char), 256, SaveFD);
+	fwrite(&m_Font, sizeof(int), 1, SaveFD);
+	fwrite(&m_StartPointName, sizeof(char), 256, SaveFD);
+	fwrite(&Offset, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&UseAngle, sizeof(bool), 1, SaveFD);
+	fwrite(&KeepAttributes, sizeof(bool), 1, SaveFD);
+	fwrite(&CurrentWeapon, sizeof(int), 1, SaveFD);
+	fwrite(&Slot, sizeof(int), 10, SaveFD);
+	fwrite(&theRotation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&theTranslation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&theRotate, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&m_defaultdistance, sizeof(float), 1, SaveFD);
+	fwrite(&m_cameraX, sizeof(float), 1, SaveFD);
+	fwrite(&m_cameraY, sizeof(float), 1, SaveFD);
+	fwrite(&m_playerotation, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&ViewPoint, sizeof(int), 1, SaveFD);
+
+	return RGF_SUCCESS;
+}
+
+int CCommonData::RestoreFrom(FILE *RestoreFD)
+{
+	fread(&jumpkey, sizeof(bool), 1, RestoreFD);
+	fread(&runkey, sizeof(bool), 1, RestoreFD);
+	fread(&crouchkey, sizeof(bool), 1, RestoreFD);
+	fread(&lightkey, sizeof(bool), 1, RestoreFD);
+	fread(&m_NewLevel, sizeof(char), 256, RestoreFD);
+	fread(&m_SplashScreen, sizeof(char), 256, RestoreFD);
+	fread(&m_SplashAudio, sizeof(char), 256, RestoreFD);
+	fread(&m_CutScene, sizeof(char), 256, RestoreFD);
+	fread(&m_Message, sizeof(char), 256, RestoreFD);
+	fread(&m_Font, sizeof(int), 1, RestoreFD);
+	fread(&m_StartPointName, sizeof(char), 256, RestoreFD);
+	fread(&Offset, sizeof(geVec3d), 1, RestoreFD);
+	fread(&UseAngle, sizeof(bool), 1, RestoreFD);
+	fread(&KeepAttributes, sizeof(bool), 1, RestoreFD);
+	fread(&CurrentWeapon, sizeof(int), 1, RestoreFD);
+	fread(&Slot, sizeof(int), 10, RestoreFD);
+	fread(&theRotation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&theTranslation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&theRotate, sizeof(geVec3d), 1, RestoreFD);
+	fread(&m_defaultdistance, sizeof(float), 1, RestoreFD);
+	fread(&m_cameraX, sizeof(float), 1, RestoreFD);
+	fread(&m_cameraY, sizeof(float), 1, RestoreFD);
+	fread(&m_playerotation, sizeof(geVec3d), 1, RestoreFD);
+	fread(&ViewPoint, sizeof(int), 1, RestoreFD);
+
+	return RGF_SUCCESS;
+}
+// end change RF063
+
 //	DispatchTick
 //
 //	Calls the Tick() function for all components that require a
@@ -1455,7 +1774,7 @@ int CCommonData::DispatchTick()
 	//	..of the game components.
 	
 	geFloat dwTicksGoneBy = CCD->GetTimePassed_F();
-	
+
 	if(dwTicksGoneBy <= 0.0f)
 		return RGF_SUCCESS;					// No time passed?  Ignore call!
 	
@@ -1476,7 +1795,7 @@ int CCommonData::DispatchTick()
 	//	Next, advance time for all the actors since this'll affect the
 	//	..various actor animations and could cause bounding box changes.
 
-	theActorManager->Tick(dwTicksGoneBy);
+	//theActorManager->Tick(dwTicksGoneBy);
 	
 	//	Ok, deal out time to everyone else.
 	
@@ -1513,13 +1832,26 @@ int CCommonData::DispatchTick()
 	theCExplosion->Tick(dwTicksGoneBy);
 	theNPCPoint->Tick();
 	theNPC->Tick(dwTicksGoneBy);
+#ifdef RF063
+	theEnemy->Tick(dwTicksGoneBy);
+#endif
 	theChangeLevel->Tick(dwTicksGoneBy);
+	theShake->Tick(dwTicksGoneBy);
+	theFixedCamera->Tick();
+// changed RF063
+	theViewSwitch->Tick();
+// end change RF063
+	theCameraManager->Tick(dwTicksGoneBy);
 
 	//	Finally, now that everything has moved, update all audio
 	
 	theAudioManager->Tick(dwTicksGoneBy);		// Audio updates
 	
 	thePlayer->Tick(dwTicksGoneBy);
+
+	theActorManager->Tick(dwTicksGoneBy);
+
+	theHUD->Tick(dwTicksGoneBy);
 	
 	return RGF_SUCCESS;
 }
@@ -1542,6 +1874,9 @@ bool CCommonData::ProcessLevelChange()
 	
 	if(theCDPlayer)
 		theCDPlayer->Stop();				// Shut down CD Audio, if any
+
+// changed RF063
+	CCD->AudioStreams()->StopAll();
 	
 	// Uh-oh, time to change levels!  This is somewhat messy but
 	// ..hopefully easy to understand.  We shut down the current level
@@ -1561,16 +1896,15 @@ bool CCommonData::ProcessLevelChange()
 	
 	// Save off player attributes during level change..
 
-		thePlayer->SaveAttributes("temp.bin");
+	thePlayer->SaveAttributes("temp.bin");
 	
 	//	Check for a cut scene to play..
 	
 	if(!EffectC_IsStringNull(m_CutScene))
 	{
-		CAVIPlayer *lCutScene = new CAVIPlayer();
-		// Version 053
-		lCutScene->Play(m_CutScene, 0, 0, true);
-		delete lCutScene;
+// changed RF063
+		Play(m_CutScene, 0, 0, true);
+// end change RF063
 	}
 	
 	// Numero uno, display the level-changing splash screen.
@@ -1627,12 +1961,15 @@ bool CCommonData::ProcessLevelChange()
 			ShutdownCommon();
 			exit(-334);
 		}
-		//CCD->MenuManager()->SetLevelName(szLevelFile);
-		
+
 		//	Restore the player attributes for the new level
-		
-		thePlayer->LoadAttributes(".\\temp.bin");
-		
+		if(KeepAttributes)
+			thePlayer->LoadAttributes(".\\temp.bin");
+		else
+			thePlayer->LoadAttributes("pdoa.bin");
+
+		KeepAttributes = true;
+
 		// Move the player avatar to the start of the new level
 		
 		thePlayer->MoveToStart();
@@ -1640,6 +1977,7 @@ bool CCommonData::ProcessLevelChange()
 		geVec3d ActPos = thePlayer->Position();
 		geVec3d_Subtract(&ActPos, &Offset, &ActPos);
 		CCD->ActorManager()->Position(thePlayer->GetActor(), ActPos);
+		thePlayer->SwitchCamera(ViewPoint);
 		if(ViewPoint == thePlayer->GetViewPoint())
 		{
 			if(!UseAngle)
@@ -1675,11 +2013,16 @@ bool CCommonData::ProcessLevelChange()
 		
 		m_ChangeLevel = false;
 		Paused = true;
-		
+
 		return true;						// Level change successful!
 	}
 	else
+	{
+		while(theUserInput->GetKeyboardInput()!=-1)
+		{
+		}
 		return false;
+	}
 }
 
 //	RenderComponents
@@ -1694,6 +2037,10 @@ void CCommonData::RenderComponents()
 		LastElapsedTime_D());
 	if(ShowTrack)
 		theNPCPoint->Render();
+#ifdef RF063
+	if(ShowTrack)
+		theTrackStarts->Render();
+#endif
 	
 	return;
 }
@@ -1723,14 +2070,34 @@ void CCommonData::PlayOpeningCutScene()
 	
 	if((pSetup->OpeningCutScene != NULL) && (strlen(pSetup->OpeningCutScene) != 0))
 	{
-		CAVIPlayer *OpeningCutScene = new CAVIPlayer();
-		// Version 053
-		OpeningCutScene->Play(pSetup->OpeningCutScene, 160, 120, true);
-		delete OpeningCutScene;
+// changed RF063
+		Play(pSetup->OpeningCutScene, 160, 120, true);
+// end change RF063
 	}
 	
 	return;
 }
+
+// changed RF063
+void CCommonData::Play(char *szFile, int XPos, int YPos, bool Center)
+{
+	CString File = szFile;
+	File.MakeLower();
+	int i = File.Find(".gif");
+	if(i>=0 && i<File.GetLength())
+	{
+		CAnimGif *SplashAVI = new CAnimGif(szFile, kVideoFile); 
+		SplashAVI->Play(XPos, YPos, Center);
+		delete SplashAVI;
+	}
+	else
+	{
+		CAVIPlayer *SplashAVI = new CAVIPlayer;
+		SplashAVI->Play(szFile, XPos, YPos, Center);
+		delete SplashAVI;
+	}
+}
+// end change RF063
 
 //	CheckMediaPlayers
 //
@@ -1901,8 +2268,10 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename,
 		strcat(szTemp, szFilename);
 		break;
 	case kInstallFile:
-		strcpy(szTemp, ".\\");
+// changed RF063
+		strcpy(szTemp,"install\\");
 		strcat(szTemp, szFilename);
+// end change RF063
 		break;
 	case kRawFile:
 		strcpy(szTemp, szFilename);
@@ -2009,8 +2378,8 @@ DWORD CCommonData::GetTimePassed_D()
 	
 	//if(DeltaTime > kMaxTicksPassed)
 		//DeltaTime = kMaxTicksPassed;					// Clamp to max. ticks passed
-	if(DeltaTime <= 0.0f)
-		DeltaTime = 1.0f;											// Min 1 msec. resolution
+//	if(DeltaTime <= 0.0f)
+//		DeltaTime = 1.0f;											// Min 1 msec. resolution
 	
 	LastTimePoll = CurrentTime.QuadPart;		// Save off current "game time"
 	
@@ -2036,8 +2405,8 @@ geFloat CCommonData::GetTimePassed_F()
 	
 	//if(DeltaTime > kMaxTicksPassed)
 		//DeltaTime = kMaxTicksPassed;					// Clamp to max. ticks passed
-	if(DeltaTime <= 0.0f)
-		DeltaTime = 1.0f;											// Min 1 msec. resolution
+//	if(DeltaTime <= 0.0f)
+//		DeltaTime = 1.0f;											// Min 1 msec. resolution
 	
 	LastTimePoll = CurrentTime.QuadPart;
 	
@@ -2159,11 +2528,16 @@ void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 		Offset.Z =0.0f;
 	}
 	UseAngle = pItem->UseAngle;
-	for(i=0;i<10;i++)
-		Slot[i]=theWeapon->GetSlot(i);
-	CurrentWeapon = theWeapon->GetCurrent();
+	KeepAttributes = pItem->KeepAttributes;
+	if(KeepAttributes)
+	{
+		for(i=0;i<10;i++)
+			Slot[i]=theWeapon->GetSlot(i);
+		CurrentWeapon = theWeapon->GetCurrent();
+	}
 	UseEffect = pItem->UseEffect;
 	cColor = pItem->EffectColor;
+
 	return;
 }
 
@@ -2200,5 +2574,6 @@ void CCommonData::SetLevelData()
 	for(i=0;i<10;i++)
 		Slot[i]=theWeapon->GetSlot(i);
 	CurrentWeapon = theWeapon->GetCurrent();
+	KeepAttributes = true;
 	return;
 }

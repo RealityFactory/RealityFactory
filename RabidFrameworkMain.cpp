@@ -1,7 +1,7 @@
 /*
 	RabidFrameworkMain.cpp:		RealityFactory Main Program File
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This is the main execution path for RealityFactory.  This code handles
 level loading and changing, time-tick dispatching, and general user input
@@ -49,8 +49,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		exit(-666);
 		}
 
-  ShowCursor(FALSE);						// Turn off the mouse cursor
-  
 //	Ok, we'll check the command line and see if we got an argument from
 //	..rfEdit or some other spawning program.  This also lets us drive
 //	..the first level run from the command-line, useful in many
@@ -58,6 +56,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 	szFirstLevel[0] = 0;
 	CommandLine = false;
+
+	ShowCursor(FALSE);						// Turn off the mouse cursor
 
 	if((lpszCmdParam != NULL) && (strlen(lpszCmdParam) > 0))
 	{
@@ -102,10 +102,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 //	Center the invisible mouse cursor
 
-	POINT theCursor;
-	theCursor.x = 320; theCursor.y = 240;
-	ClientToScreen(CCD->Engine()->WindowHandle(), &theCursor);
-	SetCursorPos(theCursor.x, theCursor.y);
+	RECT client;
+	POINT pos;
+	if(CCD->Engine()->FullScreen())
+    {
+		pos.x = CCD->Engine()->Width()/2;			// calculate the center of the screen
+		pos.y = CCD->Engine()->Height()/2;			// calculate the center of the screen
+		SetCursorPos(pos.x, pos.y);	// set the cursor in the center of the screen
+    }
+	else
+    {
+		GetClientRect(CCD->Engine()->WindowHandle(),&client);	// get the client area of the window
+		pos.x = client.right/2;						// calculate the center of the client area
+		pos.y = client.bottom/2;					// calculate the center of the client area
+		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);		// convert to SCREEN coordinates
+		SetCursorPos(pos.x,pos.y);					// put the cursor in the middle of the window
+    }
 
 	if(CommandLine)
 	{
@@ -121,9 +133,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		{
 			if(!EffectC_IsStringNull(CCD->CutScene()))
 			{
-				CAVIPlayer *SplashAVI = new CAVIPlayer; 
-				SplashAVI->Play(CCD->CutScene(), 160, 120, true);
-				delete SplashAVI;
+// changed RF063
+				CCD->Play(CCD->CutScene(), 160, 120, true);
+// end change RF063
 			}
 		}
 		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
@@ -138,32 +150,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		{
 			if(!EffectC_IsStringNull(CCD->CutScene1()))
 			{
-				CAVIPlayer *SplashAVI = new CAVIPlayer; 
-				SplashAVI->Play(CCD->CutScene1(), 160, 120, true);
-				delete SplashAVI;
+// changed RF063 
+				CCD->Play(CCD->CutScene1(), 160, 120, true);
+// end change RF063
 			}
 		}
+// changed RF063
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
-		if((nResult = CCD->InitializeLevel(szFirstLevel)) != 0)
-		{
-			CCD->ReportError("Couldn't initialize first level", false);
-			CCD->ShutdownLevel();						// Clean up anything that got loaded
-			delete CCD;						// Kill off the engine and such
-			MessageBox(NULL, szFirstLevel,"RGF: Can't load level", MB_OK);
-			exit(-333);
-		}
-
-//	Ok, move the player avatar to the correct player start in the
-//	..game level.
-
-		if(CCD->Player()->MoveToStart() != RGF_SUCCESS)
-		{
-			CCD->ReportError("Can't move player to start", false);
-			CCD->ShutdownLevel();
-			delete CCD;
-			exit(-336);
-		}
-		CCD->MenuManager()->GameLoop();
+		CCD->MenuManager()->DoGame(true);
+// end change RF063
 	}
 	else
 	{	
@@ -179,9 +174,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		{
 			if(!EffectC_IsStringNull(CCD->CutScene()))
 			{
-				CAVIPlayer *SplashAVI = new CAVIPlayer; 
-				SplashAVI->Play(CCD->CutScene(), 160, 120, true);
-				delete SplashAVI;
+// changed RF063 
+				CCD->Play(CCD->CutScene(), 160, 120, true);
+// end change RF063
 			}
 		}
 		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
@@ -196,12 +191,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		{
 			if(!EffectC_IsStringNull(CCD->CutScene1()))
 			{
-				CAVIPlayer *SplashAVI = new CAVIPlayer; 
-				SplashAVI->Play(CCD->CutScene1(), 160, 120, true);
-				delete SplashAVI;
+// changed RF063
+				CCD->Play(CCD->CutScene1(), 160, 120, true);
+// end change RF063
 			}
 		}
 	}
+
 	CCD->MenuManager()->DoMenu(szFirstLevel);
 	CCD->ReportError("Game exiting", false);
 	CCD->ShutdownLevel();					// Kill off level-specific entities

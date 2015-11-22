@@ -1,7 +1,7 @@
 /*
 	CDamage.cpp:		Damage class implementation
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the class implementation for Damage
@@ -11,6 +11,8 @@ handling.
 //	Include the One True Header
 
 #include "RabidFramework.h"
+
+extern geSound_Def *SPool_Sound(char *SName);
 
 //	Constructor
 //
@@ -52,6 +54,8 @@ CDamage::CDamage()
 		pDestroy->CallBack = false;
 		pDestroy->active = false;
 		pDestroy->OriginalAmt = pDestroy->AttributeAmt;
+		if(!EffectC_IsStringNull(pDestroy->szSoundFile))
+			SPool_Sound(pDestroy->szSoundFile);
 	}
 }
 
@@ -107,20 +111,102 @@ void CDamage::Tick(float dwTicks)
 				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
 				if(CCD->ModelManager()->IsModel(pDestroy->Model))
 					CCD->ModelManager()->RemoveModel(pDestroy->Model);
+				if(!EffectC_IsStringNull(pDestroy->szSoundFile))
+				{
+					Snd Sound;
+					memset( &Sound, 0, sizeof( Sound ) );
+					geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, 
+						&Sound.Pos);
+					Sound.Min=kAudibleRadius;
+					Sound.Loop=false;
+					Sound.SoundDef = SPool_Sound(pDestroy->szSoundFile);
+					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+				}
 			}
 		}
 	}
 }
 
-void CDamage::DamageActor(geActor *Actor, float amount, char *Attr)
+// changed RF063
+//	SaveTo
+//
+//	Save the current state 
+//	..off to an open file.
+
+int CDamage::SaveTo(FILE *SaveFD)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are DestroyableModel in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;
+	
+	//	Ok, we have DestroyableModel somewhere.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		fwrite(&pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
+	}
+	
+	return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore the state from an
+//	..open file.
+
+int CDamage::RestoreFrom(FILE *RestoreFD)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are DestroyableModel in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;									// No doors, whatever...
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		fread(&pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
+    }
+	
+	return RGF_SUCCESS;
+}
+
+void CDamage::DamageActor(geActor *Actor, float amount, char *Attr, float Altamount, char *AltAttr)
 {
 	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
 	if(theInv)
-		theInv->Modify(Attr,(int)-amount);
+	{
+		if(!EffectC_IsStringNull(Attr))
+		{
+			if(theInv->Has(Attr) && (theInv->Value(Attr)>theInv->Low(Attr)))
+			{
+				theInv->Modify(Attr,(int)-amount);
+				return;
+			}
+		}
+		if(!EffectC_IsStringNull(AltAttr))
+		{
+			if(theInv->Has(AltAttr) && (theInv->Value(AltAttr)>theInv->Low(AltAttr)))
+				theInv->Modify(AltAttr,(int)-Altamount);
+		}
+	}
 	return;
 }
 
-void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr)
+void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr)
 {
 	geActor *ActorsInRange[512];
 
@@ -130,11 +216,13 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, cha
 	if(nActorCount != 0)
 	{
 		for(int nTemp = 0; nTemp < nActorCount; nTemp++)
-			DamageActor(ActorsInRange[nTemp], amount, Attr);
+		{
+			DamageActor(ActorsInRange[nTemp], amount, Attr, Altamount, AltAttr);
+		}
 	}
 }
 
-void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr)
+void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr, float Altamount, char *AltAttr)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -153,22 +241,26 @@ void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr)
 			continue;
 		if(EffectC_IsStringNull(pDestroy->Attribute))
 		{
-			if(!stricmp(Attr, "health"))
+			if(!stricmp(Attr, "health") && pDestroy->AttributeAmt>0)
 			{
 				pDestroy->AttributeAmt-=amount;
 			}
+			else if(!stricmp(AltAttr, "health"))
+				pDestroy->AttributeAmt-=Altamount;
 		}
 		else
 		{
-			if(!stricmp(Attr, pDestroy->Attribute))
+			if(!stricmp(Attr, pDestroy->Attribute) && pDestroy->AttributeAmt>0)
 			{
 				pDestroy->AttributeAmt-=amount;
 			}
+			else if(!stricmp(AltAttr, pDestroy->Attribute))
+				pDestroy->AttributeAmt-=Altamount;
 		}
 	}
 }
 
-void CDamage::DamageModelInRange(geVec3d Point, geFloat Range, float amount, char *Attr)
+void CDamage::DamageModelInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -185,28 +277,35 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range, float amount, cha
 		
 		if(pDestroy->active == GE_TRUE && pDestroy->bState)
 		{
-			geXForm3d Xf1;
-			geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-			if(geVec3d_DistanceBetween(&Point, &Xf1.Translation)<Range)
+			geVec3d thePosition;
+			geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, 
+					&thePosition);
+
+			if((float)fabs(geVec3d_DistanceBetween(&Point, &thePosition))<Range)
 			{
 				if(EffectC_IsStringNull(pDestroy->Attribute))
 				{
-					if(!stricmp(Attr, "health"))
+					if(!stricmp(Attr, "health") && pDestroy->AttributeAmt>0)
 					{
 						pDestroy->AttributeAmt-=amount;
 					}
+					else if(!stricmp(AltAttr, "health"))
+						pDestroy->AttributeAmt-=Altamount;
 				}
 				else
 				{
-					if(!stricmp(Attr, pDestroy->Attribute))
+					if(!stricmp(Attr, pDestroy->Attribute) && pDestroy->AttributeAmt>0)
 					{
 						pDestroy->AttributeAmt-=amount;
 					}
+					else if(!stricmp(AltAttr, pDestroy->Attribute))
+						pDestroy->AttributeAmt-=Altamount;
 				}
 			}
 		}
 	}
 }
+// end change RF063
 
 bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 {

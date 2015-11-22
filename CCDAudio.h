@@ -1,7 +1,7 @@
 /*
 		CCDAudio.h:		CD Audio Playback Class
 
-		(c) 1999 Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 		This file contains the class declaration for the CCDAudio
 CD Audio playback class.

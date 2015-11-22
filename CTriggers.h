@@ -1,7 +1,7 @@
 /*
 CTriggers.h:		Trigger handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class declaration for the CTriggers
 	class that encapsulates trigger handling in the RGF.
@@ -28,7 +28,8 @@ public:
 	CTriggers();				// Constructor
 	~CTriggers();			// Destructor
 	bool HandleTriggerEvent(char *TName);                      //MOD010122 - This line added
-	int HandleCollision(geWorld_Model *pModel, bool HitType);
+// changed RF063
+	int HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey, geActor *theActor);
 	bool IsATrigger(geWorld_Model *theModel);	// Is this model a trigger?
 	void Tick(float dwTicks);					// Increment animation time
 	int SaveTo(FILE *SaveFD); // Save triggers to file

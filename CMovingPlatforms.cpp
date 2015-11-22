@@ -1,7 +1,7 @@
 /*
 CMovingPlatforms.cpp:		Moving platforms handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the CMovingPlatforms
 	class that encapsulates moving platform handling in the RGF.
@@ -68,6 +68,7 @@ CMovingPlatforms::CMovingPlatforms()
 		CCD->ModelManager()->AddModel(pPlatform->Model, ENTITY_PLATFORM);
 		CCD->ModelManager()->SetLooping(pPlatform->Model, pPlatform->bLooping);
 		CCD->ModelManager()->SetReverse(pPlatform->Model, pPlatform->bReverse);
+		CCD->ModelManager()->SetAllowInside(pPlatform->Model, pPlatform->bAllowInside);
 		//MOD010122 - Start of new data initializations
 		CCD->ModelManager()->SetOneShot(pPlatform->Model, pPlatform->bOneShot);
 		CCD->ModelManager()->SetRunTimed(pPlatform->Model, pPlatform->bRunTimed);
@@ -225,8 +226,8 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, geVec3d Origin, bool Soun
 //	HandleCollision
 //
 //	Handle a collision with a platform.
-
-bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
+// changed RF063
+bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel, bool bTriggerCall, bool UseKey, geActor *theActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -247,12 +248,22 @@ bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
 		MovingPlatform *pPlatform= (MovingPlatform*)geEntity_GetUserData(pEntity);
 		if(pPlatform->Model == pModel)
 		{
-			if((!pPlatform->bShoot) && (bTriggerCall == TRUE))
+// changed RF063
+			if(pPlatform->PlayerOnly && theActor!=CCD->Player()->GetActor())
+				return false;
+			if(UseKey && !pPlatform->UseKey)
+				return false;
+// end change RF063
+			if((!pPlatform->bShoot) && bTriggerCall)
+				return false;
+			if(pPlatform->bShoot && !bTriggerCall)
 				return false;
 			// If this platform doesn't activate on collision, and this call isn't
 			// ..from a platform trigger, ignore it.
-			if((pPlatform->bNoCollide))
-				return false;								// Fake a no-hit situation
+// changed RF063
+			if(pPlatform->bNoCollide && !UseKey)
+				return true;	// Fake a no-hit situation
+// end change RF063
 			bool state = true;
 			if(!EffectC_IsStringNull(pPlatform->TriggerName))
 				state = GetTriggerState(pPlatform->TriggerName);
@@ -260,6 +271,7 @@ bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
 			{
 				pPlatform->CallBack = GE_TRUE;
 				pPlatform->CallBackCount = 2;
+				return true;
 			}
 			
 			//MOD010122 - Next section of code has many changes, you just can't call Start anymore!
@@ -542,13 +554,11 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD)
 		fwrite(&pPlatform->bInAnimation, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->bTrigger, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->bActorOnMe, sizeof(geBoolean), 1, SaveFD);
-		//		fwrite(&pPlatform->AnimationTime, sizeof(int), 1, SaveFD);
 		fwrite(&pPlatform->bInCollision, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->bActive, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->LastIncrement, sizeof(int), 1, SaveFD);
 		fwrite(&pPlatform->bForward, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->tPlatform, sizeof(geFloat), 1, SaveFD);
-		// EFFECT
 		fwrite(&pPlatform->CallBack, sizeof(geBoolean), 1, SaveFD);
 		fwrite(&pPlatform->CallBackCount, sizeof(int), 1, SaveFD);
 	}

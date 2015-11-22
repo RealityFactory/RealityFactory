@@ -1,7 +1,7 @@
 /*
 CStaticEntity.cpp:		Static Entity Handling Class
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the Static Entity
 	handling class.  Static entities are Genesis3D actors that do not
@@ -78,7 +78,8 @@ CStaticEntity::CStaticEntity()
 			CCD->ActorManager()->SetType(pProxy->Actor, ENTITY_VEHICLE);	// Make a vehicle
 		if(pProxy->SubjectToGravity)
 			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
-
+		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor);
+		CCD->ActorManager()->SetShadow(pProxy->Actor, pProxy->ShadowSize);
 		pProxy->bInitialized = GE_FALSE;		// Pathfollowing not initialized
 		pProxy->theSound = NULL;						// No sound, right now...
 		pProxy->SoundHandle = NULL;					// No sound playing
@@ -207,8 +208,8 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 //	..actor we hit, will act (heh) on it.  For now, that means we play
 //	..the "collision" audio, though eventually this will trigger script
 //	..execution.
-
-int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Gravity)
+// changed RF063
+int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Gravity, bool UseKey)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -232,7 +233,13 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 		{
 			pProxy->IsHit = false;
 			continue;	  // Not this one, keep looking
-		}	
+		}
+// changed RF063
+		if(UseKey && !pProxy->UseKey)
+			return RGF_FAILURE;
+		if(UseKey && !(pProxy->GetDamaged && pProxy->alive && pProxy->DoDamage && !pProxy->DoingDamage))
+			return RGF_FAILURE;
+// end change RF063
 		if(!pProxy->alive)
 		{
 			pProxy->IsHit = true;
@@ -241,14 +248,33 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 
 		if(pProxy->Actor == pActor && pProxy->alive && pProxy->DoDamage && !pProxy->DoingDamage)
 		{
-			if(theActor)
+			if(pProxy->GetDamaged)
 			{
-				if(EffectC_IsStringNull(pProxy->DamageTo))
-					CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health");
-				else
-					CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo);
-				pProxy->Time = 0.0f;
-				pProxy->DoingDamage = true;
+				if(pProxy->AttributeAmt!=-1)
+				{
+// changed RF063
+					if(EffectC_IsStringNull(pProxy->DamageTo))
+						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health");
+					else
+						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute);
+// end change RF063
+					pProxy->Time = 0.0f;
+					pProxy->DoingDamage = true;
+				}
+			}
+			else
+			{
+				if(theActor)
+				{
+// changed RF063
+					if(EffectC_IsStringNull(pProxy->DamageTo))
+						CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt);
+					else
+						CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt);
+// end change RF063
+					pProxy->Time = 0.0f;
+					pProxy->DoingDamage = true;
+				}
 			}
 		}
 
@@ -451,9 +477,26 @@ int CStaticEntity::SaveTo(FILE *SaveFD)
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
+// changed RF063
 		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
 		fwrite(&pProxy->origin, sizeof(geVec3d), 1, SaveFD);
-		fwrite(&pProxy->InitialAlpha, sizeof(int), 1, SaveFD);
+		fwrite(&pProxy->CallBack, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pProxy->CallBackCount, sizeof(int), 1, SaveFD);
+		fwrite(&pProxy->bState, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pProxy->DoingDamage, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pProxy->Time, sizeof(geFloat), 1, SaveFD);
+		fwrite(&pProxy->alive, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pProxy->IsHit, sizeof(geBoolean), 1, SaveFD);
+		fwrite(&pProxy->bInitialized, sizeof(geBoolean), 1, SaveFD);
+		if(pProxy->alive)
+		{
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
+			int health = theInv->Value("health");
+			if(!EffectC_IsStringNull(pProxy->DamageAttribute))
+				health = theInv->Value(pProxy->DamageAttribute);
+			fwrite(&health, sizeof(int), 1, SaveFD); 
+		}
+// end change RF063
 	}
 	
 	return RGF_SUCCESS;
@@ -483,11 +526,32 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD)
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
+// changed RF063
 		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
 		fread(&pProxy->origin, sizeof(geVec3d), 1, RestoreFD);
-		fread(&pProxy->InitialAlpha, sizeof(int), 1, RestoreFD);
-		CCD->ActorManager()->Position(pProxy->Actor, pProxy->origin);
-		CCD->ActorManager()->SetAlpha(pProxy->Actor, (geFloat)pProxy->InitialAlpha);	// Update alpha
+		fread(&pProxy->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pProxy->CallBackCount, sizeof(int), 1, RestoreFD);
+		fread(&pProxy->bState, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pProxy->DoingDamage, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pProxy->Time, sizeof(geFloat), 1, RestoreFD);
+		fread(&pProxy->alive, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pProxy->IsHit, sizeof(geBoolean), 1, RestoreFD);
+		fread(&pProxy->bInitialized, sizeof(geBoolean), 1, RestoreFD);
+		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
+		{
+			int health;
+			fread(&health, sizeof(int), 1, RestoreFD);
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
+			if(!EffectC_IsStringNull(pProxy->DamageAttribute))
+				theInv->Set(pProxy->DamageAttribute, health);
+			else
+				theInv->Set("health", health);
+			
+			CCD->ActorManager()->Position(pProxy->Actor, pProxy->origin);
+		}
+		else
+			CCD->ActorManager()->RemoveActor(pProxy->Actor);
+// end change RF063
 	}
 	
 	return RGF_SUCCESS;

@@ -1,7 +1,7 @@
 /*
 		RGFEvents.h:	RGF Component Event and Command Codes
 
-		Authored	07/11/2000		Edward A. Averill, III
+		(c) 2001 Ralph Deane
 
 		This file contains all the RGF EVENT and COMMAND codes that are
 used to pass messages between RGF components.

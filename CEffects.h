@@ -2,7 +2,7 @@
 
     CEffects.h               Predefined effects handler
 
-	(c) 1999 Ralph Deane
+	(c) 2001 Ralph Deane
 
 	This file contains the class declarations for the predefined
 	effects for RGF-based games.

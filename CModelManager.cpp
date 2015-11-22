@@ -2,7 +2,7 @@
 CModelManager.cpp:		Animated World Model Manager
 
   This file contains the class implementation of the Model Manager
-  system for the Rabid Game Framework.
+  system for Reality Factory.
 */
 
 #include "RabidFramework.h"		// The One True Include File
@@ -31,7 +31,7 @@ CModelManager::CModelManager()
 	{
 		// Get the door data so we can compare models
 		ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
-		AddModel(pMod->theModel, ENTITY_ATTRIBUTE_MOD);
+//		AddModel(pMod->theModel, ENTITY_ATTRIBUTE_MOD);
 		pMod->DoForce = false;
 		pMod->DoDamage = false;
 		pMod->DTime = 0.0f;
@@ -255,6 +255,17 @@ int CModelManager::SetReverse(geWorld_Model *theModel, bool bReverseIt)
 		return RGF_NOT_FOUND;					// Model not managed by us...
 	
 	pEntry->bReverse = bReverseIt;
+	
+	return RGF_SUCCESS;
+}
+
+int CModelManager::SetAllowInside(geWorld_Model *theModel, bool bAllowInside)
+{
+	ModelInstanceList *pEntry = FindModel(theModel);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Model not managed by us...
+	
+	pEntry->bAllowInside = bAllowInside;
 	
 	return RGF_SUCCESS;
 }
@@ -902,6 +913,9 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 			if(MainList[nTemp] == NULL)
 				continue;				// Empty slot
 			
+			if(MainList[nTemp]->bAllowInside)
+				continue;
+
 			geVec3d Forward, Up, Left, Pos;
 			geXForm3d Xf;
 			geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf); 
@@ -950,7 +964,10 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 				&Result.Min, &Result.Max);
 			
 			if(CCD->Doors()->IsADoor(MainList[nTemp]->Model) && IsRunning(MainList[nTemp]->Model) && MainList[nTemp]->bRotating)
-				return GE_FALSE;
+				continue;
+// changed RF063
+			if(MainList[nTemp]->ModelType==ENTITY_LIQUID)
+				continue;
 			
 			Result.Min.X += MainList[nTemp]->Translation.X;
 			Result.Min.Y += MainList[nTemp]->Translation.Y;
@@ -1035,27 +1052,15 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 					// Need to damage the actor that hit us...
 					if(theActor)
 					{
+// changed RF063
 						if(EffectC_IsStringNull(pMod->DamageAttribute))
 						{
-							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
-							if(theInv->Value("health")>0)
-								CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health");
-							else
-							{
-								if(EffectC_IsStringNull(pMod->DamageAltAttribute))
-									CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAltAttribute);
-							}
+							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute);
 						}
 						else
 						{
-							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
-							if(theInv->Value(pMod->DamageAttribute)>0)
-								CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute);
-							else
-							{
-								if(EffectC_IsStringNull(pMod->DamageAltAttribute))
-									CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAltAttribute);
-							}
+							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute);
+// end change RF063
 						}
 					}
 					pMod->DoDamage = true;
@@ -1174,6 +1179,7 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 				MainList[nTemp]->bLooping = false;
 				MainList[nTemp]->bRotating = false;
 				MainList[nTemp]->bReverse = true;
+				MainList[nTemp]->bAllowInside = false;
 				//MOD010122 - Added next seven variable initializations
                 MainList[nTemp]->bRunTimed = false;
                 MainList[nTemp]->TimeEachTrig = 1.0f;

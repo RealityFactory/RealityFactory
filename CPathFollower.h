@@ -1,7 +1,7 @@
 /*
 	CPathFollower.h:		Entity motion binding component
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 
 	This file contains the declaration for the CPathFollower component.
 This component causes moveable entities to travel at a specified speed

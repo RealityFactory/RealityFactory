@@ -2,10 +2,10 @@
 	CAudioManager.h:		Audio Manager
 
 	This file contains the class declaration of the Audio Manager
-system for the Rabid Game Framework.
+system for the Reality Factory.
 
 	The Audio Manager handles the playback of ALL audio effects in
-the Rabid Game Framework - this means MIDI, CD Audio, WAVE effects,
+the Reality Factory - this means MIDI, CD Audio, WAVE effects,
 MP3, and streaming audio tracks.  The Audio Manager is an encapsulation
 of the FMOD Audio System.
 */

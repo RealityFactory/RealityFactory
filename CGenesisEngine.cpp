@@ -1,7 +1,7 @@
 /*
 CGenesisEngine.cpp:		Genesis3D engine encapsulation
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the Genesis3D
 	engine wrapper.  This wrapper hides many of the gory details
@@ -203,13 +203,49 @@ bool CGenesisEngine::CreateEngine(char *szName)
 	// Create the genesis driver system
 	
 	m_DrvSys = geEngine_GetDriverSystem(m_theEngine);
-	
+
 	if(!m_DrvSys)
 	{
 		ReportError("geEngine_GetDriverSystem failure", false);
 		return FALSE;
 	}
-	
+
+// changed RF063
+	geDriver *gDriver;
+	const char *drvname = NULL;
+
+	Voodoo = false;
+
+	gDriver = geDriver_SystemGetNextDriver(m_DrvSys, NULL);
+	if(gDriver)
+	{
+		while(1) 
+		{
+			geDriver_GetName(gDriver, &drvname);
+			if(drvname[0] == 'G') 
+			{
+				Voodoo = true;
+				break;		
+			}
+			gDriver = geDriver_SystemGetNextDriver(m_DrvSys, gDriver);
+			if(!gDriver)
+				break;
+		}
+	}
+	FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
+	if(Voodoo)
+	{
+		fputs("16", fd); fputs("\n", fd);
+		fputs("16", fd); fputs("\n", fd);
+	}
+	else
+	{
+		fputs("16", fd); fputs("\n", fd);
+		fputs("16", fd); fputs("\n", fd);
+	}
+	fclose(fd);
+// end change RF063
+
 	/////////////////////////////////////////////////////////////////
 	// Dee  07/07/00 - Added
 	// Find any available driver and use the first mode it has
@@ -477,6 +513,11 @@ bool CGenesisEngine::PickDriver()
 /////////////////////////////////////////////////////////////////
 // End Dee
 /////////////////////////////////////////////////////////////////
+
+//
+// The DrawAlphaBitmap and its associated routines were
+// written and provided by Andy Campbell aka Assassin
+//
 
 bool CGenesisEngine::DrawAlphaBitmap(	 
 									 geBitmap * pBitmap, 
@@ -879,7 +920,9 @@ bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp,
 	
 	return retval; 
 }
-
+//
+// End of DrawAlphaBitmap routines
+//
 
 //	ShowFrameRate
 //

@@ -1,7 +1,7 @@
 /*
 CAutoDoors.cpp:		Automatic door handler
 
-  (c) 1999 Edward A. Averill, III
+  (c) 2001 Ralph Deane
   
 	This file contains the class implementation for the CAutoDoors
 	class that encapsulates automatic-door handling in the RGF.
@@ -195,8 +195,8 @@ CAutoDoors::~CAutoDoors()
 //	HandleCollision
 //
 //	Handle a collision with an automatic door.
-
-bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
+// changed RF063
+bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -220,13 +220,23 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
 		Door *pDoor= (Door*)geEntity_GetUserData(pEntity);
 		if(pDoor->Model == pModel)
 		{
-			if((!pDoor->bShoot) && (bTriggerCall == TRUE))
+// changed RF063
+			if(pDoor->PlayerOnly && theActor!=CCD->Player()->GetActor())
+				return false;
+			if(UseKey && !pDoor->UseKey)
+				return false;
+// end change RF063
+			if((!pDoor->bShoot) && bTriggerCall)
+				return false;
+			if(pDoor->bShoot && !bTriggerCall)
 				return false;
 			// Models match, we hit this one.  If the entity doesn't activate
 			// ..on collide AND this isn't a call from a trigger, don't
 			// ..activate the entity.
-			if(pDoor->bNoCollide)
-				return false;			// Fake a no-hit situation
+// changed RF063
+			if(pDoor->bNoCollide && !UseKey)
+				return true;			// Fake a no-hit situation
+// end change RF063
 			bool state = true;
 			if(!EffectC_IsStringNull(pDoor->TriggerName))
 				state = GetTriggerState(pDoor->TriggerName);
@@ -234,6 +244,7 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall)
 			{
 				pDoor->CallBack = GE_TRUE;
 				pDoor->CallBackCount = 2;
+				return true;
 			}
 			
 			// Ok, if the entity isn't already activated AND the entity is

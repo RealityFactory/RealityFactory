@@ -2,8 +2,7 @@
 // Written by: Adam Clauss
 //////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
-#include "IniFile.h"
+#include "RabidFramework.h"
 #include "fstream.h"
 
 #ifdef _DEBUG
@@ -45,25 +44,32 @@ void CIniFile::SetPath(CString newpath)
 
 //reads ini file specified using CIniFile::SetPath()
 //returns true if successful, false otherwise
+
 bool CIniFile::ReadFile()
 {
-	CFile file;
-	CFileStatus status;
-	if (!file.GetStatus(path,status))
-		return 0;
-	ifstream inifile;
+// changed RF063
 	CString readinfo;
-	inifile.open(path);
 	int curkey = -1, curval = -1;
-	if (inifile.fail())
-	{
-		error = "Unable to open ini file.";
-		return 0;
-	}
 	CString keyname, valuename, value;
 	CString temp;
-	while (getline(inifile,readinfo))
+	geVFile *MainFS;
+	char szPath[132];
+	char szInputLine[132];
+
+	strcpy(szPath, path);
+
+	if(!CCD->OpenRFFile(&MainFS, kInstallFile, szPath, GE_VFILE_OPEN_READONLY))
+		return 0;
+
+	while(geVFile_GetS(MainFS, szInputLine, 132)==GE_TRUE)
 	{
+		if(strlen(szInputLine) <= 1)
+			readinfo = "";
+		else
+			readinfo = szInputLine;
+
+		readinfo.TrimRight();
+
 		if (readinfo != "")
 		{
 			if (readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']') //if a section heading
@@ -87,9 +93,12 @@ bool CIniFile::ReadFile()
 			}
 		}
 	}
-	inifile.close();
+	geVFile_Close(MainFS);
+
 	return 1;
+// end change RF063
 }
+
 
 //writes data stored in class to ini file
 void CIniFile::WriteFile()

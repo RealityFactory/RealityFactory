@@ -1,7 +1,7 @@
 /*
 	Utilities.h:		Utility functions
 
-	(c) 1999 Edward A. Averill, III
+	(c) 2001 Ralph Deane
 	All Rights Reserved
 
 	This file contains the headers for utility functions
@@ -74,6 +74,7 @@ void Ang2Vec(float ang, geVec3d *vec);
 void VectorRotateY(geVec3d *vec, float delta_ang, geVec3d *result);
 geBoolean CanSeePointToPoint(geVec3d *Pos1, geVec3d *Pos2);
 geBoolean CanSeeActorToPoint(geActor *Actor, geVec3d *Pos2);
+geBoolean CanSeePointToActor(geVec3d *Pos2, geActor *Actor);
 geBoolean CanSeeActorToActor(geActor *Actor1, geActor *Actor2);
 
 #endif
