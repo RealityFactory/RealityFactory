@@ -282,12 +282,8 @@ bool GetTriggerState(char *TriggerName)
 			return pProxy->bState;
 		}
 	}
-	else
-	{
-		 return CCD->Pawns()->GetEventState(TriggerName);
-	}
+	return CCD->Pawns()->GetEventState(TriggerName);
 // end change RF064
-	return false;
 }
 
 //--------------------------------
@@ -571,7 +567,7 @@ geBitmap * CreateFromFileAndAlphaNames(char * BmName,char *AlphaName)
 				geBitmap_Destroy(&AlphaBmp);
 				return NULL;
 			}
-			
+			 
 			geBitmap_Destroy(&AlphaBmp);
 		}
 	}

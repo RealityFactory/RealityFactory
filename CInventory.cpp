@@ -75,11 +75,14 @@ CInventory::CInventory()
 					background = CreateFromFileAndAlphaNames(szName, szAlpha);
 					
 					if(background)
+					{
 						flag = true;
+						geBitmap_GetInfo(background, &BmpInfo, NULL);
+						backgroundx = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
+						backgroundy = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
+					}
 				}
-				geBitmap_GetInfo(background, &BmpInfo, NULL);
-				backgroundx = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
-				backgroundy = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
+
 				Tname = AttrFile.GetValue(KeyName, "highlight");
 				if(Tname!="" && flag)
 				{
@@ -95,6 +98,9 @@ CInventory::CInventory()
 					if(!highlight)
 						flag = false;
 				}
+				else
+					flag = false;
+
 				Tname = AttrFile.GetValue(KeyName, "arrowr");
 				if(Tname!="" && flag)
 				{
@@ -109,6 +115,9 @@ CInventory::CInventory()
 					if(!arrowr)
 						flag = false;
 				}
+				else
+					flag = false;
+
 				Tname = AttrFile.GetValue(KeyName, "arrowl");
 				if(Tname!="" && flag)
 				{
@@ -123,6 +132,9 @@ CInventory::CInventory()
 					if(!arrowl)
 						flag = false;
 				}
+				else
+					flag = false;
+
 				///////////////////////////////// end change
 				if(!flag)
 				{

@@ -1365,102 +1365,6 @@ typedef struct _PlayerSetup
 
 } PlayerSetup;
 
-//	EnvAudioSetup
-//
-//	This entity handles defining the Foley played when an actor (player
-//	..avatar, AI-driven actor) moves in certain contents.
-
-#pragma GE_Type("icons\\e_audio.bmp")
-typedef struct _EnvAudioSetup
-{
-#pragma GE_Published
-	geVec3d origin;									// Entity origin
-	char *DefaultMotionSound;				// Default motion sound .WAV file
-	char *DefaultMotionSound1;
-	char *DefaultMotionSound2;
-	char *SoundWhenInWater;					// Motion sound when in water
-	char *SoundWhenInWater1;
-	char *SoundWhenInWater2;
-	char *SoundWhenInLava;					// Motion sound when in lava
-	char *SoundWhenInLava1;
-	char *SoundWhenInLava2;
-	char *SoundWhenInToxicGas;			// Motion sound when in toxic gas
-	char *SoundWhenInToxicGas1;
-	char *SoundWhenInToxicGas2;
-	char *SoundWhenInZeroG;					// Motion sound when in zero-G
-	char *SoundWhenInZeroG1;
-	char *SoundWhenInZeroG2;
-	char *SoundWhenInFrozen;				// Motion sound when on frozen surface
-	char *SoundWhenInFrozen1;
-	char *SoundWhenInFrozen2;
-	char *SoundWhenInSludge;				// Motion sound when in viscous sludge
-	char *SoundWhenInSludge1;
-	char *SoundWhenInSludge2;
-	char *SoundWhenInSlowMotion;		// Motion sound when in slo-mo area
-	char *SoundWhenInSlowMotion1;
-	char *SoundWhenInSlowMotion2;
-	char *SoundWhenInFastMotion;		// Motion sound when in fast-mo area
-	char *SoundWhenInFastMotion1;
-	char *SoundWhenInFastMotion2;
-	char *SoundWhenUsingLadders;
-	char *SoundWhenUsingLadders1;
-	char *SoundWhenUsingLadders2;
-// changed RF063
-	char *SoundWhenInUnclimbable;		// Motion sound when in unclimbable area
-	char *SoundWhenInUnclimbable1;
-	char *SoundWhenInUnclimbable2;
-// end change RF063	
-#pragma GE_Origin(origin)
-#pragma GE_DefaultValue(DefaultMotionSound, "")
-#pragma GE_DefaultValue(DefaultMotionSound1, "")
-#pragma GE_DefaultValue(DefaultMotionSound2, "")
-#pragma GE_DefaultValue(SoundWhenInWater, "")
-#pragma GE_DefaultValue(SoundWhenInWater1, "")
-#pragma GE_DefaultValue(SoundWhenInWater2, "")
-#pragma GE_DefaultValue(SoundWhenInLava, "")
-#pragma GE_DefaultValue(SoundWhenInLava1, "")
-#pragma GE_DefaultValue(SoundWhenInLava2, "")
-#pragma GE_DefaultValue(SoundWhenInToxicGas, "")
-#pragma GE_DefaultValue(SoundWhenInToxicGas1, "")
-#pragma GE_DefaultValue(SoundWhenInToxicGas2, "")
-#pragma GE_DefaultValue(SoundWhenInZeroG, "")
-#pragma GE_DefaultValue(SoundWhenInZeroG1, "")
-#pragma GE_DefaultValue(SoundWhenInZeroG2, "")
-#pragma GE_DefaultValue(SoundWhenInFrozen, "")
-#pragma GE_DefaultValue(SoundWhenInFrozen1, "")
-#pragma GE_DefaultValue(SoundWhenInFrozen2, "")
-#pragma GE_DefaultValue(SoundWhenInSludge, "")
-#pragma GE_DefaultValue(SoundWhenInSludge1, "")
-#pragma GE_DefaultValue(SoundWhenInSludge2, "")
-#pragma GE_DefaultValue(SoundWhenInSlowMotion, "")
-#pragma GE_DefaultValue(SoundWhenInSlowMotion1, "")
-#pragma GE_DefaultValue(SoundWhenInSlowMotion2, "")
-#pragma GE_DefaultValue(SoundWhenInFastMotion, "")
-#pragma GE_DefaultValue(SoundWhenInFastMotion1, "")
-#pragma GE_DefaultValue(SoundWhenInFastMotion2, "")
-#pragma GE_DefaultValue(SoundWhenUsingLadders, "")
-#pragma GE_DefaultValue(SoundWhenUsingLadders1, "")
-#pragma GE_DefaultValue(SoundWhenUsingLadders2, "")
-// changed RF063
-#pragma GE_DefaultValue(SoundWhenInUnclimbable, "")
-#pragma GE_DefaultValue(SoundWhenInUnclimbable1, "")
-#pragma GE_DefaultValue(SoundWhenInUnclimbable2, "")
-// end change RF063	
-#pragma GE_Documentation(DefaultMotionSound, "Default motion sound")
-#pragma GE_Documentation(SoundWhenInWater, "Sound to use when moving in water")
-#pragma GE_Documentation(SoundWhenInLava, "Sound to use when moving in lava")
-#pragma GE_Documentation(SoundWhenInToxicGas, "Sound to use when moving in toxic gas")
-#pragma GE_Documentation(SoundWhenInZeroG, "Sound to use when moving in zero-G")
-#pragma GE_Documentation(SoundWhenInFrozen, "Sound to use when moving in frozen area")
-#pragma GE_Documentation(SoundWhenInSludge, "Sound to use when moving in sludge")
-#pragma GE_Documentation(SoundWhenInSlowMotion, "Sound to use when moving in slow motion area")
-#pragma GE_Documentation(SoundWhenInFastMotion, "Sound to use when moving in fast motion area")
-#pragma GE_Documentation(SoundWhenUsingLadders, "Sound to use when climbing ladders")
-// changed RF063
-#pragma GE_Documentation(SoundWhenInUnclimbable, "Sound to use when moving in unclimbable area")
-// end change RF063	
-} EnvAudioSetup;
-
 //	Floating Particles Entity
 
 #pragma GE_Type("icons\\wm_floatpart.bmp")
@@ -1938,108 +1842,6 @@ typedef struct _NonPlayerCharacter
 // end change RF064
 } NonPlayerCharacter;
 
-//	ReactiveAI
-//
-//	This entity defines the parameters for the RealityFactory
-//	.."Reactive AI" system.  This allows the designer to bind a specific
-//	..reactive AI response (along with animations for the various behaviors)
-//	..to NPC Actors in the level.
-//
-//	..Note that the various strings for animation sequences may contain
-//	..multiple, comma-seperated names - if there is more than one animation
-//	..sequence defined in a type, RealityFactory randomly picks one of them
-//	..to play for that state.  This provides a lot of "non-repeating" motion
-//	..even for simple, reactive AI driven NPCs.  For example, multiple idle
-//	..animations may be defined as:
-//
-//		IdleAnimation1,IdleAnimation2,IdleAnimation3
-//
-//	..This causes RealityFactory to switch randomly between each of these
-//	..three animations while the NPC is in "idle" state.
-//
-//	Reactive AI is basically a state machine - the AI switches between
-//	..states based on what the environment and circumstances dictate,
-//	..rather than on any goal the AI may have (thus "reactive" AI).  The
-//	..AI states are:
-//
-//	IDLE			NPC is idle, not at alert
-//	ALERT			NPC is idle but alert
-//	SEARCH		NPC is seeking an enemy
-//	PATROL		NPC is patrolling along a path
-//	ATTACK		NPC is attacking an enemy
-//	RETREAT		NPC is retreating from an enemy
-//  THREATEN  NPC is acting in a threatening manner, but not attacking
-//
-//	There are also "transient" states, states that are temporary and
-//	..are a response to some transient outside event.  Unless otherwise
-//	..stated, these states persist for the duration of a single full
-//	..animation cycle, then the previous state is resumed:
-//
-//	DEATH			NPC is dying, NPC removed from game at end of animation
-//	L_INJURY	NPC has been lightly injured
-//	M_INJURY	NPC has taken moderate injury
-//	H_INJURY	NPC has taken heavy injury
-//
-//	For NPCs on patrol paths, they can be LOCKED to the path - that is,
-//	..they will not leave a set "patrol radius" of there current path
-//	..point to pursue an enemy.
-//
-//	State transitions are performed by the RealityFactory Reactive AI
-//	..class handler.  Some parameters for controlling the speed and direction
-//	..of state changes are provided as part of the entity, but the entire
-//	..concept is that most of the "hard work" of getting the NPCs to behave
-//	..in a more or less "realistic" fashion is hidden in the AI engine.
-//	..Of course, the reactive AI isn't as flexible as goal-driven AI, but
-//	..constructing a behavior script for a true goal-oriented NPC is a
-//	..great deal of work and should only be required for "name" entities
-//	..and not the greater population of any game.
-//
-//	It's also important to note that the AI is as independent of the actor
-//	..itself as possible.  In theory, you _should_ be able to bind the same
-//	..AI to different actors, as long as the animation cycle names are the
-//	..same between all bound actors.  This means that you can tune the AI's
-//	..behavior once, and then use it across several different entities.
-//
-//	On reaction codes: there are three main "classes" that are reacted to:
-//	..the player avatar, other NPCs not of the same AI, and NPCs driven
-//	..by the same AI.  Each of these can be set seperately.  Reaction codes
-//	..are:
-//
-//	R_IGNORE		NPC ignores class
-//	R_NEUTRAL		NPC is neutral towards
-//	R_FRIENDLY	NPC is friendly and helpful towards class
-//	R_HOSTILE		NPC is hostile towards class
-//	R_RANDOM		NPC reacts randomly towards class
-//	R_ANTIPATHY	NPC has antipathy, but won't attack unless provoked
-//	R_AFFINITY	NPC is non-threatening but inclined to help if needed
-/*
-#pragma GE_Type("icons\\ai_react.bmp")
-typedef struct _ReactiveAI
-{
-#pragma GE_Private
-#pragma GE_Published
-	geVec3d Origin;
-	char *IdleAnimations;							// Name of idle animation(s)
-	char *DeathAnimations;						// Name of death animation(s)
-	char *AttackAnimations;						// Name of attack animation(s)
-	char *RetreatAnimations;					// Name of retreat animation(s)
-	char *SearchingAnimations;				// Name of search animation(s)
-	char *AlertAnimations;						// Name of idle-alert animation(s)
-	char *PatrolAnimations;						// Name of path-patrol animation(s)
-	char *ThreatenAnimations;					// Name of threatening animation(s)
-	char *LightInjuryAnimations;			// Name of "took light injury" animations(s)
-	char *MediumInjuryAnimations;			// Name of "took medium injury" animation(s)
-	char *HeavyInjuryAnimations;			// Name of "took heavy injury" animation(s)
-	char *PatrolPath;									// Path NPC will patrol, if any
-	geBoolean LockedToPatrolPath;			// TRUE if NPC is locked to patrol path
-	geFloat PatrolRadius;							// Max. deviation from path for pursuit
-	int PlayerReaction;								// Player reaction code
-	int OthersReactionCode;						// Non-player reaction code
-	int SelfReactionCode;							// Reaction to others of same AI code
-#pragma GE_Origin(Origin)
-} ReactiveAI;
-*/
-
 //	Trigger - sets state to true when hit
 
 #pragma GE_Type("icons\\wm_trigger.bmp")
@@ -2234,6 +2036,7 @@ typedef struct _WallDecal
 	geFloat  Time;
 	int CurTex;
 	int CycleDir;
+	geVec3d  OriginOffset;
 // end change RF064
 	geBitmap *Bitmap;
 	geBoolean active;
@@ -2253,6 +2056,9 @@ typedef struct _WallDecal
 	int		BitmapCount;
 	int		Style;
 	geFloat	Speed;
+	char 	*EntityName;	// Name of entity to attach to
+	geWorld_Model *Model;	// Name of model to attach to
+	char 	*BoneName;	// Name of actor bone to attach to
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_Angles(Angle)
@@ -2268,6 +2074,8 @@ typedef struct _WallDecal
 #pragma GE_DefaultValue(BitmapCount, "1")
 #pragma GE_DefaultValue(Style, "0")
 #pragma GE_DefaultValue(Speed, "10")
+#pragma GE_DefaultValue(EntityName, "")
+#pragma GE_DefaultValue(BoneName, "")
 // end change RF064
 #pragma GE_Documentation(BmpName, "Name of bitmap")
 #pragma GE_Documentation(AlphaName, "Name of alpha bitmap")
@@ -2281,6 +2089,9 @@ typedef struct _WallDecal
 #pragma GE_Documentation(BitmapCount, "number of bitmaps in sequence")
 #pragma GE_Documentation(Style, "Animation style 0 to 3")
 #pragma GE_Documentation(Speed, "# of bitmaps per second")
+#pragma GE_Documentation(EntityName, "Name of entity to attach to")
+#pragma GE_Documentation(Model, "Name of model to attach to")
+#pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 // end change RF064
 } WallDecal;
 
@@ -2339,41 +2150,6 @@ typedef struct _FirePoint
 #pragma GE_Documentation(AltAttribute, "Alternate Attribute that projectile damages")
 // end change RF063
 } FirePoint;
-
-/*
-#pragma GE_Type("icons\\turret.bmp")
-typedef struct _Turret
-{
-#pragma GE_Private
-	geBoolean active;
-	geFloat HTime;
-	geFloat VTime;
-	geVec3d  OriginOffset;      //Translation from model center
-#pragma GE_Published
-	geVec3d	Origin;
-	char *szEntityName;		// Name of entity
-	char 	*TriggerName;	// Name of trigger entity
-	char 	*FirePointName;	// Name of entity to attach to
-	geWorld_Model *Model;	// Name of model to attach to
-	geFloat HorzRotation;
-	geFloat VertRotation;
-	geFloat MaxSensorDist;
-#pragma GE_Origin(Origin)
-#pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue(FirePointName, "")
-#pragma GE_DefaultValue(TriggerName, "")
-#pragma GE_DefaultValue(HorzRotation, "10")
-#pragma GE_DefaultValue(VertRotation, "10")
-#pragma GE_DefaultValue(MaxSensorDist, "400")
-#pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
-#pragma GE_Documentation(FirePointName, "Name of FirePoint entity")
-#pragma GE_Documentation(Model, "Name of model to attach to")
-#pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
-#pragma GE_Documentation(HorzRotation, "Degrees/sec that turret rotates horizontally")
-#pragma GE_Documentation(VertRotation, "Degrees/sec that turret rotates vertically")
-#pragma GE_Documentation(MaxSensorDist, "Maximum distance that turret will detect player")
-} Turret;
-*/
 
 // DestroyableModel
 

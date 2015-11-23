@@ -170,3 +170,61 @@ int CChangeLevel::LocateEntity(char *szName, void **pEntityData)
 	
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
+
+//	SaveTo
+//
+//	Save the current state of every door in the current world
+//	..off to an open file.
+
+int CChangeLevel::SaveTo(FILE *SaveFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are ChangeLevel in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;									// No doors, whatever...
+	
+	//	Ok, we have doors somewhere.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		WRITEDATA(&pItem->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pItem->CallBackCount, sizeof(int), 1, SaveFD);
+	}
+	
+	return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore the state of every ChangeLevel in the current world from an
+//	..open file.
+
+int CChangeLevel::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are ChangeLevel in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	
+	if(!pSet) 
+		return RGF_SUCCESS;									// No doors, whatever...
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		READDATA(&pItem->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pItem->CallBackCount, sizeof(int), 1, RestoreFD);
+    }
+	
+	return RGF_SUCCESS;
+}

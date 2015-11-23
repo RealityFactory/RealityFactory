@@ -306,7 +306,7 @@ void CWeapon::Tick(float dwTicks)
 							Spray	Sp;
 							geVec3d_Copy(&(thePosition.Translation), &(Sp.Source));
 							geVec3d_AddScaled(&(Sp.Source), &(d->In), 50.0f, &(Sp.Dest));
-							CCD->EffectManager()->Item_Modify(EFF_SPRAY, d->Effect[j], (void *)&Sp, SPRAY_SOURCE | SPRAY_DEST);
+							CCD->EffectManager()->Item_Modify(EFF_SPRAY, d->Effect[j], (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
 							break;
 						case EFF_LIGHT:
 							Glow  Gl;
@@ -674,8 +674,14 @@ void CWeapon::DisplayFirstPerson(int index)
 	geXForm3d_RotateY (&XForm, theRotation.Y + (0.0174532925199433f*(90))); // swing side toside
 	
 	CCD->CameraManager()->GetPosition(&thePosition);
-	float shx, shy;
+	float shx, shy, shz;
 	CCD->CameraManager()->GetShake(&shx, &shy);
+	shz = 0.0f;
+	if(CCD->Player()->GetHeadBobbing())
+	{
+		if(WeaponD[index].BobAmt>0.0f)
+			shz = CCD->CameraManager()->GetHeadBobOffset()/WeaponD[index].BobAmt;
+	}
 	geXForm3d_Translate (&XForm, thePosition.X+shx, thePosition.Y+shy, thePosition.Z); 
 
 	geVec3d Forward;
@@ -701,6 +707,9 @@ void CWeapon::DisplayFirstPerson(int index)
 	geXForm3d_Translate (&XForm, Forward.X, Forward.Y, Forward.Z);
 	geXForm3d_Translate (&XForm, Right.X, Right.Y, Right.Z);
 	geXForm3d_Translate (&XForm, Down.X, Down.Y, Down.Z); 
+
+	geXForm3d_GetIn (&XForm, &Forward);
+	geVec3d_AddScaled (&XForm.Translation, &Forward, shz, &XForm.Translation);
 
 	geFloat deltaTime, tStart, tEnd; //, bStart, bEnd;
 	geMotion *ActorMotion;
@@ -855,7 +864,7 @@ void CWeapon::DisplayFirstPerson(int index)
 	}
 	else
 		geActor_ClearPose(WeaponD[index].VActor, &XForm);
-	
+
 	VAnimTime = (float)CCD->FreeRunningCounter();
 	if(MFlash)
 	{
@@ -1196,12 +1205,12 @@ void CWeapon::WeaponData()
 		{
 			sprintf(szData,"Rotation : X= %.2f, Y= %.2f, Z= %.2f",
 				WeaponD[CurrentWeapon].VActorRotation.X + WeaponD[CurrentWeapon].K, WeaponD[CurrentWeapon].VActorRotation.Y + WeaponD[CurrentWeapon].Z, WeaponD[CurrentWeapon].VActorRotation.Z + WeaponD[CurrentWeapon].L);
-			CCD->MenuManager()->FontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40);
+			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40);
 			
 			sprintf(szData,"Offset : X= %.2f, Y= %.2f, Z= %.2f, Scale : %.2f",
 				WeaponD[CurrentWeapon].VActorOffset.X + WeaponD[CurrentWeapon].F, WeaponD[CurrentWeapon].VActorOffset.Y + WeaponD[CurrentWeapon].H, WeaponD[CurrentWeapon].VActorOffset.Z + WeaponD[CurrentWeapon].J,
 				WeaponD[CurrentWeapon].VScale+WeaponD[CurrentWeapon].G);
-			CCD->MenuManager()->FontRect(szData, FONT8, 5, CCD->Engine()->Height()- 30);
+			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 30);
 		}
 	}
 	return;
@@ -1646,7 +1655,17 @@ void CWeapon::ProjectileAttack()
 				if(WeaponD[CurrentWeapon].MuzzleFlash[0] != '\0')
 				{
 					if(WeaponD[CurrentWeapon].VBone[0] != '\0')
+					{
+					/*	geVec3d Muzzle;
+						geXForm3d Xf;
+						
+						if(geActor_GetBoneTransform(WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone, &Xf )==GE_TRUE)
+						{
+							geVec3d_Copy( &( Xf.Translation ), &Muzzle);
+							CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Muzzle, WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone);
+						} */
 						MFlash = true;
+					}
 					else
 						CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Front, NULL, NULL);
 				}
@@ -1762,6 +1781,7 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		CCD->ActorManager()->SetType(d->Actor, ENTITY_PROJECTILE);
 		CCD->ActorManager()->SetScale(d->Actor, ProjD[Type].Scale);
 		CCD->ActorManager()->SetBoxChange(d->Actor, false);
+		CCD->ActorManager()->SetNoCollide(d->Actor);
 		CCD->ActorManager()->SetBBox(d->Actor, ProjD[Type].BoxSize, ProjD[Type].BoxSize, ProjD[Type].BoxSize);
 		CCD->ActorManager()->GetBoundingBox(d->Actor, &d->ExtBox);
 		CCD->ActorManager()->SetStepHeight(d->Actor, -1.0f);
@@ -1774,8 +1794,10 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		GE_Collision	Collision;
 		CCD->Collision()->IgnoreContents(false);
 		CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
-		if(CCD->Collision()->CheckForWCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				Front, d->Pos, &Collision, d->Actor))
+		char BoneHit[64];
+		BoneHit[0] = '\0';
+		if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
+				Front, d->Pos, &Collision, d->Actor, BoneHit, d->BoneLevel))
 		{
 			int nHitType = CCD->Collision()->ProcessCollision(Collision, d->Actor, false);
 
@@ -2194,6 +2216,7 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].VAttack,Vector);
 						Vector = AttrFile.GetValue(KeyName, "viewwalkanim");
 						strcpy(WeaponD[weapptr].VWalk,Vector);
+						geVec3d LitColor = {255.0f, 255.0f, 255.0f};
 						switch(WeaponD[weapptr].Catagory)
 						{
 						case MELEE:
@@ -2248,9 +2271,21 @@ void CWeapon::LoadDefaults()
 								else
 									geWorld_AddBitmap(CCD->World(), WeaponD[weapptr].CrossHair);
 							}
+							Vector = AttrFile.GetValue(KeyName, "crosshairlitcolor");
+							if(Vector!="")
+							{
+								strcpy(szName,Vector);
+								LitColor = Extract(szName);
+							}
+							WeaponD[weapptr].LitColor = LitColor;
+							WeaponD[weapptr].AllowLit = false;
+							Vector = AttrFile.GetValue(KeyName, "allowlitcrosshair");
+							if(Vector=="true")
+								WeaponD[weapptr].AllowLit = true;
 							WeaponD[weapptr].ZoomAmt = AttrFile.GetValueI(KeyName, "zoomamount");
 							WeaponD[weapptr].JerkAmt = (float)AttrFile.GetValueF(KeyName, "recoilamount");
 							WeaponD[weapptr].JerkDecay = (float)AttrFile.GetValueF(KeyName, "recoildecay");
+							WeaponD[weapptr].BobAmt = (float)AttrFile.GetValueF(KeyName, "bobamount");
 							
 							break;
 						case BEAM:

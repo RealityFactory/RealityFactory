@@ -639,10 +639,6 @@ SOURCE=.\CElectric.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\CEnemy.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\CEntityRegistry.cpp
 # End Source File
 # Begin Source File
@@ -1024,10 +1020,6 @@ SOURCE=.\CEffects.h
 # Begin Source File
 
 SOURCE=.\CElectric.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CEnemy.h
 # End Source File
 # Begin Source File
 

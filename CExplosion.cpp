@@ -234,6 +234,31 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActo
 	}
 }
 
+void CExplosionInit::UnAttach(geActor *Actor)
+{
+	DelayExp *pool, *temp;
+
+	pool=Bottom;
+	while ( pool != NULL )
+	{
+		temp = pool->prev;
+		if(pool->Attached && pool->Actor)
+		{
+			if(Actor==pool->Actor)
+			{
+				if(Bottom == pool)
+					Bottom = pool->prev;
+				if(pool->prev != NULL)
+					pool->prev->next = pool->next;
+				if(pool->next != NULL)
+					pool->next->prev = pool->prev;
+				geRam_Free(pool);
+				pool = NULL;
+			}
+		}
+		pool = temp;
+	} 
+}
 
 void CExplosionInit::Tick(geFloat dwTicks)
 {
@@ -249,18 +274,7 @@ void CExplosionInit::Tick(geFloat dwTicks)
 			if(pool->Delay<=0.0f)
 			{
 				pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
-				if(!pool->Actor)
-				{
-					if(Bottom == pool)
-						Bottom = pool->prev;
-					if(pool->prev != NULL)
-						pool->prev->next = pool->next;
-					if(pool->next != NULL)
-						pool->next->prev = pool->prev;
-					geRam_Free(pool);
-					pool = NULL;
-				}
-				else
+				if(pool->Actor)
 				{
 // changed RF064
 					geXForm3d Xf;
@@ -271,14 +285,63 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					geVec3d Position = Xf.Translation;
 					geVec3d_Subtract( &pool->Position, &Position, &Position);
 					geVec3d_Add( &Position, &pool->Offset, &pool->Offset);
+
+					Position = Xf.Translation;
+
+					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geVec3d Direction;
+					geXForm3d_GetIn(&Xf, &Direction);
+					geVec3d_Inverse( &Direction);
+					geVec3d_AddScaled (&Position, &Direction, pool->Offset.Z, &Position);
+					geXForm3d_GetUp(&Xf, &Direction);
+					geVec3d_AddScaled (&Position, &Direction, pool->Offset.Y, &Position);
+					geXForm3d_GetLeft(&Xf, &Direction);
+					geVec3d_AddScaled (&Position, &Direction, pool->Offset.X, &Position);
+
 // end change RF064
 					pool->Attached = true;
+					int type = CCD->Effect()->EffectType(pool->Type);
+					switch(type)
+					{
+					case EFF_SPRAY:
+						Spray Sp;
+						geVec3d_Copy( &(Position ), &( Sp.Source ) );
+						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+						geXForm3d_Copy(&Xf, &Sp.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
+						break;
+					case EFF_ACTORSPRAY:
+						ActorSpray aSp;
+						geVec3d_Copy( &(Position ), &( aSp.Source ) );
+						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+						geXForm3d_Copy(&Xf, &aSp.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
+						break;
+					case EFF_BOLT:
+						EBolt Bl;
+						geVec3d_Copy( &(Position ), &(Bl.Start) );
+						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+						geXForm3d_Copy(&Xf, &Bl.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
+					break;
+					}
+				}
+				else
+				{
+					if(Bottom == pool)
+						Bottom = pool->prev;
+					if(pool->prev != NULL)
+						pool->prev->next = pool->next;
+					if(pool->next != NULL)
+						pool->next->prev = pool->prev;
+					geRam_Free(pool);
+					pool = NULL;
 				}
 			}
 		}
 		else
 		{
-			if(CCD->EffectManager()->Item_Alive(pool->index))
+			if(CCD->EffectManager()->Item_Alive(pool->index) && pool->Actor)
 			{
 				geXForm3d Xf;
 				if(pool->Bone[0]!='\0')
@@ -286,70 +349,65 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				else
 					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 				geVec3d Position = Xf.Translation;
+
+				geVec3d Direction;
+				geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+				geXForm3d_GetIn(&Xf, &Direction);
+				geVec3d_Inverse( &Direction);
+				geVec3d_AddScaled (&Position, &Direction, pool->Offset.Z, &Position);
+				geXForm3d_GetUp(&Xf, &Direction);
+				geVec3d_AddScaled (&Position, &Direction, pool->Offset.Y, &Position);
+				geXForm3d_GetLeft(&Xf, &Direction);
+				geVec3d_AddScaled (&Position, &Direction, pool->Offset.X, &Position);
+
 // changed RF064
 				int type = CCD->Effect()->EffectType(pool->Type);
 // end change RF064
+
 				switch(type)
 				{
 				case EFF_SPRAY:
 					Spray Sp;
-					geVec3d	In;
-					geXForm3d	Xf;
 					geVec3d_Copy( &(Position ), &( Sp.Source ) );
-					geVec3d_Add( &( Sp.Source ), &pool->Offset,&(Sp.Source) );
-					geXForm3d_SetIdentity( &( Xf ) );
-					geXForm3d_RotateX( &( Xf ), Sp.Dest.X / 57.3f );  
-					geXForm3d_RotateY( &( Xf ), ( Sp.Dest.Y - 90.0f ) / 57.3f );  
-					geXForm3d_RotateZ( &( Xf ), Sp.Dest.Z / 57.3f ); 
-					geXForm3d_GetIn( &( Xf ), &In );
-					geVec3d_Inverse( &In );
-					geVec3d_Add( &( Sp.Source ), &In,&( Sp.Dest ) );
+					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geXForm3d_Copy(&Xf, &Sp.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
 					break;
 				case EFF_LIGHT:
 					Glow Lite;
 					geVec3d_Copy( &(Position ), &( Lite.Pos) );
-					geVec3d_Add( &(Lite.Pos), &pool->Offset,&(Lite.Pos) );
 					CCD->EffectManager()->Item_Modify(EFF_LIGHT, pool->index, &Lite, GLOW_POS);
 					break;
 				case EFF_SND:
 					Snd Sound;
 					geVec3d_Copy( &(Position ), &( Sound.Pos) );
-					geVec3d_Add( &(Sound.Pos), &pool->Offset,&(Sound.Pos) );
 					CCD->EffectManager()->Item_Modify(EFF_SND, pool->index, &Sound, SND_POS);
 					break;
 				case EFF_SPRITE:
 					Sprite S;
 					geVec3d_Copy( &(Position ), &( S.Pos) );
-					geVec3d_Add( &(S.Pos), &pool->Offset,&(S.Pos) );
 					CCD->EffectManager()->Item_Modify(EFF_SPRITE, pool->index, &S, SPRITE_POS);
 					break;
 				case EFF_CORONA:
 					EffCorona C;
-					C.Vertex.X = Position.X + pool->Offset.X;
-					C.Vertex.Y = Position.Y + pool->Offset.Y;
-					C.Vertex.Z = Position.Z + pool->Offset.Z;
+					C.Vertex.X = Position.X;
+					C.Vertex.Y = Position.Y;
+					C.Vertex.Z = Position.Z;
 					CCD->EffectManager()->Item_Modify(EFF_CORONA, pool->index, &C, CORONA_POS);
 					break;
 				case EFF_BOLT:
 					EBolt Bl;
 					geVec3d_Copy( &(Position ), &(Bl.Start) );
-					geVec3d_Add( &(Bl.Start), &pool->Offset,&(Bl.Start) );
-					geVec3d_Copy( &(Bl.Start), &(Bl.End) );
+					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geXForm3d_Copy(&Xf, &Bl.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
 					break;
 // changed RF064
 				case EFF_ACTORSPRAY:
 					ActorSpray aSp;
 					geVec3d_Copy( &(Position ), &( aSp.Source ) );
-					geVec3d_Add( &( aSp.Source ), &pool->Offset,&(aSp.Source) );
-					geXForm3d_SetIdentity( &( Xf ) );
-					geXForm3d_RotateX( &( Xf ), -aSp.Dest.X / 57.3f );  
-					geXForm3d_RotateY( &( Xf ), ( aSp.Dest.Y - 90.0f ) / 57.3f );  
-					geXForm3d_RotateZ( &( Xf ), aSp.Dest.Z / 57.3f ); 
-					geXForm3d_GetIn( &( Xf ), &In );
-					geVec3d_Inverse( &In );
-					geVec3d_Add( &( aSp.Source ), &In,&( aSp.Dest ) );
+					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geXForm3d_Copy(&Xf, &aSp.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
 					break;
 // end change RF064

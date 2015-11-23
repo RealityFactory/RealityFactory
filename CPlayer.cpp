@@ -56,8 +56,7 @@ CPlayer::CPlayer()
 	
 	m_Moving = MOVEIDLE;
 	m_SlideWalk = MOVEIDLE;
-	
-	EnvAudio = NULL;
+
 	lighton = false;
 	lightactive = false;
 	lighteffect = -1;
@@ -526,23 +525,21 @@ CPlayer::~CPlayer()
 {
 	//	Release all the environmental audio sounds
 	
-	if(EnvAudio != NULL)
+	if(DefaultMotion[0] != NULL)
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[0]);
+	if(DefaultMotion[1] != NULL)
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[1]);
+	if(DefaultMotion[2] != NULL)
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[2]);
+	for(int nTemp = 0; nTemp < 16; nTemp++)
 	{
-		if(DefaultMotion[0] != NULL)
-			geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[0]);
-		if(DefaultMotion[1] != NULL)
-			geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[1]);
-		if(DefaultMotion[2] != NULL)
-			geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[2]);
-		for(int nTemp = 0; nTemp < 16; nTemp++)
+		for(int j=0;j<3;j++)
 		{
-			for(int j=0;j<3;j++)
-			{
-				if(Contents[nTemp][j] != NULL)
-					geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), Contents[nTemp][j]);
-			}
+			if(Contents[nTemp][j] != NULL)
+				geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), Contents[nTemp][j]);
 		}
 	}
+	
 	geActor_Destroy(&Actor);
 	return;
 }
@@ -769,6 +766,7 @@ int CPlayer::LoadConfiguration()
 	// eaa3 12/18/2000 Head bob setup
 	m_HeadBobSpeed = pSetup->HeadBobSpeed;
 	m_HeadBobLimit = pSetup->HeadBobLimit;
+	HeadBobbing = pSetup->HeadBobbing;
 	if(pSetup->HeadBobbing == GE_TRUE)
 		CCD->CameraManager()->EnableHeadBob(true);
 	else
@@ -3559,6 +3557,7 @@ void CPlayer::GetLeft(geVec3d *Left)
 
 int CPlayer::SaveTo(FILE *SaveFD)
 {
+	int i;
 // changed RF063
 	fwrite(&m_PlayerViewPoint, sizeof(int), 1, SaveFD);
 	geVec3d position = Position();
@@ -3576,6 +3575,10 @@ int CPlayer::SaveTo(FILE *SaveFD)
 	fwrite(&FallStart, sizeof(geVec3d), 1, SaveFD);
 	fwrite(&LastHealth, sizeof(int), 1, SaveFD);
 	fwrite(&StaminaTime, sizeof(geFloat), 1, SaveFD);
+	for(i=0;i<20;i++)
+	{
+		fwrite(&StaminaTime1[i], sizeof(geFloat), 1, SaveFD);
+	}
 	fwrite(&lighton, sizeof(bool), 1, SaveFD);
 	fwrite(&CurrentLiteLife, sizeof(geFloat), 1, SaveFD);
 	fwrite(&DecayLite, sizeof(bool), 1, SaveFD);
@@ -3586,8 +3589,9 @@ int CPlayer::SaveTo(FILE *SaveFD)
 	fwrite(&InLiquid, sizeof(int), 1, SaveFD);
 	fwrite(&LiquidTime, sizeof(float), 1, SaveFD);
 	fwrite(UseAttribute, sizeof(char), 64*10, SaveFD);
+	fwrite(&restoreoxy, sizeof(bool), 1, SaveFD);
 	geFloat Level, Decay;
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 	{
 		CCD->ActorManager()->GetForce(Actor, i, &position, &Level, &Decay);
 		fwrite(&position, sizeof(geVec3d), 1, SaveFD);
@@ -3620,6 +3624,7 @@ int CPlayer::SaveTo(FILE *SaveFD)
 
 int CPlayer::RestoreFrom(FILE *RestoreFD)
 {
+	int i;
 // changed RF063
 	fread(&m_PlayerViewPoint, sizeof(int), 1, RestoreFD);
 	SwitchCamera(m_PlayerViewPoint);
@@ -3639,6 +3644,10 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 	fread(&FallStart, sizeof(geVec3d), 1, RestoreFD);
 	fread(&LastHealth, sizeof(int), 1, RestoreFD);
 	fread(&StaminaTime, sizeof(geFloat), 1, RestoreFD);
+	for(i=0;i<20;i++)
+	{
+		fread(&StaminaTime1[i], sizeof(geFloat), 1, RestoreFD);
+	}
 	fread(&lighton, sizeof(bool), 1, RestoreFD);
 	fread(&CurrentLiteLife, sizeof(geFloat), 1, RestoreFD);
 	fread(&DecayLite, sizeof(bool), 1, RestoreFD);
@@ -3652,8 +3661,9 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 	fread(&InLiquid, sizeof(int), 1, RestoreFD);
 	fread(&LiquidTime, sizeof(float), 1, RestoreFD);
 	fread(UseAttribute, sizeof(char), 64*10, RestoreFD);
+	fread(&restoreoxy, sizeof(bool), 1, RestoreFD);
 	geFloat Level, Decay;
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 	{
 		fread(&position, sizeof(geVec3d), 1, RestoreFD);
 		fread(&Level, sizeof(geFloat), 1, RestoreFD);

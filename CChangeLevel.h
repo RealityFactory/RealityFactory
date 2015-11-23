@@ -19,6 +19,8 @@ public:
   void Tick(float dwTicks);
   bool CheckChangeLevel(geWorld_Model *theModel, bool UseKey);
   int LocateEntity(char *szName, void **pEntityData);
+  int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
 };
 
 #endif

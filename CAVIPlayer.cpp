@@ -101,7 +101,7 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 		nAlignValue = nWidth * 4;
 		break;
 	}
-	
+
 	geBitmap *theBmp=NULL, *LockedBMP=NULL;
 	geBitmap_Info Info;
 	unsigned char *wptr ,*pptr;
@@ -210,8 +210,8 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 	
 	if(GetAudioStreamCount() != 0)
 	{
-		bAudioStreamPlaying = true;
-		CreateStreamingAudioBuffer(0);		// We're gonna play audio
+		if(CreateStreamingAudioBuffer(0)==RGF_SUCCESS)		// We're gonna play audio
+			bAudioStreamPlaying = true;
 	}
 // changed RF064	
 	OldTime = CCD->FreeRunningCounter()-60;				// Prime the time.

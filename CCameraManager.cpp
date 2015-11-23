@@ -219,6 +219,13 @@ int CCameraManager::SaveTo(FILE *SaveFD)
 	fwrite(&m_cameraY, sizeof(geFloat), 1, SaveFD);
 	fwrite(&m_oldrotationx, sizeof(geFloat), 1, SaveFD);
 	fwrite(&shakemin, sizeof(float), 1, SaveFD);
+	fwrite(&DesiredHeight, sizeof(float), 1, SaveFD);
+	fwrite(&HeightSpeed, sizeof(float), 1, SaveFD);
+	fwrite(&OverlayDist, sizeof(float), 1, SaveFD);
+	fwrite(&m_OldXForm, sizeof(geXForm3d), 1, SaveFD);
+	fwrite(&m_vMoveDif, sizeof(geVec3d), 1, SaveFD);
+	fwrite(&m_bViewChanged, sizeof(bool), 1, SaveFD);
+	fwrite(&m_bPositionMoved, sizeof(bool), 1, SaveFD);
 
 	return RGF_SUCCESS;
 }
@@ -235,6 +242,13 @@ int CCameraManager::RestoreFrom(FILE *RestoreFD)
 	fread(&m_cameraY, sizeof(geFloat), 1, RestoreFD);
 	fread(&m_oldrotationx, sizeof(geFloat), 1, RestoreFD);
 	fread(&shakemin, sizeof(float), 1, RestoreFD);
+	fread(&DesiredHeight, sizeof(float), 1, RestoreFD);
+	fread(&HeightSpeed, sizeof(float), 1, RestoreFD);
+	fread(&OverlayDist, sizeof(float), 1, RestoreFD);
+	fread(&m_OldXForm, sizeof(geXForm3d), 1, RestoreFD);
+	fread(&m_vMoveDif, sizeof(geVec3d), 1, RestoreFD);
+	fread(&m_bViewChanged, sizeof(bool), 1, RestoreFD);
+	fread(&m_bPositionMoved, sizeof(bool), 1, RestoreFD);
 
 	return RGF_SUCCESS;
 }
@@ -577,6 +591,7 @@ int CCameraManager::SetCameraOffset(geVec3d theTranslation, geVec3d theRotation)
 {
 	CameraOffsetTranslation = theTranslation;
 	CameraOffsetRotation = theRotation;
+	m_oldrotationx = CameraOffsetRotation.X;
 // changed RF064
 	DesiredHeight = theTranslation.Y;
 // end change RF064	

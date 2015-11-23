@@ -63,6 +63,8 @@ struct ActorInstanceList
 	GE_Collision GravityCollision;
 	bool HideRadar;
 	char Group[64];
+	GE_RGBA FillColor;
+	GE_RGBA AmbientColor;
 // end change RF064
 	char szMotionName[128];				// Name of current motion
 	char szNextMotionName[128];		// Name of next motion in queue
@@ -111,6 +113,7 @@ public:
 	geActor *SpawnActor(char *szFilename, geVec3d Position, geVec3d Rotation,
 		char *DefaultMotion, char *CurrentMotion, geActor *OldActor);	// Spawn an actor w/ parms
 	int RemoveActor(geActor *theActor);		// Remove an actor
+	int RemoveActorCheck(geActor *theActor);
 	int SetAligningRotation(geActor *theActor, geVec3d Rotation);
 	int GetAligningRotation(geActor *theActor, geVec3d *Rotation);
 	int SetType(geActor *theActor, int nType);					// Set actor type
@@ -147,6 +150,7 @@ public:
 	int ClearMotionToDefault(geActor *theActor);		// Force motion to default motion
 	//	Actor lighting control, Oh Joy.
 	int SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor, GE_RGBA AmbientColor);
+	int ResetActorDynamicLighting(geActor *theActor);
 	//	It's possible to add a FORCE to an actor.  This FORCE (seperate from gravity)
 	//	..effects an actors translation over time.
 	int SetForce(geActor *theActor, int nForceNumber, geVec3d fVector, geFloat InitialValue, geFloat Decay);

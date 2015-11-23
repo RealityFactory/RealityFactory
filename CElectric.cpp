@@ -238,7 +238,7 @@ void Electric_BoltEffectAnimate(
 		}
 	}
 
-	if	(Effect->beInitialized && Effect->beNumPoints > 16)
+	if	(Effect->beInitialized && Effect->beNumPoints > 64)
 	{
 		int		P1;
 		int		P2;

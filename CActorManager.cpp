@@ -251,6 +251,12 @@ int CActorManager::RemoveActor(geActor *theActor)
 	return RemoveInstance(theActor);
 }
 
+int CActorManager::RemoveActorCheck(geActor *theActor)
+{
+	CCD->Explosions()->UnAttach(theActor);
+	return RemoveInstance(theActor);
+}
+
 //	SetAligningRotation
 //
 //	Set the rotation necessary to align actor with world
@@ -968,6 +974,8 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor,
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
+	pEntry->FillColor = FillColor;
+	pEntry->AmbientColor = AmbientColor;
 	geVec3d Fill = {0.0f, 1.0f, 0.0f};
 	geVec3d_Normalize(&Fill);
 	geXForm3d	Xf;
@@ -978,6 +986,26 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor,
 	geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
 	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
 						AmbientColor.r, AmbientColor.g, AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
+
+	return RGF_SUCCESS;
+}
+
+int CActorManager::ResetActorDynamicLighting(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	geVec3d Fill = {0.0f, 1.0f, 0.0f};
+	geVec3d_Normalize(&Fill);
+	geXForm3d	Xf;
+	geXForm3d	XfT;
+	geVec3d NewFillNormal;
+	geActor_GetBoneTransform(theActor, NULL, &Xf );
+	geXForm3d_GetTranspose( &Xf, &XfT );
+	geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
+	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
+						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
 
 	return RGF_SUCCESS;
 }
@@ -2015,6 +2043,7 @@ void CActorManager::Tick(geFloat dwTicks)
 			ActorInstanceList *pEntry = MainList[nTemp]->IList;
 			while(pEntry)
 			{
+				ResetActorDynamicLighting(pEntry->Actor);
 				GetBoundingBox(pEntry->Actor, &Result);
 				if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
 				{
@@ -2127,6 +2156,9 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->TransitionFlag = false;
 	NewEntry->HideRadar = false;
 	NewEntry->Group[0] = '\0';
+	NewEntry->FillColor.r = NewEntry->FillColor.g = NewEntry->FillColor.b = 0.0f;
+	NewEntry->AmbientColor.r = NewEntry->AmbientColor.g = NewEntry->AmbientColor.b = 0.0f;
+	NewEntry->FillColor.a = NewEntry->AmbientColor.a = 255.0f;
 // end change RF064
 	NewEntry->BoxChange = true;
 	NewEntry->BlendFlag = false;

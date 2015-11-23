@@ -446,6 +446,8 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 			CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
 			CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
 			CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
+			if(!EffectC_IsStringNull(pSource->ChangeMaterial))
+				CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
 		}
 // end change RF064
 	}

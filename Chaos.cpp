@@ -41,6 +41,8 @@ Chaos::Chaos()
                }
        }
 
+	   pTex->CAttachBmp = NULL;
+
        // get the output bitmap as an actor bitmap...
        if (pTex->Actor != NULL)
        {
@@ -78,13 +80,14 @@ Chaos::Chaos()
                }
                if(i == MaterialCount)
                {
-                       char szError[256];
+				   pTex->CAttachBmp = NULL;
+                   /*    char szError[256];
                        sprintf(szError,"EChaos : Error can't find ActorMaterial");
                        CCD->ReportError(szError, false);
                        CCD->ShutdownLevel();
                        delete CCD;
                        MessageBox(NULL, szError,"EChaos", MB_OK);
-                       exit(-333); //or continue
+                       exit(-333); //or continue */
                }
        }
 
@@ -92,7 +95,7 @@ Chaos::Chaos()
        else
        {
                pTex->CAttachBmp = geWorld_GetBitmapByName(CCD->World(), pTex->AttachBmp);
-               if(pTex->CAttachBmp == NULL)
+        /*       if(pTex->CAttachBmp == NULL)
                {
                        char szError[256];
                        sprintf(szError,"EChaos : Error can't find bitmap in level");
@@ -101,7 +104,7 @@ Chaos::Chaos()
                        delete CCD;
                        MessageBox(NULL, szError,"EChaos", MB_OK);
                        exit(-333); //or continue
-               } 
+               } */
        }
 // end change QuestOfDreams 300802
 // end change RF064

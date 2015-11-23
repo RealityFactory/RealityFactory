@@ -2740,6 +2740,9 @@ int CRFMenu::DoMenu(char *levelname)
 	  else
 		m_Streams->Play(true);
   }
+
+  FadeSet(-1, 1.5f);
+
   int ret = ProcessMenu(MainMenu, MainBack, MainTitle);
 
   if(musictype!=-1)
@@ -2871,6 +2874,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	{
 		temppos.x -= pos.x;
 		temppos.y -= pos.y;
+	}
+
+	if(Fading)
+	{
+		temppos.x = -1;
+		temppos.y = -1;
 	}
 
     for(i=0;i<max;i++)
@@ -3413,7 +3422,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	geEngine_DrawBitmap(CCD->Engine()->Engine(), ScreenBmp, NULL, 0, 0);
 #endif
 
-	if(LoopOnce==0)
+	if(LoopOnce==0 && !Fading)
 	{
 		if(AnimCursor<0 || Animation[AnimCursor]==NULL)
 		{
@@ -3424,6 +3433,11 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
 			DrawBitmap(theBmp, NULL, temppos.x, temppos.y );
 		}
+	}
+
+	if(Fading)
+	{
+		DoFade();
 	}
 
 	geEngine_EndFrame(CCD->Engine()->Engine());
@@ -3454,169 +3468,177 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		}
 	}
 
-//--------------------------------------
-// if clicked on Clickable or Exit Menu
-//--------------------------------------
-
-	if(click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+	if(!Fading)
 	{
-	  if(LoopOnce==0)
-		geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-	  data=(Clickable *)Menu[click].data;
-	  if(data->LoopOnce==1 && LoopOnce<2)
-	  {
-		  LoopOnce += 1;
-	  }
-	  else
-	  {
-		  LoopOnce = 0;
-		  if(Menu[click].Type==EXIT_MENU)
-		  {
-			  if(remapf != -1)
-				CCD->Input()->SaveKeymap("keyboard.ini");
-			  if(data->Action>=10)
-				  return data->Action-9;
-			  return 0;
-		  }
-// changed RF063
-		  if(Menu[click].Type==CANCEL_MENU)
-		  {
-			  if(remapf != -1)
-				CCD->Input()->SaveKeymap("keyboard.ini");
-			  return 1;
-		  }
-// end change RF063
-		  if(Menu[click].Type==CLICKABLE)
-		  {
-			if(data->Next!=NULL && (data->Action==0 || data->Action==2))
-				ProcessMenu(data->Next, data->background, data->title);
-			if(data->proc!=NULL && data->Action==1)
+		//--------------------------------------
+		// if clicked on Clickable or Exit Menu
+		//--------------------------------------
+		
+		if(click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			if(LoopOnce==0)
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+			data=(Clickable *)Menu[click].data;
+			if(/*data->LoopOnce==1 && */ LoopOnce<2)
 			{
-				data->proc();
+				LoopOnce += 1;
 			}
-			else if(data->proc!=NULL && data->Action==3)
+			else
 			{
-				data->proc();
-				remapf = 0;
-			}
-			else if(data->proc!=NULL && data->Action==4)
-			{
-// changed RF064
-				if(LoadBox.Current != -1)
+				LoopOnce = 0;
+				if(Menu[click].Type==EXIT_MENU)
 				{
-					if(LoadBox.text[LoadBox.Current].empty != 0)
+					FadeSet(-1, 1.5f);
+					if(remapf != -1)
+						CCD->Input()->SaveKeymap("keyboard.ini");
+					if(data->Action>=10)
+						return data->Action-9;
+					return 0;
+				}
+				// changed RF063
+				if(Menu[click].Type==CANCEL_MENU)
+				{
+					if(remapf != -1)
+						CCD->Input()->SaveKeymap("keyboard.ini");
+					return 1;
+				}
+				// end change RF063
+				if(Menu[click].Type==CLICKABLE)
+				{
+					if(data->Next!=NULL && (data->Action==0 || data->Action==2))
 					{
-// end change RF064
+						//FadeOut();
+						FadeSet(-1, 1.5f);
+						ProcessMenu(data->Next, data->background, data->title);
+					}
+					if(data->proc!=NULL && data->Action==1)
+					{
 						data->proc();
-						return 0;
+					}
+					else if(data->proc!=NULL && data->Action==3)
+					{
+						data->proc();
+						remapf = 0;
+					}
+					else if(data->proc!=NULL && data->Action==4)
+					{
+						// changed RF064
+						if(LoadBox.Current != -1)
+						{
+							if(LoadBox.text[LoadBox.Current].empty != 0)
+							{
+								// end change RF064
+								data->proc();
+								return 0;
+							}
+						}
 					}
 				}
+				click=-1;
 			}
-		  }
-		  click=-1;
-	  }
-	}
-
-//--------------------------
-// if clicked on slider
-//--------------------------
-
-	if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-	{
-         temp=temppos.x-slide_x;
-         sdata=(Slider *)Menu[slide_click].data;
-		 sdata->Current+=temp;
-		 if(sdata->Current>sdata->Max_X)
-			 sdata->Current=sdata->Max_X;
-		 if(sdata->Current<sdata->Min_X)
-			 sdata->Current=sdata->Min_X;
-		 slide_x=temppos.x;
-		 temp=(sdata->Current*100)/sdata->Max_X;
-		 if(sdata->proc!=NULL && sdata->On_the_Fly==0)
-			 sdata->proc(temp);
-		 slide_click=-1;
-	}
-	if(slide_click==-1)
-		slide_x=-1;
-	if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
-	{
-      if(slide_x!=temppos.x)
-	  {
-         temp=temppos.x-slide_x;
-         sdata=(Slider *)Menu[slide_click].data;
-		 sdata->Current+=temp;
-		 if(sdata->Current>sdata->Max_X)
-			 sdata->Current=sdata->Max_X;
-		 if(sdata->Current<sdata->Min_X)
-			 sdata->Current=sdata->Min_X;
-		 slide_x=temppos.x;
-		 temp=(sdata->Current*100)/sdata->Max_X;
-		 geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), slideclick, 0.75f, 0.0f, 1.0f, false);
-		 if(sdata->proc!=NULL && sdata->On_the_Fly==1)
-			 sdata->proc(temp);
-	  }
-	} 
-
-//--------------------------
-// if clicked on box
-//--------------------------
-
-	if(box_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-	{
-	  geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-  	  bdata=(Box *)Menu[box_click].data;
-  	  bdata->Current=(bdata->Current+1) & 1;
-	  if(bdata->proc!=NULL)
-		bdata->proc(bdata->Current);
-	  box_click=-1;
-	}
-
-	
-//--------------------------
-// if clicked on remap
-//--------------------------
-
-	if(remap_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-	{
-	  geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-  	  rdata=(Remap *)Menu[remap_click].data;
-	  rdata->Current = remap_line + rdata->Start;
-	  remap_click=-1;
-	}
-
-//--------------------------
-// if clicked on scrollbar
-//--------------------------
-
-	if(scroll_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-	{
-	  geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-  	  scdata=(ScrollBar *)Menu[scroll_click].data;
-	  int max = *(scdata->Max);
-	  int current = *(scdata->Current);
-	  if(scroll_dir==0)
-	  {
-		if(current>0)
-			*(scdata->Current)-=1;
-	  }
-	  else
-	  {
-		if(current<(max-scdata->Show))
-			*(scdata->Current)+=1;
-	  }
-	  scroll_click=-1;
-	}
-	
-//--------------------------
-// if clicked on lsbox
-//--------------------------
-
-	if(lsbox_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-	{
-	  geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-  	  lrdata=(LSBox *)Menu[lsbox_click].data;
-	  lrdata->Current = lsbox_line + lrdata->Start;
-	  lsbox_click=-1;
+		}
+		
+		//--------------------------
+		// if clicked on slider
+		//--------------------------
+		
+		if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			temp=temppos.x-slide_x;
+			sdata=(Slider *)Menu[slide_click].data;
+			sdata->Current+=temp;
+			if(sdata->Current>sdata->Max_X)
+				sdata->Current=sdata->Max_X;
+			if(sdata->Current<sdata->Min_X)
+				sdata->Current=sdata->Min_X;
+			slide_x=temppos.x;
+			temp=(sdata->Current*100)/sdata->Max_X;
+			if(sdata->proc!=NULL && sdata->On_the_Fly==0)
+				sdata->proc(temp);
+			slide_click=-1;
+		}
+		if(slide_click==-1)
+			slide_x=-1;
+		if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
+		{
+			if(slide_x!=temppos.x)
+			{
+				temp=temppos.x-slide_x;
+				sdata=(Slider *)Menu[slide_click].data;
+				sdata->Current+=temp;
+				if(sdata->Current>sdata->Max_X)
+					sdata->Current=sdata->Max_X;
+				if(sdata->Current<sdata->Min_X)
+					sdata->Current=sdata->Min_X;
+				slide_x=temppos.x;
+				temp=(sdata->Current*100)/sdata->Max_X;
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), slideclick, 0.75f, 0.0f, 1.0f, false);
+				if(sdata->proc!=NULL && sdata->On_the_Fly==1)
+					sdata->proc(temp);
+			}
+		} 
+		
+		//--------------------------
+		// if clicked on box
+		//--------------------------
+		
+		if(box_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+			bdata=(Box *)Menu[box_click].data;
+			bdata->Current=(bdata->Current+1) & 1;
+			if(bdata->proc!=NULL)
+				bdata->proc(bdata->Current);
+			box_click=-1;
+		}
+		
+		
+		//--------------------------
+		// if clicked on remap
+		//--------------------------
+		
+		if(remap_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+			rdata=(Remap *)Menu[remap_click].data;
+			rdata->Current = remap_line + rdata->Start;
+			remap_click=-1;
+		}
+		
+		//--------------------------
+		// if clicked on scrollbar
+		//--------------------------
+		
+		if(scroll_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+			scdata=(ScrollBar *)Menu[scroll_click].data;
+			int max = *(scdata->Max);
+			int current = *(scdata->Current);
+			if(scroll_dir==0)
+			{
+				if(current>0)
+					*(scdata->Current)-=1;
+			}
+			else
+			{
+				if(current<(max-scdata->Show))
+					*(scdata->Current)+=1;
+			}
+			scroll_click=-1;
+		}
+		
+		//--------------------------
+		// if clicked on lsbox
+		//--------------------------
+		
+		if(lsbox_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+		{
+			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+			lrdata=(LSBox *)Menu[lsbox_click].data;
+			lrdata->Current = lsbox_line + lrdata->Start;
+			lsbox_click=-1;
+		}
 	}
 
   }
@@ -3832,6 +3854,8 @@ end change RF064 */
 void CRFMenu::GameLevel()
 {
 	MSG msg;
+	int FirstFont;
+	geRect	 firstRect;
 
 	CCD->Player()->ShowFog();
 
@@ -3845,6 +3869,19 @@ void CRFMenu::GameLevel()
   CCD->Engine()->BeginFrame();
   CCD->Engine()->EndFrame();
   CCD->ResetClock();
+
+  for(FirstFont=0; FirstFont<NUM_FONTS; FirstFont++)
+  {
+		if(MenuFont[FirstFont].Bitmap != NULL)
+		{
+			
+			firstRect.Top=MenuFont[FirstFont].dat[0].y;
+			firstRect.Bottom=MenuFont[FirstFont].dat[0].y+MenuFont[0].font_height;
+			firstRect.Left=MenuFont[FirstFont].dat[0].x;
+			firstRect.Right=MenuFont[FirstFont].dat[0].x+MenuFont[FirstFont].dat[0].width;
+			break;
+		}
+  }
 
   for(;;)
   {
@@ -3878,13 +3915,18 @@ void CRFMenu::GameLevel()
 				}
 			}
 
+			CCD->Weapons()->Display();
+			CCD->Weapons()->DoAttack();
+			CCD->Explosions()->Tick(CCD->GetTicksGoneBy());
+			CCD->EffectManager()->Tick(CCD->GetTicksGoneBy());	
+
 			// Entities animated, render _EVERYTHING_
 			CCD->Engine()->BeginFrame();				// Start up rendering for this frame
+
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FirstFont].Bitmap, &firstRect, 0, 0);
+
 			CCD->RenderComponents();						// Render the RGF components
-// changed RF063
-			CCD->Weapons()->DoAttack();
-			CCD->Weapons()->Display();
-// end change RF063
+
 			CCD->Engine()->RenderWorld();				// Render the world
 			
 			if(box1.Current==BOX_ON
@@ -3931,7 +3973,7 @@ void CRFMenu::GameLevel()
 				char szBug[256];
 				geVec3d Pos = CCD->Player()->Position();
 				sprintf(szBug, "Player X : %4.2f Player Y : %4.2f Player Z : %4.2f Actors %d", Pos.X, Pos.Y, Pos.Z, CCD->ActorManager()->CountActors());
-				CCD->MenuManager()->FontRect(szBug, FONT10, 5, CCD->Engine()->Height()- 20);
+				CCD->MenuManager()->WorldFontRect(szBug, FONT10, 5, CCD->Engine()->Height()- 20);
 			}
 			
 			CCD->Messages()->Display();
@@ -4149,6 +4191,7 @@ void CRFMenu::DisplayCrossHair()
 	GE_Collision Collision;
 	GE_LVertex Vert;
 	geActor *theActor = CCD->Player()->GetActor();
+	Vert.r = Vert.g = Vert.b = Vert.a = 255.0f;
 	
 	theBox.Min.X = theBox.Min.Y = theBox.Min.Z = -0.1f;
 	theBox.Max.X = theBox.Max.Y = theBox.Max.Z = 0.1f;
@@ -4168,8 +4211,12 @@ void CRFMenu::DisplayCrossHair()
 	geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
 	CCD->Collision()->IgnoreContents(false);
 	CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
-	if(CCD->Collision()->CheckForWCollision(&theBox.Min, &theBox.Max,
-				Pos, Back, &Collision, theActor))
+	char BoneHit[64];
+	BoneHit[0] = '\0';
+	if(CCD->Collision()->CheckForBoneCollision(&theBox.Min, &theBox.Max,
+				Pos, Back, &Collision, theActor, BoneHit, true))
+	//if(CCD->Collision()->CheckForWCollision(&theBox.Min, &theBox.Max,
+				//Pos, Back, &Collision, theActor))
 	{
 		CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Pos));
 		if(CurrentDistance < 0.0f)
@@ -4180,19 +4227,28 @@ void CRFMenu::DisplayCrossHair()
 		}
 		else
 		{
-			// change cursor lighting over damagable item
-			int Percentage = 100;
-			if(Collision.Actor)
+			// change cursor lighting 
+			if(Collision.Actor && CCD->Weapons()->GetAllowLit())
 			{
-			}
-			if(Collision.Model)
-			{
-				CCD->Damage()->IsDestroyable(Collision.Model, &Percentage);
+				geVec3d Fill = {0.0f, 1.0f, 0.0f};
+				geVec3d_Normalize(&Fill);
+				geXForm3d	Xf;
+				geXForm3d	XfT;
+				geVec3d NewFillNormal;
+				geActor_GetBoneTransform(Collision.Actor, NULL, &Xf );
+				geXForm3d_GetTranspose( &Xf, &XfT );
+				geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
+				geActor_SetLightingOptions(Collision.Actor, GE_TRUE, &NewFillNormal, 255.0f, 255.0f, 255.0f,
+					255.0f, 255.0f, 255.0f, GE_TRUE, 6, NULL, GE_FALSE);
+				geVec3d LitColor = CCD->Weapons()->GetLitColor();
+				Vert.r = LitColor.X;
+				Vert.g = LitColor.Y;
+				Vert.b = LitColor.Z;
+				Vert.a = 255.0f;
 			}
 		}
 		geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
 	}
-	Vert.r = Vert.g = Vert.b = Vert.a = 255.0f;
 	Vert.u = Vert.v = 0.0f;
 	Vert.X = Back.X;
 	Vert.Y = Back.Y;
@@ -4818,7 +4874,7 @@ void CRFMenu::MenuInitalize()
 					index += 1;
 				}
 				else
-					CCD->Input()->ClearCodes(RGF_K_RELOAD);
+					CCD->Input()->ClearCodes(RGF_K_POWERUP);
 
 				Type = AttrFile.GetValue(KeyName, "powerdown");
 				if(Type=="true")
@@ -4828,7 +4884,7 @@ void CRFMenu::MenuInitalize()
 					index += 1;
 				}
 				else
-					CCD->Input()->ClearCodes(RGF_K_RELOAD);
+					CCD->Input()->ClearCodes(RGF_K_POWERDWN);
 
 				Redef[index].text = NULL;
 				flg = true;
@@ -5514,6 +5570,8 @@ static void SetSlot()
 			CCD->NPCManager()->SaveTo(outFD, false);
 			CCD->CountDownTimers()->SaveTo(outFD, false);
 			CCD->ChangeAttributes()->SaveTo(outFD, false);
+			CCD->Changelevel()->SaveTo(outFD, false);
+			CCD->ActMaterials()->SaveTo(outFD, false);
 			CCD->ModelManager()->SaveTo(outFD, false);
 			CCD->SaveTo(outFD);
 // end change RF063
@@ -5572,6 +5630,8 @@ static void GetSlot()
 			CCD->NPCManager()->RestoreFrom(inFD, false);
 			CCD->CountDownTimers()->RestoreFrom(inFD, false);
 			CCD->ChangeAttributes()->RestoreFrom(inFD, false);
+			CCD->Changelevel()->RestoreFrom(inFD, false);
+			CCD->ActMaterials()->RestoreFrom(inFD, false);
 			CCD->ModelManager()->RestoreFrom(inFD, false);
 			CCD->RestoreFrom(inFD);
 // end change RF063
@@ -5591,29 +5651,52 @@ static void GetSlot()
 	}
 }
 
+static int PowerOfTwo(int value)
+{
+	if(value>128)
+		return 256;
+	if(value>64)
+		return 128;
+	if(value>32)
+		return 64;
+	if(value>16)
+		return 32;
+	if(value>8)
+		return 16;
+	return 8;
+}
+
 void CRFMenu::LoadWBitmap()
 {
-/*	for(int i=0; i<NUM_FONTS; i++)
+	geBitmap *Alpha, *BAlpha;
+	for(int i=0; i<NUM_FONTS; i++)
 	{
 		if(MenuFont[i].Bitmap != NULL)
 		{
+			BAlpha = geBitmap_GetAlpha(MenuFont[i].Bitmap); 
 			for(int chr=0; chr<96 ; chr++)
 			{
-				MenuFont[i].WBitmap[chr] = geBitmap_Create(MenuFont[i].dat[chr].width, 
-					MenuFont[i].font_height, 1, GE_PIXELFORMAT_32BIT_ARGB);
-				geBitmap_SetPreferredFormat(MenuFont[i].WBitmap[chr], GE_PIXELFORMAT_32BIT_ARGB);
-				geBitmap_ClearMips(MenuFont[i].WBitmap[chr]);
+				int w = PowerOfTwo(MenuFont[i].dat[chr].width);
+				int h = PowerOfTwo(MenuFont[i].font_height);
+				MenuFont[i].WBitmap[chr] = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);//GE_PIXELFORMAT_8BIT);
 				geBitmap_Blit(MenuFont[i].Bitmap, MenuFont[i].dat[chr].x,
 					MenuFont[i].dat[chr].y, MenuFont[i].WBitmap[chr], 0, 0,
 					MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				Alpha = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);
+				geBitmap_Blit(BAlpha, MenuFont[i].dat[chr].x,
+					MenuFont[i].dat[chr].y, Alpha, 0, 0,
+					MenuFont[i].dat[chr].width, MenuFont[i].font_height);
 				geWorld_AddBitmap(CCD->World(), MenuFont[i].WBitmap[chr]);
+				geBitmap_SetPreferredFormat(MenuFont[i].WBitmap[chr],GE_PIXELFORMAT_32BIT_ARGB);
+				geBitmap_SetAlpha(MenuFont[i].WBitmap[chr], Alpha);
+				geBitmap_Destroy(&Alpha);
 			}
 		}
-	} */
+	} 
 }
 
 void CRFMenu::UnLoadWBitmap()
-{ /*
+{ 
 	for(int i=0; i<NUM_FONTS; i++)
 	{
 		if(MenuFont[i].Bitmap != NULL)
@@ -5627,10 +5710,10 @@ void CRFMenu::UnLoadWBitmap()
 				}
 			}
 		}
-	} */
+	} 
 }
 
-void CRFMenu::WFontRect(char *s, int FontNumber, int x, int y)
+void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y)
 {
   int charoff;
   char chr;
@@ -5640,12 +5723,10 @@ void CRFMenu::WFontRect(char *s, int FontNumber, int x, int y)
 		char szBug[256];
 		sprintf(szBug, "No defined Font # %d", FontNumber);
 		CCD->ReportError(szBug, false);
-// changed RF064
 		CCD->ShutdownLevel();
 		delete CCD;
 		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
 		exit(-336);
-// end change RF064
   }
   if(s!=NULL)
   {
@@ -5657,9 +5738,78 @@ void CRFMenu::WFontRect(char *s, int FontNumber, int x, int y)
 			fRect.Bottom=MenuFont[FontNumber].font_height;
 			fRect.Left=0;
 			fRect.Right=MenuFont[FontNumber].dat[chr].width;
-			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], NULL, x+charoff, y);
+			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y);
 			charoff+=MenuFont[FontNumber].dat[chr].width;
 			s++;
 	  }
-  }
+  } 
+}
+
+void CRFMenu::FadeSet(int Dir, float Time)
+{
+	Fading = false;
+	FadeDir = Dir;
+	if(FadeDir==-1)
+		FadeAlpha = 255.0f;
+	else
+		FadeAlpha = 0.0f;
+	CurrentFadeTime = CCD->FreeRunningCounter_F();
+	FadeTime = Time;
+}
+
+void CRFMenu::DoFade()
+{
+	float FadeDelta;
+	float DeltaTime = (CCD->FreeRunningCounter_F() - CurrentFadeTime)/1000.0f;
+	if(FadeDir==-1)
+	{
+		FadeDelta = 255.0f - (255.0f * (DeltaTime/FadeTime));
+		if(FadeAlpha==0.0f)
+		{
+			Fading = false;
+			FadeDir = 1;
+		}
+	}
+	else
+	{
+		FadeDelta = 255.0f * (DeltaTime/FadeTime);
+		if(FadeAlpha==255.0f)
+		{
+			Fading = false;
+			FadeDir = -1;
+		}
+	}
+	if(Fading)
+	{
+
+		FadeAlpha = FadeDelta;
+		if(FadeAlpha > 255.0f) 
+			FadeAlpha = 255.0f;
+		if ( FadeAlpha < 0.0f ) 
+			FadeAlpha = 0.0f;	// transparent
+		if (FadeAlpha > 0.0f)
+		{
+			GE_Rect Rect;
+			GE_RGBA	Color;
+			Rect.Left = Rect.Top = 0;
+			Rect.Right = CCD->Engine()->Width() - 1;
+			Rect.Bottom = CCD->Engine()->Height() - 1;
+			Color.r = 0.0f;
+			Color.g = 0.0f;
+			Color.b = 0.0f;
+			Color.a = FadeAlpha;
+			geEngine_FillRect(CCD->Engine()->Engine(), &Rect, &Color );
+		}
+	}
+}
+
+void CRFMenu::FadeOut()
+{
+	FadeSet(1, 1.5f);
+	for(int i=0;i<255;i++)
+	{
+		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+		DoFade();
+		geEngine_EndFrame(CCD->Engine()->Engine());
+	}
 }

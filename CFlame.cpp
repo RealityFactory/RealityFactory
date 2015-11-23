@@ -276,7 +276,7 @@ void CFlame::Tick(float dwTicksIn)
 			geXForm3d_GetIn( &( Xf ), &In );
 			geVec3d_Inverse( &In );
 			geVec3d_AddScaled( &( Sp.Source ), &In, 50.0f, &( Sp.Dest ) );
-			CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList0, (void *)&Sp, SPRAY_SOURCE | SPRAY_DEST);
+			CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList0, (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
 			geVec3d_Copy( &( Sp.Dest ), &( Gl.Pos) );
 			CCD->EffectManager()->Item_Modify(EFF_LIGHT, S->EffectList1, (void *)&Gl, GLOW_POS);
 		}

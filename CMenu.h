@@ -118,7 +118,7 @@ public:
   void DisplaySplash();
   void LoadWBitmap();
   void UnLoadWBitmap();
-  void WFontRect(char *s, int FontNumber, int x, int y);
+  void WorldFontRect(char *s, int FontNumber, int x, int y);
 // end change RF064
   void MFontRect(char *s, int FontNumber, int x, int y);
   void FontRect(char *s, int FontNumber, int x, int y);
@@ -221,6 +221,9 @@ public:
 private:
   void ClearVol();
   void DisplayCrossHair();
+  void FadeSet(int Dir, float Time);
+  void DoFade();
+  void FadeOut();
 
   geBitmap	 *ScreenBmp;
   geBitmap	 *Backgrounds[NUM_BACKGROUNDS];
@@ -244,6 +247,11 @@ private:
   bool		 ScrnWait;
   int		 ingame;
   int		 LoopOnce;
+  bool		 Fading;
+  int		 FadeDir;
+  float		 FadeTime;
+  float		 CurrentFadeTime;
+  float		 FadeAlpha;
   float		 MouseSen;
   bool		 MouseReverse;
   bool		 MouseFilter;

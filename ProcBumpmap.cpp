@@ -57,7 +57,7 @@ Procedural *BumpMap_Create(char *TextureName, geWorld  *World, const char *ParmS
 		}
 	}
 
-	geRam_Free(P);
+	geRam_Free(P); 
 	return (Procedural *)NULL;
 }
 

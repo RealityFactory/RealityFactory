@@ -660,7 +660,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
     { 
 		if(vertex[1].x <= ClipRect.Left) 
 		{ 
-			ReportError("Clipping Rect has negative dimension", NULL); 
+			//ReportError("Clipping Rect has negative dimension", NULL); 
 			return false; 
 		}
 		fUVAdd = (ClipRect.Left-vertex[0].x)/(vertex[1].x-vertex[0].x); 
@@ -675,7 +675,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
     { 
 		if(vertex[2].y <= ClipRect.Top)
 		{ 
-			ReportError("Clipping Rect has negative dimension", false); 
+			//ReportError("Clipping Rect has negative dimension", false); 
 			return false; 
 		}
 		fUVAdd = (ClipRect.Top-vertex[0].y)/(vertex[3].y-vertex[0].y); 

@@ -199,7 +199,7 @@ void CRain::Tick(float dwTicks)
 			geVec3d_AddScaled( &( Sp.Source ), &( Sp.Gravity ), Sp.MinUnitLife, &( Sp.Dest ) );
 			// adjust position
 			for ( i = 0; i < R->EffectCount; i++ )
-				CCD->EffectManager()->Item_Modify(EFF_SPRAY, R->EffectList[i], (void *)&Sp, SPRAY_SOURCE | SPRAY_DEST);
+				CCD->EffectManager()->Item_Modify(EFF_SPRAY, R->EffectList[i], (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
 		}
     }
 

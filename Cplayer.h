@@ -344,6 +344,8 @@ public:
 	{ return restoreoxy; }
 	void SetRestoreOxy(bool flag)
 	{ restoreoxy = flag; }
+	int GetHeadBobbing()
+	{ return HeadBobbing; }
 // end change RF064
 	int LightValue()
 	{ return (int)CurrentLiteLife; }
@@ -386,7 +388,6 @@ private:
 	CPersistentAttributes *m_Attr;	// Player attributes
 	geVec3d m_PositionHistory[50];	// Last 50 places the player was
 	int m_PositionHistoryPtr;			// Pointer into position history array
-	EnvAudioSetup *EnvAudio;			// Environmental audio data
 	geSound_Def *DefaultMotion[3];			// Default motion sound
 	geSound *DefaultMotionHandle;		// Default motion sound handle
 	geSound_Def *Contents[16][3];			// Sounds for each 'environment type'
@@ -489,6 +490,7 @@ private:
 	bool alterkey;
 	bool restoreoxy;
 	char ChangeMaterial[64];
+	bool HeadBobbing;
 // end change RF064
 };
 

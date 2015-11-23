@@ -734,7 +734,7 @@ int CHeadsUpDisplay::Render()
 // end change RF063
 			char szBug[256];
 			sprintf(szBug, m_theHUD[nItem].format, nValue);
-			CCD->MenuManager()->FontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
 		}
 		// player position
 		if(m_theHUD[nItem].Type == PPOS)
@@ -750,7 +750,7 @@ int CHeadsUpDisplay::Render()
 			char szBug[256];
 			geVec3d Pos = CCD->Player()->Position();
 			sprintf(szBug, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
-			CCD->MenuManager()->FontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
 		} 
 // changed RF063
 		// Radar

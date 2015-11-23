@@ -657,8 +657,20 @@ geBoolean EffManager::Spray_Modify(Spray *Data, Spray *NewData, uint32 Flags)
   // adjust source
   if ( Flags & SPRAY_DEST )
   {
-	geVec3d_Copy( &( NewData->Dest ), &( Data->Dest ) );
-	RecalculateLeaf = GE_TRUE;
+	  geVec3d	In;
+	  geXForm3d_RotateX( &(NewData->Xform), Data->Angle.X / 57.3f );  
+	  geXForm3d_RotateY( &(NewData->Xform), Data->Angle.Y / 57.3f );  
+	  geXForm3d_RotateZ( &(NewData->Xform), Data->Angle.Z / 57.3f ); 
+	  geXForm3d_GetIn( &(NewData->Xform), &In );
+	  geVec3d_Inverse( &In );
+	  geVec3d_AddScaled( &( Data->Source ), &In, 50.0f, &( Data->Dest ) );
+	  RecalculateLeaf = GE_TRUE;
+  }
+
+  if ( Flags & SPRAY_ACTUALDEST )
+  {
+	  geVec3d_Copy( &( NewData->Dest ), &( Data->Dest ) );
+	  RecalculateLeaf = GE_TRUE;
   }
 
   // calculate leaf value
@@ -1671,9 +1683,12 @@ geBoolean EffManager::Bolt_Process(EBolt  *Data,  float  TimeDelta)
 				&Data->End);
 			Data->LastBoltTime = Data->LastTime;
 		}
+
 		geXForm3d XForm = CCD->CameraManager()->ViewPoint();
 		if(Data->LastTime - Data->LastBoltTime <= LIGHTNINGSTROKEDURATION)
+		{
 			Electric_BoltEffectRender(Data->Bolt, &XForm);
+		}
 	}
 	// all done
 	return GE_TRUE;
@@ -1697,7 +1712,15 @@ geBoolean EffManager::Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags)
 	// adjust end using offset
 	if ( Flags & BOLT_ENDOFFSET )
 	{
-		geVec3d_Add( &(NewData->End), &(Data->EndOffset),&(Data->End) );
+		geVec3d Direction;
+		Data->End = Data->Start;
+		geXForm3d_GetIn(&NewData->Xform, &Direction);
+		geVec3d_Inverse( &Direction);
+		geVec3d_AddScaled (&Data->End, &Direction, Data->EndOffset.Z, &Data->End);
+		geXForm3d_GetUp(&NewData->Xform, &Direction);
+		geVec3d_AddScaled (&Data->End, &Direction, Data->EndOffset.Y, &Data->End);
+		geXForm3d_GetLeft(&NewData->Xform, &Direction);
+		geVec3d_AddScaled (&Data->End, &Direction, Data->EndOffset.X, &Data->End);
 	}
 
 	// all done
@@ -1933,7 +1956,18 @@ geBoolean EffManager::ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, u
   // adjust source
   if ( Flags & SPRAY_DEST )
   {
-	geVec3d_Copy( &( NewData->Dest ), &( Data->Dest ) );
+	  geVec3d	In;
+	  geXForm3d_RotateX( &(NewData->Xform), Data->Angle.X / 57.3f );  
+	  geXForm3d_RotateY( &(NewData->Xform), Data->Angle.Y / 57.3f );  
+	  geXForm3d_RotateZ( &(NewData->Xform), Data->Angle.Z / 57.3f ); 
+	  geXForm3d_GetIn( &(NewData->Xform), &In );
+	  geVec3d_Inverse( &In );
+	  geVec3d_AddScaled( &( Data->Source ), &In, 50.0f, &( Data->Dest ) );
+  }
+
+  if ( Flags & SPRAY_ACTUALDEST )
+  {
+	  geVec3d_Copy( &( NewData->Dest ), &( Data->Dest ) );
   }
 
   EffectC_XFormFromVector( &( Data->Source ), &( Data->Dest ), &( Data->Xf ) );

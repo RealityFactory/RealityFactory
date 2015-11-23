@@ -425,7 +425,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 				pProxy->CallBackCount = 2;
 
 				if(pProxy->DeathDissappear)
-					CCD->ActorManager()->RemoveActor(pProxy->Actor);
+					CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
 			}
 		}
 

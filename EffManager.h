@@ -30,6 +30,7 @@ Manager that handles special effects for RGF-based games.
 #define SPRAY_SOURCE		( 1 << 0 )
 #define SPRAY_DEST		( 1 << 1 )
 #define SPRAY_FOLLOWTAIL	( 1 << 2 )
+#define SPRAY_ACTUALDEST		( 1 << 3 )
 
 typedef struct
 {
@@ -53,6 +54,8 @@ typedef struct
 	geVec3d		Source;			// source point
 	int		SourceVariance;		// +/- units to vary the source point
 	geVec3d		Dest;			// dest point
+	geVec3d		Angle;
+	geXForm3d	Xform;
 	int		DestVariance;		// +/- units to vary the dest point
 	float		MinScale;		// min scale for the art
 	float		MaxScale;		// max scale for the art
@@ -158,6 +161,7 @@ typedef struct EBolt
 	geVec3d	Start;
 	geVec3d End;
 	geVec3d EndOffset;
+	geXForm3d	Xform;
 	int		Width;
 	int		NumPoints;
 	geBoolean	Intermittent;
@@ -216,6 +220,8 @@ typedef struct
 	geVec3d		Source;			// source point
 	int		SourceVariance;		// +/- units to vary the source point
 	geVec3d		Dest;			// dest point
+	geVec3d		Angle;
+	geXForm3d	Xform;
 	int		DestVariance;		// +/- units to vary the dest point
 	float		MinScale;		// min scale for the art
 	float		MaxScale;		// max scale for the art

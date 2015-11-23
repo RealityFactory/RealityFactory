@@ -129,6 +129,8 @@ typedef struct DefaultWeapons
 	char MuzzleFlash[64];
 	geBitmap *CrossHair;
 	bool CrossHairFixed;
+	bool AllowLit;
+	geVec3d LitColor;
 	int ZoomAmt;
 
 	geActor *VActor;
@@ -154,6 +156,7 @@ typedef struct DefaultWeapons
 // changed RF063
 	float JerkAmt;
 	float JerkDecay;
+	float BobAmt;
 // end change RF063
 
 	geActor *PActor;
@@ -250,6 +253,10 @@ public:
   {return WeaponD[CurrentWeapon].ShotFired;}
   int GetMagAmt()
   {return WeaponD[CurrentWeapon].MagAmt;}
+  geVec3d GetLitColor()
+  { return WeaponD[CurrentWeapon].LitColor; }
+  bool GetAllowLit()
+  { return WeaponD[CurrentWeapon].AllowLit; }
 // end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}

@@ -68,13 +68,15 @@ CWallDecal::CWallDecal()
 			pSource->Time = 0.0f;
 			pSource->CycleDir = 1;
 		}
+		pSource->OriginOffset = pSource->origin;
+		if(pSource->Model)
+		{
+			geVec3d ModelOrigin;
+	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
+			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
+  		}
 // end change RF064
 		pSource->active = GE_FALSE;
-		if(EffectC_IsStringNull(pSource->TriggerName))
-		{
-			AddDecal(pSource);
-			pSource->active = GE_TRUE;
-		}
 	}
 
   return;
@@ -152,6 +154,14 @@ void CWallDecal::Tick(float dwTicks)
 				}
 			}
 		}
+		else
+		{
+			if(pSource->active!=GE_TRUE)
+			{
+				AddDecal(pSource);
+				pSource->active = GE_TRUE;
+			}
+		}
 
 // changed RF064
 		if(pSource->active==GE_TRUE && pSource->Animated)
@@ -174,6 +184,11 @@ void CWallDecal::Tick(float dwTicks)
 						break;
 					case 3:
 						pSource->CurTex = ( rand() % pSource->BitmapCount );
+						break;
+					case 4:
+						pSource->CurTex +=1;
+						if(pSource->CurTex>=pSource->BitmapCount)
+							pSource->CurTex = pSource->BitmapCount-1;
 						break;
 					default:
 						pSource->CurTex +=1;
@@ -224,6 +239,9 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 		{0.0f, 1.0f, 0.0f},
 		{0.0f, 0.0f, 1.0f}
 	};
+
+	pSource->origin = pSource->OriginOffset;
+	SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
 	
 	geVec3d impact, normal, Pos, Direction;
 	geVec3d Front, Back;

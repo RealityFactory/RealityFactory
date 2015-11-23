@@ -45,6 +45,7 @@ public:
   ~CExplosionInit();	
   void AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone);
   void Tick(geFloat dwTicks);
+  void UnAttach(geActor *Actor);
 private:
 	preExplosion Explosions[MAXEXP];
 	DelayExp * Bottom;

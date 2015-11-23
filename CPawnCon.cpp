@@ -7,6 +7,7 @@ extern geSound_Def *SPool_Sound(char *SName);
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 
+#define BACKCLEAR	GE_FALSE
 
 //
 // ScriptConverse class
@@ -287,7 +288,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
+			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, BACKCLEAR);
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
 			if(Icon)
 				geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
@@ -325,7 +326,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 		bool kdwn = false;
 		bool ckup = false;
 		bool ckdwn = false;
-		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
+		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, BACKCLEAR);
 		geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
 		if(Icon)
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
@@ -626,6 +627,28 @@ void CPawn::PreLoadC(char *filename)
 				geEngine_AddBitmap(CCD->Engine()->Engine(), Cache[keynum].Bitmap);
 			}
 		} 
+		else
+		{
+			i = str.Find(".tga");
+			if(i>=0 && i<str.GetLength())
+			{
+				j=i-1;
+				while(str.GetAt(j)!='"' && j>=0)
+				{
+					j-=1;
+				}
+				if(j>=0)
+				{
+					strcpy(file, "conversation\\");
+					strcat(file, str.Mid(j+1,i-j+3));
+					Cache.SetSize(Cache.GetSize()+1);
+					int keynum = Cache.GetSize()-1;
+					Cache[keynum].Name = str.Mid(j+1,i-j+3);
+					Cache[keynum].Bitmap = CreateFromFileName(file);
+					geEngine_AddBitmap(CCD->Engine()->Engine(), Cache[keynum].Bitmap);
+				}
+			} 
+		}
 	}
 	fclose(fdInput);
 }

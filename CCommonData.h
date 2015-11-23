@@ -96,9 +96,6 @@ public:
 	inline CRFMenu *MenuManager() { return theMenu; }
 	inline CAttribute *Attributes() { return theAttribute; }
 	inline CNPC *NPCManager() { return theNPC;}
-#ifdef RF063
-	inline CEnemy *EnemyManager() { return theEnemy;}
-#endif
 	inline Collider *Collision() { return theCollider;}
 	inline CActorManager *ActorManager() { return theActorManager;}
 	inline CModelManager *ModelManager() { return theModelManager;}
@@ -169,6 +166,7 @@ public:
 	inline void SetPaused(bool flag) { Paused = flag;}
 	inline float GetAudibleRadius() { return kAudibleRadius;}
 	inline void SetAudibleRadius(float radius) { kAudibleRadius = radius;}
+	inline float GetTicksGoneBy() { return dwTicksGoneBy;}
 // changed RF064
 	inline COverlay *Overlays() { return theOverlay;}
 	inline void SetKeyPaused(bool flag) { KeyPaused = flag;}
@@ -229,9 +227,6 @@ private:
 	Chaos *theChaos;									// Ralph Deane's Chaos Procedural
 	CRFMenu *theMenu;										// Ralph Deane's Menu Manager
 	CNPC *theNPC;											// Non-Player Character Manager
-#ifdef RF063
-	CEnemy *theEnemy;
-#endif
 	Collider *theCollider;						// Collision detection subsystem
 	CActorManager *theActorManager;		// Actor manager subsystem
 	CModelManager *theModelManager;		// Model manager subsystem
@@ -309,6 +304,7 @@ private:
 	bool KeyPaused;
 	bool CDifficult;
 	int DifficultLevel;
+	geFloat dwTicksGoneBy;
 // end change RF064
 	bool UseEffect;
 	GE_RGBA cColor;

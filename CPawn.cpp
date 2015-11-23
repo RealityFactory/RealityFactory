@@ -42,6 +42,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	FaceAxis = true;
 	Attribute[0] = '\0';
 	DeadOrder[0] = '\0';
+	szName[0] = '\0';
 	Converse = NULL;
 	UseKey = true;
 	FOV = -2.0f;
@@ -720,4 +721,71 @@ void CPawn::ParmCheck(int Entries, int Desired, char *Order, char *szName, const
 	delete CCD;
 	MessageBox(NULL, szError,"Player", MB_OK);
 	exit(-333);
+}
+
+
+//	SaveTo
+//
+//	Save the current state of every Pawn in the current world
+//	..off to an open file.
+
+int CPawn::SaveTo(FILE *SaveFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are Pawns in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "Pawn");
+	
+	if(!pSet) 
+		return RGF_NOT_FOUND;
+	
+	//	Ok, we have Pawns.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		Pawn *pSource = (Pawn*)geEntity_GetUserData(pEntity);
+		if(pSource->Data)
+		{
+			ScriptedObject *Object = (ScriptedObject *)pSource->Data;
+				
+		}
+	}
+
+	return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore the state of every Pawn in the current world from an
+//	..open file.
+
+int CPawn::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are Pawns in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "Pawn");
+	
+	if(!pSet) 
+		return RGF_NOT_FOUND;
+	
+	//	Ok, we have Pawns.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		Pawn *pSource = (Pawn*)geEntity_GetUserData(pEntity);
+		if(pSource->Data)
+		{
+			ScriptedObject *Object = (ScriptedObject *)pSource->Data;
+				
+		}
+	}
+	
+	return RGF_SUCCESS;
 }

@@ -159,9 +159,6 @@ class CCommonData;
 #include "track.h"
 #include "CNPCPathPoint.h"
 #include "CNPC.h"										// Non-Player Character Manager
-#ifdef RF063
-#include "CEnemy.h"
-#endif
 #include "CTriggers.h"							// Ralph Deane's Generic Triggers
 #include "CLogic.h"									// Ralph Deane's Trigger Logic
 #include "CMessage.h"

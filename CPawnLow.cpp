@@ -27,6 +27,11 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = CCD->GetDifficultLevel();
 		return true;
 	}
+	else if (fieldName == "EntityName")
+	{
+		value = skString(szName);
+		return true;
+	}
 	else if (fieldName == "health")
 	{
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
@@ -50,7 +55,12 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 	{
 		bool flag = CCD->Pawns()->CanSee(FOV, Actor, TargetActor, FOVBone);
 		if(flag)
+		{
 			CCD->ActorManager()->GetPosition(TargetActor, &LastTargetPoint);
+			geExtBox theBox;
+			CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
+			LastTargetPoint.Y += ((theBox.Max.Y)/2.0f);
+		}
 		value = flag;
 		return true;
 	}
@@ -81,6 +91,18 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = targetyaw;
 		return true;
 	}
+	else if (fieldName == "enemy_pitch")
+	{
+		GetAngles(true);
+		value = targetpitch;
+		return true;
+	}
+	else if (fieldName == "last_enemy_pitch")
+	{
+		GetAngles(false);
+		value = targetpitch;
+		return true;
+	}
 	else if (fieldName == "last_enemy_range")
 	{
 		value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor);
@@ -100,6 +122,22 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 	else if (fieldName == "ideal_yaw")
 	{
 		value = ideal_yaw;
+		return true;
+	}
+	else if (fieldName == "current_pitch")
+	{
+		GetAngles(true);
+		value = actorpitch;
+		return true;
+	}
+	else if (fieldName == "pitch_speed")
+	{
+		value = pitch_speed;
+		return true;
+	}
+	else if (fieldName == "ideal_pitch")
+	{
+		value = ideal_pitch;
 		return true;
 	}
 	else if (fieldName == "in_pain")
@@ -171,6 +209,16 @@ bool ScriptedObject::setValue(const skString& fieldName, const skString& attribu
 		ideal_yaw = value.floatValue();
 		return true;
 	}
+	else if (fieldName == "pitch_speed")
+	{
+		pitch_speed = value.floatValue();
+		return true;
+	}
+	else if (fieldName == "ideal_pitch")
+	{
+		ideal_pitch = value.floatValue();
+		return true;
+	}
 	else 
 	{
 		return skScriptedExecutable::setValue(fieldName, attribute, value);
@@ -213,6 +261,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		CCD->ActorManager()->SetGravity(Actor, Gravity);
 		return true;
 	}
+	
 	else if (IS_METHOD(methodName, "PlaySound"))
 	{
 		PARMCHECK(1);
@@ -268,6 +317,11 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		ChangeYaw();
 		return true;
 	}
+	else if (IS_METHOD(methodName, "ChangePitch"))
+	{
+		ChangePitch();
+		return true;
+	}
 	else if (IS_METHOD(methodName, "random"))
 	{
 		PARMCHECK(2);
@@ -296,12 +350,38 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 			returnValue = true;
 		return true;
 	}
+	else if (IS_METHOD(methodName, "flymove"))
+	{
+		PARMCHECK(3);
+		float amount = arguments[2].floatValue() * ElapseTime;
+		geXForm3d Xform;
+		geVec3d In, NewPosition, SavedPosition;
+		CCD->ActorManager()->GetPosition(Actor, &SavedPosition);
+		geXForm3d_SetIdentity(&Xform);
+		geXForm3d_RotateX(&Xform, -arguments[0].floatValue());
+		geXForm3d_RotateY(&Xform, arguments[1].floatValue());
+		geXForm3d_Translate(&Xform, SavedPosition.X, SavedPosition.Y, SavedPosition.Z);
+		geXForm3d_GetIn(&Xform, &In);
+		geVec3d_AddScaled(&SavedPosition, &In, amount, &NewPosition);
+		returnValue = false;
+		if(CCD->ActorManager()->ValidateMove(SavedPosition, NewPosition, Actor, false)==GE_TRUE)
+			returnValue = true;
+		return true;
+	}
 	else if (IS_METHOD(methodName, "Damage"))
 	{
 		PARMCHECK(2);
 		float amount = arguments[0].floatValue();
 		strcpy(param0, arguments[1].str());
 		CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0, "Melee");
+		return true;
+	}
+	else if (IS_METHOD(methodName, "ChangeMaterial"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		if(!EffectC_IsStringNull(param0))
+			CCD->ActorManager()->ChangeMaterial(Actor, param0);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetHoldAtEnd"))
@@ -389,9 +469,10 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 		CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
 		TargetPoint = UpdateTargetPoint;
+		TargetPoint.Y -= (theBox.Max.Y/2.0f);
 		if(arguments.entries()==7)
 		{
-			float height = arguments[7].floatValue();
+			float height = arguments[6].floatValue();
 			TargetPoint.Y += (theBox.Max.Y*height);
 		}
 		else
@@ -487,7 +568,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				{
 					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
 				}
-				strcpy(ConsoleDebug[DEBUGLINES-1], param0);
+				strcpy(ConsoleDebug[DEBUGLINES-1], param0); 
 			}
 		}
 		return true;
@@ -533,7 +614,7 @@ void ScriptedObject::GetAngles(bool flag)
 	actoryaw = Pos.Y;
 	targetyaw = Orient.Y;
 	actorpitch = Pos.X;
-	targetpitch = Orient.X;
+	targetpitch = -Orient.X;
 }
 
 //
@@ -678,6 +759,43 @@ void ScriptedObject::ChangeYaw()
 			CCD->ActorManager()->TurnRight(Actor,0.0174532925199433f*amount);
 		else
 			CCD->ActorManager()->TurnLeft(Actor,0.0174532925199433f*amount);
+	}
+}
+
+void ScriptedObject::ChangePitch()
+{
+	GetAngles(true);
+	bool RotateUp = false;
+	float idealangle = anglemod(ideal_pitch/0.0174532925199433f)*0.0174532925199433f;
+	float RotateAmt = actorpitch - idealangle;
+	
+	if(RotateAmt<0.0f)
+	{
+		RotateAmt = -RotateAmt;
+		RotateUp = true;
+	}
+	if(RotateAmt>0.0f)
+	{
+		if(RotateAmt>GE_PI)
+		{
+			RotateAmt-=GE_PI;
+			if(RotateUp)
+				RotateUp=false;
+			else
+				RotateUp=true;
+		}
+		RotateAmt /= 0.0174532925199433f;
+		
+		float amount = pitch_speed * ElapseTime;
+		if(amount>RotateAmt)
+		{
+			amount = RotateAmt;
+		}
+		RotateAmt -= amount;
+		if(RotateUp)
+			CCD->ActorManager()->TiltUp(Actor,0.0174532925199433f*amount);
+		else
+			CCD->ActorManager()->TiltDown(Actor,0.0174532925199433f*amount);
 	}
 }
 

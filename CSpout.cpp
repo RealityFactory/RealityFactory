@@ -239,7 +239,8 @@ void CSpout::Tick(float dwTicksIn)
 			geXForm3d_GetIn( &( Xf ), &In );
 			geVec3d_Inverse( &In );
 			geVec3d_AddScaled( &( Sp.Source ), &In, 50.0f, &( Sp.Dest ) );
-			CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList, (void *)&Sp, SPRAY_SOURCE | SPRAY_DEST);
+
+			CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList, (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
 		}
 	} 
     Entity = geEntity_EntitySetGetNextEntity(Set, Entity);
@@ -525,7 +526,7 @@ void CActorSpout::Tick(float dwTicksIn)
 			// setup orientation
 			geVec3d	In;
 			geXForm3d	Xf;
-			Spray		Sp;
+			ActorSpray		Sp;
 
 			geXForm3d_SetIdentity( &( Xf ) );
 			geXForm3d_RotateX( &( Xf ), S->Angles.X / 57.3f );  
@@ -535,7 +536,7 @@ void CActorSpout::Tick(float dwTicksIn)
 			geXForm3d_GetIn( &( Xf ), &In );
 			geVec3d_Inverse( &In );
 			geVec3d_AddScaled( &( Sp.Source ), &In, 50.0f, &( Sp.Dest ) );
-			CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, S->EffectList, (void *)&Sp, SPRAY_SOURCE | SPRAY_DEST);
+			CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, S->EffectList, (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
 		}
 	} 
     Entity = geEntity_EntitySetGetNextEntity(Set, Entity);

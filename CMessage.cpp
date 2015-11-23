@@ -125,7 +125,7 @@ void CMessage::Display()
 		{
 			if(!EffectC_IsStringNull(pSource->Text))
 			{
-				CCD->MenuManager()->FontRect(pSource->Text, pSource->FontSize, 4, YOffset);
+				CCD->MenuManager()->WorldFontRect(pSource->Text, pSource->FontSize, 4, YOffset);
 				YOffset += (CCD->MenuManager()->FontHeight(pSource->FontSize)+2);
 			}
 		}

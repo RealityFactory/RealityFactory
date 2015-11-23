@@ -76,9 +76,6 @@ CCommonData::CCommonData()
 	theFlame = NULL;						// Ralph Deane's Flame Effect
 	theMenu = NULL;							// Ralph Deane's Menu Manager
 	theNPC = NULL;							// Non-Player Character Manager
-#ifdef RF063
-	theEnemy = NULL;
-#endif
 	theCollider = NULL;					// Collision Detection Subsystem
 	theActorManager = NULL;			// Actor Manager subsystem
 	theModelManager = NULL;			// Model Manager subsystem
@@ -1866,6 +1863,8 @@ bool CCommonData::HandleGameInput()
 					theNPC->SaveTo(outFD, false);
 					theCountDownTimer->SaveTo(outFD, false);
 					theChangeAttribute->SaveTo(outFD, false);
+					theChangeLevel->SaveTo(outFD, false);
+					theActMaterial->SaveTo(outFD, false);
 					theModelManager->SaveTo(outFD, false);
 // end multiplayer
 					SaveTo(outFD);
@@ -1934,6 +1933,8 @@ bool CCommonData::HandleGameInput()
 					theNPC->RestoreFrom(inFD, false);
 					theCountDownTimer->RestoreFrom(inFD, false);
 					theChangeAttribute->RestoreFrom(inFD, false);
+					theChangeLevel->RestoreFrom(inFD, false);
+					theActMaterial->RestoreFrom(inFD, false);
 					theModelManager->RestoreFrom(inFD, false);
 // end multiplayer
 					RestoreFrom(inFD);
@@ -2025,6 +2026,13 @@ int CCommonData::SaveTo(FILE *SaveFD)
 	fwrite(&m_cameraY, sizeof(float), 1, SaveFD);
 	fwrite(&m_playerotation, sizeof(geVec3d), 1, SaveFD);
 	fwrite(&ViewPoint, sizeof(int), 1, SaveFD);
+	fwrite(&DifficultLevel, sizeof(int), 1, SaveFD);
+	fwrite(&zoomkey, sizeof(bool), 1, SaveFD);
+	fwrite(&usekey, sizeof(bool), 1, SaveFD);
+	fwrite(&invkey, sizeof(bool), 1, SaveFD);
+	fwrite(&dropkey, sizeof(bool), 1, SaveFD);
+	fwrite(&reloadkey, sizeof(bool), 1, SaveFD);
+	fwrite(&CSelect, sizeof(bool), 1, SaveFD);
 
 	return RGF_SUCCESS;
 }
@@ -2055,6 +2063,15 @@ int CCommonData::RestoreFrom(FILE *RestoreFD)
 	fread(&m_cameraY, sizeof(float), 1, RestoreFD);
 	fread(&m_playerotation, sizeof(geVec3d), 1, RestoreFD);
 	fread(&ViewPoint, sizeof(int), 1, RestoreFD);
+	fread(&DifficultLevel, sizeof(int), 1, RestoreFD);
+	fread(&zoomkey, sizeof(bool), 1, RestoreFD);
+	fread(&usekey, sizeof(bool), 1, RestoreFD);
+	fread(&invkey, sizeof(bool), 1, RestoreFD);
+	fread(&dropkey, sizeof(bool), 1, RestoreFD);
+	fread(&reloadkey, sizeof(bool), 1, RestoreFD);
+	fread(&CSelect, sizeof(bool), 1, RestoreFD);
+	theHUD->LoadConfiguration();
+	theHUD->Activate();
 
 	return RGF_SUCCESS;
 }
@@ -2071,7 +2088,7 @@ int CCommonData::DispatchTick()
 	//	..that have passed to each of the Tick() time functions in each
 	//	..of the game components.
 	
-	geFloat dwTicksGoneBy = CCD->GetTimePassed_F();
+	dwTicksGoneBy = CCD->GetTimePassed_F();
 
 	if(dwTicksGoneBy <= 0.0f)
 		return RGF_SUCCESS;					// No time passed?  Ignore call!
@@ -2112,7 +2129,8 @@ int CCommonData::DispatchTick()
 	theDynalite->Tick(dwTicksGoneBy);			// Update dynamic lights
 	theElectric->Tick(dwTicksGoneBy);			// Update electrical effects
 	theProcTexture->Tick(dwTicksGoneBy);	// Update procedural textures
-	theEffect->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Effects Manager
+	//theExplosion->Tick(dwTicksGoneBy);
+	//theEffect->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Effects Manager
 	theRain->Tick(dwTicksGoneBy);					// Time to Ralph Deane's Rain Effect
 	theSpout->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Spout Effect
 // changed RF064
@@ -2137,13 +2155,9 @@ int CCommonData::DispatchTick()
 	theFlipBook->Tick(dwTicksGoneBy);
 	theAttribute->Tick(dwTicksGoneBy);
 	theDamage->Tick(dwTicksGoneBy);
-	theExplosion->Tick(dwTicksGoneBy);
 	theCExplosion->Tick(dwTicksGoneBy);
 	theNPCPoint->Tick();
 	theNPC->Tick(dwTicksGoneBy);
-#ifdef RF063
-	theEnemy->Tick(dwTicksGoneBy);
-#endif
 // changed RF064
 	thePawn->Tick(dwTicksGoneBy);
 	theCountDownTimer->Tick(dwTicksGoneBy);

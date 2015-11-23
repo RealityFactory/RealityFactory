@@ -63,7 +63,7 @@ CPreEffect::CPreEffect()
 				if(Vector!="")
 				{
 					strcpy(szName,Vector);
-					Sp->Dest = Extract(szName);
+					Sp->Angle = Extract(szName);
 				}
 				Vector = AttrFile.GetValue(KeyName, "colormax");
 				if(Vector!="")
@@ -408,7 +408,7 @@ CPreEffect::CPreEffect()
 				if(Vector!="")
 				{
 					strcpy(szName,Vector);
-					Sp->Dest = Extract(szName);
+					Sp->Angle = Extract(szName);
 				}
 				Vector = AttrFile.GetValue(KeyName, "fillcolor");
 				if(Vector!="")
@@ -493,9 +493,9 @@ int CPreEffect::AddEffect(int k, geVec3d Position, geVec3d Offset)
 		geVec3d_Copy( &(Position ), &( Sp.Source ) );
 		geVec3d_Add( &( Sp.Source ), &Offset,&(Sp.Source) );
 		geXForm3d_SetIdentity( &( Xf ) );
-		geXForm3d_RotateX( &( Xf ), Sp.Dest.X / 57.3f );  
-		geXForm3d_RotateY( &( Xf ), ( Sp.Dest.Y - 90.0f ) / 57.3f );  
-		geXForm3d_RotateZ( &( Xf ), Sp.Dest.Z / 57.3f ); 
+		geXForm3d_RotateX( &( Xf ), Sp.Angle.X / 57.3f );  
+		geXForm3d_RotateY( &( Xf ), ( Sp.Angle.Y - 90.0f ) / 57.3f );  
+		geXForm3d_RotateZ( &( Xf ), Sp.Angle.Z / 57.3f ); 
 		geXForm3d_GetIn( &( Xf ), &In );
 		geVec3d_Inverse( &In );
 		geVec3d_Add( &( Sp.Source ), &In,&( Sp.Dest ) );
@@ -545,9 +545,9 @@ int CPreEffect::AddEffect(int k, geVec3d Position, geVec3d Offset)
 		geVec3d_Copy( &(Position ), &( aSp.Source ) );
 		geVec3d_Add( &( aSp.Source ), &Offset,&(aSp.Source) );
 		geXForm3d_SetIdentity( &( Xf ) );
-		geXForm3d_RotateX( &( Xf ), -aSp.Dest.X / 57.3f );  
-		geXForm3d_RotateY( &( Xf ), ( aSp.Dest.Y - 90.0f ) / 57.3f );  
-		geXForm3d_RotateZ( &( Xf ), aSp.Dest.Z / 57.3f ); 
+		geXForm3d_RotateX( &( Xf ), -aSp.Angle.X / 57.3f );  
+		geXForm3d_RotateY( &( Xf ), ( aSp.Angle.Y - 90.0f ) / 57.3f );  
+		geXForm3d_RotateZ( &( Xf ), aSp.Angle.Z / 57.3f ); 
 		geXForm3d_GetIn( &( Xf ), &In );
 		geVec3d_Inverse( &In );
 		geVec3d_Add( &( aSp.Source ), &In,&( aSp.Dest ) );

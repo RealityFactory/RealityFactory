@@ -65,6 +65,8 @@ typedef enum
 		ADDEFFECT,
 		TARGETGROUP,
 		TESTDAMAGEORDER,
+		CHANGEMATERIAL,
+		ATTACHTOACTOR,
 		DELAY
 };
 
@@ -126,6 +128,8 @@ char *ActionText[] =
 	"AddExplosion",
 	"TargetGroup",
 	"TestDamageOrder",
+	"ChangeMaterial",
+	"AttachToActor",
 	"Delay"
 };
 
@@ -294,7 +298,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			*ConsoleHeader = '\0';
 			ConsoleError = (char *)malloc(128);
 			*ConsoleError = '\0';
-			for(int i=0; i<5; i++)
+			for(int i=0; i<DEBUGLINES; i++)
 			{
 				ConsoleDebug[i] = (char *)malloc(64);
 				*ConsoleDebug[i] = '\0';
@@ -306,7 +310,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				free(ConsoleHeader);
 			if(ConsoleError)
 				free(ConsoleError);
-			for(int i=0; i<5; i++)
+			for(int i=0; i<DEBUGLINES; i++)
 			{
 				if(ConsoleDebug[i])
 					free(ConsoleDebug[i]);
@@ -514,6 +518,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "ChangeMaterial"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		AddAction(CHANGEMATERIAL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "AddTimerOrder"))
 	{
 		PARMCHECK(3);
@@ -530,6 +541,25 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		param1 = (float)arguments[0].intValue();
 		sprintf(param7,"PawnTimer%d", (int)param1);
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "AddRandomSound"))
+	{
+		PARMCHECK(3);
+		strcpy(param0, arguments[3].str());
+		param1 = (float)arguments[0].intValue();
+		param3 = (float)arguments[1].floatValue();
+		param4 = (float)arguments[2].floatValue();
+		sprintf(param7,"RandomSound%d", (int)param1);
+		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PSOUND, param1, param3, param4, NULL, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "DelRandomSound"))
+	{
+		PARMCHECK(1);
+		param1 = (float)arguments[0].intValue();
+		sprintf(param7,"RandomSound%d", (int)param1);
+		AddAction(DELTRIGGERORDER, NULL, param1, false, PSOUND, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "AddDistanceOrder"))
@@ -746,6 +776,27 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		strcpy(param0, arguments[1].str());
 		param3 = arguments[0].floatValue();
 		AddAction(TESTDAMAGEORDER, param0, param3, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "AttachToActor"))
+	{
+		float x0,y0,z0,x1,y1,z1;
+		PARMCHECK(9);
+		strcpy(param0, arguments[0].str());
+		param3 = (float)strlen(param0);
+		strcpy(param7, arguments[1].str());
+		param1 = (float)strlen(param7);
+		strcat(param0, param7);
+		strcpy(param7, arguments[2].str());
+		strcat(param0, param7);
+		x0 = arguments[3].floatValue();
+		y0 = arguments[4].floatValue();
+		z0 = arguments[5].floatValue();
+		x1 = arguments[6].floatValue();
+		y1 = arguments[7].floatValue();
+		z1 = arguments[8].floatValue();
+		sprintf(param7,"%f %f %f %f %f %f", x0,y0,z0,x1,y1,z1);
+		AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "random"))
@@ -1562,6 +1613,8 @@ bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 					tpool->Flag = Object->Index->Flag;
 					tpool->Type = (int)Object->Index->Value1;
 					tpool->PFlg = (int)Object->Index->Value2;
+					tpool->Low = Object->Index->Value3;
+					tpool->High = Object->Index->Value4;
 					tpool->Time = Object->Index->Value3;
 					return true;
 				}
@@ -1580,6 +1633,8 @@ bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 			tpool->Type = (int)Object->Index->Value1;
 			tpool->PFlg = (int)Object->Index->Value2;
 			tpool->Time = Object->Index->Value3;
+			tpool->Low = Object->Index->Value3;
+			tpool->High = Object->Index->Value4;
 		}
 	}
 	
@@ -1729,7 +1784,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 	while	(tpool!= NULL)
 	{
 		ttemp = tpool->next;
-		if(tpool->Type==PTIMER)
+		if(tpool->Type==PTIMER || tpool->Type==PSOUND)
 		{
 			tpool->Time -= (dwTicks/1000.0f);
 			if(tpool->Time<0.0f)
@@ -1815,6 +1870,34 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							break;
 						case PDIST:
 							flag = PlayerDistance(Object->FOV, tpool->Time, Object->Actor, Object->DeadPos, Object->FOVBone);
+							break;
+						case PSOUND:
+							flag = false;
+							if(tpool->Time==0.0f)
+							{
+								tpool->Time=EffectC_Frand(tpool->Low, tpool->High);
+								Snd Sound;
+								
+								memset( &Sound, 0, sizeof( Sound ) );
+								if(!CCD->Player()->GetMonitorMode())
+								{
+									if(Object->Actor)
+										CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
+									else
+										Sound.Pos = Object->DeadPos;
+								}
+								else
+								{
+									FixedCamera *pSource = CCD->FixedCameras()->GetCamera();
+									Sound.Pos.X = pSource->origin.X;
+									Sound.Pos.Y = pSource->origin.Y;
+									Sound.Pos.Z = pSource->origin.Z;
+								}
+								Sound.Min=Object->AudibleRadius;
+								Sound.Loop=false;
+								Sound.SoundDef = SPool_Sound(tpool->OrderName);
+								CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+							}
 							break;
 						}
 						if(flag)
@@ -2588,7 +2671,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(Object->Actor)
 					{
 						CCD->ActorManager()->GetPosition(Object->Actor, &Object->DeadPos);
-						CCD->ActorManager()->RemoveActor(Object->Actor);
+						CCD->ActorManager()->RemoveActorCheck(Object->Actor);
 						geActor_Destroy(&Object->Actor);
 						Object->Actor = NULL;
 					}
@@ -2823,49 +2906,55 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					runflag = true;
 					break;
 				case GRAVITY:
-					Gravity = 0.0f;
-					if(Object->Index->Flag)
-						Gravity = CCD->Player()->GetGravity();
-					CCD->ActorManager()->SetGravity(Object->Actor, Gravity);
+					if(Object->Actor)
+					{
+						Gravity = 0.0f;
+						if(Object->Index->Flag)
+							Gravity = CCD->Player()->GetGravity();
+						CCD->ActorManager()->SetGravity(Object->Actor, Gravity);
+					}
 					Object->ActionActive = false;
 					runflag = true;
 					break;
 				case FIREPROJECTILE:
 					{
-						char *Strn = Object->Index->AnimName;
-						char Proj[64];
-						geXForm3d Xf;
-						geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
-						strncpy(Proj, Strn, (int)Object->Index->Speed);
-						Proj[(int)Object->Index->Speed] = '\0';
-						Strn = Strn + (int)Object->Index->Speed;
-						if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+						if(Object->Actor)
 						{
-							geVec3d_Copy(&(Xf.Translation), &Pos);
-							CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
-							geXForm3d_SetIdentity(&Xf);
-							geXForm3d_RotateZ(&Xf, theRotation.Z);
-							geXForm3d_RotateX(&Xf, theRotation.X);
-							geXForm3d_RotateY(&Xf, theRotation.Y);
-							geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-							geXForm3d_GetIn(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, 1000.0f, &TargetPoint);
-							geXForm3d_GetUp(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
-							geXForm3d_GetLeft(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
-							geXForm3d_GetIn(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
-							geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
-							float l = geVec3d_Length(&Orient);
-							if(l > 0.0f) 
+							char *Strn = Object->Index->AnimName;
+							char Proj[64];
+							geXForm3d Xf;
+							geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
+							strncpy(Proj, Strn, (int)Object->Index->Speed);
+							Proj[(int)Object->Index->Speed] = '\0';
+							Strn = Strn + (int)Object->Index->Speed;
+							if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
 							{
-								float x = Orient.X;
-								Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
-								Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
-								// roll is zero - always!!?
-								Orient.Z = 0.0;
-								CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, Proj, Strn, Strn);
+								geVec3d_Copy(&(Xf.Translation), &Pos);
+								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
+								geXForm3d_SetIdentity(&Xf);
+								geXForm3d_RotateZ(&Xf, theRotation.Z);
+								geXForm3d_RotateX(&Xf, theRotation.X);
+								geXForm3d_RotateY(&Xf, theRotation.Y);
+								geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								geXForm3d_GetIn(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, 1000.0f, &TargetPoint);
+								geXForm3d_GetUp(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+								geXForm3d_GetLeft(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
+								geXForm3d_GetIn(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+								geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
+								float l = geVec3d_Length(&Orient);
+								if(l > 0.0f) 
+								{
+									float x = Orient.X;
+									Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
+									Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
+									// roll is zero - always!!?
+									Orient.Z = 0.0;
+									CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, Proj, Strn, Strn);
+								}
 							}
 						}
 
@@ -2875,24 +2964,27 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					break;
 				case ADDEFFECT:
 					{
-						geXForm3d Xf;
-						geVec3d theRotation, Pos, Direction;
-						if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+						if(Object->Actor)
 						{
-							geVec3d_Copy(&(Xf.Translation), &Pos);
-							CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
-							geXForm3d_SetIdentity(&Xf);
-							geXForm3d_RotateZ(&Xf, theRotation.Z);
-							geXForm3d_RotateX(&Xf, theRotation.X);
-							geXForm3d_RotateY(&Xf, theRotation.Y);
-							geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-							geXForm3d_GetUp(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
-							geXForm3d_GetLeft(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
-							geXForm3d_GetIn(&Xf, &Direction);
-							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
-							CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
+							geXForm3d Xf;
+							geVec3d theRotation, Pos, Direction;
+							if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+							{
+								geVec3d_Copy(&(Xf.Translation), &Pos);
+								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
+								geXForm3d_SetIdentity(&Xf);
+								geXForm3d_RotateZ(&Xf, theRotation.Z);
+								geXForm3d_RotateX(&Xf, theRotation.X);
+								geXForm3d_RotateY(&Xf, theRotation.Y);
+								geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								geXForm3d_GetUp(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+								geXForm3d_GetLeft(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
+								geXForm3d_GetIn(&Xf, &Direction);
+								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+								CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
+							}
 						}
 
 					Object->ActionActive = false;
@@ -2906,31 +2998,43 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					runflag = true;
 					break;
 				case TESTDAMAGEORDER:
-					if(!EffectC_IsStringNull(Object->Attribute))
+					if(Object->Actor)
 					{
-						if(!EffectC_IsStringNull(Object->Index->AnimName))
+						if(!EffectC_IsStringNull(Object->Attribute))
 						{
-							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
-							int amt = abs(theInv->GetModifyAmt(Object->Attribute));
-							if((int)Object->Index->Speed<=amt)
+							if(!EffectC_IsStringNull(Object->Index->AnimName))
 							{
-								strcpy(Object->Order, Object->Index->AnimName);
-								Object->RunOrder = true;
-								pool = Object->Bottom;
-								while	(pool!= NULL)
+								CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
+								int amt = abs(theInv->GetModifyAmt(Object->Attribute));
+								if((int)Object->Index->Speed<=amt)
 								{
-									temp = pool->next;
-									geRam_Free(pool);
-									pool = temp;
+									strcpy(Object->Order, Object->Index->AnimName);
+									Object->RunOrder = true;
+									pool = Object->Bottom;
+									while	(pool!= NULL)
+									{
+										temp = pool->next;
+										geRam_Free(pool);
+										pool = temp;
+									}
+									Object->Top = NULL;
+									Object->Bottom = NULL;
+									Object->Index = NULL;
 								}
-								Object->Top = NULL;
-								Object->Bottom = NULL;
-								Object->Index = NULL;
 							}
 						}
 					}
 					Object->ActionActive = false;
 					runflag = false;
+					break;
+				case CHANGEMATERIAL:
+					if(Object->Actor)
+					{
+						if(!EffectC_IsStringNull(Object->Index->AnimName))
+							CCD->ActorManager()->ChangeMaterial(Object->Actor, Object->Index->AnimName);
+					}
+					Object->ActionActive = false;
+					runflag = true;
 					break;
 				}
 			}

@@ -46,6 +46,7 @@ typedef enum
 	PFLAG,
 	PTIMER,
 	PDIST,
+	PSOUND,
 	PEND
 };
 
@@ -59,6 +60,8 @@ typedef struct TriggerStack
 	bool Flag;
 	int PFlg;
 	float Time;
+	float Low;
+	float High;
 	char TriggerName[128];
 } TriggerStack;
 
@@ -145,6 +148,7 @@ public:
 	bool MoveStep(geVec3d move);
 	bool StepDirection(float yaw, float dist);
 	void ChangeYaw();
+	void ChangePitch();
 	void NewChaseDir(float dist);
 	float anglemod(float a);
 	bool CloseEnough(float dist);
@@ -238,6 +242,8 @@ public:
 	float		targetyaw;
 	float		actorpitch;
 	float		targetpitch;
+	float		pitch_speed;
+	float		ideal_pitch;
 
 
 
@@ -275,6 +281,8 @@ public:
 	CPawn();	// Constructor
 	~CPawn();
 	void Tick(float dwTicks);
+	int SaveTo(FILE *SaveFD, bool type);
+	int RestoreFrom(FILE *RestoreFD, bool type);
 	bool Converse(geActor *pActor);
 	void RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIcon);
 	int LocateEntity(char *szName, void **pEntityData);
