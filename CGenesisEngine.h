@@ -102,6 +102,10 @@ public:
 	{ return m_CurrentLevel;}		// Current level name
 	void SetDebugging(bool fOn)
 	{ m_DebugEnabled = fOn;}		// Activate/deactivate debug output
+// changed RF064
+	bool GetVoodoo()
+	{ return Voodoo; }
+// end change RF064
 private:
 	//	Private member functions
 	bool CreateEngine(char *szName);	// Create G3D engine

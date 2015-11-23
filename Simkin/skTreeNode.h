@@ -301,18 +301,19 @@ class CLASSEXPORT  skTreeNodeReaderException {
   /**
    * Constructor - takes information about the exception
    */
-  skTreeNodeReaderException(const skString& fileName,const skString& msg)
-    : m_FileName(fileName),m_Msg(msg){
+  skTreeNodeReaderException(const skString& fileName,int line_num,const skString& msg)
+    : m_FileName(fileName),m_Msg(msg),m_LineNum(line_num){
   }
   /**
    * Returns a string describing the exception
    */
   skString toString(){
-    return m_FileName+skSTR(":")+m_Msg;
+    return m_FileName+skSTR(" : line ")+skString::from(m_LineNum)+skSTR(" - ")+m_Msg;
   }
  private:
   skString m_FileName;
   skString m_Msg;
+  int m_LineNum;
 };
 
 #endif

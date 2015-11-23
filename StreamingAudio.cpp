@@ -87,6 +87,33 @@ int StreamingAudio::Create(char *szFileName)
 
   if(szFileName == NULL)
 	  return RGF_FAILURE;											// Wrong.
+// changed RF064
+  int len = strlen(szFileName)-4;
+  if(stricmp((szFileName+len),".mp3")==0)
+  {
+	  if(Mpeg3 != NULL)
+		  return RGF_FAILURE;	
+	  Mpeg3 = new CMp3Manager;
+	  Mpeg3->OpenMediaFile(szFileName);
+	  mp3 = true;
+	  m_fActive = TRUE;
+
+	  //	start a timer for this stream.
+	  
+	  MMRESULT nTimer = timeSetEvent(125, 5,	&TimerFunction, (DWORD)this, 
+		  TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
+	  
+	  if(nTimer == NULL)
+	  {
+		  CCD->ReportError("StreamingAudio:: Timer callback set-up failed",
+			  false);
+		  return RGF_FAILURE;									// Timer startup failed.
+	  }
+	  
+	  m_nTimerID = nTimer;					// Save timer ID
+	  return RGF_SUCCESS;
+  }
+  mp3 = false;
 
 //	start a timer for this stream.
 
@@ -101,19 +128,7 @@ int StreamingAudio::Create(char *szFileName)
 		}
 
 	m_nTimerID = nTimer;					// Save timer ID
-
-  int len = strlen(szFileName)-4;
-  if(stricmp((szFileName+len),".mp3")==0)
-  {
-	  if(Mpeg3 != NULL)
-		return RGF_FAILURE;	
-	  Mpeg3 = new CMp3Manager;
-	  Mpeg3->OpenMediaFile(szFileName);
-	  mp3 = true;
-	  m_fActive = TRUE;
-	  return RGF_SUCCESS;
-  }
-  mp3 = false;
+// end change RF064
 
 //	Check for stream availability
   if(m_pStream != NULL)
@@ -514,7 +529,7 @@ void CALLBACK StreamingAudio::TimerFunction(UINT uID, UINT uMsg,
 		if(thePointer->Mpeg3 == NULL)
 			return;
 		if(thePointer->m_fActive && thePointer->m_bLoops)
-			thePointer->Mpeg3->PlayMp3(0, true);
+			thePointer->Mpeg3->Refresh();
 		return;
 	}
 

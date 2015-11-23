@@ -264,7 +264,7 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 				if(pProxy->AttributeAmt!=-1)
 				{
 // changed RF063
-					if(EffectC_IsStringNull(pProxy->DamageTo))
+					if(EffectC_IsStringNull(pProxy->DamageAttribute))
 						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health");
 					else
 						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute);

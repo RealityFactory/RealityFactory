@@ -338,6 +338,12 @@ public:
 	{ return monitormode; }
 	int GetMirror()
 	{ return mirror; }
+	bool GetAlterKey()
+	{ return alterkey; }
+	bool GetRestoreOxy()
+	{ return restoreoxy; }
+	void SetRestoreOxy(bool flag)
+	{ restoreoxy = flag; }
 // end change RF064
 	int LightValue()
 	{ return (int)CurrentLiteLife; }
@@ -475,6 +481,8 @@ private:
 	bool LockView;
 	bool monitorstate;
 	bool monitormode;
+	bool alterkey;
+	bool restoreoxy;
 // end change RF064
 };
 

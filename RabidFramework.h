@@ -147,6 +147,7 @@ class CCommonData;
 #include "CPawn.h"
 #include "CCountDown.h"
 #include "CChange.h"
+#include "CMorph.h"
 // end change RF064
 #include "track.h"
 #include "CNPCPathPoint.h"

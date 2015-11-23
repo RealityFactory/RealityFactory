@@ -1,7 +1,9 @@
-#ifndef __RGF_CPAWN_H__
+#ifndef __RGF_CPAWN_H__ 
 #define __RGF_CPAWN_H__
 
 #include "Simkin\\skScriptedExecutable.h"
+
+#define DEBUGLINES	8
 
 typedef struct ActionList
 {
@@ -35,12 +37,25 @@ typedef struct ActionStack
 	char DistOrder[64];
 } ActionStack;
 
+typedef enum
+{
+	PTRIGGER = 0,
+	PFLAG,
+	PTIMER,
+	PDIST,
+	PEND
+};
+
 typedef struct TriggerStack
 {
 	TriggerStack *next;
 	TriggerStack *prev;
 	char OrderName[64];
 	float Delay;
+	int Type;
+	bool Flag;
+	int PFlg;
+	float Time;
 	char TriggerName[128];
 } TriggerStack;
 
@@ -116,12 +131,25 @@ public:
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
     bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
     bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
+	bool highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
+	bool lowmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
 	void Push();
 	void Pop();
 	void RemoveTriggerStack(TriggerStack *tpool);
+	void GetAngles(bool flag);
+// Quake 2 movement functions
+	bool CheckBottom();
+	bool MoveStep(geVec3d move);
+	bool StepDirection(float yaw, float dist);
+	void ChangeYaw();
+	void NewChaseDir(float dist);
+	float anglemod(float a);
+	bool CloseEnough(float dist);
+	void MoveToGoal(float dist);
 
 	bool		active;
 	bool		alive;
+	bool		highlevel;
 	char		ActorName[64];
 	float		ActorAlpha;
 	char		szName[128];
@@ -135,6 +163,7 @@ public:
 	bool		HideFromRadar;
 	char		ChangeMaterial[64];
 	char		Attribute[64];
+	int			OldAttributeAmount;
 	float		Gravity;
 	char		BoxAnim[64];
 	geVec3d		Location;
@@ -152,6 +181,9 @@ public:
 	bool		DistActive;
 	float		MinDistance;
 	char		DistOrder[64];
+	char		PainOrder[64];
+	bool		PainActive;
+	int			PainPercent;
 	char		AvoidOrder[64];
 	char		DeadOrder[64];
 	geVec3d		DeadPos;
@@ -165,6 +197,44 @@ public:
 	bool		FacePlayer;
 	bool		FaceAxis;
 	bool		UseKey;
+	float		FOV;
+	char		FOVBone[64];
+	char		Group[64];
+	bool		HostilePlayer;
+	bool		HostileDiff;
+	bool		HostileSame;
+	bool		TargetFind;
+	char		TargetOrder[64];
+	char		TargetAttr[64];
+	float		TargetDistance;
+	bool		TargetDisable;
+	geVec3d		LastTargetPoint;
+	geVec3d		SavePoint;
+	bool		console;
+	char		DamageAttr[64];
+	geVec3d		UpdateTargetPoint;
+	char		*ConsoleHeader;
+	char		*ConsoleError;
+	char		*ConsoleDebug[DEBUGLINES];
+	char		Indicate[2];
+
+// Low Level variables
+
+	float		lowTime;
+	float		ThinkTime;
+	float		ElapseTime;
+	geActor		*TargetActor;
+	char		thinkorder[64];
+	float		attack_finished;
+	int			attack_state;
+	float		yaw_speed;
+	float		ideal_yaw;
+	float		actoryaw;
+	float		targetyaw;
+	float		actorpitch;
+	float		targetpitch;
+
+
 
 	geActor		*Actor;
 	ActionList	*Top;
@@ -174,6 +244,7 @@ public:
 	TriggerStack *Trigger;
 	geBitmap	*Icon;
 	ScriptedConverse *Converse;
+
 
 private:
 	void AddAction(int Action, char *AnimName, float Speed, bool Flag,
@@ -214,7 +285,14 @@ public:
 	{ return PawnFlag[index]; }
 	void SetPawnFlag(int index, bool flag)
 	{ PawnFlag[index] = flag; }
+	bool CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone);
+	int GetBlock()
+	{ return ConsoleBlock; }
+	void IncBlock()
+	{ ConsoleBlock += 1; }
 private:
+	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
+	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void Spawn(void *Data);
 	bool RotateToPoint(void *Data, float dwTicks);
 	bool RotateToAlign(void *Data, float dwTicks);
@@ -233,6 +311,7 @@ private:
 	void PreLoad(char *filename);
 	void PreLoadC(char *filename);
 	void LoadConv();
+	bool PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d DeadPos, char *Bone);
 
 	CIniFile AttrFile;
 	geBitmap	*Background;
@@ -256,6 +335,7 @@ private:
 	CArray<ConversationText, ConversationText> Text;
 	EventStack *Events;
 	CArray<PreCache, PreCache> Cache;
+	int ConsoleBlock;
 };
 
 #endif

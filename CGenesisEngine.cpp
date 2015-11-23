@@ -690,7 +690,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
     { 
 		if(vertex[0].x >= ClipRect.Right ) 
 		{ 
-			ReportError("Clipping Rect has negative dimension", false); 
+			//ReportError("Clipping Rect has negative dimension", false); 
 			return false; 
 		}
 		fUVAdd = (vertex[1].x-ClipRect.Right)/(vertex[1].x-vertex[0].x); 
@@ -704,7 +704,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
     { 
 		if(vertex[0].y >= ClipRect.Bottom ) 
 		{ 
-			ReportError("Clipping Rect has negative dimension", false); 
+			//ReportError("Clipping Rect has negative dimension", false); 
 			return false; 
 		}
 		fUVAdd = (vertex[2].y-ClipRect.Bottom)/(vertex[3].y-vertex[0].y); 
@@ -1308,15 +1308,15 @@ bool CGenesisEngine::ReportError(char *szError, bool bMessageBoxIt)
 	time(&aclock);
 	newtime = localtime(&aclock);
 	
-	fputs(asctime(newtime), fd);
-	fputs(szError, fd); fputs("\n\n", fd);
+//	fputs(asctime(newtime), fd);
+	fputs(szError, fd); fputs("\n", fd);
 	
 	fclose(fd);
 	
 	//	Ok, out to a file, now to be sure we can track it in the
 	//	..debugger
 	
-	OutputDebugString(asctime(newtime));
+//	OutputDebugString(asctime(newtime));
 	OutputDebugString(szError); OutputDebugString("\n");
 	
 	if(bMessageBoxIt)

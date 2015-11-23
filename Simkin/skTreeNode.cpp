@@ -602,7 +602,7 @@ skTreeNode * skTreeNodeReader::read()
   if (pimp->m_Error){
     delete pret;
     pret=0;
-    THROW(skTreeNodeReaderException(pimp->m_FileName,pimp->m_LexText),skBoundsException_Code);
+    THROW(skTreeNodeReaderException(pimp->m_FileName,pimp->m_LineNum+1,pimp->m_LexText),skBoundsException_Code);
   }
   return pret;	
 }

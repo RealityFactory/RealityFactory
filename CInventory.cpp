@@ -472,6 +472,17 @@ void CInventory::Blit()
 					backgroundy+middley+BmpInfo.Height+2
 					+CCD->MenuManager()->FontHeight(txtfont)+2);
 			}
+			int cat = GetCatagory(Selected);
+			if(cat==INVWEAPON)
+			{
+				if(!strcmp(GetAttribute(Selected), CCD->Weapons()->GetWeaponName()))
+				{
+					CCD->MenuManager()->FontRect("Current Selected Weapon", txtfont,
+						backgroundx+middlex + (BmpInfo.Width/2) - (CCD->MenuManager()->FontWidth(txtfont, "Current Selected Weapon")/2),
+						backgroundy+middley+BmpInfo.Height+2
+						+CCD->MenuManager()->FontHeight(txtfont)+2); 
+				}
+			} 
 // end change RF064
 
 			if(!EffectC_IsStringNull(GetText(Selected)))

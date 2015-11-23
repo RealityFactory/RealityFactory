@@ -548,40 +548,82 @@ void CWeapon::DisplayFirstPerson(int index)
 	
 	if(CCD->WeaponPosition()) // used to move actor around in setup mode
 	{
-		if((GetAsyncKeyState(0x69) & 0x8000) != 0)
-			WeaponD[index].G+=0.01f;
-		if((GetAsyncKeyState(0x66) & 0x8000) != 0)
-			WeaponD[index].G-=0.01f;
-		
-		if((GetAsyncKeyState(0x67) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].F+=0.1f;
-		if((GetAsyncKeyState(0x68) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].F-=0.1f;
-		
-		if((GetAsyncKeyState(0x64) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].H+=0.1f;
-		if((GetAsyncKeyState(0x65) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].H-=0.1f;
-		
-		if((GetAsyncKeyState(0x61) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].J+=0.1f;
-		if((GetAsyncKeyState(0x62) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
-			WeaponD[index].J-=0.1f;
-		
-		if((GetAsyncKeyState(0x67) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].K+=0.1f;
-		if((GetAsyncKeyState(0x68) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].K-=0.1f;
-		
-		if((GetAsyncKeyState(0x64) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].L+=0.1f;
-		if((GetAsyncKeyState(0x65) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].L-=0.1f;
-		
-		if((GetAsyncKeyState(0x61) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].Z+=0.1f;
-		if((GetAsyncKeyState(0x62) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
-			WeaponD[index].Z-=0.1f;
+// changed RF064
+		if(!CCD->Player()->GetAlterKey())
+		{
+			if((GetAsyncKeyState(0x69) & 0x8000) != 0)
+				WeaponD[index].G+=0.01f;
+			if((GetAsyncKeyState(0x66) & 0x8000) != 0)
+				WeaponD[index].G-=0.01f;
+			
+			if((GetAsyncKeyState(0x67) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].F+=0.1f;
+			if((GetAsyncKeyState(0x68) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].F-=0.1f;
+			
+			if((GetAsyncKeyState(0x64) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].H+=0.1f;
+			if((GetAsyncKeyState(0x65) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].H-=0.1f;
+			
+			if((GetAsyncKeyState(0x61) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].J+=0.1f;
+			if((GetAsyncKeyState(0x62) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) == 0)
+				WeaponD[index].J-=0.1f;
+			
+			if((GetAsyncKeyState(0x67) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].K+=0.1f;
+			if((GetAsyncKeyState(0x68) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].K-=0.1f;
+			
+			if((GetAsyncKeyState(0x64) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].L+=0.1f;
+			if((GetAsyncKeyState(0x65) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].L-=0.1f;
+			
+			if((GetAsyncKeyState(0x61) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].Z+=0.1f;
+			if((GetAsyncKeyState(0x62) & 0x8000) != 0 && (GetAsyncKeyState(0x60) & 0x8000) != 0)
+				WeaponD[index].Z-=0.1f;
+		}
+		else
+			{
+			if((GetAsyncKeyState(0x51) & 0x8000) != 0)
+				WeaponD[index].G+=0.01f;
+			if((GetAsyncKeyState(0x57) & 0x8000) != 0)
+				WeaponD[index].G-=0.01f;
+			
+			if((GetAsyncKeyState(0x4A) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].F+=0.1f;
+			if((GetAsyncKeyState(0x4B) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].F-=0.1f;
+			
+			if((GetAsyncKeyState(0x4D) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].H+=0.1f;
+			if((GetAsyncKeyState(0x4E) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].H-=0.1f;
+			
+			if((GetAsyncKeyState(0x4F) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].J+=0.1f;
+			if((GetAsyncKeyState(0x50) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) == 0)
+				WeaponD[index].J-=0.1f;
+			
+			if((GetAsyncKeyState(0x4A) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].K+=0.1f;
+			if((GetAsyncKeyState(0x4B) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].K-=0.1f;
+			
+			if((GetAsyncKeyState(0x4D) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].L+=0.1f;
+			if((GetAsyncKeyState(0x4E) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].L-=0.1f;
+			
+			if((GetAsyncKeyState(0x4F) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].Z+=0.1f;
+			if((GetAsyncKeyState(0x50) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
+				WeaponD[index].Z-=0.1f;
+		}
+// end change RF064
 	}
 	
 	geXForm3d XForm;
@@ -660,6 +702,10 @@ void CWeapon::DisplayFirstPerson(int index)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
 	if(VSequence == VWEPATTACK)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
+// changed RF064
+	if(VSequence == VWEPRELOAD)
+		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
+// end change RF064
 	if(VSequence == VWEPALTATTACK)
 	{
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAltAttack);
@@ -699,18 +745,34 @@ void CWeapon::DisplayFirstPerson(int index)
 			VSequence = VWEPIDLE;
 			ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
 		}
-		if(VMCounter > tEnd && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT)) // switch from shoot to idle
+// changed RF064
+		if(VMCounter > tEnd && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT || VSequence == VWEPRELOAD)) // switch from shoot to idle
 		{
-			if(CCD->Player()->GetMoving() == MOVEIDLE)
+			bool magflag = false;
+			if(WeaponD[index].Catagory==PROJECTILE && VSequence == VWEPATTACK)
 			{
-				VSequence = VWEPIDLE;
-				ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
+				if(WeaponD[index].ShotperMag>0 && WeaponD[index].ShotFired>=WeaponD[index].ShotperMag)
+				{
+					magflag = true;
+					WeaponD[index].ShotFired = 0;
+					VSequence = VWEPRELOAD;
+					ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
+				}
 			}
-			else
+			if(!magflag)
 			{
-				VSequence = VWEPWALK;
-				ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VWalk);
+				if(CCD->Player()->GetMoving() == MOVEIDLE)
+				{
+					VSequence = VWEPIDLE;
+					ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
+				}
+				else
+				{
+					VSequence = VWEPWALK;
+					ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VWalk);
+				}
 			}
+// end change RF064
 			VBlend = GE_FALSE;
 		}
 		if(VMCounter > tEnd)
@@ -1071,8 +1133,10 @@ void CWeapon::Attack(bool Alternate)
 	
 	if(ViewPoint==FIRSTPERSON)
 	{
-		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || (WeaponD[CurrentWeapon].Catagory==MELEE && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT)))
+// changed RF064
+		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || VSequence == VWEPRELOAD || (WeaponD[CurrentWeapon].Catagory==MELEE && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT)))
 			return; // shooting or changing weapon
+// end change RF064
 		if(AttackTime != 0)
 		{
 			int dtime = CCD->FreeRunningCounter()-AttackTime;
@@ -1093,6 +1157,12 @@ void CWeapon::Attack(bool Alternate)
 	{
 		if(AttackTime != 0)
 		{
+// changed RF064
+			if(WeaponD[CurrentWeapon].ShotperMag>0 && WeaponD[CurrentWeapon].ShotFired>=WeaponD[CurrentWeapon].ShotperMag)
+			{
+				WeaponD[CurrentWeapon].ShotFired = 0;
+			}
+// end change RF064
 			int dtime = CCD->FreeRunningCounter()-AttackTime;
 			if(dtime<(WeaponD[CurrentWeapon].FireRate*1000.0f))
 				return; // too soon
@@ -1401,7 +1471,9 @@ void CWeapon::ProjectileAttack()
 			theInv->Modify(WeaponD[CurrentWeapon].Ammunition, -WeaponD[CurrentWeapon].AmmoPerShot);
 // changed RF063
 			Add_Projectile(Pos, Front, Orient, WeaponD[CurrentWeapon].Projectile, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].AltAttribute);
-
+// changed RF064
+			WeaponD[CurrentWeapon].ShotFired += 1;
+// end change RF064
 			if(ViewPoint==FIRSTPERSON)
 			{
 				if(WeaponD[CurrentWeapon].JerkAmt>0.0f)
@@ -1495,7 +1567,6 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		d->RadiusDamage = ProjD[Type].RadiusDamage;
 		d->Radius = ProjD[Type].Radius;
 		d->Attribute = PAttribute;
-		
 
 		geXForm3d_SetIdentity(&XForm);
 		geXForm3d_RotateZ(&XForm, Orient.Z);
@@ -1937,6 +2008,12 @@ void CWeapon::LoadDefaults()
 								strcpy(szName,Vector);
 								WeaponD[weapptr].VOffset = Extract(szName);
 							}
+// changed RF064
+							Vector = AttrFile.GetValue(KeyName, "viewreloadanim");
+							strcpy(WeaponD[weapptr].VReload,Vector);
+							WeaponD[weapptr].ShotperMag = AttrFile.GetValueI(KeyName, "shotpermagazine");
+							WeaponD[weapptr].ShotFired = 0;
+// end change RF064
 							Vector = AttrFile.GetValue(KeyName, "viewlaunchbone");
 							if(Vector!="")
 								strcpy(WeaponD[weapptr].VBone,Vector);

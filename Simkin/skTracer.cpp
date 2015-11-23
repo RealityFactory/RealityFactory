@@ -19,6 +19,7 @@
 * $Id: skTracer.cpp,v 1.6 2001/11/22 11:13:21 sdw Exp $
 */
 #include "skTracer.h"
+#include <stdio.h>
 
 //------------------------------------------
 void skTracer::trace(const skString& s)
@@ -31,6 +32,10 @@ void skTracer::trace(const skString& s)
 	wprintf((const Char *)s);
 #else
 	printf((const Char *)s);
+	FILE *fd = fopen(".\\RealityFactory.log", "at");
+	fputs((const Char *)s, fd); fputs("\n", fd);
+	fclose(fd);
+	OutputDebugString((const Char *)s); OutputDebugString("\n");
 #endif
 #endif
 }

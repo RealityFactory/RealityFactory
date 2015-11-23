@@ -64,6 +64,7 @@ CCommonData::CCommonData()
 	theSpout = NULL;						// Ralph Deane's Spout Effect
 // changed RF064
 	theActorSpout = NULL;
+	theMorph = NULL;
 // end change RF064
 	theFloat = NULL;						// Ralph Deane's Floating Effect
 	theChaos = NULL;						// Ralph Deane's Chaos Procedural
@@ -111,6 +112,7 @@ CCommonData::CCommonData()
 // changed RF064
 	theOverlay = NULL;
 	skInterpreter::setInterpreter(new skInterpreter);
+	srand((unsigned)time(NULL));
 // end change RF064
 
 	//	Initialize game state data
@@ -1204,6 +1206,14 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		theGameEngine->ReportError("Couldn't create Overlay handler", false);
 		return -40;
 	}
+
+	theMorph = new CMorph();
+	if(theMorph == NULL)
+	{
+		theGameEngine->ReportError("couldn't create TextureMorph", false);
+		return -7; //or something else
+	}
+
 // end change RF064
 	//	All level classes up! Let's **PLAY**
 	
@@ -1225,6 +1235,10 @@ void CCommonData::ShutdownLevel()
 // end multiplayer
 
 // changed RF064
+	if(theMorph != NULL)
+		delete theMorph;
+	theMorph = NULL;
+
 	if(theOverlay != NULL)
 		delete theOverlay;
 	theOverlay = NULL;
@@ -2004,6 +2018,7 @@ int CCommonData::DispatchTick()
 	theSpout->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Spout Effect
 // changed RF064
 	theActorSpout->Tick(dwTicksGoneBy);
+	theMorph->Tick(dwTicksGoneBy);
 // end change RF064
 	theFloat->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Float Effect
 	theChaos->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Chaos Procedural
@@ -2110,7 +2125,50 @@ bool CCommonData::ProcessLevelChange()
 	
 	if(!EffectC_IsStringNull(m_SplashScreen))
 	{
-		theGameEngine->DisplaySplash(m_SplashScreen, m_SplashAudio);
+		CString File = m_SplashScreen;
+		File.MakeLower();
+		if(File.Find(".bmp")==-1)
+		{
+			CIniFile AttrFile;
+			AttrFile.SetPath("splash.ini");
+			if(AttrFile.ReadFile())
+			{
+				CString KeyName = AttrFile.FindFirstKey();
+				CString Type, Value;
+				while(KeyName != "")
+				{
+					if(!strcmp(KeyName, m_SplashScreen))
+					{
+						int count = 0;
+						Type = AttrFile.FindFirstName(KeyName);
+						Value = AttrFile.FindFirstValue();
+						while(Type!="")
+						{
+							count += 1;
+							Type = AttrFile.FindNextName();
+							Value = AttrFile.FindNextValue();
+						}
+						int index = (int)EffectC_Frand(1.0f, (float)count+1.0f);
+						count = 1;
+						Type = AttrFile.FindFirstName(KeyName);
+						Value = AttrFile.FindFirstValue();
+						while(count!=index)
+						{
+							count += 1;
+							Type = AttrFile.FindNextName();
+							Value = AttrFile.FindNextValue();
+						}
+						char name[128];
+						strcpy(name, Type);
+						theGameEngine->DisplaySplash(name, m_SplashAudio);
+						break;
+					}
+					KeyName = AttrFile.FindNextKey();
+				}
+			}
+		}
+		else
+			theGameEngine->DisplaySplash(m_SplashScreen, m_SplashAudio);
 // changed RF064
 		if(EffectC_IsStringNull(m_NewLevel))
 			Spin(5000);
@@ -2147,7 +2205,6 @@ bool CCommonData::ProcessLevelChange()
 	ShutdownLevel();
 // changed RF064
 	CCD->SetKeyPaused(false);
-	CCD->HUD()->Activate();
 // end change RF064
 	// Ok, load in the new level
 	
@@ -2169,6 +2226,8 @@ bool CCommonData::ProcessLevelChange()
 			exit(-334);
 		}
 
+		CCD->HUD()->LoadConfiguration();
+
 		//	Restore the player attributes for the new level
 		if(KeepAttributes)
 			thePlayer->LoadAttributes(".\\temp.bin");
@@ -2187,7 +2246,7 @@ bool CCommonData::ProcessLevelChange()
 // changed RF064
 		if(!thePlayer->GetMonitorMode())
 		{
-			thePlayer->SwitchCamera(ViewPoint);
+			//thePlayer->SwitchCamera(ViewPoint);
 			if(ViewPoint == thePlayer->GetViewPoint())
 			{
 				if(!UseAngle)

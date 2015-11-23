@@ -543,6 +543,10 @@ SOURCE=.\CModelManager.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CMorph.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CMorphingFields.cpp
 # End Source File
 # Begin Source File
@@ -588,6 +592,18 @@ SOURCE=.\CPathFollower.cpp
 # Begin Source File
 
 SOURCE=.\CPawn.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CPawnCon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CPawnHigh.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CPawnLow.cpp
 # End Source File
 # Begin Source File
 
@@ -900,6 +916,10 @@ SOURCE=.\CMIDIAudio.h
 # Begin Source File
 
 SOURCE=.\CModelManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CMorph.h
 # End Source File
 # Begin Source File
 

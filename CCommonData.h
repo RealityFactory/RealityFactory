@@ -83,6 +83,7 @@ public:
 	inline CSpout *SpoutEffect() { return theSpout; }
 // changed RF064
 	inline CActorSpout *ActorSpoutEffect() { return theActorSpout; }
+	inline CMorph * Morphs() {return theMorph; }
 // end change RF064
 	inline CFloat *FloatEffect() { return theFloat; }
 	inline Chaos *ChaosEffect() { return theChaos;}
@@ -254,6 +255,7 @@ private:
 	CPawn *thePawn;
 	CCountDown *theCountDownTimer;
 	CChangeAttribute *theChangeAttribute;
+	CMorph *theMorph;
 // end change RF064
 	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information

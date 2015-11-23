@@ -1038,6 +1038,7 @@ CRFMenu::CRFMenu()
   ScrnWait = false;
   savetime = 0.0f;
   musictype = -1;
+  theMIDIPlayer = NULL;
 // MENUFIX
   ingame = 0;
 
@@ -2286,10 +2287,15 @@ CRFMenu::CRFMenu()
 				if(stricmp((musicname+len),".mid")==0)
 				{
 					strcpy(music, musicname);
-					if(CCD->MIDIPlayer())
+// changed RF064
+					theMIDIPlayer = new CMIDIAudio();
+					if(theMIDIPlayer == NULL)
+						CCD->ReportError("MIDI Player failed to instantiate", false);
+					else
 					{
 						musictype = 1;
 					}
+// end change RF064
 				}
 				else
 				{
@@ -2604,6 +2610,11 @@ CRFMenu::~CRFMenu()
                   NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
   if (mixer.IsOk())
 	mixer.SetControlValue(WinVol);
+	
+	if(theMIDIPlayer != NULL)
+		delete theMIDIPlayer;
+	theMIDIPlayer = NULL;
+
 // end change RF064
   return;
 }
@@ -2620,8 +2631,9 @@ int CRFMenu::DoMenu(char *levelname)
 
   if(musictype!=-1)
   {
+// changed RF064
 	  if(musictype==1)
-		CCD->MIDIPlayer()->Play(music,true);
+		MIDIPlayer()->Play(music,true);
 	  else
 		m_Streams->Play(true);
   }
@@ -2630,14 +2642,14 @@ int CRFMenu::DoMenu(char *levelname)
   if(musictype!=-1)
   {
 	  if(musictype==1)
-		CCD->MIDIPlayer()->Stop();
+		MIDIPlayer()->Stop();
 	  else
 	  {
 		m_Streams->Delete();
 		delete m_Streams;
 	  }
   }
-
+// end change RF064
   FILE *fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "wb");
   if(fd == NULL)
 	CCD->ReportError("CRFMenu: can't create settings file", false);
@@ -3323,7 +3335,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			if(musictype!=-1)
 			{
 				if(musictype==1)
-					CCD->MIDIPlayer()->Stop();
+					MIDIPlayer()->Stop();
 				else
 					m_Streams->Stop();
 			}
@@ -3332,9 +3344,9 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			{
 				if(CCD->CDPlayer()->GetCdOn())
 					CCD->CDPlayer()->Restore(); // restart CD music if CD is on
-				if(CCD->MIDIPlayer())
-					CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
 			}
+			if(CCD->MIDIPlayer())
+				CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
 			GameLevel();
 		}
 	}
@@ -3653,7 +3665,7 @@ void CRFMenu::StopMenuMusic()
 	if(musictype!=-1)
 	{
 		if(musictype==1)
-			CCD->MIDIPlayer()->Stop();
+			MIDIPlayer()->Stop();
 		else
 			m_Streams->Stop();
 	 }
@@ -3976,7 +3988,7 @@ void CRFMenu::GameLevel()
 						if(musictype!=-1)
 						{
 							if(musictype==1)
-								CCD->MIDIPlayer()->Play(music,true);
+								MIDIPlayer()->Play(music,true);
 							else
 								m_Streams->Play(true);
 						}
@@ -4017,7 +4029,7 @@ void CRFMenu::GameLevel()
 	if(musictype!=-1)
 	{
 		if(musictype==1)
-			CCD->MIDIPlayer()->Play(music,true);
+			MIDIPlayer()->Play(music,true);
 		else
 			m_Streams->Play(true);
 	}
@@ -4199,11 +4211,7 @@ void CRFMenu::MenuInitalize()
 
 // load saved game file if it exists
 	FILE *fd = CCD->OpenRFFile(kInstallFile, "savedgames.rgf", "rb");
-	if(fd == NULL)
-	{
-		CCD->ReportError("Menu: can't open savedgames.rgf\n", false);
-	}
-	else
+	if(fd)
 	{
 		fread(&SaveBox.Max, sizeof(int), 1, fd);
 		for(int nTemp = 0; nTemp < SaveBox.Max; nTemp++)
@@ -4216,9 +4224,7 @@ void CRFMenu::MenuInitalize()
 
 	
 	fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "rb");
-	if(fd == NULL)
-		CCD->ReportError("CRFMenu: can't open settings file. using defaults", false);
-	else
+	if(fd)
 	{
 	  fread(&Gamma_Slide.Current, sizeof(int), 1, fd);
 	  SetGamma((Gamma_Slide.Current*100)/Gamma_Slide.Max_X);
@@ -4455,7 +4461,7 @@ void CRFMenu::DoGame(bool editor)
 			if(musictype!=-1)
 			{
 				if(musictype==1)
-					CCD->MIDIPlayer()->Play(music,true);
+					MIDIPlayer()->Play(music,true);
 				else
 					m_Streams->Play(true);
 			}

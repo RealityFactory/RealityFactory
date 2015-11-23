@@ -23,8 +23,8 @@ CActorManager::CActorManager()
 		MainList[nTemp] = NULL;
 	
 	m_GlobalInstanceCount = 0;			// No instances
-	TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
 // changed RF064
+	ShadowBitmap = TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
 	ShadowAlpha = 128.0f;
 	AttrFile.SetPath("material.ini");
 	ValidAttr = true;
@@ -1215,6 +1215,35 @@ int CActorManager::GetHideRadar(geActor *theActor, bool *flag)
 	return RGF_SUCCESS;
 }
 
+//	Get Group
+//
+
+char *CActorManager::GetGroup(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return NULL;					// Actor not found?!?!
+
+	return pEntry->Group;
+}
+
+//	Set Group
+//
+
+int CActorManager::SetGroup(geActor *theActor, char *name)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	if(!EffectC_IsStringNull(name))
+		strcpy(pEntry->Group, name);
+	else
+		pEntry->Group[0] = '\0';
+	
+	return RGF_SUCCESS;
+}
+
 // end change RF064
 
 //	SetShadow
@@ -1269,6 +1298,22 @@ int CActorManager::GetScale(geActor *theActor, geFloat *fScale)
 }
 
 
+//	SetCollision
+//
+//	Set collision for the desired actor
+
+int CActorManager::SetCollide(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	pEntry->NoCollision = false;
+	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
+	
+	return RGF_SUCCESS;
+}
+
 //	SetNoCollision
 //
 //	Set no collision for the desired actor
@@ -1280,7 +1325,7 @@ int CActorManager::SetNoCollide(geActor *theActor)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 	
 	pEntry->NoCollision = true;
-	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, GE_ACTOR_RENDER_NORMAL);
+	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
 	
 	return RGF_SUCCESS;
 }
@@ -2032,6 +2077,7 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->PassengerModel = NULL;
 	NewEntry->TransitionFlag = false;
 	NewEntry->HideRadar = false;
+	NewEntry->Group[0] = '\0';
 // end change RF064
 	NewEntry->BoxChange = true;
 	NewEntry->BlendFlag = false;
@@ -2485,7 +2531,9 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 			geWorld_AddPolyOnce(CCD->World(),
 				vertex,
 				4,
-				TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL),
+// changed RF064
+				ShadowBitmap,
+// end change RF064
 				GE_TEXTURED_POLY,
 				GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
 				1.0f);
@@ -2699,7 +2747,8 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 		//	..due to water friction and it's slow, so let's simulate it.
 // changed RF063
 // changed RF064
-		if(nZoneType == kLiquidZone && (theEntry->Actor==CCD->Player()->GetActor()))
+		if(nZoneType == kLiquidZone && 
+			(theEntry->Actor==CCD->Player()->GetActor() || theEntry->ActorType==ENTITY_NPC))
 // end change RF064
 		{
 			if(theEntry->Moving)
@@ -3109,9 +3158,11 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 
 	theExtBox.Min.Y += (theExtBox.Max.Y-theExtBox.Min.Y)*0.60f;
 
-	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
-		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	if(CCD->Collision()->GetContentsOf(pEntry->localTranslation, &theExtBox, &ZoneContents)==RGF_SUCCESS)
+	//if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		//&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
+		//geEngine_Printf(CCD->Engine()->Engine(), 0,20,"Model = %x",ZoneContents.Model);
 		LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 		if(LQ)
 		{
@@ -3122,8 +3173,9 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 
 	theExtBox.Min.Y = MinY + (theExtBox.Max.Y-MinY)*0.80f;
 
-	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
-		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	if(CCD->Collision()->GetContentsOf(pEntry->localTranslation, &theExtBox, &ZoneContents)==RGF_SUCCESS)
+	//if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		//&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
 		LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 		if(LQ)
@@ -3139,8 +3191,9 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 	//	Get the contents of that box!
 	MaxY = theExtBox.Min.Y += (theExtBox.Max.Y-theExtBox.Min.Y)*0.70f;
 
-	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
-		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	if(CCD->Collision()->GetContentsOf(pEntry->localTranslation, &theExtBox, &ZoneContents)==RGF_SUCCESS)
+	//if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		//&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
 		LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 		//geEngine_Printf(CCD->Engine()->Engine(), 0,20,"Model = %x",ZoneContents.Model);
@@ -3156,8 +3209,9 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 	nZoneType = 0;
 	theExtBox.Max.Y = MaxY;
 	theExtBox.Min.Y = MinY;
-	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
-		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	if(CCD->Collision()->GetContentsOf(pEntry->localTranslation, &theExtBox, &ZoneContents)==RGF_SUCCESS)
+	//if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		//&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
 		LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 		if(LQ)

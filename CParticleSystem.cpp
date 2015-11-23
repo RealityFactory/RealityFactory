@@ -61,7 +61,9 @@ CParticleSystem::CParticleSystem()
   		}
 		// Ok, let's set up the system.
 		pProxy->clrColor.a = 255.0f;		// Maximum alpha to start
-		if(LoadParticleMap(&pmHandle, pProxy->szTexture, pProxy->szTexture) != RGF_SUCCESS)
+// changed RF064
+		if(LoadParticleMap(&pmHandle, pProxy->szTexture, pProxy->szAlpha) != RGF_SUCCESS)
+// end change RF064
 		  {
 			char szBug[256];
 			sprintf(szBug,"Can't load particle map %s\n", pProxy->szTexture);
@@ -203,10 +205,15 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, char *szPrimary,
   int nHandle = (-1), nTemp;
 
 //	Sanity check
+// changed RF064
+   if(pmHandle == NULL) 
+		return RGF_FAILURE; // Bad programmer!
 
-  if((pmHandle == NULL) || (szPrimary == NULL))
-	  return RGF_FAILURE;							// Bad programmer!
-
+	if(EffectC_IsStringNull(szPrimary) == GE_TRUE) 
+		return RGF_FAILURE; //if you want to have a default bmp file you can do it here 
+	if(EffectC_IsStringNull(szAlpha ) == GE_TRUE)
+		szAlpha = szPrimary;
+// end change RF064
 //	Ok, first find a free handle
 
   for(nTemp = 0; nTemp < 50; nTemp++)

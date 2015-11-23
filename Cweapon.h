@@ -106,6 +106,8 @@ typedef struct DefaultWeapons
 // end change RF063
 // changed RF064
 	int FixedView;
+	int ShotperMag;
+	int ShotFired;
 // end change RF064
 	char Ammunition[64];
 	int AmmoPerShot;
@@ -127,6 +129,9 @@ typedef struct DefaultWeapons
 	char VHit[64];
 	char VAltHit[64];
 	char VWalk[64];
+// changed RF064
+	char VReload[64];
+// end change RF064
 	geVec3d VOffset;
 	char VBone[64];
 // changed RF063
@@ -163,6 +168,7 @@ typedef enum
 	VWEPWALK,
 	VWEPATTACK,
 	VWEPALTATTACK,
+	VWEPRELOAD,
 	VWEPHIT,
 	VWEPALTHIT
 } VwepAction;
@@ -211,6 +217,8 @@ public:
 // changed RF064
   void SetView(int value)
   { ViewPoint = value; OldViewPoint = value; }
+  char *GetWeaponName()
+  { return WeaponD[CurrentWeapon].Name; }
 // end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}

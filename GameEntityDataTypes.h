@@ -621,6 +621,9 @@ typedef struct _ParticleSystemProxy
 	char *szSoundFile;		// Audio effect for particle system
 	geFloat fRadius;			// Audio audible radius
 	char *szTexture;		// Texture for particles
+// changed RF064
+	char *szAlpha; // Alphamap for particles
+// end change RF064
 	GE_RGBA clrColor;		// Color for particles
 	int BirthRate;			// Over-ride default system birth rate
 	int MaxParticleCount;		// Over-ride default max particle count
@@ -636,6 +639,9 @@ typedef struct _ParticleSystemProxy
 #pragma GE_DefaultValue(szSoundFile, "")
 #pragma GE_DefaultValue(fRadius, "200.0")
 #pragma GE_DefaultValue(szTexture, "")
+// changed RF064
+#pragma GE_DefaultValue(szAlpha, "")
+// end change RF064
 #pragma GE_DefaultValue(clrColor, "255 255 255")
 #pragma GE_DefaultValue(BirthRate, "0")
 #pragma GE_DefaultValue(MaxParticleCount, "0")
@@ -649,6 +655,9 @@ typedef struct _ParticleSystemProxy
 #pragma GE_Documentation(szSoundFile, "Audio loop to play")
 #pragma GE_Documentation(fRadius, "Audible range for sound")
 #pragma GE_Documentation(szTexture, "Texture file to use for particles")
+// changed RF064
+#pragma GE_Documentation(szAlpha, "Alphamap to use for particles")
+// end change RF064
 #pragma GE_Documentation(clrColor, "Color for particles")
 #pragma GE_Documentation(BirthRate, "Particle birth rate to use instead of system default")
 #pragma GE_Documentation(MaxParticleCount, "Maximum particle count to use instead of system default")
@@ -879,6 +888,8 @@ typedef struct _EnvironmentSetup
 	geFloat MinShakeDist;
 // changed RF064
 	geFloat ShadowAlpha;
+	char *ShadowBitmap;
+	char *ShadowAlphamap;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(Gravity, "0")
@@ -898,6 +909,8 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(MinShakeDist, "50.0")
 // changed RF064
 #pragma GE_DefaultValue(ShadowAlpha, "0.0")
+#pragma GE_DefaultValue(ShadowBitmap, "")
+#pragma GE_DefaultValue(ShadowAlphamap, "")
 // end change RF064
 #pragma GE_Documentation(Gravity, "Downward force of gravity")
 #pragma GE_Documentation(RealJumping, "if true use realistic jumping")
@@ -916,6 +929,8 @@ typedef struct _EnvironmentSetup
 #pragma GE_Documentation(MinShakeDist, "Distance inside which explosion shake is at maximum")
 // changed RF064
 #pragma GE_Documentation(ShadowAlpha, "Transparency of actor shadows (0 to 255)")
+#pragma GE_Documentation(ShadowBitmap, "name of bitmap to use for shadows")
+#pragma GE_Documentation(ShadowAlphamap, "name of alpha bitmap to use for shadows")
 // end change RF064
 } EnvironmentSetup;
 
@@ -1520,6 +1535,9 @@ typedef struct EChaos
 	geFloat		YOffset;
 	int		SegmentSize;
 	int		SegmentCount;
+// changed RF064
+	geActor *Actor;
+// end change RF064
 #pragma GE_Published
 	geVec3d		origin;
 	int		MaxXSway;
@@ -1527,16 +1545,25 @@ typedef struct EChaos
 	geFloat		XStep;
 	geFloat		YStep;
 	char		*AttachBmp;
+// changed RF064
+	char *EntityName;
+// end change RF064
 #pragma GE_Origin(origin)			
 #pragma GE_DefaultValue( MaxXSway, "10" )
 #pragma GE_DefaultValue( MaxYSway, "10" )
 #pragma GE_DefaultValue( XStep, "1.0" )
 #pragma GE_DefaultValue( YStep, "1.0" )
+// changed RF064
+#pragma GE_DefaultValue(EntityName, "" )
+// end change RF064
 #pragma GE_Documentation( MaxXSway, "Total horizontal texture pixel sway" )
 #pragma GE_Documentation( MaxYSway, "Total vertical texture pixel sway" )
 #pragma GE_Documentation( XStep, "Horizontal scroll speed" )
 #pragma GE_Documentation( YStep, "Vertical scroll speed" )
 #pragma GE_Documentation( AttachBmp, "Name of the texture to attach this effect to" )
+// changed RF064
+#pragma GE_Documentation(EntityName, "Name of entity whose actor texture is to be changed" )
+// end change RF064
 } EChaos;
 
 //	Rain Effect
@@ -3387,6 +3414,54 @@ typedef struct ActorSpout
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
 } ActorSpout;
+
+//
+// EM_Morph Entity
+//
+// added by QuestOfDreams
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct EM_Morph
+{
+#pragma	GE_Private
+	geBoolean	active;
+	geBitmap	*CStartBmp;
+	geBitmap	*CEndBmp;
+	geBitmap	*CMorphBmp;
+	geActor		*Actor;
+	int			CurStage;
+	geFloat		CurDelayToNextStage;
+	int			StageDir;
+	geBoolean	First;
+#pragma GE_Published
+	geVec3d		origin;
+	char		*EntityName;
+	char		*StartBmp;
+	char		*EndBmp;
+	int			MorphStages;
+	geFloat		DelayToNextStage;
+	char		*BitmapToAttachTo;
+	geBoolean	Loop;
+	char		*szEntityName;
+	char		*TriggerName;
+
+#pragma GE_Origin(origin)			
+#pragma GE_DefaultValue( MorphStages, "8" )
+#pragma GE_DefaultValue( DelayToNextStage, "1.0" )
+#pragma GE_DefaultValue( Loop, "True" )
+#pragma GE_DefaultValue( TriggerName, "" )
+#pragma GE_DefaultValue( EntityName, "" )
+
+#pragma GE_Documentation( origin, "Location of effect" )
+#pragma GE_Documentation( EntityName, "Entity whose actor texture the effect will attach to (optional)" )
+#pragma GE_Documentation( MorphStages, "How many different stages of morph there will be" )
+#pragma GE_Documentation( DelayToNextStage, "How many seconds to wait before going to next stage" )
+#pragma GE_Documentation( BitmapToAttachTo, "Which world or actor bitmap the effect will attach to" )
+#pragma GE_Documentation( Loop, "Whether or not to keep looping the morph animation" )
+#pragma GE_Documentation( TriggerName, "Name of the associated trigger" )
+
+} EM_Morph;
 
 // end change RF064
 

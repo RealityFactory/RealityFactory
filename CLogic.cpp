@@ -217,7 +217,73 @@ void CLogic::Tick(float dwTicks)
 				else
 					pSource->OldState = false;
 				break;
-// end change RF063
+// changed RF064
+			case 12: // Contents 
+				pSource->bState = false;
+				if(!EffectC_IsStringNull(pSource->Trigger1Name))
+				{
+					geActor	*Actor = GetEntityActor(pSource->Trigger2Name);
+					if(Actor)
+					{
+						int Zone;
+						CCD->ActorManager()->GetActorZone(Actor, &Zone);
+						Zone ^= 1;
+						switch(Zone)
+						{
+						case kWaterZone:
+							if(!stricmp(pSource->Trigger1Name, "Water"))
+								pSource->bState = true;
+							break;
+						case kLavaZone:
+							if(!stricmp(pSource->Trigger1Name, "Lava"))
+								pSource->bState = true;
+							break;
+						case kToxicGasZone:
+							if(!stricmp(pSource->Trigger1Name, "ToxicGas"))
+								pSource->bState = true;
+							break;
+						case kNoGravityZone:
+							if(!stricmp(pSource->Trigger1Name, "ZeroG"))
+								pSource->bState = true;
+							break;
+						case kFrozenZone:
+							if(!stricmp(pSource->Trigger1Name, "Frozen"))
+								pSource->bState = true;
+							break;
+						case kSludgeZone:
+							if(!stricmp(pSource->Trigger1Name, "Sludge"))
+								pSource->bState = true;
+							break;
+						case kSlowMotionZone:
+							if(!stricmp(pSource->Trigger1Name, "SlowMotion"))
+								pSource->bState = true;
+							break;
+						case kFastMotionZone:
+							if(!stricmp(pSource->Trigger1Name, "FastMotion"))
+								pSource->bState = true;
+							break;
+						case kClimbLaddersZone:
+							if(!stricmp(pSource->Trigger1Name, "Ladder"))
+								pSource->bState = true;
+							break;
+						case kImpassibleZone:
+							if(!stricmp(pSource->Trigger1Name, "Impenetrable"))
+								pSource->bState = true;
+							break;
+						case kUnclimbableZone:
+							if(!stricmp(pSource->Trigger1Name, "Unclimbable"))
+								pSource->bState = true;
+							break;
+						} 
+					}
+				}
+				break;
+			case 13: // Stop oxygen restore
+				state = GetLTriggerState(pSource->Trigger1Name);
+				if(state)
+					CCD->Player()->SetRestoreOxy(false);
+				break;
+// end change RF064
 		}
 
 	}

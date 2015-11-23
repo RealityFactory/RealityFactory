@@ -553,23 +553,26 @@ geBitmap * CreateFromFileAndAlphaNames(char * BmName,char *AlphaName)
 	Bmp = CreateFromFileName(BmName);
 	if ( ! Bmp )
 		return NULL;
-	
-	AlphaBmp = CreateFromFileName(AlphaName);
-	if ( ! AlphaBmp )
+// changed RF064
+	if(stricmp(BmName, AlphaName))
 	{
-		geBitmap_Destroy(&Bmp);
-		return NULL;
-	}
-	
-	if ( ! geBitmap_SetAlpha(Bmp,AlphaBmp) )
-	{
-		geBitmap_Destroy(&Bmp);
+		AlphaBmp = CreateFromFileName(AlphaName);
+		if ( ! AlphaBmp )
+		{
+			geBitmap_Destroy(&Bmp);
+			return NULL;
+		}
+		
+		if ( ! geBitmap_SetAlpha(Bmp,AlphaBmp) )
+		{
+			geBitmap_Destroy(&Bmp);
+			geBitmap_Destroy(&AlphaBmp);
+			return NULL;
+		}
+		
 		geBitmap_Destroy(&AlphaBmp);
-		return NULL;
 	}
-	
-	geBitmap_Destroy(&AlphaBmp);
-	
+// end change RF064
 	//geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
 	geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_32BIT_ARGB);
 	
@@ -873,12 +876,82 @@ geBoolean CanSeeActorToActor(geActor *Actor1, geActor *Actor2)
 {
 	geExtBox theBox;
 	geVec3d thePosition1, thePosition2;
+// changed RF064
+	geBoolean flag;
 
 	CCD->ActorManager()->GetBoundingBox(Actor1, &theBox);
 	CCD->ActorManager()->GetPosition(Actor1, &thePosition1);
 	thePosition1.Y += (theBox.Max.Y*0.75f);
 	CCD->ActorManager()->GetBoundingBox(Actor2, &theBox);
 	CCD->ActorManager()->GetPosition(Actor2, &thePosition2);
-	thePosition2.Y += (theBox.Max.Y*0.75f);
-	return CanSeePointToPoint(&thePosition1, &thePosition2);
+	flag = CanSeePointToPoint(&thePosition1, &thePosition2);
+	thePosition2.Y += (theBox.Max.Y*0.37f);
+	flag |= CanSeePointToPoint(&thePosition1, &thePosition2);
+	thePosition2.Y += (theBox.Max.Y*0.37f);
+	return (flag | CanSeePointToPoint(&thePosition1, &thePosition2));
+// end change RF064
 }
+
+// changed RF064
+//
+// Get actor from entity name
+//
+// added by QuestofDreams
+//
+geActor * GetEntityActor(char *EntityName)
+{
+	if(!EffectC_IsStringNull(EntityName))
+	{
+		if(!stricmp(EntityName, "Player"))
+			return CCD->Player()->GetActor();
+		
+		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+		if(EntityType)
+		{
+			if(!stricmp(EntityType, "StaticEntityProxy"))
+			{
+				StaticEntityProxy *pProxy;
+				CCD->Props()->LocateEntity(EntityName, (void**)&pProxy);
+				if(pProxy->Actor)
+					return pProxy->Actor;
+				
+				return NULL;
+			}
+			if(!stricmp(EntityType, "Attribute"))
+			{
+				Attribute *pProxy;
+				CCD->Attributes()->LocateEntity(EntityName, (void**)&pProxy);
+				if(pProxy->Actor)
+					return pProxy->Actor;
+				
+				return NULL;
+			}
+			if(!stricmp(EntityType, "NonPlayerCharacter"))
+			{
+				NonPlayerCharacter *pProxy;
+				if(CCD->NPCManager()->LocateEntity(EntityName, (void**)&pProxy)==RGF_SUCCESS)
+				{
+					Bot_Var *DBot = (Bot_Var *)pProxy->DBot;
+					if(DBot->Actor)
+						return DBot->Actor;
+					
+					return NULL;
+				}
+				return NULL;
+			}
+			
+			if(!stricmp(EntityType, "Pawn"))
+			{
+				Pawn *pProxy;
+				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
+				ScriptedObject *Object = (ScriptedObject *)pProxy->Data;
+				if(Object->Actor)
+					return Object->Actor;
+				
+				return NULL;
+			}
+		}
+	}
+	return NULL;
+} 
+// end change RF064

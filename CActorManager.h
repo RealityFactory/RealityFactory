@@ -62,6 +62,7 @@ struct ActorInstanceList
 	float StartTime;
 	GE_Collision GravityCollision;
 	bool HideRadar;
+	char Group[64];
 // end change RF064
 	char szMotionName[128];				// Name of current motion
 	char szNextMotionName[128];		// Name of next motion in queue
@@ -233,8 +234,13 @@ public:
 	int GetGravityCollision(geActor *theActor, GE_Collision *Collision);
 	int SetHideRadar(geActor *theActor, bool flag);
 	int GetHideRadar(geActor *theActor, bool *flag);
+	char *GetGroup(geActor *theActor);
+	int SetGroup(geActor *theActor, char *name);
 	void SetShadowAlpha(geFloat Alpha)
 	{ ShadowAlpha = Alpha; }
+	void SetShadowBitmap(geBitmap *Bitmap)
+	{ ShadowBitmap = Bitmap; }
+	int SetCollide(geActor *theActor);
 // end change RF064
 private:
 	//	Private member functions
@@ -264,6 +270,7 @@ private:
 	geFloat ShadowAlpha;
 	CIniFile AttrFile;
 	bool ValidAttr;
+	geBitmap *ShadowBitmap;
 // end change RF064
 };
 

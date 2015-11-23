@@ -1099,7 +1099,84 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 		
 		return GE_FALSE;						// Hey, no collisions!
 	}
-	
+
+// changed RF064
+geBoolean CModelManager::ContentModel(geVec3d thePoint, geExtBox theBox, 
+		geWorld_Model **theModel)
+	{
+		geExtBox Result, Temp;
+		
+		*theModel = NULL;
+		
+		for(int nTemp = 0; nTemp < 512; nTemp++)
+		{
+			if(MainList[nTemp] == NULL)
+				continue;				// Empty slot
+
+			geVec3d Forward, Up, Left, Pos;
+			geXForm3d Xf;
+			geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf); 
+			geXForm3d_GetUp (&Xf, &Up);
+			geVec3d_Normalize(&Up);
+			geXForm3d_GetIn (&Xf, &Forward);
+			geVec3d_Normalize(&Forward);
+			geXForm3d_GetLeft (&Xf, &Left);
+			geVec3d_Normalize(&Left);
+			geWorld_GetModelRotationalCenter(CCD->World(), MainList[nTemp]->Model, &Pos);
+			geVec3d_AddScaled (&Pos, &Forward, -MainList[nTemp]->Mins.Z, &Result.Min);
+			geVec3d_AddScaled (&Result.Min, &Left, -MainList[nTemp]->Mins.X, &Result.Min);
+			geVec3d_AddScaled (&Result.Min, &Up, MainList[nTemp]->Mins.Y, &Result.Min);
+			geVec3d_AddScaled (&Pos, &Forward, -MainList[nTemp]->Maxs.Z, &Result.Max);
+			geVec3d_AddScaled (&Result.Max, &Left, -MainList[nTemp]->Maxs.X, &Result.Max);
+			geVec3d_AddScaled (&Result.Max, &Up, MainList[nTemp]->Maxs.Y, &Result.Max);
+			
+			Result.Min.X -= Pos.X;
+			Result.Min.Y -= Pos.Y;
+			Result.Min.Z -= Pos.Z;
+			Result.Max.X -= Pos.X;
+			Result.Max.Y -= Pos.Y;
+			Result.Max.Z -= Pos.Z;
+			float Mtemp;
+			if(Result.Min.X > Result.Max.X)
+			{
+				Mtemp = Result.Min.X;
+				Result.Min.X = Result.Max.X;
+				Result.Max.X = Mtemp;
+			}
+			if(Result.Min.Y > Result.Max.Y)
+			{
+				Mtemp = Result.Min.Y;
+				Result.Min.Y = Result.Max.Y;
+				Result.Max.Y = Mtemp;
+			}
+			if(Result.Min.Z > Result.Max.Z)
+			{
+				Mtemp = Result.Min.Z;
+				Result.Min.Z = Result.Max.Z;
+				Result.Max.Z = Mtemp;
+			}
+
+			Result.Min.X += MainList[nTemp]->Translation.X;
+			Result.Min.Y += MainList[nTemp]->Translation.Y;
+			Result.Min.Z += MainList[nTemp]->Translation.Z;
+			Result.Max.X += MainList[nTemp]->Translation.X;
+			Result.Max.Y += MainList[nTemp]->Translation.Y;
+			Result.Max.Z += MainList[nTemp]->Translation.Z;
+			if(geExtBox_Intersection(&Result, &theBox, &Temp) == GE_TRUE)
+			{
+				// Heh, we hit someone.  Return the model we ran into.
+				*theModel = MainList[nTemp]->Model;
+				return GE_TRUE;
+			}
+			
+		}
+		
+		//	No hit, all be hunky-dory.
+		
+		return GE_FALSE;						// Hey, no collisions!
+	}
+// end change RF064
+		
 	//	HandleCollision
 	//
 	//	Check to see if this model needs to do anything when collided with.

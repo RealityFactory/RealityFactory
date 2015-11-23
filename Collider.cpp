@@ -56,20 +56,12 @@ int Collider::GetContentsOf(geVec3d Position, geExtBox *theBox,
 {
 	memset(theContents, 0, sizeof(GE_Contents));
 	
-	int Result = geWorld_GetContents(CCD->World(), 
-		&Position, &theBox->Min, &theBox->Max, GE_COLLIDE_ACTORS, 
-		0xffffffff, NULL, NULL, theContents);
-	
-	if((Result == GE_FALSE) && (geWorld_GetContents(CCD->World(), 
+	int Result = GE_FALSE;
+
+	Result = geWorld_GetContents(CCD->World(), 
 		&Position, &theBox->Min, &theBox->Max, GE_COLLIDE_MODELS, 
-		0xffffffff, NULL, NULL, theContents) == GE_TRUE))
-	{
-		if((theContents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
-			Result = GE_FALSE;
-		else
-			Result = GE_TRUE;
-	}
-	
+		0xffffffff, NULL, NULL, theContents);
+
 	if(Result == GE_TRUE)
 		return RGF_SUCCESS;								// SOMETHING was there...
 	else
@@ -77,17 +69,10 @@ int Collider::GetContentsOf(geVec3d Position, geExtBox *theBox,
 		// Have to check for world models, feh
 		geExtBox pBox = *theBox;
 		geWorld_Model *pModel;
-		geActor *pActor;
-		if(CCD->ModelManager()->DoesBoxHitModel(Position, pBox, &pModel) == GE_TRUE)
+		if(CCD->ModelManager()->ContentModel(Position, pBox, &pModel) == GE_TRUE)
 		{
 			theContents->Model = pModel;
 			return RGF_SUCCESS;
-		}
-		// Now do the same for managed actors
-		if(CCD->ActorManager()->DoesBoxHitActor(Position, pBox, &pActor) == GE_TRUE)
-		{
-			theContents->Actor = pActor;
-			return RGF_SUCCESS;						// Ugh, we hit an actor instead
 		}
 		return RGF_FAILURE;								// No contents?
 	}
@@ -1535,6 +1520,52 @@ geBoolean Collider::Probe(geXForm3d theXForm, float fDistance, GE_Collision *the
 	return ItHit;					// Return collision status
 }
 
+TraceData Collider::Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *Max,
+	  geActor *Actor, GE_Collision *Collision)
+{
+	TraceData Data;
+	geExtBox theBox;
+
+	Data.fraction = 1.0f;
+	Data.endpos = *End;
+	Data.allsolid = false;
+	Data.startsolid = false;
+
+	if(!Min || !Max)
+	{
+		theBox.Min.X = theBox.Min.Y = theBox.Min.Z = -0.1f;
+		theBox.Max.X = theBox.Max.Y = theBox.Max.Z = 0.1f;
+	}
+	else
+	{
+		theBox.Min = *Min;
+		theBox.Max = *Max;
+	}
+	if(!CanOccupyPosition(Start, &theBox, Actor))
+	{
+		Data.fraction = 0.0f;
+		Data.startsolid = true;
+		if(!CanOccupyPosition(End, &theBox, Actor))
+			Data.allsolid = true;
+		return Data;
+	}
+
+	bool ItHit = geWorld_Collision(CCD->World(), Min, Max,
+		Start, End, kCollideFlags,
+		//GE_COLLIDE_ALL, 0xffffffff, CBExclusion, Actor, Collision);
+		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision);
+
+	if(ItHit)
+	{
+		Data.endpos = Collision->Impact;
+		float maxdist = geVec3d_DistanceBetween(Start, End); 
+		float actdist = geVec3d_DistanceBetween(Start, &Collision->Impact);
+		Data.fraction = actdist/maxdist;
+	}
+
+	return Data;
+}
+
 //	ProcessCollision
 //
 //	If we have a collision, we need to dispatch that fact to
@@ -1562,10 +1593,13 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 		// ..we know about.
 		if(!bShoot)
 		{
-			if(CCD->Changelevel()->CheckChangeLevel(theCollision.Model, false) && theActor == CCD->Player()->GetActor())// && !bShoot)
+			if(theActor == CCD->Player()->GetActor())
 			{
-				CCD->SetChangeLevel(true);			// We hit a change level
-				return kCollideWorldModel;
+				if(CCD->Changelevel()->CheckChangeLevel(theCollision.Model, false))// && !bShoot)
+				{
+					CCD->SetChangeLevel(true);			// We hit a change level
+					return kCollideWorldModel;
+				}
 			}
 		}
 		// ..all the other possibilities now.

@@ -74,7 +74,7 @@ void CChangeLevel::Tick(float dwTicks)
 // changed RF064
 				CCD->SetChangeLevel(true);
 				CCD->SetKeyPaused(false);
-				CCD->HUD()->Activate();
+				//CCD->HUD()->Activate();
 // end change RF064
 				return;
 			}

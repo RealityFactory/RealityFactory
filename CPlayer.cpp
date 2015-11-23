@@ -13,6 +13,9 @@ CPlayer.cpp:		Player character encapsulation class
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 extern geSound_Def *SPool_Sound(char *SName);
+// changed RF064
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+// end change RF064
 
 //	CPlayer
 //
@@ -74,6 +77,7 @@ CPlayer::CPlayer()
 	for(int j=0;j<10;j++)
 		UseAttribute[j][0] = '\0';
 	LockView = false;
+	restoreoxy = true;
 // end change RF064
 	RealJumping = false;
 	LiquidTime = 0.0f;
@@ -448,6 +452,10 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "mirror1st");
 			if(Type=="true")
 				mirror = GE_ACTOR_RENDER_MIRRORS;
+			alterkey = false;
+			Type = AttrFile.GetValue(KeyName, "alternatekey");
+			if(Type=="true")
+				alterkey = true;
 // end change RF064
 // end change RF063
 			geVec3d TFillColor = {255.0f, 255.0f, 255.0f};
@@ -661,7 +669,7 @@ int CPlayer::LoadConfiguration()
 	m_CurrentHeight = theBox.Max.Y;
 // changed RF063
 	if(BoxWidth>0.0f)
-		CCD->ActorManager()->SetBBox(Actor, BoxWidth, -m_CurrentHeight, BoxWidth);
+		CCD->ActorManager()->SetBBox(Actor, BoxWidth, -m_CurrentHeight*2.0f, BoxWidth);
 // end change RF063
  
 	int nFlags = 0;
@@ -789,6 +797,13 @@ int CPlayer::LoadConfiguration()
 			if(theState->ShadowAlpha > 0.0f)
 				CCD->ActorManager()->SetShadowAlpha(theState->ShadowAlpha);
 			CCD->CameraManager()->SetShakeMin(theState->MinShakeDist);	
+			if(!EffectC_IsStringNull(theState->ShadowBitmap))
+			{
+				if(!EffectC_IsStringNull(theState->ShadowAlphamap))
+					CCD->ActorManager()->SetShadowBitmap(TPool_Bitmap(theState->ShadowBitmap, theState->ShadowAlphamap, NULL, NULL));
+				else
+					CCD->ActorManager()->SetShadowBitmap(TPool_Bitmap(theState->ShadowBitmap, theState->ShadowBitmap, NULL, NULL));
+			}
 		}
 	}
 	CCD->ActorManager()->SetStepHeight(Actor, m_StepHeight);
@@ -2053,11 +2068,14 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 	}
 // restore oxygen if out of liquid
-	if(theInv->Has("oxygen"))
+// changed RF064
+	if(theInv->Has("oxygen") && restoreoxy)
 	{
 		if(OldZone<2)
 			theInv->Modify("oxygen", theInv->High("oxygen"));
 	}
+	restoreoxy = true;
+// end change RF064
 // check for damage in liquid
 // changed RF064
 	if(OldZone>0 || Zone & kLiquidZone || Zone & kInLiquidZone)
@@ -3791,7 +3809,8 @@ void CPlayer::UseItem()
 	geVec3d theRotation;
 	geVec3d thePosition;
 	geXForm3d Xf;
-	geExtBox theBox;
+// changed RF064
+	geExtBox theBox, pBox;
 	geVec3d Direction, Pos, Front, Back;
 	GE_Collision Collision;
 
@@ -3810,8 +3829,10 @@ void CPlayer::UseItem()
 	}
 	else
 	{
-		geActor_GetBoneTransform(Actor, NULL, &Xf );
-		thePosition = Xf.Translation;
+		CCD->ActorManager()->GetPosition(Actor, &thePosition);
+		CCD->ActorManager()->GetBoundingBox(Actor, &pBox);
+		thePosition.Y += (pBox.Max.Y*0.5f);
+// end change RF064
 		CCD->ActorManager()->GetRotate(Actor, &theRotation);
 		geVec3d CRotation, CPosition;
 		CCD->CameraManager()->GetCameraOffset(&CPosition, &CRotation);

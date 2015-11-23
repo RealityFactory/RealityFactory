@@ -83,6 +83,7 @@ public:
 	int GetPosition(geWorld_Model *theModel, geVec3d *thePosition);
 // changed RF064
 	int SetPosition(geWorld_Model *theModel, geVec3d thePosition);
+	geBoolean ContentModel(geVec3d thePoint, geExtBox theBox, geWorld_Model **theModel);
 // end change RF064
 	int GetRotation(geWorld_Model *theModel, geVec3d *theRotation);
 	int GetModelTime(geWorld_Model *theModel, geFloat *time);

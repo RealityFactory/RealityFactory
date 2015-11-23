@@ -80,14 +80,24 @@ bool CIniFile::ReadFile()
 			}
 			else
 			{
+// changed RF064
 				if(readinfo[0] != ';')
 				{
-					valuename = readinfo.Left(readinfo.Find("="));
-					value = readinfo.Right(readinfo.GetLength()-valuename.GetLength()-1);
+					if(readinfo.Find("=")!=-1)
+					{
+						valuename = readinfo.Left(readinfo.Find("="));
+						value = readinfo.Right(readinfo.GetLength()-valuename.GetLength()-1);
+					}
+					else
+					{
+						valuename = readinfo;
+						value = "=";
+					}
 					valuename.TrimLeft();
 					valuename.TrimRight();
 					value.TrimLeft();
 					value.TrimRight();
+// end change RF064
 					SetValue(keyname,valuename,value);
 				}
 			}

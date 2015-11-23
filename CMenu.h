@@ -192,6 +192,7 @@ public:
   { return CharSelect[CurrentSelect].FillColor; }
   GE_RGBA GetCurrentAmbientColor()
   { return CharSelect[CurrentSelect].AmbientColor; }
+  CMIDIAudio *MIDIPlayer() { return theMIDIPlayer;}
 // end change RF064
 private:
   void ClearVol();
@@ -251,6 +252,7 @@ private:
 // changed RF064
   DWORD WinVol;
   bool useselect;
+  CMIDIAudio *theMIDIPlayer;
 // end change RF064
 };
 

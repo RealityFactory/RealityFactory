@@ -155,10 +155,24 @@ Procedural * Particles_Create(char *TextureName, geWorld  *World, const char *In
 
 	/**** read Params *****/
 
-	if ( strlen(InputParams) < 20 )
+	// changed RF064 by QuestOfDreams
+	if(!strcmp(InputParams, "Params_Oil"))
+	{
+		strcpy(ParamWork, Params_Oil);
+	}
+	else if(!strcmp(InputParams, "Params_Jet"))
+	{
+		strcpy(ParamWork,Params_Jet);
+	}
+	else if(!strcmp(InputParams, "Params_Steam"))
+	{
+		strcpy(ParamWork,Params_Steam);
+	}
+	else if(!strcmp(InputParams, "Params_Explosion") || strlen(InputParams) < 20 )
 	{
 		strcpy(ParamWork,DefaultParams);
 	}
+	// end change RF064 by QuestOfDreams
 	else
 	{
 		strcpy(ParamWork,InputParams);

@@ -1,21 +1,6 @@
 #ifndef __CMP3_MANAGER__
 #define __CMP3_MANAGER__
 
-typedef enum Mp3State 
-{
-	Uninitialized, 
-		Stopped, 
-		Paused, 
-		Playing 
-} Mp3State;
-
-typedef struct Mp3Media
-{
-    Mp3State			state;
-    IGraphBuilder		*pGraph;
-    HANDLE				hGraphNotifyEvent;
-} Mp3Media;
-
 class CMp3Manager
 {
 public:
@@ -24,15 +9,11 @@ public:
 	void OpenMediaFile(LPSTR szFile );
 	void PlayMp3(long volume, geBoolean loop);
 	void StopMp3();
+	void Refresh();
 private:
-	void ChangeStateTo(Mp3State newState);
-	bool IsInitialized();
-	bool CreateFilterGraph();
-	bool CanPlay();
-	void DeleteContentsMp3();
-	bool RenderFile( LPSTR szFileName );
-
-	Mp3Media media;
 	bool Active;
-};
+	HWND m_Video;
+	LONG Length;
+	bool Loop;
+}; 
 #endif

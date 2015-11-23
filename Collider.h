@@ -10,6 +10,14 @@ to be used by other RGF classes.
 #ifndef __COLLIDER_H_
 #define __COLLIDER_H_
 
+typedef struct TraceData
+{
+	float	fraction;
+	geVec3d	endpos;
+	bool startsolid;
+	bool allsolid;
+} TraceData;
+
 class Collider
 {
 public:
@@ -91,6 +99,8 @@ public:
 		geActor *Actor, GE_Contents *Contents);
   void Debug();
 
+  TraceData Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *Max,
+	  geActor *Actor, GE_Collision *Collision);
 private:
   geBoolean CheckIntersection(geActor *Actor, geWorld *World);
   geBoolean CheckIntersection(geVec3d *Position, geActor *Actor, geWorld *World);

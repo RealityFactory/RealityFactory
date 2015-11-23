@@ -760,8 +760,9 @@ int CCameraManager::RenderView()
 	ExtBox.Max.Y = 1.0f;
 	ExtBox.Max.X = ExtBox.Max.Z = 1.0f;
 
-	if(geWorld_GetContents(CCD->World(), &Translation, &ExtBox.Min, 
-		&ExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	if(CCD->Collision()->GetContentsOf(Translation, &ExtBox, &ZoneContents)==RGF_SUCCESS)
+	//if(geWorld_GetContents(CCD->World(), &Translation, &ExtBox.Min, 
+		//&ExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
 		Liquid * LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 		if(LQ)

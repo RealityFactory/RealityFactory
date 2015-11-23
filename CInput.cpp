@@ -292,12 +292,7 @@ int CInput::LoadKeymap(char *szFilename)
   FILE *fd = CCD->OpenRFFile(kInstallFile, szFilename, "rb");
 
 	if(fd == NULL)
-	  {
-		char szBug[200];
-		sprintf(szBug,"CInput: can't open keymap file %s, using defaults\n", szFilename);
-		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;	
-		}
 
   for(int nTemp = 0; nTemp < 100; nTemp++)
 	  {

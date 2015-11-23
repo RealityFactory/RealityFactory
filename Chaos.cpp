@@ -23,7 +23,89 @@ Chaos::Chaos()
     EChaos *pTex = (EChaos*)geEntity_GetUserData(pEntity);
 
     pTex->SegmentSize = 1;
-    pTex->CAttachBmp = geWorld_GetBitmapByName(CCD->World(), pTex->AttachBmp );
+// changed RF064
+// changes by QuestofDreams
+     pTex->Actor = NULL;
+       if(!EffectC_IsStringNull(pTex->EntityName))
+       {
+               pTex->Actor = GetEntityActor(pTex->EntityName);
+               if(pTex->Actor == NULL)
+               {
+                       char szError[256];
+                       sprintf(szError,"Error can't find actor");
+                       CCD->ReportError(szError, false);
+                       CCD->ShutdownLevel();
+                       delete CCD;
+                       MessageBox(NULL, szError,"EChaos", MB_OK);
+                       exit(-333);// or continue
+               }
+       }
+
+       // get the output bitmap as an actor bitmap...
+       if (pTex->Actor != NULL)
+       {
+               // locals
+               geActor_Def *ActorDef;
+               geBody *Body;
+               int MaterialCount;
+               int i;
+               const char *MaterialName;
+               float R, G, B;
+               int Length;
+
+               // get actor material count
+               ActorDef = geActor_GetActorDef(pTex->Actor);
+               if (ActorDef == NULL)
+               continue;
+               Body = geActor_GetBody(ActorDef);
+               if (Body == NULL)
+                       continue;
+               MaterialCount = geActor_GetMaterialCount(pTex->Actor);
+
+               // get bitmap pointer
+               Length = strlen(pTex->AttachBmp);
+               for(i = 0;i < MaterialCount;i++)
+               {
+
+                       if(geBody_GetMaterial(Body, i, &MaterialName, &(pTex->CAttachBmp), &R, &G, &B) == GE_FALSE)
+                       {
+                               continue;
+                       }
+                       if(strnicmp(pTex->AttachBmp, MaterialName, Length) == 0)
+                       {
+                               break;
+                       }
+               }
+               if(i == MaterialCount)
+               {
+                       char szError[256];
+                       sprintf(szError,"Error can't find ActorMaterial");
+                       CCD->ReportError(szError, false);
+                       CCD->ShutdownLevel();
+                       delete CCD;
+                       MessageBox(NULL, szError,"EChaos", MB_OK);
+                       exit(-333); //or continue
+               }
+       }
+
+       // ...or a world bitmap
+       else
+       {
+               pTex->CAttachBmp = geWorld_GetBitmapByName(CCD->World(), pTex->AttachBmp);
+               if(pTex->CAttachBmp == NULL)
+               {
+                       char szError[256];
+                       sprintf(szError,"Error can't find bitmap in level");
+                       CCD->ReportError(szError, false);
+                       CCD->ShutdownLevel();
+                       delete CCD;
+                       MessageBox(NULL, szError,"EChaos", MB_OK);
+                       exit(-333); //or continue
+               } 
+       }
+// end change QuestOfDreams 300802
+// end change RF064
+
     if ( pTex->CAttachBmp == NULL )
 		continue;
     geBitmap_SetFormatMin( pTex->CAttachBmp, CHAOS_FORMAT );
@@ -100,9 +182,24 @@ void Chaos::Tick(geFloat dwTicksIn)
     EChaos *pTex = (EChaos*)geEntity_GetUserData(pEntity);
 	if(!pTex->CAttachBmp)
 		continue;
-    if ( geWorld_BitmapIsVisible(CCD->World(), pTex->CAttachBmp ) == GE_FALSE )
+// changed RF064
+    // changed QuestOfDreams 300802
+       // do nothing further if the texture is not visible
+	if(pTex->Actor && !CCD->ActorManager()->IsActor(pTex->Actor))
 		continue;
 
+       if(pTex->Actor == NULL)
+       {
+               if(geWorld_BitmapIsVisible(CCD->World(), pTex->CAttachBmp) == GE_FALSE)
+                       continue;
+       }
+       else
+       {
+               if(geWorld_IsActorPotentiallyVisible(CCD->World(), pTex->Actor, CCD->CameraManager()->Camera()) == GE_FALSE)
+                       continue;
+       }
+// end change QuestOfDreams 300802
+// end change RF064
     if ( geBitmap_GetInfo( pTex->CAttachBmp, &AttachInfo, NULL ) == GE_FALSE )
 		continue;
     if ( geBitmap_GetInfo(pTex->OriginalBmp, &OriginalInfo, NULL ) == GE_FALSE )

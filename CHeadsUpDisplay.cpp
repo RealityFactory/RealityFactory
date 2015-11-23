@@ -11,13 +11,17 @@ CHeadsUpDisplay.cpp:		HUD display handler
 
 #include "RabidFramework.h"
 
+// changed RF064
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+// end change RF064
+
 //	Constructor
 //
 //	Set up the HUD
 
 CHeadsUpDisplay::CHeadsUpDisplay()
 {
-	m_bHUDActive = false;					// HUD not displayed
+	m_bHUDActive = true;					// HUD not displayed
 	
 	//	Clear the HUD array
 	
@@ -39,7 +43,7 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
 // changed RF064
-
+/*
 		if(m_theHUD[nTemp].Identifier != NULL)
 		{
 			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Identifier);
@@ -57,7 +61,7 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
 		}
 // end change RF063
-
+*/
 // end change RF064
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
@@ -157,7 +161,10 @@ int CHeadsUpDisplay::LoadConfiguration()
 					Talpha = Tname;
 				strcpy(szName,Tname);
 				strcpy(szAlpha,Talpha);
-				TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// changed RF064
+				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 			}
 		}
 // changed RF063
@@ -174,7 +181,10 @@ int CHeadsUpDisplay::LoadConfiguration()
 					Talpha = Tname;
 				strcpy(szName,Tname);
 				strcpy(szAlpha,Talpha);
-				TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// changed RF064
+				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 			}
 			Tname = AttrFile.GetValue(KeyName, "npcindicator");
 			if(Tname!="")
@@ -184,7 +194,10 @@ int CHeadsUpDisplay::LoadConfiguration()
 					Talpha = Tname;
 				strcpy(szName,Tname);
 				strcpy(szAlpha,Talpha);
-				TempBmp3 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// changed RF064
+				TempBmp3 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				//TempBmp3 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 				if(!TempBmp3)
 					TempBmp3 = TempBmp2;
 			}
@@ -258,7 +271,10 @@ int CHeadsUpDisplay::LoadConfiguration()
 								Talpha = Tname;
 							strcpy(szName,Tname);
 							strcpy(szAlpha,Talpha);
-							TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// changed RF064
+							TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+							//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 						}
 					}	
 				}
@@ -274,7 +290,10 @@ int CHeadsUpDisplay::LoadConfiguration()
 					Talpha = Tname;
 				strcpy(szName,Tname);
 				strcpy(szAlpha,Talpha);
-				TempBmp1 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// changed RF064
+				TempBmp1 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				//TempBmp1 = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 			} 
 			if(AttrFile.GetValue(KeyName, "framex")=="center")
 			{
@@ -315,6 +334,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 			if(AttrFile.GetValue(KeyName, "modifydirection")=="both")
 				direction = 2;
 // changed RF064
+/*
 			if(TempBmp1)
 				geWorld_AddBitmap(CCD->World(), TempBmp1);
 			if(TempBmp2)
@@ -323,6 +343,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 			if(TempBmp3)
 				geWorld_AddBitmap(CCD->World(), TempBmp3);
 // end change RF063
+*/
 // end change RF064
 			for(int nItem = 0; nItem < MAXHUD; nItem++)
 				if(!m_theHUD[nItem].active)
@@ -509,6 +530,10 @@ int CHeadsUpDisplay::Render()
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+// changed RF064
+			if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				continue;
+// end change RF064
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
 			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
@@ -547,6 +572,10 @@ int CHeadsUpDisplay::Render()
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+// changed RF064
+			if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				continue;
+// end change RF064
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
 			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
@@ -586,6 +615,10 @@ int CHeadsUpDisplay::Render()
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+// changed RF064
+			if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				continue;
+// end change RF064
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
 			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
