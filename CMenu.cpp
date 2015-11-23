@@ -6,6 +6,10 @@
 #include "RabidFramework.h"
 #include "Ram.h"
 
+// start multiplayer
+#include "HawkNL\\nl.h"
+// end multiplayer
+
 extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
 
 //#define BLIT
@@ -15,6 +19,10 @@ static void SetGamma(int percent);
 static void SetDetail(int percent);
 static void SetSens(int percent);
 static void SetVol(int percent);
+// Start Multiplayer
+static void RunJoinGame();
+static void RunHostGame();
+// end Multiplayer
 static void RunGame();
 static void SetCDPlayer(int current);
 static void SetReverse(int current);
@@ -29,6 +37,12 @@ static void GetSlot();
 static void PrevChar();
 static void NextChar();
 // end change RF063
+
+// Start Multiplayer
+char ServerIP[50];
+char PlayerName[50];
+char IP[NL_MAX_STRING_LENGTH]="";
+// end Multiplayer
 
 #define GAMMAMIN   0.5f
 #define GAMMAMAX   2.0f
@@ -50,6 +64,9 @@ typedef enum
   SLIDER,
   BOX,
   TEXT,
+// Start Multiplayer
+  TEXTEDIT,
+// end Multiplayer
   REMAP,
   SCROLLBAR,
   LSBOX,
@@ -210,6 +227,21 @@ typedef struct Keyname
   KEYCODES	key;	// value of key
 } Keyname;
 
+// start Multiplayer
+//--------------------------
+// TextEdit menu type
+//--------------------------
+
+typedef struct TextEdit
+{
+  int Font;			// font to use
+  char text[255];		// text to display  
+  int Set_X;        // X location on screen
+  int Set_Y;        // Y location on screen
+  int Width;        // width max of the TextEdit
+  Keyname *keyname;
+} TextEdit;
+// end Multiplayer
 
 //--------------------------
 // Scroll bar menu type
@@ -459,6 +491,87 @@ Keyname Rename[] =
 	{NULL}
 };
 
+// start Multiplayer
+Keyname TextEditKeys[] =
+{
+	{"1", KEY_1},
+	{"2", KEY_2},
+	{"3", KEY_3},
+	{"4", KEY_4},
+	{"5", KEY_5},
+	{"6", KEY_6},
+	{"7", KEY_7},
+	{"8", KEY_8},
+	{"9", KEY_9},
+	{"0", KEY_0},
+	{"-", KEY_MINUS},	
+	{" ", KEY_TAB},
+	{"Q", KEY_Q},
+	{"W", KEY_W},
+	{"E", KEY_E},
+	{"R", KEY_R},
+	{"T", KEY_T},
+	{"Y", KEY_Y},
+	{"U", KEY_U},
+	{"I", KEY_I},
+	{"O", KEY_O},
+	{"P", KEY_P},	
+	{"A", KEY_A},
+	{"S", KEY_S},
+	{"D", KEY_D},
+	{"F", KEY_F},
+	{"G", KEY_G},
+	{"H", KEY_H},
+	{"J", KEY_J},
+	{"K", KEY_K},
+	{"L", KEY_L},
+	{"~", KEY_TILDE},	
+	{"Z", KEY_Z},
+	{"X", KEY_X},
+	{"C", KEY_C},
+	{"V", KEY_V},
+	{"B", KEY_B},
+	{"N", KEY_N},
+	{"M", KEY_M},
+	{".", KEY_PERIOD},
+	{"/", KEY_SLASH},
+	{" ", KEY_SPACE},	
+	{"+", KEY_PLUS},
+	{"F1", KEY_F1},
+	{"F2", KEY_F2},
+	{"F3", KEY_F3},
+	{"F4", KEY_F3},
+	{"F5", KEY_F5},
+	{"F6", KEY_F6},
+	{"F7", KEY_F7},
+	{"F8", KEY_F8},
+	{"F9", KEY_F9},
+	{"F10", KEY_F10},
+	{"F11", KEY_F11},
+	{"F12", KEY_F12},	
+	{"[", KEY_LBRACKET},
+	{"]", KEY_RBRACKET},
+	{"=", KEY_EQUAL},
+	{"\\", KEY_BACKSLASH},
+	{".", KEY_SEMICOLON},
+	{".", KEY_COMMA},
+    {"'", KEY_APOSTROPHE},
+	{"0", KEY_NUMPAD0},
+    {"1", KEY_NUMPAD1},
+    {"2", KEY_NUMPAD2},
+    {"3", KEY_NUMPAD3},
+    {"4", KEY_NUMPAD4},
+    {"5", KEY_NUMPAD5},
+    {"6", KEY_NUMPAD5},
+    {"7", KEY_NUMPAD7},
+    {"8", KEY_NUMPAD8},
+    {"9", KEY_NUMPAD9},     
+    {".", KEY_DECIMAL},     
+	{"", KEY_MAXIMUM},
+	{NULL}
+};
+// end Multiplayer
+
 // names of all the currently defined actions
 
 Keydef Redef[] =
@@ -507,6 +620,12 @@ Keydef Redef[] =
 	{"Use Item", RGF_K_USE},
 	{"Inventory", RGF_K_INVENTORY},
 // end change RF063
+// start multiplayer
+	{"Console", RGF_K_CONSOLE},
+// end multiplayer
+// changed RF064
+	{"Drop Weapon", RGF_K_DROP},
+// end change RF064
 	{NULL}
 };
 
@@ -689,14 +808,49 @@ MenuItem CreditMenu[] =
 //-------------------------------------
 // Multiplayer Game Menu
 //-------------------------------------
+// start Multiplayer
 
-Clickable QuitMulti =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
+//
+// Join Game menu
+//
+
+Text IPAdd_Text =  {0, "Server IP Address :", 0};
+TextEdit IPAddress =  {0, "Enter Server IP here", 10,10,100,TextEditKeys};
+Clickable LaunchJoinGame =  {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, RunJoinGame,1,-1,-1};
+Clickable QuitJoinGame =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0,-1,-1};
+Text MultiplayerHelp_Text={0, "Enter a valid server ip, press ENTER and click on Join game", 0};
+MenuItem JoinGameMenu[] = 
+  {	 
+	 {TEXT, 0, 0, (void *)&IPAdd_Text},
+	 {TEXTEDIT, 0, 0, (void *)&IPAddress},
+	 {CLICKABLE, 0, 0, (void *)&LaunchJoinGame},
+     {EXIT_MENU, 0, 0, (void *)&QuitJoinGame}, 
+     {TEXT, 0, 0, (void *)&MultiplayerHelp_Text},    
+     {END_LIST, 0, 0, NULL}
+  };
+
+//
+// Multiplayer menu
+//
+
+Clickable HostNewGame =   {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, RunHostGame, 1,-1,-1};
+Clickable JoinMultiplayerGame =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, JoinGameMenu, NULL, 0,-1,-1};		
+Clickable QuitMulti =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0,-1,-1};
+Text PlayerIP_Text =  {0, "Your IP(s) :", 0};
+Text PlayerIP1 =  {0,IP , 0};
 
 MenuItem MultiMenu[] = 
   {
+	 {CLICKABLE, 0, 0, (void *)&HostNewGame},
+	 {CLICKABLE, 0, 0, (void *)&JoinMultiplayerGame},
      {EXIT_MENU, 0, 0, (void *)&QuitMulti},
+     {TEXT, 0, 0, (void *)&PlayerIP_Text},
+     {TEXT, 0, 0, (void *)&PlayerIP1},
+
      {END_LIST, 0, 0, NULL}
   };
+
+// end Multiplayer
 
 // changed RF063
 //-------------------------------------
@@ -861,6 +1015,23 @@ CRFMenu::CRFMenu()
 //  FILE *fd;
   geBitmap_Info	BmpInfo;
   int i;
+
+// start multiplayer
+  if(CCD->GetNetwork())
+  {
+	  if(nlSelectNetwork(NL_IP))
+	  {
+		  NLsocket serversock = nlOpen(0, NL_RELIABLE_PACKETS);
+		  if(serversock != NL_INVALID)
+		  {
+			  NLaddress   addr;
+			  nlGetLocalAddr(serversock, &addr);
+			  nlAddrToString(&addr, IP);
+			  nlClose(serversock);
+		  }
+	  }
+  }
+// end multiplayer
 
   Bottom = (SoundList *)NULL;
   Screen = 0;
@@ -1196,10 +1367,43 @@ CRFMenu::CRFMenu()
 				MainMenu[7].Y = NextValue();
 				return_text.Font = NextFont();
 			}
-			else if(!stricmp(szAtom,"quitmulti"))
+// start multiplayer
+			else if(!stricmp(szAtom,"hostnewgame"))
 			{
 				MultiMenu[0].X = NextValue();
 				MultiMenu[0].Y = NextValue();
+				HostNewGame.Image_Number = NextValue();
+				HostNewGame.Width = NextValue();
+				HostNewGame.Height = NextValue();
+				HostNewGame.Image_X = NextValue();
+				HostNewGame.Image_Y = NextValue();
+				HostNewGame.Mover_X = NextValue();
+				HostNewGame.Mover_Y = NextValue();
+				HostNewGame.background = NextValue();
+				HostNewGame.title = NextValue();
+				HostNewGame.Animation = NextValue();
+				HostNewGame.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"joinmultiplayergame"))
+			{
+				MultiMenu[1].X = NextValue();
+				MultiMenu[1].Y = NextValue();
+				JoinMultiplayerGame.Image_Number = NextValue();
+				JoinMultiplayerGame.Width = NextValue();
+				JoinMultiplayerGame.Height = NextValue();
+				JoinMultiplayerGame.Image_X = NextValue();
+				JoinMultiplayerGame.Image_Y = NextValue();
+				JoinMultiplayerGame.Mover_X = NextValue();
+				JoinMultiplayerGame.Mover_Y = NextValue();
+				JoinMultiplayerGame.background = NextValue();
+				JoinMultiplayerGame.title = NextValue();
+				JoinMultiplayerGame.Animation = NextValue();
+				JoinMultiplayerGame.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"quitmulti"))
+			{
+				MultiMenu[2].X = NextValue();
+				MultiMenu[2].Y = NextValue();
 				QuitMulti.Image_Number = NextValue();
 				QuitMulti.Width = NextValue();
 				QuitMulti.Height = NextValue();
@@ -1211,6 +1415,68 @@ CRFMenu::CRFMenu()
 				QuitMulti.Animation = NextValue();
 				QuitMulti.AnimationOver = NextValue();
 			}
+			else if(!stricmp(szAtom,"playerip_text"))
+			{
+				MultiMenu[3].X = NextValue();
+				MultiMenu[3].Y = NextValue();
+				PlayerIP_Text.Font = NextFont();				
+			}
+            else if(!stricmp(szAtom,"playerip1"))
+			{            
+				MultiMenu[4].X = NextValue();
+				MultiMenu[4].Y = NextValue();
+				PlayerIP1.Font = NextFont();
+			}
+			else if(!stricmp(szAtom,"ipadd_text"))
+			{
+				JoinGameMenu[0].X = NextValue();
+				JoinGameMenu[0].Y = NextValue();
+				IPAdd_Text.Font = NextFont();				
+			}
+			else if(!stricmp(szAtom,"ipaddress"))
+			{
+				JoinGameMenu[1].X = NextValue();
+				JoinGameMenu[1].Y = NextValue();
+				IPAddress.Font = NextFont();
+				IPAddress.Set_X = JoinGameMenu[1].X;
+				IPAddress.Set_Y = JoinGameMenu[1].Y;
+				IPAddress.Width = NextValue();
+			}
+			else if(!stricmp(szAtom,"launchjoingame"))
+			{
+				JoinGameMenu[2].X = NextValue();
+				JoinGameMenu[2].Y = NextValue();
+				LaunchJoinGame.Image_Number = NextValue();
+				LaunchJoinGame.Width = NextValue();
+				LaunchJoinGame.Height = NextValue();
+				LaunchJoinGame.Image_X = NextValue();
+				LaunchJoinGame.Image_Y = NextValue();
+				LaunchJoinGame.Mover_X = NextValue();
+				LaunchJoinGame.Mover_Y = NextValue();
+				LaunchJoinGame.Animation = NextValue();
+				LaunchJoinGame.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"quitjoingame"))
+			{
+				JoinGameMenu[3].X = NextValue();
+				JoinGameMenu[3].Y = NextValue();
+				QuitJoinGame.Image_Number = NextValue();
+				QuitJoinGame.Width = NextValue();
+				QuitJoinGame.Height = NextValue();
+				QuitJoinGame.Image_X = NextValue();
+				QuitJoinGame.Image_Y = NextValue();
+				QuitJoinGame.Mover_X = NextValue();
+				QuitJoinGame.Mover_Y = NextValue();
+				QuitJoinGame.Animation = NextValue();
+				QuitJoinGame.AnimationOver = NextValue();
+			}
+            else if(!stricmp(szAtom,"multiplayerhelptext"))
+			{
+				JoinGameMenu[4].X = NextValue();
+				JoinGameMenu[4].Y = NextValue();
+				MultiplayerHelp_Text.Font = NextFont();				
+			}
+// end multiplayer
 			else if(!stricmp(szAtom,"quitload"))
 			{
 				LoadGMenu[0].X = NextValue();
@@ -2162,7 +2428,7 @@ CRFMenu::CRFMenu()
 	SavedGame[12].text = strdup("<Slot 13>                    ");
 	SavedGame[13].text = strdup("<Slot 14>                    ");
 	SavedGame[14].text = strdup("<Slot 15>                    ");
-
+// changed RF064
 	if(CCD->GetCSelect())
 	{
 		CIniFile AttrFile("character.ini");
@@ -2175,7 +2441,7 @@ CRFMenu::CRFMenu()
 		}
 		MaxSelect = CurrentSelect = 0;
 		CString KeyName = AttrFile.FindFirstKey();
-		CString Type;
+		CString Type, Vector;
 		char szName[64];
 		while(KeyName != "")
 		{
@@ -2196,8 +2462,55 @@ CRFMenu::CRFMenu()
 					exit(-100);
 				}
 				geEngine_AddBitmap(CCD->Engine()->Engine(), CharSelect[MaxSelect].Bitmap);
-
-
+				Type = AttrFile.GetValue(KeyName, "actorname");
+				if(Type=="")
+				{
+					char szBug[256];
+					sprintf(szBug, "Missing character actor name %s", szName);
+					CCD->ReportError(szBug, false);
+					delete CCD;
+					MessageBox(NULL, "Missing character actor name","Fatal Error", MB_OK);
+					exit(-100);
+				}
+				strcpy(CharSelect[MaxSelect].ActorName, Type);
+				Vector = AttrFile.GetValue(KeyName, "actorrotation");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					CharSelect[MaxSelect].Rotation = Extract(szName);
+					CharSelect[MaxSelect].Rotation.X *= 0.0174532925199433f;
+					CharSelect[MaxSelect].Rotation.Y *= 0.0174532925199433f;
+					CharSelect[MaxSelect].Rotation.Z *= 0.0174532925199433f;
+				}
+				CharSelect[MaxSelect].ActorScale = (float)AttrFile.GetValueF(KeyName, "actorscale");
+				Type = AttrFile.GetValue(KeyName, "animationspeed");
+				CharSelect[MaxSelect].AnimSpeed = 1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].AnimSpeed = (float)AttrFile.GetValueF(KeyName, "animationspeed");
+				CharSelect[MaxSelect].ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
+				geVec3d FillColor = {255.0f, 255.0f, 255.0f};
+				geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
+				Vector = AttrFile.GetValue(KeyName, "fillcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					FillColor = Extract(szName);
+				}
+				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					AmbientColor = Extract(szName);
+				}
+				CharSelect[MaxSelect].FillColor.r = FillColor.X;
+				CharSelect[MaxSelect].FillColor.g = FillColor.Y;
+				CharSelect[MaxSelect].FillColor.b = FillColor.Z;
+				CharSelect[MaxSelect].FillColor.a = 255.0f;
+				CharSelect[MaxSelect].AmbientColor.r = AmbientColor.X;
+				CharSelect[MaxSelect].AmbientColor.g = AmbientColor.Y;
+				CharSelect[MaxSelect].AmbientColor.b = AmbientColor.Z;
+				CharSelect[MaxSelect].AmbientColor.a = 255.0f;
+				
 				MaxSelect +=1;
 			}
 			KeyName = AttrFile.FindNextKey();
@@ -2211,6 +2524,11 @@ CRFMenu::CRFMenu()
 		}
 	}
 
+  CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+                  NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
+  if (mixer.IsOk())
+	WinVol = mixer.GetControlValue();
+// end change RF064
 	//ScreenBmp = geBitmap_Create(640, 480, 1, GE_PIXELFORMAT_16BIT_4444_ARGB);
 	//geBitmap_SetPreferredFormat(ScreenBmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
 	//geBitmap_ClearMips(ScreenBmp);
@@ -2281,6 +2599,12 @@ CRFMenu::~CRFMenu()
 	if(SavedGame[i].text)
 		free(SavedGame[i].text);
   }
+// changed RF064
+  CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+                  NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
+  if (mixer.IsOk())
+	mixer.SetControlValue(WinVol);
+// end change RF064
   return;
 }
 
@@ -2293,6 +2617,7 @@ int CRFMenu::DoMenu(char *levelname)
   M_Camera = geCamera_Create(2.0f, &M_CameraRect);
   strcpy(LevelName, levelname);
   LoopOnce = 0;
+
   if(musictype!=-1)
   {
 	  if(musictype==1)
@@ -2348,6 +2673,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
   Remap *rdata;
   ScrollBar *scdata;
   LSBox *lrdata;
+// start multiplayer
+  int textedit_click;
+  TextEdit *tedata;
+// end multiplayer
 
   geBitmap_GetInfo(Backgrounds[Background_Number], &BmpInfo, NULL);
   x = (CCD->Engine()->Width() - 640) / 2;
@@ -2374,6 +2703,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
   focus = -1;
   lsbox_click = -1;
 
+// start multiplayer
+  textedit_click=-1;
+// end multiplayer
+
   POINT pos;
   if(!CCD->Engine()->FullScreen())
   {
@@ -2390,9 +2723,13 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 	// If Winblows has something to say, take it in and pass it on in the
 	// ..off-chance someone cares.
-	if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+
+	while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
 	{
-		GetMessage(&msg, NULL, 0, 0);
+		GetMessage(&msg, NULL, 0, 0 );
+// start multiplayer
+		TranslateMessage(&msg);
+// end multiplayer
 		DispatchMessage(&msg);
 	}
 
@@ -2603,6 +2940,86 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		 if(tdata->ingame==0 || ingame==1)
 			MFontRect(s, tdata->Font, Menu[i].X+x, Menu[i].Y+y);
        }
+// start multiplayer
+	   if(Menu[i].Type==TEXTEDIT)
+	   {         
+		   tedata=(TextEdit *)Menu[i].data;
+		   Keyname *KTEdata = tedata->keyname;
+		   
+		   int32	Size;
+		   
+		   if( (temppos.x>=Menu[i].X+x) && (temppos.x<=Menu[i].X+x+tedata->Width) && (temppos.y>=Menu[i].Y+y) && (temppos.y<=Menu[i].Y+y+30) ) 
+		   {
+			   if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && textedit_click == -1)
+			   {				    
+				   strcpy(tedata->text,"_");									
+				   geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
+				   textedit_click=i;	
+				   focus=-1;
+			   }
+		   }
+		   if((GetAsyncKeyState(VK_RETURN) & 0x8000) != 0 && textedit_click == i)
+		   {
+			   //focus=-1;		 
+			   Size = strlen( tedata->text );		
+			   tedata->text[Size-1] = '\0';
+			   strcpy(ServerIP,tedata->text);
+			   geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
+			   textedit_click=-1;
+		   }
+		   
+		   if( textedit_click == i && focus==-1)
+		   {
+			   // delete a character...				
+			   if ( ((GetAsyncKeyState(VK_BACK) & 0x8000) != 0) || ((GetAsyncKeyState(VK_LEFT) & 0x8000) != 0) )			
+			   {		
+				   
+				   
+				   // do nothing if there are no more characters left
+				   Size = strlen( tedata->text );
+				   if ( Size > 2 )
+				   {
+					   // delete as character					
+					   tedata->text[Size-2] = '\0';
+					   strcat(tedata->text,"_");				
+					   geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				   }
+			   }		
+			   
+			   int keybrd = CCD->Input()->GetKeyboardInput();
+			   if(keybrd !=-1)
+			   {
+				   char *s = NULL;
+				   int idex = 0;
+				   while(KTEdata[idex].text != NULL)
+				   {
+					   if(keybrd == KTEdata[idex].key)
+					   {
+						   s = KTEdata[idex].text;	
+						   break;
+					   }
+					   idex++;
+				   }
+				   if(s!=NULL)
+				   {		
+					   // do nothing is there is no more room to add characters
+					   Size = strlen( tedata->text );
+					   if ( Size+2 <= sizeof( tedata->text ) )
+					   {	
+						   tedata->text[Size-1] = s[0];						
+						   tedata->text[Size] = '\0';
+						   strcat(tedata->text,"_");									
+						   
+						   //strcat(tedata->text,s);
+						   geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
+						   //textedit_click=i;
+					   }
+				   }
+			   }
+		   }
+		   MFontRect(tedata->text, tedata->Font, tedata->Set_X+x, tedata->Set_Y+y);
+       }
+// end multiplayer
 	   if(Menu[i].Type==REMAP)
 	   {
 		 rdata=(Remap *)Menu[i].data;
@@ -2967,10 +3384,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			}
 			else if(data->proc!=NULL && data->Action==4)
 			{
-				if(SaveBox.Current != -1)
+// changed RF064
+				if(LoadBox.Current != -1)
 				{
-					if(SaveBox.text[SaveBox.Current].empty != 0)
+					if(LoadBox.text[LoadBox.Current].empty != 0)
 					{
+// end change RF064
 						data->proc();
 						return 0;
 					}
@@ -3166,7 +3585,12 @@ void CRFMenu::FontRect(char *s, int FontNumber, int x, int y)
 		char szBug[256];
 		sprintf(szBug, "No defined Font # %d", FontNumber);
 		CCD->ReportError(szBug, false);
-		return;
+// changed RF064
+		CCD->ShutdownLevel();
+		delete CCD;
+		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
+		exit(-336);
+// end change RF064
   }
   if(s!=NULL)
   {
@@ -3235,27 +3659,39 @@ void CRFMenu::StopMenuMusic()
 	 }
 }
 
+// changed RF064
+void CRFMenu::SetMusicVol(float vol)
+{
+	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+                  NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	if (!mixer.IsOk())
+		return;
+
+	DWORD dw = (DWORD)(vol*65535.0f);
+	mixer.SetControlValue(dw);
+}
+// end change RF064
+
 //------------------------------
 // setup and run level
 //------------------------------
 
 void CRFMenu::GameLoop()
 {
-
-
-
 //	Now that we have the initial inventory and attributes for the
 //	..first level, we're going to save them off to a temp. file so
 //	..if the player gets killed, when we restart we can do a fast
 //	..and easy reload of the "game startup" attributes and
 //	..inventory.
 
+/* changed RF064
 	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
 	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
 
 //	Play the opening cut scene, if one exists
 
 	CCD->PlayOpeningCutScene();
+end change RF064 */
 
 	CCD->Player()->ShowFog();					// Show fog, if enabled
 	CCD->Player()->ActivateClipPlane();	// Activate clipping plane, if enabled
@@ -3297,16 +3733,22 @@ void CRFMenu::GameLevel()
   {
 		// If Winblows has something to say, take it in and pass it on in the
 		// ..off-chance someone cares.
-		if(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+// start multiplayer
+		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
 			GetMessage(&msg, NULL, 0, 0);
+			TranslateMessage(&msg);
+// end multiplayer
 			DispatchMessage(&msg);
 		}
 
 		if(CCD->HandleGameInput() == true)
 		{
 			// Ok, send a Tick() call to all components that use time
-			CCD->DispatchTick();
+// changed RF064
+			if(CCD->Inventory()->GetStopTime())
+				CCD->DispatchTick();
+// end change RF064
 			bool cflag = false;
 			if(box1.Current==BOX_ON
 				&& CCD->Player()->GetViewPoint()==FIRSTPERSON
@@ -3350,7 +3792,6 @@ void CRFMenu::GameLevel()
 							if(CCD->Player()->GetViewPoint()==THIRDPERSON && !(CCD->Weapons()->GetCurrent()==-1 || CCD->Weapons()->GetCurrent()==11))
 							{
 								geVec3d ProjectedPoint = CCD->Weapons()->GetProjectedPoint();
-								//x = (int)ProjectedPoint.X - (BmpInfo.Width) / 2;
 								x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 								y = (int)ProjectedPoint.Y - (BmpInfo.Height) / 2;
 							}
@@ -3369,8 +3810,7 @@ void CRFMenu::GameLevel()
 #ifdef RF063
 			CCD->EnemyManager()->Debug();
 #endif
-			CCD->HUD()->Render();								// Render the HUD
-			
+
 			if(box5.Current == BOX_ON)
 			{
 				CCD->Weapons()->WeaponData();
@@ -3399,6 +3839,15 @@ void CRFMenu::GameLevel()
 			}
 			else
 				savetime = 0.0f;
+
+// changed RF064
+			if(CCD->GetConsole())
+			{
+				// call the console render function here as it is active
+			}
+
+			CCD->Inventory()->Display();
+// end change RF064
 
 			// Everything rendered, now end the frame.
 			CCD->Engine()->EndFrame();					// All done, do the necessary flip
@@ -3440,7 +3889,7 @@ void CRFMenu::GameLevel()
 					CCD->ResetClock();
 				}
 				CCD->SetPaused(false);
-			}
+			} 
 			CCD->CheckMediaPlayers();						// Poll media players
 			if(!CCD->Player()->GetAlive())
 			{
@@ -3604,8 +4053,6 @@ void CRFMenu::DisplayCrossHair()
 	geVec3d Pos = Xf.Translation;
 	geXForm3d_GetIn(&Xf, &Direction);
 	geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
-	Vert.r = Vert.g = Vert.b = Vert.a = 255.0f;
-	Vert.u = Vert.v = 0.0f;
 	CCD->Collision()->IgnoreContents(false);
 	CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 	if(CCD->Collision()->CheckForWCollision(&theBox.Min, &theBox.Max,
@@ -3615,18 +4062,25 @@ void CRFMenu::DisplayCrossHair()
 		if(CurrentDistance < 0.0f)
 			CurrentDistance = 0.0f;
 		if(CurrentDistance > 400.0f)
+		{
 			CurrentDistance = 400.0f;
+		}
+		else
+		{
+			// change cursor lighting over damagable item
+			int Percentage = 100;
+			if(Collision.Actor)
+			{
+			}
+			if(Collision.Model)
+			{
+				CCD->Damage()->IsDestroyable(Collision.Model, &Percentage);
+			}
+		}
 		geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
-		// change cursor lighting over damagable item
-		int Percentage = 100;
-		if(Collision.Actor)
-		{
-		}
-		if(Collision.Model)
-		{
-			CCD->Damage()->IsDestroyable(Collision.Model, &Percentage);
-		}
 	}
+	Vert.r = Vert.g = Vert.b = Vert.a = 255.0f;
+	Vert.u = Vert.v = 0.0f;
 	Vert.X = Back.X;
 	Vert.Y = Back.Y;
 	Vert.Z = Back.Z;
@@ -3974,18 +4428,20 @@ static void SetSens(int percent)
 static void SetVol(int percent)
 {
   float vol;
-
-  vol=(((float)percent/100.0f)*0.23f)+0.76f;
+// changed RF064
+  vol=((float)percent/100.0f);
   if(percent == 0)
 	  vol = 0.0f;
-  geSound_SetMasterVolume(CCD->Engine()->AudioSystem(), vol);
+  CCD->MenuManager()->SetMusicVol(vol);
+// end change RF064
 }
 
 // changed RF063
 
 void CRFMenu::DoGame(bool editor)
 {
-	bool useselect = false;
+	useselect = false;
+
 	if(CCD->GetCSelect())
 	{
 		if(editor)
@@ -4033,7 +4489,16 @@ void CRFMenu::DoGame(bool editor)
 		if(CCD->GetCSelect())
 			CCD->MenuManager()->DisplaySplash("loading.bmp");
 	}
-	
+// start multiplayer
+	if(CCD->GetMultiPlayer())
+	{
+		if(!CCD->NetPlayerManager()->Initialize(CCD->GetServer(), ServerIP))
+		{
+			CCD->ReportError("Cant Begin Multiplayer session", false);
+			return;
+		}
+	}
+// end multiplayer	
 	if((CCD->InitializeLevel(CCD->MenuManager()->GetLevelName())) != 0)
 	{
 		CCD->ReportError("Couldn't initialize first level", false);
@@ -4046,7 +4511,16 @@ void CRFMenu::DoGame(bool editor)
 	if(useselect)
 	{
 	}
-	
+
+// changed RF064
+	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
+	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
+
+//	Play the opening cut scene, if one exists
+
+	CCD->PlayOpeningCutScene();
+// end change RF064
+
 	//	Ok, move the player avatar to the correct player start in the
 	//	..game level.
 	
@@ -4057,9 +4531,13 @@ void CRFMenu::DoGame(bool editor)
 		delete CCD;
 		exit(-336);
 	}
-	
+// start multiplayer
+	if(CCD->GetMultiPlayer())
+	{
+		SetTimer(CCD->Engine()->WindowHandle(), NULL, TIMERINTERVAL, NULL);
+	}
+// end multiplayer
 	CCD->MenuManager()->GameLoop();
-	
 }
 
 void CRFMenu::ChangeCurrent(bool direction)
@@ -4092,10 +4570,28 @@ static void NextChar()
 // Run the level
 //-------------------------------------
 
+// start multiplayer
+static void RunHostGame()
+{
+	CCD->ShutDownNetWork();
+	CCD->SetMultiPlayer(true, true);
+    CCD->MenuManager()->DoGame(false);
+}
+
+static void RunJoinGame()
+{
+	CCD->ShutDownNetWork();
+	CCD->SetMultiPlayer(true, false);  
+    CCD->MenuManager()->DoGame(false);
+}
+
 static void RunGame()
 {
+	CCD->ShutDownNetWork();
+	CCD->SetMultiPlayer(false, false);
 	CCD->MenuManager()->DoGame(false);
 }
+// end multiplayer
 
 // end chnge RF063
 
@@ -4191,7 +4687,6 @@ static void ResetAction()
 
 static void SetSlot()
 {
-/*
 	if(SaveBox.Current != -1) // must have selected a slot
 	{
 		// slot must be visible in table
@@ -4242,26 +4737,30 @@ static void SetSlot()
 			}
 			CCD->Engine()->SaveTo(outFD);
 			CCD->Player()->SaveTo(outFD);
-			CCD->Doors()->SaveTo(outFD);
-			CCD->Platforms()->SaveTo(outFD);
-			CCD->Props()->SaveTo(outFD);
-			CCD->Teleporters()->SaveTo(outFD);
+			CCD->Doors()->SaveTo(outFD, false);
+			CCD->Platforms()->SaveTo(outFD, false);
+			CCD->Props()->SaveTo(outFD, false);
+			CCD->Teleporters()->SaveTo(outFD, false);
 			CCD->MorphingFields()->SaveTo(outFD);
 			CCD->MIDIPlayer()->SaveTo(outFD);					
 			CCD->CDPlayer()->SaveTo(outFD);
-			CCD->Triggers()->SaveTo(outFD);					
-			CCD->Logic()->SaveTo(outFD);
+			CCD->Triggers()->SaveTo(outFD, false);					
+			CCD->Logic()->SaveTo(outFD, false);
 // changed RF063
-			CCD->Attributes()->SaveTo(outFD);
-			CCD->Damage()->SaveTo(outFD);
+			CCD->Attributes()->SaveTo(outFD, false);
+			CCD->Damage()->SaveTo(outFD, false);
 			CCD->CameraManager()->SaveTo(outFD);
 			CCD->Weapons()->SaveTo(outFD);
+			CCD->ElectricEffects()->SaveTo(outFD, false);
+			CCD->NPCManager()->SaveTo(outFD, false);
+			CCD->CountDownTimers()->SaveTo(outFD, false);
+			CCD->ChangeAttributes()->SaveTo(outFD, false);
+			CCD->ModelManager()->SaveTo(outFD, false);
 			CCD->SaveTo(outFD);
 // end change RF063
 			fclose(outFD); 
 		}
 	}
-*/
 }
 
 //----------------------------
@@ -4271,21 +4770,22 @@ static void SetSlot()
 
 static void GetSlot()
 {
-/*
-	if(SaveBox.Current != -1) // must have selected saved game
+// changed RF064
+	if(LoadBox.Current != -1) // must have selected saved game
 	{
 		// must be visible in table
-		if(SaveBox.Current>=SaveBox.Start && SaveBox.Current<(SaveBox.Max_Show+SaveBox.Start))
+		if(LoadBox.Current>=LoadBox.Start && LoadBox.Current<(LoadBox.Max_Show+LoadBox.Start))
 		{
 			char filename[256];
 
-			sprintf(filename, "savgame%d.sav",SaveBox.Current);
+			sprintf(filename, "savgame%d.sav",LoadBox.Current);
 			FILE *inFD = CCD->OpenRFFile(kSavegameFile, filename, "rb");
 			if(inFD == NULL)
 			{
 				CCD->ReportError("No savegame file to restore", false);
 				return;
 			}
+// end change RF064
 			CCD->MenuManager()->DisplaySplash("loading.bmp");
 			CCD->ShutdownLevel();
 			if(CCD->CDPlayer())
@@ -4295,20 +4795,25 @@ static void GetSlot()
 			CCD->Engine()->RestoreFrom(inFD);
 			CCD->InitializeLevel(CCD->Engine()->LevelName());
 			CCD->Player()->RestoreFrom(inFD);
-			CCD->Doors()->RestoreFrom(inFD);
-			CCD->Platforms()->RestoreFrom(inFD);
-			CCD->Props()->RestoreFrom(inFD);
-			CCD->Teleporters()->RestoreFrom(inFD);
+			CCD->Doors()->RestoreFrom(inFD, false);
+			CCD->Platforms()->RestoreFrom(inFD, false);
+			CCD->Props()->RestoreFrom(inFD, false);
+			CCD->Teleporters()->RestoreFrom(inFD, false);
 			CCD->MorphingFields()->RestoreFrom(inFD);
 			CCD->MIDIPlayer()->RestoreFrom(inFD);
 			CCD->CDPlayer()->RestoreFrom(inFD);
-			CCD->Triggers()->RestoreFrom(inFD);					
-			CCD->Logic()->RestoreFrom(inFD);
+			CCD->Triggers()->RestoreFrom(inFD, false);					
+			CCD->Logic()->RestoreFrom(inFD, false);
 // changed RF063
-			CCD->Attributes()->RestoreFrom(inFD);
-			CCD->Damage()->RestoreFrom(inFD);
+			CCD->Attributes()->RestoreFrom(inFD, false);
+			CCD->Damage()->RestoreFrom(inFD, false);
 			CCD->CameraManager()->RestoreFrom(inFD);
 			CCD->Weapons()->RestoreFrom(inFD);
+			CCD->ElectricEffects()->RestoreFrom(inFD, false);
+			CCD->NPCManager()->RestoreFrom(inFD, false);
+			CCD->CountDownTimers()->RestoreFrom(inFD, false);
+			CCD->ChangeAttributes()->RestoreFrom(inFD, false);
+			CCD->ModelManager()->RestoreFrom(inFD, false);
 			CCD->RestoreFrom(inFD);
 // end change RF063
 			fclose(inFD);
@@ -4325,5 +4830,4 @@ static void GetSlot()
 			CCD->MenuManager()->SetInGame();
 		}
 	}
-*/
 }

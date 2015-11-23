@@ -72,7 +72,10 @@ CFlipBook::CFlipBook()
 		{
 			S->WorldBitmap = NULL;
 			S->WorldBitmap = geWorld_GetBitmapByName(CCD->World(), S->TextureName);
-			geBitmap_ClearMips(S->WorldBitmap );
+// changed RF064
+			if(S->WorldBitmap)
+// end change Rf064
+				geBitmap_ClearMips(S->WorldBitmap );
 		}
 	}
 
@@ -205,7 +208,9 @@ void CFlipBook::Tick(float dwTicksIn)
 			if(S->WorldBitmap)
 				geBitmap_BlitBitmap(S->Bitmap[S->CurTex], S->WorldBitmap );
 			S->Time += dwTicks;
-			if(S->Time>=(0.001*(1.0f/S->Speed)))
+// changed RF064
+			if(S->Time>=(1000.0f*(1.0f/S->Speed)))
+// end change RF064
 			{
 				S->Time = 0.0f;
 				switch(S->Style)

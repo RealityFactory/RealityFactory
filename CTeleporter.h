@@ -19,9 +19,9 @@ public:
   ~CTeleporter();
   bool HandleCollision(geWorld_Model *pModel, geActor *theActor);
 	void Tick(geFloat dwTicks);			// Do any animation
-	int SaveTo(FILE *SaveFD);
+	int SaveTo(FILE *SaveFD, bool type);
 															// Save teleporters & targets to file
-	int RestoreFrom(FILE *RestoreFD);
+	int RestoreFrom(FILE *RestoreFD, bool type);
 															// Restore teleporters & targets from file
   int BindToPath(char *szName);		// Bind TeleportTarget to motion path
 	int LocateEntity(char *szName, void **pEntityData);

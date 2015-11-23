@@ -56,6 +56,13 @@ struct ActorInstanceList
 	int GravityCoeff;
 	Liquid *LQ;
 // end change RF063
+// changed RF064
+    geWorld_Model *PassengerModel;
+	bool TransitionFlag;
+	float StartTime;
+	GE_Collision GravityCollision;
+	bool HideRadar;
+// end change RF064
 	char szMotionName[128];				// Name of current motion
 	char szNextMotionName[128];		// Name of next motion in queue
 	char szDefaultMotionName[128];	// Default motion for this actor
@@ -214,6 +221,21 @@ public:
 	geMotion *GetpMotion(geActor *theActor);
 	geMotion *GetpBMotion(geActor *theActor);
 	float GetBlendAmount(geActor *theActor);
+// start multiplayer
+	void SetAnimationTime(geActor *theActor, float time);
+// end multiplayer
+// changed RF064
+	int ChangeMaterial(geActor *theActor, char *Change);
+	int SetTransitionMotion(geActor *theActor, char *name1, float Amount, char *name2);
+	bool CheckTransitionMotion(geActor *theActor, char *name1);
+	float GetStartTime(geActor *theActor);
+	bool GetTransitionFlag(geActor *theActor);
+	int GetGravityCollision(geActor *theActor, GE_Collision *Collision);
+	int SetHideRadar(geActor *theActor, bool flag);
+	int GetHideRadar(geActor *theActor, bool *flag);
+	void SetShadowAlpha(geFloat Alpha)
+	{ ShadowAlpha = Alpha; }
+// end change RF064
 private:
 	//	Private member functions
 	void RemoveAllActors(LoadedActorList *theEntry);
@@ -238,6 +260,11 @@ private:
 	//	Private member variables
 	LoadedActorList *MainList[ACTOR_LIST_SIZE];	// Database of loaded actors
 	int m_GlobalInstanceCount;			// Level instance counter
+// changed RF064
+	geFloat ShadowAlpha;
+	CIniFile AttrFile;
+	bool ValidAttr;
+// end change RF064
 };
 
 #endif

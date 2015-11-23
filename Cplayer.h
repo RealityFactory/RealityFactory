@@ -12,10 +12,7 @@ CPlayer.h:		Player character encapsulation class
 
 enum {
 	IDLE = 0,
-	I2WALK,
-	I2RUN,
 	WALK,
-	W2IDLE,
 	RUN,
 	JUMP,
 	STARTJUMP,
@@ -27,11 +24,39 @@ enum {
 	RUNSLIDERIGHT,
 	CRAWL,
 	CIDLE,
-	C2IDLE,
 	CSTARTJUMP,
 	CLAND,
 	SLIDECLEFT,
 	SLIDECRIGHT,
+// changed RF064
+	I2WALK,
+	I2RUN,
+	W2IDLE,
+	C2IDLE,
+	CROUCH2IDLE,
+	IDLE2CROUCH,
+	SWIM2TREAD,
+	TREAD2SWIM,
+	IDLE2TREAD,
+	SWIM2WALK,
+	WALK2SWIM,
+	TREAD2IDLE,
+	JUMP2FALL,
+	JUMP2TREAD,
+	FALL2TREAD,
+	FALL2CRAWL,
+	FALL2WALK,
+	FALL2JUMP,
+	WALK2JUMP,
+	WALK2CRAWL,
+	CRAWL2WALK,
+	IDLE2CRAWL,
+	AIM2CROUCH,
+	CROUCH2AIM,
+	W2TREAD,
+	FALL2RUN,
+	CRAWL2RUN,
+// end change RF064
 	SHOOT,
 	SHOOT1,
 	AIM,
@@ -69,11 +94,38 @@ enum {
 	ANIMMAX
 };
 
+// changed RF064
+enum {
+	I2WALKTIME = 0,
+	I2RUNTIME,
+	W2IDLETIME,
+	C2IDLETIME,
+	CROUCH2IDLETIME,
+	IDLE2CROUCHTIME,
+	SWIM2TREADTIME,
+	TREAD2SWIMTIME,
+	IDLE2TREADTIME,
+	TREAD2IDLETIME,
+	SWIM2WALKTIME,
+	WALK2SWIMTIME,
+	JUMP2FALLTIME,
+	JUMP2TREADTIME,
+	FALL2TREADTIME,
+	SLIDE2CROUCHTIME,
+	SLIDE2IDLETIME,
+	FALL2CRAWLTIME,
+	FALL2WALKTIME,
+	FALL2JUMPTIME,
+	WALK2JUMPTIME,
+	WALK2CRAWLTIME,
+	CRAWL2WALKTIME,
+	IDLE2CRAWLTIME,
+	TRANSMAX
+};
+// end change RF064
+
 #define ANIMIDLE				CCD->Weapons()->PlayerAnim(IDLE)
-#define ANIMI2WALK				CCD->Weapons()->PlayerAnim(I2WALK)
-#define ANIMI2RUN				CCD->Weapons()->PlayerAnim(I2RUN)
 #define ANIMWALK				CCD->Weapons()->PlayerAnim(WALK)
-#define ANIMW2IDLE				CCD->Weapons()->PlayerAnim(W2IDLE)
 #define ANIMRUN					CCD->Weapons()->PlayerAnim(RUN)
 #define ANIMJUMP				CCD->Weapons()->PlayerAnim(JUMP)
 #define ANIMSTARTJUMP			CCD->Weapons()->PlayerAnim(STARTJUMP)
@@ -85,7 +137,37 @@ enum {
 #define ANIMRUNSLIDERIGHT		CCD->Weapons()->PlayerAnim(RUNSLIDERIGHT)
 #define ANIMCRAWL				CCD->Weapons()->PlayerAnim(CRAWL)
 #define ANIMCIDLE				CCD->Weapons()->PlayerAnim(CIDLE)
+
+// changed RF064
+#define ANIMI2WALK				CCD->Weapons()->PlayerAnim(I2WALK)
+#define ANIMI2RUN				CCD->Weapons()->PlayerAnim(I2RUN)
+#define ANIMW2IDLE				CCD->Weapons()->PlayerAnim(W2IDLE)
 #define ANIMC2IDLE				CCD->Weapons()->PlayerAnim(C2IDLE)
+#define ANIMCROUCH2IDLE			CCD->Weapons()->PlayerAnim(CROUCH2IDLE)
+#define ANIMIDLE2CROUCH			CCD->Weapons()->PlayerAnim(IDLE2CROUCH)
+#define ANIMSWIM2TREAD			CCD->Weapons()->PlayerAnim(SWIM2TREAD)
+#define ANIMTREAD2SWIM			CCD->Weapons()->PlayerAnim(TREAD2SWIM)
+#define ANIMIDLE2TREAD			CCD->Weapons()->PlayerAnim(IDLE2TREAD)
+#define ANIMSWIM2WALK			CCD->Weapons()->PlayerAnim(SWIM2WALK)
+#define ANIMWALK2SWIM			CCD->Weapons()->PlayerAnim(WALK2SWIM)
+#define ANIMTREAD2IDLE			CCD->Weapons()->PlayerAnim(TREAD2IDLE)
+#define ANIMJUMP2FALL			CCD->Weapons()->PlayerAnim(JUMP2FALL)
+#define ANIMJUMP2TREAD			CCD->Weapons()->PlayerAnim(JUMP2TREAD)
+#define ANIMFALL2TREAD			CCD->Weapons()->PlayerAnim(FALL2TREAD)
+#define ANIMFALL2CRAWL			CCD->Weapons()->PlayerAnim(FALL2CRAWL)
+#define ANIMFALL2WALK			CCD->Weapons()->PlayerAnim(FALL2WALK)
+#define ANIMFALL2JUMP			CCD->Weapons()->PlayerAnim(FALL2JUMP)
+#define ANIMWALK2JUMP			CCD->Weapons()->PlayerAnim(WALK2JUMP)
+#define ANIMWALK2CRAWL			CCD->Weapons()->PlayerAnim(WALK2CRAWL)
+#define ANIMCRAWL2WALK			CCD->Weapons()->PlayerAnim(CRAWL2WALK)
+#define ANIMIDLE2CRAWL			CCD->Weapons()->PlayerAnim(IDLE2CRAWL)
+#define ANIMAIM2CROUCH			CCD->Weapons()->PlayerAnim(AIM2CROUCH)
+#define ANIMCROUCH2AIM			CCD->Weapons()->PlayerAnim(CROUCH2AIM)
+#define ANIMW2TREAD				CCD->Weapons()->PlayerAnim(W2TREAD)
+#define ANIMFALL2RUN			CCD->Weapons()->PlayerAnim(FALL2RUN)
+#define ANIMCRAWL2RUN			CCD->Weapons()->PlayerAnim(CRAWL2RUN)
+// end change RF064
+
 #define ANIMCSTARTJUMP			CCD->Weapons()->PlayerAnim(CSTARTJUMP)
 #define ANIMCLAND				CCD->Weapons()->PlayerAnim(CLAND)
 #define ANIMSLIDECLEFT			CCD->Weapons()->PlayerAnim(SLIDECLEFT)
@@ -126,6 +208,33 @@ enum {
 // end change RF063
 #define ANIMDIE					GetDieAnim()
 #define ANIMINJURY				GetInjuryAnim()
+
+// changed RF064
+#define ANIMI2WALKTIME			TranTime[I2WALKTIME]
+#define ANIMI2RUNTIME			TranTime[I2RUNTIME]
+#define ANIMW2IDLETIME			TranTime[W2IDLETIME]
+#define ANIMC2IDLETIME			TranTime[C2IDLETIME]
+#define ANIMCROUCH2IDLETIME		TranTime[CROUCH2IDLETIME]
+#define ANIMIDLE2CROUCHTIME		TranTime[IDLE2CROUCHTIME]
+#define ANIMSWIM2TREADTIME		TranTime[SWIM2TREADTIME]
+#define ANIMTREAD2SWIMTIME		TranTime[TREAD2SWIMTIME]
+#define ANIMIDLE2TREADTIME		TranTime[IDLE2TREADTIME]
+#define ANIMTREAD2IDLETIME		TranTime[TREAD2IDLETIME]
+#define ANIMSWIM2WALKTIME		TranTime[SWIM2WALKTIME]
+#define ANIMWALK2SWIMTIME		TranTime[WALK2SWIMTIME]
+#define ANIMJUMP2FALLTIME		TranTime[JUMP2FALLTIME]
+#define ANIMJUMP2TREADTIME		TranTime[JUMP2TREADTIME]
+#define ANIMFALL2TREADTIME		TranTime[FALL2TREADTIME]
+#define ANIMSLIDE2CROUCHTIME	TranTime[SLIDE2CROUCHTIME]
+#define ANIMSLIDE2IDLETIME		TranTime[SLIDE2IDLETIME]
+#define ANIMFALL2CRAWLTIME		TranTime[FALL2CRAWLTIME]
+#define ANIMFALL2WALKTIME		TranTime[FALL2WALKTIME]
+#define ANIMFALL2JUMPTIME		TranTime[FALL2JUMPTIME]
+#define ANIMWALK2JUMPTIME		TranTime[WALK2JUMPTIME]
+#define ANIMWALK2CRAWLTIME		TranTime[WALK2CRAWLTIME]
+#define ANIMCRAWL2WALKTIME		TranTime[CRAWL2WALKTIME]
+#define ANIMIDLE2CRAWLTIME		TranTime[IDLE2CRAWLTIME]
+// end change RF064
 
 class CAudioStream;
 class CPersistentAttributes;
@@ -219,10 +328,17 @@ public:
 	void FlipLight()
 	{ lighton = !lighton; }
 // changed RF063
-	char *GetUseAttribute()
-	{ return UseAttribute; }
-	void SetUseAttribute(char *Attr)
-	{ strcpy(UseAttribute, Attr); }
+// changed RF064
+	bool GetUseAttribute(char *Attr);
+	bool SetUseAttribute(char *Attr);
+	bool DelUseAttribute(char *Attr);
+	bool GetMonitorState()
+	{ return monitorstate; }
+	bool GetMonitorMode()
+	{ return monitormode; }
+	int GetMirror()
+	{ return mirror; }
+// end change RF064
 	int LightValue()
 	{ return (int)CurrentLiteLife; }
 	int LightLife()
@@ -235,6 +351,10 @@ public:
 	int PlayerViewPoint()
 	{ return m_PlayerViewPoint;}
 // end change RF063
+// start multiplayer
+	char *GetPlayerName()
+	{ return PlayerName; }
+// end multiplayer
 private:
 	void AddPosition();						// Add current position to position history
 	geSound_Def *LoadAudioClip(char *szFilename);		// Load audio clip
@@ -329,7 +449,9 @@ private:
 	GE_RGBA	AmbientColor;
 // changed RF063
 	float UseRange;
-	char UseAttribute[64];
+// changed RF064
+	char UseAttribute[10][64];
+	// end change RF064
 	float BoxWidth;
 	float LiquidTime;
 	int InLiquid;
@@ -337,6 +459,23 @@ private:
 	int SurfaceSound;
 	int InLiquidSound;
 // end change RF063
+// start multiplayer
+	char PlayerName[50];
+// end multiplayer
+// changed RF064
+	char FallDamageAttr[64];
+	float TranTime[TRANSMAX];
+	bool alwaysrun;
+	bool nocrouchjump;
+	int mirror;
+	float MinJumpOnDist;
+	float MaxJumpOnDist;
+	float JumpOnDamage;
+	char JumpOnDamageAttr[64];
+	bool LockView;
+	bool monitorstate;
+	bool monitormode;
+// end change RF064
 };
 
 #endif

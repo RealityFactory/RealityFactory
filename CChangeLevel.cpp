@@ -71,6 +71,11 @@ void CChangeLevel::Tick(float dwTicks)
 			if(GetTriggerState(pItem->TriggerChange))
 			{
 				CCD->SetChangeLevelData(pItem);
+// changed RF064
+				CCD->SetChangeLevel(true);
+				CCD->SetKeyPaused(false);
+				CCD->HUD()->Activate();
+// end change RF064
 				return;
 			}
 		}

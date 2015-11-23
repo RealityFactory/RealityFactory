@@ -24,6 +24,13 @@ CActorManager::CActorManager()
 	
 	m_GlobalInstanceCount = 0;			// No instances
 	TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
+// changed RF064
+	ShadowAlpha = 128.0f;
+	AttrFile.SetPath("material.ini");
+	ValidAttr = true;
+	if(!AttrFile.ReadFile())
+		ValidAttr = false;
+// end change RF064
 	
 	return;
 }
@@ -139,7 +146,7 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 	
 	m_GlobalInstanceCount++;
 	theActor = AddNewInstance(MainList[nSlot], NULL);
-	
+
 	return theActor;
 }
 
@@ -165,6 +172,74 @@ geActor *CActorManager::SpawnActor(char *szFilename, geVec3d thePosition, geVec3
 	
 	return theActor;
 }
+
+// changed RF064
+int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
+{
+	geBody		*Body;
+	int32		Material;
+	int32		MaterialCount;
+	int FirstIndex;
+	geBitmap	*Bitmap;
+	float		R, G, B;
+	const char		*MaterialName;
+
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL || !ValidAttr)
+		return RGF_NOT_FOUND;
+
+	CString KeyName = AttrFile.FindFirstKey();
+	CString Type, Value;
+	while(KeyName != "")
+	{
+		if(!strcmp(KeyName, Change))
+		{
+			Body = geActor_GetBody(pEntry->theDef);
+			MaterialCount = geActor_GetMaterialCount(pEntry->Actor);
+
+			Type = AttrFile.FindFirstName(KeyName);
+			Value = AttrFile.FindFirstValue();
+			while(Type!="")
+			{
+				bool found = false;
+				for ( Material = 0; Material < MaterialCount; Material++ )
+				{
+					geBody_GetMaterial( Body, Material, &MaterialName, &Bitmap, &R, &G, &B );
+					if(!strcmp(Type, MaterialName))
+					{
+						found = true;
+						break;
+					}
+				}
+				if(!found)
+					return RGF_FAILURE;
+
+				FirstIndex = Material;
+				found = false;
+				for ( Material = 0; Material < MaterialCount; Material++ )
+				{
+					geBody_GetMaterial( Body, Material, &MaterialName, &Bitmap, &R, &G, &B );
+					if(!strcmp(Value, MaterialName))
+					{
+						found = true;
+						break;
+					}
+				}
+				if(!found)
+					return RGF_FAILURE;
+
+				geActor_SetMaterial(pEntry->Actor, FirstIndex, Bitmap, R, G, B );
+
+				Type = AttrFile.FindNextName();
+				Value = AttrFile.FindNextValue();
+			}
+			return RGF_SUCCESS;
+		}
+		KeyName = AttrFile.FindNextKey();
+	}
+	return RGF_FAILURE;
+}
+// end change RF064
 
 //	RemoveActor
 //
@@ -827,6 +902,8 @@ int CActorManager::SetMotion(geActor *theActor, char *MotionName)
 	pEntry->AnimationTime = 0.0f;		// Clear animation timing
 	pEntry->NeedsNewBB = true;
 	pEntry->BlendFlag = false;
+// changed RF064
+	pEntry->TransitionFlag = false;
 	
 	return RGF_SUCCESS;
 }
@@ -1014,6 +1091,8 @@ int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, floa
 	pEntry->BlendAmount = Amount;
 	pEntry->NeedsNewBB = true;
 	pEntry->BlendFlag = true;
+// changed RF064
+	pEntry->TransitionFlag = false;
 
 	return RGF_SUCCESS;
 }
@@ -1030,6 +1109,8 @@ int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, f
 	pEntry->AnimationTime = 0.0f;		// Clear animation timing
 	pEntry->NeedsNewBB = true;
 	pEntry->BlendFlag = true;
+// changed RF064
+	pEntry->TransitionFlag = false;
 
 	return RGF_SUCCESS;
 }
@@ -1047,6 +1128,94 @@ int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name
 
 	return RGF_SUCCESS;
 }
+
+// changed RF064
+int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amount, char *name2)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;			// Actor not found?!?!
+
+	if(Amount==0.0f)
+	{
+		if(!EffectC_IsStringNull(name2))
+		{
+			SetMotion(theActor, name2);
+			SetNextMotion(theActor, name1);
+		}
+		else
+			SetMotion(theActor, name1);
+	}
+	else
+	{
+		strcpy(pEntry->szBlendMotionName, pEntry->szMotionName);
+		strcpy(pEntry->szMotionName, name1);
+		pEntry->BlendAmount = Amount;
+		pEntry->AnimationTime = 0.0f;		// Clear animation timing
+		pEntry->NeedsNewBB = true;
+		pEntry->TransitionFlag = true;
+		pEntry->StartTime = pEntry->AnimationTime;
+	}
+	return RGF_SUCCESS;
+}
+
+bool CActorManager::CheckTransitionMotion(geActor *theActor, char *name1)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return false;			// Actor not found?!?!
+
+	if(pEntry->TransitionFlag)
+	{
+		if(!strcmp(pEntry->szBlendMotionName, name1))
+			return true;
+	}
+	return false;
+}
+
+//	Get GravityCollision structure
+//
+
+int CActorManager::GetGravityCollision(geActor *theActor, GE_Collision *Collision)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	*Collision = pEntry->GravityCollision;
+	
+	return RGF_SUCCESS;
+}
+
+//	Set HideRadar
+//
+
+int CActorManager::SetHideRadar(geActor *theActor, bool flag)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	pEntry->HideRadar = flag;
+	
+	return RGF_SUCCESS;
+}
+
+//	Get HideRadar
+//
+
+int CActorManager::GetHideRadar(geActor *theActor, bool *flag)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	*flag = pEntry->HideRadar;
+	
+	return RGF_SUCCESS;
+}
+
+// end change RF064
 
 //	SetShadow
 //
@@ -1202,9 +1371,10 @@ geBoolean CActorManager::DoesBoxHitActor(geVec3d thePoint, geExtBox theBox,
 			}
 			// Get actor instance bounding box in MODEL SPACE
 			GetBoundingBox(pEntry->Actor, &Result);
-			if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
-				DrawBoundBox(CCD->World(), &pEntry->localTranslation,
-				&Result.Min, &Result.Max);
+// changed RF064
+			//if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
+				//DrawBoundBox(CCD->World(), &pEntry->localTranslation,
+				//&Result.Min, &Result.Max);
 			Result.Min.X += pEntry->localTranslation.X;
 			Result.Min.Y += pEntry->localTranslation.Y;
 			Result.Min.Z += pEntry->localTranslation.Z;
@@ -1277,9 +1447,10 @@ geBoolean CActorManager::DoesBoxHitActor(geVec3d thePoint, geExtBox theBox,
 			}
 			// Get actor instance bounding box in MODEL SPACE
 			GetBoundingBox(pEntry->Actor, &Result);
-			if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
-				DrawBoundBox(CCD->World(), &pEntry->localTranslation,
-				&Result.Min, &Result.Max);
+// changed RF064
+			//if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
+				//DrawBoundBox(CCD->World(), &pEntry->localTranslation,
+				//&Result.Min, &Result.Max);
 			Result.Min.X += pEntry->localTranslation.X;
 			Result.Min.Y += pEntry->localTranslation.Y;
 			Result.Min.Z += pEntry->localTranslation.Z;
@@ -1596,7 +1767,7 @@ geMotion *CActorManager::GetpBMotion(geActor *theActor)
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
 		return NULL;					// Actor not found?!?!
-	if(pEntry->BlendFlag)
+	if(pEntry->BlendFlag || pEntry->TransitionFlag)
 		return pEntry->pBMotion;
 	return NULL;
 }
@@ -1606,10 +1777,28 @@ float CActorManager::GetBlendAmount(geActor *theActor)
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
 		return NULL;					// Actor not found?!?!
-	if(pEntry->BlendFlag)
+	if(pEntry->BlendFlag || pEntry->TransitionFlag)
 		return pEntry->BlendAmount;
 	return 0.0f;
 }
+
+// changed RF064
+float CActorManager::GetStartTime(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return 0.0f;					// Actor not found?!?!
+	return pEntry->StartTime;
+}
+
+bool CActorManager::GetTransitionFlag(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return false;					// Actor not found?!?!
+	return pEntry->TransitionFlag;
+}
+// end change RF064
 
 //	Falling
 //
@@ -1756,8 +1945,21 @@ void CActorManager::Tick(geFloat dwTicks)
 	for(nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
 	{
 		// Ok, something in this entry?
+// changed RF064
 		if(MainList[nTemp] != NULL)
+		{
+			geExtBox Result;
 			TimeAdvanceAllInstances(MainList[nTemp], dwTicks);
+			ActorInstanceList *pEntry = MainList[nTemp]->IList;
+			if(pEntry)
+			{
+				GetBoundingBox(pEntry->Actor, &Result);
+				if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
+					DrawBoundBox(CCD->World(), &pEntry->localTranslation,
+					&Result.Min, &Result.Max);
+			}
+		}
+// end change RF064
 	}
 	
 	return;
@@ -1826,6 +2028,11 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->OldZone = 0;
 	NewEntry->LQ = NULL;
 // end change RF063
+// changed RF064
+	NewEntry->PassengerModel = NULL;
+	NewEntry->TransitionFlag = false;
+	NewEntry->HideRadar = false;
+// end change RF064
 	NewEntry->BoxChange = true;
 	NewEntry->BlendFlag = false;
 	NewEntry->HoldAtEnd = false;
@@ -2011,6 +2218,16 @@ float CActorManager::GetAnimationTime(geActor *theActor)
 	return pEntry->PrevAnimationTime;
 }
 
+// start multiplayer
+void CActorManager::SetAnimationTime(geActor *theActor, float time)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return;
+	pEntry->AnimationTime = time;
+}
+// end multiplayer
+
 void CActorManager::SetHoldAtEnd(geActor *theActor, bool State)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
@@ -2088,6 +2305,9 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 		}
 	}
 	theEntry->pMotion = pMotion;
+// changed Rf064
+	theEntry->pBMotion = NULL;
+// end change RF064
 	geFloat time = theEntry->PrevAnimationTime = (((geFloat)theEntry->AnimationTime) / 1000.0f) * theEntry->ActorAnimationSpeed;
 	geFloat tStart, tEnd;
 	
@@ -2111,16 +2331,35 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 	
 	if(pMotion)
 	{
-		geActor_SetPose(theEntry->Actor, pMotion, time, &thePosition);
-		if(pMotion && theEntry->BlendFlag)
+// changed RF064
+		if(theEntry->TransitionFlag)
 		{
+			tEnd = theEntry->BlendAmount;
+			geActor_SetPose(theEntry->Actor, pMotion, 0.0f, &thePosition);
 			pBMotion = geActor_GetMotionByName(theEntry->theDef, theEntry->szBlendMotionName);
 			if(pBMotion)
 			{
+				float BM = (theEntry->BlendAmount - time)/theEntry->BlendAmount;
+				if(BM<0.0f)
+					BM = 0.0f;
 				theEntry->pBMotion = pBMotion;
-				geActor_BlendPose(theEntry->Actor, pBMotion, time, &thePosition, theEntry->BlendAmount);
+				geActor_BlendPose(theEntry->Actor, pBMotion, theEntry->StartTime, &thePosition, BM);
 			}
 		}
+		else
+		{
+			geActor_SetPose(theEntry->Actor, pMotion, time, &thePosition);
+			if(pMotion && theEntry->BlendFlag)
+			{
+				pBMotion = geActor_GetMotionByName(theEntry->theDef, theEntry->szBlendMotionName);
+				if(pBMotion)
+				{
+					theEntry->pBMotion = pBMotion;
+					geActor_BlendPose(theEntry->Actor, pBMotion, time, &thePosition, theEntry->BlendAmount);
+				}
+			}
+		}
+// end change RF064
 	}
 	else
 	{
@@ -2160,7 +2399,9 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 				vertex[i].r = 24.0f;
 				vertex[i].g = 24.0f;
 				vertex[i].b = 24.0f;
-				vertex[i].a = 16.0f;
+// changed RF064
+				vertex[i].a = ShadowAlpha;
+// end change RF064
 			}
 			
 			vertex[3].u = 1.0f;
@@ -2283,6 +2524,9 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 // changed RF063
 				theEntry->AnimationTime = (time - tEnd);//0.0f;
 			}
+// changed RF064
+			theEntry->TransitionFlag = false;
+// end change RF064
 		}
 		else
 			theEntry->AnimationTime += dwTicks;						// Time moves!
@@ -2453,8 +2697,10 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 		
 		//	If we're in water, well, there's no acceleration towards the bottom
 		//	..due to water friction and it's slow, so let's simulate it.
-// changed RF063		
-		if(nZoneType == kLiquidZone)
+// changed RF063
+// changed RF064
+		if(nZoneType == kLiquidZone && (theEntry->Actor==CCD->Player()->GetActor()))
+// end change RF064
 		{
 			if(theEntry->Moving)
 			{
@@ -2484,18 +2730,29 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 	
 	CCD->Collision()->IgnoreContents(false);
 	CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
+
+// changed RF064
+	if(theEntry->PassengerModel)
+	{
+		CCD->ModelManager()->RemovePassenger(theEntry->PassengerModel, theEntry->Actor);
+		theEntry->PassengerModel = NULL;
+	}
+// end change RF064
 	
 	int nHitType = kNoCollision;
-	do
-	{
+
 		Result = CCD->Collision()->CheckActorCollision(oldpos, newpos, theEntry->Actor,
 			&Collision);
 		
 		if(Result == true)					// Your new position collides with something
 		{
+// changed RF064
+			theEntry->GravityCollision = Collision;
+// end change RF064
 			// Process the collision event.
 			nHitType = CCD->Collision()->ProcessCollision(Collision, theEntry->Actor, true);
-
+//geEngine_Printf(CCD->Engine()->Engine(), 0,10,"HitType = %d",nHitType);
+//geEngine_Printf(CCD->Engine()->Engine(), 0,20,"Model = %x",Collision.Model);
 			// Weapon
 			if(nHitType == kNoCollision || nHitType == kCollideWeapon)
 			{
@@ -2520,6 +2777,9 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 			if(nHitType == kCollidePlatform)
 			{
 				CCD->ModelManager()->AddPassenger(Collision.Model, theEntry->Actor);
+// changed RF064
+				theEntry->PassengerModel = Collision.Model;
+// end change RF064
 				theEntry->GravityTime = 0.0f;
 				theEntry->localTranslation = Collision.Impact;
 				UpdateActorState(theEntry);
@@ -2560,8 +2820,7 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 				newpos = Collision.Impact;
 			}
 		}
-	} while(nHitType==kCollideRecheck);
-	
+
 	theEntry->localTranslation = newpos;
 	UpdateActorState(theEntry);
 	
@@ -3062,8 +3321,10 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 			}
 			if(nHitType == kCollideDoor)
 				return GE_FALSE;					// If we hit an door, exit.
-			if(nHitType == kCollideActor)
-				return GE_FALSE;
+// changed RF064
+			//if(nHitType == kCollideActor)
+				//return GE_FALSE;
+// end change RF064
 			if(nHitType == kCollideTrigger)
 				return GE_FALSE;  
 			if(nHitType == kCollideVehicle)
@@ -3197,7 +3458,9 @@ int CActorManager::CheckAnimation(geActor *theActor, char *Animation)
 		return RGF_NOT_FOUND;
 	GetBoundingBox(theActor, &theBox);
 	theBox.Max.Y = Height;
-	
+// changed RF064
+	theBox.Min.Y = 1.0f;
+// end change RF064	
 	return CCD->Collision()->CanOccupyPosition(&theEntry->localTranslation, &theBox, theEntry->Actor);
 	
 }
@@ -3401,53 +3664,47 @@ int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool C
 	geActor_SetRenderHintExtBox(theEntry->Actor, &ExtBox, NULL);
 	if(Camera)
 	{
-		geVec3d theRotation, theTranslation;
-		CCD->CameraManager()->GetCameraOffset(&theTranslation, &theRotation);
-// changed RF063
+// changed RF064
+		float DesiredHeight;
 		switch(CCD->Player()->PlayerViewPoint())
 		{
 		case FIRSTPERSON:
 			if(CCD->CameraManager()->GetViewHeight()!=-1)
 			{
-				theTranslation.Y = ((ExtBox.Max.Y * 
+				DesiredHeight = ((ExtBox.Max.Y * 
 					CCD->CameraManager()->GetViewHeight())/CCD->Player()->GetHeight())
-					* CCD->Player()->GetScale() * 0.75f;
+					* 0.75f;
 			}
 			else
 			{
-				theTranslation.Y = ExtBox.Max.Y 
-					* CCD->Player()->GetScale() * 0.75f;
+				DesiredHeight = ExtBox.Max.Y * 0.75f;
 			}
 			break;
 		case THIRDPERSON:
 			if(CCD->CameraManager()->GetPlayerHeight()!=-1)
 			{
-				theTranslation.Y = ((ExtBox.Max.Y * 
-					CCD->CameraManager()->GetPlayerHeight())/CCD->Player()->GetHeight())
-					* CCD->Player()->GetScale();
+				DesiredHeight = ((ExtBox.Max.Y * 
+					CCD->CameraManager()->GetPlayerHeight())/CCD->Player()->GetHeight());
 			}
 			else
 			{
-				theTranslation.Y = ExtBox.Max.Y 
-					* CCD->Player()->GetScale();
+				DesiredHeight = ExtBox.Max.Y; 
 			}
 			break;
 		case ISOMETRIC:
 			if(CCD->CameraManager()->GetIsoHeight()!=-1)
 			{
-				theTranslation.Y = ((ExtBox.Max.Y * 
-					CCD->CameraManager()->GetIsoHeight())/CCD->Player()->GetHeight())
-					* CCD->Player()->GetScale();
+				DesiredHeight = ((ExtBox.Max.Y * 
+					CCD->CameraManager()->GetIsoHeight())/CCD->Player()->GetHeight());
 			}
 			else
 			{
-				theTranslation.Y = ExtBox.Max.Y 
-					* CCD->Player()->GetScale();
+				DesiredHeight = ExtBox.Max.Y;
 			}
 			break;
 		}
-// end change RF063
-		CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);	
+		CCD->CameraManager()->SetDesiredHeight(DesiredHeight);
+// end change RF064	
 		CCD->CameraManager()->TrackMotion();
 	}
 	return RGF_SUCCESS;

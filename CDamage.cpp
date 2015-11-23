@@ -53,6 +53,18 @@ CDamage::CDamage()
 		pDestroy->bState = true;
 		pDestroy->CallBack = false;
 		pDestroy->active = false;
+// changed RF064
+		pDestroy->Animating = false;
+		CCD->ModelManager()->AddModel(pDestroy->Model, ENTITY_GENERIC);
+		if(pDestroy->Model1)
+			CCD->ModelManager()->AddModel(pDestroy->Model1, ENTITY_GENERIC);
+		if(pDestroy->Model2)
+			CCD->ModelManager()->AddModel(pDestroy->Model2, ENTITY_GENERIC);
+		if(pDestroy->Model3)
+			CCD->ModelManager()->AddModel(pDestroy->Model3, ENTITY_GENERIC);
+		if(pDestroy->Model4)
+			CCD->ModelManager()->AddModel(pDestroy->Model4, ENTITY_GENERIC);
+// end change RF064
 		pDestroy->OriginalAmt = pDestroy->AttributeAmt;
 		if(!EffectC_IsStringNull(pDestroy->szSoundFile))
 			SPool_Sound(pDestroy->szSoundFile);
@@ -87,6 +99,93 @@ void CDamage::Tick(float dwTicks)
 			if(pDestroy->CallBackCount==0)
 				pDestroy->CallBack=GE_FALSE;
 		}
+// changed RF064
+		if(pDestroy->Animating)
+		{
+			bool running = false;
+			if(!CCD->ModelManager()->IsRunning(pDestroy->Model))
+			{
+				geXForm3d Xf1;
+				geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
+				Xf1.Translation.X=10000.0f;
+				Xf1.Translation.Y=10000.0f;
+				Xf1.Translation.Z=10000.0f;
+				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
+				CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
+			}
+			else
+				running = true;
+
+			if(pDestroy->Model1)
+			{
+				if(!CCD->ModelManager()->IsRunning(pDestroy->Model1))
+				{
+					geXForm3d Xf1;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+					Xf1.Translation.X=10000.0f;
+					Xf1.Translation.Y=10000.0f;
+					Xf1.Translation.Z=10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+					CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+				}
+				else
+					running = true;
+			}
+			if(pDestroy->Model2)
+			{
+				if(!CCD->ModelManager()->IsRunning(pDestroy->Model2))
+				{
+					geXForm3d Xf1;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+					Xf1.Translation.X=10000.0f;
+					Xf1.Translation.Y=10000.0f;
+					Xf1.Translation.Z=10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+					CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+				}
+				else
+					running = true;
+			}
+			if(pDestroy->Model3)
+			{
+				if(!CCD->ModelManager()->IsRunning(pDestroy->Model3))
+				{
+					geXForm3d Xf1;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+					Xf1.Translation.X=10000.0f;
+					Xf1.Translation.Y=10000.0f;
+					Xf1.Translation.Z=10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+					CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+				}
+				else
+					running = true;
+			}
+			if(pDestroy->Model4)
+			{
+				if(!CCD->ModelManager()->IsRunning(pDestroy->Model4))
+				{
+					geXForm3d Xf1;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+					Xf1.Translation.X=10000.0f;
+					Xf1.Translation.Y=10000.0f;
+					Xf1.Translation.Z=10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+					CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+				}
+				else
+					running = true;
+			}
+
+			if(!running)
+			{
+				pDestroy->bState = false;
+				pDestroy->Animating = false;
+				pDestroy->CallBack = GE_TRUE;
+				pDestroy->CallBackCount = 2;
+			}
+			continue;
+		}
 		if(!EffectC_IsStringNull(pDestroy->TriggerName))
 		{
 			if(GetTriggerState(pDestroy->TriggerName))
@@ -100,17 +199,72 @@ void CDamage::Tick(float dwTicks)
 		{
 			if(pDestroy->AttributeAmt<=0.0f)
 			{
-				pDestroy->bState = false;
-				pDestroy->CallBack = GE_TRUE;
-				pDestroy->CallBackCount = 2;
-				geXForm3d Xf1;
-				geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-				Xf1.Translation.X=10000.0f;
-				Xf1.Translation.Y=10000.0f;
-				Xf1.Translation.Z=10000.0f;
-				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-				if(CCD->ModelManager()->IsModel(pDestroy->Model))
-					CCD->ModelManager()->RemoveModel(pDestroy->Model);
+				if(pDestroy->Animate)
+				{
+					pDestroy->Animating = true;
+					CCD->ModelManager()->Start(pDestroy->Model);
+					if(pDestroy->Model1)
+						CCD->ModelManager()->Start(pDestroy->Model1);
+					if(pDestroy->Model2)
+						CCD->ModelManager()->Start(pDestroy->Model2);
+					if(pDestroy->Model3)
+						CCD->ModelManager()->Start(pDestroy->Model3);
+					if(pDestroy->Model4)
+						CCD->ModelManager()->Start(pDestroy->Model4);
+				}
+				else
+				{
+					pDestroy->bState = false;
+					pDestroy->CallBack = GE_TRUE;
+					pDestroy->CallBackCount = 2;
+					geXForm3d Xf1;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
+					Xf1.Translation.X=10000.0f;
+					Xf1.Translation.Y=10000.0f;
+					Xf1.Translation.Z=10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
+					CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
+					if(pDestroy->Model1)
+					{
+						geXForm3d Xf1;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+						Xf1.Translation.X=10000.0f;
+						Xf1.Translation.Y=10000.0f;
+						Xf1.Translation.Z=10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+						CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+					}
+					if(pDestroy->Model2)
+					{
+						geXForm3d Xf1;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+						Xf1.Translation.X=10000.0f;
+						Xf1.Translation.Y=10000.0f;
+						Xf1.Translation.Z=10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+						CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+					}
+					if(pDestroy->Model3)
+					{
+						geXForm3d Xf1;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+						Xf1.Translation.X=10000.0f;
+						Xf1.Translation.Y=10000.0f;
+						Xf1.Translation.Z=10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+						CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+					}
+					if(pDestroy->Model4)
+					{
+						geXForm3d Xf1;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+						Xf1.Translation.X=10000.0f;
+						Xf1.Translation.Y=10000.0f;
+						Xf1.Translation.Z=10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+						CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+					}
+				}
 				if(!EffectC_IsStringNull(pDestroy->szSoundFile))
 				{
 					Snd Sound;
@@ -123,6 +277,7 @@ void CDamage::Tick(float dwTicks)
 					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
 				}
 			}
+// end change RF064
 		}
 	}
 }
@@ -133,7 +288,7 @@ void CDamage::Tick(float dwTicks)
 //	Save the current state 
 //	..off to an open file.
 
-int CDamage::SaveTo(FILE *SaveFD)
+int CDamage::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -151,7 +306,7 @@ int CDamage::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
-		fwrite(&pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -162,7 +317,7 @@ int CDamage::SaveTo(FILE *SaveFD)
 //	Restore the state from an
 //	..open file.
 
-int CDamage::RestoreFrom(FILE *RestoreFD)
+int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -178,7 +333,7 @@ int CDamage::RestoreFrom(FILE *RestoreFD)
     pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
-		fread(&pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
     }
 	
 	return RGF_SUCCESS;
@@ -236,9 +391,11 @@ void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr, float 
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		DestroyableModel *pDestroy= (DestroyableModel*)geEntity_GetUserData(pEntity);
-
-		if(Model != pDestroy->Model)
+// changed RF064
+		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
+			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
 			continue;
+// end change RF064
 		if(EffectC_IsStringNull(pDestroy->Attribute))
 		{
 			if(!stricmp(Attr, "health") && pDestroy->AttributeAmt>0)
@@ -278,10 +435,44 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range, float amount, cha
 		if(pDestroy->active == GE_TRUE && pDestroy->bState)
 		{
 			geVec3d thePosition;
+			float Distance, MinDistance;
 			geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, 
 					&thePosition);
+			MinDistance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
+			if(pDestroy->Model1)
+			{
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model1, 
+					&thePosition);
+				Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
+				if(Distance<MinDistance)
+					MinDistance = Distance;
+			}
+			if(pDestroy->Model2)
+			{
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model2, 
+					&thePosition);
+				Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
+				if(Distance<MinDistance)
+					MinDistance = Distance;
+			}
+			if(pDestroy->Model3)
+			{
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model3, 
+					&thePosition);
+				Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
+				if(Distance<MinDistance)
+					MinDistance = Distance;
+			}
+			if(pDestroy->Model4)
+			{
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model4, 
+					&thePosition);
+				Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
+				if(Distance<MinDistance)
+					MinDistance = Distance;
+			}
 
-			if((float)fabs(geVec3d_DistanceBetween(&Point, &thePosition))<Range)
+			if(MinDistance<=Range)
 			{
 				if(EffectC_IsStringNull(pDestroy->Attribute))
 				{
@@ -321,9 +512,11 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		DestroyableModel *pDestroy= (DestroyableModel*)geEntity_GetUserData(pEntity);
-
-		if(Model != pDestroy->Model)
+// changed RF064
+		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
+			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
 			continue;
+// end change RF064
 		*Percentage = ((int)pDestroy->AttributeAmt * 100)/(int)pDestroy->OriginalAmt;
 		return true;
 	}

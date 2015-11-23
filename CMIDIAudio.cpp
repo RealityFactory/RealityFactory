@@ -123,6 +123,9 @@ int CMIDIAudio::Play(char *szFile, bool bLoop)
 	    
 	strcpy(m_MIDIFile, szFile);								// Save filename
 
+	// changed RF064
+	strcpy(m_savefile, szFile);
+	// end change RF064
   m_bActive = true;
 
 //	File playing, let's BAIL THIS MESS!

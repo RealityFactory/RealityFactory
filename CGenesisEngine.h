@@ -58,10 +58,16 @@ public:
 		IncompleteTexture*& BitmapBuffer, int & NumWide, int & NumHigh);
 	CompleteTexture BuildCompleteTexture(IncompleteTexture* 
 		BitmapBuffer, int NumWide, int NumHigh);
-	bool AddCompleteTextureToWorld(geWorld * w, CompleteTexture cp);
+	bool AddCompleteTextureToWorld(CompleteTexture cp);
 	bool DrawCompleteTexture(CompleteTexture cp, geCamera * ClipCamera, 
 		FloatRect * ScreenRect, FloatRect * PercentRect, 
 		geFloat Alpha, GE_RGBA* RGBA_Array = NULL);
+// changed RF064
+	bool DrawBitmap(geBitmap * pBitmap, geRect *BitmapRect, int x, int y);
+	CompleteTexture BitmapToComplete(geBitmap * pBitmap);
+	void DeleteCompleteTexture(CompleteTexture cp);
+	void DrawComplete(CompleteTexture cp, int x, int y);
+// end change RF064
 	void ShowFrameRate(bool bHow);		// Guess what this does?
 	bool LoadLevel(char *szLevelFilename);		// Load level into engine
 	int BeginFrame();							// Start rendering frame

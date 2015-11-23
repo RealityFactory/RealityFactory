@@ -19,6 +19,9 @@ Manager that handles special effects for RGF-based games.
 #define EFF_SND         4
 #define EFF_BOLT        5
 #define EFF_CORONA      6
+// changed RF064
+#define EFF_ACTORSPRAY  7
+// end change RF064
 
 #define EFFECTC_CLIP_LEAF		( 1 << 0 )
 #define EFFECTC_CLIP_LINEOFSIGHT	( 1 << 1 )
@@ -118,6 +121,10 @@ typedef struct
 	float		AlphaRate;	// how much to subtract from alpha each second
 	Sprite_CycleStyle	Style;	// how to cycle through the images
 	float		Rotation;	// art rotation amount (radians)
+// changed RF064
+	float		LifeTime;
+	float		CurrentLife;
+// end change RF064
 } Sprite;
 
 #define SND_POS		( 1 << 0 )
@@ -179,6 +186,48 @@ typedef struct
 
 } EffCorona;
 
+// changed RF064
+
+typedef struct
+{
+	float		TimeRemaining;		// RESERVED
+	float		PolyCount;		// RESERVED
+	geXForm3d	Xf;			// RESERVED
+	geBoolean	Paused;			// RESERVED, whether or not the sprite is paused
+	int			ActorNum;	// RESERVED
+	bool		Direction;
+	int			NumActors;
+	char		BaseName[64];
+	geVec3d		BaseRotation;
+	geVec3d		MinRotationSpeed;
+	geVec3d		MaxRotationSpeed;
+	GE_RGBA		FillColor;
+	GE_RGBA		AmbientColor;
+	int			Style;
+	float		Alpha;
+	float		AlphaRate;
+	float		SprayLife;		// life of effect
+	float		Rate;			// add a new actor every "Rate" seconds
+	bool		Gravity;		// gravity flag
+	float		DistanceMax;		// distance past which the effect is not drawn
+	float		DistanceMin;		// distance up to which no level of detail processing is done
+	geVec3d		Source;			// source point
+	int		SourceVariance;		// +/- units to vary the source point
+	geVec3d		Dest;			// dest point
+	int		DestVariance;		// +/- units to vary the dest point
+	float		MinScale;		// min scale for the art
+	float		MaxScale;		// max scale for the art
+	float		MinUnitLife;		// min life of each actor
+	float		MaxUnitLife;		// max life of each actor
+	float		MinSpeed;		// min speed of each actor
+	float		MaxSpeed;		// max speed of each actor
+	geBoolean	Bounce;
+
+} ActorSpray;
+
+typedef	struct	ActorParticle_System	ActorParticle_System;
+// end change RF064
+
 typedef	struct	Particle_System	Particle_System;
 
 typedef struct Eff_Item
@@ -233,9 +282,17 @@ private:
   void Corona_Remove(EffCorona *Data);
   geBoolean Corona_Process(EffCorona  *Data,  float  TimeDelta);
   geBoolean Corona_Modify(EffCorona *Data, EffCorona *NewData, uint32 Flags);
-
+// changed RF064
+  void *ActorSpray_Add(void *Data);
+  void ActorSpray_Remove(ActorSpray *Data);
+  geBoolean ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta);
+  geBoolean ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, uint32 Flags);
+// end change RF064
   Eff_Item      Item[MAX_EFF_ITEMS];
   Particle_System *Ps;
+// changed RF064
+  ActorParticle_System *APs;
+// end change RF064
 };
 
 #endif

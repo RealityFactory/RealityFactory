@@ -18,8 +18,8 @@ public:
   ~CDamage();
   void Tick(float dwTicks);
 // changed RF063
-  int SaveTo(FILE *SaveFD);
-  int RestoreFrom(FILE *RestoreFD);
+  int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
   void DamageActor(geActor *Actor, float amount, char *Attr, float Altamount, char *AltAttr);
   void DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr);
   void DamageModel(geWorld_Model *Model, float amount, char *Attr, float Altamount, char *AltAttr);

@@ -49,6 +49,7 @@ CFirePoint::CFirePoint()
 	    	geWorld_GetModelRotationalCenter(CCD->World(), pFire->Model, &ModelOrigin);
             geVec3d_Subtract(&pFire->origin, &ModelOrigin, &pFire->OriginOffset);
   		}
+
 		pFire->active=false;
 		pFire->Tick = 0.0f;
 		pFire->FireRate = EffectC_Frand(pFire->MinFireRate, pFire->MaxFireRate);

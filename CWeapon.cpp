@@ -49,6 +49,9 @@ CWeapon::CWeapon()
 	{	
 		PlayerSetup *theStart = (PlayerSetup *)geEntity_GetUserData(pEntity);
 		ViewPoint = theStart->LevelViewPoint;
+// changed RF064
+		OldViewPoint = ViewPoint;
+// end change RF064
 		
 	}
 	else
@@ -237,6 +240,7 @@ void CWeapon::Tick(float dwTicks)
 		{
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
+			//if(CCD->Collision()->CheckForCollisionD(&d->ExtBox.Min, &d->ExtBox.Max,
 			if(CCD->Collision()->CheckForWCollision(&d->ExtBox.Min, &d->ExtBox.Max,
 				tempPos, tempPos1, &Collision, d->Actor))
 			{
@@ -391,15 +395,21 @@ void CWeapon::Tick(float dwTicks)
 
 void CWeapon::Display()
 {
+// changed RF064
+	if(CCD->Player()->GetMonitorMode())
+		return;
 	if(CurrentWeapon==-1 || CurrentWeapon==11)
 		return;
 	
 	if(ViewPoint==FIRSTPERSON)
 	{
 		if(WeaponD[CurrentWeapon].PActor)
-			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, 0);
+			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, CCD->Player()->GetMirror());
 		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
 		DisplayFirstPerson(CurrentWeapon);
+		if(CCD->Player()->GetMirror()!=0 && WeaponD[CurrentWeapon].PActor)
+			DisplayThirdPerson(CurrentWeapon);
+// end change RF064
 	}
 	else
 	{
@@ -432,17 +442,46 @@ void CWeapon::DisplayThirdPerson(int index)
 
 	ActorMotion = CCD->ActorManager()->GetpMotion(Actor);
 	ActorBMotion = CCD->ActorManager()->GetpBMotion(Actor);
+// changed RF064
 	if(ActorMotion)
 	{
-		geActor_SetPose(WeaponD[index].PActor, ActorMotion, CCD->ActorManager()->GetAnimationTime(Actor), &XForm);
-		if(ActorBMotion)
+		if(CCD->ActorManager()->GetTransitionFlag(Actor))
 		{
-			geActor_BlendPose(WeaponD[index].PActor, ActorBMotion, CCD->ActorManager()->GetAnimationTime(Actor), &XForm, CCD->ActorManager()->GetBlendAmount(Actor));
+			geActor_SetPose(WeaponD[index].PActor, ActorMotion, 0.0f, &XForm);
+			if(ActorBMotion)
+			{
+				float BM = (CCD->ActorManager()->GetBlendAmount(Actor)
+					- CCD->ActorManager()->GetAnimationTime(Actor))
+					/CCD->ActorManager()->GetBlendAmount(Actor);
+				if(BM<0.0f)
+					BM = 0.0f;
+				geActor_BlendPose(WeaponD[index].PActor, ActorBMotion, 
+					CCD->ActorManager()->GetStartTime(Actor), &XForm, 
+					BM);
+			}
+		}
+		else
+		{
+			geActor_SetPose(WeaponD[index].PActor, ActorMotion, CCD->ActorManager()->GetAnimationTime(Actor), &XForm);
+			if(ActorBMotion)
+			{
+				geActor_BlendPose(WeaponD[index].PActor, ActorBMotion, 
+					CCD->ActorManager()->GetAnimationTime(Actor), &XForm, 
+					CCD->ActorManager()->GetBlendAmount(Actor));
+			}
 		}
 	}
+// end change RF064
 	else
 		geActor_ClearPose(WeaponD[index].PActor, &XForm);
 // changed RF063
+	geFloat fAlpha;
+	CCD->ActorManager()->GetAlpha(Actor, &fAlpha);
+	geActor_SetAlpha(WeaponD[index].PActor, fAlpha);
+// changed RF064
+	if(ViewPoint==FIRSTPERSON)
+		return;
+// end change RF064
 	if(MFlash)
 	{
 		geVec3d Muzzle;
@@ -823,10 +862,9 @@ void CWeapon::SetWeapon(int value)
 // end change RF063
 	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
 		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
-	if(ViewPoint==FIRSTPERSON)
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
-	else
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
+// changed RF064
+	DoChange();
+// end change RF064
 	VSequence = VWEPCHANGE;
 // changed RF063
 	VAnimTime = -1.0f;
@@ -836,6 +874,38 @@ void CWeapon::SetWeapon(int value)
 	VBlend = GE_FALSE;
 	AttackFlag = false;
 }
+
+// changed RF064
+void CWeapon::DoChange()
+{
+	if(WeaponD[CurrentWeapon].FixedView!=-1)
+	{
+		if(ViewPoint!=WeaponD[CurrentWeapon].FixedView)
+		{
+			int TempView = OldViewPoint;
+			CCD->Player()->SwitchCamera(WeaponD[CurrentWeapon].FixedView);
+			OldViewPoint = TempView;
+		}
+	}
+	else
+	{
+		if(ViewPoint!=OldViewPoint)
+		{
+			int TempView = OldViewPoint;
+			CCD->Player()->SwitchCamera(OldViewPoint);
+			OldViewPoint = TempView;
+		}
+	}
+	if(ViewPoint==FIRSTPERSON)
+	{
+		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
+	}
+	else
+	{
+		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
+	}
+}
+// end change RF064
 
 void CWeapon::ClearWeapon()
 { 
@@ -872,10 +942,9 @@ void CWeapon::ReSetWeapon(int value)
 		return;
 	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
 		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
-	if(ViewPoint==FIRSTPERSON)
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
-	else
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
+// changed RF064
+	DoChange();
+// end change RF064
 	VSequence = VWEPCHANGE;
 // changed RF063
 	VAnimTime = -1.0f;
@@ -1427,11 +1496,12 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		d->Radius = ProjD[Type].Radius;
 		d->Attribute = PAttribute;
 		
-		geVec3d_Set(&XForm.Translation, Pos.X,Pos.Y,Pos.Z);
+
 		geXForm3d_SetIdentity(&XForm);
 		geXForm3d_RotateZ(&XForm, Orient.Z);
 		geXForm3d_RotateX(&XForm, Orient.X);
 		geXForm3d_RotateY(&XForm, Orient.Y);
+		geVec3d_Set(&XForm.Translation, Pos.X,Pos.Y,Pos.Z);
 		geXForm3d_GetIn(&XForm, &d->Direction);
 		geVec3d_Scale( &d->Direction, ProjD[Type].Speed, &d->Direction);
 		geXForm3d_SetIdentity( &(XForm) );
@@ -1756,6 +1826,18 @@ void CWeapon::LoadDefaults()
 			case BEAM:
 				break;
 			}
+// changed RF064
+			WeaponD[weapptr].FixedView = -1;
+			Type = AttrFile.GetValue(KeyName, "forceviewto");
+			if(Type=="firstperson")
+				WeaponD[weapptr].FixedView = FIRSTPERSON;
+			if(Type=="thirdperson")
+				WeaponD[weapptr].FixedView = THIRDPERSON;
+			if(Type=="isometric")
+				WeaponD[weapptr].FixedView = ISOMETRIC;
+			if(Type=="fixed")
+				WeaponD[weapptr].FixedView = FIXEDCAMERA;
+// end change RF064
 			Type = AttrFile.GetValue(KeyName, "attacksound");
 			strcpy(WeaponD[weapptr].AttackSound,Type);
 			if(Type!="")
@@ -1947,14 +2029,8 @@ void CWeapon::LoadDefaults()
 
 						Type = AttrFile.GetValue(KeyName, "idle");
 						strcpy(WeaponD[weapptr].Animations[IDLE],Type);
-						Type = AttrFile.GetValue(KeyName, "idletowalk");
-						strcpy(WeaponD[weapptr].Animations[I2WALK],Type);
-						Type = AttrFile.GetValue(KeyName, "idletorun");
-						strcpy(WeaponD[weapptr].Animations[I2RUN],Type);
 						Type = AttrFile.GetValue(KeyName, "walk");
 						strcpy(WeaponD[weapptr].Animations[WALK],Type);
-						Type = AttrFile.GetValue(KeyName, "walktoidle");
-						strcpy(WeaponD[weapptr].Animations[W2IDLE],Type);
 						Type = AttrFile.GetValue(KeyName, "run");
 						strcpy(WeaponD[weapptr].Animations[RUN],Type);
 						Type = AttrFile.GetValue(KeyName, "jump");
@@ -1977,8 +2053,6 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[CRAWL],Type);
 						Type = AttrFile.GetValue(KeyName, "crouchidle");
 						strcpy(WeaponD[weapptr].Animations[CIDLE],Type);
-						Type = AttrFile.GetValue(KeyName, "crawltoidle");
-						strcpy(WeaponD[weapptr].Animations[C2IDLE],Type);
 						Type = AttrFile.GetValue(KeyName, "crouchstarttojump");
 						strcpy(WeaponD[weapptr].Animations[CSTARTJUMP],Type);
 						Type = AttrFile.GetValue(KeyName, "crouchland");
@@ -1987,7 +2061,9 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[SLIDECLEFT],Type);
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoright");
 						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHT],Type);
-						
+// changed RF064
+
+// end change RF064		
 						Type = AttrFile.GetValue(KeyName, "shootup");
 						strcpy(WeaponD[weapptr].Animations[SHOOT1],Type);
 						Type = AttrFile.GetValue(KeyName, "shootdwn");
@@ -2053,7 +2129,62 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[SWIM],Type);
 						Type = AttrFile.GetValue(KeyName, "treadwater");
 						strcpy(WeaponD[weapptr].Animations[TREADWATER],Type);
-
+// changed RF064
+						Type = AttrFile.GetValue(KeyName, "idletowalk");
+						strcpy(WeaponD[weapptr].Animations[I2WALK],Type);
+						Type = AttrFile.GetValue(KeyName, "idletorun");
+						strcpy(WeaponD[weapptr].Animations[I2RUN],Type);
+						Type = AttrFile.GetValue(KeyName, "walktoidle");
+						strcpy(WeaponD[weapptr].Animations[W2IDLE],Type);
+						Type = AttrFile.GetValue(KeyName, "crawltoidle");
+						strcpy(WeaponD[weapptr].Animations[C2IDLE],Type);
+						Type = AttrFile.GetValue(KeyName, "crouchtoidle");
+						strcpy(WeaponD[weapptr].Animations[CROUCH2IDLE],Type);
+						Type = AttrFile.GetValue(KeyName, "idletocrouch");
+						strcpy(WeaponD[weapptr].Animations[IDLE2CROUCH],Type);
+						Type = AttrFile.GetValue(KeyName, "swimtotread");
+						strcpy(WeaponD[weapptr].Animations[SWIM2TREAD],Type);
+						Type = AttrFile.GetValue(KeyName, "treadtoswim");
+						strcpy(WeaponD[weapptr].Animations[TREAD2SWIM],Type);
+						Type = AttrFile.GetValue(KeyName, "idletotread");
+						strcpy(WeaponD[weapptr].Animations[IDLE2TREAD],Type);
+						Type = AttrFile.GetValue(KeyName, "swimtowalk");
+						strcpy(WeaponD[weapptr].Animations[SWIM2WALK],Type);
+						Type = AttrFile.GetValue(KeyName, "walktoswim");
+						strcpy(WeaponD[weapptr].Animations[WALK2SWIM],Type);
+						Type = AttrFile.GetValue(KeyName, "treadtoidle");
+						strcpy(WeaponD[weapptr].Animations[TREAD2IDLE],Type);
+						Type = AttrFile.GetValue(KeyName, "jumptofall");
+						strcpy(WeaponD[weapptr].Animations[JUMP2FALL],Type);
+						Type = AttrFile.GetValue(KeyName, "jumptotread");
+						strcpy(WeaponD[weapptr].Animations[JUMP2TREAD],Type);
+						Type = AttrFile.GetValue(KeyName, "falltotread");
+						strcpy(WeaponD[weapptr].Animations[FALL2TREAD],Type);
+						Type = AttrFile.GetValue(KeyName, "falltocrawl");
+						strcpy(WeaponD[weapptr].Animations[FALL2CRAWL],Type);
+						Type = AttrFile.GetValue(KeyName, "falltowalk");
+						strcpy(WeaponD[weapptr].Animations[FALL2WALK],Type);
+						Type = AttrFile.GetValue(KeyName, "falltojump");
+						strcpy(WeaponD[weapptr].Animations[FALL2JUMP],Type);
+						Type = AttrFile.GetValue(KeyName, "walktojump");
+						strcpy(WeaponD[weapptr].Animations[WALK2JUMP],Type);
+						Type = AttrFile.GetValue(KeyName, "walktocrawl");
+						strcpy(WeaponD[weapptr].Animations[WALK2CRAWL],Type);
+						Type = AttrFile.GetValue(KeyName, "crawltowalk");
+						strcpy(WeaponD[weapptr].Animations[CRAWL2WALK],Type);
+						Type = AttrFile.GetValue(KeyName, "idletocrawl");
+						strcpy(WeaponD[weapptr].Animations[IDLE2CRAWL],Type);
+						Type = AttrFile.GetValue(KeyName, "aimtocrouch");
+						strcpy(WeaponD[weapptr].Animations[AIM2CROUCH],Type);
+						Type = AttrFile.GetValue(KeyName, "crouchtoaim");
+						strcpy(WeaponD[weapptr].Animations[CROUCH2AIM],Type);
+						Type = AttrFile.GetValue(KeyName, "walktotread");
+						strcpy(WeaponD[weapptr].Animations[W2TREAD],Type);
+						Type = AttrFile.GetValue(KeyName, "falltorun");
+						strcpy(WeaponD[weapptr].Animations[FALL2RUN],Type);
+						Type = AttrFile.GetValue(KeyName, "crawltorun");
+						strcpy(WeaponD[weapptr].Animations[CRAWL2RUN],Type);
+// end change RF064
 						Type = AttrFile.GetValue(KeyName, "die");
 						char strip[256], *temp;
 						int i = 0;

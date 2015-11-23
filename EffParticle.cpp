@@ -411,3 +411,319 @@ void  Particle_SystemReset(Particle_System *ps)
 	Particle_SystemRemoveAll(ps);
 }
 
+// changed RF064
+// 
+// Actor Particles
+//
+
+#define	ACTOR_PARTICLE_HASVELOCITY	( 1 << 1 )
+#define ACTOR_PARTICLE_HASGRAVITY		( 1 << 2 )
+
+typedef struct	ActorParticle
+{
+	geActor			*Actor;
+	unsigned 	 	ptclFlags;
+	ActorParticle *		ptclNext;
+	ActorParticle *		ptclPrev;
+	geVec3d			RotationSpeed;
+	geFloat			Alpha;
+	geFloat	 	 	ptclTime;
+	geFloat			ptclTotalTime;
+	geVec3d	 	    ptclVelocity;
+	geBoolean		Bounce;
+	geExtBox		theBox;
+	float			AlphaRate;
+}	ActorParticle;
+
+typedef	struct	ActorParticle_System
+{
+	ActorParticle *		psParticles;
+	geFloat			psLastTime;
+	geFloat			psQuantumSeconds;
+}	ActorParticle_System;
+
+ActorParticle_System *  ActorParticle_SystemCreate()
+{
+	ActorParticle_System *ps;
+
+	ps = GE_RAM_ALLOCATE_STRUCT(ActorParticle_System);
+	if	(!ps)
+		return ps;
+
+	memset(ps, 0, sizeof(*ps));
+	
+	ps->psQuantumSeconds = QUANTUMSIZE;
+	ps->psLastTime = 0.0f;
+
+	return ps;
+}
+
+static	void ActorDestroyParticle(ActorParticle_System *ps, ActorParticle *p)
+{
+	if(p->Actor)
+	{
+		CCD->ActorManager()->RemoveActor(p->Actor);
+		geActor_Destroy(&p->Actor);
+		p->Actor = NULL;
+	}
+
+	geRam_Free(p);
+
+}
+
+void 	ActorParticle_SystemDestroy(ActorParticle_System *ps)
+{
+	ActorParticle *	ptcl;
+
+	ptcl = ps->psParticles;
+	while	(ptcl)
+	{
+		ActorParticle *	temp;
+
+		temp = ptcl->ptclNext;
+		ActorDestroyParticle(ps, ptcl);
+		ptcl = temp;
+	}
+
+	geRam_Free(ps);
+
+}
+
+static	void 	ActorUnlinkParticle(ActorParticle_System *ps, ActorParticle *ptcl)
+{
+	if	(ptcl->ptclPrev)
+		ptcl->ptclPrev->ptclNext = ptcl->ptclNext;
+
+	if	(ptcl->ptclNext)
+		ptcl->ptclNext->ptclPrev = ptcl->ptclPrev;
+
+	if	(ps->psParticles == ptcl)
+		ps->psParticles = ptcl->ptclNext;
+}
+
+void  ActorParticle_SystemRemoveAll(ActorParticle_System *ps)
+{
+	ActorParticle *	ptcl;
+
+	ptcl = ps->psParticles;
+	while	(ptcl)
+	{
+		ActorParticle *	temp;
+
+		temp = ptcl->ptclNext;
+		ActorUnlinkParticle(ps, ptcl);
+		ActorDestroyParticle(ps, ptcl);
+		ptcl = temp;
+	}
+}
+
+int32 	ActorParticle_GetCount(ActorParticle_System *ps)
+{
+
+	// locals
+	ActorParticle	*ptcl;
+	int32		TotalParticleCount = 0;
+
+	// count up how many particles are active in this particle system
+	ptcl = ps->psParticles;
+	while ( ptcl )
+	{
+		ptcl = ptcl->ptclNext;
+		TotalParticleCount++;
+	}
+
+	// return the active count
+	return TotalParticleCount;
+
+}
+
+void 	ActorParticle_SystemFrame(ActorParticle_System *ps, geFloat DeltaTime)
+{
+	// the quick fix to the particle no-draw problem 
+	ps->psQuantumSeconds = DeltaTime;
+	{
+		
+		ActorParticle *	ptcl;
+		
+		ptcl = ps->psParticles;
+		while	(ptcl)
+		{
+			ptcl->ptclTime -= ps->psQuantumSeconds;
+			if	(ptcl->ptclTime <= 0.0f)
+			{
+				ActorParticle *	temp;
+				
+				temp = ptcl->ptclNext;
+				ActorUnlinkParticle(ps, ptcl);
+				ActorDestroyParticle(ps, ptcl);
+				ptcl = temp;
+				continue;
+			}
+			else
+			{
+				
+				// locals
+				geVec3d		DeltaPos = { 0.0f, 0.0f, 0.0f };
+				
+				// apply velocity
+				if ( ptcl->ptclFlags & PARTICLE_HASVELOCITY )
+				{
+					geVec3d_Scale( &( ptcl->ptclVelocity ), ps->psQuantumSeconds, &DeltaPos );
+				}
+
+				// apply DeltaPos to particle position
+				if (ptcl->ptclFlags & PARTICLE_HASVELOCITY )
+				{
+					geVec3d temppos, temppos1;
+					GE_Collision Collision;
+
+					CCD->ActorManager()->GetPosition(ptcl->Actor, &temppos);
+					geVec3d_Add(&temppos, &DeltaPos, &temppos1);
+					
+					if(ptcl->Bounce)
+					{
+						float totalTravelled = 1.0f ; // keeps track of fraction of path travelled (1.0=complete)
+						float margin = 0.001f ; // margin to be satisfied with (1.0 - margin == 1.0)
+						int loopCounter = 0 ; // safety valve for endless collisions in tight corners
+						const int maxLoops = 10 ;
+						
+						while(CCD->Collision()->CheckForWCollision(&ptcl->theBox.Min, &ptcl->theBox.Max,
+							temppos, temppos1, &Collision, ptcl->Actor))
+						{
+							float ratio ;
+							float elasticity = 1.3f ;
+							float friction = 0.9f ; // loses (1 minus friction) of speed
+							CollisionCalcRatio( Collision, temppos, temppos1, ratio ) ;
+							CollisionCalcImpactPoint( Collision, temppos, temppos1, 1.0f, ratio, temppos1 ) ;
+							CollisionCalcVelocityImpact( Collision, ptcl->ptclVelocity, elasticity, friction, ptcl->ptclVelocity) ; 
+							if( ratio >= 0 )
+								totalTravelled += (1.0f - totalTravelled) * ratio ;
+							if( totalTravelled >= 1.0f - margin )
+								break ;
+							if( ++ loopCounter >= maxLoops ) // safety check
+								break ;
+						}
+					}
+					else
+					{
+						if(CCD->Collision()->CheckForWCollision(&ptcl->theBox.Min, &ptcl->theBox.Max,
+							temppos, temppos1, &Collision, ptcl->Actor))
+						{
+							ActorParticle *	temp;
+							temp = ptcl->ptclNext;
+							ActorUnlinkParticle(ps, ptcl);
+							ActorDestroyParticle(ps, ptcl);
+							ptcl = temp;
+							continue;
+						}
+					}
+					CCD->ActorManager()->Position(ptcl->Actor, temppos1);
+				}
+			}
+
+			geVec3d	Rotation, Amount;
+
+			Amount.X = ptcl->RotationSpeed.X*ps->psQuantumSeconds;
+			Amount.Y = ptcl->RotationSpeed.Y*ps->psQuantumSeconds;
+			Amount.Z = ptcl->RotationSpeed.Z*ps->psQuantumSeconds;
+			CCD->ActorManager()->GetRotate(ptcl->Actor, &Rotation);
+			Rotation.X += Amount.X;
+			Rotation.Y += Amount.Y;
+			Rotation.Z += Amount.Z;
+			CCD->ActorManager()->Rotate(ptcl->Actor, Rotation);
+
+			// set actor alpha
+			ptcl->Alpha -= (ptcl->AlphaRate*ps->psQuantumSeconds);
+			if(ptcl->Alpha<0.0f)
+				ptcl->Alpha = 0.0f;
+			if(ptcl->Alpha>255.0f)
+				ptcl->Alpha = 255.0f;
+			CCD->ActorManager()->SetAlpha(ptcl->Actor, ptcl->Alpha);
+
+			ptcl = ptcl->ptclNext;
+		}
+		
+		DeltaTime -= QUANTUMSIZE;
+	}
+	
+	ps->psLastTime += DeltaTime;
+}
+
+
+static	ActorParticle * ActorCreateParticle(ActorParticle_System *ps, char *ActorName, geVec3d Position, geVec3d BaseRotation )
+{
+	ActorParticle *ptcl;
+
+	ptcl = GE_RAM_ALLOCATE_STRUCT(ActorParticle);
+	if	(!ptcl)
+		return ptcl;
+
+	memset(ptcl, 0, sizeof(*ptcl));
+
+	ptcl->ptclNext = ps->psParticles;
+	ps->psParticles = ptcl;
+	if(ptcl->ptclNext)
+	  ptcl->ptclNext->ptclPrev = ptcl;
+
+	ptcl->Actor = CCD->ActorManager()->SpawnActor(ActorName, Position, BaseRotation, "", "", NULL);
+
+	return ptcl;
+}
+
+void 	ActorParticle_SystemAddParticle(
+	ActorParticle_System		*ps,
+	char				*ActorName,
+	geVec3d				Position,
+	geVec3d				BaseRotation,
+	geVec3d				RotationSpeed,
+	GE_RGBA				FillColor, 
+	GE_RGBA				AmbientColor,
+	float				Alpha,
+	float				AlphaRate,
+	geFloat				Time,
+	const geVec3d		*Velocity,
+	geFloat				Scale,
+	bool				Gravity,
+	geBoolean			Bounce)
+{
+
+	// locals
+	ActorParticle	*ptcl;
+
+	// create a new particle
+	ptcl = ActorCreateParticle( ps, ActorName, Position, BaseRotation);
+	if ( !ptcl )
+		return;
+
+	// setup velocity
+	if ( Velocity != (const geVec3d *)NULL )
+	{
+		geVec3d_Copy( Velocity, &( ptcl->ptclVelocity ) );
+		ptcl->ptclFlags |= PARTICLE_HASVELOCITY;
+	}
+
+	// setup remaining data
+	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor);
+	CCD->ActorManager()->SetScale(ptcl->Actor, Scale);
+	ptcl->ptclTime = Time;
+	ptcl->ptclTotalTime = Time;
+	CCD->ActorManager()->SetAlpha(ptcl->Actor, Alpha);
+	ptcl->Alpha = Alpha;
+	ptcl->AlphaRate = AlphaRate;
+	ptcl->Bounce = Bounce;
+	ptcl->RotationSpeed = RotationSpeed;
+	CCD->ActorManager()->GetBoundingBox(ptcl->Actor, &ptcl->theBox);
+	CCD->ActorManager()->SetBoxChange(ptcl->Actor, false);
+	CCD->ActorManager()->SetNoCollide(ptcl->Actor);
+	CCD->ActorManager()->SetHideRadar(ptcl->Actor, true);
+	if(Gravity)
+		CCD->ActorManager()->SetGravity(ptcl->Actor, CCD->Player()->GetGravity());
+}
+
+void  ActorParticle_SystemReset(ActorParticle_System *ps)
+{
+	ps->psLastTime = 0.0f;
+	ActorParticle_SystemRemoveAll(ps);
+}
+
+// end change RF064

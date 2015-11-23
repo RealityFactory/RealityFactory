@@ -787,3 +787,65 @@ int CElectric::ReSynchronize()
 
 	return RGF_SUCCESS;
 }
+
+//	SaveTo
+//
+//	Save the current state of every  ElectricBolt in the current world
+//	..off to an open file.
+
+int CElectric::SaveTo(FILE *SaveFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+//	Ok, check to see if there are  ElectricBolt in this world
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+
+	if(!pSet)
+		return RGF_SUCCESS;
+
+//	Ok, we have logic gates somewhere.  Dig through 'em all.
+
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		{
+		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		WRITEDATA(&pSource->active, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->DTime, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pSource->DoingDamage, sizeof(geBoolean), 1, SaveFD);
+	  }
+
+  return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore the state of every ElectricBolt in the current world from an
+//	..open file.
+
+int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+//	Ok, check to see if there are  ElectricBolt in this world
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+
+	if(!pSet)
+		return RGF_SUCCESS;									// No gates, whatever...
+
+  for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	  {
+		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		READDATA(&pSource->active, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->DTime, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pSource->DoingDamage, sizeof(geBoolean), 1, RestoreFD);
+    }
+
+  return RGF_SUCCESS;
+}

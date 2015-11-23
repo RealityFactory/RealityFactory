@@ -27,8 +27,8 @@ public:
   CLogic();
   ~CLogic();
   void Tick(float dwTicks);
-  int SaveTo(FILE *SaveFD);
-  int RestoreFrom(FILE *RestoreFD);
+  int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
   int LocateEntity(char *szName, void **pEntityData);
   int ReSynchronize();
 private:

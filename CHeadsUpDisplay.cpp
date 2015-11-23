@@ -38,14 +38,27 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 	
 	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
+// changed RF064
+
 		if(m_theHUD[nTemp].Identifier != NULL)
+		{
+			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Identifier);
 			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
+		}
 		if(m_theHUD[nTemp].Indicator != NULL)
+		{
+			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Indicator);
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
+		}
 // changed RF063
 		if(m_theHUD[nTemp].Indicator2 != NULL)
+		{
+			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Indicator2);
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
+		}
 // end change RF063
+
+// end change RF064
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 	
@@ -301,14 +314,16 @@ int CHeadsUpDisplay::LoadConfiguration()
 				direction = 1;
 			if(AttrFile.GetValue(KeyName, "modifydirection")=="both")
 				direction = 2;
+// changed RF064
 			if(TempBmp1)
-				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp1);
+				geWorld_AddBitmap(CCD->World(), TempBmp1);
 			if(TempBmp2)
-				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp2);
+				geWorld_AddBitmap(CCD->World(), TempBmp2);
 // changed RF063
 			if(TempBmp3)
-				geEngine_AddBitmap(CCD->Engine()->Engine(), TempBmp3);
+				geWorld_AddBitmap(CCD->World(), TempBmp3);
 // end change RF063
+// end change RF064
 			for(int nItem = 0; nItem < MAXHUD; nItem++)
 				if(!m_theHUD[nItem].active)
 					break;
@@ -487,8 +502,12 @@ int CHeadsUpDisplay::Render()
 		{
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-					NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
+
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
@@ -509,8 +528,11 @@ int CHeadsUpDisplay::Render()
 				theRect.Bottom = m_theHUD[nItem].iHeight;
 				theRect.Left = 0;
 				theRect.Right =  geBitmap_Width(m_theHUD[nItem].Indicator);
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Indicator, 
-					&theRect, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
+					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+// end change RF064
 			}
 		}
 		// Horizontal Indicator
@@ -518,8 +540,12 @@ int CHeadsUpDisplay::Render()
 		{
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-				NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
+
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
@@ -540,8 +566,11 @@ int CHeadsUpDisplay::Render()
 				theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator);
 				theRect.Left = 0;
 				theRect.Right = (int)((m_theHUD[nItem].PixelsPerIncrement * (geFloat)nValue))-1;
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Indicator, 
-					&theRect, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
+					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+// end change RF064
 			}
 			
 		}
@@ -550,8 +579,12 @@ int CHeadsUpDisplay::Render()
 		{
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-				NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
+
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
@@ -569,8 +602,12 @@ int CHeadsUpDisplay::Render()
 		{
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-					NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
+
 			char szBug[256];
 			geVec3d Pos = CCD->Player()->Position();
 			sprintf(szBug, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
@@ -582,8 +619,12 @@ int CHeadsUpDisplay::Render()
 		{
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-					NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
+
 			geActor *ActorsInRange[512];
 			geVec3d Pos, RPos, Orient;
 			Pos = CCD->Player()->Position();
@@ -609,72 +650,86 @@ int CHeadsUpDisplay::Render()
 						int ActorType;
 						bool flag = false;
 						int offx, offy;
+// changed RF064
 						if(CCD->ActorManager()->GetType(ActorsInRange[nTemp], &ActorType)!=RGF_NOT_FOUND)
 						{
-							if(ActorType==ENTITY_NPC)
-								flag = true;
-						}
-						CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &APos);
-						float dist = ((float)fabs(geVec3d_DistanceBetween(&Pos, &APos)))*scale;;
-						geVec3d_Subtract(&APos,&Pos,&Orient);
-						Orient.Y = (float)atan2(Orient.X , Orient.Z ) + GE_PI;
-						float angle = RPos.Y - Orient.Y;
-						float mulx = -1.0f;
-						float muly = 1.0f;
-						if(!flag)
-						{
-							offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator)/2);
-							offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator)/2);
-						}
-						else
-						{
-							offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator2)/2);
-							offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator2)/2);
-						}
-						if(angle<0.0f)
-							mulx = 1.0f;
-						if((float)fabs(angle)>(GE_PI/2.0f))
-							muly = -1.0f;
-						if((float)fabs(angle)==0.0f || (float)fabs(angle)==GE_PI)
-						{
-							offy += (int)(muly*dist);
-						}
-						else if((float)fabs(angle)==(GE_PI/2.0f))
-						{
-							offx += (int)(mulx*dist);
-						}
-						else
-						{
-							angle = (float)fabs(angle);
-							if(muly==-1.0f)
+							bool hide;
+							CCD->ActorManager()->GetHideRadar(ActorsInRange[nTemp], &hide);
+							if(!hide)
 							{
-								angle = GE_PI - angle;
-							}
-							if(angle<=(GE_PI/4.0f))
-							{
+								if(ActorType==ENTITY_NPC)
+									flag = true;
+								CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &APos);
+								float dist = ((float)fabs(geVec3d_DistanceBetween(&Pos, &APos)))*scale;;
+								geVec3d_Subtract(&APos,&Pos,&Orient);
+								Orient.Y = (float)atan2(Orient.X , Orient.Z ) + GE_PI;
+								float angle = RPos.Y - Orient.Y;
+								float mulx = -1.0f;
+								float muly = 1.0f;
 								if(!flag)
-									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator,NULL,
-										offx-(int)(sin(angle)*dist*mulx), 
-										offy-(int)(cos(angle)*dist*muly));
+								{
+									offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator)/2);
+									offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator)/2);
+								}
 								else
-									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator2,NULL,
-										offx-(int)(sin(angle)*dist*mulx), 
-										offy-(int)(cos(angle)*dist*muly));
-							}
-							else
-							{
-								angle = (GE_PI/2.0f) - angle;
-								if(!flag)
-									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator,NULL,
-										offx-(int)(cos(angle)*dist*mulx), 
-										offy-(int)(sin(angle)*dist*muly));
+								{
+									offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator2)/2);
+									offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator2)/2);
+								}
+								if(angle<0.0f)
+									mulx = 1.0f;
+								if((float)fabs(angle)>(GE_PI/2.0f))
+									muly = -1.0f;
+								if((float)fabs(angle)==0.0f || (float)fabs(angle)==GE_PI)
+								{
+									offy += (int)(muly*dist);
+								}
+								else if((float)fabs(angle)==(GE_PI/2.0f))
+								{
+									offx += (int)(mulx*dist);
+								}
 								else
-									geEngine_DrawBitmap(CCD->Engine()->Engine(),m_theHUD[nItem].Indicator2,NULL,
-										offx-(int)(cos(angle)*dist*mulx), 
-										offy-(int)(sin(angle)*dist*muly));
+								{
+									angle = (float)fabs(angle);
+									if(muly==-1.0f)
+									{
+										angle = GE_PI - angle;
+									}
+									if(angle<=(GE_PI/4.0f))
+									{
+										if(!flag)
+											// changed RF064
+											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
+											offx-(int)(sin(angle)*dist*mulx),
+											offy-(int)(cos(angle)*dist*muly));
+											// end change RF064
+										else
+											// changed RF064
+											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
+											offx-(int)(sin(angle)*dist*mulx),
+											offy-(int)(cos(angle)*dist*muly));
+											// end change RF064
+									}
+									else
+									{
+										angle = (GE_PI/2.0f) - angle;
+										if(!flag)
+											// changed RF064
+											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
+											offx-(int)(cos(angle)*dist*mulx),
+											offy-(int)(sin(angle)*dist*muly));
+											// end change RF064
+										else
+											// changed RF064
+											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
+											offx-(int)(cos(angle)*dist*mulx),
+											offy-(int)(sin(angle)*dist*muly));
+											// end change RF064
+									}
+								}
 							}
 						}
-
+// end change RF064
 					}
 				}
 			} 
@@ -698,13 +753,19 @@ int CHeadsUpDisplay::Render()
 				theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator);
 				theRect.Left = (int)Pos.Y;
 				theRect.Right =  theRect.Left+40;
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Indicator, 
-					&theRect, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
+					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+// end change RF064
 			}
 			// Draw the identifier icon
 			if(m_theHUD[nItem].Identifier)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), m_theHUD[nItem].Identifier, 
-				NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+				// changed RF064
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop);
+				// end change RF064
 		}
 	}
 	

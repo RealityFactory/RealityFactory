@@ -67,6 +67,10 @@ void CCameraManager::Defaults()
 	jerkamt = 0.0f;
 	jerk = false;
 // end change RF063
+// changed RF064
+	DesiredHeight = 0.0f;
+	HeightSpeed = 40.0f;
+// end change RF064
 
 	CIniFile AttrFile("camera.ini");
 	if(!AttrFile.ReadFile())
@@ -105,6 +109,11 @@ void CCameraManager::Defaults()
 			Type = AttrFile.GetValue(KeyName, "switchtoisopersonallowed");
 			if(Type=="true")
 				switchiso = true;
+// changed RF064
+			HeightSpeed = (float)AttrFile.GetValueF(KeyName, "heightspeed");
+			if(HeightSpeed==0.0f)
+				HeightSpeed = 40.0f;
+// end change RF064
 		}
 		else if(KeyName=="FirstPerson")
 		{
@@ -314,6 +323,20 @@ void CCameraManager::Tick(float dwTicks)
 		}
 	}
 // end change RF063
+// changed RF064
+	if(DesiredHeight < CameraOffsetTranslation.Y)
+	{
+		CameraOffsetTranslation.Y -= ((dwTicks*0.001f) * HeightSpeed);
+		if(DesiredHeight > CameraOffsetTranslation.Y)
+			DesiredHeight = CameraOffsetTranslation.Y;
+	}
+	else if(DesiredHeight > CameraOffsetTranslation.Y)
+	{
+		CameraOffsetTranslation.Y += ((dwTicks*0.001f) * HeightSpeed);
+		if(DesiredHeight < CameraOffsetTranslation.Y)
+			DesiredHeight = CameraOffsetTranslation.Y;
+	}
+// end change RF064
 }
 
 void CCameraManager::GetShake(float *x, float *y)
@@ -547,7 +570,9 @@ int CCameraManager::SetCameraOffset(geVec3d theTranslation, geVec3d theRotation)
 {
 	CameraOffsetTranslation = theTranslation;
 	CameraOffsetRotation = theRotation;
-	
+// changed RF064
+	DesiredHeight = theTranslation.Y;
+// end change RF064	
 	return RGF_SUCCESS;
 }
 
@@ -760,6 +785,33 @@ int CCameraManager::RenderView()
 				LQ->Texture, 
 				GE_TEXTURED_POINT  , GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
 		}
+// changed RF064
+		else
+		{
+			Overlay * OL = CCD->Overlays()->IsOverlay(ZoneContents.Model);
+			if(OL)
+			{
+				geXForm3d_GetIn(&theViewPoint, &Direction);
+				geVec3d_AddScaled (&Translation, &Direction, 10.0f, &Pos);
+				
+				Vertex.r = OL->TintColor.r; 
+				Vertex.g = OL->TintColor.g;
+				Vertex.b = OL->TintColor.b;
+				Vertex.a = OL->Transparency;
+				
+				Vertex.u = 0.0f;
+				Vertex.v = 0.0f;
+				
+				Vertex.X = Pos.X;
+				Vertex.Y = Pos.Y;
+				Vertex.Z = Pos.Z;
+				
+				geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, 
+					OL->Texture, 
+					GE_TEXTURED_POINT  , GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
+			}
+		}
+// end change RF064
 	}
 	if(jerk)
 	{
@@ -833,7 +885,9 @@ void CCameraManager::EnableFarClipPlane(geBoolean ClipOn)
 
 void CCameraManager::CameraRotX(bool direction)
 {
-	if((TrackingFlags & kCameraTrackFree) != 0)
+// changed RF064
+	if((TrackingFlags & kCameraTrackFree) != 0 || (TrackingFlags & kCameraTrackIso) != 0)
+// end change RF064
 	{
 		if(direction)
 		{
@@ -852,7 +906,9 @@ void CCameraManager::CameraRotX(bool direction)
 
 void CCameraManager::CameraRotY(bool direction, float Speed)
 {
-	if((TrackingFlags & kCameraTrackFree) != 0)
+// changed RF064
+	if((TrackingFlags & kCameraTrackFree) != 0 || (TrackingFlags & kCameraTrackIso) != 0)
+// end change RF064
 	{
 		if(direction)
 		{

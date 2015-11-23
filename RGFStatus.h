@@ -87,6 +87,12 @@ typedef enum
 	RGF_K_USE,
 	RGF_K_INVENTORY,
 // end change RF063
+// start multiplayer
+	RGF_K_CONSOLE,
+// end multiplayer
+// changed RF064
+	RGF_K_DROP,
+// end change RF064
 	RGF_K_NOACTION
 } ACTIONCODES;
 
@@ -174,6 +180,19 @@ typedef enum
 	KEY_SEMICOLON,
 	KEY_COMMA,
 	KEY_APOSTROPHE,
+// start Multiplayer
+	KEY_NUMPAD0 , 
+	KEY_NUMPAD1 ,
+	KEY_NUMPAD2 ,
+	KEY_NUMPAD3 ,
+	KEY_NUMPAD4 ,
+	KEY_NUMPAD5 ,
+    KEY_NUMPAD6 ,
+	KEY_NUMPAD7 ,
+    KEY_NUMPAD8 ,
+    KEY_NUMPAD9 ,
+	KEY_DECIMAL ,
+// end Multiplayer
 	KEY_MAXIMUM
 } KEYCODES;
 

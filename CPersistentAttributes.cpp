@@ -426,7 +426,7 @@ unsigned char *CPersistentAttributes::UserData(char *szTag)
 //
 //	Save all attributes in this object to the supplied file.
 
-int CPersistentAttributes::SaveTo(FILE *SaveFD)
+int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 {
 	int nLen = 0;
 	PersistAttribute *pAttr = theList;
@@ -436,15 +436,15 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD)
 	while(pAttr != NULL)
 	{
 		nLen = strlen(pAttr->Name) + 1;
-		fwrite(&nLen, sizeof(int), 1, SaveFD);
-		fwrite(pAttr->Name, 1, nLen, SaveFD);
-		fwrite(&pAttr->Count, sizeof(int), 1, SaveFD);
-		fwrite(&pAttr->Value, sizeof(int), 1, SaveFD);
-		fwrite(&pAttr->ValueLowLimit, sizeof(int), 1, SaveFD);
-		fwrite(&pAttr->ValueHighLimit, sizeof(int), 1, SaveFD);
-		fwrite(&pAttr->UserDataSize, sizeof(int), 1, SaveFD);
+		WRITEDATA(&nLen, sizeof(int), 1, SaveFD);
+		WRITEDATA(pAttr->Name, 1, nLen, SaveFD);
+		WRITEDATA(&pAttr->Count, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pAttr->Value, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pAttr->ValueLowLimit, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pAttr->ValueHighLimit, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pAttr->UserDataSize, sizeof(int), 1, SaveFD);
 		if(pAttr->UserDataSize != 0)
-			fwrite(&pAttr->UserData, 1, pAttr->UserDataSize, SaveFD);
+			WRITEDATA(&pAttr->UserData, 1, pAttr->UserDataSize, SaveFD);
 		pAttr = pAttr->pNext;				// Next item
 	}
 	
@@ -455,7 +455,7 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD)
 //
 //	Restore the attributes in this object from the supplied file.
 
-int CPersistentAttributes::RestoreFrom(FILE *RestoreFD)
+int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	char szTempTag[256];
 	int nValue, nCount, nLen, nUserDataSize, Low, High;
@@ -469,17 +469,17 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD)
 	
 	for(int nTemp = 0; nTemp < nInFile; nTemp++)
 	{
-		fread(&nLen, sizeof(int), 1, RestoreFD);		// Tag size
-		fread(&szTempTag, 1, nLen, RestoreFD);
-		fread(&nCount, sizeof(int), 1, RestoreFD);
-		fread(&nValue, sizeof(int), 1, RestoreFD);
-		fread(&Low, sizeof(int), 1, RestoreFD);
-		fread(&High, sizeof(int), 1, RestoreFD);
-		fread(&nUserDataSize, sizeof(int), 1, RestoreFD);
+		READDATA(&nLen, sizeof(int), 1, RestoreFD);		// Tag size
+		READDATA(&szTempTag, 1, nLen, RestoreFD);
+		READDATA(&nCount, sizeof(int), 1, RestoreFD);
+		READDATA(&nValue, sizeof(int), 1, RestoreFD);
+		READDATA(&Low, sizeof(int), 1, RestoreFD);
+		READDATA(&High, sizeof(int), 1, RestoreFD);
+		READDATA(&nUserDataSize, sizeof(int), 1, RestoreFD);
 		if(nUserDataSize != 0)
 		{
 			theUserData = new unsigned char[nUserDataSize];
-			fread(&theUserData, 1, nUserDataSize, RestoreFD);
+			READDATA(&theUserData, 1, nUserDataSize, RestoreFD);
 		}
 		else
 			theUserData = NULL;

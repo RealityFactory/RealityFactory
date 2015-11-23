@@ -26,8 +26,8 @@ public:
   void Tick(geFloat dwTicks);
 																		// Handle time-based action, if any
 	int BindToPath(char *szName);			// Bind entity to motion path
-	int SaveTo(FILE *SaveFD);					// Save states to a supplied file
-	int RestoreFrom(FILE *RestoreFD);			// Restore states from a supplied file
+	int SaveTo(FILE *SaveFD, bool type);					// Save states to a supplied file
+	int RestoreFrom(FILE *RestoreFD, bool type);			// Restore states from a supplied file
 	int LocateEntity(char *szName, void **pEntityData);
 	int GetEntity(geActor *Actor, void **pEntityData);
 	int ReSynchronize();

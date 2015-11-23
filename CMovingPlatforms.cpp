@@ -215,7 +215,9 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, geVec3d Origin, bool Soun
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Origin), &( Sound.Pos ) );
     Sound.Min=kAudibleRadius;
-	Sound.Loop=true;
+// changed RF064
+	Sound.Loop=SoundLoop;
+// end change RF064
 	Sound.SoundDef = theSound;
 	int index = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
 	if(SoundLoop)
@@ -284,6 +286,9 @@ bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel, bool bTriggerCall,
 				(!pPlatform->bTrigger) && state)
 			{
 				pPlatform->bTrigger= true;			// It's this one, trigger the animation
+// changed RF064
+				pPlatform->bInAnimation = true;
+// end change RF064
 				if ( pPlatform->bRunWhileTrig || pPlatform->bRunFromList ||
 					pPlatform->bRunTimed     || pPlatform->bRunToNextEvent)
 				{
@@ -359,6 +364,9 @@ void CMovingPlatforms::TriggerNextPlatform(geWorld_Model *pModel, bool bTriggerC
 				(!pPlatform->bTrigger) && state)
 			{
 				pPlatform->bTrigger= true;			// It's this one, trigger the animation
+// changed RF064
+				pPlatform->bInAnimation = true;
+// end change RF064
 				//MOD010122 - Changed this section too.  You just can't call Start anymore!
 				//            You might have to call ReStart.
 				if ( pPlatform->bRunWhileTrig || pPlatform->bRunFromList ||
@@ -443,7 +451,7 @@ void CMovingPlatforms::Tick(float dwTicks)
 		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
 		if(!pPlatform->Model)
 			continue;
-		
+
 		if(!EffectC_IsStringNull(pPlatform->TriggerName))
 		{
 			if(GetTriggerState(pPlatform->TriggerName))
@@ -533,7 +541,7 @@ void CMovingPlatforms::Tick(float dwTicks)
 //	Save the current state of every platform in the current world
 //	..off to an open file.
 
-int CMovingPlatforms::SaveTo(FILE *SaveFD)
+int CMovingPlatforms::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -551,16 +559,16 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
-		fwrite(&pPlatform->bInAnimation, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->bTrigger, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->bActorOnMe, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->bInCollision, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->bActive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->LastIncrement, sizeof(int), 1, SaveFD);
-		fwrite(&pPlatform->bForward, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->tPlatform, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pPlatform->CallBack, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pPlatform->CallBackCount, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pPlatform->bInAnimation, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->bTrigger, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->bActorOnMe, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->bInCollision, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->bActive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->LastIncrement, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pPlatform->bForward, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->tPlatform, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pPlatform->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pPlatform->CallBackCount, sizeof(int), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -571,7 +579,7 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD)
 //	Restore the state of every platform in the current world from an
 //	..open file.
 
-int CMovingPlatforms::RestoreFrom(FILE *RestoreFD)
+int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -587,18 +595,16 @@ int CMovingPlatforms::RestoreFrom(FILE *RestoreFD)
     pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
-		fread(&pPlatform->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->bTrigger, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->bActorOnMe, sizeof(geBoolean), 1, RestoreFD);
-		//		fread(&pPlatform->AnimationTime, sizeof(int), 1, RestoreFD);
-		fread(&pPlatform->bInCollision, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->bActive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->LastIncrement, sizeof(int), 1, RestoreFD);
-		fread(&pPlatform->bForward, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->tPlatform, sizeof(geFloat), 1, RestoreFD);
-		// EFFECT
-		fread(&pPlatform->CallBack, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pPlatform->CallBackCount, sizeof(int), 1, RestoreFD);
+		READDATA(&pPlatform->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->bTrigger, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->bActorOnMe, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->bInCollision, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->bActive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->LastIncrement, sizeof(int), 1, RestoreFD);
+		READDATA(&pPlatform->bForward, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->tPlatform, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pPlatform->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pPlatform->CallBackCount, sizeof(int), 1, RestoreFD);
 		if(pPlatform->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pPlatform->Model, GE_TRUE);
     }

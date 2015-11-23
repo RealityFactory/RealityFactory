@@ -59,7 +59,9 @@ void CInput::Default()
 	m_WindowKeys[KEY_I] = 0x49;				m_RGFKeys[KEY_I] = RGF_K_INVENTORY;
 // end change RF063
 	m_WindowKeys[KEY_O] = 0x4f;
-	m_WindowKeys[KEY_P] = 0x50;
+// changed RF064
+	m_WindowKeys[KEY_P] = 0x50;				m_RGFKeys[KEY_P] = RGF_K_DROP;
+// end change RF064
 	m_WindowKeys[KEY_RETURN] = VK_RETURN;	
 	m_WindowKeys[KEY_A] = 0x41;				m_RGFKeys[KEY_A] = RGF_K_CROUCH;
 	m_WindowKeys[KEY_S] = 0x53;				m_RGFKeys[KEY_S] = RGF_K_FORWARD;
@@ -78,7 +80,9 @@ void CInput::Default()
 	m_WindowKeys[KEY_B] = 0x42;
 	m_WindowKeys[KEY_N] = 0x4e;
 	m_WindowKeys[KEY_M] = 0x4d;
-	m_WindowKeys[KEY_PERIOD] = VK_DECIMAL;
+// start multiplayer
+	m_WindowKeys[KEY_PERIOD] = 0xbe;
+// end multiplayer
 	m_WindowKeys[KEY_SLASH] = VK_DIVIDE;
 	m_WindowKeys[KEY_SPACE] = VK_SPACE;		m_RGFKeys[KEY_SPACE] = RGF_K_SKIP;
 	m_WindowKeys[KEY_ALT] = VK_MENU;		m_RGFKeys[KEY_ALT] = RGF_K_LOOKMODE;
@@ -116,8 +120,13 @@ void CInput::Default()
 	m_WindowKeys[KEY_BACKSLASH] = 0xdc;
 	m_WindowKeys[KEY_SEMICOLON] = 0xba;
 	m_WindowKeys[KEY_COMMA] = 0xbc;
-	m_WindowKeys[KEY_TILDE] = 0xc0;
+// start multiplayer
+	m_WindowKeys[KEY_TILDE] = 0xc0;		m_RGFKeys[KEY_TILDE] = RGF_K_CONSOLE;
+// end multiplayer
 	m_WindowKeys[KEY_APOSTROPHE] = 0xde;
+// start multiplayer
+	m_WindowKeys[KEY_DECIMAL] = VK_DECIMAL;
+// end multiplayer
 
   return;
 }
@@ -210,7 +219,7 @@ void CInput::ScanKeyboardInput()
 }
 
 //-------------------------------
-// get a key from the keyboard
+// get a key from the keyboard and wait until released
 //-------------------------------
 
 int CInput::GetKeyboardInput()
@@ -228,6 +237,23 @@ int CInput::GetKeyboardInput()
 	  return -1;
 }
 
+// changed RF064
+//-------------------------------
+// get a key from the keyboard with no wait
+//-------------------------------
+
+int CInput::GetKeyboardInputNoWait()
+{
+	  for(int nTemp = 0; nTemp < m_nMappedKeys; nTemp++)
+	  {
+		if((GetAsyncKeyState(m_WindowKeys[nTemp]) & 0x8000) != 0)
+		{
+			return nTemp;
+		}
+	  }
+	  return -1;
+}
+// end change RF064
 
 //	SaveKeymap
 //

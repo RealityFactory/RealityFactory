@@ -346,7 +346,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 //
 //	Save all teleporters and teleport targets to the supplied file
 
-int CTeleporter::SaveTo(FILE *SaveFD)
+int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -365,11 +365,12 @@ int CTeleporter::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
-		fwrite(&pTeleport->bActive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTeleport->bForward, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTeleport->fDelta, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pTeleport->fDensity, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pTeleport->origin, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(&pTeleport->bActive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTeleport->bForward, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTeleport->fDelta, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pTeleport->fDensity, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pTeleport->origin, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(&pTeleport->active, sizeof(geBoolean), 1, SaveFD);
 	}
 	
 	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
@@ -381,7 +382,7 @@ int CTeleporter::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
-		fwrite(&pTarget->origin, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(&pTarget->origin, sizeof(geVec3d), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -391,7 +392,7 @@ int CTeleporter::SaveTo(FILE *SaveFD)
 //
 //	Restore all teleporters and teleport targets from the supplied file
 
-int CTeleporter::RestoreFrom(FILE *RestoreFD)
+int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -410,11 +411,12 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
-		fread(&pTeleport->bActive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTeleport->bForward, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTeleport->fDelta, sizeof(geFloat), 1, RestoreFD);
-		fread(&pTeleport->fDensity, sizeof(geFloat), 1, RestoreFD);
-		fread(&pTeleport->origin, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(&pTeleport->bActive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTeleport->bForward, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTeleport->fDelta, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pTeleport->fDensity, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pTeleport->origin, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(&pTeleport->active, sizeof(geBoolean), 1, RestoreFD);
 	}
 	
 	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
@@ -426,7 +428,7 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
-		fread(&pTarget->origin, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(&pTarget->origin, sizeof(geVec3d), 1, RestoreFD);
 	}
 	
 	return RGF_SUCCESS;

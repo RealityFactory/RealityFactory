@@ -124,6 +124,10 @@ public:
 	float GetJerk()
 	{ return jerkamt; }
 // end change RF063
+// changed RF064
+	void SetDesiredHeight(float height)
+	{ DesiredHeight = height; }
+// end change RF064
 private:
 	//	Member functions
 	void DoThirdPersonTracking();				// Handle actor-locked third person view
@@ -196,6 +200,10 @@ private:
 	geFloat sm_oldrotationx;
 	geFloat sFOV;
 // end change RF063
+// changed RF064
+	geFloat DesiredHeight;
+	float HeightSpeed;
+// end change RF064
 };
 
 #endif

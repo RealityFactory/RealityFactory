@@ -191,13 +191,12 @@ void CLogic::Tick(float dwTicks)
 // changed RF063
 			case 10: // Use attribute
 				pSource->bState = false;
-				if(!EffectC_IsStringNull(CCD->Player()->GetUseAttribute()))
+// changed RF064
+				if(CCD->Player()->GetUseAttribute(pSource->Trigger1Name))
 				{
-					if(!strcmp(CCD->Player()->GetUseAttribute(), pSource->Trigger1Name))
-					{
-						pSource->bState = true;
-					}
+					pSource->bState = true;
 				}
+// end change RF064
 				break;
 			case 11: // Clear Use Attribute
 				state = GetLTriggerState(pSource->Trigger1Name);
@@ -205,12 +204,13 @@ void CLogic::Tick(float dwTicks)
 				{
 					if(!pSource->OldState)
 					{
-						if(!strcmp(CCD->Player()->GetUseAttribute(), pSource->Trigger2Name))
+// changed RF064
+						if(CCD->Player()->GetUseAttribute(pSource->Trigger2Name))
 						{
-							if(!EffectC_IsStringNull(CCD->Player()->GetUseAttribute()))
-								CCD->HUD()->ActivateElement(CCD->Player()->GetUseAttribute(), false);
-							CCD->Player()->SetUseAttribute(" ");
+							CCD->HUD()->ActivateElement(pSource->Trigger2Name, false);
+							CCD->Player()->DelUseAttribute(pSource->Trigger2Name);
 						}
+// end change RF064
 						pSource->OldState = true;
 					}
 				}
@@ -240,7 +240,7 @@ void CLogic::Tick(float dwTicks)
 //	Save the current state of every  logic gate in the current world
 //	..off to an open file.
 
-int CLogic::SaveTo(FILE *SaveFD)
+int CLogic::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -258,11 +258,11 @@ int CLogic::SaveTo(FILE *SaveFD)
 	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
 		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
-		fwrite(&pSource->active, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->OldState, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->inDelay, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->time, sizeof(float), 1, SaveFD);
+		WRITEDATA(&pSource->active, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->OldState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->inDelay, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->time, sizeof(float), 1, SaveFD);
 	  }
 
   return RGF_SUCCESS;
@@ -273,7 +273,7 @@ int CLogic::SaveTo(FILE *SaveFD)
 //	Restore the state of every  logic gate in the current world from an
 //	..open file.
 
-int CLogic::RestoreFrom(FILE *RestoreFD)
+int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -289,11 +289,11 @@ int CLogic::RestoreFrom(FILE *RestoreFD)
     pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	  {
 		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
-		fread(&pSource->active, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->OldState, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->inDelay, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->time, sizeof(float), 1, RestoreFD);
+		READDATA(&pSource->active, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->OldState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->inDelay, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->time, sizeof(float), 1, RestoreFD);
     }
 
   return RGF_SUCCESS;

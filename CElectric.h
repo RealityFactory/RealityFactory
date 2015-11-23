@@ -55,6 +55,10 @@ public:
   void CheckCollision(ElectricBolt *Bolt);
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
+// start multiplayer
+	int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
+// end multiplayer
 private:
 
 };

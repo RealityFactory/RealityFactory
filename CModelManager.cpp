@@ -365,6 +365,54 @@ int CModelManager::SetAnimationSpeed(geWorld_Model *theModel, geFloat fSpeed)
 	return RGF_SUCCESS;
 }
 
+// start multiplayer
+int CModelManager::SaveTo(FILE *SaveFD, bool type)
+{
+	for(int nEntry = 0; nEntry < 512; nEntry++)
+	{
+		if(MainList[nEntry] != NULL)
+		{
+			WRITEDATA(&MainList[nEntry]->ModelTime, sizeof(geFloat), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->OldModelTime, sizeof(geFloat), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->Translation, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->Rotation, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->bForward, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->bMoving, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->bLooping, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->bOneShot, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->bHasMoved, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->TLIndex, sizeof(int), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->AnimStartTime, sizeof(geFloat), 1, SaveFD);
+			WRITEDATA(&MainList[nEntry]->ListWrapAround, sizeof(bool), 1, SaveFD);
+		}
+	}
+	return RGF_SUCCESS;
+}
+
+int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	for(int nEntry = 0; nEntry < 512; nEntry++)
+	{
+		if(MainList[nEntry] != NULL)
+		{
+			READDATA(&MainList[nEntry]->ModelTime, sizeof(geFloat), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->OldModelTime, sizeof(geFloat), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->Translation, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->Rotation, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->bForward, sizeof(bool), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->bMoving, sizeof(bool), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->bLooping, sizeof(bool), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->bOneShot, sizeof(bool), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->bHasMoved, sizeof(bool), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->TLIndex, sizeof(int), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->AnimStartTime, sizeof(geFloat), 1, RestoreFD);
+			READDATA(&MainList[nEntry]->ListWrapAround, sizeof(bool), 1, RestoreFD);
+		}
+	}
+	return RGF_SUCCESS;
+}
+// end multiplayer
+
 //	Tick
 //
 //	Dispatch time to all animating models, let them move, and make any
@@ -412,6 +460,57 @@ void CModelManager::Tick(geFloat dwTicks)
 	{
 		if(MainList[nEntry] != NULL)
 		{
+// changed RF064
+			if(CCD->MenuManager()->GetSEBoundBox())
+			{
+				geExtBox Result;
+				geVec3d Forward, Up, Left, Pos;
+				geXForm3d Xf;
+				geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &Xf); 
+				geXForm3d_GetUp (&Xf, &Up);
+				geVec3d_Normalize(&Up);
+				geXForm3d_GetIn (&Xf, &Forward);
+				geVec3d_Normalize(&Forward);
+				geXForm3d_GetLeft (&Xf, &Left);
+				geVec3d_Normalize(&Left);
+				geWorld_GetModelRotationalCenter(CCD->World(), MainList[nEntry]->Model, &Pos);
+				geVec3d_AddScaled (&Pos, &Forward, -MainList[nEntry]->Mins.Z, &Result.Min);
+				geVec3d_AddScaled (&Result.Min, &Left, -MainList[nEntry]->Mins.X, &Result.Min);
+				geVec3d_AddScaled (&Result.Min, &Up, MainList[nEntry]->Mins.Y, &Result.Min);
+				geVec3d_AddScaled (&Pos, &Forward, -MainList[nEntry]->Maxs.Z, &Result.Max);
+				geVec3d_AddScaled (&Result.Max, &Left, -MainList[nEntry]->Maxs.X, &Result.Max);
+				geVec3d_AddScaled (&Result.Max, &Up, MainList[nEntry]->Maxs.Y, &Result.Max);
+				
+				Result.Min.X -= Pos.X;
+				Result.Min.Y -= Pos.Y;
+				Result.Min.Z -= Pos.Z;
+				Result.Max.X -= Pos.X;
+				Result.Max.Y -= Pos.Y;
+				Result.Max.Z -= Pos.Z;
+				float Mtemp;
+				if(Result.Min.X > Result.Max.X)
+				{
+					Mtemp = Result.Min.X;
+					Result.Min.X = Result.Max.X;
+					Result.Max.X = Mtemp;
+				}
+				if(Result.Min.Y > Result.Max.Y)
+				{
+					Mtemp = Result.Min.Y;
+					Result.Min.Y = Result.Max.Y;
+					Result.Max.Y = Mtemp;
+				}
+				if(Result.Min.Z > Result.Max.Z)
+				{
+					Mtemp = Result.Min.Z;
+					Result.Min.Z = Result.Max.Z;
+					Result.Max.Z = Mtemp;
+				}
+				
+				DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation,
+					&Result.Min, &Result.Max);
+			}
+// end change RF064
 			// Is this model moving?
 			if(MainList[nEntry]->bMoving == false)
 				continue;						// Not moving, ignore it.
@@ -735,7 +834,18 @@ void CModelManager::Tick(geFloat dwTicks)
 		
 		return RGF_SUCCESS;
 	}
-	
+// changed RF064	
+	int CModelManager::SetPosition(geWorld_Model *theModel, geVec3d thePosition)
+	{
+		ModelInstanceList *pEntry = FindModel(theModel);
+		if(pEntry == NULL)
+			return RGF_NOT_FOUND;					// Model not managed by us...
+		
+		pEntry->Translation = thePosition;
+		
+		return RGF_SUCCESS;
+	}
+// end change RF064	
 	//	GetRotation
 	//
 	//	Get the current rotation of the desired world model.
@@ -958,17 +1068,18 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 				Result.Min.Z = Result.Max.Z;
 				Result.Max.Z = Mtemp;
 			}
-			
-			if(CCD->MenuManager()->GetSEBoundBox())
-				DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation,
-				&Result.Min, &Result.Max);
+// changed RF064			
+			//if(CCD->MenuManager()->GetSEBoundBox())
+				//DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation,
+				//&Result.Min, &Result.Max);
 			
 			if(CCD->Doors()->IsADoor(MainList[nTemp]->Model) && IsRunning(MainList[nTemp]->Model) && MainList[nTemp]->bRotating)
 				continue;
 // changed RF063
-			if(MainList[nTemp]->ModelType==ENTITY_LIQUID)
+// changed RF064
+			if(MainList[nTemp]->ModelType==ENTITY_LIQUID || MainList[nTemp]->ModelType==ENTITY_OVERLAY)
 				continue;
-			
+// end change RF064			
 			Result.Min.X += MainList[nTemp]->Translation.X;
 			Result.Min.Y += MainList[nTemp]->Translation.Y;
 			Result.Min.Z += MainList[nTemp]->Translation.Z;
@@ -997,14 +1108,10 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 	{
 		geEntity_EntitySet *pSet;
 		geEntity *pEntity;
-		static geVec3d Directions[6] = {
-			{0.0f, -1.0f, 0.0f},			// DOWN
-			{0.0f, 1.0f, 0.0f},				// UP
-			{-1.0f, 0.0f, 0.0f},			// LEFT
-			{1.0f, 0.0f, 0.0f},				// RIGHT
-			{0.0f, 0.0f, 1.0f},				// FORWARD
-			{0.0f, 0.0f, -1.0f}};			// BACKWARD
-			
+// changed RF064
+		geVec3d Direction;
+// end change RF064
+
 			pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 			if(!pSet)
 				return RGF_FAILURE;
@@ -1020,13 +1127,20 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 					continue;								// Not this one
 				// Ok, the passed-in model has a MODIFIER.  Let's see what it's supposed
 				// ..to do.
+				
 				if(pMod->ForceImparter == GE_TRUE && !pMod->DoForce)
 				{
 					// Need to add force to the actor that hit us...
 					if(CCD->ActorManager()->ForceActive(theActor, 2) == false)
 					{
-						CCD->ActorManager()->SetForce(theActor, 2, Directions[pMod->ForceVector], 
+// changed RF064
+						Direction.Z = 0.0174532925199433f*(pMod->ForceVector.Z);
+						Direction.X = 0.0174532925199433f*(pMod->ForceVector.X);
+						Direction.Y = 0.0174532925199433f*(pMod->ForceVector.Y);
+						geVec3d_Normalize(&Direction);
+						CCD->ActorManager()->SetForce(theActor, 2, Direction, 
 							pMod->ForceAmount, pMod->ForceDecay);
+// end change RF064
 						pMod->DoForce = true;
 						pMod->FTime = 0.0f;
 						if(pMod->theFSound != NULL)
@@ -1316,7 +1430,12 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 			fModelMoveOK = CCD->Collision()->CheckModelMotionActor(theEntry->Model, &xfmDest,
 				ActorsInRange[nTemp], &ActorPosition, &NewActorPosition);
 			if(fModelMoveOK == false)
-				return RGF_FAILURE;					// Couldn't move the model
+// changed RF064
+			{
+				HandleCollision(theEntry->Model, ActorsInRange[nTemp]);
+				return RGF_SUCCESS;					// Couldn't move the model
+			}
+// end change RF064
 			geVec3d Delta1 = xfmDest.Translation;
 			Delta1.X = Delta1.X - xfmOldPosition.Translation.X;
 			Delta1.Y = Delta1.Y - xfmOldPosition.Translation.Y;
@@ -1324,7 +1443,8 @@ int CModelManager::EmptyContent(geWorld_Model *Model)
 			if(IsAPassenger(theEntry->Model, ActorsInRange[nTemp]))
 			{
 				CCD->ActorManager()->AddTranslation(ActorsInRange[nTemp], Delta1);
-				RemovePassenger(theEntry->Model, ActorsInRange[nTemp]);
+				// changed RF064
+				//RemovePassenger(theEntry->Model, ActorsInRange[nTemp]);
 			}
 			else
 				CCD->ActorManager()->Position(ActorsInRange[nTemp], NewActorPosition);

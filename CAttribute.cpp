@@ -73,6 +73,9 @@ CAttribute::CAttribute()
 			}
 			CCD->ActorManager()->RemoveActor(pSource->Actor);
 			geActor_Destroy(&pSource->Actor); 
+// start multiplayer
+			pSource->Actor = NULL;
+// end multiplayer
 			if(!EffectC_IsStringNull(pSource->szSoundFile))
 				SPool_Sound(pSource->szSoundFile);
 			if(!EffectC_IsStringNull(pSource->szReSpawnSound))
@@ -197,6 +200,11 @@ void CAttribute::Tick(float dwTicks)
 							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
 						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
 						CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+// changed RF064
+						CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
+						if(!EffectC_IsStringNull(pSource->ChangeMaterial))
+							CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
+// end change RF064
 						pSource->active=GE_TRUE;
 						pSource->bState = GE_TRUE;
 					}
@@ -225,6 +233,11 @@ void CAttribute::Tick(float dwTicks)
 						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
 					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
 					CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+// changed RF064
+					CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
+					if(!EffectC_IsStringNull(pSource->ChangeMaterial))
+						CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
+// end change RF064
 					pSource->active=GE_TRUE;
 					pSource->bState = GE_TRUE;
 				}
@@ -363,7 +376,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor)
 //
 //	Save Attributes to a supplied file
 
-int CAttribute::SaveTo(FILE *SaveFD)
+int CAttribute::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -381,11 +394,12 @@ int CAttribute::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
-		fwrite(&pSource->alive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->Tick, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pSource->CallBack, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pSource->CallBackCount, sizeof(int), 1, SaveFD);
-		fwrite(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->alive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->active, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->Tick, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pSource->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pSource->CallBackCount, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pSource->bState, sizeof(geBoolean), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -395,7 +409,7 @@ int CAttribute::SaveTo(FILE *SaveFD)
 //
 //	Restore Attributes from a supplied file
 
-int CAttribute::RestoreFrom(FILE *RestoreFD)
+int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -413,11 +427,27 @@ int CAttribute::RestoreFrom(FILE *RestoreFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
-		fread(&pSource->alive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->Tick, sizeof(geFloat), 1, RestoreFD);
-		fread(&pSource->CallBack, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pSource->CallBackCount, sizeof(int), 1, RestoreFD);
-		fread(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->alive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->active, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->Tick, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pSource->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pSource->CallBackCount, sizeof(int), 1, RestoreFD);
+		READDATA(&pSource->bState, sizeof(geBoolean), 1, RestoreFD);
+// changed RF064
+		if(pSource->active==GE_TRUE)
+		{
+			pSource->Actor = CCD->ActorManager()->SpawnActor(pSource->szActorName, 
+				pSource->origin, pSource->ActorRotation, "", "", NULL);//pSource->Actor);
+			CCD->ActorManager()->SetType(pSource->Actor, ENTITY_ATTRIBUTE_MOD);
+			CCD->ActorManager()->SetScale(pSource->Actor, pSource->Scale);
+			CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
+			if(pSource->Gravity)
+				CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+			CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+			CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+			CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
+		}
+// end change RF064
 	}
 	
 	return RGF_SUCCESS;

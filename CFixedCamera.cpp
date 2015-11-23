@@ -42,6 +42,16 @@ CFixedCamera::CFixedCamera()
 		pSource->Rotation.Z = 0.0174532925199433f*(pSource->Angle.Z);
 		pSource->Rotation.X = 0.0174532925199433f*(pSource->Angle.X);
 		pSource->Rotation.Y = 0.0174532925199433f*(pSource->Angle.Y-90.0f);
+		pSource->OriginOffset = pSource->origin;
+		pSource->RealAngle = pSource->Rotation;
+// changed RF064
+		if(pSource->Model)
+		{
+			geVec3d ModelOrigin;
+	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
+			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
+  		}
+// end change RF064
 	}
 
   return;
@@ -66,7 +76,31 @@ void CFixedCamera::Tick()
 	
 	if(!pSet || !Camera)
 		return;	
-	
+
+// changed RF064
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	{
+		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		pSource->origin = pSource->OriginOffset;
+		SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
+		if(pSource->Model)
+		{
+			geXForm3d Xf;
+			geVec3d  Tmp;
+			geWorld_GetModelXForm(CCD->World(), pSource->Model, &Xf); 
+			geXForm3d_GetEulerAngles(&Xf, &Tmp);
+			geVec3d_Add(&pSource->RealAngle, &Tmp, &pSource->Rotation);
+		}
+		else if(!EffectC_IsStringNull(pSource->EntityName))
+		{
+			SetAngle(pSource->EntityName, pSource->BoneName, &pSource->Rotation);
+		}
+	}
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+// end change RF064
+
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -121,6 +155,44 @@ bool CFixedCamera::GetFirstCamera()
 	
 	if(!pSet)
 		return false;
+
+// changed RF064
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	{
+		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		pSource->origin = pSource->OriginOffset;
+		SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
+		if(pSource->Model)
+		{
+			geXForm3d Xf;
+			geVec3d  Tmp;
+			geWorld_GetModelXForm(CCD->World(), pSource->Model, &Xf); 
+			geXForm3d_GetEulerAngles(&Xf, &Tmp);
+			geVec3d_Add(&pSource->RealAngle, &Tmp, &pSource->Rotation);
+		}
+		else if(!EffectC_IsStringNull(pSource->EntityName))
+		{
+			SetAngle(pSource->EntityName, pSource->BoneName, &pSource->Rotation);
+		}
+	}
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	{
+		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		if(pSource->UseFirst)
+		{
+			Camera = pSource;
+			return true;
+		}
+	}
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+
+// end change RF064
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{

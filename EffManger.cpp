@@ -21,7 +21,17 @@ extern void 	Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime);
 extern geBoolean Particle_SystemRemoveAnchorPoint(Particle_System *ps, geVec3d	*AnchorPoint );
 extern void 	Particle_SystemAddParticle(Particle_System *ps, geBitmap *Texture, const GE_LVertex	*Vert,const geVec3d	*AnchorPoint, geFloat Time,
 	const geVec3d *Velocity,float Scale, const geVec3d *Gravity, geBoolean Bounce );
-
+// changed RF064
+extern ActorParticle_System *  ActorParticle_SystemCreate();
+extern void 	ActorParticle_SystemDestroy(ActorParticle_System *ps);
+extern void 	ActorParticle_SystemFrame(ActorParticle_System *ps, geFloat DeltaTime);
+extern void 	ActorParticle_SystemAddParticle(ActorParticle_System *ps,
+							char *ActorName, geVec3d Position,
+							geVec3d	BaseRotation, geVec3d RotationSpeed,
+							GE_RGBA	FillColor, GE_RGBA	AmbientColor,
+							float Alpha, float AlphaRate, geFloat Time, const geVec3d *Velocity,
+							geFloat	Scale, bool Gravity, geBoolean Bounce);
+// end change RF064
 extern void TPool_Initalize();
 extern void TPool_Delete();
 extern void SPool_Initalize();
@@ -70,6 +80,9 @@ EffManager::EffManager()
 
   // create the particle system handler
   Ps=Particle_SystemCreate(CCD->World());
+// change RF064
+  APs=ActorParticle_SystemCreate();
+// end change RF064
 
 }
 
@@ -119,6 +132,13 @@ EffManager::~EffManager()
           Item[i].Active=GE_FALSE;
           Item[i].Pause=GE_FALSE;
           break;
+// changed RF064
+		case EFF_ACTORSPRAY:
+          ActorSpray_Remove((ActorSpray *)Item[i].Data);
+          Item[i].Active=GE_FALSE;
+          Item[i].Pause=GE_FALSE;
+          break;
+// end change RF064
         default:
           break;
       }
@@ -127,6 +147,9 @@ EffManager::~EffManager()
 
   // remove the particle system handler
   Particle_SystemDestroy(Ps);
+// change RF064
+  ActorParticle_SystemDestroy(APs);
+// end change RF064
   TPool_Delete(); // delete the textures
   SPool_Delete(); // delete the sounds
 }
@@ -192,6 +215,15 @@ void EffManager::Tick(float dwTicksIn)
             Item[i].Active=GE_FALSE;
           }
           break;
+// changed RF064
+		case EFF_ACTORSPRAY:
+          if(ActorSpray_Process((ActorSpray  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            ActorSpray_Remove((ActorSpray *)Item[i].Data);
+            Item[i].Active=GE_FALSE;
+          }
+          break;
+// end change RF064
         default:
           break;
       }
@@ -200,6 +232,9 @@ void EffManager::Tick(float dwTicksIn)
 
   // process the particles
   Particle_SystemFrame(Ps, dwTicks);
+// changed RF064
+  ActorParticle_SystemFrame(APs, dwTicks);
+// end change RF064
 
 }
 
@@ -255,6 +290,13 @@ int EffManager::Item_Add(int Itype, void *Idata)
           Item[i].Active=GE_TRUE;
           return i;
           break;
+// changed RF064
+		  case EFF_ACTORSPRAY:
+          Item[i].Data=ActorSpray_Add(Idata);
+          Item[i].Active=GE_TRUE;
+          return i;
+          break;
+// end change RF064
         default:
           break;
       }
@@ -299,6 +341,11 @@ void EffManager::Item_Modify(int Itype, int Index, void *Data, uint32 Flags)
 		case EFF_CORONA:
           Corona_Modify((EffCorona *)Item[Index].Data, (EffCorona *)Data, Flags);
           break;
+// changed RF064
+		  case EFF_ACTORSPRAY:
+          ActorSpray_Modify((ActorSpray *)Item[Index].Data, (ActorSpray *)Data, Flags);
+          break;
+// end change RF064
         default:
           break;
       }
@@ -341,6 +388,12 @@ void EffManager::Item_Delete(int Itype, int Index)
           Corona_Remove((EffCorona *)Item[Index].Data);
           Item[Index].Active=GE_FALSE;
           break;
+// changed RF064
+		case EFF_ACTORSPRAY:
+          ActorSpray_Remove((ActorSpray *)Item[Index].Data);
+          Item[Index].Active=GE_FALSE;
+          break;
+// end change RF064
         default:
           break;
       }
@@ -831,6 +884,9 @@ void *EffManager::Sprite_Add(void *Data)
 	NewData->Vertex[3].v = 1.0f;
 	NewData->CurrentTexture = 0;
 	NewData->ElapsedTime = 0.0f;
+// changed RF064
+	NewData->CurrentLife = 0.0f;
+// end change RF064
 	NewData->Direction = 1;
 
 	// calculate leaf value
@@ -892,6 +948,14 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 					EFFECTC_CLIP_LEAF | EFFECTC_CLIP_SEMICIRCLE ) == GE_FALSE )
 		return GE_TRUE;
 	}
+// changed RF064
+	if(Data->LifeTime>0.0f)
+	{
+		Data->CurrentLife += TimeDelta;
+		if(Data->CurrentLife>Data->LifeTime)
+			return GE_FALSE;
+	}
+// end change RF064
 	// adjust art
 	if ( Data->TotalTextures > 1 )
 	{
@@ -1633,3 +1697,242 @@ geBoolean EffManager::Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags)
 	// all done
 	return GE_TRUE;
 }
+
+//---------------------------------------------------------------------
+// ActorSpray
+//---------------------------------------------------------------------
+void *EffManager::ActorSpray_Add(void *Data)
+{
+  ActorSpray	*NewData;
+
+  NewData = GE_RAM_ALLOCATE_STRUCT(ActorSpray);
+  if ( NewData == NULL )
+	return NULL;
+
+  	memcpy( NewData, Data, sizeof( *NewData ) );
+
+	// setup defaults
+	NewData->TimeRemaining = 0.0f;
+	NewData->PolyCount = 0.0f;
+	NewData->ActorNum = 0;
+	NewData->Direction = true;
+
+	// save the transform
+	EffectC_XFormFromVector( &( NewData->Source ), &( NewData->Dest ), &( NewData->Xf ) );
+
+  return (void *)NewData;
+}
+
+void EffManager::ActorSpray_Remove(ActorSpray *Data)
+{
+	// free effect data
+	geRam_Free( Data );
+
+}
+
+geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
+{
+
+	// locals
+	geVec3d			Velocity, Speed;
+	geVec3d			Left, Up;
+	geVec3d			Source, Dest;
+	const geXForm3d		*CameraXf;
+	float			Scale;
+	float			UnitLife;
+	float			Distance;
+	float			Adjustment = 1.0f;
+	float			NewPolyCount = 0.0f;
+
+	// adjust spray life, killing it if required
+	if ( Data->SprayLife > 0.0f )
+	{
+		Data->SprayLife -= TimeDelta;
+		if ( Data->SprayLife <= 0.0f )
+		{
+			return GE_FALSE;
+		}
+	}
+
+	// do nothing if its paused
+	if ( Data->Paused == GE_TRUE )
+	{
+		return GE_TRUE;
+	}
+
+	// get camera xform
+	CameraXf = geCamera_GetWorldSpaceXForm(CCD->CameraManager()->Camera() );
+
+	// perform level of detail processing if required
+	if ( Data->DistanceMax > 0.0f )
+	{
+
+		// do nothing if its too far away
+		Distance = geVec3d_DistanceBetween( &( Data->Source ), &( CameraXf->Translation ) );
+		if ( Distance > Data->DistanceMax )
+		{
+			return GE_TRUE;
+		}
+
+		// determine polygon adjustment amount
+		if ( ( Data->DistanceMin > 0.0f ) && ( Distance > Data->DistanceMin ) )
+		{
+			Adjustment = ( 1.0f - ( ( Distance - Data->DistanceMin ) / ( Data->DistanceMax - Data->DistanceMin ) ) );
+		}
+	}
+
+	// determine how many polys need to be added taking level fo detail into account
+	Data->TimeRemaining += TimeDelta;
+	while ( Data->TimeRemaining >= Data->Rate )
+	{
+		Data->TimeRemaining -= Data->Rate;
+		NewPolyCount += 1.0f;
+	}
+	NewPolyCount *= Adjustment;
+	Data->PolyCount += NewPolyCount;
+
+	// add new textures
+	while ( Data->PolyCount > 0 )
+	{
+
+		// adjust poly remaining count
+		Data->PolyCount -= 1.0f;
+
+		// pick a source point
+		if ( Data->SourceVariance > 0 )
+		{
+			geXForm3d_GetLeft( &( Data->Xf ), &Left );
+			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geVec3d_Scale( &Left, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
+			geVec3d_Scale( &Up, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Add( &Left, &Up, &Source );
+			geVec3d_Add( &( Data->Source ), &Source, &Source );
+		}
+		else
+		{
+			geVec3d_Copy( &( Data->Source ), &Source );
+		}
+
+		// pick a destination point
+		if ( Data->DestVariance > 0 )
+		{
+			geXForm3d_GetLeft( &( Data->Xf ), &Left );
+			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geVec3d_Scale( &Left, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
+			geVec3d_Scale( &Up, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Add( &Left, &Up, &Dest );
+			geVec3d_Add( &( Data->Dest ), &Dest, &Dest );
+		}
+		else
+		{
+			geVec3d_Copy( &( Data->Dest ), &Dest );
+		}
+
+		// set velocity
+		if ( Data->MinSpeed > 0.0f )
+		{
+			geVec3d_Subtract( &Dest, &Source, &Velocity );
+			geVec3d_Normalize( &Velocity );
+			geVec3d_Scale( &Velocity, EffectC_Frand( Data->MinSpeed, Data->MaxSpeed ), &Velocity );
+		}
+		else
+		{
+			geVec3d_Set( &Velocity, 0.0f, 0.0f, 0.0f );
+		}
+
+		// set scale
+		Scale = EffectC_Frand( Data->MinScale, Data->MaxScale );
+
+		// set life
+		UnitLife = EffectC_Frand( Data->MinUnitLife, Data->MaxUnitLife );
+
+		Speed.X = EffectC_Frand( Data->MinRotationSpeed.X, Data->MaxRotationSpeed.X);
+		Speed.Y = EffectC_Frand( Data->MinRotationSpeed.Y, Data->MaxRotationSpeed.Y);
+		Speed.Z = EffectC_Frand( Data->MinRotationSpeed.Z, Data->MaxRotationSpeed.Z);
+
+		switch(Data->Style)
+		{
+		case 0:
+			Data->ActorNum +=1;
+			if(Data->ActorNum>=Data->NumActors)
+				Data->ActorNum = 0;
+			break;
+		case 1:
+			if(Data->Direction)
+			{
+				Data->ActorNum +=1;
+				if(Data->ActorNum>=Data->NumActors)
+				{
+					Data->ActorNum = Data->NumActors-1;
+					Data->Direction = false;
+				}
+			}
+			else
+			{
+				Data->ActorNum -=1;
+				if(Data->ActorNum<0)
+				{
+					Data->ActorNum = 0;
+					Data->Direction = true;
+				}
+			}
+			break;
+		case 2:
+		default:
+			Data->ActorNum = ( rand() % Data->NumActors );
+			break;
+		}
+
+		char ActorName[64];
+		sprintf(ActorName, "%s%d%s", Data->BaseName, Data->ActorNum, ".act" );
+
+		// add the new particle
+		ActorParticle_SystemAddParticle(APs,
+						ActorName,
+						Source,
+						Data->BaseRotation,
+						Speed,
+						Data->FillColor, 
+						Data->AmbientColor,
+						Data->Alpha,
+						Data->AlphaRate,
+						UnitLife,
+						&Velocity,
+						Scale,
+						Data->Gravity,
+						Data->Bounce);
+	}
+
+	// all done
+	return GE_TRUE;
+
+} // Spray_Process()
+
+geBoolean EffManager::ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, uint32 Flags)
+{
+
+  // adjust source and dest together
+  if ( Flags & SPRAY_FOLLOWTAIL )
+  {
+	geVec3d_Copy( &( Data->Source ), &( Data->Dest ) );
+	geVec3d_Copy( &( NewData->Source ), &( Data->Source ) );
+  }
+
+  // adjust source
+  if ( Flags & SPRAY_SOURCE )
+  {
+	geVec3d_Copy( &( NewData->Source ), &( Data->Source ) );
+  }
+
+  // adjust source
+  if ( Flags & SPRAY_DEST )
+  {
+	geVec3d_Copy( &( NewData->Dest ), &( Data->Dest ) );
+  }
+
+  EffectC_XFormFromVector( &( Data->Source ), &( Data->Dest ), &( Data->Xf ) );
+
+  // all done
+  return GE_TRUE;
+}
+

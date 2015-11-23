@@ -74,6 +74,13 @@ typedef struct Selection
 {
   char Name[64];
   geBitmap *Bitmap;   // image bitmap
+  char ActorName[64];
+  float ActorScale;
+  geVec3d Rotation;
+  float AnimSpeed;
+  float ShadowSize;
+  GE_RGBA FillColor;
+  GE_RGBA AmbientColor;
 } Selection;
 
 
@@ -167,6 +174,25 @@ public:
   int GetLoadFont()
   { return LoadFont; }
 // end change RF063
+// changed RF064
+  void SetMusicVol(float vol);
+  bool GetUseSelect()
+  { return useselect; }
+  char *GetCurrentActor()
+  { return CharSelect[CurrentSelect].ActorName; }
+  float GetCurrentScale()
+  { return CharSelect[CurrentSelect].ActorScale; }
+  geVec3d GetCurrentRotation()
+  { return CharSelect[CurrentSelect].Rotation; }
+  float GetCurrentSpeed()
+  { return CharSelect[CurrentSelect].AnimSpeed; }
+  float GetCurrentShadow()
+  { return CharSelect[CurrentSelect].ShadowSize; }
+  GE_RGBA GetCurrentFillColor()
+  { return CharSelect[CurrentSelect].FillColor; }
+  GE_RGBA GetCurrentAmbientColor()
+  { return CharSelect[CurrentSelect].AmbientColor; }
+// end change RF064
 private:
   void ClearVol();
   void DisplayCrossHair();
@@ -222,6 +248,10 @@ private:
   CAnimGif *Animation[NUM_ANIM];
   int AnimCursor;
 // end change RF063
+// changed RF064
+  DWORD WinVol;
+  bool useselect;
+// end change RF064
 };
 
 

@@ -17,7 +17,8 @@ public:
   CWallDecal();
   ~CWallDecal();
   void AddDecal(WallDecal *pSource);
-  void Tick();
+// changed RF064
+  void Tick(float dwTicks);
 private:
 
 };

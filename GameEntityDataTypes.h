@@ -524,6 +524,11 @@ typedef struct _StaticEntityProxy
 // changed RF063
 	geBoolean UseKey;
 // end change RF063
+// change RF064
+	geVec3d BoxSize;
+	geBoolean HideFromRadar;
+	char *ChangeMaterial;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szSoundFile, "")
 #pragma GE_DefaultValue(SoundLoop, "False")
@@ -556,6 +561,11 @@ typedef struct _StaticEntityProxy
 #pragma GE_DefaultValue(AmbientColor, "128 128 128")
 #pragma GE_DefaultValue(ShadowSize, "0")
 #pragma GE_DefaultValue(UseKey, "False")
+// change RF064
+#pragma GE_DefaultValue(BoxSize, "0 0 0")
+#pragma GE_DefaultValue(HideFromRadar, "False")
+#pragma GE_DefaultValue(ChangeMaterial, "")
+// end change RF064
 #pragma GE_Documentation(szSoundFile, "Sound to play on collision/activation")
 #pragma GE_Documentation(SoundLoop, "TRUE if sound loops")
 #pragma GE_Documentation(fRadius, "Audible range for sound")
@@ -587,6 +597,11 @@ typedef struct _StaticEntityProxy
 #pragma GE_Documentation(AmbientColor, "Color of actor ambient lighting")
 #pragma GE_Documentation(ShadowSize, "Radius of actor shadow, 0 is none")
 #pragma GE_Documentation(UseKey, "if true the can be activated by Use key")
+// change RF064
+#pragma GE_Documentation(BoxSize, "if not all 0 then use as bounding box size")
+#pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
+#pragma GE_Documentation(ChangeMaterial, "name of section containing material change info")
+// end change RF064
 } StaticEntityProxy;
 
 //	Particle System proxy
@@ -862,6 +877,9 @@ typedef struct _EnvironmentSetup
 	geFloat FarClipPlaneDistLow;	// The clip plane distance to use
 	geFloat FarClipPlaneDistHigh;
 	geFloat MinShakeDist;
+// changed RF064
+	geFloat ShadowAlpha;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(Gravity, "0")
 #pragma GE_DefaultValue(Speed, "0")
@@ -878,6 +896,9 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(FarClipPlaneDistLow, "500.0")
 #pragma GE_DefaultValue(FarClipPlaneDistHigh, "500.0")
 #pragma GE_DefaultValue(MinShakeDist, "50.0")
+// changed RF064
+#pragma GE_DefaultValue(ShadowAlpha, "0.0")
+// end change RF064
 #pragma GE_Documentation(Gravity, "Downward force of gravity")
 #pragma GE_Documentation(RealJumping, "if true use realistic jumping")
 #pragma GE_Documentation(Speed, "Player speed of motion")
@@ -893,6 +914,9 @@ typedef struct _EnvironmentSetup
 #pragma GE_Documentation(FarClipPlaneDistLow, "Min distance past which nothing will be rendered")
 #pragma GE_Documentation(FarClipPlaneDistHigh, "Max distance past which nothing will be rendered")
 #pragma GE_Documentation(MinShakeDist, "Distance inside which explosion shake is at maximum")
+// changed RF064
+#pragma GE_Documentation(ShadowAlpha, "Transparency of actor shadows (0 to 255)")
+// end change RF064
 } EnvironmentSetup;
 
 //	Corona
@@ -1258,6 +1282,10 @@ typedef struct _PlayerSetup
 	geFloat HeadBobSpeed;					// eaa3 12/18/2000 Speed of head bob
 	geFloat HeadBobLimit;					// eaa3 12/18/2000 Max. amount of head bob
 	int LevelViewPoint;
+// changed RF064
+	geBoolean LockView;
+	geBoolean MovieMode;
+// end change RF064
 	geBoolean UseDeathFog;
 	GE_RGBA DeathFogColor;
 	char *DeathMessage;
@@ -1279,6 +1307,10 @@ typedef struct _PlayerSetup
 #pragma GE_DefaultValue(HeadBobSpeed, "1.0")
 #pragma GE_DefaultValue(HeadBobLimit, "8.0")
 #pragma GE_DefaultValue(LevelViewPoint, "0")
+// changed RF064
+#pragma GE_DefaultValue(LockView, "False")
+#pragma GE_DefaultValue(MovieMode, "False")
+// end change RF064
 #pragma GE_DefaultValue(UseDeathFog, "False")
 #pragma GE_DefaultValue(DeathFogColor, "255 0 0")
 #pragma GE_DefaultValue(DeathMessage, "")
@@ -1301,6 +1333,10 @@ typedef struct _PlayerSetup
 #pragma GE_Documentation(HeadBobSpeed,"Speed of head bob in increments per move")
 #pragma GE_Documentation(HeadBobLimit, "Maximum amount of head bob, in total units")
 #pragma GE_Documentation(LevelViewPoint,"Initial Player viewpoint: 0=1st person, 1=3rd person w/panning, 2=isometric")
+// changed RF064
+#pragma GE_Documentation(LockView, "TRUE if viewpoint is unchangable in level")
+#pragma GE_Documentation(MovieMode, "TRUE if player input is disabled and ESC sets KeyMonitor to on")
+// end change RF064
 #pragma GE_Documentation(UseDeathFog, "If true use fog swirl at death")
 #pragma GE_Documentation(DeathFogColor, "Color of fog used at death")
 #pragma GE_Documentation(DeathMessage, "Message to display at death")
@@ -1790,9 +1826,19 @@ typedef struct _NonPlayerCharacter
 	char *AttackSound;
 	char *DieSound;
 	int AimingSkill;
+// changed RF064
+	geFloat ActorAlpha;
+	geBoolean HideFromRadar;
+	char *ChangeMaterial;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue(szActorName, "")
+// changed RF064
+#pragma GE_DefaultValue(ActorAlpha, "255")
+#pragma GE_DefaultValue(HideFromRadar, "False")
+#pragma GE_DefaultValue(ChangeMaterial, "")
+// end change RF064
 #pragma GE_DefaultValue(AnimIdle, "Idle")
 #pragma GE_DefaultValue(AnimWalkAttack, "Walk")
 #pragma GE_DefaultValue(AnimAttack, "Shoot")
@@ -1855,6 +1901,11 @@ typedef struct _NonPlayerCharacter
 #pragma GE_Documentation(AttackSound, "Sound to play when attacking")
 #pragma GE_Documentation(DieSound, "Sound to play when dying")
 #pragma GE_Documentation(AimingSkill, "How accurate the aiming is, from 1 to 10")
+// changed RF064
+#pragma GE_Documentation(ActorAlpha, "Alpha value of actor, 0 to 255")
+#pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
+#pragma GE_Documentation(ChangeMaterial, "name of section containing material change info")
+// end change RF064
 } NonPlayerCharacter;
 
 //	ReactiveAI
@@ -1995,6 +2046,9 @@ typedef struct _Trigger
 	geBoolean UseKey;
 	geBoolean PlayerOnly;
 // end change RF063
+// changed RF064
+	geBoolean bNoCollide;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(bOneShot, "False")
 #pragma GE_DefaultValue(bShoot, "False")
@@ -2009,6 +2063,9 @@ typedef struct _Trigger
 #pragma GE_DefaultValue(UseKey, "False")
 #pragma GE_DefaultValue(PlayerOnly, "False")
 // end change RF063
+// changed RF064
+#pragma GE_DefaultValue(bNoCollide, "False")
+// end change RF064
 #pragma GE_Documentation(Model, "Trigger to use")
 #pragma GE_Documentation(szSoundFile, "Sound file to play when trigger hit")
 #pragma GE_Documentation(bOneShot, "true if trigger only works once")
@@ -2023,6 +2080,9 @@ typedef struct _Trigger
 #pragma GE_Documentation(UseKey, "if true then can be activated by Use Key")
 #pragma GE_Documentation(PlayerOnly, "if true then can be activated only by player")
 // end change RF063
+// changed RF064
+#pragma GE_Documentation(bNoCollide, "if true then collision will not activate trigger")
+// end change RF064
 } Trigger;
 
 //	Logic entity
@@ -2138,6 +2198,13 @@ typedef struct _DecalDefine
 typedef struct _WallDecal
 {
 #pragma GE_Private
+// changed RF064
+	void *vertex;
+	geBitmap **FBitmap;
+	geFloat  Time;
+	int CurTex;
+	int CycleDir;
+// end change RF064
 	geBitmap *Bitmap;
 	geBoolean active;
 	gePoly *Poly;
@@ -2151,6 +2218,12 @@ typedef struct _WallDecal
 	geFloat Alpha;
 	GE_RGBA	Color;
 	char *TriggerName;
+// changed RF064
+	geBoolean Animated;
+	int		BitmapCount;
+	int		Style;
+	geFloat	Speed;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_Angles(Angle)
 #pragma GE_DefaultValue(BmpName, "")
@@ -2160,6 +2233,12 @@ typedef struct _WallDecal
 #pragma GE_DefaultValue(Alpha, "255")
 #pragma GE_DefaultValue(Color, "255.0 255.0 255.0")
 #pragma GE_DefaultValue(TriggerName, "")
+// changed RF064
+#pragma GE_DefaultValue(Animated, "False")
+#pragma GE_DefaultValue(BitmapCount, "1")
+#pragma GE_DefaultValue(Style, "0")
+#pragma GE_DefaultValue(Speed, "10")
+// end change RF064
 #pragma GE_Documentation(BmpName, "Name of bitmap")
 #pragma GE_Documentation(AlphaName, "Name of alpha bitmap")
 #pragma GE_Documentation(Width, "Width of Decal")
@@ -2167,6 +2246,12 @@ typedef struct _WallDecal
 #pragma GE_Documentation(Alpha, "Transparency level - 0 to 255")
 #pragma GE_Documentation(Color, "Color of decal")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+// changed RF064
+#pragma GE_Documentation(Animated, "true if decal is animated")
+#pragma GE_Documentation(BitmapCount, "number of bitmaps in sequence")
+#pragma GE_Documentation(Style, "Animation style 0 to 3")
+#pragma GE_Documentation(Speed, "# of bitmaps per second")
+// end change RF064
 } WallDecal;
 
 // FirePoint
@@ -2271,6 +2356,9 @@ typedef struct _DestroyableModel
 	geBoolean CallBack;
 	int CallBackCount;
 	geFloat OriginalAmt;
+// changed RF064
+	geBoolean Animating;
+// end change RF064
 #pragma GE_Published
 	geVec3d	origin;
 	char *szEntityName;		// Name of entity
@@ -2279,16 +2367,33 @@ typedef struct _DestroyableModel
 	geFloat AttributeAmt;	// Props health points
 	char *Attribute;
 	char *szSoundFile;
+// changed RF064
+	geBoolean Animate;
+	geWorld_Model *Model1;
+	geWorld_Model *Model2;
+	geWorld_Model *Model3;
+	geWorld_Model *Model4;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue(TriggerName, "")
 #pragma GE_DefaultValue(AttributeAmt, "100")
 #pragma GE_DefaultValue(Attribute, "health")
 #pragma GE_DefaultValue(szSoundFile, "")
+// changed RF064
+#pragma GE_DefaultValue(Animate, "False")
+// end change RF064
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
 #pragma GE_Documentation(szSoundFile, "Name of sound to play when model is destroyed")
+// changed RF064
+#pragma GE_Documentation(Animate, "Animate model when destroyed")
+#pragma GE_Documentation(Model1, "Name of model to attach to")
+#pragma GE_Documentation(Model2, "Name of model to attach to")
+#pragma GE_Documentation(Model3, "Name of model to attach to")
+#pragma GE_Documentation(Model4, "Name of model to attach to")
+// end change RF064
 } DestroyableModel;
 
 //	Model State Modifier
@@ -2314,7 +2419,9 @@ typedef struct _ModelStateModifier
 	geVec3d origin;							// Origin of entity
 	geWorld_Model *theModel;		// Model to assign modifiers to
 	geBoolean ForceImparter;		// TRUE if model imparts force to player
-	int ForceVector;						// Force vector ID (0=down,1=up,2=left,3=right, 4=forward, 5=backward)
+// changed RF064
+	geVec3d ForceVector;						// Force vector ID (0=down,1=up,2=left,3=right, 4=forward, 5=backward)
+// end change RF064
 	geFloat ForceAmount;				// Amount of force to impact
 	geFloat ForceDecay;					// Amount to decay force imparted
 	char *ForceAudioEffect;			// Audio effect to play when force is applied
@@ -2330,7 +2437,9 @@ typedef struct _ModelStateModifier
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(ForceImparter, "False")
 #pragma GE_DefaultValue(DamageGenerator, "False")
-#pragma GE_DefaultValue(ForceVector, "1")
+// changed RF064
+#pragma GE_DefaultValue(ForceVector, "0 1 0")
+// end change RF064
 #pragma GE_DefaultValue(ForceAmount, "100.0")
 #pragma GE_DefaultValue(ForceDecay, "20.0")
 #pragma GE_DefaultValue(ForceAudioEffect, "")
@@ -2345,6 +2454,9 @@ typedef struct _ModelStateModifier
 #pragma GE_Documentation(theModel,"Model to assign modifier to")
 #pragma GE_Documentation(ForceImparter, "True if model imparts a force to an actor")
 #pragma GE_Documentation(ForceAmount, "Initial amount of force applied")
+// changed RF064
+#pragma GE_Documentation(ForceVector, "Direction of force")
+// end change RF064
 #pragma GE_Documentation(ForceDecay,"Amount of force decay (larger is faster)")
 #pragma GE_Documentation(ForceAudioEffect,"Audio effect to play when force applied")
 #pragma GE_Documentation(ForceTimeDelay,"Delay in sec. before force activates again")
@@ -2450,6 +2562,10 @@ typedef struct _Attribute
 	geFloat ShadowSize;
 // changed RF063
 	geBoolean PlayerOnly;
+// changed RF064
+	geBoolean HideFromRadar;
+	char *ChangeMaterial;
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue(EntityName, "")
@@ -2472,6 +2588,10 @@ typedef struct _Attribute
 #pragma GE_DefaultValue(ShadowSize, "0")
 // changed RF063
 #pragma GE_DefaultValue(PlayerOnly, "False")
+// changed RF064
+#pragma GE_DefaultValue(HideFromRadar, "False")
+#pragma GE_DefaultValue(ChangeMaterial, "")
+// end change RF064
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
 #pragma GE_Documentation(EntityName, "Name of entity to attach to")
 #pragma GE_Documentation(Model, "Name of model to attach to")
@@ -2494,6 +2614,10 @@ typedef struct _Attribute
 #pragma GE_Documentation(ShadowSize, "Radius of actor shadow, 0 is none")
 // changed RF063
 #pragma GE_Documentation(PlayerOnly, "True if only player can collect")
+// changed RF064
+#pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
+#pragma GE_Documentation(ChangeMaterial, "name of section that contains material change info")
+// end change RF064
 } Attribute;
 
 // FlipBook
@@ -2816,20 +2940,39 @@ typedef struct _FixedCamera
 {
 #pragma GE_Private
 	geVec3d		Rotation;
+	geVec3d  OriginOffset;      //Translation from model center
+	geVec3d	RealAngle;
 #pragma GE_Published
 	geVec3d	origin;
 	geVec3d	Angle;
 	geFloat FieldofView;
 	char *TriggerName;
 	char *ForceTrigger;
+// changed RF064
+	geBoolean UseFirst;
+	char 	*EntityName;	// Name of entity to attach to
+	geWorld_Model *Model;	// Name of model to attach to
+	char 	*BoneName;	// Name of actor bone to attach to
+// end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_Angles(Angle)
 #pragma GE_DefaultValue(FieldofView, "2")
 #pragma GE_DefaultValue(TriggerName, "")
 #pragma GE_DefaultValue(ForceTrigger, "")
+// changed RF064
+#pragma GE_DefaultValue(UseFirst, "False")
+#pragma GE_DefaultValue(EntityName, "")
+#pragma GE_DefaultValue(BoneName, "")
+// end change RF064
 #pragma GE_Documentation(FieldofView, "Camera field of view")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity")
 #pragma GE_Documentation(ForceTrigger, "Name of trigger entity that forces camera to activate")
+// changed RF064
+#pragma GE_Documentation(UseFirst, "if true then use this as the first camera in the level")
+#pragma GE_Documentation(EntityName, "Name of entity to attach to")
+#pragma GE_Documentation(Model, "Name of model to attach to")
+#pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
+// end change RF064
 } FixedCamera;
 
 //
@@ -2855,57 +2998,7 @@ typedef struct _ViewSwitch
 #pragma GE_Documentation(Restore, "Restore old view after trigger goes off")
 } ViewSwitch;
 
-/* TrackPoints for RF063
 
-//
-// TrackStart
-//
-
-#pragma GE_Type("icons\\model.ico")
-typedef struct _TrackStart
-{
-#pragma GE_Private
-
-#pragma GE_Published
-	geVec3d	origin;
-	char *szEntityName;
-	int Type;
-	int Action;
-	int ActionDir;
-	char *TrackPointName;
-#pragma GE_Origin(origin)
-#pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue(Type, "-1")
-#pragma GE_DefaultValue(Action, "-1")
-#pragma GE_DefaultValue(ActionDir, "0")
-#pragma GE_DefaultValue(TrackPointName, "")
-#pragma GE_Documentation(szEntityName, "Name of entity")
-} TrackStart;
-
-//
-// TrackPoint
-//
-
-#pragma GE_Type("icons\\model.ico")
-typedef struct _TrackPoint
-{
-#pragma GE_Private
-
-#pragma GE_Published
-	geVec3d	origin;
-	char *szEntityName;
-	int Action;
-	int ActionDir;
-	char *NextTrackPoint;
-#pragma GE_Origin(origin)
-#pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue(Action, "-1")
-#pragma GE_DefaultValue(ActionDir, "0")
-#pragma GE_DefaultValue(NextTrackPoint, "")
-#pragma GE_Documentation(szEntityName, "Name of entity")
-} TrackPoint;
-
-*/
 // changed RF063
 //
 // Liquid
@@ -3000,6 +3093,303 @@ typedef struct _ModifyAttribute
 #pragma GE_Documentation(TriggerName, "Name of trigger entity")
 } ModifyAttribute;
 // end change RF063
+
+// changed RF064
+//
+// ScriptPoint
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct _ScriptPoint
+{
+#pragma GE_Private
+
+#pragma GE_Published
+	geVec3d	origin;
+	char *szEntityName;
+	char *NextOrder;
+	char *NextPoint;
+	geVec3d	Angle;
+#pragma GE_Origin(origin)
+#pragma GE_Angles(Angle)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(NextOrder, "")
+#pragma GE_DefaultValue(NextPoint, "")
+#pragma GE_Documentation(szEntityName, "Name of script point")
+#pragma GE_Documentation(NextOrder, "Name of next script order to execute")
+#pragma GE_Documentation(NextPoint, "Name of next script point in path")
+} ScriptPoint;
+
+//
+// Pawn
+//
+
+#pragma GE_Type("icons\\ai_nonplayer.bmp")
+typedef struct _Pawn
+{
+#pragma GE_Private
+	void *Data;
+	void *Converse;
+#pragma GE_Published
+	geVec3d origin;
+	geVec3d	Angle;
+	char *szEntityName;	// Name of this entity
+	char *PawnType;
+	char *ScriptName;
+	char *ConvScriptName;
+	char *ConvOrder;
+	char *SpawnOrder;
+	char *SpawnPoint;
+	char *SpawnTrigger;
+	geBoolean HideFromRadar;
+	char *ChangeMaterial;
+#pragma GE_Origin(origin)
+#pragma GE_Angles(Angle)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(PawnType, "")
+#pragma GE_DefaultValue(ScriptName, "")
+#pragma GE_DefaultValue(ConvScriptName, "")
+#pragma GE_DefaultValue(ConvOrder, "")
+#pragma GE_DefaultValue(SpawnOrder, "")
+#pragma GE_DefaultValue(SpawnPoint, "")
+#pragma GE_DefaultValue(SpawnTrigger, "")
+#pragma GE_DefaultValue(HideFromRadar, "False")
+#pragma GE_DefaultValue(ChangeMaterial, "")
+#pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
+#pragma GE_Documentation(PawnType, "Name of base Pawn definition")
+#pragma GE_Documentation(ScriptName, "Name of Action Script file to use")
+#pragma GE_Documentation(ConvScriptName, "Name of Conversation Script file to use")
+#pragma GE_Documentation(ConvOrder, "Name of initial Conversation order to run")
+#pragma GE_Documentation(SpawnOrder, "Name of initial Action order to run")
+#pragma GE_Documentation(SpawnPoint, "Name of first point in Pawn path")
+#pragma GE_Documentation(SpawnTrigger, "Name of trigger that will spawn entity")
+#pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
+#pragma GE_Documentation(ChangeMaterial, "name of section containing material change info")
+} Pawn;
+
+//
+// CountDownTimer
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct _CountDownTimer
+{
+#pragma GE_Private
+	geBoolean bState;
+	geBoolean OldState;
+	geBoolean active;
+	geBoolean alive;
+	geFloat Time;
+	int index;
+#pragma GE_Published
+	geVec3d	origin;
+	char *szEntityName;
+	char *TriggerName;
+	char *Attribute;
+	char *SoundFile;
+	geFloat TimeAmt;
+	char *StopTrigger;
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(TriggerName, "")
+#pragma GE_DefaultValue(Attribute, "countdown")
+#pragma GE_DefaultValue(TimeAmt, "0")
+#pragma GE_DefaultValue(SoundFile, "")
+#pragma GE_DefaultValue(StopTrigger, "")
+#pragma GE_Documentation(szEntityName, "Name of script point")
+#pragma GE_Documentation(TriggerName, "Name of trigger used to activate timer")
+#pragma GE_Documentation(Attribute, "Name of attribute that is changed by timer")
+#pragma GE_Documentation(TimeAmt, "Number of seconds that timer counts down")
+#pragma GE_Documentation(SoundFile, "Name of sound file to play during countdown")
+#pragma GE_Documentation(StopTrigger, "Name of trigger used to deactivate timer")
+} CountDownTimer;
+
+//
+// ChangeAttribute
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct _ChangeAttribute
+{
+#pragma GE_Private
+	geBoolean active;
+	geFloat Count;
+	geFloat Increment;
+	geFloat Total;
+	geBoolean OldState;
+#pragma GE_Published
+	geVec3d	origin;
+	char *Attribute;
+	geBoolean Percentage;
+	int Amount;
+	geFloat Time;
+	char *StartTrigger;
+	char *StopTrigger;
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(Attribute, "")
+#pragma GE_DefaultValue(Percentage, "True")
+#pragma GE_DefaultValue(Amount, "-100")
+#pragma GE_DefaultValue(StartTrigger, "")
+#pragma GE_DefaultValue(StopTrigger, "")
+#pragma GE_DefaultValue(Time, "10")
+#pragma GE_Documentation(Attribute, "Name of attribute to change")
+#pragma GE_Documentation(Percentage, "if true then Amount is percentage of Attribute")
+#pragma GE_Documentation(StartTrigger, "Name of trigger entity to start change")
+#pragma GE_Documentation(Amount, "Amount of change, negative is decreasing")
+#pragma GE_Documentation(StopTrigger, "Name of trigger entity to stop change")
+#pragma GE_Documentation(Time, "Number of seconds that change takes place over")
+} ChangeAttribute;
+
+//
+// Overlay
+//
+
+#pragma GE_Type("icons\\overlay.bmp")
+typedef struct _Overlay
+{
+#pragma GE_Private
+	geBitmap *Texture;
+	geBitmap **FBitmap;
+	geFloat  Time;
+	int CurTex;
+	int CycleDir;
+#pragma GE_Published
+	geVec3d	origin;
+	char *szEntityName;
+	geWorld_Model *Model;	// Name of model to attach to
+	GE_RGBA	TintColor;
+	geFloat Transparency;
+	char *Bitmap;
+	char *Alphamap;
+	geBoolean Animated;
+	int		BitmapCount;
+	int		Style;
+	geFloat	Speed;
+
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(TintColor, "0 0 64")
+#pragma GE_DefaultValue(Transparency, "64")
+#pragma GE_DefaultValue(Bitmap, "water.bmp")
+#pragma GE_DefaultValue(Alphamap, "a_water.bmp")
+#pragma GE_DefaultValue(Animated, "False")
+#pragma GE_DefaultValue(BitmapCount, "1")
+#pragma GE_DefaultValue(Style, "0")
+#pragma GE_DefaultValue(Speed, "10")
+
+#pragma GE_Documentation(szEntityName, "Name of entity")
+#pragma GE_Documentation(Model, "Name of model to attach to")
+#pragma GE_Documentation(TintColor, "Tint color of overlay")
+#pragma GE_Documentation(Transparency, "Transparency of tint of overlay (0 to 255)")
+#pragma GE_Documentation(Bitmap, "Name of bitmap used for tinting")
+#pragma GE_Documentation(Alphamap, "Name of alpha map used for tinting")
+#pragma GE_Documentation(Animated, "true if bitmap is animated")
+#pragma GE_Documentation(BitmapCount, "number of bitmaps in sequence")
+#pragma GE_Documentation(Style, "Animation style 0 to 3")
+#pragma GE_Documentation(Speed, "# of bitmaps per second")
+} Overlay;
+
+
+//	Spout Entity
+
+#pragma GE_Type("icons\\sf_spout.bmp")
+typedef struct ActorSpout
+{
+#pragma	GE_Private
+	int		EffectList;
+	int		EffectCount;
+	geFloat		PauseTime;
+	geBoolean 	PauseState;
+	geBoolean active;
+	geVec3d  OriginOffset;      //Translation from model center
+#pragma GE_Published
+	geVec3d		origin;
+	char	*szEntityName;
+	geVec3d		Angles;
+	geFloat		ParticleCreateRate;
+	geFloat		MinScale;
+	geFloat		MaxScale;
+	geFloat		MinSpeed;
+	geFloat		MaxSpeed;
+	geFloat		MinUnitLife;
+	geFloat		MaxUnitLife;
+	int		SourceVariance;
+	int		DestVariance;
+	GE_RGBA		FillColor;
+	GE_RGBA		AmbientColor;
+	geBoolean	Gravity;
+	char		*BaseName;
+	int			NumActors;
+	int			Style;
+	geFloat		Alpha;
+	geFloat		AlphaRate;
+	geVec3d		BaseRotation;
+	geVec3d		MinRotationSpeed;
+	geVec3d		MaxRotationSpeed;
+	geFloat		MinPauseTime;
+	geFloat		MaxPauseTime;
+	geFloat		TotalLife;
+	geBoolean	Bounce;
+	char 	*EntityName;	// Name of entity to attach to
+	geWorld_Model *Model;	// Name of model to attach to
+	char 	*BoneName;	// Name of actor bone to attach to
+	char 	*TriggerName;	// Name of trigger entity
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_Angles(Angles)			
+#pragma GE_DefaultValue( ParticleCreateRate, "0.1" )
+#pragma GE_DefaultValue( MinScale, "1.0" )
+#pragma GE_DefaultValue( MaxScale, "1.0" )
+#pragma GE_DefaultValue( MinSpeed, "10.0" )
+#pragma GE_DefaultValue( MaxSpeed, "30.0" )
+#pragma GE_DefaultValue( MinUnitLife, "3.0" )
+#pragma GE_DefaultValue( MaxUnitLife, "6.0" )
+#pragma GE_DefaultValue( SourceVariance, "0" )
+#pragma GE_DefaultValue( DestVariance, "1" )
+#pragma GE_DefaultValue( FillColor, "255.0 255.0 255.0" )
+#pragma GE_DefaultValue( AmbientColor, "255.0 255.0 255.0" )
+#pragma GE_DefaultValue( MinRotationSpeed, "0 0 0" )
+#pragma GE_DefaultValue( MaxRotationSpeed, "0 0 0" )
+#pragma GE_DefaultValue( BaseName, "")
+#pragma GE_DefaultValue( NumActors, "0")
+#pragma GE_DefaultValue( Style, "0")
+#pragma GE_DefaultValue( Alpha, "255")
+#pragma GE_DefaultValue( AlphaRate, "0")
+#pragma GE_DefaultValue( Gravity, "True" )
+#pragma GE_DefaultValue( TotalLife, "0.0" )
+#pragma GE_DefaultValue( MinPauseTime, "0.0" )
+#pragma GE_DefaultValue( MaxPauseTime, "0.0" )
+#pragma GE_DefaultValue( EntityName, "")
+#pragma GE_DefaultValue( BoneName, "")
+#pragma GE_DefaultValue( TriggerName, "")
+#pragma GE_DefaultValue( Bounce, "False")
+#pragma GE_Documentation(szEntityName, "Name of this entity, if any")
+#pragma GE_Documentation( Angles, "Direction in which particles will shoot" )
+#pragma GE_Documentation( ParticleCreateRate, "Every how many seconds to add a new particle" )
+#pragma GE_Documentation( MinScale, "Min scale of the textures" )
+#pragma GE_Documentation( MaxScale, "Max scale of the textures" )
+#pragma GE_Documentation( MinSpeed, "Min speed of the textures" )
+#pragma GE_Documentation( MaxSpeed, "Max speed of the textures" )
+#pragma GE_Documentation( MinUnitLife, "Min life of each texture" )
+#pragma GE_Documentation( MaxUnitLife, "Max life of each texture" )
+#pragma GE_Documentation( SourceVariance, "How much to vary spray source point" )
+#pragma GE_Documentation( DestVariance, "How much to vary spray dest point" )
+#pragma GE_Documentation( FillColor, "Lighting fill color" )
+#pragma GE_Documentation( AmbientColor, "Lighting ambient color" )
+#pragma GE_Documentation( Gravity, "true if affected by gravity" )
+#pragma GE_Documentation( BaseName, "Base actor name" )
+#pragma GE_Documentation( TotalLife, "How many seconds this spout lasts. Set to 0 for continuous." )
+#pragma GE_Documentation( MinPauseTime, "Low range of randomly chosen pause time (seconds)" )
+#pragma GE_Documentation( MaxPauseTime, "High range of randomly chosen pause time (seconds)" )
+#pragma GE_Documentation(EntityName, "Name of entity to attach to")
+#pragma GE_Documentation(Bounce, "True if particles bounce when they hit something")
+#pragma GE_Documentation(Model, "Name of model to attach to")
+#pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
+#pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+} ActorSpout;
+
+// end change RF064
+
 #endif
 
 #pragma warning( default : 4068 )

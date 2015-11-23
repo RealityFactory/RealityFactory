@@ -21,5 +21,18 @@ private:
 };
 
 
+// class declaration for CActorSpout
+class CActorSpout : public CRGFComponent
+{
+public:
+  CActorSpout();
+  ~CActorSpout();	
+  int Create(ActorSpout *S);
+  void Tick(float dwTicks);
+  int LocateEntity(char *szName, void **pEntityData);
+  int ReSynchronize();
+private:
+};
+
 #endif
 

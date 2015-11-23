@@ -281,6 +281,49 @@ CString CIniFile::FindNextKey()
 		return "";
 }
 
+// changed RF064
+
+CString CIniFile::FindFirstName(CString keyname)
+{
+	entrykey = 0;
+	keyindex = FindKey(keyname);
+	if(keyindex==-1)
+		return "";
+	if(entrykey < keys[keyindex].names.GetSize())
+		return keys[keyindex].names[entrykey];
+	return "";
+}
+
+CString CIniFile::FindFirstValue()
+{
+	if(keyindex==-1)
+		return "";
+	if(entrykey < keys[keyindex].values.GetSize())
+		return keys[keyindex].values[entrykey];
+	return "";
+}
+
+CString CIniFile::FindNextName()
+{
+	if(keyindex==-1)
+		return "";
+	entrykey +=1;
+	if(entrykey < keys[keyindex].names.GetSize())
+		return keys[keyindex].names[entrykey];
+	return "";
+}
+
+CString CIniFile::FindNextValue()
+{
+	if(keyindex==-1)
+		return "";
+	if(entrykey < keys[keyindex].values.GetSize())
+		return keys[keyindex].values[entrykey];
+	return "";
+}
+
+// end change RF064
+
 /////////////////////////////////////////////////////////////////////
 // Private Functions
 /////////////////////////////////////////////////////////////////////

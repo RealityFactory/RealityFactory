@@ -509,7 +509,7 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel)
 //	Save the current state of every door in the current world
 //	..off to an open file.
 
-int CAutoDoors::SaveTo(FILE *SaveFD)
+int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -527,15 +527,15 @@ int CAutoDoors::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
-		fwrite(&pDoor->bInAnimation, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pDoor->bTrigger, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pDoor->AnimationTime, sizeof(int), 1, SaveFD);
-		fwrite(&pDoor->bInCollision, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pDoor->bActive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pDoor->LastIncrement, sizeof(int), 1, SaveFD);
-		fwrite(&pDoor->tDoor, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pDoor->CallBack, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pDoor->CallBackCount, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pDoor->bInAnimation, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pDoor->bTrigger, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pDoor->AnimationTime, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pDoor->bInCollision, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pDoor->bActive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pDoor->LastIncrement, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pDoor->tDoor, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pDoor->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pDoor->CallBackCount, sizeof(int), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -546,7 +546,7 @@ int CAutoDoors::SaveTo(FILE *SaveFD)
 //	Restore the state of every door in the current world from an
 //	..open file.
 
-int CAutoDoors::RestoreFrom(FILE *RestoreFD)
+int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -562,15 +562,15 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD)
     pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
-		fread(&pDoor->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pDoor->bTrigger, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pDoor->AnimationTime, sizeof(int), 1, RestoreFD);
-		fread(&pDoor->bInCollision, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pDoor->bActive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pDoor->LastIncrement, sizeof(int), 1, RestoreFD);
-		fread(&pDoor->tDoor, sizeof(geFloat), 1, RestoreFD);
-		fread(&pDoor->CallBack, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pDoor->CallBackCount, sizeof(int), 1, RestoreFD);
+		READDATA(&pDoor->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pDoor->bTrigger, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pDoor->AnimationTime, sizeof(int), 1, RestoreFD);
+		READDATA(&pDoor->bInCollision, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pDoor->bActive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pDoor->LastIncrement, sizeof(int), 1, RestoreFD);
+		READDATA(&pDoor->tDoor, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pDoor->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pDoor->CallBackCount, sizeof(int), 1, RestoreFD);
 		if(pDoor->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pDoor->Model, GE_TRUE);
     }

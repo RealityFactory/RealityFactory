@@ -205,7 +205,25 @@ CPreEffect::CPreEffect()
 					Sp->RotationRate = 0.0174532925199433f*(float)AttrFile.GetValueF(KeyName, "rotationrate");
 					Sp->Color.a = (float)AttrFile.GetValueF(KeyName, "alpha");
 					Sp->AlphaRate = (float)AttrFile.GetValueF(KeyName, "alpharate");
-					Sp->Style = SPRITE_CYCLE_ONCE;
+// changed RF064
+					Sp->LifeTime = (float)AttrFile.GetValueF(KeyName, "lifetime");
+					Tname = AttrFile.GetValue(KeyName, "style");
+					if(Tname=="")
+						Sp->Style = SPRITE_CYCLE_ONCE;
+					else
+					{
+						if(Tname=="none")
+							Sp->Style = SPRITE_CYCLE_NONE;
+						else if(Tname=="reset")
+							Sp->Style = SPRITE_CYCLE_RESET;
+						else if(Tname=="reverse")
+							Sp->Style = SPRITE_CYCLE_REVERSE;
+						else if(Tname=="random")
+							Sp->Style = SPRITE_CYCLE_RANDOM;
+						else
+							Sp->Style = SPRITE_CYCLE_ONCE;
+					}
+// end change RF064
 					Effects[effptr].Data = Sp;
 					Effects[effptr].Active = true;
 					effptr +=1;
@@ -319,6 +337,123 @@ CPreEffect::CPreEffect()
 			Effects[effptr].Active = true;
 			effptr +=1;
 		}
+// changed RF064
+		else if(Type=="actorspray")
+		{
+			CString Tname, Vector;
+			char szName[64];
+			geVec3d convert;
+			ActorSpray *Sp;
+			Effects[effptr].Type = EFF_ACTORSPRAY;
+			Tname = AttrFile.GetValue(KeyName, "basename");
+			if(Tname!="")
+			{
+				Sp = GE_RAM_ALLOCATE_STRUCT(ActorSpray);
+				memset( Sp, 0, sizeof(ActorSpray) );
+				strcpy(Sp->BaseName,Tname);
+				Sp->NumActors = AttrFile.GetValueI(KeyName, "numberactors");
+				Sp->Style = AttrFile.GetValueI(KeyName, "style");
+				Sp->Alpha = (float)AttrFile.GetValueF(KeyName, "alpha");
+				Sp->AlphaRate = (float)AttrFile.GetValueF(KeyName, "alpharate");
+				Vector = AttrFile.GetValue(KeyName, "baserotation");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					convert = Extract(szName);
+					Sp->BaseRotation.X = convert.X;
+					Sp->BaseRotation.Y = convert.Y;
+					Sp->BaseRotation.Z = convert.Z;
+				}
+				char Name[64];
+				convert.X = 0.0f; convert.Y = 0.0f; convert.Z = 0.0f;
+				for(int i=0;i<Sp->NumActors;i++)
+				{
+					sprintf(Name, "%s%d%s", Sp->BaseName, i, ".act" );
+					geActor *Actor = CCD->ActorManager()->SpawnActor(Name, 
+						convert, Sp->BaseRotation, "", "", NULL);
+					if(!Actor)
+					{
+						char szError[256];
+						sprintf(szError,"%s : Missing Actor '%s'", KeyName, Name);
+						CCD->ReportError(szError, false);
+						CCD->ShutdownLevel();
+						delete CCD;
+						MessageBox(NULL, szError,"Effect", MB_OK);
+						exit(-333);
+					}
+					CCD->ActorManager()->RemoveActor(Actor);
+					geActor_Destroy(&Actor); 
+				}
+				Vector = AttrFile.GetValue(KeyName, "minrotationspeed");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					convert = Extract(szName);
+					Sp->MinRotationSpeed.X = 0.0174532925199433f*convert.X;
+					Sp->MinRotationSpeed.Y = 0.0174532925199433f*convert.Y;
+					Sp->MinRotationSpeed.Z = 0.0174532925199433f*convert.Z;
+				}
+				Vector = AttrFile.GetValue(KeyName, "maxrotationspeed");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					convert = Extract(szName);
+					Sp->MaxRotationSpeed.X = 0.0174532925199433f*convert.X;
+					Sp->MaxRotationSpeed.Y = 0.0174532925199433f*convert.Y;
+					Sp->MaxRotationSpeed.Z = 0.0174532925199433f*convert.Z;
+				}
+				Sp->FillColor.a = 255.0f;
+				Sp->AmbientColor.a = 255.0f;
+				Vector = AttrFile.GetValue(KeyName, "angles");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					Sp->Dest = Extract(szName);
+				}
+				Vector = AttrFile.GetValue(KeyName, "fillcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					convert = Extract(szName);
+					Sp->FillColor.r = convert.X;
+					Sp->FillColor.g = convert.Y;
+					Sp->FillColor.b = convert.Z;
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					convert = Extract(szName);
+					Sp->AmbientColor.r = convert.X;
+					Sp->AmbientColor.g = convert.Y;
+					Sp->AmbientColor.b = convert.Z;
+				}
+
+				Sp->SourceVariance = AttrFile.GetValueI(KeyName, "sourcevariance");
+				Sp->DestVariance = AttrFile.GetValueI(KeyName, "destvariance");
+				Sp->Gravity = true;
+				Vector = AttrFile.GetValue(KeyName, "gravity");
+				if(Vector=="false")
+					Sp->Gravity = false;
+				Sp->MaxScale = (float)AttrFile.GetValueF(KeyName, "maxscale");
+				Sp->MinScale = (float)AttrFile.GetValueF(KeyName, "minscale");
+				Sp->MaxSpeed = (float)AttrFile.GetValueF(KeyName, "maxspeed");
+				Sp->MinSpeed = (float)AttrFile.GetValueF(KeyName, "minspeed");
+				Sp->MaxUnitLife = (float)AttrFile.GetValueF(KeyName, "maxunitlife");
+				Sp->MinUnitLife = (float)AttrFile.GetValueF(KeyName, "minunitlife");
+				Sp->Rate = (float)AttrFile.GetValueF(KeyName, "particlecreationrate");
+				Sp->SprayLife = (float)AttrFile.GetValueF(KeyName, "totallife");
+				Vector = AttrFile.GetValue(KeyName, "bounce");
+				Sp->Bounce = false;
+				if(Vector=="true")
+					Sp->Bounce = true;
+				Effects[effptr].Data = Sp;
+				Effects[effptr].Active = true;
+				effptr +=1;
+			}
+// end change RF064
+		}
 		
 		KeyName = AttrFile.FindNextKey();
 	}
@@ -403,6 +538,22 @@ int CPreEffect::AddEffect(int k, geVec3d Position, geVec3d Offset)
 		geVec3d_Add( &(Bl.Start), &(Bl.End),&(Bl.End) );
 		index = CCD->EffectManager()->Item_Add(EFF_BOLT, &Bl);
 		break;
+// changed RF064
+	case EFF_ACTORSPRAY:
+		ActorSpray aSp;
+		memcpy(&aSp, Effects[k].Data, sizeof( aSp ) );
+		geVec3d_Copy( &(Position ), &( aSp.Source ) );
+		geVec3d_Add( &( aSp.Source ), &Offset,&(aSp.Source) );
+		geXForm3d_SetIdentity( &( Xf ) );
+		geXForm3d_RotateX( &( Xf ), -aSp.Dest.X / 57.3f );  
+		geXForm3d_RotateY( &( Xf ), ( aSp.Dest.Y - 90.0f ) / 57.3f );  
+		geXForm3d_RotateZ( &( Xf ), aSp.Dest.Z / 57.3f ); 
+		geXForm3d_GetIn( &( Xf ), &In );
+		geVec3d_Inverse( &In );
+		geVec3d_Add( &( aSp.Source ), &In,&( aSp.Dest ) );
+		index = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, &aSp);
+		break;
+// end change RF064
 	}
 	return index;
 }

@@ -23,7 +23,10 @@ typedef enum
 	ENTITY_NPC,									// NPC entity
 	ENTITY_VEHICLE,							// Vehicle entity
 	ENTITY_ATTRIBUTE_MOD,				// Attribute modifier (powerup/ammo/health)
-	ENTITY_LIQUID,	
+	ENTITY_LIQUID,
+// changed RF064
+	ENTITY_OVERLAY,
+// end change RF064
 	ENTITY_GENERIC							// Generic "thing"
 } RGFEntityTypes;
 

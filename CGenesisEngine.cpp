@@ -20,6 +20,28 @@ CGenesisEngine.cpp:		Genesis3D engine encapsulation
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	// start multiplayer
+	if (CCD->NetPlayerManager()!=NULL)
+    {
+	    switch (iMessage) 
+	    {
+		    case WM_TIMER:	
+		    	CCD->NetPlayerManager()->ServerClientCycle();
+        }
+	}
+// end multiplayer
+/*	if(iMessage==WM_CHAR)
+	{
+		if(CCD->GetConsole())
+		{
+			char chCharCode = (TCHAR) wParam;
+			int key = (lParam>>16) & 255;
+
+			char szBug[255];
+			sprintf(szBug,"%x", key);
+			CCD->ReportError(szBug, false);
+		}
+	} */
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
@@ -232,18 +254,21 @@ bool CGenesisEngine::CreateEngine(char *szName)
 				break;
 		}
 	}
-	FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
+
 	if(Voodoo)
 	{
+		FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
 		fputs("16", fd); fputs("\n", fd);
 		fputs("16", fd); fputs("\n", fd);
+		fclose(fd);
 	}
 	else
 	{
-		fputs("16", fd); fputs("\n", fd);
-		fputs("16", fd); fputs("\n", fd);
+		//FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
+		//fputs("16", fd); fputs("\n", fd); // 32
+		//fputs("16", fd); fputs("\n", fd); // 24
+		//fclose(fd);
 	}
-	fclose(fd);
 // end change RF063
 
 	/////////////////////////////////////////////////////////////////
@@ -730,6 +755,9 @@ bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap * pBitmap,
 	return DrawAlphaBitmap(pBitmap, UVArray, ClipCamera, PixelRect, PercentRect, Alpha, RGBA_Array);
 }
 
+// takes Bitmap
+// returns BitmapBuffer, Width and Height
+//
 bool CGenesisEngine::BreakUpBigBitmap(geBitmap * pBitmap, 
 									  IncompleteTexture*& BitmapBuffer, int & NumWide, int & NumHigh) 
 { 
@@ -776,7 +804,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap * pBitmap,
 				Height = 256; 
 			else 
 				Height = (HeightBmp-1) % 256 + 1;
-			Bitmap = geBitmap_Create(256, 256, 1, PFormat); 
+			Bitmap = geBitmap_Create(256, 256, 1, PFormat);
 			if(!Bitmap) 
 			{ 
 				ReportError("BreakUpBigBitmap could not create a bitmap", false); 
@@ -789,7 +817,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap * pBitmap,
 				// MEMORY LEAK
 				return false; 
 			} 
-			if(!geBitmap_SetPreferredFormat(Bitmap, GE_PIXELFORMAT_8BIT)) 
+			if(!geBitmap_SetPreferredFormat(Bitmap, GE_PIXELFORMAT_8BIT))
 			{ 
 				ReportError("BreakUpBigBitmap could not change formats", false); 
 				// MEMORY LEAK
@@ -817,17 +845,60 @@ CompleteTexture CGenesisEngine::BuildCompleteTexture(IncompleteTexture*
 	return ret; 
 }
 
-bool CGenesisEngine::AddCompleteTextureToWorld(geWorld * w, CompleteTexture cp) 
+bool CGenesisEngine::AddCompleteTextureToWorld(CompleteTexture cp) 
 { 
 	int i, bmpcount; 
 	bool retval = true; 
 	bmpcount = cp.TexturesHigh * cp.TexturesWide; 
 	for(i = 0; i < bmpcount; i++) 
 	{ 
-		if(!geWorld_AddBitmap(w, cp.TextureArray[i].Bitmap)) 
+		if(!geWorld_AddBitmap(CCD->World(), cp.TextureArray[i].Bitmap)) 
 			retval = false; 
 	} 
 	return retval; 
+}
+
+void CGenesisEngine::DeleteCompleteTexture(CompleteTexture cp) 
+{ 
+	int i, bmpcount; 
+	bool retval = true; 
+	bmpcount = cp.TexturesHigh * cp.TexturesWide; 
+	for(i = 0; i < bmpcount; i++) 
+	{ 
+		geWorld_RemoveBitmap(CCD->World(), cp.TextureArray[i].Bitmap);
+		geBitmap_Destroy(&cp.TextureArray[i].Bitmap);
+	} 
+	delete cp.TextureArray;
+	cp.TextureArray = NULL;
+	return; 
+}
+
+CompleteTexture CGenesisEngine::BitmapToComplete(geBitmap * pBitmap)
+{
+	IncompleteTexture *BitmapBuffer;
+	int NumWide, NumHigh;
+	CompleteTexture cp;
+
+	BreakUpBigBitmap(pBitmap, BitmapBuffer, NumWide, NumHigh); 
+	cp = BuildCompleteTexture(BitmapBuffer, NumWide, NumHigh); 
+	AddCompleteTextureToWorld(cp);
+
+	cp.TotalWidth = NumWide*256; 
+	cp.TotalHeight = NumHigh*256; 
+	return cp;
+}
+
+void CGenesisEngine::DrawComplete(CompleteTexture cp, int x, int y)
+{
+	FloatRect ScreenRect;
+
+	ScreenRect.Left = (float)x;
+	ScreenRect.Top = (float)y;
+	ScreenRect.Right = ScreenRect.Left + cp.TotalWidth;
+	ScreenRect.Bottom = ScreenRect.Top + cp.TotalHeight;
+	DrawCompleteTexture(cp, CCD->CameraManager()->Camera(), 
+						 &ScreenRect, 
+						 NULL, 255.0f, NULL);
 }
 
 bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp, 
@@ -923,6 +994,40 @@ bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp,
 //
 // End of DrawAlphaBitmap routines
 //
+
+// changed RF064
+bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y)
+{
+	FloatRect PixelRect;
+	bool ret;
+	geRect Rect;
+
+	PixelRect.Top = (float)y;
+	PixelRect.Left = (float)x;
+
+	if(BitmapRect)
+	{
+		PixelRect.Bottom = PixelRect.Top+(float)(BitmapRect->Bottom-BitmapRect->Top);
+		PixelRect.Right = PixelRect.Left+(float)(BitmapRect->Right-BitmapRect->Left);
+		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect, 
+								 CCD->CameraManager()->Camera(), &PixelRect,
+								 NULL, 255.0f, NULL);
+	}
+	else
+	{
+		Rect.Top = 0;
+		Rect.Left = 0;
+		Rect.Bottom = geBitmap_Height(pBitmap);
+		Rect.Right = geBitmap_Width(pBitmap);
+		PixelRect.Bottom = PixelRect.Top+(float)(Rect.Bottom);
+		PixelRect.Right = PixelRect.Left+(float)(Rect.Right);
+		ret = DrawAlphaBitmapRect(pBitmap, &Rect, 
+								 CCD->CameraManager()->Camera(), &PixelRect,
+								 NULL, 255.0f, NULL);
+	}
+	return ret;
+}
+// end change RF064
 
 //	ShowFrameRate
 //

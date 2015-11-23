@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /G5 /MD /W3 /GX /O2 /Op /Ob2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FD /c
+# ADD CPP /nologo /G5 /MD /W3 /GX /Op /Ob2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 genesis.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib strmbase.lib decrypt.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
+# ADD LINK32 genesis.lib strmbase.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /G5 /MDd /W3 /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FD /c
+# ADD CPP /nologo /G5 /MDd /W3 /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 genesisd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib strmbasd.lib decrypt.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
+# ADD LINK32 genesisd.lib strmbasd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -93,6 +93,294 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "Simkin"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Simkin\skAlist.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skAlist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skAlist.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skBoundsException.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutableIterator.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutableIterator.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skGeneral.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skHashTable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skHashTable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skHashTable.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skiExecutable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skInterpreter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skInterpreter.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skInterpreterp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skLang_tab.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skLang_tab.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skMethodTable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skNull.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skParseException.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skParseNode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRuntimeException.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRValue.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRValue.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRValue.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRValueArray.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skRValueTable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skScriptedExecutable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skScriptedExecutable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStatementStepper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skString.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skString.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skString.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStringList.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStringTokenizer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStringTokenizer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTraceCallback.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTracer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTracer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNode.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNodeObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNodeObject.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNodeObjectEnumerator.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNodeObjectEnumerator.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skTreeNodp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skValist.h
+# End Source File
+# End Group
+# Begin Group "HawkNL"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\HawkNL\crc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\err.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\errorstr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\group.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\ipx.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\ipx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\loopback.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\loopback.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\mutex.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\mutex.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\nl.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\nl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\nlinternal.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\parallel.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\serial.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\sock.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\sock.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\thread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\thread.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\HawkNL\wsock.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\AutoSelect.c
@@ -139,6 +427,10 @@ SOURCE=.\CCDAudio.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CChange.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CChangeLevel.cpp
 # End Source File
 # Begin Source File
@@ -148,6 +440,10 @@ SOURCE=.\CCommonData.cpp
 # Begin Source File
 
 SOURCE=.\CCorona.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CCountDown.cpp
 # End Source File
 # Begin Source File
 
@@ -259,6 +555,14 @@ SOURCE=.\CMp3.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CNetBuffer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CNetwork.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CNPC.cpp
 # End Source File
 # Begin Source File
@@ -283,6 +587,10 @@ SOURCE=.\CPathFollower.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPawn.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CPersistentAttributes.cpp
 # End Source File
 # Begin Source File
@@ -303,6 +611,10 @@ SOURCE=.\CRGFComponent.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CScriptPoint.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CShake.cpp
 # End Source File
 # Begin Source File
@@ -320,10 +632,6 @@ SOURCE=.\CStaticEntity.cpp
 # Begin Source File
 
 SOURCE=.\CTeleporter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CTrack.cpp
 # End Source File
 # Begin Source File
 
@@ -360,6 +668,10 @@ SOURCE=.\EffParticle.cpp
 # Begin Source File
 
 SOURCE=.\IniFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Mixer.cpp
 # End Source File
 # Begin Source File
 
@@ -475,6 +787,10 @@ SOURCE=.\CCDAudio.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CChange.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CChangeLevel.h
 # End Source File
 # Begin Source File
@@ -484,6 +800,10 @@ SOURCE=.\CCommonData.h
 # Begin Source File
 
 SOURCE=.\CCorona.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CCountDown.h
 # End Source File
 # Begin Source File
 
@@ -595,6 +915,14 @@ SOURCE=.\CMp3.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CNetBuffer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CNetwork.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CNPC.h
 # End Source File
 # Begin Source File
@@ -619,6 +947,10 @@ SOURCE=.\CPathFollower.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPawn.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CPersistentAttributes.h
 # End Source File
 # Begin Source File
@@ -639,6 +971,10 @@ SOURCE=.\CRGFComponent.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CScriptPoint.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CShake.h
 # End Source File
 # Begin Source File
@@ -656,10 +992,6 @@ SOURCE=.\CStaticEntity.h
 # Begin Source File
 
 SOURCE=.\CTeleporter.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CTrack.h
 # End Source File
 # Begin Source File
 
@@ -692,6 +1024,10 @@ SOURCE=.\GameEntityDataTypes.h
 # Begin Source File
 
 SOURCE=.\IniFile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Mixer.h
 # End Source File
 # Begin Source File
 

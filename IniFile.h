@@ -22,6 +22,10 @@ private:
 	//stores pathname of ini file to read/write
 	CString path;
 	int numkey;
+// changed RF064
+	int entrykey;
+	int keyindex;
+// end change RF064
 	
 	//all keys are of this time
 	struct key
@@ -115,6 +119,12 @@ public:
 
 	CString FindFirstKey();
 	CString FindNextKey();
+// changed RF064
+	CString FindFirstName(CString keyname);
+	CString FindFirstValue();
+	CString FindNextName();
+	CString FindNextValue();
+// end change RF064
 };
 
 #endif // !defined(AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_)

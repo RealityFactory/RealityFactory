@@ -60,8 +60,8 @@ public:
 																	// Allocate some user data for attribute
 	int DeleteUserData(char *szTag);	// Delete an attributes user data
 	unsigned char *UserData(char *szTag);	// Get pointer to user data for attr
-	int SaveTo(FILE *SaveFD);				// Save attributes to a file
-	int RestoreFrom(FILE *RestoreFD);	// Restore attributes from a file
+	int SaveTo(FILE *SaveFD, bool type);				// Save attributes to a file
+	int RestoreFrom(FILE *RestoreFD, bool type);	// Restore attributes from a file
 	void Dump();	// Debug list dumper
 private:
 //	Member functions

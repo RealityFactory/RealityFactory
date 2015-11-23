@@ -80,6 +80,16 @@ CStaticEntity::CStaticEntity()
 			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
 		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor);
 		CCD->ActorManager()->SetShadow(pProxy->Actor, pProxy->ShadowSize);
+// changed RF064
+		CCD->ActorManager()->SetHideRadar(pProxy->Actor, pProxy->HideFromRadar);
+		if(!EffectC_IsStringNull(pProxy->ChangeMaterial))
+			CCD->ActorManager()->ChangeMaterial(pProxy->Actor, pProxy->ChangeMaterial);
+		if(pProxy->BoxSize.X!=0.0f && pProxy->BoxSize.Y!=0.0f && pProxy->BoxSize.Z!=0.0f)
+		{
+			CCD->ActorManager()->SetBoxChange(pProxy->Actor, false);
+			CCD->ActorManager()->SetBBox(pProxy->Actor, pProxy->BoxSize.X, -(pProxy->BoxSize.Y*2.0f), pProxy->BoxSize.Z);
+		}
+// end change RF064
 		pProxy->bInitialized = GE_FALSE;		// Pathfollowing not initialized
 		pProxy->theSound = NULL;						// No sound, right now...
 		pProxy->SoundHandle = NULL;					// No sound playing
@@ -186,7 +196,8 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 		if(CCD->MenuManager()->GetSEBoundBox() && pProxy->alive)
 		{
 			geExtBox ExtBox;
-			geActor_GetDynamicExtBox(pProxy->Actor, &ExtBox);
+			//geActor_GetDynamicExtBox(pProxy->Actor, &ExtBox);
+			geActor_GetExtBox(pProxy->Actor, &ExtBox);
 			ExtBox.Min.X -= pProxy->origin.X;
 			ExtBox.Min.Y -= pProxy->origin.Y;
 			ExtBox.Min.Z -= pProxy->origin.Z;
@@ -298,8 +309,14 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 		// If we have a collision animation, switch to that
 		if(!EffectC_IsStringNull(pProxy->szImpactAction))
 		{
-			CCD->ActorManager()->SetMotion(pProxy->Actor, pProxy->szImpactAction);
-			CCD->ActorManager()->SetNextMotion(pProxy->Actor, pProxy->szDefaultAction);
+// changed RF064
+			char *Motion = CCD->ActorManager()->GetMotion(pProxy->Actor);
+			if(strcmp(Motion, pProxy->szImpactAction))
+			{
+				CCD->ActorManager()->SetMotion(pProxy->Actor, pProxy->szImpactAction);
+				CCD->ActorManager()->SetNextMotion(pProxy->Actor, pProxy->szDefaultAction);
+			}
+// end change RF064
 		}
 		// Ok, if this is a MOVEABLE STATIC ACTOR, let's see if it can be
 		// ..moved in the direction the player avatar is looking
@@ -458,7 +475,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 //
 //	Save static entities states to a supplied file
 
-int CStaticEntity::SaveTo(FILE *SaveFD)
+int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -479,22 +496,26 @@ int CStaticEntity::SaveTo(FILE *SaveFD)
 	{
 // changed RF063
 		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
-		fwrite(&pProxy->origin, sizeof(geVec3d), 1, SaveFD);
-		fwrite(&pProxy->CallBack, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pProxy->CallBackCount, sizeof(int), 1, SaveFD);
-		fwrite(&pProxy->bState, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pProxy->DoingDamage, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pProxy->Time, sizeof(geFloat), 1, SaveFD);
-		fwrite(&pProxy->alive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pProxy->IsHit, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pProxy->bInitialized, sizeof(geBoolean), 1, SaveFD);
+		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
+		{
+			CCD->ActorManager()->GetPosition(pProxy->Actor, &pProxy->origin);
+		}
+		WRITEDATA(&pProxy->origin, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(&pProxy->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pProxy->CallBackCount, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pProxy->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pProxy->DoingDamage, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pProxy->Time, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pProxy->alive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pProxy->IsHit, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pProxy->bInitialized, sizeof(geBoolean), 1, SaveFD);
 		if(pProxy->alive)
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
 			int health = theInv->Value("health");
 			if(!EffectC_IsStringNull(pProxy->DamageAttribute))
 				health = theInv->Value(pProxy->DamageAttribute);
-			fwrite(&health, sizeof(int), 1, SaveFD); 
+			WRITEDATA(&health, sizeof(int), 1, SaveFD); 
 		}
 // end change RF063
 	}
@@ -506,7 +527,7 @@ int CStaticEntity::SaveTo(FILE *SaveFD)
 //
 //	Restore static entities states from a supplied file
 
-int CStaticEntity::RestoreFrom(FILE *RestoreFD)
+int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -528,19 +549,19 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD)
 	{
 // changed RF063
 		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
-		fread(&pProxy->origin, sizeof(geVec3d), 1, RestoreFD);
-		fread(&pProxy->CallBack, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pProxy->CallBackCount, sizeof(int), 1, RestoreFD);
-		fread(&pProxy->bState, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pProxy->DoingDamage, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pProxy->Time, sizeof(geFloat), 1, RestoreFD);
-		fread(&pProxy->alive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pProxy->IsHit, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pProxy->bInitialized, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->origin, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(&pProxy->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->CallBackCount, sizeof(int), 1, RestoreFD);
+		READDATA(&pProxy->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->DoingDamage, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->Time, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pProxy->alive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->IsHit, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pProxy->bInitialized, sizeof(geBoolean), 1, RestoreFD);
 		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
 		{
 			int health;
-			fread(&health, sizeof(int), 1, RestoreFD);
+			READDATA(&health, sizeof(int), 1, RestoreFD);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
 			if(!EffectC_IsStringNull(pProxy->DamageAttribute))
 				theInv->Set(pProxy->DamageAttribute, health);

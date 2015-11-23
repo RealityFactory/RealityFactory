@@ -43,6 +43,8 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 
 StreamingAudio::~StreamingAudio()
 {
+  timeKillEvent(m_nTimerID);			// Stop the timer
+
 	if(mp3)
 	{
 		if(Mpeg3)
@@ -55,8 +57,6 @@ StreamingAudio::~StreamingAudio()
 	}
 
   m_fActive = FALSE;							// Inactive now
-
-  timeKillEvent(m_nTimerID);			// Stop the timer
 
   if(m_hWaveFile != NULL)
 	  {
@@ -87,6 +87,20 @@ int StreamingAudio::Create(char *szFileName)
 
   if(szFileName == NULL)
 	  return RGF_FAILURE;											// Wrong.
+
+//	start a timer for this stream.
+
+	MMRESULT nTimer = timeSetEvent(125, 5,	&TimerFunction, (DWORD)this, 
+				TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
+
+  if(nTimer == NULL)
+	  {
+	  CCD->ReportError("StreamingAudio:: Timer callback set-up failed",
+				false);
+	  return RGF_FAILURE;									// Timer startup failed.
+		}
+
+	m_nTimerID = nTimer;					// Save timer ID
 
   int len = strlen(szFileName)-4;
   if(stricmp((szFileName+len),".mp3")==0)
@@ -157,24 +171,10 @@ int StreamingAudio::Create(char *szFileName)
 		}
 
   m_nOffset = 0;								// Start at top of buffer
-
-  m_fActive = TRUE;							// Set as active
-
+// changed RF064
+  //m_fActive = TRUE;							// Set as active
+// end change RF064
   PumpWave(kBufferSize);				// Initial buffer load
-
-//	Ok, file loaded and ready to rock, start a timer for this stream.
-
-	MMRESULT nTimer = timeSetEvent(125, 5,	&TimerFunction, (DWORD)this, 
-				TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
-
-  if(nTimer == NULL)
-	  {
-	  CCD->ReportError("StreamingAudio:: Timer callback set-up failed",
-				false);
-	  return RGF_FAILURE;									// Timer startup failed.
-		}
-
-	m_nTimerID = nTimer;					// Save timer ID
 
   return RGF_SUCCESS;
 }
@@ -199,6 +199,11 @@ int StreamingAudio::Play(bool bLooping)
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
 
+// changed RF064
+  if(m_fActive == TRUE)
+	  return RGF_SUCCESS;
+// end change RF064
+
   m_fActive = TRUE;
 	m_bLoops = bLooping;
 
@@ -215,11 +220,13 @@ int StreamingAudio::Stop()
 {
 	if(mp3)
 	{
+// changed RF064
+		m_fActive = FALSE;
 		if(Mpeg3 == NULL)
 			return RGF_FAILURE;
 		Mpeg3->StopMp3();
-		m_fActive = FALSE;
 		return RGF_SUCCESS;
+// end change RF064
 	}
 
 //	Check for stream availability
@@ -274,6 +281,8 @@ int StreamingAudio::Pause()
 
 int StreamingAudio::Delete()
 {
+  timeKillEvent(m_nTimerID);							// Kill timer
+
 	if(mp3)
 	{
 		if(Mpeg3 == NULL)
@@ -289,8 +298,6 @@ int StreamingAudio::Delete()
 	  return RGF_FAILURE;									// No stream
 
   Stop();																	// Stop playback
-
-  timeKillEvent(m_nTimerID);							// Kill timer
 
   return RGF_SUCCESS;
 }
@@ -501,6 +508,15 @@ void CALLBACK StreamingAudio::TimerFunction(UINT uID, UINT uMsg,
 				DWORD dwUser, DWORD dw1, DWORD dw2)
 {
   StreamingAudio *thePointer = (StreamingAudio*)dwUser;
+
+  if(thePointer->mp3)
+	{
+		if(thePointer->Mpeg3 == NULL)
+			return;
+		if(thePointer->m_fActive && thePointer->m_bLoops)
+			thePointer->Mpeg3->PlayMp3(0, true);
+		return;
+	}
 
   DWORD nSize = thePointer->GetMaxWriteSize();
 

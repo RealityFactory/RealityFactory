@@ -27,6 +27,13 @@ CInventory::CInventory()
 	active = false;
 	Selected = 0;
 	MaxItems = 0;
+// changed RF064
+	isactive = false;
+	keyreturn = false;
+	keyesc = false;
+	keylb = false;
+	keyrb = false;
+// end change RF064
 
 	CIniFile AttrFile("Inventory.ini");
 	if(!AttrFile.ReadFile())
@@ -36,7 +43,7 @@ CInventory::CInventory()
 	char szName[128], szAlpha[128];
 	CString Tname, Talpha;
 	geBitmap_Info	BmpInfo;
-	bool flag;
+	bool flag = false;
 
 	while(KeyName != "")
 	{
@@ -45,9 +52,16 @@ CInventory::CInventory()
 			Tname = AttrFile.GetValue(KeyName, "background");
 			if(Tname!="")
 			{
+// changed RF064
+				Talpha = AttrFile.GetValue(KeyName, "backgroundalpha");
+				if(Talpha=="")
+					Talpha = Tname;
 				Tname = "inventory\\"+Tname;
+				Talpha = "inventory\\"+Talpha;
 				strcpy(szName,Tname);
-				background = CreateFromFileName(szName);
+				strcpy(szAlpha,Talpha);
+				background = CreateFromFileAndAlphaNames(szName, szAlpha);
+// end change RF064
 				if(background)
 					flag = true;
 			}
@@ -84,6 +98,12 @@ CInventory::CInventory()
 			righty = AttrFile.GetValueI(KeyName, "righty");
 			font = AttrFile.GetValueI(KeyName, "font");
 			txtfont = AttrFile.GetValueI(KeyName, "textfont");
+// changed RF064
+			stoptime = true;
+			Tname = AttrFile.GetValue(KeyName, "stoptime");
+			if(Tname=="false")
+				stoptime = false;
+// end change RF064
 			keyclick = NULL;
 			Tname = AttrFile.GetValue(KeyName, "keysound");
 			if(Tname!="")
@@ -91,6 +111,7 @@ CInventory::CInventory()
 				strcpy(szName,Tname);
 				keyclick=SPool_Sound(szName);
 			}
+
 			geEngine_AddBitmap(CCD->Engine()->Engine(), background);
 			geEngine_AddBitmap(CCD->Engine()->Engine(), highlight);
 
@@ -136,8 +157,10 @@ CInventory::CInventory()
 					{
 						item->Decrease = false;
 						Tname = AttrFile.GetValue(KeyName, "usedecrease");
-						if(Tname="true")
+// changed RF064
+						if(Tname=="true")
 							item->Decrease = true;
+// end change RF064
 					}
 					item->Image = NULL;
 					Tname = AttrFile.GetValue(KeyName, "image");
@@ -201,28 +224,38 @@ CInventory::~CInventory()
 	Bottom = NULL;
 }
 
+// changed RF064
+void CInventory::SetActive(bool flag)
+{
+	isactive = true;
+	GenerateList();
+}
+// end change RF064
 
 void CInventory::Display()
 {
-	if(!active)
-		return;
-	geRect 	 M_CameraRect;
-	geCamera 	 *M_Camera;
-	M_CameraRect.Left = 0;
-	M_CameraRect.Right = CCD->Engine()->Width() - 1;
-	M_CameraRect.Top = 0;
-	M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
-	M_Camera = geCamera_Create(2.0f, &M_CameraRect);
-	GenerateList();
-
-	while(1)
+	// changed RF064
+	bool ret = false;
+	bool esc = false;
+	bool lb = false;
+	bool rb = false;
+// changed RF064
+	if(!isactive)
 	{
-		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
-		Blit();
-		geEngine_EndFrame(CCD->Engine()->Engine());
-		int key = CCD->Input()->GetKeyboardInput();
-		if(key==KEY_RETURN)
+		CCD->HUD()->Render();
+		return;
+	}
+	
+	CCD->HUD()->Deactivate();
+// end change RF064
+	Blit();
+	int key = CCD->Input()->GetKeyboardInputNoWait();
+	if(key==KEY_RETURN)
+	{
+		ret = true;
+		if(!keyreturn)
 		{
+			keyreturn = true;
 			int cat = GetCatagory(Selected);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			if(cat==INVUSE)
@@ -231,12 +264,24 @@ void CInventory::Display()
 				{
 					if(keyclick)
 						geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-					if(!EffectC_IsStringNull(CCD->Player()->GetUseAttribute()))
-						CCD->HUD()->ActivateElement(CCD->Player()->GetUseAttribute(), false);
-					CCD->Player()->SetUseAttribute(GetAttribute(Selected));
-					CCD->HUD()->ActivateElement(GetAttribute(Selected), true);
-					if(GetDecrease(Selected))
-						theInv->Modify(GetAttribute(Selected), -1);
+					if(CCD->Player()->GetUseAttribute(GetAttribute(Selected)))
+					{
+						CCD->HUD()->ActivateElement(GetAttribute(Selected), false);
+						CCD->Player()->DelUseAttribute(GetAttribute(Selected));
+					}
+					else
+					{
+						if(CCD->Player()->SetUseAttribute(GetAttribute(Selected)))
+						{
+							CCD->HUD()->ActivateElement(GetAttribute(Selected), true);
+							if(GetDecrease(Selected))
+							{
+								theInv->Modify(GetAttribute(Selected), -1);
+								if(theInv->Value(GetAttribute(Selected))==0)
+									GenerateList();
+							}
+						}
+					}
 				}
 			}
 			if(cat==INVMODIFY)
@@ -283,19 +328,35 @@ void CInventory::Display()
 			{
 			}
 		}
-		if(key==KEY_ESC)
-			break;
-		if(key==KEY_RBRACKET)
+	}
+	if(key==KEY_ESC)
+	{
+		esc = true;
+		if(!keyesc)
 		{
+			keyesc = true;
+		}
+	}
+	if(key==KEY_RBRACKET)
+	{
+		rb = true;
+		if(!keyrb)
+		{
+			keyrb = true;
 			if(keyclick)
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
 			Selected-=1;
 			if(Selected<0)
 				Selected = ZMaxItems-1;
-
 		}
-		if(key==KEY_LBRACKET)
+		
+	}
+	if(key==KEY_LBRACKET)
+	{
+		lb = true;
+		if(!keylb)
 		{
+			keylb = true;
 			if(keyclick)
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
 			Selected+=1;
@@ -303,22 +364,36 @@ void CInventory::Display()
 				Selected = 0;
 		}
 	}
-	InvItem *item, *next;
-
-	item = ZBottom;
-	while(item != NULL)
+	if(!ret)
+		keyreturn = false;
+	if(!esc)
 	{
-		next = item->prev;
-		delete item;
-		item = next;
+		if(keyesc)
+		{
+			isactive = false;
+// changed RF064
+			CCD->HUD()->Activate();
+// end change RF064
+			CCD->SetKeyPaused(false);
+			InvItem *item, *next;
+			
+			item = ZBottom;
+			while(item != NULL)
+			{
+				next = item->prev;
+				delete item;
+				item = next;
+			}
+			
+			ZBottom = NULL;
+		}
+		keyesc = false;
 	}
-
-	ZBottom = NULL;
-	geCamera_Destroy(&M_Camera);
-	CCD->ResetClock();
-	CCD->Engine()->BeginFrame();
-	CCD->Engine()->EndFrame();
-	CCD->ResetClock();
+	if(!lb)
+		keylb = false;
+	if(!rb)
+		keyrb = false;
+	// end change RF064
 }
 
 void CInventory::Blit()
@@ -382,14 +457,24 @@ void CInventory::Blit()
 			Bmp = GetImage(middle);
 			geBitmap_GetInfo(Bmp, &BmpInfo, NULL);
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), Bmp, NULL, backgroundx+middlex, backgroundy+middley);
-			if(GetAmount(middle)>0)
+			if(GetAmount(Selected)>0)
 			{
-				sprintf(szText, "%d", GetAmount(middle));
+				sprintf(szText, "%d", GetAmount(Selected));
 				CCD->MenuManager()->FontRect(szText, font,
 					backgroundx+middlex + (BmpInfo.Width/2) - (CCD->MenuManager()->FontWidth(font, szText)/2),
 					backgroundy+middley+BmpInfo.Height+2);
 			}
-			if(!EffectC_IsStringNull(GetText(middle)))
+// changed RF064
+			if(CCD->Player()->GetUseAttribute(GetAttribute(Selected)))
+			{
+				CCD->MenuManager()->FontRect("Selected for Use", txtfont,
+					backgroundx+middlex + (BmpInfo.Width/2) - (CCD->MenuManager()->FontWidth(txtfont, "Selected for Use")/2),
+					backgroundy+middley+BmpInfo.Height+2
+					+CCD->MenuManager()->FontHeight(txtfont)+2);
+			}
+// end change RF064
+
+			if(!EffectC_IsStringNull(GetText(Selected)))
 				{
 					CCD->MenuManager()->FontRect(GetText(middle), txtfont,
 						backgroundx+middlex + (BmpInfo.Width/2) - (CCD->MenuManager()->FontWidth(txtfont, GetText(middle))/2),

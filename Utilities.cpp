@@ -27,6 +27,20 @@ bool SetOriginOffset(char *EntityName, char *BoneName, geWorld_Model *Model, geV
 {
 	if(!EffectC_IsStringNull(EntityName))
 	{
+// changed RF064
+		if(!stricmp(EntityName, "Player"))
+		{
+			geXForm3d Xf;
+			if(EffectC_IsStringNull(BoneName))
+				BoneName = NULL;
+			if(geActor_GetBoneTransform(CCD->Player()->GetActor(), BoneName, &Xf )==GE_TRUE)
+			{
+				geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+				return true;
+			}
+			return false;
+		}
+// end change RF064
 		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 		if(EntityType)
 		{
@@ -89,6 +103,31 @@ bool SetOriginOffset(char *EntityName, char *BoneName, geWorld_Model *Model, geV
 					}
 				}
 			}
+// changed RF064
+			if(!stricmp(EntityType, "Pawn"))
+			{
+				Pawn *pProxy;
+				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
+				ScriptedObject *Object = (ScriptedObject *)pProxy->Data;
+				if(Object->Actor)
+				{
+					geXForm3d Xf;
+					if(EffectC_IsStringNull(BoneName))
+						BoneName = NULL;
+					if(geActor_GetBoneTransform(Object->Actor, BoneName, &Xf )==GE_TRUE)
+					{
+						geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+						return true;
+					}
+					return false;
+				} 
+				else
+				{
+					geVec3d_Copy( &Object->Location, OriginOffset );
+					return true;
+				}
+			}
+// end change RF064
 		}
 	}
 	else if(Model)
@@ -118,6 +157,16 @@ bool SetAngle(char *EntityName, char *BoneName, geVec3d *Angle)
 {
 	if(!EffectC_IsStringNull(EntityName))
 	{
+// changed RF064
+		if(!stricmp(EntityName, "Player"))
+		{
+			if(EffectC_IsStringNull(BoneName))
+				BoneName = NULL;
+			if(CCD->ActorManager()->GetBoneRotation(CCD->Player()->GetActor(), BoneName, Angle)==RGF_SUCCESS)
+				return true;
+			return false;
+		}
+// end change RF064
 		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 		if(EntityType)
 		{
@@ -143,6 +192,23 @@ bool SetAngle(char *EntityName, char *BoneName, geVec3d *Angle)
 					return false;
 				} 
 			}
+// changed RF064
+			if(!stricmp(EntityType, "Pawn"))
+			{
+				Pawn *pProxy;
+				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
+				ScriptedObject *Object = (ScriptedObject *)pProxy->Data;
+				if(Object->Actor)
+				{
+					if(CCD->ActorManager()->GetRotation(Object->Actor, Angle)==RGF_SUCCESS)
+					{
+						Angle->Y += GE_PI;
+						return true;
+					}
+					return false;
+				} 
+			}
+// end change RF064
 		}
 	}
 	return false;
@@ -157,6 +223,12 @@ bool SetAngle(char *EntityName, char *BoneName, geVec3d *Angle)
 
 bool GetTriggerState(char *TriggerName)
 {
+// changed RF064
+	if(!stricmp(TriggerName, "MovieMode"))
+	{
+		return CCD->Player()->GetMonitorState();
+	}
+// end change RF064
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
 	if(EntityType)
 	{
@@ -202,8 +274,19 @@ bool GetTriggerState(char *TriggerName)
 			CCD->ElectricEffects()->LocateEntity(TriggerName, (void**)&pProxy);
 			return pProxy->bState;
 		}
+// changed RF064
+		if(!stricmp(EntityType, "CountDownTimer"))
+		{
+			CountDownTimer *pProxy;
+			CCD->CountDownTimers()->LocateEntity(TriggerName, (void**)&pProxy);
+			return pProxy->bState;
+		}
 	}
-	
+	else
+	{
+		 return CCD->Pawns()->GetEventState(TriggerName);
+	}
+// end change RF064
 	return false;
 }
 
@@ -487,7 +570,8 @@ geBitmap * CreateFromFileAndAlphaNames(char * BmName,char *AlphaName)
 	
 	geBitmap_Destroy(&AlphaBmp);
 	
-	geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
+	//geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
+	geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_32BIT_ARGB);
 	
 	return Bmp;
 }

@@ -25,8 +25,8 @@ public:
 													// Follow door trigger chain
 	bool IsADoor(geWorld_Model *theModel);				// Is this model a door?
   void Tick(geFloat dwTicks);					// Increment animation time
-  int SaveTo(FILE *SaveFD);				// Save all doors to a file
-	int RestoreFrom(FILE *RestoreFD);			// Restore all doors from a file
+  int SaveTo(FILE *SaveFD, bool type);				// Save all doors to a file
+	int RestoreFrom(FILE *RestoreFD, bool type);			// Restore all doors from a file
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
 private:

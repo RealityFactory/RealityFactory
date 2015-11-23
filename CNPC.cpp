@@ -376,27 +376,32 @@ void CNPC::Tick(float dwTicks)
 			{
 				if(CCD->ActorManager()->EndAnimation(DBot->Actor))
 				{
-					geFloat fAlpha;
-					CCD->ActorManager()->GetAlpha(DBot->Actor, &fAlpha);
-					fAlpha -= (DBot->AlphaStep*(dwTicks/1000.0f));
-					CCD->ActorManager()->SetAlpha(DBot->Actor, fAlpha);
-					DBot->DyingTime -= (dwTicks/1000.0f);
-					if(DBot->DyingTime <=0.0f)
+// changed RF064
+					if(DBot->DyingTime>-1.0f)
 					{
-						CCD->ActorManager()->GetPosition(DBot->Actor, &pSource->Location);
-						if(DBot->Actor)
+						geFloat fAlpha;
+						CCD->ActorManager()->GetAlpha(DBot->Actor, &fAlpha);
+						fAlpha -= (DBot->AlphaStep*(dwTicks/1000.0f));
+						CCD->ActorManager()->SetAlpha(DBot->Actor, fAlpha);
+						DBot->DyingTime -= (dwTicks/1000.0f);
+						if(DBot->DyingTime <=0.0f)
 						{
-							CCD->ActorManager()->RemoveActor(DBot->Actor);
-							geActor_Destroy(&DBot->Actor);
+							CCD->ActorManager()->GetPosition(DBot->Actor, &pSource->Location);
+							if(DBot->Actor)
+							{
+								CCD->ActorManager()->RemoveActor(DBot->Actor);
+								geActor_Destroy(&DBot->Actor);
+							}
+							if(DBot->TrackStack.Data)
+								geRam_Free(DBot->TrackStack.Data);
+							memset(DBot, 0, sizeof(Bot_Var));
+							pSource->alive=GE_FALSE;
+							pSource->bState = GE_TRUE;
+							pSource->CallBack = GE_FALSE;
+							pSource->Tick = 0.0f;
 						}
-						if(DBot->TrackStack.Data)
-							geRam_Free(DBot->TrackStack.Data);
-						memset(DBot, 0, sizeof(Bot_Var));
-						pSource->alive=GE_FALSE;
-						pSource->bState = GE_TRUE;
-						pSource->CallBack = GE_FALSE;
-						pSource->Tick = 0.0f;
 					}
+// end change RF064
 				}
 			}
 			else
@@ -431,6 +436,12 @@ void CNPC::Spawn(NonPlayerCharacter *pSource)
 	CCD->ActorManager()->SetScale(DBot->Actor, pSource->Scale);
 	CCD->ActorManager()->SetType(DBot->Actor, ENTITY_NPC);
 	CCD->ActorManager()->SetAutoStepUp(DBot->Actor, true);
+// changed RF064
+	CCD->ActorManager()->SetAlpha(DBot->Actor, pSource->ActorAlpha);
+	CCD->ActorManager()->SetHideRadar(DBot->Actor, pSource->HideFromRadar);
+	if(!EffectC_IsStringNull(pSource->ChangeMaterial))
+		CCD->ActorManager()->ChangeMaterial(DBot->Actor, pSource->ChangeMaterial);
+// end change RF064
 	CCD->ActorManager()->SetBoxChange(DBot->Actor, false);
 	CCD->ActorManager()->SetBoundingBox(DBot->Actor, pSource->AnimIdle);
 	if(pSource->Gravity)
@@ -601,6 +612,121 @@ int CNPC::LocateEntity(char *szName, void **pEntityData)
 	
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
+
+// start multiplayer
+int CNPC::SaveTo(FILE *SaveFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are NonPlayerCharacter in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "NonPlayerCharacter");
+	
+	if(!pSet) 
+		return RGF_NOT_FOUND;
+	
+	//	Ok, we have NonPlayerCharacter.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		NonPlayerCharacter *pTheEntity = (NonPlayerCharacter*)geEntity_GetUserData(pEntity);
+		WRITEDATA(&pTheEntity->alive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTheEntity->active, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTheEntity->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTheEntity->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTheEntity->Tick, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(&pTheEntity->MaxNumber, sizeof(int), 1, SaveFD);
+		if(pTheEntity->alive)
+		{
+			Bot_Var *DBot = (Bot_Var *)pTheEntity->DBot;
+			geVec3d Pos, Rotation;
+			CCD->ActorManager()->GetPosition(DBot->Actor, &Pos);
+			CCD->ActorManager()->GetRotate(DBot->Actor, &Rotation);
+			WRITEDATA(&Pos, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&Rotation, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&DBot->Velocity, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&DBot->Stopped, sizeof(geBoolean), 1, SaveFD);
+			WRITEDATA(&DBot->LastStopped, sizeof(geBoolean), 1, SaveFD);
+			WRITEDATA(DBot->Animation, sizeof(char), 128, SaveFD);
+			WRITEDATA(DBot->LastAnimation, sizeof(char), 128, SaveFD);
+			WRITEDATA(&DBot->Dir, sizeof(int), 1, SaveFD);
+			WRITEDATA(&DBot->TgtPos, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&DBot->MoveVec, sizeof(geVec3d), 1, SaveFD);
+			WRITEDATA(&DBot->NextWeaponTime, sizeof(float), 1, SaveFD);
+			WRITEDATA(&DBot->Rank, sizeof(int), 1, SaveFD);
+			WRITEDATA(&DBot->Active, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&DBot->Dying, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&DBot->DyingTime, sizeof(float), 1, SaveFD);
+			WRITEDATA(&DBot->Attacking, sizeof(bool), 1, SaveFD);
+			WRITEDATA(&DBot->Wander, sizeof(bool), 1, SaveFD);
+			int value = DBot->theInv->Value(DBot->Attribute);
+			WRITEDATA(&value, sizeof(int), 1, SaveFD);
+		}
+
+	}
+	return RGF_SUCCESS;
+}
+
+int CNPC::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, check to see if there are NonPlayerCharacter in this world
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "NonPlayerCharacter");
+	
+	if(!pSet) 
+		return RGF_NOT_FOUND;
+	
+	//	Ok, we have NonPlayerCharacter.  Dig through 'em all.
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		NonPlayerCharacter *pTheEntity = (NonPlayerCharacter*)geEntity_GetUserData(pEntity);
+		READDATA(&pTheEntity->alive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTheEntity->active, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTheEntity->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTheEntity->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTheEntity->Tick, sizeof(geFloat), 1, RestoreFD);
+		READDATA(&pTheEntity->MaxNumber, sizeof(int), 1, RestoreFD);
+		if(pTheEntity->alive)
+		{
+			geVec3d Pos, Rotation;
+			Spawn(pTheEntity);
+			Bot_Var *DBot = (Bot_Var *)pTheEntity->DBot;
+			READDATA(&Pos, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&Rotation, sizeof(geVec3d), 1, RestoreFD);
+			CCD->ActorManager()->Position(DBot->Actor, Pos);
+			CCD->ActorManager()->Rotate(DBot->Actor, Rotation);
+			READDATA(&DBot->Velocity, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&DBot->Stopped, sizeof(geBoolean), 1, RestoreFD);
+			READDATA(&DBot->LastStopped, sizeof(geBoolean), 1, RestoreFD);
+			READDATA(DBot->Animation, sizeof(char), 128, RestoreFD);
+			CCD->ActorManager()->SetMotion(DBot->Actor, DBot->Animation);
+			READDATA(DBot->LastAnimation, sizeof(char), 128, RestoreFD);
+			READDATA(&DBot->Dir, sizeof(int), 1, RestoreFD);
+			READDATA(&DBot->TgtPos, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&DBot->MoveVec, sizeof(geVec3d), 1, RestoreFD);
+			READDATA(&DBot->NextWeaponTime, sizeof(float), 1, RestoreFD);
+			READDATA(&DBot->Rank, sizeof(int), 1, RestoreFD);
+			READDATA(&DBot->Active, sizeof(bool), 1, RestoreFD);
+			READDATA(&DBot->Dying, sizeof(bool), 1, RestoreFD);
+			READDATA(&DBot->DyingTime, sizeof(float), 1, RestoreFD);
+			READDATA(&DBot->Attacking, sizeof(bool), 1, RestoreFD);
+			READDATA(&DBot->Wander, sizeof(bool), 1, RestoreFD);
+			int value;
+			READDATA(&value, sizeof(int), 1, RestoreFD);
+			DBot->theInv->Set(DBot->Attribute, value);
+		}
+
+	}
+	return RGF_SUCCESS;
+}
+// end multiplayer
 
 //=====================================================================================
 //	NPC_ClearTrack - clearing a track should clear ALL including stack

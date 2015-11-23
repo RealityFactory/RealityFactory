@@ -19,8 +19,8 @@ public:
   void Tick(float dwTicks);
   bool HandleCollision(geActor *theTarget, geActor *pActor);
 // changed RF063
-  int SaveTo(FILE *SaveFD);
-  int RestoreFrom(FILE *RestoreFD);
+  int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
 // end change RF063
   int ReSynchronize();
   int LocateEntity(char *szName, void **pEntityData);

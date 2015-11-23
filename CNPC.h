@@ -92,6 +92,8 @@ public:
 	void Spawn(NonPlayerCharacter *pSource);
 	void Debug();
 	int LocateEntity(char *szName, void **pEntityData);
+	int SaveTo(FILE *SaveFD, bool type);
+	int RestoreFrom(FILE *RestoreFD, bool type);
 private:
 
 };

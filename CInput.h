@@ -27,6 +27,9 @@ public:
   int LoadKeymap(char *szFilename);
   int GetCodes(int action);
   int GetKeyboardInput();
+// changed RF064
+  int GetKeyboardInputNoWait();
+// end change RF064
   void SetKeyAction(int key, int action)
   { m_RGFKeys[key] = action; }
 

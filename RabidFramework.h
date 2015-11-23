@@ -44,7 +44,7 @@ enum
 
 //	Standard Windows include
 
-//#define _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC
 
 #include "stdafx.h"
 
@@ -91,6 +91,9 @@ typedef struct
 class CCommonData;
 
 #include "IniFile.h"
+// changed RF064
+#include "Mixer.h"
+// end change RF064
 #include "GameEntityDataTypes.h"		// Just what it says!  GEdit-usable.
 #include "RGFStatus.h"							// Status codes
 #include "RGFEvents.h"							// Event codes, etc.
@@ -139,9 +142,12 @@ class CCommonData;
 #include "CMenu.h"									// Ralph Deane's Menu Manager
 #include "CAIController.h"					// AI Controller class
 #include "Utilities.h"							// Ralph Deane's Utility Code
-#ifdef RF063
-#include "CTrack.h"
-#endif
+// changed RF064
+#include "CScriptPoint.h"
+#include "CPawn.h"
+#include "CCountDown.h"
+#include "CChange.h"
+// end change RF064
 #include "track.h"
 #include "CNPCPathPoint.h"
 #include "CNPC.h"										// Non-Player Character Manager
@@ -168,6 +174,11 @@ class CCommonData;
 #include "CInventory.h"
 #include "CLiquid.h"
 // end change RF063
+
+// start multiplayer
+#include "CNetwork.h"
+// end multiplayer
+
 #include "CCommonData.h"						// Common data handler component
 
 //	Various zone constants.  A "zone" is an area, defined by a brush, that

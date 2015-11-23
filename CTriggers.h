@@ -32,8 +32,8 @@ public:
 	int HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey, geActor *theActor);
 	bool IsATrigger(geWorld_Model *theModel);	// Is this model a trigger?
 	void Tick(float dwTicks);					// Increment animation time
-	int SaveTo(FILE *SaveFD); // Save triggers to file
-	int RestoreFrom(FILE *RestoreFD); // Restore triggers from file
+	int SaveTo(FILE *SaveFD, bool type); // Save triggers to file
+	int RestoreFrom(FILE *RestoreFD, bool type); // Restore triggers from file
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
 private:

@@ -40,6 +40,11 @@ public:
   CInventory();
   ~CInventory();
   void Display();
+// changed RF064
+  void SetActive(bool flag);
+  bool GetStopTime()
+  { return !isactive || (isactive && !stoptime); }
+// end change RF064
 private:
 	void Blit();
 	geBitmap *GetImage(int index);
@@ -66,6 +71,14 @@ private:
 	int Selected;
 	int MaxItems;
 	geSound_Def *keyclick;
+// changed RF064
+	bool isactive;
+	bool keyreturn;
+	bool keyesc;
+	bool keylb;
+	bool keyrb;
+	bool stoptime;
+// end change RF064
 };
 
 #endif

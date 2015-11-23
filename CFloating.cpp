@@ -213,7 +213,9 @@ void CFloat::Tick(float dwTicksIn)
 			geVec3d_Copy( &( S->Xf[i].Translation ), &( Spr.Pos ) );
 
 			// reset particle if it has hit its height limit
-			if ( ( S->Xf[i].Translation.Y - S->BasePos.Y ) > S->Height )
+// changed RF064
+			if (fabs( S->Xf[i].Translation.Y - S->BasePos.Y ) > S->Height )
+// end change RF064
 			{
   				// set random direction
 				geXForm3d_SetIdentity( &( S->Xf[i] ) );

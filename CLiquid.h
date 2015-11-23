@@ -23,4 +23,17 @@ private:
 
 };
 
+
+class COverlay : public CRGFComponent
+{
+public:
+  COverlay();
+  ~COverlay();
+  void Tick(float dwTicks);
+  Overlay *IsOverlay(geWorld_Model *theModel);
+
+private:
+
+};
+
 #endif

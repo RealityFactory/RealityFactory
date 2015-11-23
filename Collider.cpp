@@ -592,6 +592,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
 	{
 		Collision->Actor = NULL;
+//geEngine_Printf(CCD->Engine()->Engine(), 0,30,"Coll Model = %x",Collision->Model);
 		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
 		{
 			Result = GE_TRUE;
@@ -847,6 +848,12 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox)
 		{
 			Result = GE_FALSE;
 		}
+// changed RF064
+		else if((Contents.Contents & GE_CONTENTS_AREA))
+		{
+			Result = GE_FALSE;
+		}
+// end change RF064
 		else
 		{
 			Result = GE_TRUE;
@@ -920,6 +927,12 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 		{
 			Result = GE_FALSE;
 		}
+// changed RF064
+		else if((Contents.Contents & GE_CONTENTS_AREA))
+		{
+			Result = GE_FALSE;
+		}
+// end change RF064
 		else
 		{
 			Result = GE_TRUE;
@@ -996,6 +1009,12 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 		{
 			Result = GE_FALSE;
 		}
+// changed RF064
+		else if((Contents->Contents & GE_CONTENTS_AREA))
+		{
+			Result = GE_FALSE;
+		}
+// end change RF064
 		else
 		{
 			Result = GE_TRUE;
@@ -1320,7 +1339,10 @@ geBoolean Collider::CheckSubCollision(geVec3d *Start, geVec3d *End, geActor *Act
 		if(geWorld_Collision(World, &theBoneBox.Min, 
 			&theBoneBox.Max, &xStart, &xEnd, kCollideFlags, 
 			GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
+		{
 			Collided = GE_TRUE;
+			Collision->Actor = NULL;
+		}
 		// Ok, if we hit ANYTHING, we can take the early exit.
 		if(Collided == GE_TRUE)
 			break;
@@ -1670,7 +1692,7 @@ bool Collider::CheckActorCollisionD(geVec3d Start, geVec3d End, geActor *theActo
 		}
 		return false;	// Cleared first hurdle
 	}
-
+/*
 	//	Ok, sometimes we don't care about anything BUT a bounding-box check,
 	//	..so at this point we'll see if that's all we want
 	if(m_CheckLevel <= RGF_COLLISIONLEVEL_1)
@@ -1683,7 +1705,7 @@ bool Collider::CheckActorCollisionD(geVec3d Start, geVec3d End, geActor *theActo
 		if(CheckIntersection(&End, theActor, CCD->World()))
 			return true;
 	}
-
+*/
 	//	AABB + contents isn't good enough, try an AABB check PER BONE
 	
 	if(CheckSubCollision(&Start, &End, theActor, CCD->World()) == GE_TRUE)
@@ -1750,7 +1772,7 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 		{
 			theBBox.Min = *Min;
 			theBBox.Max = *Max;
-			Result2 = CanOccupyPosition(&NewPosition, &theBBox, Actor, &Contents);
+			Result2 = CanOccupyPositionD(&NewPosition, &theBBox, Actor, &Contents);
 			if(!Result2)
 			{
 				// Fill collision struct with information
@@ -1829,6 +1851,12 @@ bool Collider::CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 		{
 			Result = GE_FALSE;
 		}
+// changed RF064
+		else if((Contents->Contents & GE_CONTENTS_AREA))
+		{
+			Result = GE_FALSE;
+		}
+// end change RF064
 		else
 		{
 			Result = GE_TRUE;

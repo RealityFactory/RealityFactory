@@ -141,7 +141,11 @@ int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey,
 // changed RF063
 			if(pTrigger->PlayerOnly && theActor!=CCD->Player()->GetActor())
 				return false;
-			if((UseKey && !pTrigger->UseKey) || (!pTrigger->bShoot && HitType) || (pTrigger->bShoot && !HitType))
+// changed RF064
+			if((pTrigger->bNoCollide && !UseKey) || (UseKey && !pTrigger->UseKey)
+				|| (!pTrigger->bShoot && HitType)
+				|| (pTrigger->bShoot && !HitType))
+// end change RF064
 			{
 				FreeState();
 				if(CCD->ModelManager()->EmptyContent(pTrigger->Model))
@@ -379,7 +383,7 @@ void CTriggers::Tick(float dwTicks)
 //	Save the current state of every  trigger in the current world
 //	..off to an open file.
 
-int CTriggers::SaveTo(FILE *SaveFD)
+int CTriggers::SaveTo(FILE *SaveFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -397,19 +401,19 @@ int CTriggers::SaveTo(FILE *SaveFD)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
-		fwrite(&pTrigger->bInAnimation, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->bTrigger, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->AnimationTime, sizeof(int), 1, SaveFD);
-		fwrite(&pTrigger->bInCollision, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->bActive, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->LastIncrement, sizeof(int), 1, SaveFD);
-		fwrite(&pTrigger->tDoor, sizeof(float), 1, SaveFD);
-		fwrite(&pTrigger->origin, sizeof(geVec3d), 1, SaveFD);
-		fwrite(&pTrigger->bState, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->time, sizeof(float), 1, SaveFD);
-		fwrite(&pTrigger->isHit, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->CallBack, sizeof(geBoolean), 1, SaveFD);
-		fwrite(&pTrigger->CallBackCount, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pTrigger->bInAnimation, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->bTrigger, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->AnimationTime, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pTrigger->bInCollision, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->bActive, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->LastIncrement, sizeof(int), 1, SaveFD);
+		WRITEDATA(&pTrigger->tDoor, sizeof(float), 1, SaveFD);
+		WRITEDATA(&pTrigger->origin, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(&pTrigger->bState, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->time, sizeof(float), 1, SaveFD);
+		WRITEDATA(&pTrigger->isHit, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->CallBack, sizeof(geBoolean), 1, SaveFD);
+		WRITEDATA(&pTrigger->CallBackCount, sizeof(int), 1, SaveFD);
 	}
 	
 	return RGF_SUCCESS;
@@ -420,7 +424,7 @@ int CTriggers::SaveTo(FILE *SaveFD)
 //	Restore the state of every  trigger in the current world from an
 //	..open file.
 
-int CTriggers::RestoreFrom(FILE *RestoreFD)
+int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -436,19 +440,19 @@ int CTriggers::RestoreFrom(FILE *RestoreFD)
     pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
-		fread(&pTrigger->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->bTrigger, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->AnimationTime, sizeof(int), 1, RestoreFD);
-		fread(&pTrigger->bInCollision, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->bActive, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->LastIncrement, sizeof(int), 1, RestoreFD);
-		fread(&pTrigger->tDoor, sizeof(float), 1, RestoreFD);
-		fread(&pTrigger->origin, sizeof(geVec3d), 1, RestoreFD);
-		fread(&pTrigger->bState, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->time, sizeof(float), 1, RestoreFD);
-		fread(&pTrigger->isHit, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->CallBack, sizeof(geBoolean), 1, RestoreFD);
-		fread(&pTrigger->CallBackCount, sizeof(int), 1, RestoreFD);
+		READDATA(&pTrigger->bInAnimation, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->bTrigger, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->AnimationTime, sizeof(int), 1, RestoreFD);
+		READDATA(&pTrigger->bInCollision, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->bActive, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->LastIncrement, sizeof(int), 1, RestoreFD);
+		READDATA(&pTrigger->tDoor, sizeof(float), 1, RestoreFD);
+		READDATA(&pTrigger->origin, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(&pTrigger->bState, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->time, sizeof(float), 1, RestoreFD);
+		READDATA(&pTrigger->isHit, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->CallBack, sizeof(geBoolean), 1, RestoreFD);
+		READDATA(&pTrigger->CallBackCount, sizeof(int), 1, RestoreFD);
 		if(pTrigger->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pTrigger->Model, GE_TRUE);
     }

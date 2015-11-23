@@ -325,6 +325,21 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					geVec3d_Add( &(Bl.Start), &(Bl.End),&(Bl.End) );
 					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_END);
 					break;
+// changed RF064
+				case EFF_ACTORSPRAY:
+					ActorSpray aSp;
+					geVec3d_Copy( &(Position ), &( aSp.Source ) );
+					geVec3d_Add( &( aSp.Source ), &pool->Offset,&(aSp.Source) );
+					geXForm3d_SetIdentity( &( Xf ) );
+					geXForm3d_RotateX( &( Xf ), -aSp.Dest.X / 57.3f );  
+					geXForm3d_RotateY( &( Xf ), ( aSp.Dest.Y - 90.0f ) / 57.3f );  
+					geXForm3d_RotateZ( &( Xf ), aSp.Dest.Z / 57.3f ); 
+					geXForm3d_GetIn( &( Xf ), &In );
+					geVec3d_Inverse( &In );
+					geVec3d_Add( &( aSp.Source ), &In,&( aSp.Dest ) );
+					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
+					break;
+// end change RF064
 				}
 			}
 			else

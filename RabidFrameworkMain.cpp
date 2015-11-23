@@ -36,7 +36,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 //  _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-//  _CrtSetBreakAlloc(11203);
+//  _CrtSetBreakAlloc(24312);
 
 //	Initialize the Common Data class that handles components
 

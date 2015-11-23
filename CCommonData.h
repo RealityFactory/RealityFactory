@@ -52,6 +52,9 @@ public:
 	{ OutputDebugString(szMsg); OutputDebugString("\n"); return false;}
 	else  return theGameEngine->ReportError(szMsg, bBox);}
 	inline CGenesisEngine *Engine() { return theGameEngine;}
+// start multiplayer
+	inline NetPlayerMgr *NetPlayerManager() { return theNetPlayerMgr;}
+// end multiplayer
 	inline geWorld *World() { return theGameEngine->World();}
 	inline CInput *Input() { return theUserInput;}
 	inline CPlayer *Player() { return thePlayer;}
@@ -78,6 +81,9 @@ public:
 	inline EffManager *EffectManager() { return theEffect; }
 	inline CRain *RainEffect() { return theRain; }
 	inline CSpout *SpoutEffect() { return theSpout; }
+// changed RF064
+	inline CActorSpout *ActorSpoutEffect() { return theActorSpout; }
+// end change RF064
 	inline CFloat *FloatEffect() { return theFloat; }
 	inline Chaos *ChaosEffect() { return theChaos;}
 	inline CFlame *FlameEffect() { return theFlame; }
@@ -96,10 +102,12 @@ public:
 	inline CLogic *Logic() { return theLogic;}
 	inline CDamage *Damage() { return theDamage;}
 	inline CTrack *Track() { return theTrack;}
-#ifdef RF063
-	inline CTrackPoint *TrackPoints() { return theTrackPoints;}
-	inline CTrackStart *TrackStarts() { return theTrackStarts;}
-#endif
+// changed RF064
+	inline CScriptPoint *ScriptPoints() { return theScriptPoints;}
+	inline CPawn *Pawns() { return thePawn;}
+	inline CCountDown *CountDownTimers() { return theCountDownTimer;}
+	inline CChangeAttribute *ChangeAttributes() { return theChangeAttribute;}
+// end change RF064
 	inline CNPCPathPoint *NPCPoint() { return theNPCPoint;}
 	inline bool InGameMode() { return m_InGameLoop;}
 	// Time inlines
@@ -153,6 +161,10 @@ public:
 // end change RF063
 	inline bool GetPaused() { return Paused;}
 	inline void SetPaused(bool flag) { Paused = flag;}
+// changed RF064
+	inline COverlay *Overlays() { return theOverlay;}
+	inline void SetKeyPaused(bool flag) { KeyPaused = flag;}
+// end change RF064
 	inline GE_RGBA GetFogColor() { return cColor;}
 	inline bool GetUseEffect() { return UseEffect;}
 	inline char *NextLevel() { return m_NewLevel; }
@@ -160,8 +172,19 @@ public:
 		{ if(szArg != NULL)
 			strcpy(m_LevelDirectory, szArg);
 		}
+// start multiplayer
+	inline bool GetConsole() { return consoleflag;}
+	inline bool GetNetwork() { return network;}
+	void ShutDownNetWork();
+	void SetMultiPlayer(bool multi, bool Server);
+	bool GetMultiPlayer();
+	inline bool GetServer() { return server;}
+// end multiplayer
 private:
 	CGenesisEngine *theGameEngine;		// Genesis engine class
+// start multiplayer
+	NetPlayerMgr *theNetPlayerMgr;
+// end multiplayer
 	CInput *theUserInput;							// User input class
 	CPlayer *thePlayer;								// Player avatar class
 	CAutoDoors *theAutoDoors;					// Automatic doors class
@@ -187,6 +210,9 @@ private:
 	EffManager *theEffect;						// Ralph Deane's Effects Manager
 	CRain *theRain;										// Ralph Deane's Rain Effect
 	CSpout *theSpout;									// Ralph Deane's Spout Effect
+// changed RF064
+	CActorSpout *theActorSpout;
+// end change RF064
 	CFloat *theFloat;									// Ralph Deane's Floating Effect
 	CFlame *theFlame;									// Ralph Deane's Flame Effect
 	Chaos *theChaos;									// Ralph Deane's Chaos Procedural
@@ -222,10 +248,13 @@ private:
 	CLiquid * theLiquid;
 // end change RF063
 	CTrack *theTrack;
-#ifdef RF063
-	CTrackPoint *theTrackPoints;
-	CTrackStart *theTrackStarts;
-#endif
+// changed RF064
+	COverlay *theOverlay;
+	CScriptPoint *theScriptPoints;
+	CPawn *thePawn;
+	CCountDown *theCountDownTimer;
+	CChangeAttribute *theChangeAttribute;
+// end change RF064
 	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information
 	__int64 PerformanceFrequency;			// Performance Counter Frequency
@@ -258,6 +287,9 @@ private:
     int Slot[10];
     int CurrentWeapon;
 	bool Paused;
+// changed RF064
+	bool KeyPaused;
+// end change RF064
 	bool UseEffect;
 	GE_RGBA cColor;
 	bool UseAngle;
@@ -290,7 +322,23 @@ private:
 	bool usekey;
 	bool invkey;
 // end change RF063
+// changed RF064
+	bool dropkey;
+// end change Rf064
 	geVFile *VFS;
+// start multiplayer
+	bool consolekey;
+	bool consoleflag;
+	bool network;
+	bool multiplayer;
+	bool server;
+// end multiplayer
+// changed RF064
+	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
+	                 DWORD dw1, DWORD dw2);		// Static timer callback
+	int m_nTimerID;
+	__int64 TimeCounter;
+// end change RF064
 };
 
 #endif

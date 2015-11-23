@@ -104,6 +104,9 @@ typedef struct DefaultWeapons
 	float MeleeAltDamage;
 	bool WorksUnderwater;
 // end change RF063
+// changed RF064
+	int FixedView;
+// end change RF064
 	char Ammunition[64];
 	int AmmoPerShot;
 	char MuzzleFlash[64];
@@ -205,8 +208,10 @@ public:
   { CurrentWeapon = value;}
   geVec3d GetCrossPoint()
   { return CrossPoint; }
+// changed RF064
   void SetView(int value)
-  { ViewPoint = value; }
+  { ViewPoint = value; OldViewPoint = value; }
+// end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}
   void SetAttackFlag(bool flag)
@@ -223,9 +228,14 @@ private:
   void ProjectileAttack();
   int PlaySound(geSound_Def *SoundDef, geVec3d Pos, bool Loop);
   void LoadDefaults();
-
+// changed RF064
+  void DoChange();
+// end change RF064
   int Slot[10];
   int ViewPoint;
+// changed RF064
+  int OldViewPoint;
+// end change RF064
   int CurrentWeapon;
   int AttackTime;
   bool AttackFlag;

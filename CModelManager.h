@@ -81,6 +81,9 @@ public:
 	int SetAnimationSpeed(geWorld_Model *theModel, geFloat fSpeed);	// Set anim. speed
 	void Tick(geFloat dwTicks);			// Process passage of time
 	int GetPosition(geWorld_Model *theModel, geVec3d *thePosition);
+// changed RF064
+	int SetPosition(geWorld_Model *theModel, geVec3d thePosition);
+// end change RF064
 	int GetRotation(geWorld_Model *theModel, geVec3d *theRotation);
 	int GetModelTime(geWorld_Model *theModel, geFloat *time);
 	int SetBoundingBox(geWorld_Model *theModel, geExtBox theBBox);
@@ -93,6 +96,10 @@ public:
 	int HandleCollision(geWorld_Model *theModel, geActor *theActor);		// Check for collision processing
 	ModelStateModifier *GetModifier(geWorld_Model *theModel);
 	ModelAttributes *GetAttributes(geWorld_Model *theModel);
+// start multiplayer
+	int SaveTo(FILE *SaveFD, bool type);
+	int RestoreFrom(FILE *RestoreFD, bool type);
+// end multiplayer
 private:
 	//	Private member functions
 	int AddNewModelToList(geWorld_Model *theModel, int nModelType);
