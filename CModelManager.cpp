@@ -787,7 +787,7 @@ void CModelManager::Tick(geFloat dwTicks)
                                         geFloat Volume, Pan, Frequency;
                                         geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
                                         geSound3D_GetConfig(CCD->World(), &xfmPlayer,                                                                                 &MainList[nEntry]->Translation,
-                                            kAudibleRadius, 2.0f, &Volume, &Pan, &Frequency);
+                                            CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
                                         geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), theSound, 
                                             Volume, Pan, Frequency, GE_FALSE);
                                     }
@@ -1230,7 +1230,7 @@ geBoolean CModelManager::ContentModel(geVec3d thePoint, geExtBox theBox,
 								geFloat Volume, Pan, Frequency;
 								geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 								geSound3D_GetConfig(CCD->World(),	&xfmPlayer,	&pMod->origin,
-									kAudibleRadius, 2.0f,	&Volume, &Pan,	&Frequency);
+									CCD->GetAudibleRadius(), 2.0f,	&Volume, &Pan,	&Frequency);
 								pMod->FSoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), 
 									pMod->theFSound, Volume, Pan, Frequency, GE_FALSE);
 							}
@@ -1246,11 +1246,11 @@ geBoolean CModelManager::ContentModel(geVec3d thePoint, geExtBox theBox,
 // changed RF063
 						if(EffectC_IsStringNull(pMod->DamageAttribute))
 						{
-							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute);
+							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
 						}
 						else
 						{
-							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute);
+							CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
 // end change RF063
 						}
 					}
@@ -1266,7 +1266,7 @@ geBoolean CModelManager::ContentModel(geVec3d thePoint, geExtBox theBox,
 							geFloat Volume, Pan, Frequency;
 							geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 							geSound3D_GetConfig(CCD->World(),	&xfmPlayer,	&pMod->origin,
-								kAudibleRadius, 2.0f,	&Volume, &Pan,	&Frequency);
+								CCD->GetAudibleRadius(), 2.0f,	&Volume, &Pan,	&Frequency);
 							pMod->DSoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), 
 								pMod->theDSound, Volume, Pan, Frequency, GE_FALSE);
 						}

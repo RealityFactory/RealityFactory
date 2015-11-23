@@ -138,6 +138,10 @@ int CPersistentAttributes::Modify(char *szTag, int nValue)
 		return RGF_NOT_FOUND;				// No such attribute
 	
 	pAttr->Value += nValue;				// MAke the mod
+
+// changed RF064
+	pAttr->ModifyAmt = nValue;
+// end change RF064
 	
     ClampValue(pAttr);					// Clamp the values to limits
 	
@@ -308,6 +312,19 @@ int CPersistentAttributes::Value(char *szTag)
 	else
 		return pAttr->Value;
 }
+
+// changed RF064
+
+int CPersistentAttributes::GetModifyAmt(char *szTag)
+{
+	PersistAttribute *pAttr = Locate(szTag);
+	
+	if(pAttr == NULL)
+		return 0;
+	else
+		return pAttr->ModifyAmt;
+}
+// end change RF064
 
 int CPersistentAttributes::Low(char *szTag)
 {
@@ -552,6 +569,9 @@ PersistAttribute *CPersistentAttributes::AddNew(char *szTag, int nValue)
 	pNew->pNext = NULL;
 	pNew->Count = 1;
 	pNew->Value = nValue;
+// changed RF064
+	pNew->ModifyAmt = 0;
+// end change RF064
 	pNew->UserData = NULL;
 	pNew->UserDataSize = 0;
 	

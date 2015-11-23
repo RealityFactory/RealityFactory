@@ -68,8 +68,10 @@ void CChangeAttribute::Tick(float dwTicks)
 				if(GetTriggerState(pSource->StopTrigger))
 				{
 					if(pSource->active)
+					{
 						pSource->active = false;
-					continue;
+						continue;
+					}
 				}
 			}
 			if(!EffectC_IsStringNull(pSource->StartTrigger))

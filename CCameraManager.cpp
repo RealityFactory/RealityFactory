@@ -70,6 +70,10 @@ void CCameraManager::Defaults()
 // changed RF064
 	DesiredHeight = 0.0f;
 	HeightSpeed = 40.0f;
+	OverlayDist = 10.0f;
+	geXForm3d_SetIdentity(&m_OldXForm);
+	geVec3d_Clear(&m_vMoveDif);
+	m_bViewChanged = m_bPositionMoved = false;
 // end change RF064
 
 	CIniFile AttrFile("camera.ini");
@@ -113,6 +117,9 @@ void CCameraManager::Defaults()
 			HeightSpeed = (float)AttrFile.GetValueF(KeyName, "heightspeed");
 			if(HeightSpeed==0.0f)
 				HeightSpeed = 40.0f;
+			OverlayDist = (float)AttrFile.GetValueF(KeyName, "overlaydistance");
+			if(OverlayDist==0.0f)
+				OverlayDist = 10.0f;
 // end change RF064
 		}
 		else if(KeyName=="FirstPerson")
@@ -768,7 +775,7 @@ int CCameraManager::RenderView()
 		if(LQ)
 		{
 			geXForm3d_GetIn(&theViewPoint, &Direction);
-			geVec3d_AddScaled (&Translation, &Direction, 10.0f, &Pos);
+			geVec3d_AddScaled (&Translation, &Direction, OverlayDist, &Pos);
 
 			Vertex.r = LQ->TintColor.r; 
 			Vertex.g = LQ->TintColor.g;
@@ -793,7 +800,7 @@ int CCameraManager::RenderView()
 			if(OL)
 			{
 				geXForm3d_GetIn(&theViewPoint, &Direction);
-				geVec3d_AddScaled (&Translation, &Direction, 10.0f, &Pos);
+				geVec3d_AddScaled (&Translation, &Direction, OverlayDist, &Pos);
 				
 				Vertex.r = OL->TintColor.r; 
 				Vertex.g = OL->TintColor.g;
@@ -828,6 +835,18 @@ int CCameraManager::RenderView()
 	geCamera_SetWorldSpaceXForm(EngineCamera, &theViewPoint);
 	geCamera_GetClippingRect(EngineCamera, &Rect);
 	geCamera_SetAttributes(EngineCamera, FOV, &Rect);
+// changed RF064
+	geVec3d_Subtract(&m_OldXForm.Translation, &theViewPoint.Translation, &m_vMoveDif );
+	m_bPositionMoved = !geVec3d_IsZero(&m_vMoveDif);
+	if( m_bPositionMoved  ||
+		m_OldXForm.AX != theViewPoint.AX || m_OldXForm.AY != theViewPoint.AY || m_OldXForm.AZ != theViewPoint.AZ ||
+		m_OldXForm.BX != theViewPoint.BX || m_OldXForm.BY != theViewPoint.BY || m_OldXForm.BZ != theViewPoint.BZ ||
+		m_OldXForm.CX != theViewPoint.CX || m_OldXForm.CY != theViewPoint.CY || m_OldXForm.CZ != theViewPoint.CZ)
+	{
+		m_bViewChanged = true;
+		m_OldXForm = theViewPoint;
+	}
+// end change RF064
 	
 	return RGF_SUCCESS;
 }

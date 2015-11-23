@@ -265,9 +265,9 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 				{
 // changed RF063
 					if(EffectC_IsStringNull(pProxy->DamageAttribute))
-						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health");
+						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health", "Actor");
 					else
-						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute);
+						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute, "Actor");
 // end change RF063
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = true;
@@ -279,9 +279,9 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 				{
 // changed RF063
 					if(EffectC_IsStringNull(pProxy->DamageTo))
-						CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt);
+						CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
 					else
-						CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt);
+						CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
 // end change RF063
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = true;
@@ -300,7 +300,7 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 				geFloat Volume, Pan, Frequency;
 				geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 				geSound3D_GetConfig(CCD->World(),	&xfmPlayer,	&pProxy->origin,
-					kAudibleRadius, 2.0f,	&Volume, &Pan,	&Frequency);
+					CCD->GetAudibleRadius(), 2.0f,	&Volume, &Pan,	&Frequency);
 				pProxy->SoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), 
 					pProxy->theSound, Volume, Pan, Frequency, GE_FALSE);
 			}

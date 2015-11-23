@@ -554,23 +554,26 @@ geBitmap * CreateFromFileAndAlphaNames(char * BmName,char *AlphaName)
 	if ( ! Bmp )
 		return NULL;
 // changed RF064
-	if(stricmp(BmName, AlphaName))
+	if(!EffectC_IsStringNull(AlphaName))
 	{
-		AlphaBmp = CreateFromFileName(AlphaName);
-		if ( ! AlphaBmp )
+		if(stricmp(BmName, AlphaName))
 		{
-			geBitmap_Destroy(&Bmp);
-			return NULL;
-		}
-		
-		if ( ! geBitmap_SetAlpha(Bmp,AlphaBmp) )
-		{
-			geBitmap_Destroy(&Bmp);
+			AlphaBmp = CreateFromFileName(AlphaName);
+			if ( ! AlphaBmp )
+			{
+				geBitmap_Destroy(&Bmp);
+				return NULL;
+			}
+			
+			if ( ! geBitmap_SetAlpha(Bmp,AlphaBmp) )
+			{
+				geBitmap_Destroy(&Bmp);
+				geBitmap_Destroy(&AlphaBmp);
+				return NULL;
+			}
+			
 			geBitmap_Destroy(&AlphaBmp);
-			return NULL;
 		}
-		
-		geBitmap_Destroy(&AlphaBmp);
 	}
 // end change RF064
 	//geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
@@ -954,4 +957,16 @@ geActor * GetEntityActor(char *EntityName)
 	}
 	return NULL;
 } 
+
+
+bool geVec3d_IsZero( geVec3d* pVect )
+{
+	if( pVect->X < 0.0f || pVect->X > 0.0f ||
+		pVect->Y < 0.0f || pVect->Y > 0.0f ||
+		pVect->Z < 0.0f || pVect->Z > 0.0f )
+		return false;
+
+	return true;
+}
+
 // end change RF064

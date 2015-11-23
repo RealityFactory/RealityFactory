@@ -127,6 +127,16 @@ public:
 // changed RF064
 	void SetDesiredHeight(float height)
 	{ DesiredHeight = height; }
+	float GetOverlayDist()
+	{ return OverlayDist; }
+	bool	GetViewChanged()
+	{ return m_bViewChanged;	}
+	bool	GetPositionMoved()
+	{ return m_bPositionMoved;	} 
+	geVec3d* GetMoveDif()
+	{ return &m_vMoveDif;		}
+	float	GetDistanceMoved()
+	{ return geVec3d_Length( &m_vMoveDif ); }
 // end change RF064
 private:
 	//	Member functions
@@ -203,6 +213,11 @@ private:
 // changed RF064
 	geFloat DesiredHeight;
 	float HeightSpeed;
+	float OverlayDist;
+	geXForm3d	m_OldXForm;
+	geVec3d		m_vMoveDif;
+	bool		m_bViewChanged;
+	bool		m_bPositionMoved;
 // end change RF064
 };
 

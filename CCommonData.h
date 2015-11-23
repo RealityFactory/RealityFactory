@@ -86,6 +86,9 @@ public:
 	inline CMorph * Morphs() {return theMorph; }
 	inline CCutScene *CutScenes() {return theCutScene; }
 	inline CActMaterial *ActMaterials() {return theActMaterial; }
+	inline qxTerrainMgr *TerrainMgr() {return theTerrainMgr; }
+	inline CArmour *Armours() {return theArmour; }
+	inline CLiftBelt *LiftBelts() {return theLiftBelt; }
 // end change RF064
 	inline CFloat *FloatEffect() { return theFloat; }
 	inline Chaos *ChaosEffect() { return theChaos;}
@@ -164,9 +167,14 @@ public:
 // end change RF063
 	inline bool GetPaused() { return Paused;}
 	inline void SetPaused(bool flag) { Paused = flag;}
+	inline float GetAudibleRadius() { return kAudibleRadius;}
+	inline void SetAudibleRadius(float radius) { kAudibleRadius = radius;}
 // changed RF064
 	inline COverlay *Overlays() { return theOverlay;}
 	inline void SetKeyPaused(bool flag) { KeyPaused = flag;}
+	inline bool GetCDifficult() { return CDifficult;}
+	inline int GetDifficultLevel() { return DifficultLevel;}
+	inline void SetDifficultLevel(int level) { DifficultLevel = level;}
 // end change RF064
 	inline GE_RGBA GetFogColor() { return cColor;}
 	inline bool GetUseEffect() { return UseEffect;}
@@ -260,6 +268,10 @@ private:
 	CMorph *theMorph;
 	CCutScene *theCutScene;
 	CActMaterial * theActMaterial;
+	qxTerrainMgr *theTerrainMgr;
+	CArmour * theArmour;
+	CLiftBelt * theLiftBelt;
+	float kAudibleRadius;
 // end change RF064
 	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information
@@ -295,6 +307,8 @@ private:
 	bool Paused;
 // changed RF064
 	bool KeyPaused;
+	bool CDifficult;
+	int DifficultLevel;
 // end change RF064
 	bool UseEffect;
 	GE_RGBA cColor;

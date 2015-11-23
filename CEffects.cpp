@@ -244,7 +244,7 @@ CPreEffect::CPreEffect()
 				memset(Sound, 0, sizeof(Snd) );
 				strcpy(szName,Vector);
 				Sound->SoundDef = SPool_Sound(szName);
-				Sound->Min = kAudibleRadius;
+				Sound->Min = CCD->GetAudibleRadius();
 				Sound->Loop = false;
 				Effects[effptr].Data = Sound;
 				Effects[effptr].Active = true;
@@ -318,9 +318,9 @@ CPreEffect::CPreEffect()
 			{
 				strcpy(szName,Vector);
 				convert = Extract(szName);
-				Bl->End.X = convert.X;
-				Bl->End.Y = convert.Y;
-				Bl->End.Z = convert.Z;
+				Bl->EndOffset.X = convert.X;
+				Bl->EndOffset.Y = convert.Y;
+				Bl->EndOffset.Z = convert.Z;
 			}
 			Bl->Width = AttrFile.GetValueI(KeyName, "width");
 			Bl->NumPoints = AttrFile.GetValueI(KeyName, "numberpoints");
@@ -535,7 +535,7 @@ int CPreEffect::AddEffect(int k, geVec3d Position, geVec3d Offset)
 		memcpy(&Bl, Effects[k].Data, sizeof(Bl) );
 		geVec3d_Copy( &(Position ), &(Bl.Start) );
 		geVec3d_Add( &(Bl.Start), &Offset,&(Bl.Start) );
-		geVec3d_Add( &(Bl.Start), &(Bl.End),&(Bl.End) );
+		geVec3d_Add( &(Bl.Start), &(Bl.EndOffset),&(Bl.End) );
 		index = CCD->EffectManager()->Item_Add(EFF_BOLT, &Bl);
 		break;
 // changed RF064

@@ -105,6 +105,10 @@ public:
 // changed RF064
 	bool GetVoodoo()
 	{ return Voodoo; }
+	float GetFogEnd()
+	{ return fFogEnd; }
+	float GetFogStart()
+	{ return fFogStart; }
 // end change RF064
 private:
 	//	Private member functions

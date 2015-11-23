@@ -4,6 +4,9 @@
 #include "Simkin\\skScriptedExecutable.h"
 
 #define DEBUGLINES	8
+#define MAXFLAGS  500
+
+#define PARMCHECK(x) CCD->Pawns()->ParmCheck(arguments.entries(), x, Order, szName, methodName)
 
 typedef struct ActionList
 {
@@ -194,6 +197,7 @@ public:
 	float		TriggerTime;
 	char		TriggerOrder[64];
 	int			SoundIndex;
+	float		AudibleRadius;
 	bool		FacePlayer;
 	bool		FaceAxis;
 	bool		UseKey;
@@ -208,6 +212,7 @@ public:
 	char		TargetAttr[64];
 	float		TargetDistance;
 	bool		TargetDisable;
+	char		TargetGroup[64];
 	geVec3d		LastTargetPoint;
 	geVec3d		SavePoint;
 	bool		console;
@@ -290,6 +295,7 @@ public:
 	{ return ConsoleBlock; }
 	void IncBlock()
 	{ ConsoleBlock += 1; }
+	void ParmCheck(int Entries, int Desired, char *Order, char *szName, const skString& methodname);
 private:
 	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
@@ -331,7 +337,7 @@ private:
 	int ReplyHeight;
 	int ReplyFont;
 	bool ConvFlag;
-	bool PawnFlag[100];
+	bool PawnFlag[MAXFLAGS];
 	CArray<ConversationText, ConversationText> Text;
 	EventStack *Events;
 	CArray<PreCache, PreCache> Cache;

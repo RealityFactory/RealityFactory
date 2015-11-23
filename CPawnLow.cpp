@@ -22,6 +22,11 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = ThinkTime;
 		return true;
 	}
+	else if (fieldName == "DifficultyLevel")
+	{
+		value = CCD->GetDifficultLevel();
+		return true;
+	}
 	else if (fieldName == "health")
 	{
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
@@ -182,6 +187,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 	if (IS_METHOD(methodName, "HighLevel"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		highlevel = true;
 		strcpy(thinkorder, param0);
@@ -191,13 +197,25 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "Animate"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		CCD->ActorManager()->SetMotion(Actor, param0);
 		CCD->ActorManager()->SetHoldAtEnd(Actor, false);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "Gravity"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		float Gravity = 0.0f;
+		if(flag)
+			Gravity = CCD->Player()->GetGravity();
+		CCD->ActorManager()->SetGravity(Actor, Gravity);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "PlaySound"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		if(!EffectC_IsStringNull(param0))
 		{
@@ -206,7 +224,9 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 			Snd 	Sound;
 			memset( &Sound, 0, sizeof( Sound ) );
 			geVec3d_Copy( &(Position), &( Sound.Pos ) );
-			Sound.Min=kAudibleRadius;
+			Sound.Min=CCD->GetAudibleRadius();
+			if(arguments.entries()==2)
+				Sound.Min=arguments[1].floatValue();
 			Sound.Loop=GE_FALSE;
 			Sound.SoundDef=SPool_Sound(param0);
 			if(Sound.SoundDef!=NULL)
@@ -216,6 +236,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "EnemyExist"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		returnValue = 0;
 		if(CCD->ActorManager()->IsActor(TargetActor))
@@ -249,6 +270,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "random"))
 	{
+		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
 		param3 = arguments[1].floatValue();
 		if(param1<=param3)
@@ -259,6 +281,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "walkmove"))
 	{
+		PARMCHECK(2);
 		float amount = arguments[1].floatValue() * ElapseTime;
 		geXForm3d Xform;
 		geVec3d In, NewPosition, SavedPosition;
@@ -275,27 +298,41 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "Damage"))
 	{
+		PARMCHECK(2);
 		float amount = arguments[0].floatValue();
 		strcpy(param0, arguments[1].str());
-		CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0);
+		CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0, "Melee");
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetHoldAtEnd"))
 	{
+		PARMCHECK(1);
 		bool amount = arguments[0].boolValue();
 		CCD->ActorManager()->SetHoldAtEnd(Actor, amount);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "ForceUp"))
 	{
+		PARMCHECK(1);
 		float amount = arguments[0].floatValue();
 		geVec3d theUp;
 		CCD->ActorManager()->UpVector(Actor, &theUp);
 		CCD->ActorManager()->SetForce(Actor, 0, theUp, amount, amount);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "ForceDown"))
+	{
+		PARMCHECK(1);
+		float amount = arguments[0].floatValue();
+		geVec3d theUp;
+		CCD->ActorManager()->UpVector(Actor, &theUp);
+		geVec3d_Inverse(&theUp);
+		CCD->ActorManager()->SetForce(Actor, 0, theUp, amount, amount);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "ForceRight"))
 	{
+		PARMCHECK(1);
 		float amount = arguments[0].floatValue();
 		geVec3d theUp;
 		CCD->ActorManager()->LeftVector(Actor, &theUp);
@@ -305,6 +342,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "ForceLeft"))
 	{
+		PARMCHECK(1);
 		float amount = arguments[0].floatValue();
 		geVec3d theUp;
 		CCD->ActorManager()->LeftVector(Actor, &theUp);
@@ -313,6 +351,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "ForceForward"))
 	{
+		PARMCHECK(1);
 		float amount = arguments[0].floatValue();
 		geVec3d theUp;
 		CCD->ActorManager()->InVector(Actor, &theUp);
@@ -321,6 +360,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "ForceBackward"))
 	{
+		PARMCHECK(1);
 		float amount = arguments[0].floatValue();
 		geVec3d theUp;
 		CCD->ActorManager()->InVector(Actor, &theUp);
@@ -341,6 +381,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 	else if (IS_METHOD(methodName, "FireProjectile"))
 	{
+		PARMCHECK(6);
 		geXForm3d Xf;
 		geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
 		geFloat x;
@@ -348,7 +389,13 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 		CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
 		TargetPoint = UpdateTargetPoint;
-		TargetPoint.Y += (theBox.Max.Y*0.5f);
+		if(arguments.entries()==7)
+		{
+			float height = arguments[7].floatValue();
+			TargetPoint.Y += (theBox.Max.Y*height);
+		}
+		else
+			TargetPoint.Y += (theBox.Max.Y*0.5f);
 		strcpy(param4, arguments[0].str());
 		strcpy(param0, arguments[1].str());
 		strcpy(DamageAttr, arguments[5].str());
@@ -384,8 +431,39 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		}
 		return true;
 	}
+	else if (IS_METHOD(methodName, "AddEffect"))
+	{
+		PARMCHECK(5);
+		geXForm3d Xf;
+		geVec3d theRotation, Pos, Direction;
+
+		strcpy(param0, arguments[0].str());
+		strcpy(param4, arguments[1].str());
+		float OffsetX = arguments[2].floatValue();
+		float OffsetY = arguments[3].floatValue();
+		float OffsetZ = arguments[4].floatValue();
+		if(geActor_GetBoneTransform(Actor, param4, &Xf))
+		{
+			geVec3d_Copy(&(Xf.Translation), &Pos);
+			CCD->ActorManager()->GetRotate(Actor, &theRotation);
+			geXForm3d_SetIdentity(&Xf);
+			geXForm3d_RotateZ(&Xf, theRotation.Z);
+			geXForm3d_RotateX(&Xf, theRotation.X);
+			geXForm3d_RotateY(&Xf, theRotation.Y);
+			geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+			geXForm3d_GetUp(&Xf, &Direction);
+			geVec3d_AddScaled (&Pos, &Direction, OffsetY, &Pos);
+			geXForm3d_GetLeft(&Xf, &Direction);
+			geVec3d_AddScaled (&Pos, &Direction, OffsetX, &Pos);
+			geXForm3d_GetIn(&Xf, &Direction);
+			geVec3d_AddScaled (&Pos, &Direction, OffsetZ, &Pos);
+			CCD->Explosions()->AddExplosion(param0, Pos, Actor, param4);
+		}
+		return true;
+	}
 	else if (IS_METHOD(methodName, "debug"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		if(console)
 		{

@@ -705,7 +705,7 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 						Bolt->DTime = 0.0f;
 // change RF063
 						if(Collision.Actor)
-							CCD->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
+							CCD->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute, "Bolt");
 						if(Collision.Model)
 							CCD->Damage()->DamageModel(Collision.Model, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
 // end change RF063

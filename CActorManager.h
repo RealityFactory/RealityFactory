@@ -241,6 +241,9 @@ public:
 	void SetShadowBitmap(geBitmap *Bitmap)
 	{ ShadowBitmap = Bitmap; }
 	int SetCollide(geActor *theActor);
+	geBoolean DoesRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 
+		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal);
+	int SetGravityTime(geActor *theActor, geFloat fGravitytime);
 // end change RF064
 private:
 	//	Private member functions

@@ -115,8 +115,6 @@ CParticleSystem::CParticleSystem()
 		if(!EffectC_IsStringNull(pProxy->szSoundFile))
 		{
 			SPool_Sound(pProxy->szSoundFile);
-			if(EffectC_IsStringNull(pProxy->TriggerName))
-				pProxy->effect[0] = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
 		}
 		if(EffectC_IsStringNull(pProxy->TriggerName))
 		{
@@ -1003,6 +1001,11 @@ void CParticleSystem::Tick(float dwTicks)
 				Clear(pProxy->psHandle);
 				pProxy->active=false;
 			}
+		}
+		else
+		{
+			if(!EffectC_IsStringNull(pProxy->szSoundFile))
+				pProxy->effect[0] = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
 		}
 		if(pProxy->active==GE_TRUE)
 		{

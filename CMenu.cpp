@@ -574,7 +574,7 @@ Keyname TextEditKeys[] =
 
 // names of all the currently defined actions
 
-Keydef Redef[] =
+Keydef Redef[50]; /* =
 {
 	{"Move Forward", RGF_K_FORWARD},
 	{"Move Backward", RGF_K_BACKWARD},
@@ -628,7 +628,7 @@ Keydef Redef[] =
 	{"Reload Weapon", RGF_K_RELOAD},
 // end change RF064
 	{NULL}
-};
+}; */
 
 Clickable QuitControl =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
 Clickable AdvancedItem = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, AdvancedMenu, NULL, 0, -1, -1};
@@ -876,6 +876,22 @@ MenuItem SelectMenu[] =
 // end change RF063
 
 //-------------------------------------
+// Difficulty Selection Menu
+//-------------------------------------
+
+Clickable Difficultlow =   {0, 0, 0, 0, 0, 0, 0, 10, 0, 0, NULL, NULL, 1, -1, -1};
+Clickable Difficultmid =   {0, 0, 0, 0, 0, 0, 0, 11, 0, 0, NULL, NULL, 1, -1, -1};
+Clickable Difficulthi  =   {0, 0, 0, 0, 0, 0, 0, 12, 0, 0, NULL, NULL, 1, -1, -1};
+
+MenuItem DifficultMenu[] = 
+  {
+     {EXIT_MENU, 0, 0, (void *)&Difficultlow},
+	 {EXIT_MENU, 0, 0, (void *)&Difficultmid},
+	 {EXIT_MENU, 0, 0, (void *)&Difficulthi},
+     {END_LIST, 0, 0, NULL}
+  };
+
+//-------------------------------------
 // Main Menu
 //-------------------------------------
 
@@ -1092,7 +1108,7 @@ CRFMenu::CRFMenu()
 				if(TB == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1116,7 +1132,7 @@ CRFMenu::CRFMenu()
 				if(Backgrounds[index] == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1133,7 +1149,7 @@ CRFMenu::CRFMenu()
 				if(Images[index] == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1150,7 +1166,7 @@ CRFMenu::CRFMenu()
 				if(Titles[index] == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1171,7 +1187,7 @@ CRFMenu::CRFMenu()
 				if(MenuFont[index].Bitmap == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1229,7 +1245,7 @@ CRFMenu::CRFMenu()
 				if(Cursor == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1246,7 +1262,7 @@ CRFMenu::CRFMenu()
 				if(Crosshair == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "Bad file name %s", szAtom);
+					sprintf(szBug, "Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -2403,6 +2419,53 @@ CRFMenu::CRFMenu()
 				strcpy(Savemsg, strtok(NULL,"\n"));
 			}
 // end change RF063
+			else if(!stricmp(szAtom,"difficult"))
+			{
+				DifficultBack = NextValue();
+				DifficultTitle = NextValue();
+			}
+			else if(!stricmp(szAtom,"easy"))
+			{
+				DifficultMenu[0].X = NextValue();
+				DifficultMenu[0].Y = NextValue();
+				Difficultlow.Image_Number = NextValue();
+				Difficultlow.Width = NextValue();
+				Difficultlow.Height = NextValue();
+				Difficultlow.Image_X = NextValue();
+				Difficultlow.Image_Y = NextValue();
+				Difficultlow.Mover_X = NextValue();
+				Difficultlow.Mover_Y = NextValue();
+				Difficultlow.Animation = NextValue();
+				Difficultlow.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"normal"))
+			{
+				DifficultMenu[1].X = NextValue();
+				DifficultMenu[1].Y = NextValue();
+				Difficultmid.Image_Number = NextValue();
+				Difficultmid.Width = NextValue();
+				Difficultmid.Height = NextValue();
+				Difficultmid.Image_X = NextValue();
+				Difficultmid.Image_Y = NextValue();
+				Difficultmid.Mover_X = NextValue();
+				Difficultmid.Mover_Y = NextValue();
+				Difficultmid.Animation = NextValue();
+				Difficultmid.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"hard"))
+			{
+				DifficultMenu[2].X = NextValue();
+				DifficultMenu[2].Y = NextValue();
+				Difficulthi.Image_Number = NextValue();
+				Difficulthi.Width = NextValue();
+				Difficulthi.Height = NextValue();
+				Difficulthi.Image_X = NextValue();
+				Difficulthi.Image_Y = NextValue();
+				Difficulthi.Mover_X = NextValue();
+				Difficulthi.Mover_Y = NextValue();
+				Difficulthi.Animation = NextValue();
+				Difficulthi.AnimationOver = NextValue();
+			}
 			else
 			{
 				char szBug[256];
@@ -2527,6 +2590,32 @@ CRFMenu::CRFMenu()
 				CharSelect[MaxSelect].AmbientColor.g = AmbientColor.Y;
 				CharSelect[MaxSelect].AmbientColor.b = AmbientColor.Z;
 				CharSelect[MaxSelect].AmbientColor.a = 255.0f;
+
+				CharSelect[MaxSelect].Attribute[0] = '\0';
+				Type = AttrFile.GetValue(KeyName, "attributefile");
+				if(Type!="")
+					strcpy(CharSelect[MaxSelect].Attribute, Type);
+				CharSelect[MaxSelect].pSetup[0] = '\0';
+				Type = AttrFile.GetValue(KeyName, "playersetupfile");
+				if(Type!="")
+					strcpy(CharSelect[MaxSelect].pSetup, Type);
+				CharSelect[MaxSelect].Environment[0] = '\0';
+				Type = AttrFile.GetValue(KeyName, "environmentfile");
+				if(Type!="")
+					strcpy(CharSelect[MaxSelect].Environment, Type);
+
+				Type = AttrFile.GetValue(KeyName, "speed");
+				CharSelect[MaxSelect].Speed = -1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].Speed = (float)AttrFile.GetValueF(KeyName, "speed");
+				Type = AttrFile.GetValue(KeyName, "jumpspeed");
+				CharSelect[MaxSelect].JumpSpeed = -1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].JumpSpeed = (float)AttrFile.GetValueF(KeyName, "jumpspeed");
+				Type = AttrFile.GetValue(KeyName, "stepheight");
+				CharSelect[MaxSelect].StepHeight = -1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].StepHeight = (float)AttrFile.GetValueF(KeyName, "stepheight");
 				
 				MaxSelect +=1;
 			}
@@ -2587,8 +2676,11 @@ CRFMenu::~CRFMenu()
   for(i=0; i<NUM_FONTS;i++)
   {
 		if(MenuFont[i].Bitmap != (geBitmap *)NULL)
+		{
 			geBitmap_Destroy(&MenuFont[i].Bitmap);
+		}
   }
+
 // changed RF063
   for(i=0; i<NUM_ANIM;i++)
   {
@@ -3382,6 +3474,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		  {
 			  if(remapf != -1)
 				CCD->Input()->SaveKeymap("keyboard.ini");
+			  if(data->Action>=10)
+				  return data->Action-9;
 			  return 0;
 		  }
 // changed RF063
@@ -3830,10 +3924,6 @@ void CRFMenu::GameLevel()
 				}
 			}
 
-#ifdef RF063
-			CCD->EnemyManager()->Debug();
-#endif
-
 			if(box5.Current == BOX_ON)
 			{
 				CCD->Weapons()->WeaponData();
@@ -4258,7 +4348,651 @@ void CRFMenu::MenuInitalize()
 	  Detail = (Detail_Slide.Current*100)/Detail_Slide.Max_X;
 	  fclose(fd);
 	}	 
+// changed RF064
+	int index = 0;
+	bool flg = false;
+	CIniFile AttrFile("control.ini");
+	if(AttrFile.ReadFile())
+	{
+		CString KeyName = AttrFile.FindFirstKey();
+		CString Type;
+		while(KeyName != "")
+		{
+			if(KeyName=="Controls")
+			{
+				Type = AttrFile.GetValue(KeyName, "moveforward");
+				if(Type=="true")
+				{
+					Redef[index].text = "Move Forward";
+					Redef[index].action = RGF_K_FORWARD;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_FORWARD);
 
+				Type = AttrFile.GetValue(KeyName, "movebackward");
+				if(Type=="true")
+				{
+					Redef[index].text = "Move Backward";
+					Redef[index].action = RGF_K_BACKWARD;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_BACKWARD);
+
+				Type = AttrFile.GetValue(KeyName, "strafeleft");
+				if(Type=="true")
+				{
+					Redef[index].text = "Strafe Left";
+					Redef[index].action = RGF_K_LEFT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LEFT);
+
+				Type = AttrFile.GetValue(KeyName, "straferight");
+				if(Type=="true")
+				{
+					Redef[index].text = "Strafe Right";
+					Redef[index].action = RGF_K_RIGHT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_RIGHT);
+
+				Type = AttrFile.GetValue(KeyName, "jump");
+				if(Type=="true")
+				{
+					Redef[index].text = "Jump";
+					Redef[index].action = RGF_K_JUMP;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_JUMP);
+
+				Type = AttrFile.GetValue(KeyName, "crouch");
+				if(Type=="true")
+				{
+					Redef[index].text = "Crouch";
+					Redef[index].action = RGF_K_CROUCH;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_CROUCH);
+
+				Type = AttrFile.GetValue(KeyName, "run");
+				if(Type=="true")
+				{
+					Redef[index].text = "Run";
+					Redef[index].action = RGF_K_RUN;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_RUN);
+
+				Type = AttrFile.GetValue(KeyName, "lookup");
+				if(Type=="true")
+				{
+					Redef[index].text = "Look Up";
+					Redef[index].action = RGF_K_LOOKUP;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LOOKUP);
+
+				Type = AttrFile.GetValue(KeyName, "lookdown");
+				if(Type=="true")
+				{
+					Redef[index].text = "Look Down";
+					Redef[index].action = RGF_K_LOOKDOWN;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LOOKDOWN);
+
+				Type = AttrFile.GetValue(KeyName, "turnleft");
+				if(Type=="true")
+				{
+					Redef[index].text = "Turn Left";
+					Redef[index].action = RGF_K_TURN_LEFT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_TURN_LEFT);
+
+				Type = AttrFile.GetValue(KeyName, "turnright");
+				if(Type=="true")
+				{
+					Redef[index].text = "Turn Right";
+					Redef[index].action = RGF_K_TURN_RIGHT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_TURN_RIGHT);
+
+				Type = AttrFile.GetValue(KeyName, "lookstraight");
+				if(Type=="true")
+				{
+					Redef[index].text = "Look Straight";
+					Redef[index].action = RGF_K_LOOKSTRAIGHT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LOOKSTRAIGHT);
+
+				Type = AttrFile.GetValue(KeyName, "attack");
+				if(Type=="true")
+				{
+					Redef[index].text = "Attack";
+					Redef[index].action = RGF_K_FIRE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_FIRE);
+
+				Type = AttrFile.GetValue(KeyName, "altattack");
+				if(Type=="true")
+				{
+					Redef[index].text = "Alt Attack";
+					Redef[index].action = RGF_K_ALTFIRE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_ALTFIRE);
+
+				Type = AttrFile.GetValue(KeyName, "weapon0");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 0";
+					Redef[index].action = RGF_K_WEAPON_0;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_0);
+
+				Type = AttrFile.GetValue(KeyName, "weapon1");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 1";
+					Redef[index].action = RGF_K_WEAPON_1;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_1);
+
+				Type = AttrFile.GetValue(KeyName, "weapon2");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 2";
+					Redef[index].action = RGF_K_WEAPON_2;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_2);
+
+				Type = AttrFile.GetValue(KeyName, "weapon3");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 3";
+					Redef[index].action = RGF_K_WEAPON_3;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_3);
+
+				Type = AttrFile.GetValue(KeyName, "weapon4");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 4";
+					Redef[index].action = RGF_K_WEAPON_4;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_4);
+
+				Type = AttrFile.GetValue(KeyName, "weapon5");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 5";
+					Redef[index].action = RGF_K_WEAPON_5;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_5);
+
+				Type = AttrFile.GetValue(KeyName, "weapon6");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 6";
+					Redef[index].action = RGF_K_WEAPON_6;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_6);
+
+				Type = AttrFile.GetValue(KeyName, "weapon7");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 7";
+					Redef[index].action = RGF_K_WEAPON_7;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_7);
+
+				Type = AttrFile.GetValue(KeyName, "weapon8");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 8";
+					Redef[index].action = RGF_K_WEAPON_8;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_8);
+
+				Type = AttrFile.GetValue(KeyName, "weapon9");
+				if(Type=="true")
+				{
+					Redef[index].text = "Weapon 9";
+					Redef[index].action = RGF_K_WEAPON_9;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_WEAPON_9);
+
+				Type = AttrFile.GetValue(KeyName, "lookmode");
+				if(Type=="true")
+				{
+					Redef[index].text = "Look Mode";
+					Redef[index].action = RGF_K_LOOKMODE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LOOKMODE);
+
+				Type = AttrFile.GetValue(KeyName, "cameramode");
+				if(Type=="true")
+				{
+					Redef[index].text = "Camera Mode";
+					Redef[index].action = RGF_K_CAMERA;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_CAMERA);
+
+				Type = AttrFile.GetValue(KeyName, "zoomin");
+				if(Type=="true")
+				{
+					Redef[index].text = "Zoom In";
+					Redef[index].action = RGF_K_ZOOM_IN;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_ZOOM_IN);
+
+				Type = AttrFile.GetValue(KeyName, "zoomout");
+				if(Type=="true")
+				{
+					Redef[index].text = "Zoom Out";
+					Redef[index].action = RGF_K_ZOOM_OUT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_ZOOM_OUT);
+
+				Type = AttrFile.GetValue(KeyName, "zoomweapon");
+				if(Type=="true")
+				{
+					Redef[index].text = "Zoom Weapon";
+					Redef[index].action = RGF_K_ZOOM_WEAPON;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_ZOOM_WEAPON);
+
+				Type = AttrFile.GetValue(KeyName, "holsterweapon");
+				if(Type=="true")
+				{
+					Redef[index].text = "Holster Weapon";
+					Redef[index].action = RGF_K_HOLSTER_WEAPON;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_HOLSTER_WEAPON);
+
+				Type = AttrFile.GetValue(KeyName, "camerareset");
+				if(Type=="true")
+				{
+					Redef[index].text = "Camera Reset";
+					Redef[index].action = RGF_K_CAMERA_RESET;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_CAMERA_RESET);
+
+				Type = AttrFile.GetValue(KeyName, "quicksave");
+				if(Type=="true")
+				{
+					Redef[index].text = "Quick Save";
+					Redef[index].action = RGF_K_QUICKSAVE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_QUICKSAVE);
+
+				Type = AttrFile.GetValue(KeyName, "quickload");
+				if(Type=="true")
+				{
+					Redef[index].text = "Quick Load";
+					Redef[index].action = RGF_K_QUICKLOAD;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_QUICKLOAD);
+
+				Type = AttrFile.GetValue(KeyName, "1stperson");
+				if(Type=="true")
+				{
+					Redef[index].text = "1st Person";
+					Redef[index].action = RGF_K_FIRST_PERSON_VIEW;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_FIRST_PERSON_VIEW);
+
+				Type = AttrFile.GetValue(KeyName, "3rdperson");
+				if(Type=="true")
+				{
+					Redef[index].text = "3rd Person";
+					Redef[index].action = RGF_K_THIRD_PERSON_VIEW;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_THIRD_PERSON_VIEW);
+
+				Type = AttrFile.GetValue(KeyName, "isometric");
+				if(Type=="true")
+				{
+					Redef[index].text = "Isometric";
+					Redef[index].action = RGF_K_ISO_VIEW;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_ISO_VIEW);
+
+				Type = AttrFile.GetValue(KeyName, "screenshot");
+				if(Type=="true")
+				{
+					Redef[index].text = "Screenshot";
+					Redef[index].action = RGF_K_SCRNSHOT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_SCRNSHOT);
+
+				Type = AttrFile.GetValue(KeyName, "help");
+				if(Type=="true")
+				{
+					Redef[index].text = "Help";
+					Redef[index].action = RGF_K_HELP;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_HELP);
+
+				Type = AttrFile.GetValue(KeyName, "hud");
+				if(Type=="true")
+				{
+					Redef[index].text = "Hud";
+					Redef[index].action = RGF_K_HUD;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_HUD);
+
+				Type = AttrFile.GetValue(KeyName, "lightonoff");
+				if(Type=="true")
+				{
+					Redef[index].text = "Light On/Off";
+					Redef[index].action = RGF_K_LIGHT;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_LIGHT);
+
+				Type = AttrFile.GetValue(KeyName, "useitem");
+				if(Type=="true")
+				{
+					Redef[index].text = "Use Item";
+					Redef[index].action = RGF_K_USE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_USE);
+
+				Type = AttrFile.GetValue(KeyName, "inventory");
+				if(Type=="true")
+				{
+					Redef[index].text = "Inventory";
+					Redef[index].action = RGF_K_INVENTORY;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_INVENTORY);
+
+				Type = AttrFile.GetValue(KeyName, "console");
+				if(Type=="true")
+				{
+					Redef[index].text = "Console";
+					Redef[index].action = RGF_K_CONSOLE;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_CONSOLE);
+
+				Type = AttrFile.GetValue(KeyName, "dropweapon");
+				if(Type=="true")
+				{
+					Redef[index].text = "Drop Weapon";
+					Redef[index].action = RGF_K_DROP;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_DROP);
+
+				Type = AttrFile.GetValue(KeyName, "reload");
+				if(Type=="true")
+				{
+					Redef[index].text = "Reload Weapon";
+					Redef[index].action = RGF_K_RELOAD;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_RELOAD);
+
+				Type = AttrFile.GetValue(KeyName, "powerup");
+				if(Type=="true")
+				{
+					Redef[index].text = "Increase Power";
+					Redef[index].action = RGF_K_POWERUP;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_RELOAD);
+
+				Type = AttrFile.GetValue(KeyName, "powerdown");
+				if(Type=="true")
+				{
+					Redef[index].text = "Decrease Power";
+					Redef[index].action = RGF_K_POWERDWN;
+					index += 1;
+				}
+				else
+					CCD->Input()->ClearCodes(RGF_K_RELOAD);
+
+				Redef[index].text = NULL;
+				flg = true;
+				break;
+			}
+			KeyName = AttrFile.FindNextKey();
+		}
+		if(!flg)
+		{
+			char szError[256];
+			sprintf(szError,"Missing section in Control.ini");
+			CCD->ReportError(szError, false);
+			CCD->ShutdownLevel();
+			delete CCD;
+			MessageBox(NULL, szError,"Controls", MB_OK);
+			exit(-333);
+		}
+	}
+	else
+	{
+		Redef[index].text = "Move Forward";
+		Redef[index].action = RGF_K_FORWARD;
+		index += 1;
+		Redef[index].text = "Move Backward";
+		Redef[index].action = RGF_K_BACKWARD;
+		index += 1;
+		Redef[index].text = "Strafe Left";
+		Redef[index].action = RGF_K_LEFT;
+		index += 1;
+		Redef[index].text = "Strafe Right";
+		Redef[index].action = RGF_K_RIGHT;
+		index += 1;
+		Redef[index].text = "Jump";
+		Redef[index].action = RGF_K_JUMP;
+		index += 1;
+		Redef[index].text = "Crouch";
+		Redef[index].action = RGF_K_CROUCH;
+		index += 1;
+		Redef[index].text = "Run";
+		Redef[index].action = RGF_K_RUN;
+		index += 1;
+		Redef[index].text = "Look Up";
+		Redef[index].action = RGF_K_LOOKUP;
+		index += 1;
+		Redef[index].text = "Look Down";
+		Redef[index].action = RGF_K_LOOKDOWN;
+		index += 1;
+		Redef[index].text = "Turn Left";
+		Redef[index].action = RGF_K_TURN_LEFT;
+		index += 1;
+		Redef[index].text = "Turn Right";
+		Redef[index].action = RGF_K_TURN_RIGHT;
+		index += 1;
+		Redef[index].text = "Look Straight";
+		Redef[index].action = RGF_K_LOOKSTRAIGHT;
+		index += 1;
+		Redef[index].text = "Attack";
+		Redef[index].action = RGF_K_FIRE;
+		index += 1;
+		Redef[index].text = "Alt Attack";
+		Redef[index].action = RGF_K_ALTFIRE;
+		index += 1;
+		Redef[index].text = "Weapon 0";
+		Redef[index].action = RGF_K_WEAPON_0;
+		index += 1;
+		Redef[index].text = "Weapon 1";
+		Redef[index].action = RGF_K_WEAPON_1;
+		index += 1;
+		Redef[index].text = "Weapon 2";
+		Redef[index].action = RGF_K_WEAPON_2;
+		index += 1;
+		Redef[index].text = "Weapon 3";
+		Redef[index].action = RGF_K_WEAPON_3;
+		index += 1;
+		Redef[index].text = "Weapon 4";
+		Redef[index].action = RGF_K_WEAPON_4;
+		index += 1;
+		Redef[index].text = "Weapon 5";
+		Redef[index].action = RGF_K_WEAPON_5;
+		index += 1;
+		Redef[index].text = "Weapon 6";
+		Redef[index].action = RGF_K_WEAPON_6;
+		index += 1;
+		Redef[index].text = "Weapon 7";
+		Redef[index].action = RGF_K_WEAPON_7;
+		index += 1;
+		Redef[index].text = "Weapon 8";
+		Redef[index].action = RGF_K_WEAPON_8;
+		index += 1;
+		Redef[index].text = "Weapon 9";
+		Redef[index].action = RGF_K_WEAPON_9;
+		index += 1;
+		Redef[index].text = "Look Mode";
+		Redef[index].action = RGF_K_LOOKMODE;
+		index += 1;
+		Redef[index].text = "Camera Mode";
+		Redef[index].action = RGF_K_CAMERA;
+		index += 1;
+		Redef[index].text = "Zoom In";
+		Redef[index].action = RGF_K_ZOOM_IN;
+		index += 1;
+		Redef[index].text = "Zoom Out";
+		Redef[index].action = RGF_K_ZOOM_OUT;
+		index += 1;
+		Redef[index].text = "Zoom Weapon";
+		Redef[index].action = RGF_K_ZOOM_WEAPON;
+		index += 1;
+		Redef[index].text = "Holster Weapon";
+		Redef[index].action = RGF_K_HOLSTER_WEAPON;
+		index += 1;
+		Redef[index].text = "Camera Reset";
+		Redef[index].action = RGF_K_CAMERA_RESET;
+		index += 1;
+		Redef[index].text = "Quick Save";
+		Redef[index].action = RGF_K_QUICKSAVE;
+		index += 1;
+		Redef[index].text = "Quick Load";
+		Redef[index].action = RGF_K_QUICKLOAD;
+		index += 1;
+		Redef[index].text = "1st Person";
+		Redef[index].action = RGF_K_FIRST_PERSON_VIEW;
+		index += 1;
+		Redef[index].text = "3rd Person";
+		Redef[index].action = RGF_K_THIRD_PERSON_VIEW;
+		index += 1;
+		Redef[index].text = "Isometric";
+		Redef[index].action = RGF_K_ISO_VIEW;
+		index += 1;
+		Redef[index].text = "Screenshot";
+		Redef[index].action = RGF_K_SCRNSHOT;
+		index += 1;
+		Redef[index].text = "Help";
+		Redef[index].action = RGF_K_HELP;
+		index += 1;
+		Redef[index].text = "Hud";
+		Redef[index].action = RGF_K_HUD;
+		index += 1;
+		Redef[index].text = "Light On/Off";
+		Redef[index].action = RGF_K_LIGHT;
+		index += 1;
+		Redef[index].text = "Use Item";
+		Redef[index].action = RGF_K_USE;
+		index += 1;
+		Redef[index].text = "Inventory";
+		Redef[index].action = RGF_K_INVENTORY;
+		index += 1;
+		Redef[index].text = "Console";
+		Redef[index].action = RGF_K_CONSOLE;
+		index += 1;
+		Redef[index].text = "Drop Weapon";
+		Redef[index].action = RGF_K_DROP;
+		index += 1;
+		Redef[index].text = "Reload Weapon";
+		Redef[index].action = RGF_K_RELOAD;
+		index += 1;
+		Redef[index].text = "Increase Power";
+		Redef[index].action = RGF_K_POWERUP;
+		index += 1;
+		Redef[index].text = "Decrease Power";
+		Redef[index].action = RGF_K_POWERDWN;
+		index += 1;
+		Redef[index].text = NULL;
+	}
+// end change RF064
 }
 
 //--------------------------------------------
@@ -4456,7 +5190,7 @@ void CRFMenu::DoGame(bool editor)
 {
 	useselect = false;
 
-	if(CCD->GetCSelect())
+	if(CCD->GetCSelect() || CCD->GetCDifficult())
 	{
 		if(editor)
 		{
@@ -4474,9 +5208,16 @@ void CRFMenu::DoGame(bool editor)
 					m_Streams->Play(true);
 			}
 		}
-		if(CCD->MenuManager()->ProcessMenu(SelectMenu, SelectBack, SelectTitle)==1)
-			return;
-		useselect = true;
+		if(CCD->GetCSelect())
+		{
+			if(CCD->MenuManager()->ProcessMenu(SelectMenu, SelectBack, SelectTitle)==1)
+				return;
+			useselect = true;
+		}
+		if(CCD->GetCDifficult())
+		{
+			CCD->SetDifficultLevel(CCD->MenuManager()->ProcessMenu(DifficultMenu, DifficultBack, DifficultTitle));
+		}
 	}
 	
 	if(CCD->MenuManager()->GetMusicType() != -1)
@@ -4500,7 +5241,7 @@ void CRFMenu::DoGame(bool editor)
 	}
 	else
 	{
-		if(CCD->GetCSelect())
+		if(CCD->GetCSelect() || CCD->GetCDifficult())
 			CCD->MenuManager()->DisplaySplash(); // changed RF064
 	}
 // start multiplayer
@@ -4521,7 +5262,7 @@ void CRFMenu::DoGame(bool editor)
 		MessageBox(NULL, CCD->MenuManager()->GetLevelName(),"RGF: Can't load level", MB_OK);
 		exit(-333);
 	}
-	
+
 	if(useselect)
 	{
 	}
@@ -4533,11 +5274,14 @@ void CRFMenu::DoGame(bool editor)
 //	Play the opening cut scene, if one exists
 
 	CCD->PlayOpeningCutScene();
+
 // end change RF064
 
 	//	Ok, move the player avatar to the correct player start in the
 	//	..game level.
-	
+// changed RF064
+	CCD->TerrainMgr()->Init();
+// end change RF064	
 	if(CCD->Player()->MoveToStart() != RGF_SUCCESS)
 	{
 		CCD->ReportError("Can't move player to start", false);
@@ -4551,6 +5295,7 @@ void CRFMenu::DoGame(bool editor)
 		SetTimer(CCD->Engine()->WindowHandle(), NULL, TIMERINTERVAL, NULL);
 	}
 // end multiplayer
+
 	CCD->MenuManager()->GameLoop();
 }
 
@@ -4844,4 +5589,77 @@ static void GetSlot()
 			CCD->MenuManager()->SetInGame();
 		}
 	}
+}
+
+void CRFMenu::LoadWBitmap()
+{
+/*	for(int i=0; i<NUM_FONTS; i++)
+	{
+		if(MenuFont[i].Bitmap != NULL)
+		{
+			for(int chr=0; chr<96 ; chr++)
+			{
+				MenuFont[i].WBitmap[chr] = geBitmap_Create(MenuFont[i].dat[chr].width, 
+					MenuFont[i].font_height, 1, GE_PIXELFORMAT_32BIT_ARGB);
+				geBitmap_SetPreferredFormat(MenuFont[i].WBitmap[chr], GE_PIXELFORMAT_32BIT_ARGB);
+				geBitmap_ClearMips(MenuFont[i].WBitmap[chr]);
+				geBitmap_Blit(MenuFont[i].Bitmap, MenuFont[i].dat[chr].x,
+					MenuFont[i].dat[chr].y, MenuFont[i].WBitmap[chr], 0, 0,
+					MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				geWorld_AddBitmap(CCD->World(), MenuFont[i].WBitmap[chr]);
+			}
+		}
+	} */
+}
+
+void CRFMenu::UnLoadWBitmap()
+{ /*
+	for(int i=0; i<NUM_FONTS; i++)
+	{
+		if(MenuFont[i].Bitmap != NULL)
+		{
+			for(int j=0;j<96;j++)
+			{
+				if(MenuFont[i].WBitmap[j])
+				{
+					geWorld_RemoveBitmap(CCD->World(), MenuFont[i].WBitmap[j]);
+					geBitmap_Destroy(&MenuFont[i].WBitmap[j]);
+				}
+			}
+		}
+	} */
+}
+
+void CRFMenu::WFontRect(char *s, int FontNumber, int x, int y)
+{
+  int charoff;
+  char chr;
+
+  if(MenuFont[FontNumber].Bitmap == NULL)
+  {
+		char szBug[256];
+		sprintf(szBug, "No defined Font # %d", FontNumber);
+		CCD->ReportError(szBug, false);
+// changed RF064
+		CCD->ShutdownLevel();
+		delete CCD;
+		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
+		exit(-336);
+// end change RF064
+  }
+  if(s!=NULL)
+  {
+	  charoff = 0;
+      while (*s!=0)
+	  {
+			chr = *s-32;
+			fRect.Top=0;
+			fRect.Bottom=MenuFont[FontNumber].font_height;
+			fRect.Left=0;
+			fRect.Right=MenuFont[FontNumber].dat[chr].width;
+			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], NULL, x+charoff, y);
+			charoff+=MenuFont[FontNumber].dat[chr].width;
+			s++;
+	  }
+  }
 }

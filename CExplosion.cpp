@@ -262,6 +262,16 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				}
 				else
 				{
+// changed RF064
+					geXForm3d Xf;
+					if(pool->Bone[0]!='\0')
+						geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
+					else
+						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geVec3d Position = Xf.Translation;
+					geVec3d_Subtract( &pool->Position, &Position, &Position);
+					geVec3d_Add( &Position, &pool->Offset, &pool->Offset);
+// end change RF064
 					pool->Attached = true;
 				}
 			}
@@ -325,8 +335,8 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					EBolt Bl;
 					geVec3d_Copy( &(Position ), &(Bl.Start) );
 					geVec3d_Add( &(Bl.Start), &pool->Offset,&(Bl.Start) );
-					geVec3d_Add( &(Bl.Start), &(Bl.End),&(Bl.End) );
-					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_END);
+					geVec3d_Copy( &(Bl.Start), &(Bl.End) );
+					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
 					break;
 // changed RF064
 				case EFF_ACTORSPRAY:
@@ -437,7 +447,7 @@ void CExplosion::Tick(float dwTicks)
 							if(pSource->Radius>0.0f)
 							{
 // changed RF063
-								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
 								CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
 // end change RF063
 							}
@@ -466,7 +476,7 @@ void CExplosion::Tick(float dwTicks)
 						if(pSource->Radius>0.0f)
 						{
 // changed RF063
-							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
 							CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
 // end change RF063
 						}

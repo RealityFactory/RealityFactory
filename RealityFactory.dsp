@@ -381,6 +381,170 @@ SOURCE=.\HawkNL\thread.h
 SOURCE=.\HawkNL\wsock.h
 # End Source File
 # End Group
+# Begin Group "Qx"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\Qx\qxBinTriTree.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxBinTriTree.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxCloudMachine.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxCloudMachine.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxColor.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxColor.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectBase.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectBase.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectParticleChamber.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectParticleChamber.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectTextureFlow.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxEffectTextureFlow.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxMoon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxMoon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxParticle.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxParticle.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxSkyDome.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxSkyDome.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxStars.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxStars.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxSun.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxSun.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainDefinitionFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainDefinitionFile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMap.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMap.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMapBase.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMapBase.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMgr.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainMgr.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainPoly.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainPoly.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainTile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainTile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainUtils.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainUtils.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainVert.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\qxTerrainVert.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\QxUser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Qx\QxUser.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\AutoSelect.c
@@ -400,6 +564,10 @@ SOURCE=.\CActorManager.cpp
 # Begin Source File
 
 SOURCE=.\CAnimGif.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CArmour.cpp
 # End Source File
 # Begin Source File
 
@@ -784,6 +952,10 @@ SOURCE=.\CActorManager.h
 # Begin Source File
 
 SOURCE=.\CAnimGif.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CArmour.h
 # End Source File
 # Begin Source File
 

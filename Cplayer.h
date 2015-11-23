@@ -428,6 +428,11 @@ private:
 	char StaminaName[64];
 	geFloat StaminaDelay;
 	geFloat StaminaTime;
+// changed RF064
+	char StaminaName1[20][64];
+	geFloat StaminaDelay1[20];
+	geFloat StaminaTime1[20];
+// end change RF064
 	bool Allow3rdLook;
 	char Animations[ANIMMAX][64];
 	int LastHealth;
@@ -457,7 +462,7 @@ private:
 	float UseRange;
 // changed RF064
 	char UseAttribute[10][64];
-	// end change RF064
+// end change RF064
 	float BoxWidth;
 	float LiquidTime;
 	int InLiquid;

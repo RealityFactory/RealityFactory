@@ -366,7 +366,7 @@ void CNPC::Tick(float dwTicks)
 					Snd Sound;
 					memset( &Sound, 0, sizeof( Sound ) );
 					CCD->ActorManager()->GetPosition(DBot->Actor, &Sound.Pos);
-					Sound.Min=kAudibleRadius;
+					Sound.Min=CCD->GetAudibleRadius();
 					Sound.Loop=false;
 					Sound.SoundDef = SPool_Sound(DBot->DieSound);
 					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -3326,7 +3326,7 @@ geBoolean NPC_Shoot(void *Data, geVec3d *ShootPosition, float Time)
 		if(result)
 		{
 			if(Collision.Actor!=NULL)
-				CCD->Damage()->DamageActor(Collision.Actor, DBot->DamageAmt, DBot->DamageAttribute, DBot->DamageAmt, DBot->DamageAttribute);
+				CCD->Damage()->DamageActor(Collision.Actor, DBot->DamageAmt, DBot->DamageAttribute, DBot->DamageAmt, DBot->DamageAttribute, "Melee");
 			if(Collision.Model)
 				CCD->Damage()->DamageModel(Collision.Model, DBot->DamageAmt, DBot->DamageAttribute, DBot->DamageAmt, DBot->DamageAttribute);
 		}
@@ -3379,7 +3379,7 @@ geBoolean NPC_Shoot(void *Data, geVec3d *ShootPosition, float Time)
 		Snd Sound;
 		memset( &Sound, 0, sizeof( Sound ) );
 		CCD->ActorManager()->GetPosition(DBot->Actor, &Sound.Pos);
-		Sound.Min=kAudibleRadius;
+		Sound.Min=CCD->GetAudibleRadius();
 		Sound.Loop=false;
 		Sound.SoundDef = SPool_Sound(DBot->AttackSound);
 		CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);

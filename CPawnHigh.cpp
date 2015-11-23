@@ -60,6 +60,11 @@ typedef enum
 		LOWLEVEL,
 		BOXWIDTH,
 		SCALE,
+		GRAVITY,
+		FIREPROJECTILE,
+		ADDEFFECT,
+		TARGETGROUP,
+		TESTDAMAGEORDER,
 		DELAY
 };
 
@@ -116,6 +121,11 @@ char *ActionText[] =
 	"LowLevel",
 	"BoxWidth",
 	"Scale",
+	"Gravity",
+	"FireProjectile",
+	"AddExplosion",
+	"TargetGroup",
+	"TestDamageOrder",
 	"Delay"
 };
 
@@ -132,6 +142,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	
 	if (IS_METHOD(methodName, "MoveToPoint"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		strcpy(param8, arguments[2].str());
@@ -140,6 +151,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateToPoint"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -149,6 +161,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "NewOrder"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
@@ -160,6 +173,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateToAlign"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -174,6 +188,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Delay"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		strcpy(param8, arguments[2].str());
@@ -182,6 +197,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "PlayAnimation"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param2 = arguments[1].boolValue();
 		strcpy(param8, arguments[2].str());
@@ -190,6 +206,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "BlendToAnimation"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -199,6 +216,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "LoopAnimation"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		strcpy(param8, arguments[2].str());
@@ -207,6 +225,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Rotate"))
 	{
+		PARMCHECK(6);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -218,6 +237,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateMoveToPoint"))
 	{
+		PARMCHECK(5);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -228,6 +248,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateMove"))
 	{
+		PARMCHECK(7);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param6 = arguments[2].floatValue();
@@ -240,6 +261,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "NewPath"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWPATH, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
@@ -251,6 +273,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "PlayerDistOrder"))
 	{
+		PARMCHECK(2);
 		MinDistance = arguments[0].floatValue();
 		if(MinDistance!=0.0f)
 		{
@@ -263,6 +286,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Console"))
 	{
+		PARMCHECK(1);
 		console = arguments[0].boolValue();
 		if(console)
 		{
@@ -290,8 +314,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 		return true;
 	}
+	else if (IS_METHOD(methodName, "AudibleRadius"))
+	{
+		PARMCHECK(1);
+		AudibleRadius = arguments[0].floatValue();
+		return true;
+	}
 	else if (IS_METHOD(methodName, "AddPainOrder"))
 	{
+		PARMCHECK(2);
 		PainActive = true;
 		strcpy(PainOrder, arguments[0].str());
 		PainPercent = arguments[1].intValue();
@@ -301,6 +332,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "FindTargetOrder"))
 	{
+		PARMCHECK(3);
 		TargetDistance = arguments[0].floatValue();
 		if(TargetDistance!=0.0f)
 		{
@@ -315,12 +347,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "NewPoint"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWPOINT, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "MoveForward"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -330,6 +364,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "MoveBackward"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -339,6 +374,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "MoveLeft"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -348,6 +384,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "MoveRight"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -357,6 +394,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Move"))
 	{
+		PARMCHECK(7);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -369,6 +407,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AvoidOrder"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(AVOIDORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
@@ -380,6 +419,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Jump"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -389,6 +429,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AddTriggerOrder"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		strcpy(param7, arguments[1].str());
 		param1 = arguments[2].floatValue();
@@ -397,12 +438,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "DelTriggerOrder"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(DELTRIGGERORDER, NULL, 0.0f, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param0);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetEventState"))
 	{
+		PARMCHECK(2);
 		strcpy(param0, arguments[0].str());
 		param2 = arguments[1].boolValue();
 		AddAction(SETEVENTSTATE, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
@@ -410,6 +453,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "FacePlayer"))
 	{
+		PARMCHECK(2);
 		param2 = arguments[0].boolValue();
 		bool para = arguments[1].boolValue();
 		param1 = 0.0f;
@@ -420,6 +464,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateToPlayer"))
 	{
+		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -429,36 +474,41 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "TeleportToPoint"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(TELEPORTTOPOINT, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "AnimationSpeed"))
 	{
+		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(ANIMATIONSPEED, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetFlag"))
 	{
+		PARMCHECK(2);
 		param1 = (float)arguments[0].intValue();
 		param2 = arguments[1].boolValue();
-		if(param1>=0.0f && param1<100.0f)
+		if(param1>=0.0f && param1<MAXFLAGS)
 			AddAction(SETFLAG, NULL, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "AddFlagOrder"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
 		param1 = (float)arguments[0].intValue();
 		param2 = arguments[1].boolValue();
 		sprintf(param7,"PawnFlag%d", (int)param1);
-		if(param1>=0.0f && param1<100.0f)
+		if(param1>=0.0f && param1<MAXFLAGS)
 			AddAction(ADDTRIGGERORDER, param0, 0.0f, param2, PFLAG, param1, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "DelFlagOrder"))
 	{
+		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
 		sprintf(param7,"PawnFlag%d", (int)param1);
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
@@ -466,6 +516,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AddTimerOrder"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
 		param1 = (float)arguments[0].intValue();
 		param3 = (float)arguments[1].floatValue();
@@ -475,6 +526,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "DelTimerOrder"))
 	{
+		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
 		sprintf(param7,"PawnTimer%d", (int)param1);
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
@@ -482,6 +534,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AddDistanceOrder"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
 		param1 = (float)arguments[0].intValue();
 		param3 = (float)arguments[1].floatValue();
@@ -491,6 +544,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "DelDistanceOrder"))
 	{
+		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
 		sprintf(param7,"PlayerDist%d", (int)param1);
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
@@ -498,6 +552,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AnimateStop"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		strcpy(param8, arguments[2].str());
@@ -506,6 +561,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AttributeOrder"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = (float)arguments[1].intValue();
 		strcpy(param8, arguments[2].str());
@@ -514,6 +570,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "Remove"))
 	{
+		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(REMOVE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
@@ -530,6 +587,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "AllowUseKey"))
 	{
+		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ALLOWUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
@@ -541,6 +599,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "FadeIn"))
 	{
+		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
 		param3 = arguments[1].floatValue();
 		AddAction(FADEIN, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
@@ -548,6 +607,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "FadeOut"))
 	{
+		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
 		param3 = arguments[1].floatValue();
 		AddAction(FADEOUT, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
@@ -555,6 +615,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "SetFOV"))
 	{
+		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		if (arguments.entries()==2)
 			strcpy(param0, arguments[1].str());
@@ -563,30 +624,42 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "SetGroup"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(SETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "HostilePlayer"))
 	{
+		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILEPLAYER, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "HostileDifferent"))
 	{
+		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILEDIFF, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "HostileSame"))
 	{
+		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILESAME, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "Gravity"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(GRAVITY, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "MoveToTarget"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		strcpy(param8, arguments[2].str());
@@ -595,6 +668,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateToTarget"))
 	{
+		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param2 = arguments[2].boolValue();
@@ -604,6 +678,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "RotateMoveToTarget"))
 	{
+		PARMCHECK(5);
 		strcpy(param0, arguments[0].str());
 		param1 = arguments[1].floatValue();
 		param3 = arguments[2].floatValue();
@@ -614,24 +689,68 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "LowLevel"))
 	{
+		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(LOWLEVEL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "BoxWidth"))
 	{
+		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(BOXWIDTH, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "Scale"))
 	{
+		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(SCALE, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "FireProjectile"))
+	{
+		PARMCHECK(7);
+		strcpy(param0, arguments[0].str());
+		param1 = (float)strlen(param0);
+		strcpy(param7, arguments[1].str());
+		param3 = arguments[2].floatValue();
+		param4 = arguments[3].floatValue();
+		param5 = arguments[4].floatValue();
+		strcat(param0, arguments[5].str());
+		strcpy(param8, arguments[6].str());
+		AddAction(FIREPROJECTILE, param0, param1, false, param3, param4, param5, 0.0f, param8, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "AddExplosion"))
+	{
+		PARMCHECK(5);
+		strcpy(param0, arguments[0].str());
+		strcpy(param7, arguments[1].str());
+		param3 = arguments[2].floatValue();
+		param4 = arguments[3].floatValue();
+		param5 = arguments[4].floatValue();
+		AddAction(ADDEFFECT, param0, 0.0f, false, param3, param4, param5, 0.0f, NULL, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "TargetGroup"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		AddAction(TARGETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "TestDamageOrder"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[1].str());
+		param3 = arguments[0].floatValue();
+		AddAction(TESTDAMAGEORDER, param0, param3, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "random"))
 	{
+		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
 		param3 = arguments[1].floatValue();
 		if(param1<=param3)
@@ -1733,7 +1852,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 			}
 			if(Object->TargetFind && !Object->TargetDisable)
 			{
-				Object->TargetActor = NULL;
+				//Object->TargetActor = NULL;
 				if(Object->FOV>-2.0f && Object->Actor) 
 				{
 					float distance = Object->TargetDistance+100;
@@ -1771,7 +1890,18 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
 								if(nType==ENTITY_NPC && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
 								{
-									if(strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))!=0)
+									bool TG = false;
+									if(!EffectC_IsStringNull(Object->TargetGroup))
+									{
+										if(!strcmp(Object->TargetGroup, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
+											TG = true;
+									}
+									else
+									{
+										if(strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))!=0)
+											TG = true;
+									}
+									if(TG)
 									{
 										CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
 										if(theInv->Has(Object->TargetAttr))
@@ -1978,7 +2108,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Sound.Pos.Y = pSource->origin.Y;
 							Sound.Pos.Z = pSource->origin.Z;
 						}
-						Sound.Min=kAudibleRadius;
+						Sound.Min=Object->AudibleRadius;
 						Sound.Loop=true;
 						if(Object->Index->Action==STOPANIMATION)
 							Sound.Loop=false;
@@ -2011,7 +2141,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
 							else
 								Sound.Pos = Object->DeadPos;
-							Sound.Min=kAudibleRadius;
+							Sound.Min=Object->AudibleRadius;
 							Sound.Loop=true;
 							if(Object->Index->Action==STOPANIMATION)
 								Sound.Loop=false;
@@ -2054,6 +2184,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				} 
 				
 				ActionList *pool, *temp;
+				float Gravity = 0.0f;
 				switch(Object->Index->Action)
 				{
 				case ROTATETOPOINT:
@@ -2690,6 +2821,116 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					}
 					Object->ActionActive = false;
 					runflag = true;
+					break;
+				case GRAVITY:
+					Gravity = 0.0f;
+					if(Object->Index->Flag)
+						Gravity = CCD->Player()->GetGravity();
+					CCD->ActorManager()->SetGravity(Object->Actor, Gravity);
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case FIREPROJECTILE:
+					{
+						char *Strn = Object->Index->AnimName;
+						char Proj[64];
+						geXForm3d Xf;
+						geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
+						strncpy(Proj, Strn, (int)Object->Index->Speed);
+						Proj[(int)Object->Index->Speed] = '\0';
+						Strn = Strn + (int)Object->Index->Speed;
+						if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+						{
+							geVec3d_Copy(&(Xf.Translation), &Pos);
+							CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
+							geXForm3d_SetIdentity(&Xf);
+							geXForm3d_RotateZ(&Xf, theRotation.Z);
+							geXForm3d_RotateX(&Xf, theRotation.X);
+							geXForm3d_RotateY(&Xf, theRotation.Y);
+							geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+							geXForm3d_GetIn(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, 1000.0f, &TargetPoint);
+							geXForm3d_GetUp(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+							geXForm3d_GetLeft(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
+							geXForm3d_GetIn(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+							geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
+							float l = geVec3d_Length(&Orient);
+							if(l > 0.0f) 
+							{
+								float x = Orient.X;
+								Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
+								Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
+								// roll is zero - always!!?
+								Orient.Z = 0.0;
+								CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, Proj, Strn, Strn);
+							}
+						}
+
+					Object->ActionActive = false;
+					runflag = true;
+					}
+					break;
+				case ADDEFFECT:
+					{
+						geXForm3d Xf;
+						geVec3d theRotation, Pos, Direction;
+						if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+						{
+							geVec3d_Copy(&(Xf.Translation), &Pos);
+							CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
+							geXForm3d_SetIdentity(&Xf);
+							geXForm3d_RotateZ(&Xf, theRotation.Z);
+							geXForm3d_RotateX(&Xf, theRotation.X);
+							geXForm3d_RotateY(&Xf, theRotation.Y);
+							geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+							geXForm3d_GetUp(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+							geXForm3d_GetLeft(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
+							geXForm3d_GetIn(&Xf, &Direction);
+							geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+							CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
+						}
+
+					Object->ActionActive = false;
+					runflag = true;
+					}
+					break;
+				case TARGETGROUP:
+					if(!EffectC_IsStringNull(Object->Index->AnimName))
+						strcpy(Object->TargetGroup, Object->Index->AnimName);
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case TESTDAMAGEORDER:
+					if(!EffectC_IsStringNull(Object->Attribute))
+					{
+						if(!EffectC_IsStringNull(Object->Index->AnimName))
+						{
+							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
+							int amt = abs(theInv->GetModifyAmt(Object->Attribute));
+							if((int)Object->Index->Speed<=amt)
+							{
+								strcpy(Object->Order, Object->Index->AnimName);
+								Object->RunOrder = true;
+								pool = Object->Bottom;
+								while	(pool!= NULL)
+								{
+									temp = pool->next;
+									geRam_Free(pool);
+									pool = temp;
+								}
+								Object->Top = NULL;
+								Object->Bottom = NULL;
+								Object->Index = NULL;
+							}
+						}
+					}
+					Object->ActionActive = false;
+					runflag = false;
 					break;
 				}
 			}

@@ -62,12 +62,6 @@ C3DAudioSource::C3DAudioSource()
 		if(!EffectC_IsStringNull(pSource->szSoundFile))
 		{
 			SPool_Sound(pSource->szSoundFile);
-			if(EffectC_IsStringNull(pSource->TriggerName))
-			{
-				pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius);
-				pSource->active=true;
-			}
-
 		}
 	  }
 
@@ -174,6 +168,14 @@ void C3DAudioSource::Tick(float dwTicks)
 					pSource->effect[0]=-1;
 				}
 				pSource->active=false;
+			}
+		}
+		else
+		{
+			if(pSource->active==false)
+			{
+				pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius);
+				pSource->active=true;
 			}
 		}
 		if(pSource->active==GE_TRUE)

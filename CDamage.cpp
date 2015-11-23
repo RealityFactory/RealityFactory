@@ -111,7 +111,8 @@ void CDamage::Tick(float dwTicks)
 				Xf1.Translation.Y=10000.0f;
 				Xf1.Translation.Z=10000.0f;
 				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-				CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
+				if(!pDestroy->NoRemove)
+					CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
 			}
 			else
 				running = true;
@@ -126,7 +127,8 @@ void CDamage::Tick(float dwTicks)
 					Xf1.Translation.Y=10000.0f;
 					Xf1.Translation.Z=10000.0f;
 					geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
-					CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+					if(!pDestroy->NoRemove)
+						CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
 				}
 				else
 					running = true;
@@ -141,7 +143,8 @@ void CDamage::Tick(float dwTicks)
 					Xf1.Translation.Y=10000.0f;
 					Xf1.Translation.Z=10000.0f;
 					geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
-					CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+					if(!pDestroy->NoRemove)
+						CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
 				}
 				else
 					running = true;
@@ -156,7 +159,8 @@ void CDamage::Tick(float dwTicks)
 					Xf1.Translation.Y=10000.0f;
 					Xf1.Translation.Z=10000.0f;
 					geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
-					CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+					if(!pDestroy->NoRemove)
+						CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
 				}
 				else
 					running = true;
@@ -171,7 +175,8 @@ void CDamage::Tick(float dwTicks)
 					Xf1.Translation.Y=10000.0f;
 					Xf1.Translation.Z=10000.0f;
 					geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
-					CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+					if(!pDestroy->NoRemove)
+						CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
 				}
 				else
 					running = true;
@@ -232,7 +237,8 @@ void CDamage::Tick(float dwTicks)
 						Xf1.Translation.Y=10000.0f;
 						Xf1.Translation.Z=10000.0f;
 						geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
-						CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+						if(!pDestroy->NoRemove)
+							CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
 					}
 					if(pDestroy->Model2)
 					{
@@ -242,7 +248,8 @@ void CDamage::Tick(float dwTicks)
 						Xf1.Translation.Y=10000.0f;
 						Xf1.Translation.Z=10000.0f;
 						geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
-						CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+						if(!pDestroy->NoRemove)
+							CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
 					}
 					if(pDestroy->Model3)
 					{
@@ -252,7 +259,8 @@ void CDamage::Tick(float dwTicks)
 						Xf1.Translation.Y=10000.0f;
 						Xf1.Translation.Z=10000.0f;
 						geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
-						CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+						if(!pDestroy->NoRemove)
+							CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
 					}
 					if(pDestroy->Model4)
 					{
@@ -262,7 +270,8 @@ void CDamage::Tick(float dwTicks)
 						Xf1.Translation.Y=10000.0f;
 						Xf1.Translation.Z=10000.0f;
 						geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
-						CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+						if(!pDestroy->NoRemove)
+							CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
 					}
 				}
 				if(!EffectC_IsStringNull(pDestroy->szSoundFile))
@@ -271,7 +280,7 @@ void CDamage::Tick(float dwTicks)
 					memset( &Sound, 0, sizeof( Sound ) );
 					geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, 
 						&Sound.Pos);
-					Sound.Min=kAudibleRadius;
+					Sound.Min=CCD->GetAudibleRadius();
 					Sound.Loop=false;
 					Sound.SoundDef = SPool_Sound(pDestroy->szSoundFile);
 					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -339,8 +348,10 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 	return RGF_SUCCESS;
 }
 
-void CDamage::DamageActor(geActor *Actor, float amount, char *Attr, float Altamount, char *AltAttr)
+void CDamage::DamageActor(geActor *Actor, float amount, char *Attr, float Altamount, char *AltAttr, char *name)
 {
+	int ActualAmount;
+
 	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
 	if(theInv)
 	{
@@ -348,20 +359,32 @@ void CDamage::DamageActor(geActor *Actor, float amount, char *Attr, float Altamo
 		{
 			if(theInv->Has(Attr) && (theInv->Value(Attr)>theInv->Low(Attr)))
 			{
-				theInv->Modify(Attr,(int)-amount);
+				ActualAmount = (int)amount;
+				if(Actor = CCD->Player()->GetActor())
+				{
+					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, Attr);
+				}
+				theInv->Modify(Attr,-ActualAmount);
 				return;
 			}
 		}
 		if(!EffectC_IsStringNull(AltAttr))
 		{
 			if(theInv->Has(AltAttr) && (theInv->Value(AltAttr)>theInv->Low(AltAttr)))
-				theInv->Modify(AltAttr,(int)-Altamount);
+			{
+				ActualAmount = (int)Altamount;
+				if(Actor = CCD->Player()->GetActor())
+				{
+					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, AltAttr);
+				}
+				theInv->Modify(AltAttr,-ActualAmount);
+			}
 		}
 	}
 	return;
 }
 
-void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr)
+void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr, float Altamount, char *AltAttr, char *name)
 {
 	geActor *ActorsInRange[512];
 
@@ -372,7 +395,7 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, cha
 	{
 		for(int nTemp = 0; nTemp < nActorCount; nTemp++)
 		{
-			DamageActor(ActorsInRange[nTemp], amount, Attr, Altamount, AltAttr);
+			DamageActor(ActorsInRange[nTemp], amount, Attr, Altamount, AltAttr, name);
 		}
 	}
 }

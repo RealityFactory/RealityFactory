@@ -85,17 +85,17 @@ void CInput::Default()
 // start multiplayer
 	m_WindowKeys[KEY_PERIOD] = 0xbe;
 // end multiplayer
-	m_WindowKeys[KEY_SLASH] = VK_DIVIDE;
+	m_WindowKeys[KEY_SLASH] = 191;
 	m_WindowKeys[KEY_SPACE] = VK_SPACE;		m_RGFKeys[KEY_SPACE] = RGF_K_SKIP;
 	m_WindowKeys[KEY_ALT] = VK_MENU;		m_RGFKeys[KEY_ALT] = RGF_K_LOOKMODE;
 	m_WindowKeys[KEY_CONTROL] = VK_CONTROL;	m_RGFKeys[KEY_CONTROL] = RGF_K_CAMERA;
 	m_WindowKeys[KEY_PLUS] = VK_ADD;		m_RGFKeys[KEY_PLUS] = RGF_K_ZOOM_OUT;
 	m_WindowKeys[KEY_INSERT] = VK_INSERT;	m_RGFKeys[KEY_INSERT] = RGF_K_CAMERA_RESET;
 	m_WindowKeys[KEY_HOME] = VK_HOME;
-	m_WindowKeys[KEY_PAGEUP] = VK_PRIOR;
+	m_WindowKeys[KEY_PAGEUP] = VK_PRIOR;	m_RGFKeys[KEY_PAGEUP] = RGF_K_POWERUP;
 	m_WindowKeys[KEY_DELETE] = VK_DELETE;	m_RGFKeys[KEY_DELETE] = RGF_K_LOOKSTRAIGHT;
 	m_WindowKeys[KEY_END] = VK_END;
-	m_WindowKeys[KEY_PAGEDOWN] = VK_NEXT;
+	m_WindowKeys[KEY_PAGEDOWN] = VK_NEXT;	m_RGFKeys[KEY_PAGEDOWN] = RGF_K_POWERDWN;
 	m_WindowKeys[KEY_UP] = VK_UP;			m_RGFKeys[KEY_UP] = RGF_K_LOOKUP;
 	m_WindowKeys[KEY_DOWN] = VK_DOWN;		m_RGFKeys[KEY_DOWN] = RGF_K_LOOKDOWN;
 	m_WindowKeys[KEY_LEFT] = VK_LEFT;		m_RGFKeys[KEY_LEFT] = RGF_K_TURN_LEFT;
@@ -319,6 +319,24 @@ int CInput::GetCodes(int action)
 			return nTemp;
 	}
 	return -1;
+}
+
+
+//---------------------------------
+// clear key that action is bound to
+//---------------------------------
+
+void CInput::ClearCodes(int action)
+{
+	for(int nTemp = 0; nTemp < m_nMappedKeys; nTemp++)
+	{
+		if(m_RGFKeys[nTemp] == action)
+		{
+			m_RGFKeys[nTemp] = 0;
+			return;
+		}
+	}
+	return;
 }
 
 //	-------------------------------------------------------------------------

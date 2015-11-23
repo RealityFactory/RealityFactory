@@ -123,6 +123,8 @@ void CActMaterial::Tick(float dwTicks)
 		{
 			
 			CCD->ActorManager()->ChangeMaterial(pMaterial->Actor, pMaterial->ChangeMaterial);
+			if(pMaterial->ChangeLighting)
+				CCD->ActorManager()->SetActorDynamicLighting(pMaterial->Actor, pMaterial->FillColor, pMaterial->AmbientColor);
 		}
 	}
 	return; 

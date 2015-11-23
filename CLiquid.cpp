@@ -111,7 +111,8 @@ COverlay::COverlay()
 		}
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pItem->szEntityName, "Overlay");
-		CCD->ModelManager()->AddModel(pItem->Model, ENTITY_OVERLAY);
+		if(pItem->Model)
+			CCD->ModelManager()->AddModel(pItem->Model, ENTITY_OVERLAY);
 		pItem->FBitmap = NULL;
 		pItem->Texture = NULL;
 		if(!pItem->Animated)
@@ -185,9 +186,17 @@ Overlay *COverlay::IsOverlay(geWorld_Model *theModel)
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
 
-		if(pItem->Model == theModel)
+		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{
-			return pItem;
+			if(!GetTriggerState(pItem->TriggerName))
+				continue;
+		}
+		if(pItem->Model)
+		{
+			if(pItem->Model == theModel)
+			{
+				return pItem;
+			}
 		}
 	}
 	return NULL;
@@ -242,4 +251,57 @@ void COverlay::Tick(float dwTicks)
 			pItem->Texture = pItem->FBitmap[pItem->CurTex];
 		}
 	}
+}
+
+void COverlay::Render()
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	
+	//	Ok, see if we have any Overlay entities at all
+	
+	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	
+	if(!pSet) 
+		return;	
+	
+	//	Look through all of our Overlays
+	
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	{
+		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+
+		if(!EffectC_IsStringNull(pItem->TriggerName))
+		{
+			if(!GetTriggerState(pItem->TriggerName))
+				continue;
+		}
+		if(!pItem->Model)
+		{
+			geVec3d Direction, Pos;
+			GE_LVertex	Vertex;
+			geXForm3d theViewPoint = CCD->CameraManager()->ViewPoint();
+			geXForm3d_GetIn(&theViewPoint, &Direction);
+			geVec3d_AddScaled (&theViewPoint.Translation, &Direction, CCD->CameraManager()->GetOverlayDist(), &Pos);
+			
+			Vertex.r = pItem->TintColor.r; 
+			Vertex.g = pItem->TintColor.g;
+			Vertex.b = pItem->TintColor.b;
+			Vertex.a = pItem->Transparency;
+			
+			Vertex.u = 0.0f;
+			Vertex.v = 0.0f;
+			
+			Vertex.X = Pos.X;
+			Vertex.Y = Pos.Y;
+			Vertex.Z = Pos.Z;
+			
+			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, 
+				pItem->Texture, 
+				GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
+			
+		}
+	}
+	return;
 }

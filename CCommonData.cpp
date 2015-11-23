@@ -67,6 +67,9 @@ CCommonData::CCommonData()
 	theMorph = NULL;
 	theCutScene = NULL;
 	theActMaterial = NULL;
+	theTerrainMgr = NULL;
+	theArmour = NULL;
+	theLiftBelt = NULL;
 // end change RF064
 	theFloat = NULL;						// Ralph Deane's Floating Effect
 	theChaos = NULL;						// Ralph Deane's Chaos Procedural
@@ -167,6 +170,8 @@ CCommonData::CCommonData()
 // changed RF064
 	dropkey = false;
 	reloadkey = false;
+	CDifficult = false;
+	DifficultLevel = 1;
 // end change RF064
 // start multiplayer
 	consolekey = false;
@@ -343,6 +348,13 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					CSelect = true;
 				else
 					CSelect = false;
+			}
+			else if(!stricmp(szAtom,"usedifficultlevel"))
+			{
+				if(!stricmp(szArg,"true"))
+					CDifficult = true;
+				else
+					CDifficult = false;
 			}
 // end change RF063
 			else if(!stricmp(szAtom,"usefirst"))
@@ -726,6 +738,8 @@ void CCommonData::ShutdownCommon()
 
 int CCommonData::InitializeLevel(char *szLevelName)
 {
+	kAudibleRadius = 360.0f;
+
 	theCameraManager->Defaults();
 	
 	if(theGameEngine->LoadLevel(szLevelName) == FALSE)
@@ -755,6 +769,16 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		theGameEngine->ReportError("Couldn't create audio manager", false);
 		return -92;
 	}
+
+// changed RF064
+	
+	theTerrainMgr = new qxTerrainMgr(); 
+	if(theTerrainMgr == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create qxTerrainMgr handler", false);
+		return -26;
+	}
+// end change RF064
 
 	theEffect = new EffManager(); 
 	if(theEffect == NULL)
@@ -1231,6 +1255,22 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	theArmour = new CArmour();
+	if(theArmour == NULL)
+	{
+		theGameEngine->ReportError("couldn't create CArmour", false);
+		return -7; //or something else
+	}
+
+	theLiftBelt = new CLiftBelt();
+	if(theLiftBelt == NULL)
+	{
+		theGameEngine->ReportError("couldn't create CLiftBelt", false);
+		return -7; //or something else
+	}
+
+	theMenu->LoadWBitmap();
+
 // end change RF064
 	//	All level classes up! Let's **PLAY**
 	
@@ -1252,6 +1292,17 @@ void CCommonData::ShutdownLevel()
 // end multiplayer
 
 // changed RF064
+
+	theMenu->UnLoadWBitmap();
+
+	if(theLiftBelt != NULL)
+		delete theLiftBelt;
+	theLiftBelt = NULL;
+
+	if(theArmour != NULL)
+		delete theArmour;
+	theArmour = NULL;
+
 	if(theActMaterial != NULL)
 		delete theActMaterial;
 	theActMaterial = NULL;
@@ -1495,6 +1546,12 @@ void CCommonData::ShutdownLevel()
 		delete theAudioManager;
 	theAudioManager = NULL;
 
+// changed RF064
+	if(theTerrainMgr != NULL)
+		delete theTerrainMgr;
+	theTerrainMgr = NULL;
+// end change RF064
+
 	if(theEffect != NULL)
 		delete theEffect;
 	theEffect = NULL;
@@ -1683,6 +1740,12 @@ bool CCommonData::HandleGameInput()
 				theWeapon->KeyReload();
 				reloadkey = true;
 			}
+			break;
+		case RGF_K_POWERUP:
+			theLiftBelt->ChangeLift(true);
+			break;
+		case RGF_K_POWERDWN:
+			theLiftBelt->ChangeLift(false);
 			break;
 // end change RF064
 		case RGF_K_HOLSTER_WEAPON:
@@ -2067,6 +2130,7 @@ int CCommonData::DispatchTick()
 	theDecal->Tick(dwTicksGoneBy);
 // changed RF064
 	theWallDecal->Tick(dwTicksGoneBy);
+	theTerrainMgr->Frame();
 // end change RF064
 	theWeapon->Tick(dwTicksGoneBy);
 	theFirePoint->Tick(dwTicksGoneBy);
@@ -2085,6 +2149,7 @@ int CCommonData::DispatchTick()
 	theCountDownTimer->Tick(dwTicksGoneBy);
 	theChangeAttribute->Tick(dwTicksGoneBy);
 	theOverlay->Tick(dwTicksGoneBy);
+	theLiftBelt->Tick(dwTicksGoneBy);
 // end change RF064
 	theChangeLevel->Tick(dwTicksGoneBy);
 	theShake->Tick(dwTicksGoneBy);
@@ -2354,6 +2419,8 @@ void CCommonData::RenderComponents()
 // change RF064
 	if(ShowTrack)
 		theScriptPoints->Render();
+	theOverlay->Render();
+	theTerrainMgr->Render();
 // end change RF064
 	
 	return;

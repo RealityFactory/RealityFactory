@@ -150,7 +150,7 @@ void CFirePoint::Tick(float dwTicks)
 					Snd Sound;
 					memset( &Sound, 0, sizeof( Sound ) );
 					geVec3d_Copy( &(Fire->origin), &( Sound.Pos ) );
-					Sound.Min=kAudibleRadius;
+					Sound.Min=CCD->GetAudibleRadius();
 					Sound.Loop=false;
 					Sound.SoundDef = SPool_Sound(Fire->szSoundFile);
 					CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);

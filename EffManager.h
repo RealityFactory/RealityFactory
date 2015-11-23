@@ -146,6 +146,7 @@ typedef struct
 #define BOLT_START	( 1 << 0 )
 #define BOLT_END	( 1 << 1 )
 #define BOLT_COLOR	( 1 << 2 )
+#define BOLT_ENDOFFSET	( 1 << 3 )
 
 typedef struct EBolt
 {
@@ -156,6 +157,7 @@ typedef struct EBolt
 	geBitmap	*Bitmap;
 	geVec3d	Start;
 	geVec3d End;
+	geVec3d EndOffset;
 	int		Width;
 	int		NumPoints;
 	geBoolean	Intermittent;

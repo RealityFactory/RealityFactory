@@ -202,7 +202,7 @@ void CWeapon::Tick(float dwTicks)
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor, BoneHit))
+				tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel))
 			{
 				//
 				// Process hit here
@@ -216,8 +216,8 @@ void CWeapon::Tick(float dwTicks)
 // changed RF063
 				if(Collision.Actor)
 				{
-					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-					if(d->AttachActor)
+					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute, d->Name);
+					if(d->AttachActor && !EffectC_IsStringNull(BoneHit) && d->BoneLevel)
 						CCD->Explosions()->AddExplosion(d->ActorExplosion, Collision.Impact, Collision.Actor, BoneHit);
 					else
 						CCD->Explosions()->AddExplosion(d->ActorExplosion, Collision.Impact, NULL, NULL);
@@ -253,7 +253,7 @@ void CWeapon::Tick(float dwTicks)
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 			//if(CCD->Collision()->CheckForCollisionD(&d->ExtBox.Min, &d->ExtBox.Max,
 			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor, BoneHit))
+				tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel))
 			{
 				//
 				// Handle collision here
@@ -364,8 +364,8 @@ void CWeapon::Tick(float dwTicks)
 // changed RF063			
 			if(Actor)
 			{
-				CCD->Damage()->DamageActor(Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-				if(d->AttachActor)
+				CCD->Damage()->DamageActor(Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute, d->Name);
+				if(d->AttachActor && !EffectC_IsStringNull(BoneHit) && d->BoneLevel)
 					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, Actor, BoneHit);
 				else
 					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, NULL, NULL);
@@ -393,7 +393,7 @@ void CWeapon::Tick(float dwTicks)
 			//
 			if(d->RadiusDamage>0.0f)
 			{
-				CCD->Damage()->DamageActorInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->Attribute);
+				CCD->Damage()->DamageActorInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->Attribute, "Explosion");
 				CCD->Damage()->DamageModelInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->Attribute);
 			}
 			
@@ -510,7 +510,7 @@ void CWeapon::DisplayThirdPerson(int index)
 		if(geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone, &Xf )==GE_TRUE)
 		{
 			geVec3d_Copy( &( Xf.Translation ), &Muzzle);
-			CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Muzzle, WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone);
+			CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash3rd, Muzzle, WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone);
 		}
 		MFlash = false;
 	}
@@ -785,15 +785,21 @@ void CWeapon::DisplayFirstPerson(int index)
 			|| VSequence == VWEPALTHIT || VSequence == VWEPRELOAD
 			 || VSequence == VWEPKEYRELOAD)) // switch from shoot to idle
 		{
+			geActor *theActor = CCD->Player()->GetActor();
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
 			if(VSequence == VWEPKEYRELOAD || VSequence == VWEPRELOAD)
+			{
 				WeaponD[index].ShotFired = 0;
+				if(theInv->Value(WeaponD[index].Ammunition)>=WeaponD[index].ShotperMag)
+					WeaponD[index].MagAmt = WeaponD[index].ShotperMag;
+				else
+					WeaponD[index].MagAmt = theInv->Value(WeaponD[index].Ammunition);
+			}
 			bool magflag = false;
 			if(WeaponD[index].Catagory==PROJECTILE && VSequence == VWEPATTACK)
 			{
 				if(WeaponD[index].ShotperMag>0 && WeaponD[index].ShotFired>=WeaponD[index].ShotperMag)
 				{
-					geActor *theActor = CCD->Player()->GetActor();
-					CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
 					if(theInv->Value(WeaponD[index].Ammunition)>=WeaponD[index].AmmoPerShot)
 					{
 						magflag = true;
@@ -804,7 +810,7 @@ void CWeapon::DisplayFirstPerson(int index)
 							Snd Sound;
 							memset( &Sound, 0, sizeof( Sound ) );
 							CCD->CameraManager()->GetPosition(&Sound.Pos);
-							Sound.Min=kAudibleRadius;
+							Sound.Min=CCD->GetAudibleRadius();
 							Sound.Loop=GE_FALSE;
 							Sound.SoundDef=SPool_Sound(WeaponD[CurrentWeapon].ReloadSound);
 							CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -975,9 +981,23 @@ void CWeapon::SetWeapon(int value)
 		CCD->ActorManager()->SetMotion(CCD->Player()->GetActor(), PlayerAnim(index));
 	}
 // end change RF063
-	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
-		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
 // changed RF064
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+	{
+		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
+		if(WeaponD[CurrentWeapon].ShotperMag>0)
+		{
+			if(WeaponD[CurrentWeapon].MagAmt==-1)
+			{
+				geActor *theActor = CCD->Player()->GetActor();
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+				if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].ShotperMag)
+					WeaponD[CurrentWeapon].MagAmt = WeaponD[CurrentWeapon].ShotperMag;
+				else
+					WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
+			}
+		}
+	}
 	DoChange();
 // end change RF064
 	VSequence = VWEPCHANGE;
@@ -1055,9 +1075,20 @@ void CWeapon::ReSetWeapon(int value)
 // end change RF063
 	if(value==-1 || value==11)
 		return;
-	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
-		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
 // changed RF064
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+	{
+		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
+		if(WeaponD[CurrentWeapon].MagAmt==-1)
+		{
+			geActor *theActor = CCD->Player()->GetActor();
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+			if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].ShotperMag)
+				WeaponD[CurrentWeapon].MagAmt = WeaponD[CurrentWeapon].ShotperMag;
+			else
+				WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
+		}
+	}
 	DoChange();
 // end change RF064
 	VSequence = VWEPCHANGE;
@@ -1203,6 +1234,16 @@ void CWeapon::KeyReload()
 			int LeftInMag = WeaponD[CurrentWeapon].ShotperMag - WeaponD[CurrentWeapon].ShotFired;
 			if(LeftInMag>0 && WeaponD[CurrentWeapon].LooseMag)
 				theInv->Modify(WeaponD[CurrentWeapon].Ammunition, -LeftInMag);
+			if(!EffectC_IsStringNull(WeaponD[CurrentWeapon].ReloadSound))
+			{
+				Snd Sound;
+				memset( &Sound, 0, sizeof( Sound ) );
+				CCD->CameraManager()->GetPosition(&Sound.Pos);
+				Sound.Min=CCD->GetAudibleRadius();
+				Sound.Loop=GE_FALSE;
+				Sound.SoundDef=SPool_Sound(WeaponD[CurrentWeapon].ReloadSound);
+				CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+			}
 		}
 	}
 	else
@@ -1244,6 +1285,9 @@ void CWeapon::Attack(bool Alternate)
 			if(dtime<(WeaponD[CurrentWeapon].FireRate*1000.0f))
 				return; // too soon
 		}
+// changed RF064
+		if(WeaponD[CurrentWeapon].ShotperMag>0 && WeaponD[CurrentWeapon].ShotFired>=WeaponD[CurrentWeapon].ShotperMag)
+			return;
 		AttackTime = CCD->FreeRunningCounter();
 		VSequence = VWEPATTACK; // shooting animation
 		if(WeaponD[CurrentWeapon].Catagory==MELEE)
@@ -1251,7 +1295,7 @@ void CWeapon::Attack(bool Alternate)
 			if(((geFloat)((rand() % 1000) + 1) / 1000.0f * 10.0f)>=5.0f)
 				VSequence = VWEPALTATTACK;
 		}
-// changed RF064
+
 		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
 		{
 			geActor *theActor = CCD->Player()->GetActor();
@@ -1274,6 +1318,12 @@ void CWeapon::Attack(bool Alternate)
 			if(WeaponD[CurrentWeapon].ShotperMag>0 && WeaponD[CurrentWeapon].ShotFired>=WeaponD[CurrentWeapon].ShotperMag)
 			{
 				WeaponD[CurrentWeapon].ShotFired = 0;
+				geActor *theActor = CCD->Player()->GetActor();
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+				if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].ShotperMag)
+					WeaponD[CurrentWeapon].MagAmt = WeaponD[CurrentWeapon].ShotperMag;
+				else
+					WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
 			}
 // end change RF064
 			int dtime = CCD->FreeRunningCounter()-AttackTime;
@@ -1291,7 +1341,7 @@ void CWeapon::Sound(bool Attack, geVec3d Origin, bool Empty)
 	
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-    Sound.Min=kAudibleRadius;
+    Sound.Min=CCD->GetAudibleRadius();
     Sound.Loop=GE_FALSE;
 	if(Attack)
 	{
@@ -1412,7 +1462,7 @@ void CWeapon::MeleeAttack()
 // changed RF063				
 				if(Collision.Actor!=NULL)
 				{
-					CCD->Damage()->DamageActor(Collision.Actor, WeaponD[CurrentWeapon].MeleeDamage, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].MeleeAltDamage, WeaponD[CurrentWeapon].AltAttribute);
+					CCD->Damage()->DamageActor(Collision.Actor, WeaponD[CurrentWeapon].MeleeDamage, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].MeleeAltDamage, WeaponD[CurrentWeapon].AltAttribute, WeaponD[CurrentWeapon].Name);
 					CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MeleeExplosion, Pos, NULL, NULL);
 				}
 
@@ -1462,9 +1512,9 @@ void CWeapon::ProjectileAttack()
 	{
 // changed RF063
 		if(WeaponD[CurrentWeapon].PBone[0]!='\0')
-			geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone, &Xf );
+			geActor_GetBoneTransform(theActor, WeaponD[CurrentWeapon].PBone, &Xf );
 		else
-			geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, NULL, &Xf );
+			geActor_GetBoneTransform(theActor, NULL, &Xf );
 // end change RF063
 		thePosition = Xf.Translation;
 		CCD->ActorManager()->GetRotate(theActor, &theRotation);
@@ -1605,12 +1655,17 @@ void CWeapon::ProjectileAttack()
 			{
 				if(WeaponD[CurrentWeapon].PMOffset>0.0f)
 				{
-					geVec3d_AddScaled (&Front, &Direction, WeaponD[CurrentWeapon].PMOffset, &Front);
-					CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Front, NULL, NULL);
+					if(WeaponD[CurrentWeapon].PBone[0] != '\0')
+						MFlash = true;
+					else
+					{
+						geVec3d_AddScaled (&Front, &Direction, WeaponD[CurrentWeapon].PMOffset, &Front);
+						CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash3rd, Front, NULL, NULL);
+					}
 				}
 				else
 				{
-					if(WeaponD[CurrentWeapon].MuzzleFlash[0] != '\0')
+					if(WeaponD[CurrentWeapon].MuzzleFlash3rd[0] != '\0')
 					{
 						if(WeaponD[CurrentWeapon].PBone[0] != '\0')
 							MFlash = true;
@@ -1673,6 +1728,7 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 // changed RF064
 		d->ShowBoth = ProjD[Type].ShowBoth;
 		d->AttachActor = ProjD[Type].AttachActor;
+		d->BoneLevel = ProjD[Type].BoneLevel;
 // end change RF064
 		d->ShakeAmt = ProjD[Type].ShakeAmt;
 		d->ShakeDecay = ProjD[Type].ShakeDecay;
@@ -1684,6 +1740,7 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		d->RadiusDamage = ProjD[Type].RadiusDamage;
 		d->Radius = ProjD[Type].Radius;
 		d->Attribute = PAttribute;
+		d->Name = ProjD[Type].Name;
 
 		geXForm3d_SetIdentity(&XForm);
 		geXForm3d_RotateZ(&XForm, Orient.Z);
@@ -1708,7 +1765,9 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		CCD->ActorManager()->SetBBox(d->Actor, ProjD[Type].BoxSize, ProjD[Type].BoxSize, ProjD[Type].BoxSize);
 		CCD->ActorManager()->GetBoundingBox(d->Actor, &d->ExtBox);
 		CCD->ActorManager()->SetStepHeight(d->Actor, -1.0f);
-		
+// changed RF064
+		CCD->ActorManager()->SetHideRadar(d->Actor, true);
+// end change RF064
 		if(d->Gravity)
 			CCD->ActorManager()->SetGravity(d->Actor, CCD->Player()->GetGravity());
 		
@@ -1732,7 +1791,7 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 // changed RF063				
 				if(Collision.Actor)
 				{
-					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
+					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute, d->Name);
 				}
 
 				if(Collision.Model)
@@ -1755,7 +1814,7 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 				if(d->RadiusDamage>0.0f)
 				{
 // changed RF063
-					CCD->Damage()->DamageActorInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->AltAttribute);
+					CCD->Damage()->DamageActorInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->AltAttribute, "Explosion");
 					CCD->Damage()->DamageModelInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->AltAttribute);
 // end change RF063
 				}
@@ -1813,7 +1872,7 @@ int CWeapon::PlaySound(geSound_Def *SoundDef, geVec3d Pos, bool Loop)
 	
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Pos), &( Sound.Pos ) );
-    Sound.Min=kAudibleRadius;
+    Sound.Min=CCD->GetAudibleRadius();
     Sound.Loop=Loop;
 	Sound.SoundDef=SoundDef;
     return CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -1905,11 +1964,17 @@ void CWeapon::LoadDefaults()
 			strcpy(ProjD[projptr].ActorExplosion,Type);
 // changed RF064
 			ProjD[projptr].ShowBoth = false;
+			Vector = AttrFile.GetValue(KeyName, "showboth");
 			if(Vector=="true")
 				ProjD[projptr].ShowBoth = true;
 			ProjD[projptr].AttachActor = false;
+			Vector = AttrFile.GetValue(KeyName, "attachactor");
 			if(Vector=="true")
 				ProjD[projptr].AttachActor = true;
+			ProjD[projptr].BoneLevel = true;
+			Vector = AttrFile.GetValue(KeyName, "bonelevel");
+			if(Vector=="false")
+				ProjD[projptr].BoneLevel = false;
 // end change RF064
 			ProjD[projptr].ShakeAmt = (float)AttrFile.GetValueF(KeyName, "shakeamount");
 			ProjD[projptr].ShakeDecay = (float)AttrFile.GetValueF(KeyName, "shakedecay");
@@ -2012,6 +2077,13 @@ void CWeapon::LoadDefaults()
 				strcpy(WeaponD[weapptr].Projectile,Vector);
 				Vector = AttrFile.GetValue(KeyName, "muzzleflash");
 				strcpy(WeaponD[weapptr].MuzzleFlash,Vector);
+// changed RF064
+				Vector = AttrFile.GetValue(KeyName, "muzzleflash3rd");
+				if(Vector!="")
+					strcpy(WeaponD[weapptr].MuzzleFlash3rd,Vector);
+				else
+					strcpy(WeaponD[weapptr].MuzzleFlash3rd, WeaponD[weapptr].MuzzleFlash);
+// end change RF064
 // changed RF063
 				WeaponD[weapptr].WorksUnderwater = true;
 				Type = AttrFile.GetValue(KeyName, "worksunderwater");
@@ -2145,6 +2217,7 @@ void CWeapon::LoadDefaults()
 							strcpy(WeaponD[weapptr].VReload,Vector);
 							WeaponD[weapptr].ShotperMag = AttrFile.GetValueI(KeyName, "shotpermagazine");
 							WeaponD[weapptr].ShotFired = 0;
+							WeaponD[weapptr].MagAmt = -1;
 							WeaponD[weapptr].VKeyReload[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewkeyreloadanim");
 							strcpy(WeaponD[weapptr].VKeyReload,Vector);

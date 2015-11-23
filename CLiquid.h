@@ -31,6 +31,7 @@ public:
   ~COverlay();
   void Tick(float dwTicks);
   Overlay *IsOverlay(geWorld_Model *theModel);
+  void Render();
 
 private:
 

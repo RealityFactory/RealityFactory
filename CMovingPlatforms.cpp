@@ -214,7 +214,7 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, geVec3d Origin, bool Soun
 	
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-    Sound.Min=kAudibleRadius;
+    Sound.Min=CCD->GetAudibleRadius();
 // changed RF064
 	Sound.Loop=SoundLoop;
 // end change RF064
@@ -480,6 +480,18 @@ void CMovingPlatforms::Tick(float dwTicks)
 					if(pPlatform->NextToTrigger != NULL)
 						TriggerNextPlatform(pPlatform->NextToTrigger, false);
 				}
+// changed RF064
+				else
+				{   //If bRunWhileTrig is true then un-trigger the animation
+					pPlatform->bTrigger= false;
+					CCD->ModelManager()->Stop(pPlatform->Model);
+					if(pPlatform->SoundHandle != -1)
+					{
+						CCD->EffectManager()->Item_Delete(EFF_SND, pPlatform->SoundHandle);
+						pPlatform->SoundHandle = -1;
+					}
+				}
+// end change RF064
 			}
 			//MOD010122 - The next section of code was added to handle the case when the
 			//            trigger goes off and we are animating and we are in RunWhileTrig mode.

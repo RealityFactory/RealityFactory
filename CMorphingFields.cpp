@@ -159,7 +159,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 						Snd Sound;
 						memset( &Sound, 0, sizeof( Sound ) );
 						geVec3d_Copy( &(pField->origin), &( Sound.Pos ) );
-						Sound.Min=kAudibleRadius;
+						Sound.Min=CCD->GetAudibleRadius();
 						Sound.Loop=true;
 						Sound.SoundDef = pField->theSound;
 						pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -192,7 +192,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 					Snd Sound;
 					memset( &Sound, 0, sizeof( Sound ) );
 					geVec3d_Copy( &(pField->origin), &( Sound.Pos ) );
-					Sound.Min=kAudibleRadius;
+					Sound.Min=CCD->GetAudibleRadius();
 					Sound.Loop=true;
 					Sound.SoundDef = pField->theSound;
 					pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);

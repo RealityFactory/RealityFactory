@@ -16,6 +16,7 @@ typedef struct Proj
   Proj    	*next;
   Proj    	*prev;
   geActor *Actor;
+  char *Name;
   geVec3d Pos;
   geVec3d Angles;
   geVec3d In;
@@ -38,6 +39,7 @@ typedef struct Proj
 // changed Rf064
   bool ShowBoth;
   bool AttachActor;
+  bool BoneLevel;
 // end change RF064
   float ShakeAmt;
   float ShakeDecay;
@@ -70,6 +72,7 @@ typedef struct DefaultProj
 // changed Rf064
   bool ShowBoth;
   bool AttachActor;
+  bool BoneLevel;
 // end change RF064
   float ShakeAmt;
   float ShakeDecay;
@@ -118,6 +121,8 @@ typedef struct DefaultWeapons
 	int ShotFired;
 	char ReloadSound[64];
 	bool LooseMag;
+	int MagAmt;
+	char MuzzleFlash3rd[64];
 // end change RF064
 	char Ammunition[64];
 	int AmmoPerShot;
@@ -243,6 +248,8 @@ public:
   {return WeaponD[CurrentWeapon].ShotperMag;}
   int GetShotFired()
   {return WeaponD[CurrentWeapon].ShotFired;}
+  int GetMagAmt()
+  {return WeaponD[CurrentWeapon].MagAmt;}
 // end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}

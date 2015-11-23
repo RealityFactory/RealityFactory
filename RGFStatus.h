@@ -93,6 +93,8 @@ typedef enum
 // changed RF064
 	RGF_K_DROP,
 	RGF_K_RELOAD,
+	RGF_K_POWERUP,
+	RGF_K_POWERDWN,
 // end change RF064
 	RGF_K_NOACTION
 } ACTIONCODES;

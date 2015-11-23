@@ -101,7 +101,7 @@ public:
 // changed RF064
   bool CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
-			geActor *Actor, char *BoneHit);
+			geActor *Actor, char *BoneHit, bool BoneLevel);
 // end change RF064
   TraceData Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *Max,
 	  geActor *Actor, GE_Collision *Collision);

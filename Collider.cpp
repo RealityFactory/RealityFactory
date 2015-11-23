@@ -1973,64 +1973,33 @@ void Collider::Debug()
 
 bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 								 geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
-								 geActor *Actor, char *BoneHit)
+								 geActor *Actor, char *BoneHit, bool BoneLevel)
 {
 	GE_Contents Contents;
 	int Result, Result1;
-	geVec3d OMin, OMax;
-
-	GetMoveBox(Min, Max, &OldPosition, &NewPosition, &OMin, &OMax);
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
-	Result = geWorld_Collision(CCD->World(), Min, 
-		Max, &OldPosition, &NewPosition, kCollideFlags, 
-		GE_COLLIDE_ACTORS, 0xffffffff, CBExclusion, Actor, Collision);
-
-	Collision->Model = NULL;
-
-	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
+	geActor *pActor;
+	geFloat T;
+	geVec3d Normal;
+	if(CCD->ActorManager()->DoesRayHitActor(OldPosition, NewPosition,
+		&pActor, Actor, &T, &Normal) == GE_TRUE)
 	{
-		memset(&Contents, 0, sizeof(GE_Contents));
-		Result = geWorld_GetContents(CCD->World(), 
-			&NewPosition, Min, Max, GE_COLLIDE_ACTORS, 
-			0xffffffff, CBExclusion, Actor, &Contents);
-		Contents.Model = NULL;
-		if(Result == GE_FALSE)
-		{
-			geActor *pActor;
-			geExtBox pBox;
-			pBox.Min.X = Min->X + NewPosition.X;
-			pBox.Min.Y = Min->Y + NewPosition.Y;
-			pBox.Min.Z = Min->Z + NewPosition.Z;
-			pBox.Max.X = Max->X + NewPosition.X;
-			pBox.Max.Y = Max->Y + NewPosition.Y;
-			pBox.Max.Z = Max->Z + NewPosition.Z; 
+		Collision->Actor = pActor;
+		Collision->Model = NULL;
+		Collision->Plane.Normal = Normal;
+		geVec3d Vec;
+		geVec3d_Subtract(&NewPosition, &OldPosition, &Vec);
+		float len = geVec3d_Length(&Vec);
+		geVec3d_Normalize(&Vec);
+		geVec3d_AddScaled(&OldPosition, &Vec, len*T, &Collision->Impact);
 
-			Contents.Model = NULL;
-			Contents.Actor = NULL;
-			if(CCD->ActorManager()->DoesBoxHitActor(NewPosition, pBox, &pActor, Actor) == GE_TRUE)
-			{
-				Contents.Actor = pActor;
-				Result = GE_TRUE;
-			}
-		}
-		if(Result==GE_TRUE)
-		{
-			// Fill collision struct with information
-			Collision->Mesh = Contents.Mesh;
-			Collision->Model = NULL;
-			Collision->Actor = Contents.Actor;
-			Collision->Impact = OldPosition;
-		} 
-	}
- 
-	if(Result==GE_TRUE)
-	{
+		if(!BoneLevel)
+			return true;
+
 		int TotalStaticBoneCount = geActor_GetBoneCount(Collision->Actor);
 		geExtBox theStaticBoneBox;
-		geFloat T;
-		geVec3d Normal;
 		for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
 		{
 			// The bone bounding box comes back in worldspace coordinates...
@@ -2040,13 +2009,6 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			if(geExtBox_RayCollision(&theStaticBoneBox, &OldPosition, &NewPosition,
 				&T, &Normal)==GE_TRUE)
 			{
-				Collision->Plane.Normal = Normal;
-				geVec3d Vec;
-				geVec3d_Subtract(&NewPosition, &OldPosition, &Vec);
-				float len = geVec3d_Length(&Vec);
-				geVec3d_Normalize(&Vec);
-				geVec3d_AddScaled(&OldPosition, &Vec, len*T, &Collision->Impact);
-
 				geXForm3d Attachment;
 				int ParentBoneIndex;
 				const char *BoneName;

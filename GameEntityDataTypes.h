@@ -557,8 +557,8 @@ typedef struct _StaticEntityProxy
 #pragma GE_DefaultValue(DamageAttribute, "")
 #pragma GE_DefaultValue(StepHeight, "0")
 #pragma GE_DefaultValue(DeathDissappear, "True")
-#pragma GE_DefaultValue(FillColor, "128 128 128")
-#pragma GE_DefaultValue(AmbientColor, "128 128 128")
+#pragma GE_DefaultValue(FillColor, "0 0 0")
+#pragma GE_DefaultValue(AmbientColor, "0 0 0")
 #pragma GE_DefaultValue(ShadowSize, "0")
 #pragma GE_DefaultValue(UseKey, "False")
 // change RF064
@@ -890,6 +890,7 @@ typedef struct _EnvironmentSetup
 	geFloat ShadowAlpha;
 	char *ShadowBitmap;
 	char *ShadowAlphamap;
+	geFloat AudibleRadius;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(Gravity, "0")
@@ -911,6 +912,7 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(ShadowAlpha, "0.0")
 #pragma GE_DefaultValue(ShadowBitmap, "")
 #pragma GE_DefaultValue(ShadowAlphamap, "")
+#pragma GE_DefaultValue(AudibleRadius, "0.0")
 // end change RF064
 #pragma GE_Documentation(Gravity, "Downward force of gravity")
 #pragma GE_Documentation(RealJumping, "if true use realistic jumping")
@@ -931,6 +933,7 @@ typedef struct _EnvironmentSetup
 #pragma GE_Documentation(ShadowAlpha, "Transparency of actor shadows (0 to 255)")
 #pragma GE_Documentation(ShadowBitmap, "name of bitmap to use for shadows")
 #pragma GE_Documentation(ShadowAlphamap, "name of alpha bitmap to use for shadows")
+#pragma GE_Documentation(AudibleRadius, "Maximum distance sound is audible")
 // end change RF064
 } EnvironmentSetup;
 
@@ -2400,6 +2403,7 @@ typedef struct _DestroyableModel
 	geWorld_Model *Model2;
 	geWorld_Model *Model3;
 	geWorld_Model *Model4;
+	geBoolean NoRemove;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
@@ -2409,6 +2413,7 @@ typedef struct _DestroyableModel
 #pragma GE_DefaultValue(szSoundFile, "")
 // changed RF064
 #pragma GE_DefaultValue(Animate, "False")
+#pragma GE_DefaultValue(NoRemove, "False")
 // end change RF064
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
 #pragma GE_Documentation(Model, "Name of model to attach to")
@@ -2420,6 +2425,7 @@ typedef struct _DestroyableModel
 #pragma GE_Documentation(Model2, "Name of model to attach to")
 #pragma GE_Documentation(Model3, "Name of model to attach to")
 #pragma GE_Documentation(Model4, "Name of model to attach to")
+#pragma GE_Documentation(NoRemove, "if true then don't remove model(s) when dead")
 // end change RF064
 } DestroyableModel;
 
@@ -2610,8 +2616,8 @@ typedef struct _Attribute
 #pragma GE_DefaultValue(AttributeAmount, "1")
 #pragma GE_DefaultValue(AttributeAltName, "")
 #pragma GE_DefaultValue(AttributeAltAmount, "0")
-#pragma GE_DefaultValue(FillColor, "128 128 128")
-#pragma GE_DefaultValue(AmbientColor, "128 128 128")
+#pragma GE_DefaultValue(FillColor, "0 0 0")
+#pragma GE_DefaultValue(AmbientColor, "0 0 0")
 #pragma GE_DefaultValue(ShadowSize, "0")
 // changed RF063
 #pragma GE_DefaultValue(PlayerOnly, "False")
@@ -3203,6 +3209,7 @@ typedef struct _Overlay
 	int		BitmapCount;
 	int		Style;
 	geFloat	Speed;
+	char *TriggerName;
 
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
@@ -3214,6 +3221,7 @@ typedef struct _Overlay
 #pragma GE_DefaultValue(BitmapCount, "1")
 #pragma GE_DefaultValue(Style, "0")
 #pragma GE_DefaultValue(Speed, "10")
+#pragma GE_DefaultValue(TriggerName, "")
 
 #pragma GE_Documentation(szEntityName, "Name of entity")
 #pragma GE_Documentation(Model, "Name of model to attach to")
@@ -3225,6 +3233,7 @@ typedef struct _Overlay
 #pragma GE_Documentation(BitmapCount, "number of bitmaps in sequence")
 #pragma GE_Documentation(Style, "Animation style 0 to 3")
 #pragma GE_Documentation(Speed, "# of bitmaps per second")
+#pragma GE_Documentation(TriggerName, "Name of trigger used to activate overlay")
 } Overlay;
 
 
@@ -3423,18 +3432,85 @@ typedef struct ActMaterial
             char                    *szEntityName;
             char                    *TriggerName;
             char                    *ChangeMaterial;
+			geBoolean	ChangeLighting;
+			GE_RGBA FillColor;
+			GE_RGBA AmbientColor;
 
 #pragma GE_Origin(origin) 
 #pragma GE_DefaultValue( TriggerName, "" )
 #pragma GE_DefaultValue( szEntityName, "" )
+#pragma GE_DefaultValue(FillColor, "0 0 0")
+#pragma GE_DefaultValue(AmbientColor, "0 0 0")
+#pragma GE_DefaultValue(ChangeLighting, "false" )
 
 #pragma GE_Documentation( origin, "Location of effect" )
 #pragma GE_Documentation( szEntityName, "Name of this entity" )
 #pragma GE_Documentation( TriggerName, "Name of the associated trigger" )
 #pragma GE_Documentation( ChangeMaterial, "Name of section containing material change info")
 #pragma GE_Documentation( EntityName, "Entity whose actor texture the effect will attach to" )
+#pragma GE_Documentation(FillColor, "Color of actor fill lighting")
+#pragma GE_Documentation(AmbientColor, "Color of actor ambient lighting")
+#pragma GE_Documentation(ChangeLighting, "if true the change actor lighting on material change" )
 
 } ActMaterial;
+
+//
+// SkyDome
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct _SkyDome
+{
+#pragma GE_Published
+	geVec3d origin;
+	char *ScriptName;
+	char *StartOrder;
+	char *InitOrder;
+	geBoolean Enable;
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(ScriptName, "")
+#pragma GE_DefaultValue(StartOrder, "")
+#pragma GE_DefaultValue(InitOrder, "")
+#pragma GE_DefaultValue(Enable, "True")
+
+#pragma GE_Documentation(ScriptName, "Name of Action Script file to use")
+#pragma GE_Documentation(StartOrder, "Name of runtime order")
+#pragma GE_Documentation(InitOrder, "Name of initial order to run")
+#pragma GE_Documentation(Enable, "if True then enable SkyDome")
+} SkyDome;
+
+//
+// LiftBelt
+//
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct _LiftBelt
+{
+#pragma GE_Private
+	geFloat Powerlevel;
+	geBoolean active;
+	geFloat Fuel;
+#pragma GE_Published
+	geVec3d origin;
+	char *EnableAttr;
+	char *PowerAttr;
+	geFloat LiftForce;
+	geFloat PowerUse;
+	geFloat AccelRate;
+
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(EnableAttr, "")
+#pragma GE_DefaultValue(PowerAttr, "")
+#pragma GE_DefaultValue(LiftForce, "0")
+#pragma GE_DefaultValue(PowerUse, "1")
+#pragma GE_DefaultValue(AccelRate, "1")
+
+#pragma GE_Documentation(EnableAttr, "attribute used to enable LiftBelt")
+#pragma GE_Documentation(PowerAttr, "attribute used as fuel")
+#pragma GE_Documentation(LiftForce, "maximum amount of up force generated")
+#pragma GE_Documentation(PowerUse, "amount of fuel used per second")
+#pragma GE_Documentation(AccelRate, "amount of lift force change per second")
+} LiftBelt;
 
 // end change RF064
 

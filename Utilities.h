@@ -78,5 +78,6 @@ geBoolean CanSeePointToActor(geVec3d *Pos2, geActor *Actor);
 geBoolean CanSeeActorToActor(geActor *Actor1, geActor *Actor2);
 // changed RF064
 geActor * GetEntityActor(char *EntityName);
+bool geVec3d_IsZero( geVec3d* pVect );
 // end change RF064
 #endif

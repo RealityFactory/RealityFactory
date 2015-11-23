@@ -437,12 +437,14 @@ bool CAnimGif::TakeIt(void)
 			oldcode=code;
 		}
 	}
-
+// changed RF064
+	geBitmap_SetFormat(theBmp,GE_PIXELFORMAT_8BIT_PAL,GE_TRUE,0,Palette);
+// end change RF064
 	geBitmap_SetPalette(theBmp, Palette);
 	geBitmap_LockForWriteFormat(theBmp,&LockedBMP,0,0, GE_PIXELFORMAT_8BIT);
 	if(LockedBMP == NULL)
     {
-		geBitmap_SetFormat(theBmp,GE_PIXELFORMAT_8BIT,GE_TRUE,0,NULL);
+		geBitmap_SetFormat(theBmp,GE_PIXELFORMAT_8BIT,GE_TRUE,0,Palette);
 		geBitmap_LockForWriteFormat(theBmp,&LockedBMP,0,0, GE_PIXELFORMAT_8BIT);
 		if(LockedBMP == NULL)
 		{

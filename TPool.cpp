@@ -30,7 +30,10 @@ geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *
   if(EffectC_IsStringNull(BName ) == GE_TRUE)
   {
 	  TBName=DefaultBmp;
-	  TAName=DefaultAlpha;
+	  if(EffectC_IsStringNull(DefaultAlpha))
+		  TAName=DefaultBmp;
+	  else
+		  TAName=DefaultAlpha;
   }
   else
   {

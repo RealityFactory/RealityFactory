@@ -1694,6 +1694,12 @@ geBoolean EffManager::Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags)
 		geVec3d_Copy( &( NewData->End ), &( Data->End ) );
 	}
 
+	// adjust end using offset
+	if ( Flags & BOLT_ENDOFFSET )
+	{
+		geVec3d_Add( &(NewData->End), &(Data->EndOffset),&(Data->End) );
+	}
+
 	// all done
 	return GE_TRUE;
 }

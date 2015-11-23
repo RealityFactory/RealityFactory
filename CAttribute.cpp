@@ -173,7 +173,7 @@ void CAttribute::Tick(float dwTicks)
 							Snd 	Sound;
 							memset( &Sound, 0, sizeof( Sound ) );
 							geVec3d_Copy( &(pSource->origin), &( Sound.Pos ) );
-							Sound.Min=kAudibleRadius;
+							Sound.Min=CCD->GetAudibleRadius();
 							Sound.Loop=GE_FALSE;
 							Sound.SoundDef=SPool_Sound(pSource->szReSpawnSound);
 							if(Sound.SoundDef!=NULL)
@@ -358,7 +358,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor)
 				Snd 	Sound;
 				memset( &Sound, 0, sizeof( Sound ) );
 				geVec3d_Copy( &(pSource->origin), &( Sound.Pos ) );
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=GE_FALSE;
 				Sound.SoundDef=SPool_Sound(pSource->szSoundFile);
 				if(Sound.SoundDef!=NULL)

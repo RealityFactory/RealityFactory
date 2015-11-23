@@ -33,6 +33,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	bool CommandLine;
 	DWORD nLoopTimer = 0;
   char szFirstLevel[256];
+// changed RF064
+  char m_currentdir[512];
+
+  _getcwd(m_currentdir, 512);
+  chdir(m_currentdir);
+// end change RF064
 
 //  _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 

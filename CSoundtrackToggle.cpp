@@ -151,7 +151,7 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 		  geFloat Volume, Pan, Frequency;
 		  geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 		  geSound3D_GetConfig(CCD->World(),	&xfmPlayer,	&pToggle->origin,
-				kAudibleRadius, 2.0f,	&Volume, &Pan,	&Frequency);
+				CCD->GetAudibleRadius(), 2.0f,	&Volume, &Pan,	&Frequency);
 		  pToggle->SoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), 
 				pToggle->theSound, Volume, Pan, Frequency, GE_FALSE);
 		  }

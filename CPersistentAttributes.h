@@ -19,6 +19,9 @@ struct PersistAttribute
 	int Value;										// Value of attribute
 	int ValueLowLimit;						// Value low limit
 	int ValueHighLimit;						// Value high limit
+// changed RF064
+	int ModifyAmt;
+// end change RF064
 	int Count;										// Instance count
 	int UserDataSize;							// Size of user data
 	unsigned char *UserData;			// Pointer to user-defined data
@@ -53,6 +56,9 @@ public:
 	int High(char *szTag);
 	int Count(char *szTag);					// Get attribute count
 	bool Compare(char *szTag, int nHow, int nCompareValue);
+// changed RF064
+	int GetModifyAmt(char *szTag);
+// end change RF064
 																	// Compare attribute value to a number
 	PersistAttribute *GetAttribute(PersistAttribute *pPrevious);
 																	// Get first/next attribute in list

@@ -1152,7 +1152,7 @@ int CGenesisEngine::RenderWorld()
 	
 	CCD->CameraManager()->TrackMotion();
 	CCD->CameraManager()->RenderView();
-	
+
 	//	We're ready, render it!
 	
 	if(geEngine_RenderWorld(m_theEngine, m_World, CCD->CameraManager()->Camera(), 0.00f) == GE_FALSE)

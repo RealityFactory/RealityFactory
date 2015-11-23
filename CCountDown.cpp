@@ -106,7 +106,7 @@ void CCountDown::Tick(float dwTicks)
 							Snd Sound;
 							memset( &Sound, 0, sizeof( Sound ) );
 							CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Sound.Pos);
-							Sound.Min=kAudibleRadius;
+							Sound.Min=CCD->GetAudibleRadius();
 							Sound.Loop=true;
 							Sound.SoundDef = SPool_Sound(pItem->SoundFile);
 							pItem->index = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);

@@ -436,12 +436,21 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time )
 	{
 		P->X = 0.0f;
 	}
+// changed RF064 by QuestOfDreams
+	else if ( P->X < 0.0f )
+	{
+		P->X = (geFloat)SrcInfo.Width;
+	}
 	P->Y += ( Time * P->YOffset );
 	if ( P->Y >= SrcInfo.Height )
 	{
 		P->Y = 0.0f;
 	}
-
+	else if ( P->Y < 0.0f )
+	{
+		P->Y = (geFloat)SrcInfo.Height;
+	}
+// end change RF064
 	// unlock all bitmaps
 	ALLDONE:
 	if ( SrcLocked != NULL )

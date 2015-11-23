@@ -1618,6 +1618,21 @@ int CActorManager::SetGravity(geActor *theActor, geFloat fGravity)
 	return RGF_SUCCESS;
 }
 
+//	SetGravity
+//
+//	Set the gravity force for this actor
+
+int CActorManager::SetGravityTime(geActor *theActor, geFloat fGravitytime)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	pEntry->GravityTime = fGravitytime;
+	
+	return RGF_SUCCESS;
+}
+
 //	GetGravity
 //
 //	Get the gravity force for this actor
@@ -1998,7 +2013,7 @@ void CActorManager::Tick(geFloat dwTicks)
 			geExtBox Result;
 			TimeAdvanceAllInstances(MainList[nTemp], dwTicks);
 			ActorInstanceList *pEntry = MainList[nTemp]->IList;
-			if(pEntry)
+			while(pEntry)
 			{
 				GetBoundingBox(pEntry->Actor, &Result);
 				if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
@@ -2009,11 +2024,19 @@ void CActorManager::Tick(geFloat dwTicks)
 					geExtBox theStaticBoneBox;
 					for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
 					{
+						geXForm3d theTransform;
 						// The bone bounding box comes back in worldspace coordinates...
 						if(geActor_GetBoneExtBoxByIndex(pEntry->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)
 							continue;								// Nothing here, skip it
-						
-						geXForm3d theTransform;
+
+						geXForm3d Attachment;
+						int ParentBoneIndex;
+						const char *BoneName;
+						geBody_GetBone(geActor_GetBody(geActor_GetActorDef(pEntry->Actor)),
+						nStatic, &BoneName, &Attachment, &ParentBoneIndex); 
+						if(!strcmp(BoneName, "BIP01 SPINE1") || !strcmp(BoneName, "BIP01 PELVIS"))
+						{
+
 						geActor_GetBoneTransformByIndex(pEntry->Actor, nStatic, &theTransform);
 						// Ok, convert from worldspace to modelspace for the bounding box
 						theStaticBoneBox.Min.X -= theTransform.Translation.X;
@@ -2023,8 +2046,11 @@ void CActorManager::Tick(geFloat dwTicks)
 						theStaticBoneBox.Max.Y -= theTransform.Translation.Y;
 						theStaticBoneBox.Max.Z -= theTransform.Translation.Z;
 						DrawBoundBox(CCD->World(), &theTransform.Translation, &theStaticBoneBox.Min, &theStaticBoneBox.Max);
+
+						}
 					}
 				}
+				pEntry = pEntry->pNext;
 			}
 		}
 // end change RF064
@@ -2451,8 +2477,11 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 		Pos1 = thePosition.Translation;
 		Pos2 = Pos1;
 		Pos2.Y -= 30000.0f;
-		CCD->Collision()->CheckForWCollision(NULL, NULL,
-			Pos1, Pos2, &Collision, theEntry->Actor);
+		geWorld_Collision(CCD->World(), NULL, NULL,
+			&Pos1, &Pos2, GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW, 
+			GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision);
+		//CCD->Collision()->CheckForWCollision(NULL, NULL,
+			//Pos1, Pos2, &Collision, theEntry->Actor);
 		Impact = Collision.Impact;
 		normal = Collision.Plane.Normal;
 		float dist = (float)fabs(geVec3d_DistanceBetween(&Pos1, &Impact));
@@ -2937,6 +2966,7 @@ void CActorManager::ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks)
 			theEntry->ForceLevel[nItem] = 0.0f;
 			continue;
 		}
+
 		// Ok, decay the force
 		theEntry->ForceLevel[nItem] -= theEntry->ForceDecay[nItem] * (dwTicks / 900.0f);
 		if(theEntry->ForceLevel[nItem] < 0.0f)
@@ -3260,14 +3290,16 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 	theExtBox.Max.Z -= pEntry->localTranslation.Z;
 
 	theExtBox.Min.Y -= 0.5f;
-
-	//char *texname = NULL;
-	//if(geWorld_GetTextureName(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
-		//&theExtBox.Max, texname) == GE_TRUE)
-	//{ 
-	//}
-	//OutputDebugString("\n");
-
+/*
+	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
+	{
+		geWorld *World = CCD->World();
+		int j = ZoneContents.Model->BSPModel->FirstFace;
+		j = World->CurrentBSP->BSPData.GFXFaces[j].TexInfo;
+		int tex = World->CurrentBSP->BSPData.GFXTexInfo[j].Texture;
+	}
+*/
 	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
 		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
@@ -3799,3 +3831,60 @@ int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool C
 	return RGF_SUCCESS;
 	
 }
+
+// changed RF064
+geBoolean CActorManager::DoesRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 
+		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal)
+{
+	geExtBox Result;
+	geFloat T;
+	geVec3d Norm;
+	
+	*theActor = NULL;
+	
+	for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+	{
+		if(MainList[nTemp] == NULL)
+			continue;				// Empty slot
+		ActorInstanceList *pEntry = MainList[nTemp]->IList;
+		while(pEntry != NULL)
+		{
+			if(pEntry->Actor == ActorToExclude)
+			{
+				// We want to ignore this actor, do so.
+				pEntry = pEntry->pNext;
+				continue;
+			}
+			if(pEntry->NoCollision)
+			{
+				pEntry = pEntry->pNext;
+				continue;
+			}
+			// Get actor instance bounding box in MODEL SPACE
+			GetBoundingBox(pEntry->Actor, &Result);
+			Result.Min.X += pEntry->localTranslation.X;
+			Result.Min.Y += pEntry->localTranslation.Y;
+			Result.Min.Z += pEntry->localTranslation.Z;
+			Result.Max.X += pEntry->localTranslation.X;
+			Result.Max.Y += pEntry->localTranslation.Y;
+			Result.Max.Z += pEntry->localTranslation.Z;
+
+			if(geExtBox_RayCollision(&Result, &OldPosition, &NewPosition,
+				&T, &Norm)==GE_TRUE)
+			{
+				// Heh, we hit someone.  Return the actor we ran into.
+				*theActor = pEntry->Actor;
+				*Percent = T;
+				*Normal = Norm;
+				return GE_TRUE;
+			}
+			pEntry = pEntry->pNext;				// Next instance in list
+		}
+		// Next master instance
+	}
+	
+	//	No hit, all be hunky-dory.
+	
+	return GE_FALSE;						// Hey, no collisions!
+}
+// end change RF064

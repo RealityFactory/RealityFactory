@@ -29,6 +29,7 @@ public:
   int GetKeyboardInput();
 // changed RF064
   int GetKeyboardInputNoWait();
+  void ClearCodes(int action);
 // end change RF064
   void SetKeyAction(int key, int action)
   { m_RGFKeys[key] = action; }

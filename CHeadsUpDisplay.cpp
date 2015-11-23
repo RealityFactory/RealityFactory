@@ -564,18 +564,19 @@ int CHeadsUpDisplay::Render()
 						continue;
 					if(m_theHUD[nItem].Style==MAG)
 					{
-						if(nValue>magsize)
-							nValue = magsize - CCD->Weapons()->GetShotFired();
+						nValue = CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired();
 						nHigh = magsize;
 						nLow = 0;
 					}
 					else
 					{
+						nValue -= (CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired());
 						nValue += (magsize-1);
+						nValue /= magsize;
+
 						nHigh += (magsize-1);
 						nHigh /= magsize;
 						nLow /= magsize;
-						nValue /= magsize;
 					}
 				}
 				else
@@ -637,18 +638,19 @@ int CHeadsUpDisplay::Render()
 						continue;
 					if(m_theHUD[nItem].Style==MAG)
 					{
-						if(nValue>magsize)
-							nValue = magsize - CCD->Weapons()->GetShotFired();
+						nValue = CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired();
 						nHigh = magsize;
 						nLow = 0;
 					}
 					else
 					{
+						nValue -= (CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired());
 						nValue += (magsize-1);
+						nValue /= magsize;
+
 						nHigh += (magsize-1);
 						nHigh /= magsize;
 						nLow /= magsize;
-						nValue /= magsize;
 					}
 				}
 				else
@@ -709,11 +711,11 @@ int CHeadsUpDisplay::Render()
 						continue;
 					if(m_theHUD[nItem].Style==MAG)
 					{
-						if(nValue>magsize)
-							nValue = magsize - CCD->Weapons()->GetShotFired();
+						nValue = CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired();
 					}
 					else
 					{
+						nValue -= (CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired());
 						nValue += (magsize-1);
 						nValue /= magsize;
 					}

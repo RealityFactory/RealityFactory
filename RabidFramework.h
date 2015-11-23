@@ -42,6 +42,9 @@ enum
 	FIXEDCAMERA
 };
 
+#define QXASSERT assert
+#define Frand EffectC_Frand
+
 //	Standard Windows include
 
 #define _CRTDBG_MAP_ALLOC
@@ -93,6 +96,7 @@ class CCommonData;
 #include "IniFile.h"
 // changed RF064
 #include "Mixer.h"
+#include "Qx\\qxTerrainMgr.h"
 // end change RF064
 #include "GameEntityDataTypes.h"		// Just what it says!  GEdit-usable.
 #include "RGFStatus.h"							// Status codes
@@ -150,6 +154,7 @@ class CCommonData;
 #include "CMorph.h"
 #include "CutScene.h"
 #include "CActMaterial.h"
+#include "CArmour.h"
 // end change RF064
 #include "track.h"
 #include "CNPCPathPoint.h"
@@ -207,7 +212,6 @@ const int kInLiquidZone = 0x2000;
 //	Various support and implementation constants
 
 const geFloat kFogDensity = 1500.0f;			// Baseline teleport/field fog density
-const geFloat kAudibleRadius = 360.0f;		// Audible radius for moving entities
 
 //	Collision type constants for actors and the player
 

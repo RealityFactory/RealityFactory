@@ -201,7 +201,7 @@ bool ScriptedConverse::method(const skString& methodName, skRValueArray& argumen
 	else if (IS_METHOD(methodName, "SetFlag"))
 	{
 		param1 = arguments[0].intValue();
-		if(param1>99)
+		if(param1>=MAXFLAGS)
 			return true;
 		param2 = arguments[1].boolValue();
 		CCD->Pawns()->SetPawnFlag(param1, param2);
@@ -210,7 +210,7 @@ bool ScriptedConverse::method(const skString& methodName, skRValueArray& argumen
 	else if (IS_METHOD(methodName, "GetFlag"))
 	{
 		param1 = arguments[0].intValue();
-		if(param1>99)
+		if(param1>=MAXFLAGS)
 			return true;
 		returnValue = CCD->Pawns()->GetPawnFlag(param1);
 		return true;
@@ -246,7 +246,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 	if(charpersec==0)
 		counter = Text.GetLength();
 	DWORD ElapsedTime;
-	int startline = 0;
+	int startline = 1;
 	int replyline = 1;
 	strcpy(temp, Text.Left(counter));
 
@@ -276,30 +276,33 @@ int ScriptedConverse::DoConversation(int charpersec)
 		m_Streams->Play(false);
 	}
 
-	while(counter<Text.GetLength())
+	if(charpersec!=0)
 	{
-		MSG msg;
-		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		while(counter<Text.GetLength())
 		{
-			GetMessage(&msg, NULL, 0, 0 );
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			MSG msg;
+			while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+			{
+				GetMessage(&msg, NULL, 0, 0 );
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
+			if(Icon)
+				geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
+			ElapsedTime = (DWORD)(CCD->FreeRunningCounter() - OldTime);
+			if(ElapsedTime > (DWORD)(1000/charpersec))
+			{
+				OldTime = CCD->FreeRunningCounter();
+				counter +=1;
+				strcpy(temp, Text.Left(counter));
+			}
+			TextDisplay(temp, SpeachWidth, SpeachFont);
+			startline = TextOut(0, SpeachHeight, SpeachFont, SpeachX, SpeachY);
+			
+			geEngine_EndFrame(CCD->Engine()->Engine());
 		}
-		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
-		geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
-		if(Icon)
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
-		ElapsedTime = (DWORD)(CCD->FreeRunningCounter() - OldTime);
-		if(ElapsedTime > (DWORD)(1000/charpersec))
-		{
-			OldTime = CCD->FreeRunningCounter();
-			counter +=1;
-			strcpy(temp, Text.Left(counter));
-		}
-		TextDisplay(temp, SpeachWidth, SpeachFont);
-		startline = TextOut(0, SpeachHeight, SpeachFont, SpeachX, SpeachY);
-		
-		geEngine_EndFrame(CCD->Engine()->Engine());
 	}
 //
 // display text and allow scrolling
@@ -595,6 +598,8 @@ void CPawn::PreLoadC(char *filename)
 	char file[256];
 
 	fdInput = fopen(filename, "rt");
+	if(!fdInput)
+		return;
 	while(fgets(szInputString, 1024, fdInput) != NULL)
 	{
 		if(szInputString[0] == ';' || strlen(szInputString) <= 1)

@@ -3,8 +3,8 @@
 #ifndef __RGF_CRFMENU_H_
 #define __RGF_CRFMENU_H_
 
-#define NUM_BACKGROUNDS  15
-#define NUM_TITLES       15
+#define NUM_BACKGROUNDS  20
+#define NUM_TITLES       20
 #define NUM_IMAGES       150
 #define NUM_FONTS        30
 #define NUM_SELECT		 10
@@ -68,6 +68,7 @@ typedef struct Font
   int font_height;    // # of chars down bitmap
   Chardat dat[96];
   geBitmap *Bitmap;   // font bitmap
+  geBitmap *WBitmap[96];
 } Font;
 
 typedef struct Selection
@@ -81,6 +82,12 @@ typedef struct Selection
   float ShadowSize;
   GE_RGBA FillColor;
   GE_RGBA AmbientColor;
+  char Attribute[64];
+  char pSetup[64];
+  float JumpSpeed;
+  float Speed;
+  float StepHeight;
+  char Environment[64];
 } Selection;
 
 
@@ -109,6 +116,9 @@ public:
   void MenuInitalize();
 // changed RF064
   void DisplaySplash();
+  void LoadWBitmap();
+  void UnLoadWBitmap();
+  void WFontRect(char *s, int FontNumber, int x, int y);
 // end change RF064
   void MFontRect(char *s, int FontNumber, int x, int y);
   void FontRect(char *s, int FontNumber, int x, int y);
@@ -182,6 +192,12 @@ public:
   { return useselect; }
   char *GetCurrentActor()
   { return CharSelect[CurrentSelect].ActorName; }
+  char *GetCurrentAttr()
+  { return CharSelect[CurrentSelect].Attribute; }
+  char *GetCurrentpSetup()
+  { return CharSelect[CurrentSelect].pSetup; }
+  char *GetCurrentEnv()
+  { return CharSelect[CurrentSelect].Environment; }
   float GetCurrentScale()
   { return CharSelect[CurrentSelect].ActorScale; }
   geVec3d GetCurrentRotation()
@@ -190,6 +206,12 @@ public:
   { return CharSelect[CurrentSelect].AnimSpeed; }
   float GetCurrentShadow()
   { return CharSelect[CurrentSelect].ShadowSize; }
+  float GetCurrentJumpSpeed()
+  { return CharSelect[CurrentSelect].JumpSpeed; }
+  float GetCurrentMSpeed()
+  { return CharSelect[CurrentSelect].Speed; }
+  float GetCurrentStep()
+  { return CharSelect[CurrentSelect].StepHeight; }
   GE_RGBA GetCurrentFillColor()
   { return CharSelect[CurrentSelect].FillColor; }
   GE_RGBA GetCurrentAmbientColor()
@@ -256,6 +278,8 @@ private:
   bool useselect;
   CMIDIAudio *theMIDIPlayer;
   char	Loading[128];
+  int	 DifficultBack;
+  int	 DifficultTitle;
 // end change RF064
 };
 

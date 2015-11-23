@@ -288,7 +288,7 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, geVec3d Origin, bool SoundLoop)
 
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-    Sound.Min=kAudibleRadius;
+    Sound.Min=CCD->GetAudibleRadius();
 	Sound.Loop=SoundLoop;
 	Sound.SoundDef = theSound;
 	int index = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);

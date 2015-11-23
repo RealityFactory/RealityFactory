@@ -196,7 +196,7 @@ bool CTeleporter::HandleCollision(geWorld_Model *pModel, geActor *theActor)
 						Snd Sound;
 						memset( &Sound, 0, sizeof( Sound ) );
 						geVec3d_Copy( &(pTeleport->origin), &( Sound.Pos ) );
-						Sound.Min=kAudibleRadius;
+						Sound.Min=CCD->GetAudibleRadius();
 						Sound.Loop=false;
 						Sound.SoundDef = pTeleport->theSound;
 						CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -215,6 +215,12 @@ bool CTeleporter::HandleCollision(geWorld_Model *pModel, geActor *theActor)
 								0.0f, (geFloat)nTemp+500, pTeleport->fogRadius+(geFloat)(nTemp/400));
 							CCD->Engine()->RenderWorld();
 							CCD->Engine()->EndFrame();
+// changed RF064
+							CCD->ResetClock();
+							CCD->Engine()->BeginFrame();
+							CCD->Engine()->EndFrame();
+							CCD->ResetClock();
+// end change RF064
 						}
 					}
 					// Ok, let's MOVE THE ACTOR

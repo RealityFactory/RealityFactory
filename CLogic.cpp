@@ -283,6 +283,15 @@ void CLogic::Tick(float dwTicks)
 				if(state)
 					CCD->Player()->SetRestoreOxy(false);
 				break;
+			case 14: // Difficulty level
+				pSource->bState = false;
+				if(!stricmp(pSource->Trigger1Name, "Easy") && (CCD->GetDifficultLevel()==1))
+					pSource->bState = true;
+				else if(!stricmp(pSource->Trigger1Name, "Normal") && (CCD->GetDifficultLevel()==2))
+					pSource->bState = true;
+				else if(!stricmp(pSource->Trigger1Name, "Hard") && (CCD->GetDifficultLevel()==3))
+					pSource->bState = true;
+				break;
 // end change RF064
 		}
 

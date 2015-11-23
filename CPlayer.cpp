@@ -66,6 +66,13 @@ CPlayer::CPlayer()
 	CurrentLiteLife = -1.0f;
 	StaminaDelay = 1.0f;
 	StaminaTime = 0.0f;
+// changed RF064
+	for(int sn=0;sn<20;sn++)
+	{
+		StaminaDelay1[sn] = 1.0f;
+		StaminaTime1[sn] = 0.0f;
+	}
+// end change RF064
 	Allow3rdLook = true;
 	LastHealth = -1;
 	Injured = false;
@@ -93,8 +100,17 @@ CPlayer::CPlayer()
 	for(int nTemp = 0; nTemp < 16; nTemp++)
 		for(int j=0;j<3;j++)
 			Contents[nTemp][j] = NULL;
-		
-		CIniFile AttrFile("playersetup.ini");
+
+		char pSetup[64];
+		strcpy(pSetup, "playersetup.ini");
+
+		if(CCD->MenuManager()->GetUseSelect())
+		{
+			if(!EffectC_IsStringNull(CCD->MenuManager()->GetCurrentpSetup()))
+				strcpy(pSetup, CCD->MenuManager()->GetCurrentpSetup());
+		}
+
+		CIniFile AttrFile(pSetup);
 		if(!AttrFile.ReadFile())
 		{
 			CCD->ReportError("Can't open playersetup initialization file", false);
@@ -420,6 +436,17 @@ CPlayer::CPlayer()
 			if(Type!="")
 				strcpy(StaminaName,Type);
 // changed RF064
+			char szSName[64];
+			for(int sn=0;sn<20;sn++)
+			{
+				StaminaName1[sn][0] = '\0';
+				sprintf(szSName, "attributename%d",sn+1);
+				Type = AttrFile.GetValue(KeyName, szSName);
+				if(Type!="")
+					strcpy(StaminaName1[sn],Type);
+				sprintf(szSName, "recoverytime%d",sn+1);
+				StaminaDelay1[sn] = (float)AttrFile.GetValueF(KeyName, szSName);
+			}
 			strcpy(FallDamageAttr,"health");
 			Type = AttrFile.GetValue(KeyName, "falldamageattribute");
 			if(Type!="")
@@ -462,8 +489,8 @@ CPlayer::CPlayer()
 				strcpy(ChangeMaterial,Type);
 // end change RF064
 // end change RF063
-			geVec3d TFillColor = {255.0f, 255.0f, 255.0f};
-			geVec3d TAmbientColor = {255.0f, 255.0f, 255.0f};
+			geVec3d TFillColor = {0.0f, 0.0f, 0.0f};
+			geVec3d TAmbientColor = {0.0f, 0.0f, 0.0f};
 			Vector = AttrFile.GetValue(KeyName, "fillcolor");
 			if(Vector!="")
 			{
@@ -785,6 +812,8 @@ int CPlayer::LoadConfiguration()
 				m_Speed = m_CurrentSpeed = theState->Speed;	// Over-ride default speed
 			if(theState->StepHeight != 0.0f)
 				m_StepHeight = theState->StepHeight;	// Over-ride default step-up height
+			if(theState->AudibleRadius != 0.0f)
+				CCD->SetAudibleRadius(theState->AudibleRadius);
 			float detailevel = (float)CCD->MenuManager()->GetDetail();
 			if(theState->EnableDistanceFog == GE_TRUE)
 			{
@@ -814,13 +843,29 @@ int CPlayer::LoadConfiguration()
 	}
 	CCD->ActorManager()->SetStepHeight(Actor, m_StepHeight);
 	CCD->ActorManager()->SetGravity(Actor, m_Gravity);
-// end change RF064
 
-	CIniFile AttrFile(pSetup->AttributeInfoFile);
+	char *AttrInfo = pSetup->AttributeInfoFile;
+
+	if(CCD->MenuManager()->GetUseSelect())
+	{
+		if(!EffectC_IsStringNull(CCD->MenuManager()->GetCurrentAttr()))
+			AttrInfo = CCD->MenuManager()->GetCurrentAttr();
+		if(CCD->MenuManager()->GetCurrentMSpeed()!=-1.0f)
+			m_Speed = m_CurrentSpeed = CCD->MenuManager()->GetCurrentMSpeed();
+		if(CCD->MenuManager()->GetCurrentJumpSpeed()!=-1.0f)
+			m_JumpSpeed = CCD->MenuManager()->GetCurrentJumpSpeed();
+		if(CCD->MenuManager()->GetCurrentStep()!=-1.0f)
+		{
+			m_StepHeight = CCD->MenuManager()->GetCurrentStep();
+			CCD->ActorManager()->SetStepHeight(Actor, m_StepHeight);
+		}
+	}
+
+	CIniFile AttrFile(AttrInfo);
 	if(!AttrFile.ReadFile())
 	{
 		char szAttrError[256];
-		sprintf(szAttrError,"Can't open player config file '%s'", pSetup->AttributeInfoFile);
+		sprintf(szAttrError,"Can't open player config file '%s'", AttrInfo);
 		CCD->ReportError(szAttrError, false);
 		return RGF_FAILURE;
 	}
@@ -838,7 +883,7 @@ int CPlayer::LoadConfiguration()
 		m_Attr->SetValueLimits(szAttr, LowValue, HighValue);
 		KeyName = AttrFile.FindNextKey();
 	}
-	
+// end change RF064
 	return RGF_SUCCESS;
 }
 
@@ -849,22 +894,6 @@ int CPlayer::LoadConfiguration()
 
 int CPlayer::LoadEnvironmentalAudio()
 {
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-	
-	//	Ok, check to see if there's a PlayerSetup around...
-	
-	pSet = geWorld_GetEntitySet(CCD->World(), "EnvAudioSetup");
-	
-	if(!pSet) 
-		return RGF_FAILURE;									// No setup?
-	
-	//	Ok, get the setup information.  There should only be one, so
-	//	..we'll just take the first one we run into.
-	
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-	EnvAudio = (EnvAudioSetup *)geEntity_GetUserData(pEntity);
-	
 	//	Cool, now load up all the audio and prep the motion audio for
 	//	..playback.
 	
@@ -879,42 +908,184 @@ int CPlayer::LoadEnvironmentalAudio()
 			Contents[nTemp][j] = NULL;
 		ContentsHandles[nTemp] = NULL;
 	}
+
+	char envir[64];
+	strcpy(envir, "environment.ini");
+
+	if(CCD->MenuManager()->GetUseSelect())
+	{
+		if(!EffectC_IsStringNull(CCD->MenuManager()->GetCurrentEnv()))
+			strcpy(envir, CCD->MenuManager()->GetCurrentEnv());
+	}
+
+	CIniFile AttrFile;
+	AttrFile.SetPath(envir);
+	if(AttrFile.ReadFile())
+	{
+		CString KeyName = AttrFile.FindFirstKey();
+		CString Type, Value;
+		char szName[64];
+		int count;
+		while(KeyName != "")
+		{
+			if(!strcmp(KeyName, "Default"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					DefaultMotion[count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Water"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[0][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Lava"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[1][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "ToxicGas"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[2][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "ZeroG"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[3][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Frozen"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[4][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Sludge"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[5][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "SlowMotion"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[6][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "FastMotion"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[7][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Ladders"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[8][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			else if(!strcmp(KeyName, "Unclimbable"))
+			{
+				count = 0;
+				Type = AttrFile.FindFirstName(KeyName);
+				Value = AttrFile.FindFirstValue();
+				while(Type!="" && count<3)
+				{
+					strcpy(szName, Type);
+					Contents[9][count] = LoadAudioClip(szName);
+					count += 1;
+					Type = AttrFile.FindNextName();
+					Value = AttrFile.FindNextValue();
+				}
+			}
+			KeyName = AttrFile.FindNextKey();
+		}
+	}
 	
-	DefaultMotion[0] = LoadAudioClip(EnvAudio->DefaultMotionSound);
-	DefaultMotion[1] = LoadAudioClip(EnvAudio->DefaultMotionSound1);
-	DefaultMotion[2] = LoadAudioClip(EnvAudio->DefaultMotionSound2);
-	Contents[0][0] = LoadAudioClip(EnvAudio->SoundWhenInWater);
-	Contents[0][1] = LoadAudioClip(EnvAudio->SoundWhenInWater1);
-	Contents[0][2] = LoadAudioClip(EnvAudio->SoundWhenInWater2);
-	Contents[1][0] = LoadAudioClip(EnvAudio->SoundWhenInLava);
-	Contents[1][1] = LoadAudioClip(EnvAudio->SoundWhenInLava1);
-	Contents[1][2] = LoadAudioClip(EnvAudio->SoundWhenInLava2);
-	Contents[2][0] = LoadAudioClip(EnvAudio->SoundWhenInToxicGas);
-	Contents[2][1] = LoadAudioClip(EnvAudio->SoundWhenInToxicGas1);
-	Contents[2][2] = LoadAudioClip(EnvAudio->SoundWhenInToxicGas2);
-	Contents[3][0] = LoadAudioClip(EnvAudio->SoundWhenInZeroG);
-	Contents[3][1] = LoadAudioClip(EnvAudio->SoundWhenInZeroG1);
-	Contents[3][2] = LoadAudioClip(EnvAudio->SoundWhenInZeroG2);
-	Contents[4][0] = LoadAudioClip(EnvAudio->SoundWhenInFrozen);
-	Contents[4][1] = LoadAudioClip(EnvAudio->SoundWhenInFrozen1);
-	Contents[4][2] = LoadAudioClip(EnvAudio->SoundWhenInFrozen2);
-	Contents[5][0] = LoadAudioClip(EnvAudio->SoundWhenInSludge);
-	Contents[5][1] = LoadAudioClip(EnvAudio->SoundWhenInSludge1);
-	Contents[5][2] = LoadAudioClip(EnvAudio->SoundWhenInSludge2);
-	Contents[6][0] = LoadAudioClip(EnvAudio->SoundWhenInSlowMotion);
-	Contents[6][1] = LoadAudioClip(EnvAudio->SoundWhenInSlowMotion1);
-	Contents[6][2] = LoadAudioClip(EnvAudio->SoundWhenInSlowMotion2);
-	Contents[7][0] = LoadAudioClip(EnvAudio->SoundWhenInFastMotion);
-	Contents[7][1] = LoadAudioClip(EnvAudio->SoundWhenInFastMotion1);
-	Contents[7][2] = LoadAudioClip(EnvAudio->SoundWhenInFastMotion2);
-	Contents[8][0] = LoadAudioClip(EnvAudio->SoundWhenUsingLadders);
-	Contents[8][1] = LoadAudioClip(EnvAudio->SoundWhenUsingLadders1);
-	Contents[8][2] = LoadAudioClip(EnvAudio->SoundWhenUsingLadders2);
-// changed RF063
-	Contents[9][0] = LoadAudioClip(EnvAudio->SoundWhenInUnclimbable);
-	Contents[9][1] = LoadAudioClip(EnvAudio->SoundWhenInUnclimbable1);
-	Contents[9][2] = LoadAudioClip(EnvAudio->SoundWhenInUnclimbable2);
-// end change RF063	
 	return RGF_SUCCESS;
 }
 
@@ -1371,7 +1542,7 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 				geVec3d Origin = Position();
 				memset( &Sound, 0, sizeof( Sound ) );
 				geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=true;
 				Sound.SoundDef = SPool_Sound(LQ->SurfaceSound);
 				if(Sound.SoundDef)
@@ -1399,7 +1570,7 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 				geVec3d Origin = Position();
 				memset( &Sound, 0, sizeof( Sound ) );
 				geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=true;
 				Sound.SoundDef = SPool_Sound(LQ->SwimSound);
 				if(Sound.SoundDef)
@@ -1427,7 +1598,7 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 				geVec3d Origin = Position();
 				memset( &Sound, 0, sizeof( Sound ) );
 				geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=true;
 				Sound.SoundDef = SPool_Sound(LQ->InLiquidSound);
 				if(Sound.SoundDef)
@@ -1936,7 +2107,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Snd Sound;
 				memset( &Sound, 0, sizeof( Sound ) );
 				CCD->ActorManager()->GetPosition(Actor, &( Sound.Pos ));
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=false;
 				Sound.SoundDef = DieSound[rand()%DieSoundAmt];
 				CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -1968,7 +2139,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Snd Sound;
 				memset( &Sound, 0, sizeof( Sound ) );
 				CCD->ActorManager()->GetPosition(Actor, &( Sound.Pos ));
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=false;
 				Sound.SoundDef = InjurySound[rand()%InjurySoundAmt];
 				CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -2011,7 +2182,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Snd Sound;
 				memset( &Sound, 0, sizeof( Sound ) );
 				CCD->ActorManager()->GetPosition(Actor, &( Sound.Pos ));
-				Sound.Min=kAudibleRadius;
+				Sound.Min=CCD->GetAudibleRadius();
 				Sound.Loop=false;
 				Sound.SoundDef = LandSound[rand()%LandSoundAmt];
 				CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
@@ -2022,7 +2193,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					distance=MaxFallDist;
 				float damage = ((distance-MinFallDist)/(MaxFallDist-MinFallDist))*FallDamage;
 // changed RF064
-				CCD->Damage()->DamageActor(Actor, damage, FallDamageAttr, damage, FallDamageAttr);
+				CCD->Damage()->DamageActor(Actor, damage, FallDamageAttr, damage, FallDamageAttr, "Fall");
 				FallInjure = true;
 			}
 			if(JumpOnDamage>0.0f && distance>=MinJumpOnDist)
@@ -2033,7 +2204,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				GE_Collision Collision;
 				CCD->ActorManager()->GetGravityCollision(Actor, &Collision);
 				if(Collision.Actor)
-					CCD->Damage()->DamageActor(Collision.Actor, damage, JumpOnDamageAttr, damage, JumpOnDamageAttr);
+					CCD->Damage()->DamageActor(Collision.Actor, damage, JumpOnDamageAttr, damage, JumpOnDamageAttr, "JumpOn");
 				if(Collision.Model)
 					CCD->Damage()->DamageModel(Collision.Model, damage, JumpOnDamageAttr, damage, JumpOnDamageAttr);
 			}
@@ -2073,14 +2244,45 @@ void CPlayer::Tick(geFloat dwTicks)
 			}
 		}
 	}
-// restore oxygen if out of liquid
 // changed RF064
+	for(int sn=0;sn<20;sn++)
+	{
+		if(!strcmp(StaminaName1[sn], "LightValue"))
+		{
+			
+			StaminaTime1[sn] += dwTicks*0.001f;
+			if(StaminaTime1[sn]>=StaminaDelay1[sn])
+			{
+				StaminaTime1[sn] = 0.0f;
+				if(CurrentLiteLife != -1.0f && !lightactive)
+				{
+					CurrentLiteLife += 1.0f;
+					if(CurrentLiteLife > LiteLife)
+						CurrentLiteLife = LiteLife;
+				}
+			}
+		}
+		else
+		{
+			if(theInv->Has(StaminaName1[sn]))
+			{
+				StaminaTime1[sn] += dwTicks*0.001f;
+				if(StaminaTime1[sn]>=StaminaDelay1[sn])
+				{
+					StaminaTime1[sn] = 0.0f;
+					theInv->Modify(StaminaName1[sn], 1);
+				}
+			}
+		}
+	}
+
+// restore oxygen if out of liquid
 	if(theInv->Has("oxygen") && restoreoxy)
 	{
 		if(OldZone<2)
 			theInv->Modify("oxygen", theInv->High("oxygen"));
 	}
-	restoreoxy = true;
+	restoreoxy = true; 
 // end change RF064
 // check for damage in liquid
 // changed RF064
@@ -3904,6 +4106,8 @@ bool CPlayer::GetUseAttribute(char *Attr)
 bool CPlayer::SetUseAttribute(char *Attr)
 {
 	int i;
+
+	CCD->Armours()->DisableHud(Attr);
 
 	for(i=0;i<10;i++)
 	{

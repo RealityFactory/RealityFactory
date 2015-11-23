@@ -37,6 +37,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	TriggerWait = false;
 	Icon = NULL;
 	SoundIndex = -1;
+	AudibleRadius = CCD->GetAudibleRadius();
 	FacePlayer = false;
 	FaceAxis = true;
 	Attribute[0] = '\0';
@@ -45,6 +46,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	UseKey = true;
 	FOV = -2.0f;
 	Group[0] = '\0';
+	TargetGroup[0] = '\0';
 	HostilePlayer = true;
 	HostileDiff = false;
 	HostileSame = false;
@@ -138,7 +140,7 @@ CPawn::CPawn()
 	Background = NULL;
 	Icon = NULL;
 	Events = NULL;
-	for(int ii=0;ii<100;ii++)
+	for(int ii=0;ii<MAXFLAGS;ii++)
 		PawnFlag[ii] = false;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "Pawn");
@@ -302,8 +304,8 @@ CPawn::CPawn()
 							Object->AnimSpeed = 1.0f;
 							if(Type!="")
 								Object->AnimSpeed = (float)AttrFile.GetValueF(KeyName, "animationspeed");
-							geVec3d FillColor = {255.0f, 255.0f, 255.0f};
-							geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
+							geVec3d FillColor = {0.0f, 0.0f, 0.0f};
+							geVec3d AmbientColor = {0.0f, 0.0f, 0.0f};
 							Vector = AttrFile.GetValue(KeyName, "fillcolor");
 							if(Vector!="")
 							{
@@ -385,6 +387,42 @@ CPawn::CPawn()
 					try
 					{
 						pSource->Converse = new ScriptedConverse(script);
+					}
+					catch(skParseException e)
+					{
+						char szBug[256];
+						sprintf(szBug, "Parse Conversation Script Error for %s", Object->szName);
+						CCD->ReportError(szBug, false);
+						strcpy(szBug, e.toString());
+						CCD->ReportError(szBug, false);
+						continue;
+					}
+					catch(skBoundsException e)
+					{
+						char szBug[256];
+						sprintf(szBug, "Bounds Conversation Script Error for %s", Object->szName);
+						CCD->ReportError(szBug, false);
+						strcpy(szBug, e.toString());
+						CCD->ReportError(szBug, false);
+						continue;
+					}
+					catch(skRuntimeException e)
+					{
+						char szBug[256];
+						sprintf(szBug, "Runtime Conversation Script Error for %s", Object->szName);
+						CCD->ReportError(szBug, false);
+						strcpy(szBug, e.toString());
+						CCD->ReportError(szBug, false);
+						continue;
+					}
+					catch(skTreeNodeReaderException e)
+					{
+						char szBug[256];
+						sprintf(szBug, "Reader Conversation Script Error for %s", Object->szName);
+						CCD->ReportError(szBug, false);
+						strcpy(szBug, e.toString());
+						CCD->ReportError(szBug, false);
+						continue;
 					}
 					catch (...)
 					{
@@ -667,4 +705,19 @@ int CPawn::LocateEntity(char *szName, void **pEntityData)
 	}
 	
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
+}
+
+void CPawn::ParmCheck(int Entries, int Desired, char *Order, char *szName, const skString& methodname)
+{
+	if(Entries>=Desired)
+		return;
+	char param0[128];
+	strcpy(param0, methodname);
+	char szError[256];
+	sprintf(szError,"Incorrect # of parameters in command '%s' in Script '%s'  Order  '%s'", param0, szName, Order);
+	CCD->ReportError(szError, false);
+	CCD->ShutdownLevel();
+	delete CCD;
+	MessageBox(NULL, szError,"Player", MB_OK);
+	exit(-333);
 }
