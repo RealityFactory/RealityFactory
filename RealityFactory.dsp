@@ -391,6 +391,10 @@ SOURCE=.\C3DAudioSource.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CActMaterial.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CActorManager.cpp
 # End Source File
 # Begin Source File
@@ -655,6 +659,10 @@ SOURCE=.\CTriggers.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CutScene.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CVideoTexture.cpp
 # End Source File
 # Begin Source File
@@ -764,6 +772,10 @@ SOURCE=.\AutoSelect.h
 # Begin Source File
 
 SOURCE=.\C3DAudioSource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CActMaterial.h
 # End Source File
 # Begin Source File
 
@@ -1016,6 +1028,10 @@ SOURCE=.\CTeleporter.h
 # Begin Source File
 
 SOURCE=.\CTriggers.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CutScene.h
 # End Source File
 # Begin Source File
 

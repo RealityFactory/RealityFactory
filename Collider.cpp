@@ -1413,7 +1413,7 @@ void Collider::GetMoveBox(const geVec3d *Mins, const geVec3d *Maxs, const geVec3
 geBoolean Collider::CheckBoneCollision(geWorld *World, geActor *StaticActor, geVec3d *Position, geVec3d *Min, geVec3d *Max)
 {
 	int TotalStaticBoneCount = 0;
-	geExtBox theBox, theStaticBoneBox;
+	geExtBox theBox, theStaticBoneBox, Temp;
 
 	DrawBoundBox(CCD->World(), Position, Min, Max);
 
@@ -1454,10 +1454,14 @@ geBoolean Collider::CheckBoneCollision(geWorld *World, geActor *StaticActor, geV
 		theStaticBoneBox.Max.Y += theTransform.Translation.Y;
 		theStaticBoneBox.Max.Z += theTransform.Translation.Z;
 
-		if(theBox.Min.X>theStaticBoneBox.Max.X || theBox.Max.X<theStaticBoneBox.Min.X) continue;
-		if(theBox.Min.Y>theStaticBoneBox.Max.Y || theBox.Max.Y<theStaticBoneBox.Min.Y) continue;
-		if(theBox.Min.Z>theStaticBoneBox.Max.Z || theBox.Max.Z<theStaticBoneBox.Min.Z) continue;
-		return GE_TRUE;
+		if(geExtBox_Intersection(&theBox, &theStaticBoneBox, &Temp) == GE_TRUE)
+		{
+			return GE_TRUE;
+		}
+		//if(theBox.Min.X>theStaticBoneBox.Max.X || theBox.Max.X<theStaticBoneBox.Min.X) continue;
+		//if(theBox.Min.Y>theStaticBoneBox.Max.Y || theBox.Max.Y<theStaticBoneBox.Min.Y) continue;
+		//if(theBox.Min.Z>theStaticBoneBox.Max.Z || theBox.Max.Z<theStaticBoneBox.Min.Z) continue;
+		//return GE_TRUE;
 	}
 	
 	return GE_FALSE;							// No bones intersected
@@ -1964,4 +1968,169 @@ void Collider::Debug()
 	sprintf(szData,"Collide Flag2 = %d Collide Flag3 = %d", Flag2,Flag3);
 	CCD->MenuManager()->FontRect(szData, FONT14, 5, CCD->Engine()->Height()- 40);
 
+}
+
+
+bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
+								 geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
+								 geActor *Actor, char *BoneHit)
+{
+	GE_Contents Contents;
+	int Result, Result1;
+	geVec3d OMin, OMax;
+
+	GetMoveBox(Min, Max, &OldPosition, &NewPosition, &OMin, &OMax);
+
+	memset(Collision, 0, sizeof(GE_Collision));
+
+	Result = geWorld_Collision(CCD->World(), Min, 
+		Max, &OldPosition, &NewPosition, kCollideFlags, 
+		GE_COLLIDE_ACTORS, 0xffffffff, CBExclusion, Actor, Collision);
+
+	Collision->Model = NULL;
+
+	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
+	{
+		memset(&Contents, 0, sizeof(GE_Contents));
+		Result = geWorld_GetContents(CCD->World(), 
+			&NewPosition, Min, Max, GE_COLLIDE_ACTORS, 
+			0xffffffff, CBExclusion, Actor, &Contents);
+		Contents.Model = NULL;
+		if(Result == GE_FALSE)
+		{
+			geActor *pActor;
+			geExtBox pBox;
+			pBox.Min.X = Min->X + NewPosition.X;
+			pBox.Min.Y = Min->Y + NewPosition.Y;
+			pBox.Min.Z = Min->Z + NewPosition.Z;
+			pBox.Max.X = Max->X + NewPosition.X;
+			pBox.Max.Y = Max->Y + NewPosition.Y;
+			pBox.Max.Z = Max->Z + NewPosition.Z; 
+
+			Contents.Model = NULL;
+			Contents.Actor = NULL;
+			if(CCD->ActorManager()->DoesBoxHitActor(NewPosition, pBox, &pActor, Actor) == GE_TRUE)
+			{
+				Contents.Actor = pActor;
+				Result = GE_TRUE;
+			}
+		}
+		if(Result==GE_TRUE)
+		{
+			// Fill collision struct with information
+			Collision->Mesh = Contents.Mesh;
+			Collision->Model = NULL;
+			Collision->Actor = Contents.Actor;
+			Collision->Impact = OldPosition;
+		} 
+	}
+ 
+	if(Result==GE_TRUE)
+	{
+		int TotalStaticBoneCount = geActor_GetBoneCount(Collision->Actor);
+		geExtBox theStaticBoneBox;
+		geFloat T;
+		geVec3d Normal;
+		for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
+		{
+			// The bone bounding box comes back in worldspace coordinates...
+			if(geActor_GetBoneExtBoxByIndex(Collision->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)
+				continue;								// Nothing here, skip it
+
+			if(geExtBox_RayCollision(&theStaticBoneBox, &OldPosition, &NewPosition,
+				&T, &Normal)==GE_TRUE)
+			{
+				Collision->Plane.Normal = Normal;
+				geVec3d Vec;
+				geVec3d_Subtract(&NewPosition, &OldPosition, &Vec);
+				float len = geVec3d_Length(&Vec);
+				geVec3d_Normalize(&Vec);
+				geVec3d_AddScaled(&OldPosition, &Vec, len*T, &Collision->Impact);
+
+				geXForm3d Attachment;
+				int ParentBoneIndex;
+				const char *BoneName;
+				geBody_GetBone(geActor_GetBody(geActor_GetActorDef(Collision->Actor)),
+					nStatic, &BoneName, &Attachment, &ParentBoneIndex); 
+
+				if(BoneName!=NULL)
+					strcpy(BoneHit, BoneName);
+
+				return true;
+			}
+		}
+	}
+
+	memset(Collision, 0, sizeof(GE_Collision));
+
+	Result = GE_FALSE;
+	if(geWorld_Collision(CCD->World(), Min, 
+		Max, &OldPosition, &NewPosition, kCollideFlags, 
+		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
+	{
+		Collision->Actor = NULL;
+		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+			return true;
+		else
+			Collision->Model = NULL;
+	}
+
+	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
+	{
+		Result1 = geWorld_GetContents(CCD->World(), 
+			&NewPosition, Min, Max, GE_COLLIDE_MODELS, 
+			0xffffffff, NULL, NULL, &Contents);
+
+		if(Result1 == GE_TRUE)
+		{
+			Contents.Actor = NULL;
+			if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+				Result = GE_FALSE;
+			else if((Contents.Contents & GE_CONTENTS_HINT))
+			{
+				Result = GE_FALSE;
+			}
+			else if((Contents.Contents & GE_CONTENTS_AREA))
+			{
+				Result = GE_FALSE;
+			}
+			else
+			{
+				Result = GE_TRUE;
+				if(CCD->Doors()->IsADoor(Contents.Model))
+					Result = GE_FALSE; 
+			}
+		}
+		if(Result == GE_FALSE)
+		{
+			geWorld_Model *pModel;
+			geExtBox pBox;
+			pBox.Min.X = Min->X + NewPosition.X;
+			pBox.Min.Y = Min->Y + NewPosition.Y;
+			pBox.Min.Z = Min->Z + NewPosition.Z;
+			pBox.Max.X = Max->X + NewPosition.X;
+			pBox.Max.Y = Max->Y + NewPosition.Y;
+			pBox.Max.Z = Max->Z + NewPosition.Z; 
+
+			Contents.Model = NULL;
+			Contents.Actor = NULL;
+			// Gotta check to see if we're hitting a world model
+			if(CCD->ModelManager()->DoesBoxHitModel(NewPosition, pBox, &pModel) == GE_TRUE)
+			{
+				Contents.Model = pModel;		// Model we hit
+				Result = GE_TRUE;					// Sorry, you can't be here...
+			} 
+		}
+		if(Result==GE_TRUE)
+		{
+			// Fill collision struct with information
+			Collision->Mesh = Contents.Mesh;
+			Collision->Model = Contents.Model;
+			Collision->Actor = NULL;
+			Collision->Impact = OldPosition;
+			return true;
+		} 
+	}
+
+	return false;
 }

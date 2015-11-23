@@ -625,6 +625,7 @@ Keydef Redef[] =
 // end multiplayer
 // changed RF064
 	{"Drop Weapon", RGF_K_DROP},
+	{"Reload Weapon", RGF_K_RELOAD},
 // end change RF064
 	{NULL}
 };
@@ -1038,7 +1039,10 @@ CRFMenu::CRFMenu()
   ScrnWait = false;
   savetime = 0.0f;
   musictype = -1;
+// changed RF064
   theMIDIPlayer = NULL;
+  strcpy(Loading, "menu\\loading.bmp");
+// end change RF064
 // MENUFIX
   ingame = 0;
 
@@ -1208,6 +1212,13 @@ CRFMenu::CRFMenu()
 				MTitles[index].Animation = NextValue();
 			}
 // end change RF063
+// changed RF064
+			else if(!stricmp(szAtom,"loadscreen"))
+			{
+				strcpy(Loading,"menu\\");
+				strcat(Loading,NextToken());
+			}
+// end change RF064
 			else if(!stricmp(szAtom,"cursor"))
 			{
 				strcpy(menuline,"menu\\");
@@ -4104,17 +4115,14 @@ void CRFMenu::DisplayCrossHair()
 // display splash screen with color 255
 // as transparent
 //-----------------------------------------
-
-void CRFMenu::DisplaySplash(char *szSplashBMP)
+// changed RF064
+void CRFMenu::DisplaySplash()
 {
 	geBitmap *theBmp;
 	geBitmap_Info	BmpInfo;
 	int x, y;
-	char menuline[132];
 
-	strcpy(menuline,"menu\\");
-	strcat(menuline,szSplashBMP);
-	theBmp = CreateFromFileName(menuline);
+	theBmp = CreateFromFileName(Loading);
 
 	if(theBmp != NULL)
 	{
@@ -4125,16 +4133,16 @@ void CRFMenu::DisplaySplash(char *szSplashBMP)
 			if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
 			{
 				char szError[200];
-				sprintf(szError,"DisplaySplash: addbitmap failed on '%s'\n", szSplashBMP);
+				sprintf(szError,"DisplaySplash: addbitmap failed on '%s'\n", Loading);
 				CCD->ReportError(szError, false);
 				return;
 			}
 			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
 			if(geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y ) == GE_FALSE)
 			{
 				char szError[200];
-				sprintf(szError,"DisplaySplash: drawbitmap failed on '%s'\n", szSplashBMP);
+				sprintf(szError,"DisplaySplash: drawbitmap failed on '%s'\n", Loading);
 				CCD->ReportError(szError, false);
 			}
 			geEngine_EndFrame(CCD->Engine()->Engine());
@@ -4143,7 +4151,7 @@ void CRFMenu::DisplaySplash(char *szSplashBMP)
 	}
 	return;
 }
-
+// end change RF064
 //----------------------------
 // save a screen shot
 //----------------------------
@@ -4488,12 +4496,12 @@ void CRFMenu::DoGame(bool editor)
 			if(CCD->MIDIPlayer())
 				CCD->MIDIPlayer()->Stop();
 		}
-		CCD->MenuManager()->DisplaySplash("loading.bmp");
+		CCD->MenuManager()->DisplaySplash(); // changed RF064
 	}
 	else
 	{
 		if(CCD->GetCSelect())
-			CCD->MenuManager()->DisplaySplash("loading.bmp");
+			CCD->MenuManager()->DisplaySplash(); // changed RF064
 	}
 // start multiplayer
 	if(CCD->GetMultiPlayer())
@@ -4792,7 +4800,7 @@ static void GetSlot()
 				return;
 			}
 // end change RF064
-			CCD->MenuManager()->DisplaySplash("loading.bmp");
+			CCD->MenuManager()->DisplaySplash(); // changed RF064
 			CCD->ShutdownLevel();
 			if(CCD->CDPlayer())
 				CCD->CDPlayer()->Stop();
@@ -4830,7 +4838,7 @@ static void GetSlot()
 				CCD->MenuManager()->StopMenuMusic();
 // end change RF063
 			}
-			CCD->MenuManager()->DisplaySplash("loading.bmp");
+			CCD->MenuManager()->DisplaySplash(); // changed RF064
 			CCD->MenuManager()->GameLoop();
 			// set flag for game running
 			CCD->MenuManager()->SetInGame();

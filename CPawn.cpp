@@ -43,7 +43,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	DeadOrder[0] = '\0';
 	Converse = NULL;
 	UseKey = true;
-	FOV = -1.0f;
+	FOV = -2.0f;
 	Group[0] = '\0';
 	HostilePlayer = true;
 	HostileDiff = false;

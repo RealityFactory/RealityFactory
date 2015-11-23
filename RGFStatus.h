@@ -92,6 +92,7 @@ typedef enum
 // end multiplayer
 // changed RF064
 	RGF_K_DROP,
+	RGF_K_RELOAD,
 // end change RF064
 	RGF_K_NOACTION
 } ACTIONCODES;

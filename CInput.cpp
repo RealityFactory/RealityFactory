@@ -51,7 +51,9 @@ void CInput::Default()
 	m_WindowKeys[KEY_Q] = 0x51;
 	m_WindowKeys[KEY_W] = 0x57;
 	m_WindowKeys[KEY_E] = 0x45;
-	m_WindowKeys[KEY_R] = 0x52;
+// changed RF064
+	m_WindowKeys[KEY_R] = 0x52;				m_RGFKeys[KEY_R] = RGF_K_RELOAD;
+// end change RF064
 	m_WindowKeys[KEY_T] = 0x54;
 	m_WindowKeys[KEY_Y] = 0x59;
 // changed RF063

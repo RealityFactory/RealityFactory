@@ -1151,10 +1151,12 @@ int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amo
 		strcpy(pEntry->szBlendMotionName, pEntry->szMotionName);
 		strcpy(pEntry->szMotionName, name1);
 		pEntry->BlendAmount = Amount;
+// changed RF064
+		pEntry->StartTime = pEntry->PrevAnimationTime;
+// end change RF064
 		pEntry->AnimationTime = 0.0f;		// Clear animation timing
 		pEntry->NeedsNewBB = true;
 		pEntry->TransitionFlag = true;
-		pEntry->StartTime = pEntry->AnimationTime;
 	}
 	return RGF_SUCCESS;
 }
@@ -2000,8 +2002,29 @@ void CActorManager::Tick(geFloat dwTicks)
 			{
 				GetBoundingBox(pEntry->Actor, &Result);
 				if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
-					DrawBoundBox(CCD->World(), &pEntry->localTranslation,
-					&Result.Min, &Result.Max);
+				{
+					//DrawBoundBox(CCD->World(), &pEntry->localTranslation,
+					//&Result.Min, &Result.Max);
+					int TotalStaticBoneCount = geActor_GetBoneCount(pEntry->Actor);
+					geExtBox theStaticBoneBox;
+					for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
+					{
+						// The bone bounding box comes back in worldspace coordinates...
+						if(geActor_GetBoneExtBoxByIndex(pEntry->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)
+							continue;								// Nothing here, skip it
+						
+						geXForm3d theTransform;
+						geActor_GetBoneTransformByIndex(pEntry->Actor, nStatic, &theTransform);
+						// Ok, convert from worldspace to modelspace for the bounding box
+						theStaticBoneBox.Min.X -= theTransform.Translation.X;
+						theStaticBoneBox.Min.Y -= theTransform.Translation.Y;
+						theStaticBoneBox.Min.Z -= theTransform.Translation.Z;
+						theStaticBoneBox.Max.X -= theTransform.Translation.X;
+						theStaticBoneBox.Max.Y -= theTransform.Translation.Y;
+						theStaticBoneBox.Max.Z -= theTransform.Translation.Z;
+						DrawBoundBox(CCD->World(), &theTransform.Translation, &theStaticBoneBox.Min, &theStaticBoneBox.Max);
+					}
+				}
 			}
 		}
 // end change RF064
@@ -2287,9 +2310,10 @@ bool CActorManager::EndAnimation(geActor *theActor)
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
 		return false;
-	//if(!pEntry->HoldAtEnd)
-		//return false;
-
+// changed RF064
+	if(pEntry->TransitionFlag)
+		return false;
+// end change RF064
 	geMotion *pMotion;
 	geFloat time = (((geFloat)pEntry->AnimationTime) / 1000.0f) * pEntry->ActorAnimationSpeed;
 	geFloat tStart, tEnd;
@@ -2573,7 +2597,11 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 				theEntry->AnimationTime = (time - tEnd);//0.0f;
 			}
 // changed RF064
-			theEntry->TransitionFlag = false;
+			if(theEntry->TransitionFlag)
+			{
+				theEntry->TransitionFlag = false;
+				theEntry->AnimationTime = 0.0f;
+			}
 // end change RF064
 		}
 		else
@@ -3232,6 +3260,13 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 	theExtBox.Max.Z -= pEntry->localTranslation.Z;
 
 	theExtBox.Min.Y -= 0.5f;
+
+	//char *texname = NULL;
+	//if(geWorld_GetTextureName(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
+		//&theExtBox.Max, texname) == GE_TRUE)
+	//{ 
+	//}
+	//OutputDebugString("\n");
 
 	if(geWorld_GetContents(CCD->World(), &pEntry->localTranslation, &theExtBox.Min, 
 		&theExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)

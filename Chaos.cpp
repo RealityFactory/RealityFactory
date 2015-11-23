@@ -32,7 +32,7 @@ Chaos::Chaos()
                if(pTex->Actor == NULL)
                {
                        char szError[256];
-                       sprintf(szError,"Error can't find actor");
+                       sprintf(szError,"EChaos : Error can't find actor");
                        CCD->ReportError(szError, false);
                        CCD->ShutdownLevel();
                        delete CCD;
@@ -79,7 +79,7 @@ Chaos::Chaos()
                if(i == MaterialCount)
                {
                        char szError[256];
-                       sprintf(szError,"Error can't find ActorMaterial");
+                       sprintf(szError,"EChaos : Error can't find ActorMaterial");
                        CCD->ReportError(szError, false);
                        CCD->ShutdownLevel();
                        delete CCD;
@@ -95,7 +95,7 @@ Chaos::Chaos()
                if(pTex->CAttachBmp == NULL)
                {
                        char szError[256];
-                       sprintf(szError,"Error can't find bitmap in level");
+                       sprintf(szError,"EChaos : Error can't find bitmap in level");
                        CCD->ReportError(szError, false);
                        CCD->ShutdownLevel();
                        delete CCD;

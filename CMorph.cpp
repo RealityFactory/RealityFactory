@@ -71,7 +71,7 @@ CMorph::CMorph()
 		if(pMorph->CStartBmp == NULL)
 		{
 			char szError[256];
-			sprintf(szError,"Could not create StartBmp ");
+			sprintf(szError,"EM_Morph : Could not create StartBmp ");
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
@@ -90,7 +90,7 @@ CMorph::CMorph()
 		if(pMorph->CEndBmp == NULL)
 		{
 			char szError[256];
-			sprintf(szError,"Could not create EndBmp");
+			sprintf(szError,"EM_Morph : Could not create EndBmp");
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
@@ -112,7 +112,7 @@ CMorph::CMorph()
 			if(pMorph->Actor == NULL)
 			{
 				char szError[256];
-				sprintf(szError,"Error can't find actor");
+				sprintf(szError,"EM_Morph : Error can't find actor");
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
@@ -161,7 +161,7 @@ CMorph::CMorph()
 			if(i == MaterialCount)
 			{
 				char szError[256];
-				sprintf(szError,"Error can't find ActorMaterial");
+				sprintf(szError,"EM_Morph : Error can't find ActorMaterial");
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
@@ -177,7 +177,7 @@ CMorph::CMorph()
 			if(pMorph->CMorphBmp == NULL)
 			{
 				char szError[256];
-				sprintf(szError,"Error can't find bitmap in level");
+				sprintf(szError,"EM_Morph : Error can't find bitmap in level");
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;

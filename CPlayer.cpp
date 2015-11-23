@@ -456,6 +456,10 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "alternatekey");
 			if(Type=="true")
 				alterkey = true;
+			ChangeMaterial[0] = '\0';
+			Type = AttrFile.GetValue(KeyName, "changematerial");
+			if(Type!="")
+				strcpy(ChangeMaterial,Type);
 // end change RF064
 // end change RF063
 			geVec3d TFillColor = {255.0f, 255.0f, 255.0f};
@@ -585,6 +589,8 @@ int CPlayer::LoadAvatar(char *szFile)
 			exit(-333);
 		}
 	}
+	if(!EffectC_IsStringNull(ChangeMaterial))
+		CCD->ActorManager()->ChangeMaterial(Actor, ChangeMaterial);
 // end change RF064
 // end change RF063
 	CCD->CameraManager()->BindToActor(Actor);							// Bind the camera

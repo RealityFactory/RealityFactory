@@ -261,7 +261,9 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					pool = NULL;
 				}
 				else
+				{
 					pool->Attached = true;
+				}
 			}
 		}
 		else
@@ -274,8 +276,9 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				else
 					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 				geVec3d Position = Xf.Translation;
-
-				int type = CCD->Effect()->EffectType(pool->index);
+// changed RF064
+				int type = CCD->Effect()->EffectType(pool->Type);
+// end change RF064
 				switch(type)
 				{
 				case EFF_SPRAY:

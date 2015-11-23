@@ -483,6 +483,7 @@ private:
 	bool monitormode;
 	bool alterkey;
 	bool restoreoxy;
+	char ChangeMaterial[64];
 // end change RF064
 };
 

@@ -22,7 +22,14 @@ typedef enum
 // changed RF063
 		RADAR
 } HUDTYPE;
-
+// changed RF064
+typedef enum 
+{
+	NONE = 0,
+	CLIP,
+	MAG
+};
+// end change RF064
 struct HUDEntry
 {
 	bool active;
@@ -43,6 +50,9 @@ struct HUDEntry
 	float DisplayTime;
 	float CurrentTime;
 	int OldAmount;
+// change RF064
+	int Style;
+// end change RF064
 };
 
 class CHeadsUpDisplay : public CRGFComponent

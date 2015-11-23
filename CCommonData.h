@@ -84,6 +84,8 @@ public:
 // changed RF064
 	inline CActorSpout *ActorSpoutEffect() { return theActorSpout; }
 	inline CMorph * Morphs() {return theMorph; }
+	inline CCutScene *CutScenes() {return theCutScene; }
+	inline CActMaterial *ActMaterials() {return theActMaterial; }
 // end change RF064
 	inline CFloat *FloatEffect() { return theFloat; }
 	inline Chaos *ChaosEffect() { return theChaos;}
@@ -256,6 +258,8 @@ private:
 	CCountDown *theCountDownTimer;
 	CChangeAttribute *theChangeAttribute;
 	CMorph *theMorph;
+	CCutScene *theCutScene;
+	CActMaterial * theActMaterial;
 // end change RF064
 	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information
@@ -326,6 +330,7 @@ private:
 // end change RF063
 // changed RF064
 	bool dropkey;
+	bool reloadkey;
 // end change Rf064
 	geVFile *VFS;
 // start multiplayer

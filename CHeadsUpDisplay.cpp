@@ -125,6 +125,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
 	bool valid, active, modify;
 	int nTop, nLeft, iTopOffset, iLeftOffset, Height, direction;
+// changed RF064
+	int Style;
+// end change RF064
 	HUDTYPE Type;
 	float Font, DisplayTime;
 	char format[16];
@@ -139,6 +142,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 		valid = false;
 		active = true;
 		modify = false;
+// changed RF064
+		Style = NONE;
+// end change RF064
 		direction = 0;
 		TempBmp1 = NULL;
 		TempBmp2 = NULL;
@@ -261,6 +267,13 @@ int CHeadsUpDisplay::LoadConfiguration()
 				}
 				if(valid)
 				{
+// changed RF064
+					Tname = AttrFile.GetValue(KeyName, "style");
+					if(Tname=="clip")
+						Style = CLIP;
+					if(Tname=="magazine")
+						Style = MAG;
+// end change RF064
 					if(Type!=VALUE)
 					{
 						Tname = AttrFile.GetValue(KeyName, "indicator");
@@ -369,6 +382,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 					m_theHUD[nItem].iLeftOffset = iLeftOffset;
 					m_theHUD[nItem].PixelsPerIncrement = Font;
 					m_theHUD[nItem].iHeight = Height;
+// changed RF064
+					m_theHUD[nItem].Style = Style;
+// end change RF064
 				}
 		}
 		KeyName = AttrFile.FindNextKey();
@@ -538,6 +554,37 @@ int CHeadsUpDisplay::Render()
 // changed RF063
 			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
 			nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+// changed RF064
+			if(m_theHUD[nItem].Style!=NONE)
+			{
+				if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+				{
+					int magsize = CCD->Weapons()->GetMagSize();
+					if(magsize==0)
+						continue;
+					if(m_theHUD[nItem].Style==MAG)
+					{
+						if(nValue>magsize)
+							nValue = magsize - CCD->Weapons()->GetShotFired();
+						nHigh = magsize;
+						nLow = 0;
+					}
+					else
+					{
+						nValue += (magsize-1);
+						nHigh += (magsize-1);
+						nHigh /= magsize;
+						nLow /= magsize;
+						nValue /= magsize;
+					}
+				}
+				else
+				{
+					if(m_theHUD[nItem].Style==MAG)
+						continue;
+				}
+			}
+// end change RF064
 			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 			{
 				nValue = CCD->Player()->LightValue();
@@ -580,6 +627,37 @@ int CHeadsUpDisplay::Render()
 // changed RF063
 			nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
 			nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+// changed RF064
+			if(m_theHUD[nItem].Style!=NONE)
+			{
+				if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+				{
+					int magsize = CCD->Weapons()->GetMagSize();
+					if(magsize==0)
+						continue;
+					if(m_theHUD[nItem].Style==MAG)
+					{
+						if(nValue>magsize)
+							nValue = magsize - CCD->Weapons()->GetShotFired();
+						nHigh = magsize;
+						nLow = 0;
+					}
+					else
+					{
+						nValue += (magsize-1);
+						nHigh += (magsize-1);
+						nHigh /= magsize;
+						nLow /= magsize;
+						nValue /= magsize;
+					}
+				}
+				else
+				{
+					if(m_theHUD[nItem].Style==MAG)
+						continue;
+				}
+			}
+// end change RF064
 			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 			{
 				nValue = CCD->Player()->LightValue();
@@ -621,6 +699,32 @@ int CHeadsUpDisplay::Render()
 // end change RF064
 			nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 // changed RF063
+// changed RF064
+			if(m_theHUD[nItem].Style!=NONE)
+			{
+				if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+				{
+					int magsize = CCD->Weapons()->GetMagSize();
+					if(magsize==0)
+						continue;
+					if(m_theHUD[nItem].Style==MAG)
+					{
+						if(nValue>magsize)
+							nValue = magsize - CCD->Weapons()->GetShotFired();
+					}
+					else
+					{
+						nValue += (magsize-1);
+						nValue /= magsize;
+					}
+				}
+				else
+				{
+					if(m_theHUD[nItem].Style==MAG)
+						continue;
+				}
+			}
+// end change RF064
 			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 			{
 				nValue = CCD->Player()->LightValue();

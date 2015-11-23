@@ -17,6 +17,7 @@ typedef enum
 		MOVERIGHT,
 		MOVE,
 		PLAYANIMATION,
+		BLENDTOANIMATION,
 		LOOPANIMATION,
 		ROTATE,
 		ROTATETOPOINT,
@@ -72,6 +73,7 @@ char *ActionText[] =
 	"MoveRight",
 	"Move",
 	"PlayAnimation",
+	"BlendToAnimation",
 	"LoopAnimation",
 	"Rotate",
 	"RotateToPoint",
@@ -184,6 +186,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		param2 = arguments[1].boolValue();
 		strcpy(param8, arguments[2].str());
 		AddAction(PLAYANIMATION, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "BlendToAnimation"))
+	{
+		strcpy(param0, arguments[0].str());
+		param1 = arguments[1].floatValue();
+		param2 = arguments[2].boolValue();
+		strcpy(param8, arguments[3].str());
+		AddAction(BLENDTOANIMATION, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "LoopAnimation"))
@@ -801,6 +812,7 @@ bool CPawn::CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone)
 	geVec3d_Subtract(&TgtPos,&Pos,&temp);
 	geVec3d_Normalize(&temp);
 	dotProduct = geVec3d_DotProduct(&temp,&In);
+
 	if(dotProduct > FOV)
 	{
 		if(CanSeeActorToActor(Actor, TargetActor))
@@ -813,7 +825,7 @@ bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d De
 {
 	bool flg = false;
 	bool fov = true;
-	if(FOV>=0.0f && Actor)
+	if(FOV>-2.0f && Actor)
 		fov = CanSee(FOV, Actor, CCD->Player()->GetActor(), Bone);
 	
 	if(fov)
@@ -1722,7 +1734,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 			if(Object->TargetFind && !Object->TargetDisable)
 			{
 				Object->TargetActor = NULL;
-				if(Object->FOV>=0.0f && Object->Actor)
+				if(Object->FOV>-2.0f && Object->Actor) 
 				{
 					float distance = Object->TargetDistance+100;
 					bool done = false;
@@ -2156,6 +2168,42 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
 							else
 								Object->ActionActive = false;
+						}
+						if(Object->Index->Flag)
+						{
+							if(CCD->ActorManager()->EndAnimation(Object->Actor))
+							{
+								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, false);
+								Object->ActionActive = false;
+							}
+						}
+						else
+							runflag = true;
+					}
+					else
+						Object->ActionActive = false;
+					break;
+				case BLENDTOANIMATION:
+					if(Object->Actor)
+					{
+						if(Object->StartAction)
+						{
+							if(!EffectC_IsStringNull(Object->Index->AnimName))
+							{
+								if(Object->Index->Speed>0.0f)
+								{
+									CCD->ActorManager()->SetTransitionMotion(Object->Actor, Object->Index->AnimName, Object->Index->Speed, NULL);
+									CCD->ActorManager()->SetNextMotion(Object->Actor, Object->Index->AnimName);
+								}
+								else
+									CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+								Object->StartAction = false;
+								if(Object->Index->Flag)
+									CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
+								else
+									Object->ActionActive = false;
+							}
+
 						}
 						if(Object->Index->Flag)
 						{

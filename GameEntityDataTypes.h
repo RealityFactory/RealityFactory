@@ -2850,113 +2850,24 @@ typedef struct _ScreenShake
 #pragma GE_BrushContents
 typedef enum
 {
-	Water = 0x00010000,
-		Lava = 0x00020000,
-		ToxicGas = 0x00040000,
-		ZeroG = 0x00080000,
-		Frozen = 0x00100000,
-		Sludge = 0x00200000,
-		SlowMotion = 0x00400000,
-		FastMotion = 0x00800000,
-		Ladder = 0x01000000,
-		Impenetrable = 0x10000000,
-		Unclimbable = 0x02000000,
-		UserSurface1 = 0x04000000,
-		UserSurface2 = 0x08000000
-		/*
-		type13 = 0x10000000,
-		type14 = 0x20000000,
-		type15 = 0x40000000,
-		type16 = 0x80000000
-		*/
+	Water =			0x00010000,
+	Lava =			0x00020000,
+	ToxicGas =		0x00040000,
+	ZeroG =			0x00080000,
+	Frozen =		0x00100000,
+	Sludge =		0x00200000,
+	SlowMotion =	0x00400000,
+	FastMotion =	0x00800000,
+	Ladder =		0x01000000,
+	Unclimbable =	0x02000000,
+	UserSurface1 =	0x04000000,
+	UserSurface2 =	0x08000000,
+	Impenetrable =	0x10000000
+//	typea13 =		0x10000000,
+//	typea14 =		0x20000000,
+//	typea15 =		0x40000000,
+//	typea16 =		0x80000000
 } UserContentsEnum;
-
-/* Enemy header for RF063
-
-#pragma GE_Type("icons\\ai_nonplayer.bmp")
-typedef struct _Enemy
-{
-#pragma GE_Private
-	geBoolean	alive;
-	geBoolean	active;
-	char		*ActorName;				// Actor for this entity
-	geVec3d		Rotation;
-	geFloat		Scale;
-	GE_RGBA		FillColor;
-	GE_RGBA		AmbientColor;
-	geFloat		Tick;
-	geBoolean	bState;
-	geBoolean	CallBack;
-	geVec3d		Location;
-	geFloat		AlphaStep;
-	geBoolean	Dying;
-	geActor		*Actor;
-	char		*AnimIdle;
-	char		*AnimAlert;
-	char		*AnimRotate;
-	char		*AnimWalk;
-	char		*AnimBackup;
-	char		*AnimStrafeLeft;
-	char		*AnimStrafeRight;
-	char		*AnimJump;
-	char		*AnimLInjury;
-	char		*AnimMInjury;
-	char		*AnimHInjury;
-	char		*AnimDie;
-	geFloat		LInjuryLimit;
-	geFloat		MInjuryLimit;
-	void		*theInv;
-	geBoolean	EndAnimFlag;
-	int			Action;
-	void		*Data;
-#pragma GE_Published
-	geVec3d origin;
-	char *szEntityName;	// Name of this entity
-	char *TriggerName;
-	char *ActivateTrigger;
-	char *BaseName;
-	char *AIName;
-	char *WeaponName;
-	geFloat Speed;
-	geFloat Delay;
-	geBoolean ReSpawn;
-	int MaxNumber;
-	int AttributeAmt;
-	char *Attribute;
-	geFloat DyingTime;
-	geFloat ShadowSize;
-#pragma GE_Origin(origin)
-#pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue(BaseName, "")
-#pragma GE_DefaultValue(AIName, "")
-#pragma GE_DefaultValue(WeaponName, "")
-#pragma GE_DefaultValue(Speed, "10.0")
-#pragma GE_DefaultValue(DyingTime, "5.0")
-#pragma GE_DefaultValue(TriggerName, "")
-#pragma GE_DefaultValue(ActivateTrigger, "")
-#pragma GE_DefaultValue(Delay, "0.0")
-#pragma GE_DefaultValue(ReSpawn, "False")
-#pragma GE_DefaultValue(MaxNumber, "1")
-#pragma GE_DefaultValue(AttributeAmt, "100")
-#pragma GE_DefaultValue(Attribute, "health")
-#pragma GE_DefaultValue(ShadowSize, "0")
-#pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
-#pragma GE_Documentation(BaseName, "Name of base NPC definition")
-#pragma GE_Documentation(AIName, "Name of NPC AI definition")
-#pragma GE_Documentation(WeaponName, "Name of weapon definition")
-#pragma GE_Documentation(TriggerName, "Name of trigger entity used to spawn NPC")
-#pragma GE_Documentation(ActivateTrigger, "Name of trigger entity used to activate NPC")
-#pragma GE_Documentation(Speed, "Speed of actor")
-#pragma GE_Documentation(DyingTime, "Number of seconds before corpse dissappears")
-#pragma GE_Documentation(Delay, "Number of seconds before respawning")
-#pragma GE_Documentation(ReSpawn, "Is NPC respawnable?")
-#pragma GE_Documentation(MaxNumber, "Maximum number of times to respawn, -1 is unlimited")
-#pragma GE_Documentation(AttributeAmt, "Amount of Attribute NPC has")
-#pragma GE_Documentation(Attribute, "Attribute that takes damage")
-#pragma GE_Documentation(ShadowSize, "Radius of actor shadow, 0 is none")
-} Enemy;
-
-*/
 
 //
 // FixedCamera
@@ -3462,6 +3373,68 @@ typedef struct EM_Morph
 #pragma GE_Documentation( TriggerName, "Name of the associated trigger" )
 
 } EM_Morph;
+
+//
+// CutScene entity
+//
+// provided by QuestOfDreams
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct CutScene
+{
+#pragma GE_Private
+       geBoolean        active;
+       geBoolean        played;
+       geBoolean        triggeron;
+#pragma GE_Published
+       geVec3d          origin;
+       char               *szCutScene;
+       char               *szEntityName;
+       char               *TriggerName;
+       int                  XPos;
+       int                  YPos;
+       geBoolean        Center;
+#pragma GE_Origin(origin) 
+#pragma GE_DefaultValue( TriggerName, "" )
+#pragma GE_DefaultValue( szEntityName, "" )
+#pragma GE_DefaultValue( Center, "True")
+#pragma GE_DefaultValue( XPos, "160")
+#pragma GE_DefaultValue( YPos, "120")
+
+#pragma GE_Documentation( szEntityName, "Name of this entity" )
+#pragma GE_Documentation( TriggerName, "Name of the associated trigger" )
+
+} CutScene;
+
+//
+// ActorMaterial Change
+//
+// provided by QuestOfDreams
+
+#pragma GE_Type("icons\\model.ico")
+typedef struct ActMaterial
+{
+#pragma GE_Private
+            geBoolean            active;
+            geActor               *Actor;
+#pragma GE_Published
+            geVec3d              origin;
+            char                    *EntityName;
+            char                    *szEntityName;
+            char                    *TriggerName;
+            char                    *ChangeMaterial;
+
+#pragma GE_Origin(origin) 
+#pragma GE_DefaultValue( TriggerName, "" )
+#pragma GE_DefaultValue( szEntityName, "" )
+
+#pragma GE_Documentation( origin, "Location of effect" )
+#pragma GE_Documentation( szEntityName, "Name of this entity" )
+#pragma GE_Documentation( TriggerName, "Name of the associated trigger" )
+#pragma GE_Documentation( ChangeMaterial, "Name of section containing material change info")
+#pragma GE_Documentation( EntityName, "Entity whose actor texture the effect will attach to" )
+
+} ActMaterial;
 
 // end change RF064
 

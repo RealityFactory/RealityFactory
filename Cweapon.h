@@ -35,6 +35,10 @@ typedef struct Proj
   int Decal;
   char *Explosion;
   char *ActorExplosion;
+// changed Rf064
+  bool ShowBoth;
+  bool AttachActor;
+// end change RF064
   float ShakeAmt;
   float ShakeDecay;
   float Damage;
@@ -63,6 +67,10 @@ typedef struct DefaultProj
   int Decal;
   char Explosion[64];
   char ActorExplosion[64];
+// changed Rf064
+  bool ShowBoth;
+  bool AttachActor;
+// end change RF064
   float ShakeAmt;
   float ShakeDecay;
   float Damage;
@@ -108,6 +116,8 @@ typedef struct DefaultWeapons
 	int FixedView;
 	int ShotperMag;
 	int ShotFired;
+	char ReloadSound[64];
+	bool LooseMag;
 // end change RF064
 	char Ammunition[64];
 	int AmmoPerShot;
@@ -131,6 +141,8 @@ typedef struct DefaultWeapons
 	char VWalk[64];
 // changed RF064
 	char VReload[64];
+	char VKeyReload[64];
+	char VAttackEmpty[64];
 // end change RF064
 	geVec3d VOffset;
 	char VBone[64];
@@ -168,7 +180,11 @@ typedef enum
 	VWEPWALK,
 	VWEPATTACK,
 	VWEPALTATTACK,
+// changed RF064
 	VWEPRELOAD,
+	VWEPKEYRELOAD,
+	VWEPATTACKEMPTY,
+// end change RF064
 	VWEPHIT,
 	VWEPALTHIT
 } VwepAction;
@@ -215,10 +231,18 @@ public:
   geVec3d GetCrossPoint()
   { return CrossPoint; }
 // changed RF064
+  void KeyReload();
+  void DropWeapon();
   void SetView(int value)
   { ViewPoint = value; OldViewPoint = value; }
   char *GetWeaponName()
   { return WeaponD[CurrentWeapon].Name; }
+  char *GetWeaponAmmo()
+  { return WeaponD[CurrentWeapon].Ammunition; }
+  int GetMagSize()
+  {return WeaponD[CurrentWeapon].ShotperMag;}
+  int GetShotFired()
+  {return WeaponD[CurrentWeapon].ShotFired;}
 // end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}
@@ -243,6 +267,7 @@ private:
   int ViewPoint;
 // changed RF064
   int OldViewPoint;
+  bool dropflag;
 // end change RF064
   int CurrentWeapon;
   int AttackTime;

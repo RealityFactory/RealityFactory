@@ -65,6 +65,8 @@ CCommonData::CCommonData()
 // changed RF064
 	theActorSpout = NULL;
 	theMorph = NULL;
+	theCutScene = NULL;
+	theActMaterial = NULL;
 // end change RF064
 	theFloat = NULL;						// Ralph Deane's Floating Effect
 	theChaos = NULL;						// Ralph Deane's Chaos Procedural
@@ -164,6 +166,7 @@ CCommonData::CCommonData()
 // end change RF063
 // changed RF064
 	dropkey = false;
+	reloadkey = false;
 // end change RF064
 // start multiplayer
 	consolekey = false;
@@ -1214,6 +1217,20 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	theCutScene = new CCutScene();
+	if(theCutScene == NULL)
+	{
+		theGameEngine->ReportError("couldn't create CutScene", false);
+		return -7; //or something else
+	}
+
+	theActMaterial = new CActMaterial();
+	if(theActMaterial == NULL)
+	{
+		theGameEngine->ReportError("couldn't create CActMaterial", false);
+		return -7; //or something else
+	}
+
 // end change RF064
 	//	All level classes up! Let's **PLAY**
 	
@@ -1235,6 +1252,14 @@ void CCommonData::ShutdownLevel()
 // end multiplayer
 
 // changed RF064
+	if(theActMaterial != NULL)
+		delete theActMaterial;
+	theActMaterial = NULL;
+
+	if(theCutScene != NULL)
+		delete theCutScene;
+	theCutScene = NULL;
+
 	if(theMorph != NULL)
 		delete theMorph;
 	theMorph = NULL;
@@ -1519,6 +1544,7 @@ bool CCommonData::HandleGameInput()
 // end multiplayer
 // changed RF064
 	bool fdrop = false;
+	bool freload = false;
 // end change RF064
 	frun = fhud = flook = fcamera = screen = jump = false;				// Clear modifiers
 	run = crouch = zoom = light = save = load = use = inv = false;
@@ -1646,8 +1672,16 @@ bool CCommonData::HandleGameInput()
 			fdrop = true;
 			if(!dropkey)
 			{
-
+				theWeapon->DropWeapon();
 				dropkey = true;
+			}
+			break;
+		case RGF_K_RELOAD:
+			freload = true;
+			if(!reloadkey)
+			{
+				theWeapon->KeyReload();
+				reloadkey = true;
 			}
 			break;
 // end change RF064
@@ -1880,6 +1914,8 @@ bool CCommonData::HandleGameInput()
 // changed RF064
 		if(!fdrop)
 			dropkey = false;
+		if(!freload)
+			reloadkey = false;
 // end change RF064
 		if(!zoom)
 		{
@@ -2019,6 +2055,7 @@ int CCommonData::DispatchTick()
 // changed RF064
 	theActorSpout->Tick(dwTicksGoneBy);
 	theMorph->Tick(dwTicksGoneBy);
+	theActMaterial->Tick(dwTicksGoneBy);
 // end change RF064
 	theFloat->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Float Effect
 	theChaos->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Chaos Procedural
@@ -2066,7 +2103,9 @@ int CCommonData::DispatchTick()
 	theActorManager->Tick(dwTicksGoneBy);
 
 	theHUD->Tick(dwTicksGoneBy);
-	
+// changed RF064
+	theCutScene->Tick(dwTicksGoneBy);
+// end change RF064	
 	return RGF_SUCCESS;
 }
 

@@ -148,6 +148,8 @@ class CCommonData;
 #include "CCountDown.h"
 #include "CChange.h"
 #include "CMorph.h"
+#include "CutScene.h"
+#include "CActMaterial.h"
 // end change RF064
 #include "track.h"
 #include "CNPCPathPoint.h"

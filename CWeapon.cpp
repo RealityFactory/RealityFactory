@@ -33,6 +33,9 @@ CWeapon::CWeapon()
 	Bottom =(Proj *)NULL;
 	AttackFlag = false;
 	MFlash = false;
+// changed RF064
+	dropflag = false;
+// end change RF064
 	
 	//	Ok, check to see if there's a PlayerSetup around...
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
@@ -168,6 +171,11 @@ void CWeapon::Tick(float dwTicks)
 		GE_Collision	Collision;
 		geActor *Actor = NULL;
 		geWorld_Model *Model = NULL;
+// changed RF064
+		char BoneHit[64];
+
+		BoneHit[0] = '\0';
+// end change RF064
 		
 		next = d->prev;
 		float dwTick = (float)(dwTicks) * 0.001f;
@@ -193,8 +201,8 @@ void CWeapon::Tick(float dwTicks)
 			
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
-			while(CCD->Collision()->CheckForWCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor))
+			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
+				tempPos, tempPos1, &Collision, d->Actor, BoneHit))
 			{
 				//
 				// Process hit here
@@ -209,7 +217,10 @@ void CWeapon::Tick(float dwTicks)
 				if(Collision.Actor)
 				{
 					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, NULL, NULL);
+					if(d->AttachActor)
+						CCD->Explosions()->AddExplosion(d->ActorExplosion, Collision.Impact, Collision.Actor, BoneHit);
+					else
+						CCD->Explosions()->AddExplosion(d->ActorExplosion, Collision.Impact, NULL, NULL);
 				}
 
 				if(Collision.Model)
@@ -241,8 +252,8 @@ void CWeapon::Tick(float dwTicks)
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 			//if(CCD->Collision()->CheckForCollisionD(&d->ExtBox.Min, &d->ExtBox.Max,
-			if(CCD->Collision()->CheckForWCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor))
+			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
+				tempPos, tempPos1, &Collision, d->Actor, BoneHit))
 			{
 				//
 				// Handle collision here
@@ -349,24 +360,34 @@ void CWeapon::Tick(float dwTicks)
 			//
 			// inflict damage
 			//
+// changed RF064
 // changed RF063			
 			if(Actor)
+			{
 				CCD->Damage()->DamageActor(Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
+				if(d->AttachActor)
+					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, Actor, BoneHit);
+				else
+					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, NULL, NULL);
+				if(d->ShowBoth)
+					CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
+			}
 
 			if(Model)
+			{
 				CCD->Damage()->DamageModel(Model, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-// end change RF063			
+				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
+			}
+// end change RF063	
+// end change RF064
 			//
 			// create explosion here
 			//
 // changed RF063			
-			CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
 			if(d->ShakeAmt>0.0f)
 				CCD->CameraManager()->SetShake(d->ShakeAmt, d->ShakeDecay, d->Pos);
 // changed RF063
-			if(Actor)
-				CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos, NULL, NULL);
-	
+
 			//
 			// Handle explosion damage here
 			//
@@ -705,6 +726,10 @@ void CWeapon::DisplayFirstPerson(int index)
 // changed RF064
 	if(VSequence == VWEPRELOAD)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
+	if(VSequence == VWEPKEYRELOAD)
+		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VKeyReload);
+	if(VSequence == VWEPATTACKEMPTY)
+		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttackEmpty);
 // end change RF064
 	if(VSequence == VWEPALTATTACK)
 	{
@@ -739,6 +764,15 @@ void CWeapon::DisplayFirstPerson(int index)
 		{
 			CurrentWeapon = 11;
 			geWorld_SetActorFlags(CCD->World(), WeaponD[index].VActor, 0);
+// changed RF064
+			if(dropflag)
+			{
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				theInv->Modify(WeaponD[index].Name, -1);
+				Slot[WeaponD[index].Slot] = -1;
+				dropflag = false;
+			}
+// end change RF064
 		}
 		if(VMCounter > tEnd && VSequence == VWEPCHANGE) // switch from change to idle
 		{
@@ -746,17 +780,36 @@ void CWeapon::DisplayFirstPerson(int index)
 			ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
 		}
 // changed RF064
-		if(VMCounter > tEnd && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT || VSequence == VWEPRELOAD)) // switch from shoot to idle
+		if(VMCounter > tEnd && (VSequence == VWEPATTACK || VSequence == VWEPATTACKEMPTY
+			|| VSequence == VWEPALTATTACK || VSequence == VWEPHIT 
+			|| VSequence == VWEPALTHIT || VSequence == VWEPRELOAD
+			 || VSequence == VWEPKEYRELOAD)) // switch from shoot to idle
 		{
+			if(VSequence == VWEPKEYRELOAD || VSequence == VWEPRELOAD)
+				WeaponD[index].ShotFired = 0;
 			bool magflag = false;
 			if(WeaponD[index].Catagory==PROJECTILE && VSequence == VWEPATTACK)
 			{
 				if(WeaponD[index].ShotperMag>0 && WeaponD[index].ShotFired>=WeaponD[index].ShotperMag)
 				{
-					magflag = true;
-					WeaponD[index].ShotFired = 0;
-					VSequence = VWEPRELOAD;
-					ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
+					geActor *theActor = CCD->Player()->GetActor();
+					CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+					if(theInv->Value(WeaponD[index].Ammunition)>=WeaponD[index].AmmoPerShot)
+					{
+						magflag = true;
+						VSequence = VWEPRELOAD;
+						ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
+						if(!EffectC_IsStringNull(WeaponD[CurrentWeapon].ReloadSound))
+						{
+							Snd Sound;
+							memset( &Sound, 0, sizeof( Sound ) );
+							CCD->CameraManager()->GetPosition(&Sound.Pos);
+							Sound.Min=kAudibleRadius;
+							Sound.Loop=GE_FALSE;
+							Sound.SoundDef=SPool_Sound(WeaponD[CurrentWeapon].ReloadSound);
+							CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+						}
+					}
 				}
 			}
 			if(!magflag)
@@ -1123,6 +1176,50 @@ void CWeapon::WeaponData()
 	return;
 }
 
+// changed RF064
+
+void CWeapon::KeyReload()
+{
+	if(CurrentWeapon == -1 || CurrentWeapon == 11)
+		return;
+	if(WeaponD[CurrentWeapon].Catagory!=PROJECTILE)
+		return;
+	if(WeaponD[CurrentWeapon].ShotperMag==0)
+		return;
+
+	if(ViewPoint==FIRSTPERSON)
+	{
+		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || VSequence == VWEPATTACKEMPTY
+			|| VSequence == VWEPRELOAD || VSequence == VWEPKEYRELOAD)
+			return; // shooting or changing weapon
+		geActor *theActor = CCD->Player()->GetActor();
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+		if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].AmmoPerShot)
+		{
+			VSequence = VWEPRELOAD;
+			if(!EffectC_IsStringNull(WeaponD[CurrentWeapon].VKeyReload))
+				VSequence = VWEPKEYRELOAD;
+			VMCounter = 0.0f;
+			int LeftInMag = WeaponD[CurrentWeapon].ShotperMag - WeaponD[CurrentWeapon].ShotFired;
+			if(LeftInMag>0 && WeaponD[CurrentWeapon].LooseMag)
+				theInv->Modify(WeaponD[CurrentWeapon].Ammunition, -LeftInMag);
+		}
+	}
+	else
+	{
+	}
+}
+
+void CWeapon::DropWeapon()
+{
+	if(CurrentWeapon == -1 || CurrentWeapon == 11)
+		return;
+
+	dropflag = true;
+	Holster();
+}
+
+// end change RF064
 
 void CWeapon::Attack(bool Alternate)
 {
@@ -1134,7 +1231,11 @@ void CWeapon::Attack(bool Alternate)
 	if(ViewPoint==FIRSTPERSON)
 	{
 // changed RF064
-		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || VSequence == VWEPRELOAD || (WeaponD[CurrentWeapon].Catagory==MELEE && (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPALTHIT)))
+		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || VSequence == VWEPATTACKEMPTY
+			|| VSequence == VWEPRELOAD || VSequence == VWEPKEYRELOAD
+			|| (WeaponD[CurrentWeapon].Catagory==MELEE
+			&& (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK 
+			|| VSequence == VWEPHIT || VSequence == VWEPALTHIT)))
 			return; // shooting or changing weapon
 // end change RF064
 		if(AttackTime != 0)
@@ -1150,6 +1251,18 @@ void CWeapon::Attack(bool Alternate)
 			if(((geFloat)((rand() % 1000) + 1) / 1000.0f * 10.0f)>=5.0f)
 				VSequence = VWEPALTATTACK;
 		}
+// changed RF064
+		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+		{
+			geActor *theActor = CCD->Player()->GetActor();
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+			if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)<WeaponD[CurrentWeapon].AmmoPerShot)
+			{
+				if(!EffectC_IsStringNull(WeaponD[CurrentWeapon].VAttackEmpty))
+					VSequence = VWEPATTACKEMPTY;
+			}
+		}
+// end change RF064
 		VMCounter = 0.0f;
 		AttackFlag = true;
 	}
@@ -1557,6 +1670,10 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 		d->Decal = ProjD[Type].Decal;
 		d->Explosion = ProjD[Type].Explosion;
 		d->ActorExplosion = ProjD[Type].ActorExplosion;
+// changed RF064
+		d->ShowBoth = ProjD[Type].ShowBoth;
+		d->AttachActor = ProjD[Type].AttachActor;
+// end change RF064
 		d->ShakeAmt = ProjD[Type].ShakeAmt;
 		d->ShakeDecay = ProjD[Type].ShakeDecay;
 		d->Damage = ProjD[Type].Damage;
@@ -1786,6 +1903,14 @@ void CWeapon::LoadDefaults()
 			strcpy(ProjD[projptr].Explosion,Type);
 			Type = AttrFile.GetValue(KeyName, "actorexplosion");
 			strcpy(ProjD[projptr].ActorExplosion,Type);
+// changed RF064
+			ProjD[projptr].ShowBoth = false;
+			if(Vector=="true")
+				ProjD[projptr].ShowBoth = true;
+			ProjD[projptr].AttachActor = false;
+			if(Vector=="true")
+				ProjD[projptr].AttachActor = true;
+// end change RF064
 			ProjD[projptr].ShakeAmt = (float)AttrFile.GetValueF(KeyName, "shakeamount");
 			ProjD[projptr].ShakeDecay = (float)AttrFile.GetValueF(KeyName, "shakedecay");
 			ProjD[projptr].BoxSize = (float)AttrFile.GetValueF(KeyName, "boundingbox");
@@ -1919,6 +2044,12 @@ void CWeapon::LoadDefaults()
 				SPool_Sound(WeaponD[weapptr].EmptySound);
 			Type = AttrFile.GetValue(KeyName, "attribute");
 			strcpy(WeaponD[weapptr].Attribute,Type);
+// changed RF064
+			Type = AttrFile.GetValue(KeyName, "reloadsound");
+			strcpy(WeaponD[weapptr].ReloadSound,Type);
+			if(Type!="")
+				SPool_Sound(WeaponD[weapptr].ReloadSound);
+// end change RF064
 // changed RF063
 			Type = AttrFile.GetValue(KeyName, "altattribute");
 			strcpy(WeaponD[weapptr].AltAttribute,Type);
@@ -2009,10 +2140,21 @@ void CWeapon::LoadDefaults()
 								WeaponD[weapptr].VOffset = Extract(szName);
 							}
 // changed RF064
+							WeaponD[weapptr].VReload[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewreloadanim");
 							strcpy(WeaponD[weapptr].VReload,Vector);
 							WeaponD[weapptr].ShotperMag = AttrFile.GetValueI(KeyName, "shotpermagazine");
 							WeaponD[weapptr].ShotFired = 0;
+							WeaponD[weapptr].VKeyReload[0] = '\0';
+							Vector = AttrFile.GetValue(KeyName, "viewkeyreloadanim");
+							strcpy(WeaponD[weapptr].VKeyReload,Vector);
+							WeaponD[weapptr].VAttackEmpty[0] = '\0';
+							Vector = AttrFile.GetValue(KeyName, "viewattackemptyanim");
+							strcpy(WeaponD[weapptr].VAttackEmpty,Vector);
+							WeaponD[weapptr].LooseMag = false;
+							Vector = AttrFile.GetValue(KeyName, "loosemag");
+							if(Vector=="true")
+								WeaponD[weapptr].LooseMag = true;
 // end change RF064
 							Vector = AttrFile.GetValue(KeyName, "viewlaunchbone");
 							if(Vector!="")

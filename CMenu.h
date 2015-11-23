@@ -107,7 +107,9 @@ public:
   void GameLoop();
   void GameLevel();
   void MenuInitalize();
-  void DisplaySplash(char *szSplashBMP);
+// changed RF064
+  void DisplaySplash();
+// end change RF064
   void MFontRect(char *s, int FontNumber, int x, int y);
   void FontRect(char *s, int FontNumber, int x, int y);
   void ScreenShot();
@@ -253,6 +255,7 @@ private:
   DWORD WinVol;
   bool useselect;
   CMIDIAudio *theMIDIPlayer;
+  char	Loading[128];
 // end change RF064
 };
 

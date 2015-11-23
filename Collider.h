@@ -98,7 +98,11 @@ public:
   bool CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 		geActor *Actor, GE_Contents *Contents);
   void Debug();
-
+// changed RF064
+  bool CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
+			geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
+			geActor *Actor, char *BoneHit);
+// end change RF064
   TraceData Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *Max,
 	  geActor *Actor, GE_Collision *Collision);
 private:
