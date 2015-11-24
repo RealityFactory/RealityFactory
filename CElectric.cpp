@@ -216,8 +216,11 @@ void Electric_BoltEffectAnimate(
 	{
 		int	DecayRate;
 		int	Spike;
+		int Mod = (int)(Effect->beBaseColors[dominant] - Effect->beBaseColors[nonDominant1]);
+		if(Mod<=0)
+			Mod = 1;
 
-		DecayRate = rand() % (int)(Effect->beBaseColors[dominant] - Effect->beBaseColors[nonDominant1]);
+		DecayRate = rand() % Mod;
 		DecayRate = max(DecayRate, 5);
 		Effect->beDecayRate = DecayRate;
 		if	(Effect->beBaseColors[nonDominant1] >= 1.0f)
@@ -600,7 +603,7 @@ geBoolean CElectric::Tick(float dwTicks)
 		Bolt = (ElectricBolt *)geEntity_GetUserData(Entity);
 		if(Bolt->DoingDamage)
 		{
-			Bolt->DTime += dwTicks*0.001f;
+			Bolt->DTime += dwTicks*0.001f; 
 			if(Bolt->DTime>=Bolt->DamageTime)
 				Bolt->DoingDamage = false;
 		}

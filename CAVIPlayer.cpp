@@ -202,9 +202,12 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 		break;
 	}
 	geBitmap_UnLock(LockedBMP);
-	geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_TRUE);
-	geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, XPos, YPos);
-	geEngine_EndFrame(CCD->Engine()->Engine());
+	if(CCD->GetHasFocus())
+	{
+		geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_TRUE);
+		geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, XPos, YPos);
+		geEngine_EndFrame(CCD->Engine()->Engine());
+	}
 	
 	//	End of the force-the-bitmap-to-be-ready code.  Blech.
 	
@@ -214,7 +217,7 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 			bAudioStreamPlaying = true;
 	}
 // changed RF064	
-	OldTime = CCD->FreeRunningCounter()-60;				// Prime the time.
+	OldTime = CCD->FreeRunningCounter();				// Prime the time.
 // end change RF064
 	FrameTime = 0;
 	
@@ -228,6 +231,20 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 	
 	for(;;)
 	{
+		MSG msg;
+
+	// If Winblows has something to say, take it in and pass it on in the
+	// ..off-chance someone cares.
+
+		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		{
+			GetMessage(&msg, NULL, 0, 0 );
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		if(!CCD->GetHasFocus())
+			continue;
 // changed RF064
 		ElapsedTime = (DWORD)((float)(CCD->FreeRunningCounter() - OldTime)*1.0f);
 // end change RF064
@@ -334,6 +351,9 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 		// Check for SPACE to see if player has seen enough
 		if((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
 		{
+			while((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
+			{
+			}
 			if(bAudioStreamPlaying)
 				DestroyStreamingAudioBuffer();
 			bAudioStreamPlaying = false;
@@ -428,7 +448,10 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 	int nStatus = RGF_FAILURE;			// Assume failure
 	int nAlignValue = 0;
 	int nTemp, nTemp2;
-	
+
+	if(!CCD->GetHasFocus())
+		return RGF_SUCCESS;
+
 	StartVideoRetrieve(0);
 	
 	//	Get the bitmap info for the file
@@ -580,6 +603,9 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 	int nStatus = RGF_FAILURE;			// Assume failure
 	int nAlignValue = 0;
 	int nTemp, nTemp2;
+
+	if(!CCD->GetHasFocus())
+		return RGF_SUCCESS;
 	
 	StartVideoRetrieve(0);
 	

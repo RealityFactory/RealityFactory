@@ -396,6 +396,7 @@ int CActorSpout::Create(ActorSpout *S)
     Sp.MinScale = S->MinScale;
     Sp.MaxScale = S->MaxScale;
 	Sp.Bounce = S->Bounce;
+	Sp.Solid = S->Solid;
     if(Sp.MinScale <= 0.0f )
       Sp.MinScale = 0.1f;
     if(Sp.MaxScale < Sp.MinScale )

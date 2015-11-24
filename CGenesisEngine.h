@@ -63,7 +63,8 @@ public:
 		FloatRect * ScreenRect, FloatRect * PercentRect, 
 		geFloat Alpha, GE_RGBA* RGBA_Array = NULL);
 // changed RF064
-	bool DrawBitmap(geBitmap * pBitmap, geRect *BitmapRect, int x, int y);
+	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y);
+	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha);
 	CompleteTexture BitmapToComplete(geBitmap * pBitmap);
 	void DeleteCompleteTexture(CompleteTexture cp);
 	void DrawComplete(CompleteTexture cp, int x, int y);

@@ -17,6 +17,7 @@
 
 #include "..\\RabidFramework.h"
 #include "qxColor.h"
+#include "QxUser.h"
 #include "..\\Simkin\\skScriptedExecutable.h"
 
 class qxStarField;
@@ -42,6 +43,7 @@ public:
 
 	char	Order[64];
 	float	ElapseTime;
+	char	szName[64];
 };
 
 class qxTerrainMgr
@@ -54,7 +56,6 @@ public:
 	bool Init();
 	bool Frame();
 	void Draw();
-	bool Load();
 	bool Render();
 
 	void PolyCountRaise();
@@ -76,7 +77,7 @@ public:
 	qxVertPool* GetVertPoolQX()		{ return m_pqxVertPool; }
 
 	int GetDesiredTriangles()		{ return m_nDesiredTriangles; }
-	int GetLandscapeSize()			{ return m_nLandscapeSize; }
+	int GetLandscapeSize()			{ return m_nLandscapeSize * (int)m_fScaleXZ; }
 	float GetScaleY()				{ return m_fScaleY; }
 	float GetScaleXZ()				{ return m_fScaleXZ; }
 	int GetOffsetY()				{ return m_OffsetY; }
@@ -84,13 +85,71 @@ public:
 	int GetDistanceDetail()			{ return m_nDistanceDetail; }
 	gePixelFormat GetPixelFormatFinal() { return m_PixelFormatFinal; }
 	float GetScaleSun()				{ return m_SunScale; }
+	bool GetAllowSun()				{ return AllowSun; }
+	bool GetAllowCloud()			{ return AllowCloud; }
+	void SetAllowSun(bool flag)		{ AllowSun = flag; }
+	void SetAllowCloud(bool flag)	{ AllowCloud = flag; }
+
+	void SetSunScale(float value)		{m_SunScale = value; }
+	void SetScaleY(float value)		{m_fScaleY = value; }
+	void SetScaleXZ(float value)	{m_fScaleXZ = value; }
+	void SetOffsetY(int value)	{m_OffsetY = value; }
+	void SetDesiredTriangles(int value)	{m_nDesiredTriangles = value; }
+	void SetLandscapeSize(int value)	{m_nLandscapeSize = value; }
+	void SetAmbientLightColor(float r, float g, float b, float a)
+	{ m_AmbientLightColor.r = r;
+	  m_AmbientLightColor.g = g;
+	  m_AmbientLightColor.b = b;
+	  m_AmbientLightColor.a = a;}
+	void SetTwilightDistanceFromHorizon(float value) { m_fTwilightDistanceFromHorizon = value; }
+	void SetTimeScale(float value)		{m_TimeScale = value; }
+	void SetSky(int height, float res)
+	{ SkyMaxHeight = height; fSkyLengthHeight = res; }
+	void SetSkyTexture(char *name)
+	{ strcpy(m_strBmp, name); }
+	void SetSkyColor(float r, float g, float b, float a)
+	{ rgba.r = r;
+	  rgba.g = g;
+	  rgba.b = b;
+	  rgba.a = a;}
+	void SetTwilightColor(float r, float g, float b, float a)
+	{ color.r = r;
+	  color.g = g;
+	  color.b = b;
+	  color.a = a;}
+	void SetSunColor(float r, float g, float b, float a)
+	{ suncolor.r = r;
+	  suncolor.g = g;
+	  suncolor.b = b;
+	  suncolor.a = a;}
+	void SetDistanceFromSunFactor(float value)	{m_fDistanceFromSunFactor = value; }
+	void SetLocation(float lat, int mon, int day, int hour)
+	{ fPlayerLatitude = lat;
+	  Month = mon;
+	  Day = day;
+	  Hour = hour; }
+	void SetTerrain(char *height, char *tex)
+	{ strcpy(heightmap, height); strcpy(texmap, tex); }
+	void SetMoonColor(float r, float g, float b, float a)
+	{ mooncolor.r = r;
+	  mooncolor.g = g;
+	  mooncolor.b = b;
+	  mooncolor.a = a;}
+	void SetMoonPhase(int value)		{MoonPhase = value; }
+	int GetMoonPhase()  { return MoonPhase; };
 
 	GE_RGBA Getrgba()  { return rgba; }
 	float GetMinBlueSkyColor()  { return m_fMinBlueSkyColor; };
 	float GetDistanceFromSunFactor()  { return m_fDistanceFromSunFactor; };
 	GE_RGBA Getcolor()  { return color; };
+	GE_RGBA GetSuncolor()  { return suncolor; };
+	GE_RGBA GetMooncolor()  { return mooncolor; };
 	float GetColorUpdateTime()  { return m_fColorUpdateTime; };
 	bool GetTextureFlow()  { return TextureFlow; };
+	float GetElapsedTime() { return ElapsedTime; }
+	float GetTerrainTime() { return TerrainTime; }
+	eDirection	GetWindDir() { return WindDir; };
+	void SetWindDir(eDirection	Dir) { WindDir = Dir; };
 
 	void SetNormalDistanceToCamera( float f );
 	float GetNormalDistanceToCamera() { return m_fNormalDistanceToCamera; }
@@ -123,11 +182,15 @@ public:
 
 	void	SetWorldBounds( int X, int Z ) { m_nWorldBoundsX = X, m_nWorldBoundsZ = Z; }
 	bool	GetRenderWireframe() { return m_bRenderWireframe; }
+	void	SetRenderWireframe(bool flag) { m_bRenderWireframe = flag; }
+	void	SetRenderLandscape(bool flag) { m_bRenderLandscape = flag; }
 
 	qxSkyDome*	GetSkyDome() { return m_pSkyDome; }
 
 	geBitmap *GetTexture() { return PolyTex; }
 	void SetTexture(geBitmap *Bitmap) { PolyTex = Bitmap; }
+	void SetRender(int value) { nRenderflag = value; }
+	int GetRender() { return nRenderflag; }
 	
 private:
 
@@ -166,6 +229,12 @@ private:
 
 	geBitmap *PolyTex;
 
+	char texmap[128];
+	char heightmap[128];
+	int nRenderflag;
+	bool AllowSun;
+	bool AllowCloud;
+
 
 	geVec3d m_vLightSource;
 	float m_fLightAmbient;
@@ -178,9 +247,9 @@ private:
 	int Month;
 	float TerrainTime;
 	TerrainObject *Object;
+	float ElapsedTime;
 
 
-	void		DynamicLoadCheck();
 	void		Shutdown();
 	void		ShadeAllTextures();
 	void		RenderAll(void);
@@ -204,6 +273,7 @@ private:
 	//
 
 	qxCloudMachine*	m_pCloudMachine;
+	eDirection	WindDir;
 
 	//
 	// Sun, Moon, Stars
@@ -222,6 +292,9 @@ private:
 	float m_fMinBlueSkyColor;
 	float m_fDistanceFromSunFactor;
 	GE_RGBA color;
+	GE_RGBA suncolor;
+	GE_RGBA mooncolor;
+	int MoonPhase;
 	float m_fColorUpdateTime;
 	bool TextureFlow;
 

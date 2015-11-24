@@ -483,7 +483,12 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		float FireOffsetX = arguments[2].floatValue();
 		float FireOffsetY = arguments[3].floatValue();
 		float FireOffsetZ = arguments[4].floatValue();
-		if(geActor_GetBoneTransform(Actor, param0, &Xf))
+		bool bone;
+		if(WeaponActor)
+			bone = geActor_GetBoneTransform(WeaponActor, param0, &Xf);
+		else
+			bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+		if(bone)
 		{
 			geVec3d_Copy(&(Xf.Translation), &Pos);
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
@@ -512,7 +517,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		}
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddEffect"))
+	else if (IS_METHOD(methodName, "AddExplosion"))
 	{
 		PARMCHECK(5);
 		geXForm3d Xf;
@@ -540,6 +545,21 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 			geVec3d_AddScaled (&Pos, &Direction, OffsetZ, &Pos);
 			CCD->Explosions()->AddExplosion(param0, Pos, Actor, param4);
 		}
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PortIn"))
+	{
+		PARMCHECK(1);
+		int port = arguments[0].intValue();
+		returnValue = (int)_inp(port);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PortOut"))
+	{
+		PARMCHECK(2);
+		int port = arguments[0].intValue();
+		int data = arguments[1].intValue();
+		_outp(port, data);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "debug"))

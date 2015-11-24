@@ -47,7 +47,9 @@ geSound_Def *SPool_Sound(char *SName)
 
   CCD->OpenRFFile(&MainFS, kAudioFile, SName, GE_VFILE_OPEN_READONLY);
   if(!MainFS)
+  {
     return (geSound_Def *)NULL;
+  }
   pool = GE_RAM_ALLOCATE_STRUCT(SPool);
   memset(pool, 0, sizeof(SPool));
   pool->next = Bottom;

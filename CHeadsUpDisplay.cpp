@@ -42,27 +42,6 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 	
 	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
-// changed RF064
-/*
-		if(m_theHUD[nTemp].Identifier != NULL)
-		{
-			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Identifier);
-			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
-		}
-		if(m_theHUD[nTemp].Indicator != NULL)
-		{
-			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Indicator);
-			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
-		}
-// changed RF063
-		if(m_theHUD[nTemp].Indicator2 != NULL)
-		{
-			geWorld_RemoveBitmap(CCD->World(), m_theHUD[nTemp].Indicator2);
-			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
-		}
-// end change RF063
-*/
-// end change RF064
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 	
@@ -98,7 +77,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 	if(!AttrFile.ReadFile())
 	{
 		char szAttrError[256];
-		sprintf(szAttrError,"Can't open player config file '%s'", pSetup->HUDInfoFile);
+		sprintf(szAttrError,"Can't open HUD config file '%s'", pSetup->HUDInfoFile);
 		CCD->ReportError(szAttrError, false);
 		return RGF_FAILURE;
 	}
@@ -169,7 +148,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				strcpy(szAlpha,Talpha);
 // changed RF064
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-				//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
 // end change RF064
 			}
 		}
@@ -189,7 +167,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				strcpy(szAlpha,Talpha);
 // changed RF064
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-				//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
 // end change RF064
 			}
 			Tname = AttrFile.GetValue(KeyName, "npcindicator");
@@ -202,7 +179,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				strcpy(szAlpha,Talpha);
 // changed RF064
 				TempBmp3 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-				//TempBmp3 = CreateFromFileAndAlphaNames(szName, szAlpha);
 // end change RF064
 				if(!TempBmp3)
 					TempBmp3 = TempBmp2;
@@ -286,7 +262,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 							strcpy(szAlpha,Talpha);
 // changed RF064
 							TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-							//TempBmp2 = CreateFromFileAndAlphaNames(szName, szAlpha);
 // end change RF064
 						}
 					}	
@@ -305,7 +280,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				strcpy(szAlpha,Talpha);
 // changed RF064
 				TempBmp1 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-				//TempBmp1 = CreateFromFileAndAlphaNames(szName, szAlpha);
 // end change RF064
 			} 
 			if(AttrFile.GetValue(KeyName, "framex")=="center")
@@ -346,18 +320,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 				direction = 1;
 			if(AttrFile.GetValue(KeyName, "modifydirection")=="both")
 				direction = 2;
-// changed RF064
-/*
-			if(TempBmp1)
-				geWorld_AddBitmap(CCD->World(), TempBmp1);
-			if(TempBmp2)
-				geWorld_AddBitmap(CCD->World(), TempBmp2);
-// changed RF063
-			if(TempBmp3)
-				geWorld_AddBitmap(CCD->World(), TempBmp3);
-// end change RF063
-*/
-// end change RF064
+
 			for(int nItem = 0; nItem < MAXHUD; nItem++)
 				if(!m_theHUD[nItem].active)
 					break;
@@ -734,7 +697,7 @@ int CHeadsUpDisplay::Render()
 // end change RF063
 			char szBug[256];
 			sprintf(szBug, m_theHUD[nItem].format, nValue);
-			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, 255.0f);
 		}
 		// player position
 		if(m_theHUD[nItem].Type == PPOS)
@@ -750,7 +713,7 @@ int CHeadsUpDisplay::Render()
 			char szBug[256];
 			geVec3d Pos = CCD->Player()->Position();
 			sprintf(szBug, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
-			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+			CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, 255.0f);
 		} 
 // changed RF063
 		// Radar
@@ -889,7 +852,7 @@ int CHeadsUpDisplay::Render()
 					Pos.Y = Pos.Y-360.0f;
 				Pos.Y /=3.0f;
 				theRect.Top = 0;
-				theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator);
+				theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator)-1;
 				theRect.Left = (int)Pos.Y;
 				theRect.Right =  theRect.Left+40;
 // changed RF064

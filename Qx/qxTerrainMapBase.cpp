@@ -191,6 +191,19 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 
 	qxSkyDome *SkyDome = CCD->TerrainMgr()->GetSkyDome();
 	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
+
+	if(!SkyDome)
+		return;
+
+	if(!pSun)
+	{
+		qxColor SkyColor(m_CurrentVertColor);
+		pVert->CurrentVert.r = SkyColor.rgba.r;
+		pVert->CurrentVert.g = SkyColor.rgba.g;
+		pVert->CurrentVert.b = SkyColor.rgba.b;
+		pVert->CurrentVert.a = SkyColor.rgba.a;
+		return;
+	}
 	
 	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent();
 	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
@@ -632,7 +645,7 @@ bool qxTerrainMapBase::Render()
 
 
 	geTClip_SetRenderFlags( m_nRenderFlags );
-
+	CCD->TerrainMgr()->SetRender( m_nRenderFlags );
 											
 	//
 	// render all polys
@@ -695,6 +708,7 @@ bool qxTerrainMapBase::RenderWireframe()
 
 
 	geTClip_SetRenderFlags(m_nRenderFlags);
+	CCD->TerrainMgr()->SetRender( m_nRenderFlags );
 
 	// render all polys
 	for(int i = 0; i < m_nTilesCountTotal; i++)

@@ -148,6 +148,20 @@ CPreEffect::CPreEffect()
 				Lite->ColorMin.g = convert.Y;
 				Lite->ColorMin.b = convert.Z;
 			}
+			// change QuestOfDreams
+			Vector = AttrFile.GetValue(KeyName, "offsetangles");
+			if(Vector!="")
+			{
+				strcpy(szName,Vector);
+				Lite->Direction = Extract(szName);
+			}
+			Lite->Spot = false;
+			Type = AttrFile.GetValue(KeyName, "spotlight");
+			if(Type=="true")
+				Lite->Spot = true;
+			Lite->Arc = (float)AttrFile.GetValueF(KeyName, "arc");
+			Lite->Style = AttrFile.GetValueI(KeyName, "style");
+			// end change QuestOfDreams
 			Lite->RadiusMax = (float)AttrFile.GetValueF(KeyName, "radiusmax");
 			Lite->RadiusMin = (float)AttrFile.GetValueF(KeyName, "radiusmin");
 			Lite->Intensity = (float)AttrFile.GetValueF(KeyName, "intensity");
@@ -448,6 +462,10 @@ CPreEffect::CPreEffect()
 				Sp->Bounce = false;
 				if(Vector=="true")
 					Sp->Bounce = true;
+				Vector = AttrFile.GetValue(KeyName, "solid");
+				Sp->Solid = false;
+				if(Vector=="true")
+					Sp->Solid = true;
 				Effects[effptr].Data = Sp;
 				Effects[effptr].Active = true;
 				effptr +=1;

@@ -95,7 +95,6 @@ public:
 	inline CFlame *FlameEffect() { return theFlame; }
 	inline CRFMenu *MenuManager() { return theMenu; }
 	inline CAttribute *Attributes() { return theAttribute; }
-	inline CNPC *NPCManager() { return theNPC;}
 	inline Collider *Collision() { return theCollider;}
 	inline CActorManager *ActorManager() { return theActorManager;}
 	inline CModelManager *ModelManager() { return theModelManager;}
@@ -104,14 +103,12 @@ public:
 	inline CTriggers *Triggers() { return theTriggers;}
 	inline CLogic *Logic() { return theLogic;}
 	inline CDamage *Damage() { return theDamage;}
-	inline CTrack *Track() { return theTrack;}
 // changed RF064
 	inline CScriptPoint *ScriptPoints() { return theScriptPoints;}
 	inline CPawn *Pawns() { return thePawn;}
 	inline CCountDown *CountDownTimers() { return theCountDownTimer;}
 	inline CChangeAttribute *ChangeAttributes() { return theChangeAttribute;}
 // end change RF064
-	inline CNPCPathPoint *NPCPoint() { return theNPCPoint;}
 	inline bool InGameMode() { return m_InGameLoop;}
 	// Time inlines
 	inline DWORD LastElapsedTime_D() { return LastTimePassed_D;}
@@ -161,6 +158,7 @@ public:
 	inline CViewSwitch *ViewSwitchs() { return theViewSwitch;}
 	inline CInventory *Inventory() { return theInventory;}
 	inline CLiquid *Liquids() { return theLiquid;}
+	inline CDSpotLight *CDSpot() { return theCDSpot;}
 // end change RF063
 	inline bool GetPaused() { return Paused;}
 	inline void SetPaused(bool flag) { Paused = flag;}
@@ -173,6 +171,7 @@ public:
 	inline bool GetCDifficult() { return CDifficult;}
 	inline int GetDifficultLevel() { return DifficultLevel;}
 	inline void SetDifficultLevel(int level) { DifficultLevel = level;}
+	inline bool GetCmdLine() { return CmdLine;}
 // end change RF064
 	inline GE_RGBA GetFogColor() { return cColor;}
 	inline bool GetUseEffect() { return UseEffect;}
@@ -181,6 +180,8 @@ public:
 		{ if(szArg != NULL)
 			strcpy(m_LevelDirectory, szArg);
 		}
+	inline bool GetHasFocus() { return HasFocus;}
+	inline void SetHasFocus(bool flag) { HasFocus = flag;}
 // start multiplayer
 	inline bool GetConsole() { return consoleflag;}
 	inline bool GetNetwork() { return network;}
@@ -226,7 +227,6 @@ private:
 	CFlame *theFlame;									// Ralph Deane's Flame Effect
 	Chaos *theChaos;									// Ralph Deane's Chaos Procedural
 	CRFMenu *theMenu;										// Ralph Deane's Menu Manager
-	CNPC *theNPC;											// Non-Player Character Manager
 	Collider *theCollider;						// Collision detection subsystem
 	CActorManager *theActorManager;		// Actor manager subsystem
 	CModelManager *theModelManager;		// Model manager subsystem
@@ -253,7 +253,6 @@ private:
 	CInventory * theInventory;
 	CLiquid * theLiquid;
 // end change RF063
-	CTrack *theTrack;
 // changed RF064
 	COverlay *theOverlay;
 	CScriptPoint *theScriptPoints;
@@ -266,9 +265,9 @@ private:
 	qxTerrainMgr *theTerrainMgr;
 	CArmour * theArmour;
 	CLiftBelt * theLiftBelt;
+	CDSpotLight *theCDSpot;
 	float kAudibleRadius;
 // end change RF064
-	CNPCPathPoint *theNPCPoint;
 	// Timekeeping information
 	__int64 PerformanceFrequency;			// Performance Counter Frequency
 	__int64 LastTimePoll;							// Last time we polled the time
@@ -294,6 +293,7 @@ private:
 	geVec3d Offset;
 	char m_StartPointName[256];
 	bool KeepAttributes;
+	bool SplashHold;
 	float m_defaultdistance, m_cameraX, m_cameraY;
 	geVec3d theTranslation, theRotate;
 	int ViewPoint;
@@ -355,6 +355,8 @@ private:
 	                 DWORD dw1, DWORD dw2);		// Static timer callback
 	int m_nTimerID;
 	__int64 TimeCounter;
+	bool HasFocus;
+	bool CmdLine;
 // end change RF064
 };
 

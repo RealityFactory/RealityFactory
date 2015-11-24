@@ -19,6 +19,7 @@ functionality.
 //	You only need one include file.
 
 #include "RabidFramework.h"
+#include <process.h>
 
 //	WinMain
 //
@@ -63,22 +64,36 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	szFirstLevel[0] = 0;
 	CommandLine = false;
 
+	FILE *fd;
+	bool vidsetup = false;
+	fd = fopen("D3D24.ini","r");
+	if(!fd)
+		vidsetup = true;
+
 	ShowCursor(FALSE);						// Turn off the mouse cursor
 
 	if((lpszCmdParam != NULL) && (strlen(lpszCmdParam) > 0))
 	{
 		char *szFoo = strtok(lpszCmdParam," ");
-		if(stricmp("-map", szFoo) != 0)
-		 {
-			delete CCD;					// Unknown command line parm
-			MessageBox(NULL,lpszCmdParam,"RGF: command line error", MB_OK);
-			exit(-335);
+		if(!stricmp("-map", szFoo))
+		{
+			szFoo = strtok(NULL, "\n\000");
+			strcpy(szFirstLevel, szFoo);
+			szFirstLevel[strlen(szFirstLevel)] = 0;
+			strcat(szFirstLevel,".bsp");
+			CommandLine = true;
 		}
-		szFoo = strtok(NULL, "\n\000");
-		strcpy(szFirstLevel, szFoo);
-		szFirstLevel[strlen(szFirstLevel)] = 0;
-		strcat(szFirstLevel,".bsp");
-		CommandLine = true;
+		else if(!stricmp("-video", szFoo))
+			vidsetup = true;
+	}
+
+	if(vidsetup)
+	{
+		char *args[2];
+		args[0] = "video";
+		args[1] = NULL;
+
+		_spawnv(_P_WAIT, "videosetup.exe", args);
 	}
 
 //	Fine, let's initialize the Genesis engine & etc.

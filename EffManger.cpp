@@ -30,7 +30,7 @@ extern void 	ActorParticle_SystemAddParticle(ActorParticle_System *ps,
 							geVec3d	BaseRotation, geVec3d RotationSpeed,
 							GE_RGBA	FillColor, GE_RGBA	AmbientColor,
 							float Alpha, float AlphaRate, geFloat Time, const geVec3d *Velocity,
-							geFloat	Scale, bool Gravity, geBoolean Bounce);
+							geFloat	Scale, bool Gravity, geBoolean Bounce, geBoolean Solid);
 // end change RF064
 extern void TPool_Initalize();
 extern void TPool_Delete();
@@ -487,7 +487,7 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 
 	// locals
 	geVec3d			Velocity;
-	geVec3d			Left, Up;
+	geVec3d			Left, Up, In;
 	geVec3d			Source, Dest;
 	const geXForm3d		*CameraXf;
 	float			Scale;
@@ -566,8 +566,11 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 		{
 			geXForm3d_GetLeft( &( Data->Xf ), &Left );
 			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geXForm3d_GetIn( &( Data->Xf ), &In );
 			geVec3d_Scale( &Left, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
 			geVec3d_Scale( &Up, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Scale( &In, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &In );
+			geVec3d_Add( &Left, &In, &Left );
 			geVec3d_Add( &Left, &Up, &Source );
 			geVec3d_Add( &( Data->Source ), &Source, &Source );
 		}
@@ -584,8 +587,11 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 		{
 			geXForm3d_GetLeft( &( Data->Xf ), &Left );
 			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geXForm3d_GetIn( &( Data->Xf ), &In );
 			geVec3d_Scale( &Left, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
 			geVec3d_Scale( &Up, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Scale( &In, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &In );
+			geVec3d_Add( &Left, &In, &Left );
 			geVec3d_Add( &Left, &Up, &Dest );
 			geVec3d_Add( &( Data->Dest ), &Dest, &Dest );
 		}
@@ -804,13 +810,27 @@ geBoolean EffManager::Glow_Process(Glow  *Data,  float  TimeDelta)
           Data->RadiusMin = Data->RadiusMax;
 	Radius = EffectC_Frand( Data->RadiusMin, Data->RadiusMax );
 
+// changed QuestOfDreams
 	// adjust the lights parameters
-	geWorld_SetLightAttributes(CCD->World(),
+	if(Data->Spot)
+		geWorld_SetSpotLightAttributes(CCD->World(),
+								   Data->Light,
+								   &(Data->Pos),
+								   &Color,
+								   Radius,
+								   Data->Arc,
+								   &Data->Direction,
+								   Data->Style,
+								   Data->CastShadows);
+		
+	else	
+		geWorld_SetLightAttributes(CCD->World(),
 						Data->Light,
 						&( Data->Pos ),
 						&Color,
 						Radius,
 						Data->CastShadows );
+// end change QuestOfDreams
 
 	// all done
 	return GE_TRUE;
@@ -823,6 +843,10 @@ geBoolean EffManager::Glow_Modify(Glow *Data, Glow *NewData, uint32 Flags)
   // adjust the source
   if ( Flags & GLOW_POS )
   {
+	  // changed QuestOfDreams
+	if(Data->Spot)
+		geVec3d_Copy(&(NewData->Direction), &(Data->Direction));
+	// end change QuestOfDreams
 	geVec3d_Copy( &( NewData->Pos ), &( Data->Pos ) );
 	RecalculateLeaf = GE_TRUE;
   }
@@ -1929,7 +1953,8 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 						&Velocity,
 						Scale,
 						Data->Gravity,
-						Data->Bounce);
+						Data->Bounce,
+						Data->Solid);
 	}
 
 	// all done

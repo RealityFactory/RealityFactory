@@ -135,6 +135,9 @@ int CFlame::CreateG(Flame *S)
 	int effect = -1;
     Glow	Gl;
 
+	if(S->GIntensity==0.0f)
+		return -1;
+
 	// clear out the light data
     memset( &Gl, 0, sizeof( Gl ) );
     // copy the position
@@ -171,7 +174,7 @@ int CFlame::CreateG(Flame *S)
     Gl.Intensity = S->GIntensity;
     Gl.DoNotClip = false;
     Gl.CastShadows = S->GCastShadows;
-
+	Gl.Spot = false;
     // add the light to the manager
     effect = CCD->EffectManager()->Item_Add(EFF_LIGHT, (void *)&Gl);
 	return effect;
@@ -277,8 +280,11 @@ void CFlame::Tick(float dwTicksIn)
 			geVec3d_Inverse( &In );
 			geVec3d_AddScaled( &( Sp.Source ), &In, 50.0f, &( Sp.Dest ) );
 			CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList0, (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
-			geVec3d_Copy( &( Sp.Dest ), &( Gl.Pos) );
-			CCD->EffectManager()->Item_Modify(EFF_LIGHT, S->EffectList1, (void *)&Gl, GLOW_POS);
+			if(S->EffectList1!=-1)
+			{
+				geVec3d_Copy( &( Sp.Dest ), &( Gl.Pos) );
+				CCD->EffectManager()->Item_Modify(EFF_LIGHT, S->EffectList1, (void *)&Gl, GLOW_POS);
+			}
 		}
 	}
     Entity = geEntity_EntitySetGetNextEntity(Set, Entity);

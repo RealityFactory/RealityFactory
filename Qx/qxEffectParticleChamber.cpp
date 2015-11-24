@@ -195,9 +195,9 @@ bool qxEffectParticleChamber::SetAngles( geVec3d* pAngles )
 	Angles = *pAngles;
 
 	geXForm3d_SetIdentity( &m_matXForm );
-	geXForm3d_RotateX( &m_matXForm, RADIANS(pAngles->X));// / 57.3f );  
-	geXForm3d_RotateY( &m_matXForm, RADIANS( pAngles->Y));// - 90.0f ) / 57.3f );  
-	geXForm3d_RotateZ( &m_matXForm, RADIANS(pAngles->Z));// / 57.3f );
+	geXForm3d_RotateX( &m_matXForm, RADIANS(pAngles->X));  
+	geXForm3d_RotateY( &m_matXForm, RADIANS( pAngles->Y));  
+	geXForm3d_RotateZ( &m_matXForm, RADIANS(pAngles->Z));
 	
 	if(m_pActor)
 	{

@@ -67,6 +67,9 @@ typedef enum
 		TESTDAMAGEORDER,
 		CHANGEMATERIAL,
 		ATTACHTOACTOR,
+		DETACHFROMACTOR,
+		SETWEAPON,
+		REMOVEWEAPON,
 		DELAY
 };
 
@@ -130,6 +133,9 @@ char *ActionText[] =
 	"TestDamageOrder",
 	"ChangeMaterial",
 	"AttachToActor",
+	"DetachFromActor",
+	"SetWeapon",
+	"RemoveWeapon",
 	"Delay"
 };
 
@@ -778,6 +784,12 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(TESTDAMAGEORDER, param0, param3, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "DetachFromActor"))
+	{
+
+		AddAction(DETACHFROMACTOR, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "AttachToActor"))
 	{
 		float x0,y0,z0,x1,y1,z1;
@@ -797,6 +809,18 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		z1 = arguments[8].floatValue();
 		sprintf(param7,"%f %f %f %f %f %f", x0,y0,z0,x1,y1,z1);
 		AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetWeapon"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		AddAction(SETWEAPON, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "RemoveWeapon"))
+	{
+		AddAction(REMOVEWEAPON, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "random"))
@@ -911,7 +935,9 @@ void ScriptedObject::AddAction(int Action, char *AnimName, float Speed, bool Fla
 		strcpy(pool->AnimName, AnimName);
 	pool->SoundName[0] = '\0';
 	if(!EffectC_IsStringNull(Sound))
+	{
 		strcpy(pool->SoundName, Sound);
+	}
 	pool->TriggerName[0] = '\0';
 	if(!EffectC_IsStringNull(Trigger))
 		strcpy(pool->TriggerName, Trigger);
@@ -2674,6 +2700,12 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						CCD->ActorManager()->RemoveActorCheck(Object->Actor);
 						geActor_Destroy(&Object->Actor);
 						Object->Actor = NULL;
+						if(Object->WeaponActor)
+						{
+							CCD->ActorManager()->RemoveActorCheck(Object->WeaponActor);
+							geActor_Destroy(&Object->WeaponActor);
+							Object->WeaponActor = NULL;
+						}
 					}
 					Object->ActionActive = false;
 					if(Object->Index->Flag)
@@ -2900,6 +2932,8 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							float scale;
 							CCD->ActorManager()->GetScale(Object->Actor, &scale);
 							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed*scale);
+							if(Object->WeaponActor)
+								CCD->ActorManager()->SetScale(Object->WeaponActor, Object->Index->Speed*Object->WScale);
 						}
 					}
 					Object->ActionActive = false;
@@ -2927,7 +2961,12 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							strncpy(Proj, Strn, (int)Object->Index->Speed);
 							Proj[(int)Object->Index->Speed] = '\0';
 							Strn = Strn + (int)Object->Index->Speed;
-							if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
+							bool bone;
+							if(Object->WeaponActor)
+								bone = geActor_GetBoneTransform(Object->WeaponActor, Object->Index->TriggerName, &Xf);
+							else
+								bone = geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf);
+							if(bone)
 							{
 								geVec3d_Copy(&(Xf.Translation), &Pos);
 								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
@@ -3032,6 +3071,105 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					{
 						if(!EffectC_IsStringNull(Object->Index->AnimName))
 							CCD->ActorManager()->ChangeMaterial(Object->Actor, Object->Index->AnimName);
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case ATTACHTOACTOR:
+					if(Object->Actor)
+					{
+						char master[64], masterbone[64], slavebone[64];
+						char numeric[128];
+						char *szAtom;
+						geVec3d Position, Rotation;
+						geXForm3d thePosition;
+						geActor *MasterActor;
+						strncpy(master, Object->Index->AnimName, (int)Object->Index->Speed);
+						master[(int)Object->Index->Speed] = '\0';
+						strncpy(masterbone, (Object->Index->AnimName+(int)Object->Index->Speed), (int)Object->Index->Value1);
+						masterbone[(int)Object->Index->Value1] = '\0';
+						strcpy(slavebone, (Object->Index->AnimName+(int)Object->Index->Speed+(int)Object->Index->Value1));
+						strcpy(numeric, Object->Index->TriggerName);
+						szAtom = strtok(numeric," ");
+						Position.X = (float)atof(szAtom);
+						szAtom = strtok(NULL," \n");
+						Position.Y = (float)atof(szAtom);
+						szAtom = strtok(NULL," \n");
+						Position.Z = (float)atof(szAtom);
+						szAtom = strtok(NULL," \n");
+						Rotation.X = (float)atof(szAtom)*0.0174532925199433f;
+						szAtom = strtok(NULL," \n");
+						Rotation.Y = (float)atof(szAtom)*0.0174532925199433f;
+						szAtom = strtok(NULL," \n");
+						Rotation.Z = (float)atof(szAtom)*0.0174532925199433f;
+						geXForm3d_SetIdentity(&thePosition);		// Initialize
+						geXForm3d_RotateZ(&thePosition, Rotation.Z);
+						geXForm3d_RotateX(&thePosition, Rotation.X);
+						geXForm3d_RotateY(&thePosition, Rotation.Y);
+						geXForm3d_Translate(&thePosition, Position.X, 
+							Position.Y, Position.Z);
+	
+						MasterActor = CCD->ActorManager()->GetByEntityName(master);
+						if(!MasterActor)
+							break;
+						CCD->ActorManager()->ActorAttach(Object->Actor,  slavebone,
+							MasterActor, masterbone, &thePosition); 
+						Object->ActionActive = false;
+						runflag = true;
+
+					}
+					else
+					{
+						Object->ActionActive = false;
+						runflag = true;
+					}
+					break;
+				case DETACHFROMACTOR:
+					if(Object->Actor)
+					{
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case REMOVEWEAPON:
+					if(Object->Actor)
+					{
+						if(Object->WeaponActor)
+						{
+							CCD->ActorManager()->RemoveActor(Object->WeaponActor);
+							geActor_Destroy(&Object->WeaponActor);
+							Object->WeaponActor = NULL;
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case SETWEAPON:
+					if(Object->Actor)
+					{
+						int keynum = WeaponCache.GetSize();
+						if(keynum>0)
+						{
+							for(int i=0;i<keynum;i++)
+							{
+								if(!strcmp(WeaponCache[i].Name, Object->Index->AnimName))
+								{
+									if(Object->WeaponActor)
+									{
+										CCD->ActorManager()->RemoveActor(Object->WeaponActor);
+										geActor_Destroy(&Object->WeaponActor);
+									}
+									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName, 
+										Object->Location, WeaponCache[i].Rotation, "", "", NULL);
+									CCD->ActorManager()->SetActorDynamicLighting(Object->WeaponActor, WeaponCache[i].FillColor, WeaponCache[i].AmbientColor);
+									Object->WRotation = WeaponCache[i].Rotation;
+									Object->WScale = WeaponCache[i].Scale;
+									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale);
+									CCD->ActorManager()->SetNoCollide(Object->WeaponActor);
+									break;
+								}
+							}
+						}
 					}
 					Object->ActionActive = false;
 					runflag = true;

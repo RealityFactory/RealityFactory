@@ -55,6 +55,9 @@ struct ActorInstanceList
 	int OldZone;
 	int GravityCoeff;
 	Liquid *LQ;
+	char szEntityName[128];
+	bool Attached;
+	geActor *AttachedActor;
 // end change RF063
 // changed RF064
     geWorld_Model *PassengerModel;
@@ -162,6 +165,8 @@ public:
 	int GetStepHeight(geActor *theActor, geFloat *fMaxStep);
 	int GetActorOldZone(geActor *theActor, int *ZoneType);
 	Liquid *GetLiquid(geActor *theActor);
+	geActor *GetByEntityName(char *name);
+	int SetEntityName(geActor *theActor, char *name);
 // end change RF063
 	int RemoveForce(geActor *theActor, int nForceNumber);
 	geBoolean ForceActive(geActor *theActor, int nForceNumber);
@@ -248,6 +253,8 @@ public:
 	geBoolean DoesRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 
 		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal);
 	int SetGravityTime(geActor *theActor, geFloat fGravitytime);
+	void ActorAttach(geActor* Slave,  char *SlaveBoneName, geActor* Master,
+		char * MasterBoneName, geXForm3d* Attachment); 
 // end change RF064
 private:
 	//	Private member functions

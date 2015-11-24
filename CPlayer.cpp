@@ -47,6 +47,7 @@ CPlayer::CPlayer()
 // changed RF064
 	alwaysrun = m_Running = m_run = false;
 	monitorstate = monitormode = false;
+	deathspace = false;
 // end change RF064
 	m_Scale = 1.0f;
 	m_lastdirection = 0;
@@ -76,6 +77,7 @@ CPlayer::CPlayer()
 	LastHealth = -1;
 	Injured = false;
 	Dying = false;
+	ContinueAfterDeath = true;
 	OldFalling = Falling = FallInjure = false;
 	MinFallDist = MaxFallDist = FallDamage = 0.0f;
 // changed RF063
@@ -91,6 +93,8 @@ CPlayer::CPlayer()
 	SwimSound = -1;
 	SurfaceSound = -1;
 	InLiquidSound = -1;
+	slideslope = 0.8f;
+	slidespeed = 40.0f;
 // end change RF063
 	DefaultMotion[0] = NULL;
 	DefaultMotion[1] = NULL;
@@ -423,6 +427,21 @@ CPlayer::CPlayer()
 				LiteColorMax.g = convert.Y;
 				LiteColorMax.b = convert.Z;
 			}
+			// changed QuestOfDreams
+			Vector = AttrFile.GetValue(KeyName, "offsetangles");
+			if(Vector!="")
+			{
+				strcpy(szName,Vector);
+				LiteOffset = Extract(szName);
+			}
+			geVec3d_Scale(&LiteOffset, 0.0174532925199433f, &LiteOffset);
+			LiteSpot = false;
+			Type = AttrFile.GetValue(KeyName, "spotlight");
+			if(Type=="true")
+				LiteSpot = true;
+			LiteArc = (float)AttrFile.GetValueF(KeyName, "arc");
+			LiteStyle = AttrFile.GetValueI(KeyName, "style");
+			// end change QuestOfDreams
 			LiteBone[0] = '\0';
 			Type = AttrFile.GetValue(KeyName, "attachtobone");
 			if(Type!="")
@@ -467,6 +486,9 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "allowcrouchjump");
 			if(Type=="false")
 				nocrouchjump = true;
+			Type = AttrFile.GetValue(KeyName, "restartafterdeath");
+			if(Type=="false")
+				ContinueAfterDeath = false;
 			strcpy(JumpOnDamageAttr,"health");
 			Type = AttrFile.GetValue(KeyName, "jumpondamageattribute");
 			if(Type!="")
@@ -812,6 +834,10 @@ int CPlayer::LoadConfiguration()
 				m_StepHeight = theState->StepHeight;	// Over-ride default step-up height
 			if(theState->AudibleRadius != 0.0f)
 				CCD->SetAudibleRadius(theState->AudibleRadius);
+			if(theState->SlideSlope != 0.0f)
+				slideslope = theState->SlideSlope;
+			if(theState->SlideSpeed != 0.0f)
+				slidespeed = theState->SlideSpeed;
 			float detailevel = (float)CCD->MenuManager()->GetDetail();
 			if(theState->EnableDistanceFog == GE_TRUE)
 			{
@@ -857,6 +883,10 @@ int CPlayer::LoadConfiguration()
 			m_StepHeight = CCD->MenuManager()->GetCurrentStep();
 			CCD->ActorManager()->SetStepHeight(Actor, m_StepHeight);
 		}
+		if(CCD->MenuManager()->GetCurrentSlopeSlide()!=-1.0f)
+			slideslope = CCD->MenuManager()->GetCurrentSlopeSlide();
+		if(CCD->MenuManager()->GetCurrentSlopeSpeed()!=-1.0f)
+			slidespeed = CCD->MenuManager()->GetCurrentSlopeSpeed();
 	}
 
 	CIniFile AttrFile(AttrInfo);
@@ -2060,8 +2090,26 @@ void CPlayer::Tick(geFloat dwTicks)
 	{
 		if(CCD->ActorManager()->EndAnimation(Actor))
 		{
-			Alive = false;
-			Dying = false;
+			if(CCD->Input()->GetKeyboardInputNoWait()==KEY_ESC)
+			{
+				if(!ContinueAfterDeath)
+					monitorstate = true;
+				else
+				{
+					Alive = false;
+					Dying = false;
+				}
+				while(CCD->Input()->GetKeyboardInputNoWait()==KEY_ESC)
+				{
+				}
+			}
+			else if(CCD->Input()->GetKeyboardInputNoWait()==KEY_SPACE)
+			{
+				deathspace = true;
+				while(CCD->Input()->GetKeyboardInputNoWait()==KEY_SPACE)
+				{
+				}
+			}
 		}
 		return;
 	}
@@ -2357,17 +2405,29 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				Glow	Gl;
 				geExtBox theBox;
+				//changed QuestOfDreams
+				geXForm3d thePosition;
 				geVec3d Pos = Position();
 				CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 				Pos.Y += theBox.Max.Y;
 				if(LiteBone[0] != '\0')
-				{
-					geXForm3d thePosition;
+				{					
 					if(geActor_GetBoneTransform(Actor, LiteBone, &(thePosition)))
 						Pos = thePosition.Translation;
 				}
+				else
+					geActor_GetBoneTransform(Actor, NULL, &thePosition);
 				memset( &Gl, 0, sizeof(Gl));
 				geVec3d_Copy(&(Pos), &(Gl.Pos));
+				Gl.Spot = LiteSpot;
+				Gl.Arc = LiteArc;
+				Gl.Style = LiteStyle;
+											
+				geXForm3d_RotateY(&thePosition, LiteOffset.Y);
+				geXForm3d_GetEulerAngles(&thePosition, &Gl.Direction);
+				Gl.Direction.Z += LiteOffset.Z;
+				geVec3d_Scale(&Gl.Direction, 57.3f, &Gl.Direction);
+// end change QuestOfDreams
 				Gl.RadiusMin = LiteRadiusMin;
 				Gl.RadiusMax = LiteRadiusMax;
 				Gl.ColorMin.r = LiteColorMin.r;
@@ -2408,16 +2468,29 @@ void CPlayer::Tick(geFloat dwTicks)
 	{
 		Glow Gl;
 		geExtBox theBox;
+		//changed QuestOfDreams
+		geXForm3d 	thePosition;
+		geVec3d	theRotation;
 		geVec3d Pos = Position();
 		CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 		Pos.Y += theBox.Max.Y;
 		if(LiteBone[0] != '\0')
 		{
-			geXForm3d thePosition;
+			
 			if(geActor_GetBoneTransform(Actor, LiteBone, &(thePosition)))
 				Pos = thePosition.Translation;
 		}
+		else
+				geActor_GetBoneTransform(Actor, NULL, &thePosition);
 		geVec3d_Copy(&(Pos), &(Gl.Pos));
+		geXForm3d_RotateY(&thePosition, LiteOffset.Y);
+		geXForm3d_GetEulerAngles(&thePosition, &Gl.Direction);
+		// move the light up/down when looking up/down
+		CCD->CameraManager()->GetRotation(&theRotation);
+		Gl.Direction.Z += theRotation.X;
+		Gl.Direction.Z += LiteOffset.Z;
+		geVec3d_Scale(&Gl.Direction, 57.3f, &Gl.Direction);
+// end change QuestOfDreams
 		if(!DecayLite)
 		{
 			CurrentLiteLife -= dwTicks*0.001f;
@@ -3914,7 +3987,7 @@ bool CPlayer::DoMovements()
 // changed RF063
 	int theZone, OldZone;
 	geFloat fTemp;
-	
+
 	CCD->ActorManager()->GetActorZone(Actor, &theZone);
 	CCD->ActorManager()->GetActorOldZone(Actor, &OldZone);
 	if(OldZone>0 || theZone==kLiquidZone || theZone==kInLiquidZone)
@@ -4012,6 +4085,10 @@ bool CPlayer::DoMovements()
 		default:
 			break;
 		}
+			
+		if(!CCD->Weapons()->GetAllowMoveZoom())
+			CCD->CameraManager()->CancelZoom();
+
 		
 	}
 	else

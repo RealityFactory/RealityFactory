@@ -118,7 +118,7 @@ void qxTerrainPoly::Render( )
 	if(VF_Overall == VF_OUT)
 	{
 		return;
-	}
+	} 
 
 	if(m_bActive)
 	{
@@ -153,6 +153,9 @@ void qxTerrainPoly::Render( )
 			return;
 
 		GE_LVertex verts[3];
+		memset((void*) &verts[0], 0, sizeof(GE_LVertex));
+		memset((void*) &verts[1], 0, sizeof(GE_LVertex));
+		memset((void*) &verts[2], 0, sizeof(GE_LVertex));
 
 		memcpy((void*) &verts[0].X, (void*) &m_pLeftVert->ProjectedVert.X, sizeof(float) * 3);
 		memcpy((void*) &verts[1].X, (void*) &m_pRightVert->ProjectedVert.X, sizeof(float) * 3);
@@ -162,10 +165,6 @@ void qxTerrainPoly::Render( )
 		memcpy((void*) &verts[1].u, (void*) &m_pRightVert->CurrentVert.u, sizeof(float) * 6);
 		memcpy((void*) &verts[2].u, (void*) &m_pTopVert->CurrentVert.u, sizeof(float) * 6);
 
-/*		verts[0].r = 255; verts[0].b = 0; verts[0].g = 0;
-		verts[1].r = 0; verts[1].b = 0; verts[1].g = 255;
-		verts[2].r = 0; verts[2].b =255; verts[2].g = 0;
-*/
 		// if the triangle is completely onscreen, then 
 		//its not necessary to do complete clipping on it
 		if(VF_Overall == VF_ALL_IN)		
@@ -173,16 +172,24 @@ void qxTerrainPoly::Render( )
 			geTClip_UnclippedTriangle(verts);
 			return;
 		}
- 
+/*
+		verts[0].r = 255.0f; verts[0].b = 255.0f; verts[0].g = 255.0f;
+		verts[1].r = 255.0f; verts[1].b = 255.0f; verts[1].g = 255.0f;
+		verts[2].r = 255.0f; verts[2].b = 255.0f; verts[2].g = 255.0f;
+		verts[0].a = 255.0f; verts[1].a = 255.0f; verts[2].a = 255.0f;
+*/
 		geTClip_UnclippedTriangle(verts);
-		//geEngine_RenderPoly(CCD->Engine()->Engine(), (GE_TLVertex *)verts, 3, CCD->TerrainMgr()->GetTexture(), 0 );
-		//geTClip_Triangle(verts);
+
+		//geEngine_RenderPoly(CCD->Engine()->Engine(), (GE_TLVertex *)verts, 3, CCD->TerrainMgr()->GetTexture(),
+			//CCD->TerrainMgr()->GetRender());
+
+ 		//geTClip_Triangle(verts);
 		return;
 	}
 
 	// light the sub vertex, T&P sub vert, render children
 
-	m_pTerrainMap->LightVertex(m_pSubVert);
+	m_pTerrainMap->LightVertex(m_pSubVert); 
 
 	geCamera_TransformAndProject(CCD->CameraManager()->Camera(), 
 								(geVec3d *)&(m_pSubVert->CurrentVert), 

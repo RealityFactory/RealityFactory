@@ -132,6 +132,8 @@ typedef struct DefaultWeapons
 	bool AllowLit;
 	geVec3d LitColor;
 	int ZoomAmt;
+	geBitmap *ZoomOverlay;
+	bool MoveZoom;
 
 	geActor *VActor;
 	geActor_Def	*VActorDef;
@@ -225,6 +227,7 @@ public:
   void DisplayCrossHair();
   geBitmap *GetCrossHair();
   int ZoomAmount();
+  void DisplayZoom();
   void ReSetWeapon(int value);
   void ClearWeapon();
   char *PlayerAnim(int index);
@@ -257,6 +260,8 @@ public:
   { return WeaponD[CurrentWeapon].LitColor; }
   bool GetAllowLit()
   { return WeaponD[CurrentWeapon].AllowLit; }
+  bool GetAllowMoveZoom()
+  { return WeaponD[CurrentWeapon].MoveZoom; }
 // end change RF064
   bool GetAttackFlag()
   { return AttackFlag;}

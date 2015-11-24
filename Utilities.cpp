@@ -78,31 +78,6 @@ bool SetOriginOffset(char *EntityName, char *BoneName, geWorld_Model *Model, geV
 					return false;
 				} 
 			}
-			if(!stricmp(EntityType, "NonPlayerCharacter"))
-			{
-				NonPlayerCharacter *pProxy;
-				if(CCD->NPCManager()->LocateEntity(EntityName, (void**)&pProxy)==RGF_SUCCESS)
-				{
-					Bot_Var *DBot = (Bot_Var *)pProxy->DBot;
-					if(DBot->Actor)
-					{
-						geXForm3d Xf;
-						if(EffectC_IsStringNull(BoneName))
-							BoneName = NULL;
-						if(geActor_GetBoneTransform(DBot->Actor, BoneName, &Xf )==GE_TRUE)
-						{
-							geVec3d_Copy( &( Xf.Translation ), OriginOffset );
-							return true;
-						}
-						return false;
-					} 
-					else
-					{
-						geVec3d_Copy( &pProxy->Location, OriginOffset );
-						return true;
-					}
-				}
-			}
 // changed RF064
 			if(!stricmp(EntityType, "Pawn"))
 			{
@@ -228,6 +203,34 @@ bool GetTriggerState(char *TriggerName)
 	{
 		return CCD->Player()->GetMonitorState();
 	}
+	if(!stricmp(TriggerName, "PlayerDeath"))
+	{
+		return CCD->Player()->GetDying();
+	}
+	if(!stricmp(TriggerName, "DeathESC"))
+	{
+		return CCD->Player()->GetMonitorState();
+	}
+	if(!stricmp(TriggerName, "DeathSpace"))
+	{
+		return CCD->Player()->GetDeathSpace();
+	}
+	if(!stricmp(TriggerName, "InFirstPerson"))
+	{
+		return CCD->Player()->InFirstPerson();
+	}
+/*	if(!strnicmp(TriggerName, "Zoom", 4))
+	{
+		if(!CCD->CameraManager()->GetZooming())
+			return false;
+		if(strlen(TriggerName)==4)
+			return true;
+		char *Weaponname;
+		Weaponname = (TriggerName+4);
+		if(!stricmp(Weaponname, CCD->Weapons()->GetWeaponName()))
+			return true;
+		return false;
+	} */
 // end change RF064
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
 	if(EntityType)
@@ -260,12 +263,6 @@ bool GetTriggerState(char *TriggerName)
 		{
 			DestroyableModel *pProxy;
 			CCD->Damage()->LocateEntity(TriggerName, (void**)&pProxy);
-			return pProxy->bState;
-		}
-		if(!stricmp(EntityType, "NonPlayerCharacter"))
-		{
-			NonPlayerCharacter *pProxy;
-			CCD->NPCManager()->LocateEntity(TriggerName, (void**)&pProxy);
 			return pProxy->bState;
 		}
 		if(!stricmp(EntityType, "ElectricBolt"))
@@ -332,12 +329,6 @@ bool GetCallBackState(char *CallBackName)
 		{
 			ChangeLevel *pProxy;
 			CCD->Changelevel()->LocateEntity(CallBackName, (void**)&pProxy);
-			return pProxy->CallBack;
-		}
-		if(!stricmp(EntityType, "NonPlayerCharacter"))
-		{
-			NonPlayerCharacter *pProxy;
-			CCD->NPCManager()->LocateEntity(CallBackName, (void**)&pProxy);
 			return pProxy->CallBack;
 		}
 	}
@@ -713,96 +704,6 @@ geVec3d Extract(char *Vector)
 	return values;
 }
 
-void StackInit(Stack *s)
-{
-	s->TOS = -1;
-	s->Data = GE_RAM_ALLOCATE_ARRAY(int32, MAX_TRACKS);
-    assert(s->Data);
-    s->Size = MAX_TRACKS;
-}
-
-void StackReset(Stack *s)
-{
-	s->TOS = -1;
-}
-
-void StackPush(Stack *s, int32 data)
-{
-	s->TOS++;
-    assert(s->TOS < s->Size);
-	s->Data[s->TOS] = data;
-}
-
-int32 StackPop(Stack *s)
-{
-    int32 value;
-	
-	if (s->TOS <= -1)
-		return (s->TOS = -1);
-	
-	value = s->Data[s->TOS];
-	s->TOS--;
-	
-	return (value);
-}
-
-int32 StackTop(Stack *s)
-{
-	if (s->TOS <= -1)
-		return (-1);
-	
-	return (s->Data[s->TOS]);
-}
-
-geBoolean StackIsEmpty(Stack *s)
-{
-	return (s->TOS <= -1);
-}
-
-int32 randomseed=17;
-
-int32 krand()
-{
-    randomseed = ((randomseed * 21 + 1) & 65535);
-    return (randomseed);
-}
-
-int32 RandomRange(int32 range)
-{
-/*    int32 rand_num;
-    int32 value;
-    
-    if (range <= 0)
-        return(0);
-    
-    rand_num = krand();
-    
-    if (rand_num == 65535U)
-        rand_num--;
-    
-    // shift values to give more precision
-    value = (rand_num << 14) / ((65535UL << 14) / range);
-    
-    if (value >= range)
-        value = range - 1;
-	
-    return(value); */
-	return (int)EffectC_Frand(0.0f, (float)(range - 1));
-}
-
-float DistWeightedY(const geVec3d *Pos1, const geVec3d *Pos2, const float Scale)
-{
-	geVec3d LPos1, LPos2;
-	
-	LPos1 = *Pos1;
-	LPos2 = *Pos2;
-	
-	LPos1.Y *= Scale;
-	LPos2.Y *= Scale;
-	
-	return(geVec3d_DistanceBetween(&LPos1, &LPos2));
-}
-
 void Ang2Vec(float ang, geVec3d *vec)
 {
 	vec->X = (float)cos(ang);
@@ -811,15 +712,6 @@ void Ang2Vec(float ang, geVec3d *vec)
 	SqueezeVector(vec, 0.0001f);
 	
 	geVec3d_Normalize(vec);
-}
-
-void VectorRotateY(geVec3d *vec, float delta_ang, geVec3d *result)
-{
-    geXForm3d XForm;
-	
-    geXForm3d_SetIdentity(&XForm);
-    geXForm3d_RotateY(&XForm, delta_ang);
-    geXForm3d_Rotate(&XForm, vec, result);
 }
 
 //=====================================================================================
@@ -925,20 +817,7 @@ geActor * GetEntityActor(char *EntityName)
 				
 				return NULL;
 			}
-			if(!stricmp(EntityType, "NonPlayerCharacter"))
-			{
-				NonPlayerCharacter *pProxy;
-				if(CCD->NPCManager()->LocateEntity(EntityName, (void**)&pProxy)==RGF_SUCCESS)
-				{
-					Bot_Var *DBot = (Bot_Var *)pProxy->DBot;
-					if(DBot->Actor)
-						return DBot->Actor;
-					
-					return NULL;
-				}
-				return NULL;
-			}
-			
+
 			if(!stricmp(EntityType, "Pawn"))
 			{
 				Pawn *pProxy;

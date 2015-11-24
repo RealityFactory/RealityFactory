@@ -28,6 +28,7 @@ public:
 // end change RF063
 	void Tick(float dwTicks);
 	void SetZoom(bool flag);
+	void CancelZoom();
 	void SetShake(float MaxAmount, geFloat Decay, geVec3d Pos);
 	void GetShake(float *x, float *y);
 	int Position(geVec3d thePosition);	// Set camera position

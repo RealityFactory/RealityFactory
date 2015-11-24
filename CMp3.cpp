@@ -62,6 +62,7 @@ void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 		MCIWndPlay(m_Video);
 		Loop = loop;
 		Active = true;
+		SetVolume(volume);
 	}	
 } // PlayMp3
 
@@ -78,3 +79,12 @@ void CMp3Manager::StopMp3()
 } //StopMp3
 
 // end change RF064
+
+void CMp3Manager::SetVolume(long volume)
+{
+	if(m_Video)
+	{
+		MCIWndSetVolume(m_Video, volume);
+
+	}
+}

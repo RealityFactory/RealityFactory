@@ -92,7 +92,7 @@ void CFixedCamera::Tick()
 			geXForm3d_GetEulerAngles(&Xf, &Tmp);
 			geVec3d_Add(&pSource->RealAngle, &Tmp, &pSource->Rotation);
 		}
-		else if(!EffectC_IsStringNull(pSource->EntityName))
+		else if(!EffectC_IsStringNull(pSource->EntityName) && !pSource->AngleRotation)
 		{
 			SetAngle(pSource->EntityName, pSource->BoneName, &pSource->Rotation);
 		}
@@ -171,7 +171,7 @@ bool CFixedCamera::GetFirstCamera()
 			geXForm3d_GetEulerAngles(&Xf, &Tmp);
 			geVec3d_Add(&pSource->RealAngle, &Tmp, &pSource->Rotation);
 		}
-		else if(!EffectC_IsStringNull(pSource->EntityName))
+		else if(!EffectC_IsStringNull(pSource->EntityName) && !pSource->AngleRotation)
 		{
 			SetAngle(pSource->EntityName, pSource->BoneName, &pSource->Rotation);
 		}

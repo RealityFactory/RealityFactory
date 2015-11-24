@@ -48,30 +48,11 @@ geVec3d Extract(char *Vector);
 #define RESET_BITARR(bitarr, bitnum) (bitarr[(bitnum)>>3] &= ~(1<<((bitnum)&7)))
 #define TEST_BITARR(bitarr, bitnum) (bitarr[(bitnum)>>3] & (1<<((bitnum)&7)))
 
-int32 krand(void);
-int32 RandomRange(int32 range);
-
-void VectorRotateY(geVec3d *vec, float delta_ang, geVec3d *result);
-
 #define M_PI (3.14159f)
 #define PI_2 (M_PI*2.0f)
 #define M_PI2 (PI_2)
 
-typedef struct Stack
-    { int32 TOS, Size, *Data;} 
-Stack;
-
-void StackInit(Stack *s);
-void StackReset(Stack *s);
-void StackPush(Stack *s, int32 data);
-int32 StackPop(Stack *s);
-int32 StackTop(Stack *s);
-geBoolean StackIsEmpty(Stack *s);
-void StackSetup(Stack *s);
-
-float DistWeightedY(const geVec3d *Pos1, const geVec3d *Pos2, const float Scale);
 void Ang2Vec(float ang, geVec3d *vec);
-void VectorRotateY(geVec3d *vec, float delta_ang, geVec3d *result);
 geBoolean CanSeePointToPoint(geVec3d *Pos1, geVec3d *Pos2);
 geBoolean CanSeeActorToPoint(geActor *Actor, geVec3d *Pos2);
 geBoolean CanSeePointToActor(geVec3d *Pos2, geActor *Actor);

@@ -75,7 +75,6 @@ CCommonData::CCommonData()
 	theChaos = NULL;						// Ralph Deane's Chaos Procedural
 	theFlame = NULL;						// Ralph Deane's Flame Effect
 	theMenu = NULL;							// Ralph Deane's Menu Manager
-	theNPC = NULL;							// Non-Player Character Manager
 	theCollider = NULL;					// Collision Detection Subsystem
 	theActorManager = NULL;			// Actor Manager subsystem
 	theModelManager = NULL;			// Model Manager subsystem
@@ -94,7 +93,6 @@ CCommonData::CCommonData()
 	theExplosion = NULL;
 	theCExplosion = NULL;
 	thePreEffect = NULL;
-	theTrack = NULL;
 // changed RF064
 	theScriptPoints = NULL;
 	thePawn = NULL;
@@ -103,12 +101,12 @@ CCommonData::CCommonData()
 // end change RF064
 	theShake = NULL;
 	theFixedCamera = NULL;
-	theNPCPoint = NULL;
 	theChangeLevel = NULL;
 // changed RF063
 	theViewSwitch = NULL;
 	theInventory = NULL;
 	theLiquid = NULL;
+	theCDSpot = NULL;
 // end change RF063
 
 // changed RF064
@@ -163,6 +161,7 @@ CCommonData::CCommonData()
 	saving = false;
 	usekey = false;
 	invkey = false;
+	HasFocus = true;
 // end change RF063
 // changed RF064
 	dropkey = false;
@@ -190,6 +189,8 @@ CCommonData::CCommonData()
 				TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
 	TimeCounter = LastTimePoll = 0;
+	LastTimePassed_D = 0;
+	LastTimePassed_F = 0;	
 // end change RF064	
 	return;
 }
@@ -250,6 +251,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	bool UseSecond = false;
 	bool UseFirst = false;
 	
+	CmdLine = CommandLine;
+
 	//	Ok, let's see if we have an initialization file, and if so,
 	//	..read it in and parse it.
 
@@ -447,6 +450,18 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 						bSoftware = false;
 				}
 			}
+			else if(!stricmp(szAtom,"defaultdifficulty"))
+			{
+				if(szArg != NULL)
+				{
+					nTemp = atoi(szArg);
+					DifficultLevel = nTemp;
+					if(DifficultLevel<1)
+						DifficultLevel = 1;
+					if(DifficultLevel>3)
+						DifficultLevel = 3;
+				}
+			}
 			else if(!stricmp(szAtom,"width"))
 			{
 				// Set display width
@@ -472,7 +487,9 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					else if(!stricmp(szArg,"glide"))
 						chTheDriver = 'G';				// Use GLIDE in fullscreen
 					else if(!stricmp(szArg,"d3d"))
-						chTheDriver = '(';				// Use Direct3D in fullscreen
+						chTheDriver = '(';	
+					else if(!stricmp(szArg,"d3d16"))
+						chTheDriver = 'D';				// Use Direct3D in fullscreen
 					else if(!stricmp(szArg,"opengl"))
 						chTheDriver = 'O';	
 					else if(!stricmp(szArg,"wire"))
@@ -501,10 +518,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			{
 				if(szArg != NULL)
 					strcpy(szStartLevel, szArg);
-			}
-			else if(!stricmp(szAtom,"gamma"))
-			{
-				fGamma = (geFloat)atof(szArg);
 			}
 			else
 				OutputDebugString("Unknown command in RealityFactory.ini\n");
@@ -577,7 +590,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		}
 		
 // end change RF063		
-		geEngine_SetGamma(theGameEngine->Engine(), fGamma);
+		geEngine_SetGamma(theGameEngine->Engine(), 1.0f);
 
 		//	We have a 3D engine, now initialize the user input subsystem
 		
@@ -1034,27 +1047,6 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		theGameEngine->ReportError("Couldn't create Flame handler", false);
 		return -32;
     }
-	
-	theTrack = new CTrack();
-	if(theTrack == NULL)
-	{
-		theGameEngine->ReportError("Couldn't create Track handler", false);
-		return -40;
-	}
-	
-	theNPCPoint = new CNPCPathPoint();
-	if(theNPCPoint == NULL)
-	{
-		theGameEngine->ReportError("Couldn't create NPCPathPoint handler", false);
-		return -40;
-	}
-		
-	theNPC = new CNPC();
-	if(theNPC == NULL)
-	{
-		theGameEngine->ReportError("Couldn't create NPC handler", false);
-		return -40;
-	}
 
 // changed RF064
 	theScriptPoints = new CScriptPoint();
@@ -1266,6 +1258,13 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	theCDSpot = new CDSpotLight();
+	if(theCDSpot == NULL)
+	{
+		theGameEngine->ReportError("couldn't create CDSpotLight", false);
+		return -7; //or something else
+	}
+
 	theMenu->LoadWBitmap();
 
 // end change RF064
@@ -1291,6 +1290,10 @@ void CCommonData::ShutdownLevel()
 // changed RF064
 
 	theMenu->UnLoadWBitmap();
+
+	if(theCDSpot != NULL)
+		delete theCDSpot;
+	theCDSpot = NULL;
 
 	if(theLiftBelt != NULL)
 		delete theLiftBelt;
@@ -1381,18 +1384,6 @@ void CCommonData::ShutdownLevel()
 	if(theMessage != NULL)
 		delete theMessage;
 	theMessage = NULL;
-	
-	if(theNPCPoint != NULL)
-		delete theNPCPoint;
-	theNPCPoint = NULL;
-	
-	if(theTrack != NULL)
-		delete theTrack;
-	theTrack = NULL;
-		
-	if(theNPC != NULL)
-		delete theNPC;
-	theNPC = NULL;
 
 // changed RF064
 	if(theScriptPoints != NULL)
@@ -1860,7 +1851,6 @@ bool CCommonData::HandleGameInput()
 					theCameraManager->SaveTo(outFD);
 					theWeapon->SaveTo(outFD);
 					theElectric->SaveTo(outFD, false);
-					theNPC->SaveTo(outFD, false);
 					theCountDownTimer->SaveTo(outFD, false);
 					theChangeAttribute->SaveTo(outFD, false);
 					theChangeLevel->SaveTo(outFD, false);
@@ -1894,16 +1884,19 @@ bool CCommonData::HandleGameInput()
 					M_CameraRect.Top = 0;
 					M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
 					M_Camera = geCamera_Create(2.0f, &M_CameraRect);
-					geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-					int width = CCD->MenuManager()->FontWidth(CCD->MenuManager()->GetLoadFont(), CCD->MenuManager()->GetLoadmsg());
-					int height = CCD->MenuManager()->FontHeight(CCD->MenuManager()->GetLoadFont());
-					int xoffset = (CCD->Engine()->Width()-width)/2;
-					int yoffset = (CCD->Engine()->Height()-height)/2;
-					CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
-					geEngine_EndFrame(CCD->Engine()->Engine());
-					geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-					CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
-					geEngine_EndFrame(CCD->Engine()->Engine());			
+					if(HasFocus)
+					{
+						geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+						int width = CCD->MenuManager()->FontWidth(CCD->MenuManager()->GetLoadFont(), CCD->MenuManager()->GetLoadmsg());
+						int height = CCD->MenuManager()->FontHeight(CCD->MenuManager()->GetLoadFont());
+						int xoffset = (CCD->Engine()->Width()-width)/2;
+						int yoffset = (CCD->Engine()->Height()-height)/2;
+						CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
+						geEngine_EndFrame(CCD->Engine()->Engine());
+						geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+						CCD->MenuManager()->FontRect(CCD->MenuManager()->GetLoadmsg(), CCD->MenuManager()->GetLoadFont(), xoffset, yoffset);
+						geEngine_EndFrame(CCD->Engine()->Engine());	
+					}
 					geCamera_Destroy(&M_Camera);
 					// Restoring will do a level change to the level that
 					// ..is in the savegame file
@@ -1930,7 +1923,6 @@ bool CCommonData::HandleGameInput()
 					theCameraManager->RestoreFrom(inFD);
 					theWeapon->RestoreFrom(inFD);
 					theElectric->RestoreFrom(inFD, false);
-					theNPC->RestoreFrom(inFD, false);
 					theCountDownTimer->RestoreFrom(inFD, false);
 					theChangeAttribute->RestoreFrom(inFD, false);
 					theChangeLevel->RestoreFrom(inFD, false);
@@ -2090,6 +2082,12 @@ int CCommonData::DispatchTick()
 	
 	dwTicksGoneBy = CCD->GetTimePassed_F();
 
+	if(!HasFocus)
+	{
+		dwTicksGoneBy = 0.0f;
+		return RGF_SUCCESS;
+	}
+
 	if(dwTicksGoneBy <= 0.0f)
 		return RGF_SUCCESS;					// No time passed?  Ignore call!
 	
@@ -2156,14 +2154,13 @@ int CCommonData::DispatchTick()
 	theAttribute->Tick(dwTicksGoneBy);
 	theDamage->Tick(dwTicksGoneBy);
 	theCExplosion->Tick(dwTicksGoneBy);
-	theNPCPoint->Tick();
-	theNPC->Tick(dwTicksGoneBy);
 // changed RF064
 	thePawn->Tick(dwTicksGoneBy);
 	theCountDownTimer->Tick(dwTicksGoneBy);
 	theChangeAttribute->Tick(dwTicksGoneBy);
 	theOverlay->Tick(dwTicksGoneBy);
 	theLiftBelt->Tick(dwTicksGoneBy);
+	theCDSpot->Tick(dwTicksGoneBy);
 // end change RF064
 	theChangeLevel->Tick(dwTicksGoneBy);
 	theShake->Tick(dwTicksGoneBy);
@@ -2304,18 +2301,20 @@ bool CCommonData::ProcessLevelChange()
 			M_CameraRect.Top = 0;
 			M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
 			M_Camera = geCamera_Create(2.0f, &M_CameraRect);
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-			int width = CCD->MenuManager()->FontWidth(m_Font, m_Message);
-			int height = CCD->MenuManager()->FontHeight(m_Font);
-			int xoffset = (CCD->Engine()->Width()-width)/2;
-			int yoffset = (CCD->Engine()->Height()-height)/2;
-			CCD->MenuManager()->FontRect(m_Message, m_Font, xoffset, yoffset);
-			geEngine_EndFrame(CCD->Engine()->Engine());
-
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-			CCD->MenuManager()->FontRect(m_Message, m_Font, xoffset, yoffset);
-			geEngine_EndFrame(CCD->Engine()->Engine());
-
+			if(HasFocus)
+			{
+				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+				int width = CCD->MenuManager()->FontWidth(m_Font, m_Message);
+				int height = CCD->MenuManager()->FontHeight(m_Font);
+				int xoffset = (CCD->Engine()->Width()-width)/2;
+				int yoffset = (CCD->Engine()->Height()-height)/2;
+				CCD->MenuManager()->FontRect(m_Message, m_Font, xoffset, yoffset);
+				geEngine_EndFrame(CCD->Engine()->Engine());
+				
+				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+				CCD->MenuManager()->FontRect(m_Message, m_Font, xoffset, yoffset);
+				geEngine_EndFrame(CCD->Engine()->Engine());
+			}
 			geCamera_Destroy(&M_Camera);
 		}
 	}
@@ -2392,7 +2391,6 @@ bool CCommonData::ProcessLevelChange()
 		pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 		pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
-		strcpy(m_SplashScreen, "");
 		strcpy(m_SplashAudio, "");
 		strcpy(m_CutScene, "");
 		if(EffectC_IsStringNull(pSetup->DeathMessage))
@@ -2405,6 +2403,17 @@ bool CCommonData::ProcessLevelChange()
 		
 		m_ChangeLevel = false;
 		Paused = true;
+
+		if(SplashHold && !EffectC_IsStringNull(m_SplashScreen))
+		{
+			while((GetAsyncKeyState(VK_SPACE) & 0x8000) == 0)
+			{
+			}
+			while((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
+			{
+			}
+		}
+		strcpy(m_SplashScreen, "");
 
 		return true;						// Level change successful!
 	}
@@ -2427,10 +2436,6 @@ void CCommonData::RenderComponents()
 // chnaged RF064	
 //	theProps->Render(thePlayer->ViewPoint(), 
 //		LastElapsedTime_D());
-// end change RF064
-	if(ShowTrack)
-		theNPCPoint->Render();
-// change RF064
 	if(ShowTrack)
 		theScriptPoints->Render();
 	theOverlay->Render();
@@ -2763,7 +2768,8 @@ void CALLBACK CCommonData::TimerFunction(UINT uID, UINT uMsg,
 {
 
 	CCommonData *thePointer = (CCommonData*)dwUser;
-	thePointer->TimeCounter += 1;
+	if(thePointer->HasFocus)
+		thePointer->TimeCounter += 1;
 
   return;
 }
@@ -2906,6 +2912,7 @@ void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 	}
 	UseAngle = pItem->UseAngle;
 	KeepAttributes = pItem->KeepAttributes;
+	SplashHold = pItem->SplashHold;
 	if(KeepAttributes)
 	{
 		for(i=0;i<10;i++)
@@ -2952,5 +2959,6 @@ void CCommonData::SetLevelData()
 		Slot[i]=theWeapon->GetSlot(i);
 	CurrentWeapon = theWeapon->GetCurrent();
 	KeepAttributes = true;
+	SplashHold = false;
 	return;
 }

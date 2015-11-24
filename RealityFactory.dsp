@@ -627,6 +627,10 @@ SOURCE=.\CDecal.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CDSpotLight.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CDynalite.cpp
 # End Source File
 # Begin Source File
@@ -732,14 +736,6 @@ SOURCE=.\CNetBuffer.cpp
 # Begin Source File
 
 SOURCE=.\CNetwork.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CNPC.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CNPCPathPoint.cpp
 # End Source File
 # Begin Source File
 
@@ -919,10 +915,6 @@ SOURCE=.\TPool.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Track.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Utilities.cpp
 # End Source File
 # End Group
@@ -1008,6 +1000,10 @@ SOURCE=.\CDamage.h
 # Begin Source File
 
 SOURCE=.\CDecal.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CDSpotLight.h
 # End Source File
 # Begin Source File
 
@@ -1116,14 +1112,6 @@ SOURCE=.\CNetBuffer.h
 # Begin Source File
 
 SOURCE=.\CNetwork.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CNPC.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CNPCPathPoint.h
 # End Source File
 # Begin Source File
 
@@ -1256,10 +1244,6 @@ SOURCE=.\stdafx.h
 # Begin Source File
 
 SOURCE=.\StreamingAudio.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\track.h
 # End Source File
 # Begin Source File
 

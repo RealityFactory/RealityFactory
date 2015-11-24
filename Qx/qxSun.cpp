@@ -105,8 +105,7 @@ bool qxSun::Init()
 bool qxSun::InitFlares()
 {
 
-	qxColor c(255, 128, 0);
-	m_ColorSun = c.rgba;
+	m_ColorSun = CCD->TerrainMgr()->GetSuncolor();
 
 	int i = 0;
 	
@@ -129,19 +128,11 @@ bool qxSun::InitFlares()
 	m_SunFlares[i].m_fScale			= .60f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 32.0f;
 
-/*	// starburst
-	m_SunFlares[i].m_pBmp = BmpMgr()->AddBmp("flare7.Bmp", "a_flare7.Bmp");
-	m_SunFlares[i].m_fLengthFactor	= .35f;
-	m_SunFlares[i].m_fScale			= 0.60f*m_fScale;
-	m_SunFlares[i++].m_fAlpha		= 64.0f;
-*/
 	//thick ring
 	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.Bmp", "terrain\\a_flare4.Bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= 0.40f;
 	m_SunFlares[i].m_fScale			= .60f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 24.0f;
-
-
 
 	//big thick fuzz
 	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.Bmp", "terrain\\a_flare2.Bmp", NULL, NULL);

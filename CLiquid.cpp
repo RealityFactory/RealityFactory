@@ -42,7 +42,7 @@ CLiquid::CLiquid()
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pItem->szEntityName, "Liquid");
 		CCD->ModelManager()->AddModel(pItem->Model, ENTITY_LIQUID);
-		pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, "water.Bmp", "a_water.Bmp");
+		pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, NULL, NULL);
 		if(!EffectC_IsStringNull(pItem->SurfaceSound))
 			SPool_Sound(pItem->SurfaceSound);
 		if(!EffectC_IsStringNull(pItem->SwimSound))
@@ -116,7 +116,7 @@ COverlay::COverlay()
 		pItem->FBitmap = NULL;
 		pItem->Texture = NULL;
 		if(!pItem->Animated)
-			pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, "water.Bmp", "a_water.Bmp");
+			pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, NULL, NULL);
 		else
 		{
 			pItem->FBitmap = (geBitmap **)geRam_AllocateClear( sizeof( *(pItem->FBitmap ) ) * pItem->BitmapCount );
@@ -240,6 +240,11 @@ void COverlay::Tick(float dwTicks)
 						break;
 					case 3:
 						pItem->CurTex = ( rand() % pItem->BitmapCount );
+						break;
+					case 4:
+						pItem->CurTex +=1;
+						if(pItem->CurTex>=pItem->BitmapCount)
+							pItem->CurTex = pItem->BitmapCount-1;
 						break;
 					default:
 						pItem->CurTex +=1;

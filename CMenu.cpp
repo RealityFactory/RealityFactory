@@ -19,6 +19,7 @@ static void SetGamma(int percent);
 static void SetDetail(int percent);
 static void SetSens(int percent);
 static void SetVol(int percent);
+static void SetmVol(int percent);
 // Start Multiplayer
 static void RunJoinGame();
 static void RunHostGame();
@@ -44,7 +45,7 @@ char PlayerName[50];
 char IP[NL_MAX_STRING_LENGTH]="";
 // end Multiplayer
 
-#define GAMMAMIN   0.5f
+#define GAMMAMIN   0.0f
 #define GAMMAMAX   2.0f
 
 #define MOUSEMIN	0.0005f
@@ -574,61 +575,7 @@ Keyname TextEditKeys[] =
 
 // names of all the currently defined actions
 
-Keydef Redef[50]; /* =
-{
-	{"Move Forward", RGF_K_FORWARD},
-	{"Move Backward", RGF_K_BACKWARD},
-	{"Strafe Left", RGF_K_LEFT},
-	{"Strafe Right", RGF_K_RIGHT},
-	{"Jump", RGF_K_JUMP},
-	{"Crouch", RGF_K_CROUCH},
-	{"Run", RGF_K_RUN},
-	{"Look Up", RGF_K_LOOKUP},
-	{"Look Down", RGF_K_LOOKDOWN},
-	{"Turn Left", RGF_K_TURN_LEFT},
-	{"Turn Right", RGF_K_TURN_RIGHT},
-	{"Look Straight", RGF_K_LOOKSTRAIGHT},
-	{"Attack", RGF_K_FIRE},
-	{"Alt Attack", RGF_K_ALTFIRE},
-	{"Weapon 0", RGF_K_WEAPON_0},
-	{"Weapon 1", RGF_K_WEAPON_1},
-	{"Weapon 2", RGF_K_WEAPON_2},
-	{"Weapon 3", RGF_K_WEAPON_3},
-	{"Weapon 4", RGF_K_WEAPON_4},
-	{"Weapon 5", RGF_K_WEAPON_5},
-	{"Weapon 6", RGF_K_WEAPON_6},
-	{"Weapon 7", RGF_K_WEAPON_7},
-	{"Weapon 8", RGF_K_WEAPON_8},
-	{"Weapon 9", RGF_K_WEAPON_9},
-	{"Look Mode", RGF_K_LOOKMODE},
-	{"Camera Mode", RGF_K_CAMERA},
-	{"Zoom In", RGF_K_ZOOM_IN},
-	{"Zoom Out", RGF_K_ZOOM_OUT},
-	{"Zoom Weapon", RGF_K_ZOOM_WEAPON},
-	{"Holster Weapon", RGF_K_HOLSTER_WEAPON},
-	{"Camera Reset", RGF_K_CAMERA_RESET},
-	{"Quick Save", RGF_K_QUICKSAVE},
-	{"Quick Load", RGF_K_QUICKLOAD},
-	{"1st Person", RGF_K_FIRST_PERSON_VIEW},
-	{"3rd Person", RGF_K_THIRD_PERSON_VIEW},
-	{"Isometric", RGF_K_ISO_VIEW},
-	{"Screenshot", RGF_K_SCRNSHOT},
-	{"Help", RGF_K_HELP},
-	{"Hud", RGF_K_HUD},
-	{"Light On/Off", RGF_K_LIGHT},
-// changed RF063
-	{"Use Item", RGF_K_USE},
-	{"Inventory", RGF_K_INVENTORY},
-// end change RF063
-// start multiplayer
-	{"Console", RGF_K_CONSOLE},
-// end multiplayer
-// changed RF064
-	{"Drop Weapon", RGF_K_DROP},
-	{"Reload Weapon", RGF_K_RELOAD},
-// end change RF064
-	{NULL}
-}; */
+Keydef Redef[50];
 
 Clickable QuitControl =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
 Clickable AdvancedItem = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, AdvancedMenu, NULL, 0, -1, -1};
@@ -680,6 +627,9 @@ Clickable QuitAudio =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
 Text vol_text =     {0, "Sound Volume", 0};
 Image Vol_Img     = {0, 0, 0, 0,  0, -1};
 Slider Vol_Slide  = {0, 0, 0, 0, 0, 0, 0, 0, 0, SetVol, -1};
+Text mvol_text =    {0, "Music Volume", 0};
+Image mVol_Img    = {0, 0, 0, 0,  0, -1};
+Slider mVol_Slide = {0, 0, 0, 0, 0, 0, 0, 0, 0, SetmVol, -1};
 Box box0 =          {0,  0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetCDPlayer, -1, -1, -1};
 Text cd_text =      {0, "Play CD Music", 0};
 
@@ -689,6 +639,9 @@ MenuItem AudioMenu[] =
 	 {TEXT,      0, 0, (void *)&vol_text},
 	 {IMAGE,     0, 0, (void *)&Vol_Img},
 	 {SLIDER,    0, 0, (void *)&Vol_Slide},
+	 {TEXT,      0, 0, (void *)&mvol_text},
+	 {IMAGE,     0, 0, (void *)&mVol_Img},
+	 {SLIDER,    0, 0, (void *)&mVol_Slide},
 	 {BOX,       0, 0, (void *)&box0},
      {TEXT,      0, 0, (void *)&cd_text},
      {END_LIST, 0, 0, NULL}
@@ -1055,6 +1008,7 @@ CRFMenu::CRFMenu()
   ScrnWait = false;
   savetime = 0.0f;
   musictype = -1;
+  mVolLevel = 0.5f;
 // changed RF064
   theMIDIPlayer = NULL;
   strcpy(Loading, "menu\\loading.bmp");
@@ -1192,6 +1146,8 @@ CRFMenu::CRFMenu()
 					exit(-100);
 				}
 				geEngine_AddBitmap(CCD->Engine()->Engine(), MenuFont[index].Bitmap);
+				for(int jj=0;jj<96;jj++)
+					MenuFont[index].WBitmap[jj] = NULL;
 
 				strcpy(menuline,"fonts\\");
 				strcat(menuline,fontline);
@@ -1960,10 +1916,40 @@ CRFMenu::CRFMenu()
 // changed RF063
 				Vol_Slide.Animation = NextValue();
 			}
-			else if(!stricmp(szAtom,"cdbox"))
+			else if(!stricmp(szAtom,"mvoltext"))
 			{
 				AudioMenu[4].X = NextValue();
 				AudioMenu[4].Y = NextValue();
+				mvol_text.Font = NextFont();
+			}
+			else if(!stricmp(szAtom,"mvolimg"))
+			{
+				AudioMenu[5].X = NextValue();
+				AudioMenu[5].Y = NextValue();
+				mVol_Img.Image_Number = NextValue();
+				mVol_Img.Width = NextValue();
+				mVol_Img.Height = NextValue();
+				mVol_Img.Image_X = NextValue();
+				mVol_Img.Image_Y = NextValue();
+				mVol_Img.Animation = NextValue();
+			}
+			else if(!stricmp(szAtom,"mvolslider"))
+			{
+				AudioMenu[6].X = NextValue();
+				AudioMenu[6].Y = NextValue();
+				mVol_Slide.Image_Number = NextValue();
+				mVol_Slide.Width = NextValue();
+				mVol_Slide.Height = NextValue();
+				mVol_Slide.Image_X = NextValue();
+				mVol_Slide.Image_Y = NextValue();
+				mVol_Slide.Min_X = NextValue();
+				mVol_Slide.Max_X = NextValue();
+				mVol_Slide.Animation = NextValue();
+			}
+			else if(!stricmp(szAtom,"cdbox"))
+			{
+				AudioMenu[7].X = NextValue();
+				AudioMenu[7].Y = NextValue();
 				box0.Image_Number = NextValue();
 				box0.Width = NextValue();
 				box0.Height = NextValue();
@@ -1979,8 +1965,8 @@ CRFMenu::CRFMenu()
 			}
 			else if(!stricmp(szAtom,"cdtext"))
 			{
-				AudioMenu[5].X = NextValue();
-				AudioMenu[5].Y = NextValue();
+				AudioMenu[8].X = NextValue();
+				AudioMenu[8].Y = NextValue();
 				cd_text.Font = NextFont();
 			}
 			else if(!stricmp(szAtom,"quitvideo"))
@@ -2595,7 +2581,7 @@ CRFMenu::CRFMenu()
 				Type = AttrFile.GetValue(KeyName, "attributefile");
 				if(Type!="")
 					strcpy(CharSelect[MaxSelect].Attribute, Type);
-				CharSelect[MaxSelect].pSetup[0] = '\0';
+				CharSelect[MaxSelect].pSetup[0] = '\0'; 
 				Type = AttrFile.GetValue(KeyName, "playersetupfile");
 				if(Type!="")
 					strcpy(CharSelect[MaxSelect].pSetup, Type);
@@ -2616,7 +2602,13 @@ CRFMenu::CRFMenu()
 				CharSelect[MaxSelect].StepHeight = -1.0f;
 				if(Type!="")
 					CharSelect[MaxSelect].StepHeight = (float)AttrFile.GetValueF(KeyName, "stepheight");
-				
+				CharSelect[MaxSelect].SlopeSlide = -1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].SlopeSlide = (float)AttrFile.GetValueF(KeyName, "slopeslide");
+				CharSelect[MaxSelect].SlopeSpeed = -1.0f;
+				if(Type!="")
+					CharSelect[MaxSelect].SlopeSpeed = (float)AttrFile.GetValueF(KeyName, "slopespeed");
+
 				MaxSelect +=1;
 			}
 			KeyName = AttrFile.FindNextKey();
@@ -2769,6 +2761,7 @@ int CRFMenu::DoMenu(char *levelname)
 	  fwrite(&box2.Current, sizeof(int), 1, fd);
 	  fwrite(&box4.Current, sizeof(int), 1, fd);
 	  fwrite(&Detail_Slide.Current, sizeof(int), 1, fd);
+	  fwrite(&mVol_Slide.Current, sizeof(int), 1, fd);
 	  fclose(fd);
   }	 
 
@@ -2835,7 +2828,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	ClientToScreen(CCD->Engine()->WindowHandle(),&pos);
   }
 
-  while(1)
+  for(;;)
   {
 	MSG msg;
 
@@ -2850,6 +2843,9 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 // end multiplayer
 		DispatchMessage(&msg);
 	}
+
+	if(!CCD->GetHasFocus())
+		continue;
 
     geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
 // changed RF063
@@ -3738,9 +3734,9 @@ void CRFMenu::FontRect(char *s, int FontNumber, int x, int y)
 	  {
 			chr = *s-32;
 			fRect.Top=MenuFont[FontNumber].dat[chr].y;
-			fRect.Bottom=MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height;
+			fRect.Bottom=MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height-1;
 			fRect.Left=MenuFont[FontNumber].dat[chr].x;
-			fRect.Right=MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width;
+			fRect.Right=MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width-1;
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FontNumber].Bitmap, &fRect, x+charoff, y);
 			charoff+=MenuFont[FontNumber].dat[chr].width;
 			s++;
@@ -3808,6 +3804,33 @@ void CRFMenu::SetMusicVol(float vol)
 
 	DWORD dw = (DWORD)(vol*65535.0f);
 	mixer.SetControlValue(dw);
+}
+ 
+void CRFMenu::SetmMusicVol(float vol)
+{
+	mVolLevel = vol;
+	LONG nVolume = (LONG)((vol*10000.0f)-10000);
+	if(musictype!=-1)
+	{
+		if(musictype!=1)
+			m_Streams->SetVolume(nVolume);
+	}
+	if(CCD->AudioStreams())
+		CCD->AudioStreams()->SetVolume(nVolume);
+	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+				MIXERLINE_COMPONENTTYPE_SRC_SYNTHESIZER, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	if (mixer.IsOk())
+	{
+		DWORD dw = (DWORD)(vol*65535.0f);
+		mixer.SetControlValue(dw);
+	}
+	CMixer mixercd(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+				MIXERLINE_COMPONENTTYPE_SRC_COMPACTDISC, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	if (mixercd.IsOk())
+	{
+		DWORD dw = (DWORD)(vol*65535.0f);
+		mixercd.SetControlValue(dw);
+	}
 }
 // end change RF064
 
@@ -3896,6 +3919,9 @@ void CRFMenu::GameLevel()
 			DispatchMessage(&msg);
 		}
 
+		if(!CCD->GetHasFocus())
+			continue;
+
 		if(CCD->HandleGameInput() == true)
 		{
 			// Ok, send a Tick() call to all components that use time
@@ -3915,6 +3941,7 @@ void CRFMenu::GameLevel()
 				}
 			}
 
+			CCD->Pawns()->AnimateWeapon();
 			CCD->Weapons()->Display();
 			CCD->Weapons()->DoAttack();
 			CCD->Explosions()->Tick(CCD->GetTicksGoneBy());
@@ -3973,7 +4000,7 @@ void CRFMenu::GameLevel()
 				char szBug[256];
 				geVec3d Pos = CCD->Player()->Position();
 				sprintf(szBug, "Player X : %4.2f Player Y : %4.2f Player Z : %4.2f Actors %d", Pos.X, Pos.Y, Pos.Z, CCD->ActorManager()->CountActors());
-				CCD->MenuManager()->WorldFontRect(szBug, FONT10, 5, CCD->Engine()->Height()- 20);
+				CCD->MenuManager()->WorldFontRect(szBug, FONT10, 5, CCD->Engine()->Height()- 20, 255.0f);
 			}
 			
 			CCD->Messages()->Display();
@@ -4284,14 +4311,17 @@ void CRFMenu::DisplaySplash()
 				return;
 			}
 			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
-			if(geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y ) == GE_FALSE)
+			if(CCD->GetHasFocus())
 			{
-				char szError[200];
-				sprintf(szError,"DisplaySplash: drawbitmap failed on '%s'\n", Loading);
-				CCD->ReportError(szError, false);
+				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
+				if(geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y ) == GE_FALSE)
+				{
+					char szError[200];
+					sprintf(szError,"DisplaySplash: drawbitmap failed on '%s'\n", Loading);
+					CCD->ReportError(szError, false);
+				}
+				geEngine_EndFrame(CCD->Engine()->Engine());
 			}
-			geEngine_EndFrame(CCD->Engine()->Engine());
 		 }
 		 geBitmap_Destroy(&theBmp);
 	}
@@ -4333,7 +4363,8 @@ void CRFMenu::MenuInitalize()
 	Detail_Slide.Current=Detail_Slide.Min_X + ((Detail_Slide.Max_X-Detail_Slide.Min_X)/2);
 	Detail = 50;
 // set volume slider to max
-	Vol_Slide.Current = Vol_Slide.Max_X;
+	Vol_Slide.Current = Vol_Slide.Max_X/2;
+	mVol_Slide.Current = mVol_Slide.Max_X/2;
 // set CD Music box from CD player status
 	box0.Current = BOX_OFF;
 	if(CCD->CDPlayer()->GetCdOn())
@@ -4402,6 +4433,12 @@ void CRFMenu::MenuInitalize()
 		  MouseFilter = false;
 	  fread(&Detail_Slide.Current, sizeof(int), 1, fd);
 	  Detail = (Detail_Slide.Current*100)/Detail_Slide.Max_X;
+	  fread(&mVol_Slide.Current, sizeof(int), 1, fd);
+	  int percent = (mVol_Slide.Current*100)/mVol_Slide.Max_X;
+	  mVolLevel=((float)percent/100.0f);
+	  if(percent == 0)
+		mVolLevel = 0.0f;
+
 	  fclose(fd);
 	}	 
 // changed RF064
@@ -5240,6 +5277,19 @@ static void SetVol(int percent)
 // end change RF064
 }
 
+//-------------------------------------
+// set volume from slider percentage
+//-------------------------------------
+
+static void SetmVol(int percent)
+{
+  float vol;
+  vol=((float)percent/100.0f);
+  if(percent == 0)
+	  vol = 0.0f;
+  CCD->MenuManager()->SetmMusicVol(vol);
+}
+
 // changed RF063
 
 void CRFMenu::DoGame(bool editor)
@@ -5319,17 +5369,9 @@ void CRFMenu::DoGame(bool editor)
 		exit(-333);
 	}
 
-	if(useselect)
-	{
-	}
-
 // changed RF064
 	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
 	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
-
-//	Play the opening cut scene, if one exists
-
-	CCD->PlayOpeningCutScene();
 
 // end change RF064
 
@@ -5345,6 +5387,11 @@ void CRFMenu::DoGame(bool editor)
 		delete CCD;
 		exit(-336);
 	}
+
+//	Play the opening cut scene, if one exists
+
+	CCD->PlayOpeningCutScene();
+
 // start multiplayer
 	if(CCD->GetMultiPlayer())
 	{
@@ -5567,7 +5614,6 @@ static void SetSlot()
 			CCD->CameraManager()->SaveTo(outFD);
 			CCD->Weapons()->SaveTo(outFD);
 			CCD->ElectricEffects()->SaveTo(outFD, false);
-			CCD->NPCManager()->SaveTo(outFD, false);
 			CCD->CountDownTimers()->SaveTo(outFD, false);
 			CCD->ChangeAttributes()->SaveTo(outFD, false);
 			CCD->Changelevel()->SaveTo(outFD, false);
@@ -5627,7 +5673,6 @@ static void GetSlot()
 			CCD->CameraManager()->RestoreFrom(inFD);
 			CCD->Weapons()->RestoreFrom(inFD);
 			CCD->ElectricEffects()->RestoreFrom(inFD, false);
-			CCD->NPCManager()->RestoreFrom(inFD, false);
 			CCD->CountDownTimers()->RestoreFrom(inFD, false);
 			CCD->ChangeAttributes()->RestoreFrom(inFD, false);
 			CCD->Changelevel()->RestoreFrom(inFD, false);
@@ -5713,7 +5758,7 @@ void CRFMenu::UnLoadWBitmap()
 	} 
 }
 
-void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y)
+void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
 {
   int charoff;
   char chr;
@@ -5735,10 +5780,10 @@ void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y)
 	  {
 			chr = *s-32;
 			fRect.Top=0;
-			fRect.Bottom=MenuFont[FontNumber].font_height;
+			fRect.Bottom=MenuFont[FontNumber].font_height-1;
 			fRect.Left=0;
-			fRect.Right=MenuFont[FontNumber].dat[chr].width;
-			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y);
+			fRect.Right=MenuFont[FontNumber].dat[chr].width-1;
+			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y, Alpha);
 			charoff+=MenuFont[FontNumber].dat[chr].width;
 			s++;
 	  }
@@ -5808,8 +5853,11 @@ void CRFMenu::FadeOut()
 	FadeSet(1, 1.5f);
 	for(int i=0;i<255;i++)
 	{
-		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-		DoFade();
-		geEngine_EndFrame(CCD->Engine()->Engine());
+		if(CCD->GetHasFocus())
+		{
+			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
+			DoFade();
+			geEngine_EndFrame(CCD->Engine()->Engine());
+		}
 	}
 }

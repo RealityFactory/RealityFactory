@@ -99,7 +99,7 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 {
 	if(!Active)
 		return RGF_FAILURE;
-	
+
 	if(Center)
 	{
 		XPos = (CCD->Engine()->Width() - nWidth) / 2;
@@ -107,13 +107,35 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 	}
 	
 	
-	while(NextFrame(false))
+	for(;;)
 	{
+		MSG msg;
+
+	// If Winblows has something to say, take it in and pass it on in the
+	// ..off-chance someone cares.
+
+		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		{
+			GetMessage(&msg, NULL, 0, 0 );
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		if(!CCD->GetHasFocus())
+			continue;
+	
+		if(!NextFrame(false))
+			break;
 		geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_TRUE);
 		geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, XPos, YPos);
 		geEngine_EndFrame(CCD->Engine()->Engine());
 		if((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
+		{
+			while((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
+			{
+			}
 			break;
+		}
 	}			
 				
 	return RGF_SUCCESS;

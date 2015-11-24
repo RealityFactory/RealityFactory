@@ -293,6 +293,12 @@ void CCameraManager::SetJerk(float MaxAmount, geFloat Decay)
 	jerk = true;
 }
 
+void CCameraManager::CancelZoom()
+{
+	zooming = zoommode = false;
+	FOV = DEFAULTFOV;
+}
+
 // end change RF063
 void CCameraManager::Tick(float dwTicks)
 {

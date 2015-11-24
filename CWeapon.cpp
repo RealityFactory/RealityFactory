@@ -104,6 +104,11 @@ CWeapon::~CWeapon()
 					geWorld_RemoveBitmap(CCD->World(), WeaponD[i].CrossHair);
 				geBitmap_Destroy(&WeaponD[i].CrossHair);
 			}
+			if(WeaponD[i].ZoomOverlay)
+			{
+				geWorld_RemoveBitmap(CCD->World(), WeaponD[i].ZoomOverlay);
+				geBitmap_Destroy(&WeaponD[i].ZoomOverlay);
+			}
 			if(WeaponD[i].PActor)
 			{
 				geWorld_RemoveActor(CCD->World(), WeaponD[i].PActor);
@@ -372,12 +377,13 @@ void CWeapon::Tick(float dwTicks)
 				if(d->ShowBoth)
 					CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
 			}
-
-			if(Model)
+			else if(Model)
 			{
 				CCD->Damage()->DamageModel(Model, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
 				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
 			}
+			else
+				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos, NULL, NULL);
 // end change RF063	
 // end change RF064
 			//
@@ -886,6 +892,11 @@ void CWeapon::Holster()
 	if(CurrentWeapon==-1 || CurrentWeapon==11)
 		return;
 	
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+			CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, false);
+
+	CCD->CameraManager()->CancelZoom();
+
 	if(ViewPoint==FIRSTPERSON)
 	{
 		if(VSequence == VWEPHOLSTER)
@@ -930,6 +941,27 @@ void CWeapon::DoAttack()
 		else if(WeaponD[CurrentWeapon].Catagory==BEAM)
 		{
 		} 
+	}
+}
+
+void CWeapon::DisplayZoom()
+{
+	if(CurrentWeapon==-1 || CurrentWeapon==11)
+		return;
+
+	if(CCD->CameraManager()->GetZooming())
+	{
+		if(WeaponD[CurrentWeapon].ZoomOverlay)
+		{
+			CCD->Engine()->DrawAlphaBitmap(	 
+									 WeaponD[CurrentWeapon].ZoomOverlay, 
+									 NULL, 
+									 NULL,	// if null, uses full screen 
+									 NULL,	// pixels in the "camera" view 
+									 NULL,// percent of the "camera" view 
+									 255.0f, 
+									 NULL);
+		}
 	}
 }
 
@@ -1205,12 +1237,12 @@ void CWeapon::WeaponData()
 		{
 			sprintf(szData,"Rotation : X= %.2f, Y= %.2f, Z= %.2f",
 				WeaponD[CurrentWeapon].VActorRotation.X + WeaponD[CurrentWeapon].K, WeaponD[CurrentWeapon].VActorRotation.Y + WeaponD[CurrentWeapon].Z, WeaponD[CurrentWeapon].VActorRotation.Z + WeaponD[CurrentWeapon].L);
-			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40);
+			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40, 255.0f);
 			
 			sprintf(szData,"Offset : X= %.2f, Y= %.2f, Z= %.2f, Scale : %.2f",
 				WeaponD[CurrentWeapon].VActorOffset.X + WeaponD[CurrentWeapon].F, WeaponD[CurrentWeapon].VActorOffset.Y + WeaponD[CurrentWeapon].H, WeaponD[CurrentWeapon].VActorOffset.Z + WeaponD[CurrentWeapon].J,
 				WeaponD[CurrentWeapon].VScale+WeaponD[CurrentWeapon].G);
-			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 30);
+			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 30, 255.0f);
 		}
 	}
 	return;
@@ -1225,6 +1257,8 @@ void CWeapon::KeyReload()
 	if(WeaponD[CurrentWeapon].Catagory!=PROJECTILE)
 		return;
 	if(WeaponD[CurrentWeapon].ShotperMag==0)
+		return;
+	if(WeaponD[CurrentWeapon].ShotFired==0)
 		return;
 
 	if(ViewPoint==FIRSTPERSON)
@@ -1644,7 +1678,7 @@ void CWeapon::ProjectileAttack()
 // changed RF063
 			Add_Projectile(Pos, Front, Orient, WeaponD[CurrentWeapon].Projectile, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].AltAttribute);
 // changed RF064
-			WeaponD[CurrentWeapon].ShotFired += 1;
+			WeaponD[CurrentWeapon].ShotFired += WeaponD[CurrentWeapon].AmmoPerShot;
 // end change RF064
 			if(ViewPoint==FIRSTPERSON)
 			{
@@ -1994,7 +2028,7 @@ void CWeapon::LoadDefaults()
 			if(Vector=="true")
 				ProjD[projptr].AttachActor = true;
 			ProjD[projptr].BoneLevel = true;
-			Vector = AttrFile.GetValue(KeyName, "bonelevel");
+			Vector = AttrFile.GetValue(KeyName, "bonelevel"); 
 			if(Vector=="false")
 				ProjD[projptr].BoneLevel = false;
 // end change RF064
@@ -2259,12 +2293,15 @@ void CWeapon::LoadDefaults()
 							Vector = AttrFile.GetValue(KeyName, "crosshairfixed");
 							if(Vector=="true")
 								WeaponD[weapptr].CrossHairFixed = true;
+							WeaponD[weapptr].CrossHair = NULL;
 							Vector = AttrFile.GetValue(KeyName, "crosshair");
 							if(Vector!="")
 							{
 								strcpy(szName,Vector);
-								Vector = AttrFile.GetValue(KeyName, "crosshairalpha");
 								strcpy(szAlpha,Vector);
+								Vector = AttrFile.GetValue(KeyName, "crosshairalpha");
+								if(Vector!="")
+									strcpy(szAlpha,Vector);
 								WeaponD[weapptr].CrossHair = CreateFromFileAndAlphaNames(szName, szAlpha);
 								if(WeaponD[weapptr].CrossHairFixed)
 									geEngine_AddBitmap(CCD->Engine()->Engine(), WeaponD[weapptr].CrossHair);
@@ -2283,6 +2320,22 @@ void CWeapon::LoadDefaults()
 							if(Vector=="true")
 								WeaponD[weapptr].AllowLit = true;
 							WeaponD[weapptr].ZoomAmt = AttrFile.GetValueI(KeyName, "zoomamount");
+							WeaponD[weapptr].ZoomOverlay = NULL;
+							Vector = AttrFile.GetValue(KeyName, "zoomoverlay");
+							if(Vector!="")
+							{
+								strcpy(szName,Vector);
+								strcpy(szAlpha,Vector);
+								Vector = AttrFile.GetValue(KeyName, "zoomoverlayalpha");
+								if(Vector!="")
+									strcpy(szAlpha,Vector);
+								WeaponD[weapptr].ZoomOverlay = CreateFromFileAndAlphaNames(szName, szAlpha);
+								geWorld_AddBitmap(CCD->World(), WeaponD[weapptr].ZoomOverlay);
+							}
+							WeaponD[weapptr].MoveZoom = true;
+							Vector = AttrFile.GetValue(KeyName, "allowmovezoom");
+							if(Vector=="false")
+								WeaponD[weapptr].MoveZoom = false;
 							WeaponD[weapptr].JerkAmt = (float)AttrFile.GetValueF(KeyName, "recoilamount");
 							WeaponD[weapptr].JerkDecay = (float)AttrFile.GetValueF(KeyName, "recoildecay");
 							WeaponD[weapptr].BobAmt = (float)AttrFile.GetValueF(KeyName, "bobamount");

@@ -45,15 +45,15 @@ CEntityRegistry::~CEntityRegistry()
 
 int CEntityRegistry::AddEntity(char *szName, char *szType)
 {
-	if(m_pList->Has(szName))
-	{
-		m_pList->Add(szName);
-		char szBug[128];
-		sprintf(szBug,"WARNING: duplicate entityname '%s' type '%s'",
-			szName, szType);
-		CCD->ReportError(szBug, false);
-	}
-	else
+	//if(m_pList->Has(szName))
+	//{
+		//m_pList->Add(szName);
+		//char szBug[128];
+		//sprintf(szBug,"WARNING: duplicate entityname '%s' type '%s'",
+			//szName, szType);
+		//CCD->ReportError(szBug, false);
+	//}
+	//else
 	{
 		m_pList->Add(szName);
 		m_pList->AllocateUserData(szName, strlen(szType)+1);

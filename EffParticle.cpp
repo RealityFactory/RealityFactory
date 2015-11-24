@@ -684,7 +684,8 @@ void 	ActorParticle_SystemAddParticle(
 	const geVec3d		*Velocity,
 	geFloat				Scale,
 	bool				Gravity,
-	geBoolean			Bounce)
+	geBoolean			Bounce,
+	geBoolean			Solid)
 {
 
 	// locals
@@ -714,7 +715,8 @@ void 	ActorParticle_SystemAddParticle(
 	ptcl->RotationSpeed = RotationSpeed;
 	CCD->ActorManager()->GetBoundingBox(ptcl->Actor, &ptcl->theBox);
 	CCD->ActorManager()->SetBoxChange(ptcl->Actor, false);
-	CCD->ActorManager()->SetNoCollide(ptcl->Actor);
+	if(!Solid)
+		CCD->ActorManager()->SetNoCollide(ptcl->Actor);
 	CCD->ActorManager()->SetHideRadar(ptcl->Actor, true);
 	if(Gravity)
 		CCD->ActorManager()->SetGravity(ptcl->Actor, CCD->Player()->GetGravity());

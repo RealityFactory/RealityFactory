@@ -45,15 +45,14 @@ qxMoon::~qxMoon()
 
 bool qxMoon::Init()
 {
-	qxColor c;//(0,128,255);
-	m_ColorMoon = c.rgba;
+	m_ColorMoon = CCD->TerrainMgr()->GetMooncolor();
 
 	// This places the moon opposite the sun (at zenith at midnight)
 	geVec3d_Set(&m_vMoonOrigin, 0.0f, 0.0f, (float)-(CCD->TerrainMgr()->GetLandscapeSize()) );
 
 	float Scale = (CCD->TerrainMgr()->GetLandscapeSize())/1000.0f;
 
-	m_eMoonPhase = MOON_PHASE_QUARTER_WAX;//temp
+	m_eMoonPhase = (eMOON_PHASE)CCD->TerrainMgr()->GetMoonPhase();
 	switch (m_eMoonPhase)
 	{
 		case MOON_PHASE_FULL:
@@ -65,11 +64,28 @@ bool qxMoon::Init()
 			break;
 			
 		}
-	
 		case MOON_PHASE_QUARTER_WAX:
 		{
 			
 			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonq1.Bmp", NULL, NULL);
+			m_fScale			= .5f*Scale;
+			m_fAlpha			= 255.0f;
+			break;
+			
+		}
+		case MOON_PHASE_NEW:
+		{
+			
+			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonNew.Bmp", NULL, NULL);
+			m_fScale			= .5f*Scale;
+			m_fAlpha			= 255.0f;
+			break;
+			
+		}
+		case MOON_PHASE_QUARTER_WANE:
+		{
+			
+			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonq3.Bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;

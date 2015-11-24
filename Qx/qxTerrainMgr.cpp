@@ -9,7 +9,6 @@
 #include "qxTerrainUtils.h"
 #include "qxTerrainMap.h"
 #include "qxTerrainMapBase.h"
-//#include "qxPolyQuad.h"
 #include "qxColor.h"
 #include "qxCloudMachine.h"
 #include "qxSun.h"
@@ -34,11 +33,11 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-
 TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName)
 {
 	Order[0] = '\0';
 	ElapseTime = 0.0f;
+	strcpy(szName, "SkyDome");
 }
 
 TerrainObject::~TerrainObject()
@@ -47,18 +46,260 @@ TerrainObject::~TerrainObject()
 
 bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
 {
+	char param0[128];
+	float param1;
+	int param3;
+	param0[0] = '\0';
 
-	return skScriptedExecutable::method(methodName, arguments, returnValue);
+	if (IS_METHOD(methodName, "RenderWireframe"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->TerrainMgr()->SetRenderWireframe(flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "RenderLandscape"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->TerrainMgr()->SetRenderLandscape(flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetVertScale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetScaleY(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetHorizScale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetScaleXZ(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetHeightOrigin"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].intValue();
+		CCD->TerrainMgr()->SetOffsetY(param3);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetDesiredTriangles"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].intValue();
+		CCD->TerrainMgr()->SetDesiredTriangles(param3);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetLandscapeSize"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].intValue();
+		CCD->TerrainMgr()->SetLandscapeSize(param3);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetAmbientLightColor"))
+	{
+		PARMCHECK(4);
+		float r = arguments[0].floatValue();
+		float g = arguments[1].floatValue();
+		float b = arguments[2].floatValue();
+		float a = arguments[3].floatValue();
+		CCD->TerrainMgr()->SetAmbientLightColor(r,g,b,a);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetTwilightDistanceFromHorizon"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetTwilightDistanceFromHorizon(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetTimeScale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetTimeScale(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetSkyDome"))
+	{
+		PARMCHECK(2);
+		int param6 = arguments[0].intValue();
+		float param5 = arguments[1].floatValue();
+		CCD->TerrainMgr()->SetSky(param6, param5);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetSkyTexture"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, "terrain\\");
+		strcat(param0, arguments[0].str());
+		CCD->TerrainMgr()->SetSkyTexture(param0);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetSkyColor"))
+	{
+		PARMCHECK(4);
+		float r = arguments[0].floatValue();
+		float g = arguments[1].floatValue();
+		float b = arguments[2].floatValue();
+		float a = arguments[3].floatValue();
+		CCD->TerrainMgr()->SetSkyColor(r,g,b,a);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetTwilightColor"))
+	{
+		PARMCHECK(4);
+		float r = arguments[0].floatValue();
+		float g = arguments[1].floatValue();
+		float b = arguments[2].floatValue();
+		float a = arguments[3].floatValue();
+		CCD->TerrainMgr()->SetTwilightColor(r,g,b,a);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetSunColor"))
+	{
+		PARMCHECK(4);
+		float r = arguments[0].floatValue();
+		float g = arguments[1].floatValue();
+		float b = arguments[2].floatValue();
+		float a = arguments[3].floatValue();
+		CCD->TerrainMgr()->SetSunColor(r,g,b,a);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetDistanceFromSunFactor"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetDistanceFromSunFactor(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetSunScale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		CCD->TerrainMgr()->SetSunScale(param1);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetMoonColor"))
+	{
+		PARMCHECK(4);
+		float r = arguments[0].floatValue();
+		float g = arguments[1].floatValue();
+		float b = arguments[2].floatValue();
+		float a = arguments[3].floatValue();
+		CCD->TerrainMgr()->SetMoonColor(r,g,b,a);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetMoonPhase"))
+	{
+		PARMCHECK(1);
+		int phase = arguments[0].intValue();
+		CCD->TerrainMgr()->SetMoonPhase(phase);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetLocation"))
+	{
+		PARMCHECK(4);
+		float lat = arguments[0].floatValue();
+		int mon = arguments[1].intValue();
+		int day = arguments[2].intValue();
+		int hour = arguments[3].intValue();
+		CCD->TerrainMgr()->SetLocation(lat, mon, day, hour);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetTerrain"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, "terrain\\");
+		strcat(param0, arguments[0].str());
+		char terr[128];
+		strcpy(terr, "terrain\\");
+		strcat(terr, arguments[1].str());
+		CCD->TerrainMgr()->SetTerrain(param0, terr);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "DisableSun"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->TerrainMgr()->SetAllowSun(!flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "DisableCloud"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->TerrainMgr()->SetAllowCloud(!flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetWindDirection"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		eDirection dir = DIRECTION_S;
+		if(!stricmp(param0, "northeast"))
+			dir = DIRECTION_NE;
+		else if(!stricmp(param0, "northwest"))
+			dir = DIRECTION_NW;
+		else if(!stricmp(param0, "north"))
+			dir = DIRECTION_N;
+		else if(!stricmp(param0, "southeast"))
+			dir = DIRECTION_SE;
+		else if(!stricmp(param0, "southwest"))
+			dir = DIRECTION_SW;
+		else if(!stricmp(param0, "south"))
+			dir = DIRECTION_S;
+		else if(!stricmp(param0, "east"))
+			dir = DIRECTION_E;
+		else if(!stricmp(param0, "west"))
+			dir = DIRECTION_W;
+		CCD->TerrainMgr()->SetWindDir(dir);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "debug"))
+	{
+		PARMCHECK(1);
+		char szBug[128];
+		strcpy(param0, arguments[0].str());
+		sprintf(szBug, "Debug : %s", param0);
+		CCD->ReportError(szBug, false);
+		return true;
+	}
+	else
+	{
+		return skScriptedExecutable::method(methodName, arguments, returnValue);
+	}
 }
 
 bool TerrainObject::getValue(const skString& fieldName, const skString& attribute, skRValue& value)
 {
-	return skScriptedExecutable::getValue(fieldName, attribute, value);
+	if (fieldName == "time")
+	{
+		value = CCD->TerrainMgr()->GetElapsedTime();
+		return true;
+	}
+	else if (fieldName == "daytime")
+	{
+		value = CCD->TerrainMgr()->GetTerrainTime();
+		return true;
+	}
+	else
+		return skScriptedExecutable::getValue(fieldName, attribute, value);
 }
 
 bool TerrainObject::setValue(const skString& fieldName, const skString& attribute, const skRValue& value)
 {
-	return skScriptedExecutable::setValue(fieldName, attribute, value);
+	if (fieldName == "think")
+	{
+		strcpy(Order, value.str());
+		return true;
+	}
+	else
+		return skScriptedExecutable::setValue(fieldName, attribute, value);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -91,7 +332,6 @@ qxTerrainMgr::qxTerrainMgr()
 	m_OffsetY = 0;
 	m_nDesiredTriangles = 500;
 	m_nLandscapeSize = 4096;
-	m_nLandscapeSize *= (int)m_fScaleXZ;
 	m_nFarPlane = 9999999;
 	m_nHeightFieldSourceType = 1;
 	m_nShadingMethod = 0;
@@ -111,10 +351,15 @@ qxTerrainMgr::qxTerrainMgr()
 	geVec3d_Normalize(&m_vLightSource);
 
 	strcpy(m_strBmp, "terrain\\clouds_256.bmp");
-	SkyMaxHeight = 200;
+	strcpy(heightmap, "terrain\\flat.bmp");
+	strcpy(texmap, "terrain\\desert256.bmp");
+	SkyMaxHeight = 400;
 	fScaleXZ = 1.0f;
 	fSkyLengthHeight = 32.0f;
 	m_SunScale = 4.0f;
+	AllowSun = true;
+	AllowCloud = true;
+	WindDir = DIRECTION_S;
 	rgba.r = 164.0f;
 	rgba.g = 200.0f;
 	rgba.b = 255.0f;
@@ -125,6 +370,15 @@ qxTerrainMgr::qxTerrainMgr()
 	color.g = 0.0f;
 	color.b = 0.0f;
 	color.a = 255.0f;
+	suncolor.r = 255.0f;
+	suncolor.g = 128.0f;
+	suncolor.b = 0.0f;
+	suncolor.a = 255.0f;
+	mooncolor.r = 255.0f;
+	mooncolor.g = 255.0f;
+	mooncolor.b = 255.0f;
+	mooncolor.a = 255.0f;
+	MoonPhase = MOON_PHASE_FULL;
 	m_fColorUpdateTime = 1.0f;
 	TextureFlow = false;
 
@@ -132,6 +386,7 @@ qxTerrainMgr::qxTerrainMgr()
 	Hour = 12;
 	Day = 24;
 	Month = 10;
+	ElapsedTime = 0.0f;
 
 	Object = NULL;
 }
@@ -276,306 +531,72 @@ bool qxTerrainMgr::Init()
 				exit(-333);
 			}
 			
-			
-			m_pSun = new qxSun;
-			if( !m_pSun->Init())
+			if(AllowSun)
 			{
-				char szError[256];
-				sprintf(szError,"Can't initialize Sun");
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
-				delete CCD;
-				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-				exit(-333);
-			}
-			
-			m_pMoon = new qxMoon;
-			if( !m_pMoon->Init())
-			{
-				char szError[256];
-				sprintf(szError,"Can't initialize Moon");
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
-				delete CCD;
-				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-				exit(-333);
-			}
-			
-			m_pStarField = new qxStarField;
-			if( !m_pStarField->Init())
-			{
-				char szError[256];
-				sprintf(szError,"Can't initialize Stars");
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
-				delete CCD;
-				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-				exit(-333);
+				m_pSun = new qxSun;
+				if( !m_pSun->Init())
+				{
+					char szError[256];
+					sprintf(szError,"Can't initialize Sun");
+					CCD->ReportError(szError, false);
+					CCD->ShutdownLevel();
+					delete CCD;
+					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					exit(-333);
+				}
+				
+				m_pMoon = new qxMoon;
+				if( !m_pMoon->Init())
+				{
+					char szError[256];
+					sprintf(szError,"Can't initialize Moon");
+					CCD->ReportError(szError, false);
+					CCD->ShutdownLevel();
+					delete CCD;
+					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					exit(-333);
+				}
+				
+				m_pStarField = new qxStarField;
+				if( !m_pStarField->Init())
+				{
+					char szError[256];
+					sprintf(szError,"Can't initialize Stars");
+					CCD->ReportError(szError, false);
+					CCD->ShutdownLevel();
+					delete CCD;
+					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					exit(-333);
+				}
 			}
 
-			m_pCloudMachine = new qxCloudMachine;
-			if( !m_pCloudMachine->Init())
+			if(AllowCloud)
 			{
-				char szError[256];
-				sprintf(szError,"Can't initialize Clouds");
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
-				delete CCD;
-				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-				exit(-333);
+				m_pCloudMachine = new qxCloudMachine;
+				if( !m_pCloudMachine->Init())
+				{
+					char szError[256];
+					sprintf(szError,"Can't initialize Clouds");
+					CCD->ReportError(szError, false);
+					CCD->ShutdownLevel();
+					delete CCD;
+					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					exit(-333);
+				}
+				m_pCloudMachine->DoWhiteFluffy();
 			}
-			m_pCloudMachine->DoWhiteFluffy();
 
-			//if(LoadTerrainDefinitionFile(""))
-				//LoadMap(0, 0);
+			if(LoadTerrainDefinitionFile(""))
+				LoadMap(0, 0);
 
 			TerrainTime = (float)Hour * 3600.0f;
 			CalculatePlayerLatitude();
+			ElapsedTime = (CCD->LastElapsedTime_F()*0.001f);
 			Initialized = true;
 			return true;
 		}
 	}
 	return false;
-/*	
-	AttrFile.SetPath("terrain.ini");
-	if(!AttrFile.ReadFile())
-	{
-		char szError[256];
-		sprintf(szError,"Can't open Terrain initialization file");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-	bool flag = false;
-	CString KeyName = AttrFile.FindFirstKey();
-	while(KeyName != "")
-	{
-		if(!strcmp(KeyName,"Terrain"))
-		{
-			m_fScaleY = (float)AttrFile.GetValueF(KeyName, "scaley");
-			m_fScaleXZ = (float)AttrFile.GetValueF(KeyName, "scalexz");
-			m_OffsetY = AttrFile.GetValueI(KeyName, "offsety");
-			m_nDesiredTriangles = AttrFile.GetValueI(KeyName, "desiredtriangles");
-			m_nLandscapeSize = AttrFile.GetValueI(KeyName, "landscapesize");
-			m_nLandscapeSize		*= (int)m_fScaleXZ;
-
-			m_nFarPlane = 9999999;
-			geEntity_EntitySet* lEntitySet;
-			geEntity* lEntity;
-	
-			lEntitySet = geWorld_GetEntitySet(CCD->World(), "EnvironmentSetup");
-	
-			if(lEntitySet != NULL)
-			{
-				lEntity = geEntity_EntitySetGetNextEntity(lEntitySet, NULL);
-				if(lEntity)
-				{	
-					EnvironmentSetup *theState = (EnvironmentSetup*)geEntity_GetUserData(lEntity);
-					if(theState->UseFarClipPlane == GE_TRUE)
-					{
-						float detailevel = (float)CCD->MenuManager()->GetDetail();
-						//m_nFarPlane = (int)(theState->FarClipPlaneDistLow + ((theState->FarClipPlaneDistHigh - theState->FarClipPlaneDistLow)*(detailevel/100)));
-					}
-				}
-			}
-
-			m_nHeightFieldSourceType = AttrFile.GetValueI(KeyName, "source");
-			m_nShadingMethod = AttrFile.GetValueI(KeyName, "shadingmode");
-			m_fNormalDistanceToCamera = (float)AttrFile.GetValueF(KeyName, "distancetocamera");
-			m_vLightSource.X = (float)AttrFile.GetValueF(KeyName, "lightx");
-			m_vLightSource.Y = (float)AttrFile.GetValueF(KeyName, "lighty");
-			m_vLightSource.Z = (float)AttrFile.GetValueF(KeyName, "lightz");
-			m_fLightAmbient = (float)AttrFile.GetValueF(KeyName, "shadingambient");
-			m_fLightIntensity = (float)AttrFile.GetValueF(KeyName, "shadingintensity");
-			m_PixelFormatFinal = (gePixelFormat)AttrFile.GetValueI(KeyName, "finalformat");
-			m_AmbientLightColor.r = (float)AttrFile.GetValueF(KeyName, "ambient_r");
-			m_AmbientLightColor.g = (float)AttrFile.GetValueF(KeyName, "ambient_g");
-			m_AmbientLightColor.b = (float)AttrFile.GetValueF(KeyName, "ambient_b");
-			m_AmbientLightColor.a = (float)AttrFile.GetValueF(KeyName, "ambient_a");
-			m_fTwilightDistanceFromHorizon = (float)AttrFile.GetValueF(KeyName, "twilightdistance");
-			m_TimeScale = (float)AttrFile.GetValueF(KeyName, "timescale");
-
-			geVec3d_Normalize(&m_vLightSource);
-			flag = true;
-			break;
-			
-		}
-		KeyName = AttrFile.FindNextKey();
-	}
-	if(!flag)
-	{
-		char szError[256];
-		sprintf(szError,"Can't find Terrain section");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-
-	m_pqxPolyPool = new qxPolyPool;
-	m_pqxVertPool = new qxVertPool;
-
-	flag = false;
-	KeyName = AttrFile.FindFirstKey();
-	while(KeyName != "")
-	{
-		if(!strcmp(KeyName,"SkyDome"))
-		{
-			qxTerrainDefinition Def;
-			Def.m_strBmp = AttrFile.GetValue(KeyName, "skybmp");
-			Def.m_strAlpha	= AttrFile.GetValue(KeyName, "skybmp");
-			Def.m_nFarPlane = 9999999;
-
-			int SkyMaxHeight = AttrFile.GetValueI(KeyName, "skymaxheight");
-			float fScaleXZ = (float)AttrFile.GetValueF(KeyName, "skyscalexz");
-			float fSkyLengthHeight = (float)AttrFile.GetValueF(KeyName, "skylengthheight");
-			m_SunScale = (float)AttrFile.GetValueF(KeyName, "skysunscale");
-
-			m_pSkyDome = new qxSkyDome(	Def, (int)fSkyLengthHeight, (float)SkyMaxHeight, 
-				fScaleXZ);
-			flag = true;
-			break;
-			
-		}
-		KeyName = AttrFile.FindNextKey();
-	}
-	if(!flag)
-	{
-		char szError[256];
-		sprintf(szError,"Can't find SkyDome section");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	flag = false;
-	KeyName = AttrFile.FindFirstKey();
-	while(KeyName != "")
-	{
-		if(!strcmp(KeyName,"Location"))
-		{
-			fPlayerLatitude = (float)AttrFile.GetValueF(KeyName, "latitude");
-			Hour = AttrFile.GetValueI(KeyName, "hour");
-			Day = AttrFile.GetValueI(KeyName, "day");
-			Month = AttrFile.GetValueI(KeyName, "month");
-			TerrainTime = (float)Hour * 3600.0f;
-			CalculatePlayerLatitude();
-			flag = true;
-		}
-		KeyName = AttrFile.FindNextKey();
-	}
-	if(!flag)
-	{
-		char szError[256];
-		sprintf(szError,"Can't find Location section");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	if( !m_pSkyDome->Init() )
-	{
-		char szError[256];
-		sprintf(szError,"Can't initialize SkyDome");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	
-	m_pSun = new qxSun;
-	if( !m_pSun->Init())
-	{
-		char szError[256];
-		sprintf(szError,"Can't initialize Sun");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	m_pMoon = new qxMoon;
-	if( !m_pMoon->Init())
-	{
-		char szError[256];
-		sprintf(szError,"Can't initialize Moon");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	m_pStarField = new qxStarField;
-	if( !m_pStarField->Init())
-	{
-		char szError[256];
-		sprintf(szError,"Can't initialize Stars");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-
-	if(!LoadTerrainDefinitionFile(""))
-		return false;
-
-	
-	m_pCloudMachine = new qxCloudMachine;
-	if( !m_pCloudMachine->Init())
-	{
-		char szError[256];
-		sprintf(szError,"Can't initialize Clouds");
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		MessageBox(NULL, szError,"Terrain Manager", MB_OK);
-		exit(-333);
-	}
-
-	m_pCloudMachine->DoWhiteFluffy();
-	//m_pCloudMachine->DoGreyOvercast();
-	//m_pCloudMachine->DoCloudless();
-
-	Initialized = true;
-	
-	LoadMap(0, 0);
-
-	return true;
-*/
-}
-
-bool qxTerrainMgr::Load()
-{
-/*	CString strHeightFieldFile;
-
-	
-
-	if( m_nHeightFieldSourceType == 1 )
-		strHeightFieldFile = Config()->getString("TERRAIN_HEIGHTFIELD_BMP");
-	else
-		strHeightFieldFile = Config()->getString("TERRAIN_HEIGHTFIELD_TER");
-
-
-	CString strTextureFile = Config()->getString("TERRAIN_BMP");
-
-	LoadMap(0,0);
-*/
-	return true;
-
 }
 
 void qxTerrainMgr::Shutdown()
@@ -610,6 +631,47 @@ bool qxTerrainMgr::Frame()
 {
 	if(!Initialized)
 		return true;
+
+	ElapsedTime += (CCD->LastElapsedTime_F()*0.001f);
+
+	if(Object)
+	{
+		if(!EffectC_IsStringNull(Object->Order))
+		{
+			skRValueArray args(1);
+			skRValue ret;
+
+			try
+			{
+				Object->method(skString(Object->Order), args, ret);
+			}
+			catch(skRuntimeException e)
+			{
+				char szBug[256];
+				sprintf(szBug, "Runtime Script Error for SkyDome script");
+				CCD->ReportError(szBug, false);
+				strcpy(szBug, e.toString());
+				CCD->ReportError(szBug, false);
+				return false;
+			}
+			catch(skParseException e)
+			{
+				char szBug[256];
+				sprintf(szBug, "Parse Script Error for SkyDome script");
+				CCD->ReportError(szBug, false);
+				strcpy(szBug, e.toString());
+				CCD->ReportError(szBug, false);
+				return false;
+			}
+			catch (...)
+			{
+				char szBug[256];
+				sprintf(szBug, "Script Error for SkyDome script");
+				CCD->ReportError(szBug, false);
+				return false;
+			}
+		}
+	}
 
 	CalculatePlayerLatitude();
 	CCD->CameraManager()->TrackMotion();
@@ -740,8 +802,6 @@ bool qxTerrainMgr::Frame()
 		p->Frame();
 	}
 
-
-
 	return true;
 }
 
@@ -793,7 +853,8 @@ void qxTerrainMgr::Draw()
 	if(!Initialized)
 		return;
 
-	m_pCloudMachine->Draw();
+	if( m_pCloudMachine)
+		m_pCloudMachine->Draw();
 
 	for( int i = 0; i < m_pMaps.GetSize(); i++)
 	{
@@ -950,22 +1011,6 @@ qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 	return NULL;
 }
 
-void qxTerrainMgr::DynamicLoadCheck()
-{
-
-	if( !CCD->CameraManager()->GetPositionMoved() )
-		return;
-
-	geVec3d vCenter;
-	CCD->CameraManager()->GetPosition(&vCenter);
-	geVec3d* pCam = &vCenter;
-
-	int Map_X = (int)pCam->X / m_nLandscapeSize;
-	int Map_Z = (int)pCam->Z / m_nLandscapeSize;
-
-	LoadMap(Map_X, Map_Z);
-}
-
 inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 {
 
@@ -989,12 +1034,14 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 
 	qxTerrainDefinition TerrainDef;
 	m_pTerrainDefinitionFile->m_pTerrainDef = &TerrainDef;
-	
-	if( !m_pTerrainDefinitionFile->Load( OffsetX, OffsetZ ) )
-	{
-		return false;
-	}
-
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_strHeightmap = heightmap;
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_strBmp = texmap;
+	m_pTerrainDefinitionFile->m_pTerrainDef->MapOffsetIndexX = OffsetX;
+	m_pTerrainDefinitionFile->m_pTerrainDef->MapOffsetIndexZ = OffsetZ;
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = GetFarPlane();
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_eType = TT_LAND;
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_eHeightFieldSourceType = HEIGHTFIELD_GREY_BMP;
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = CCD->TerrainMgr()->GetFarPlane();
 
 	qxTerrainMapBase* pMap = 0;
 	
@@ -1062,7 +1109,10 @@ void qxTerrainMgr::UpdateFog()
 
 float qxTerrainMgr::GetSunPercentToZenith()
 {  
-	return m_pSun->GetPercentToZenith(); 
+	if(m_pSun)
+		return m_pSun->GetPercentToZenith(); 
+	else
+		return 1.0f;
 }
 
 void qxTerrainMgr::UpdateTwilightPercent()

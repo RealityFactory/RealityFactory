@@ -104,13 +104,10 @@ bool qxCloudMachine::Init()
 	geVec3d_Set(&QuadRandInitialRotateDegreesMin, 90, 0 , 0);
 	Quad				= true;
 
-
-
 	if(!qxEffectParticleChamber::Init())
 		return false;
 
 	SetAngles();
-
 
 	return true;
 }
@@ -123,7 +120,7 @@ void qxCloudMachine::Draw()
 
 int qxCloudMachine::Frame()
 {
-
+	SetAngles();
 
 	qxEffectParticleChamber::Frame();
 
@@ -151,7 +148,8 @@ int qxCloudMachine::Frame()
 		
 		
 		//Get the far limits of the fog. 
-		float fStart = CCD->Engine()->GetFogEnd()*2.0f;
+		//float fStart = CCD->Engine()->GetFogEnd()*2.0f;
+		float fStart = (float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f;
 		
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
@@ -304,8 +302,6 @@ void qxCloudMachine::DoGreyOvercast()
 
 	qxEffectParticleChamber::ReInit();
 
-	m_eWindDir	= DIRECTION_N;
-
 	SetAngles();
 
 }
@@ -348,6 +344,7 @@ void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 
 void qxCloudMachine::SetAngles()
 {
+	m_eWindDir = CCD->TerrainMgr()->GetWindDir();
 
 	switch(m_eWindDir)
 	{
@@ -366,54 +363,28 @@ void qxCloudMachine::SetAngles()
 
 void qxCloudMachine::UpdateColors()
 {
-
+	
 	// Find the sun or moon
 	// and brighten the triangles with alpha
 	static const qxSun* pSun = CCD->TerrainMgr()->GetSun();
 	
-	//float fTwilightPercent = TerrainMgr()->GetTwilightPercent();
-
-
-	//
-	// !FIX This needs work. Left undone.
-	//
+	if(!pSun)
+		return;
+	
 	qxColor SunColor( *(CCD->TerrainMgr()->GetSkyDome()->GetCurrentSunColor()) );
-
-	//float fDistanceFromSunFactor = TerrainMgr()->GetSkyDome()->GetDistanceFromSunFactor();
-
 	
-	
-		for ( int i=0; i < ParticlesMax; i++ )
-		{
+	for ( int i=0; i < ParticlesMax; i++ )
+	{
 		if ( m_pParticles[i]->m_fAge < 0.0f )
 			continue;
-
-		GE_LVertex* pVect = &m_pParticles[i]->m_vVertex;
-	
-/*		
-		GEV sun = pSun->Origin;
-		sun.Y = 0;
-
-		GEV cloud = *((GEV*)&(pVect->X));
-		cloud.Y = 0;
-
-		// Slow sqrt(). No better way? !FIX
-		float fDist = geVec3d_DistanceBetween(	&sun, &cloud );
 		
-		if( fDist != 0.0f )
-			fDist = fDistanceFromSunFactor / fDist;
-*/
+		GE_LVertex* pVect = &m_pParticles[i]->m_vVertex;
+		
 		float	fSunIntensity = CCD->TerrainMgr()->GetSkyDome()->GetSunIntensity();
-
+		
 		pVect->r = SunColor.rgba.r * fSunIntensity ;
 		pVect->g = SunColor.rgba.g * fSunIntensity;
 		pVect->b = SunColor.rgba.b * fSunIntensity;
 		m_pParticles[i]->UpdatePoly();
-
-
-
-		//pVect->CurrentVert.a = m_CurrentSkyColor.a;
-		}
-	
-
+	}
 }

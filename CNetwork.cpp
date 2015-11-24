@@ -537,7 +537,6 @@ void NetPlayerMgr::ServerClientCycle()
 					CCD->Attributes()->RestoreFrom(NULL, true);
 					CCD->Damage()->RestoreFrom(NULL, true);
 					CCD->ElectricEffects()->RestoreFrom(NULL, true);
-					CCD->NPCManager()->RestoreFrom(NULL, true);
 					CCD->ModelManager()->RestoreFrom(NULL, true);
 					connectstate +=1;
 				}
@@ -670,7 +669,6 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	CCD->Attributes()->SaveTo(NULL, true);
 	CCD->Damage()->SaveTo(NULL, true);
 	CCD->ElectricEffects()->SaveTo(NULL, true);
-	CCD->NPCManager()->SaveTo(NULL, true);
 	CCD->ModelManager()->SaveTo(NULL, true);
 	outbuffer->AddLen();
 	nlWrite(sock, outbuffer->Data, outbuffer->Size);

@@ -10,6 +10,7 @@ public:
 	void PlayMp3(long volume, geBoolean loop);
 	void StopMp3();
 	void Refresh();
+	void SetVolume(long volume);
 private:
 	bool Active;
 	HWND m_Video;

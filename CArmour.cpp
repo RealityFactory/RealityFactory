@@ -1,7 +1,7 @@
 
 #include "RabidFramework.h"
 
-CArmour::CArmour()
+CArmour::CArmour() 
 {
 	ListPtr = -1;
 	CIniFile AttrFile("armour.ini");

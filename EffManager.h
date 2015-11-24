@@ -85,7 +85,12 @@ typedef struct
 	float		Intensity;		// light intensity
 	geBoolean	DoNotClip;		// whether or not clipping should be ignored
 	geBoolean	CastShadows;	// whether or not the light should cast shadows
-
+	// change QuestOfDreams
+	geBoolean	Spot;			// is it a spotlight?
+	geFloat	Arc;			// angle of lightcone
+	geVec3d	Direction;		// direction of spotlight
+	int		Style;		// falloff style
+	// end change QuestOfDreams
 } Glow;
 
 #define SPRITE_POS	( 1 << 0 )
@@ -230,6 +235,7 @@ typedef struct
 	float		MinSpeed;		// min speed of each actor
 	float		MaxSpeed;		// max speed of each actor
 	geBoolean	Bounce;
+	geBoolean	Solid;
 
 } ActorSpray;
 

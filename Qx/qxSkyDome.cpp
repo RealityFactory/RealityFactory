@@ -340,58 +340,63 @@ void qxSkyDome::AdjustSkyColor()
 	// and brighten the nearer triangles
 	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
 	
-	// -1.0 midnight, 1.0 noon
-	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
+	m_CurrentSunColor = qxColorWhite;
+	m_fSunIntensity = 1.0f;
 
-	// distance above and below horizon 
-	float fTwilightDist = CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
-
-	// Twilight distance is 0.0 to 1.0 ( from approx -.2 to .2 above horizon)
-	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent() ;
-
-	//
-	// SUN COLOR
-	//
-	if( fTwilightPercent == 1.0 )
+	if(pSun)
 	{
-		m_CurrentSunColor = qxColorWhite;
-		m_fSunIntensity = 1.0f;
-	}
-	else if( fTwilightPercent == 0.0 )
-	{
-		m_CurrentSunColor = qxColorBlack;
-		m_fSunIntensity = 0.0f;
-	}
-	else
-	{
-		m_CurrentSunColor = m_TwilightColor;
+		// -1.0 midnight, 1.0 noon
+		float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
 		
-		// Percentage of twilight color dominance
-		// twilight -> horizon = .80
-		// horizon  -> twilight = .20
-		float fPreHorizonPercent = (fSunPercentToZenith+fTwilightDist)/ fTwilightDist;
-		fPreHorizonPercent = fPreHorizonPercent*.8f;
-		fPreHorizonPercent = GE_CLAMP(fPreHorizonPercent, 0.0f, .8f);
+		// distance above and below horizon 
+		float fTwilightDist = CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
 		
-		// horizon to twilight
-		float fPostHorizonPercent = fSunPercentToZenith/ fTwilightDist;
-		fPostHorizonPercent = fPostHorizonPercent * .2f;
-		fPostHorizonPercent = GE_CLAMP(fPostHorizonPercent, 0.0f, .2f);
+		// Twilight distance is 0.0 to 1.0 ( from approx -.2 to .2 above horizon)
+		float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent() ;
 		
-		m_fSunIntensity = fPreHorizonPercent;
-		
-		if( fTwilightPercent > .50f )
+		//
+		// SUN COLOR
+		//
+		if( fTwilightPercent == 1.0 )
 		{
-			m_fSunIntensity += fPostHorizonPercent;
+			m_CurrentSunColor = qxColorWhite;
+			m_fSunIntensity = 1.0f;
 		}
-
-		// Move toward white as dominance wanes
-		float s = m_CurrentSunColor.GetS();
-		s *= 1.0f-m_fSunIntensity;
-		m_CurrentSunColor.SetS(s);
-	} 	// SUN COLOR
-	
-	
+		else if( fTwilightPercent == 0.0 )
+		{
+			m_CurrentSunColor = qxColorBlack;
+			m_fSunIntensity = 0.0f;
+		}
+		else
+		{
+			m_CurrentSunColor = m_TwilightColor;
+			
+			// Percentage of twilight color dominance
+			// twilight -> horizon = .80
+			// horizon  -> twilight = .20
+			float fPreHorizonPercent = (fSunPercentToZenith+fTwilightDist)/ fTwilightDist;
+			fPreHorizonPercent = fPreHorizonPercent*.8f;
+			fPreHorizonPercent = GE_CLAMP(fPreHorizonPercent, 0.0f, .8f);
+			
+			// horizon to twilight
+			float fPostHorizonPercent = fSunPercentToZenith/ fTwilightDist;
+			fPostHorizonPercent = fPostHorizonPercent * .2f;
+			fPostHorizonPercent = GE_CLAMP(fPostHorizonPercent, 0.0f, .2f);
+			
+			m_fSunIntensity = fPreHorizonPercent;
+			
+			if( fTwilightPercent > .50f )
+			{
+				m_fSunIntensity += fPostHorizonPercent;
+			}
+			
+			// Move toward white as dominance wanes
+			float s = m_CurrentSunColor.GetS();
+			s *= 1.0f-m_fSunIntensity;
+			m_CurrentSunColor.SetS(s);
+		} 	// SUN COLOR
+	}
+		
 	// Darken color (toward black) as percent wanes
 	float v = m_CurrentSkyColor.GetV();
 	v *= m_fSunIntensity;
@@ -422,6 +427,16 @@ void qxSkyDome::LightVertex(qxTerrainVert* pVert)
 	// and brighten the triangles with alpha
 	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
 	
+	if(!pSun)
+	{
+		qxColor SkyColor( m_CurrentSkyColor );
+		pVert->CurrentVert.r = SkyColor.rgba.r;
+		pVert->CurrentVert.g = SkyColor.rgba.g;
+		pVert->CurrentVert.b = SkyColor.rgba.b;
+		pVert->CurrentVert.a = SkyColor.rgba.a;
+		return;
+	}
+
 	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent();
 	float fDist = geVec3d_DistanceBetween(	&pSun->Origin, 
 		((geVec3d*)&(pVert->CurrentVert.X)));

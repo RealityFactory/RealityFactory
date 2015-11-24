@@ -20,15 +20,38 @@ CGenesisEngine.cpp:		Genesis3D engine encapsulation
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	// start multiplayer
-	if (CCD->NetPlayerManager()!=NULL)
-    {
-	    switch (iMessage) 
-	    {
-		    case WM_TIMER:	
+	switch (iMessage) 
+	{
+		case WM_TIMER:	
+			if (CCD->NetPlayerManager()!=NULL)
 		    	CCD->NetPlayerManager()->ServerClientCycle();
-        }
-	}
+			break;
+	    case WM_KILLFOCUS:	
+	    {
+			ShowWindow(hWnd, SW_MINIMIZE); 
+			CCD->SetHasFocus(false);
+			if(CCD->Engine())
+				geEngine_Activate(CCD->Engine()->Engine(), false);
+			if(CCD->MenuManager())
+			{
+			}
+			return 0;
+		} 
+		break;
+		case WM_SETFOCUS:	
+	    {
+			ShowWindow(hWnd, SW_SHOWNORMAL); 
+			CCD->SetHasFocus(true);
+			if(CCD->Engine())
+				geEngine_Activate(CCD->Engine()->Engine(), true);
+			if(CCD->MenuManager())
+			{
+			}
+			return 0;
+		} 
+		break;
+
+    }
 // end multiplayer
 /*	if(iMessage==WM_CHAR)
 	{
@@ -58,7 +81,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	HWND hWnd;
 	
 	unlink(".\\RealityFactory.log");			// Gun old log file
-	
+
 	m_nWidth = nWidth;
 	m_nHeight = nHeight;
 	m_fFullScreen = fFullScreen;
@@ -312,7 +335,14 @@ bool CGenesisEngine::CreateEngine(char *szName)
 			geEngine_ShutdownDriver(m_theEngine);
 			ResetMainWindow(m_wndMain, m_nWidth, m_nHeight);
 			
-			if(!geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode)) 
+			geBoolean cline;
+
+			if(CCD->GetCmdLine())
+				cline = geEngine_SetDriverAndModeNoSplash(m_theEngine, m_Driver, m_Mode);
+			else
+				cline = geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode);
+
+			if(!cline) 
 			{
 				ReportError("geEngine_SetDriverAndMode failure", false);
 				return FALSE;
@@ -339,7 +369,14 @@ bool CGenesisEngine::CreateEngine(char *szName)
 		
 		// let the genesis engine intialize with our driver
 		
-		if(!geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode)) 
+		geBoolean cline;
+
+		if(CCD->GetCmdLine())
+			cline = geEngine_SetDriverAndModeNoSplash(m_theEngine, m_Driver, m_Mode);
+		else
+			cline = geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode);
+
+		if(!cline)  
 		{
 			ReportError("geEngine_SetDriverAndMode failure", false);
 			return FALSE;
@@ -621,7 +658,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
 	geFloat UVbreak = 0.0f;
 	vertex[0].x = (geFloat)UseRect.Left; 
 	vertex[0].y = (geFloat)UseRect.Top; 
-	vertex[0].z = 0.05f; 
+	vertex[0].z = 1.0f; //0.05f; 
 	vertex[0].r = RGBA_Array[0].r; 
 	vertex[0].g = RGBA_Array[0].g; 
 	vertex[0].b = RGBA_Array[0].b; 
@@ -808,18 +845,23 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap * pBitmap,
 			if(!Bitmap) 
 			{ 
 				ReportError("BreakUpBigBitmap could not create a bitmap", false); 
+				delete BitmapBuffer;
 				// MEMORY LEAK
 				return false; 
 			} 
 			if(!geBitmap_Blit(  pBitmap, j*256, i*256, Bitmap, 0, 0, Width, Height)) 
 			{  
 				ReportError("BreakUpBigBitmap could not blit a bitmap", false); 
+				delete BitmapBuffer;
+				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
 				return false; 
 			} 
 			if(!geBitmap_SetPreferredFormat(Bitmap, GE_PIXELFORMAT_8BIT))
 			{ 
 				ReportError("BreakUpBigBitmap could not change formats", false); 
+				delete BitmapBuffer;
+				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
 				return false; 
 			}
@@ -1017,13 +1059,45 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 	{
 		Rect.Top = 0;
 		Rect.Left = 0;
-		Rect.Bottom = geBitmap_Height(pBitmap);
-		Rect.Right = geBitmap_Width(pBitmap);
+		Rect.Bottom = geBitmap_Height(pBitmap)-1;
+		Rect.Right = geBitmap_Width(pBitmap)-1;
 		PixelRect.Bottom = PixelRect.Top+(float)(Rect.Bottom);
 		PixelRect.Right = PixelRect.Left+(float)(Rect.Right);
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect, 
 								 CCD->CameraManager()->Camera(), &PixelRect,
 								 NULL, 255.0f, NULL);
+	}
+	return ret;
+}
+
+bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha)
+{
+	FloatRect PixelRect;
+	bool ret;
+	geRect Rect;
+
+	PixelRect.Top = (float)y;
+	PixelRect.Left = (float)x;
+
+	if(BitmapRect)
+	{
+		PixelRect.Bottom = PixelRect.Top+(float)(BitmapRect->Bottom-BitmapRect->Top);
+		PixelRect.Right = PixelRect.Left+(float)(BitmapRect->Right-BitmapRect->Left);
+		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect, 
+								 CCD->CameraManager()->Camera(), &PixelRect,
+								 NULL, Alpha, NULL);
+	}
+	else
+	{
+		Rect.Top = 0;
+		Rect.Left = 0;
+		Rect.Bottom = geBitmap_Height(pBitmap)-1;
+		Rect.Right = geBitmap_Width(pBitmap)-1;
+		PixelRect.Bottom = PixelRect.Top+(float)(Rect.Bottom);
+		PixelRect.Right = PixelRect.Left+(float)(Rect.Right);
+		ret = DrawAlphaBitmapRect(pBitmap, &Rect, 
+								 CCD->CameraManager()->Camera(), &PixelRect,
+								 NULL, Alpha, NULL);
 	}
 	return ret;
 }

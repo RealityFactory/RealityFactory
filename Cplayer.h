@@ -336,6 +336,8 @@ public:
 	{ return monitorstate; }
 	bool GetMonitorMode()
 	{ return monitormode; }
+	bool GetDeathSpace()
+	{ return deathspace; }
 	int GetMirror()
 	{ return mirror; }
 	bool GetAlterKey()
@@ -346,6 +348,8 @@ public:
 	{ restoreoxy = flag; }
 	int GetHeadBobbing()
 	{ return HeadBobbing; }
+	bool GetContinue()
+	{ return ContinueAfterDeath; }
 // end change RF064
 	int LightValue()
 	{ return (int)CurrentLiteLife; }
@@ -358,6 +362,10 @@ public:
 	{ return m_CurrentHeight; }
 	int PlayerViewPoint()
 	{ return m_PlayerViewPoint;}
+	float GetSlideSlope()
+	{ return slideslope; }
+	float GetSlideSpeed()
+	{ return slidespeed; }
 // end change RF063
 // start multiplayer
 	char *GetPlayerName()
@@ -413,6 +421,12 @@ private:
 	bool lightactive;
 	bool lighton;
 	int lighteffect;
+// changed QuestOfDreams
+	bool	LiteSpot;
+	geFloat LiteArc;
+	geVec3d LiteOffset;
+	int LiteStyle;
+// end change QuestOfDreams
 	geFloat LiteRadiusMin;
 	geFloat LiteRadiusMax;
 	GE_RGBA LiteColorMin;
@@ -491,6 +505,10 @@ private:
 	bool restoreoxy;
 	char ChangeMaterial[64];
 	bool HeadBobbing;
+	bool ContinueAfterDeath;
+	bool deathspace;
+	float slideslope;
+	float slidespeed;
 // end change RF064
 };
 

@@ -88,6 +88,8 @@ typedef struct Selection
   float Speed;
   float StepHeight;
   char Environment[64];
+  float SlopeSpeed;
+  float SlopeSlide;
 } Selection;
 
 
@@ -118,7 +120,7 @@ public:
   void DisplaySplash();
   void LoadWBitmap();
   void UnLoadWBitmap();
-  void WorldFontRect(char *s, int FontNumber, int x, int y);
+  void WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha);
 // end change RF064
   void MFontRect(char *s, int FontNumber, int x, int y);
   void FontRect(char *s, int FontNumber, int x, int y);
@@ -188,6 +190,7 @@ public:
 // end change RF063
 // changed RF064
   void SetMusicVol(float vol);
+  void SetmMusicVol(float vol);
   bool GetUseSelect()
   { return useselect; }
   char *GetCurrentActor()
@@ -216,7 +219,13 @@ public:
   { return CharSelect[CurrentSelect].FillColor; }
   GE_RGBA GetCurrentAmbientColor()
   { return CharSelect[CurrentSelect].AmbientColor; }
+  float GetCurrentSlopeSlide()
+  { return CharSelect[CurrentSelect].SlopeSlide; }
+  float GetCurrentSlopeSpeed()
+  { return CharSelect[CurrentSelect].SlopeSpeed; }
   CMIDIAudio *MIDIPlayer() { return theMIDIPlayer;}
+  float GetmVolLevel()
+  { return mVolLevel; }
 // end change RF064
 private:
   void ClearVol();
@@ -288,6 +297,7 @@ private:
   char	Loading[128];
   int	 DifficultBack;
   int	 DifficultTitle;
+  float  mVolLevel;
 // end change RF064
 };
 

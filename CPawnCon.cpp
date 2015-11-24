@@ -7,7 +7,7 @@ extern geSound_Def *SPool_Sound(char *SName);
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 
-#define BACKCLEAR	GE_FALSE
+#define BACKCLEAR	GE_TRUE
 
 //
 // ScriptConverse class
@@ -149,7 +149,7 @@ bool ScriptedConverse::method(const skString& methodName, skRValueArray& argumen
 		{
 			Icon = TIcon;
 			if(Icon)
-				geBitmap_SetColorKey(Icon, GE_TRUE, 255, GE_FALSE);
+				geBitmap_SetColorKey(Icon, GE_TRUE, 0x00ff00fe, GE_TRUE);
 		}
 		return true;
 	}
@@ -277,6 +277,12 @@ int ScriptedConverse::DoConversation(int charpersec)
 		m_Streams->Play(false);
 	}
 
+	if(CCD->GetHasFocus())
+	{
+		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, BACKCLEAR);
+		geEngine_EndFrame(CCD->Engine()->Engine());
+	}
+
 	if(charpersec!=0)
 	{
 		while(counter<Text.GetLength())
@@ -288,21 +294,24 @@ int ScriptedConverse::DoConversation(int charpersec)
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, BACKCLEAR);
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
-			if(Icon)
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
-			ElapsedTime = (DWORD)(CCD->FreeRunningCounter() - OldTime);
-			if(ElapsedTime > (DWORD)(1000/charpersec))
+			if(CCD->GetHasFocus())
 			{
-				OldTime = CCD->FreeRunningCounter();
-				counter +=1;
-				strcpy(temp, Text.Left(counter));
+				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, BACKCLEAR);
+				geEngine_DrawBitmap(CCD->Engine()->Engine(), Background, NULL, BackgroundX, BackgroundY );
+				if(Icon)
+					geEngine_DrawBitmap(CCD->Engine()->Engine(), Icon, NULL, BackgroundX+IconX, BackgroundY+IconY );
+				ElapsedTime = (DWORD)(CCD->FreeRunningCounter() - OldTime);
+				if(ElapsedTime > (DWORD)(1000/charpersec))
+				{
+					OldTime = CCD->FreeRunningCounter();
+					counter +=1;
+					strcpy(temp, Text.Left(counter));
+				}
+				TextDisplay(temp, SpeachWidth, SpeachFont);
+				startline = TextOut(0, SpeachHeight, SpeachFont, SpeachX, SpeachY);
+				
+				geEngine_EndFrame(CCD->Engine()->Engine());
 			}
-			TextDisplay(temp, SpeachWidth, SpeachFont);
-			startline = TextOut(0, SpeachHeight, SpeachFont, SpeachX, SpeachY);
-			
-			geEngine_EndFrame(CCD->Engine()->Engine());
 		}
 	}
 //
@@ -313,7 +322,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 	bool keydwn = false;
 	bool ckeyup = false;
 	bool ckeydwn = false;
-	while(1)
+	for(;;)
 	{
 		MSG msg;
 		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
@@ -322,6 +331,10 @@ int ScriptedConverse::DoConversation(int charpersec)
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		if(!CCD->GetHasFocus())
+			continue;
+
 		bool kup = false;
 		bool kdwn = false;
 		bool ckup = false;
@@ -612,7 +625,7 @@ void CPawn::PreLoadC(char *filename)
 		if(i>=0 && i<str.GetLength())
 		{
 			j=i-1;
-			while(str.GetAt(j)!='"' && j>=0)
+			while(!(str.GetAt(j)=='"' || str.GetAt(j)=='[') && j>=0)
 			{
 				j-=1;
 			}
@@ -633,7 +646,7 @@ void CPawn::PreLoadC(char *filename)
 			if(i>=0 && i<str.GetLength())
 			{
 				j=i-1;
-				while(str.GetAt(j)!='"' && j>=0)
+				while(!(str.GetAt(j)=='"' || str.GetAt(j)=='[') && j>=0)
 				{
 					j-=1;
 				}

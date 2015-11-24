@@ -61,7 +61,7 @@ CCDAudio::CCDAudio()
 	
 	theError = mciSendCommand(m_mciDeviceID, MCI_SET, 
 		MCI_SET_TIME_FORMAT, (DWORD)&mciSet);
-	
+
 	return;
 }
 
@@ -129,7 +129,7 @@ int CCDAudio::Play(int nTrack, bool bLoop)
 		CCD->ReportError(szError, false);
 		return RGF_FAILURE;
 	}
-	
+
 	//	Track is playing, let's bail out.
 	
 	return RGF_SUCCESS;												// Track playing

@@ -1257,6 +1257,34 @@ char *CActorManager::GetGroup(geActor *theActor)
 	return pEntry->Group;
 }
 
+geActor *CActorManager::GetByEntityName(char *name)
+{
+	ActorInstanceList *pTemp = NULL;
+	
+	for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+	{
+		if(MainList[nTemp]!=NULL)
+		{
+			pTemp = MainList[nTemp]->IList;
+			while(pTemp != NULL)
+			{
+				if(pTemp->Actor)
+				{
+					if(!EffectC_IsStringNull(pTemp->szEntityName))
+					{
+						if(!strcmp(name, pTemp->szEntityName))
+						{
+							return pTemp->Actor;
+						}
+					}
+				}
+				pTemp = pTemp->pNext;
+			}
+		}
+	}
+	return NULL;
+}
+
 //	Set Group
 //
 
@@ -1270,6 +1298,20 @@ int CActorManager::SetGroup(geActor *theActor, char *name)
 		strcpy(pEntry->Group, name);
 	else
 		pEntry->Group[0] = '\0';
+	
+	return RGF_SUCCESS;
+}
+
+int CActorManager::SetEntityName(geActor *theActor, char *name)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;					// Actor not found?!?!
+	
+	if(!EffectC_IsStringNull(name))
+		strcpy(pEntry->szEntityName, name);
+	else
+		pEntry->szEntityName[0] = '\0';
 	
 	return RGF_SUCCESS;
 }
@@ -1924,6 +1966,21 @@ void CActorManager::SetVehicle(geActor *theActor, geActor *theVehicle)
 	return;
 }
 
+void CActorManager::ActorAttach(geActor* Slave,  char *SlaveBoneName, geActor* Master,
+		char * MasterBoneName, geXForm3d* Attachment)
+{
+	ActorInstanceList *pEntry = LocateInstance(Slave);
+	if(pEntry == NULL)
+		return;
+	ActorInstanceList *mEntry = LocateInstance(Master);
+	if(mEntry == NULL)
+		return;
+	geActor_Attach(Slave, SlaveBoneName,
+			Master, MasterBoneName, Attachment); 
+	pEntry->Attached = true;
+	pEntry->AttachedActor = Master;
+}
+
 bool CActorManager::IsActor(geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
@@ -2047,8 +2104,9 @@ void CActorManager::Tick(geFloat dwTicks)
 				GetBoundingBox(pEntry->Actor, &Result);
 				if(CCD->MenuManager()->GetSEBoundBox() && pEntry->Actor!=CCD->Player()->GetActor())
 				{
-					//DrawBoundBox(CCD->World(), &pEntry->localTranslation,
-					//&Result.Min, &Result.Max);
+					DrawBoundBox(CCD->World(), &pEntry->localTranslation,
+					&Result.Min, &Result.Max);
+/*
 					int TotalStaticBoneCount = geActor_GetBoneCount(pEntry->Actor);
 					geExtBox theStaticBoneBox;
 					for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
@@ -2063,8 +2121,6 @@ void CActorManager::Tick(geFloat dwTicks)
 						const char *BoneName;
 						geBody_GetBone(geActor_GetBody(geActor_GetActorDef(pEntry->Actor)),
 						nStatic, &BoneName, &Attachment, &ParentBoneIndex); 
-						if(!strcmp(BoneName, "BIP01 SPINE1") || !strcmp(BoneName, "BIP01 PELVIS"))
-						{
 
 						geActor_GetBoneTransformByIndex(pEntry->Actor, nStatic, &theTransform);
 						// Ok, convert from worldspace to modelspace for the bounding box
@@ -2075,9 +2131,8 @@ void CActorManager::Tick(geFloat dwTicks)
 						theStaticBoneBox.Max.Y -= theTransform.Translation.Y;
 						theStaticBoneBox.Max.Z -= theTransform.Translation.Z;
 						DrawBoundBox(CCD->World(), &theTransform.Translation, &theStaticBoneBox.Min, &theStaticBoneBox.Max);
-
-						}
 					}
+*/
 				}
 				pEntry = pEntry->pNext;
 			}
@@ -2156,6 +2211,7 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->TransitionFlag = false;
 	NewEntry->HideRadar = false;
 	NewEntry->Group[0] = '\0';
+	NewEntry->szEntityName[0] = '\0';
 	NewEntry->FillColor.r = NewEntry->FillColor.g = NewEntry->FillColor.b = 0.0f;
 	NewEntry->AmbientColor.r = NewEntry->AmbientColor.g = NewEntry->AmbientColor.b = 0.0f;
 	NewEntry->FillColor.a = NewEntry->AmbientColor.a = 255.0f;
@@ -2163,6 +2219,8 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->BoxChange = true;
 	NewEntry->BlendFlag = false;
 	NewEntry->HoldAtEnd = false;
+	NewEntry->Attached = false;
+	NewEntry->AttachedActor = NULL;
 	NewEntry->CollDetLevel = RGF_COLLISIONLEVEL_1;
 	NewEntry->ActorType = ENTITY_GENERIC;		// Generic, for now
 	NewEntry->Inventory = new CPersistentAttributes;
@@ -2323,11 +2381,25 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 		if(pTemp->ActorType != ENTITY_VEHICLE)
 		{
 // changed RF063
+				
+			if(pTemp->Attached)
+			{
+				ActorInstanceList *pEntry = LocateInstance(pTemp->AttachedActor);
+				if(pEntry == NULL)
+				{
+					geActor_Detach(pTemp->Actor); 
+					pTemp->Attached = false;
+					pTemp->AttachedActor = NULL;
+				}
+			}
+			else
+			{
 			pTemp->CurrentZone = GetCurrentZone(pTemp);
 			ProcessForce(pTemp, dwTicks);					// Process any forces
 			ProcessGravity(pTemp, dwTicks);				// Process any gravity
+			}
 			AdvanceInstanceTime(pTemp, dwTicks);	// Make time move
-			pTemp->Moving = false;
+
 // end change RF063
 		}
 		pTemp = pTemp->pNext;					// Next?
@@ -2396,7 +2468,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 	geMotion *pMotion;
 	geMotion *pBMotion;
 	geXForm3d thePosition;
-	
+
 	if(EffectC_IsStringNull(theEntry->szMotionName))
 		pMotion = NULL;
 	else
@@ -2404,6 +2476,12 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 			theEntry->szMotionName);			// Get the motion name
 	if(!pMotion)
 	{
+		char szBug[256];
+		if(!EffectC_IsStringNull(theEntry->szMotionName) && theEntry->Actor==CCD->Player()->GetActor())
+		{
+			sprintf(szBug, "Player missing animation %s", theEntry->szMotionName);
+			CCD->ReportError(szBug, false);
+		}
 		if(!EffectC_IsStringNull(theEntry->szNextMotionName))
 		{
 			strcpy(theEntry->szMotionName, theEntry->szNextMotionName);
@@ -2837,7 +2915,8 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 // changed RF063
 // changed RF064
 		if(nZoneType == kLiquidZone && 
-			(theEntry->Actor==CCD->Player()->GetActor() || theEntry->ActorType==ENTITY_NPC))
+			(theEntry->Actor==CCD->Player()->GetActor() || theEntry->ActorType==ENTITY_NPC
+			 || theEntry->ActorType==ENTITY_PROP))
 // end change RF064
 		{
 			if(theEntry->Moving)
@@ -2932,11 +3011,12 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 				return;		
 			}
 // changed RF063
-			if(Collision.Plane.Normal.Y < 0.80f || (nZoneType & kUnclimbableZone)
+			if(Collision.Plane.Normal.Y <= CCD->Player()->GetSlideSlope() || (nZoneType & kUnclimbableZone)
 				|| (nZoneType == kLiquidZone)) // non-climbable slope
 // end change RF063
 			{
-				geVec3d_AddScaled (&newpos, &Up, movespeed, &newpos); // Make it a faster slide
+				float Sspeed = (1.0f-Collision.Plane.Normal.Y)*CCD->Player()->GetSlideSpeed();
+				geVec3d_AddScaled (&newpos, &Up, movespeed*Sspeed, &newpos); // Make it a faster slide
 				Slide = geVec3d_DotProduct (&newpos, &Collision.Plane.Normal) - Collision.Plane.Dist;
 
 				newpos.X -= Collision.Plane.Normal.X * Slide;

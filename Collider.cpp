@@ -1964,9 +1964,6 @@ bool Collider::CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 
 void Collider::Debug()
 {
-	char szData[256];
-	sprintf(szData,"Collide Flag2 = %d Collide Flag3 = %d", Flag2,Flag3);
-	CCD->MenuManager()->FontRect(szData, FONT14, 5, CCD->Engine()->Height()- 40);
 
 }
 

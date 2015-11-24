@@ -111,7 +111,7 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 		if(pItem->Model == theModel)
 		{
 			if(UseKey && !pItem->UseKey)
-				return false;
+				continue;
 
 			if(!EffectC_IsStringNull(pItem->Trigger))
 			{
@@ -122,14 +122,22 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 						pItem->CallBack = GE_TRUE;
 						pItem->CallBackCount = 2;
 					}
-					return false;
+					continue;
+				}
+				else
+				{
+					CCD->SetChangeLevelData(pItem);
+					return true;
 				}
 			}
+			else
+			{
 			// Hmm, we DID hit one.  Save offf the new level filename and the
 			// ..splash screen name for later, so that the framework can get
 			// ..to this information.
-			CCD->SetChangeLevelData(pItem);
-			return true;
+				CCD->SetChangeLevelData(pItem);
+				return true;
+			}
 		}
 	}
 	

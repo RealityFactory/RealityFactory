@@ -226,6 +226,8 @@ public:
 	char		*ConsoleError;
 	char		*ConsoleDebug[DEBUGLINES];
 	char		Indicate[2];
+	geVec3d		WRotation;
+	geFloat		WScale;
 
 // Low Level variables
 
@@ -248,6 +250,7 @@ public:
 
 
 	geActor		*Actor;
+	geActor		*WeaponActor;
 	ActionList	*Top;
 	ActionList	*Bottom;
 	ActionList	*Index;
@@ -275,6 +278,16 @@ typedef struct PreCache
 	geBitmap *Bitmap;
 } PreCache;
 
+typedef struct WeaponPreCache
+{
+	CString		Name;
+	char		ActorName[64];
+	geVec3d		Rotation;
+	geFloat		Scale;
+	GE_RGBA		FillColor;
+	GE_RGBA		AmbientColor;
+} WeaponPreCache;
+
 class CPawn : public CRGFComponent
 {
 public:
@@ -290,6 +303,7 @@ public:
 	bool GetEventState(char *Event);
 	CString GetText(char *Name);
 	geBitmap *GetCache(char *Name);
+	void AnimateWeapon();
 	bool GetConvFlag()
 	{ return ConvFlag; }
 	void SetConvFlag(bool flag)
@@ -348,6 +362,7 @@ private:
 	bool PawnFlag[MAXFLAGS];
 	CArray<ConversationText, ConversationText> Text;
 	EventStack *Events;
+	CArray<WeaponPreCache, WeaponPreCache> WeaponCache;
 	CArray<PreCache, PreCache> Cache;
 	int ConsoleBlock;
 };

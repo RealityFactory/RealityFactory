@@ -168,6 +168,7 @@ int StreamingAudio::Create(char *szFileName)
 	theDesc.dwSize = sizeof (DSBUFFERDESC);
 	theDesc.dwBufferBytes = kBufferSize;
 	theDesc.lpwfxFormat = m_pWaveFormat;
+	theDesc.dwFlags       = DSBCAPS_CTRLVOLUME;
 
 	nError = pDSIF->CreateSoundBuffer(&theDesc, &m_pStream, NULL);
 
@@ -206,7 +207,7 @@ int StreamingAudio::Play(bool bLooping)
 			return RGF_FAILURE;
 		m_fActive = TRUE;
 		m_bLoops = bLooping;
-		Mpeg3->PlayMp3(0, bLooping);
+		Mpeg3->PlayMp3((LONG)(CCD->MenuManager()->GetmVolLevel()*1000.0f), bLooping);
 		return RGF_SUCCESS;
 	}
 
@@ -222,7 +223,21 @@ int StreamingAudio::Play(bool bLooping)
   m_fActive = TRUE;
 	m_bLoops = bLooping;
 
+	LONG ScaledVolume;
+	LONG nVolume = (LONG)(CCD->MenuManager()->GetmVolLevel()*10000.0f);
+
+	if(nVolume <= 1) 
+		ScaledVolume = -10000;
+	else if(nVolume > 10000)
+		ScaledVolume = 0;
+	else
+		ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
+	nVolume = ScaledVolume;
+
+	//LONG nVolume = (LONG)((CCD->MenuManager()->GetmVolLevel()*10000.0f)-10000);
+
   m_pStream->Play(0, 0, DSBPLAY_LOOPING);	// Start playback
+  SetVolume(nVolume);
 
   return RGF_SUCCESS;
 }
@@ -268,7 +283,7 @@ int StreamingAudio::Pause()
 		if(m_fActive == FALSE)
 		{
 			m_fActive = TRUE;
-			Mpeg3->PlayMp3(0, m_bLoops);
+			Mpeg3->PlayMp3((LONG)(CCD->MenuManager()->GetmVolLevel()*1000.0f), m_bLoops);
 		}
 		else
 		{
@@ -380,12 +395,27 @@ int StreamingAudio::SetVolume(LONG nVolume)
 {
 	if(mp3)
 	{
+		if(Mpeg3 == NULL)
+			return RGF_FAILURE;
+
+		Mpeg3->SetVolume((nVolume+10000)/10);
 		return RGF_SUCCESS;
 	}
 
 //	Sanity check parameter
   if((m_pStream == NULL) || (nVolume > 0))
 	  return RGF_FAILURE;						// Bad parameter
+
+	LONG ScaledVolume;
+	nVolume += 10000;;
+
+	if(nVolume <= 1) 
+		ScaledVolume = -10000;
+	else if(nVolume > 10000)
+		ScaledVolume = 0;
+	else
+		ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
+	nVolume = ScaledVolume;
 
 	m_pStream->SetVolume(nVolume);		// Set it!
 

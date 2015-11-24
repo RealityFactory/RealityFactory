@@ -20,6 +20,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	highlevel = true;
 	RunOrder = false;
 	Actor = NULL;
+	WeaponActor = NULL;
 	Top = NULL;
 	Bottom = NULL;
 	Index = NULL;
@@ -68,6 +69,11 @@ ScriptedObject::~ScriptedObject()
 	{
 		CCD->ActorManager()->RemoveActor(Actor);
 		geActor_Destroy(&Actor);
+	}
+	if(WeaponActor)
+	{
+		CCD->ActorManager()->RemoveActor(WeaponActor);
+		geActor_Destroy(&WeaponActor);
 	}
 	if(Icon)
 		geBitmap_Destroy(&Icon);
@@ -150,6 +156,7 @@ CPawn::CPawn()
 	{
 		LoadConv();
 		Cache.SetSize(0);
+		WeaponCache.SetSize(0);
 
 		AttrFile.SetPath("pawn.ini");
 		if(!AttrFile.ReadFile())
@@ -170,7 +177,23 @@ CPawn::CPawn()
 				{
 					Type = "conversation\\"+Type;
 					strcpy(szName,Type);
-					Background = CreateFromFileName(szName);
+					geBitmap *TB = CreateFromFileName(szName);
+					geBitmap_GetInfo(TB, &BmpInfo, NULL);
+					int TBw = BmpInfo.Width;
+					int TBh = BmpInfo.Height;
+					int TBx = (BmpInfo.Width - CCD->Engine()->Width()) / 2;
+					if(TBx<0)
+						TBx = 0;
+					else
+						TBw = CCD->Engine()->Width();
+					int TBy = (BmpInfo.Height - CCD->Engine()->Height()) / 2;
+					if(TBy<0)
+						TBy = 0;
+					else
+						TBh = CCD->Engine()->Height();
+					Background = geBitmap_Create(TBw, TBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
+					geBitmap_Blit(TB, TBx, TBy, Background, 0, 0, TBw, TBh); 
+					geBitmap_Destroy(&TB);
 					geEngine_AddBitmap(CCD->Engine()->Engine(), Background);
 					geBitmap_GetInfo(Background, &BmpInfo, NULL);
 					BackgroundX = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
@@ -199,6 +222,47 @@ CPawn::CPawn()
 			Type = AttrFile.GetValue(KeyName, "type");
 			if(Type=="weapon")
 			{
+				WeaponCache.SetSize(WeaponCache.GetSize()+1);
+				int keynum = WeaponCache.GetSize()-1;
+				WeaponCache[keynum].Name = KeyName;
+				Type = AttrFile.GetValue(KeyName, "actorname");
+				strcpy(WeaponCache[keynum].ActorName, Type);
+				Vector = AttrFile.GetValue(KeyName, "actorrotation");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					WeaponCache[keynum].Rotation = Extract(szName);
+					WeaponCache[keynum].Rotation.X *= 0.0174532925199433f;
+					WeaponCache[keynum].Rotation.Y *= 0.0174532925199433f;
+					WeaponCache[keynum].Rotation.Z *= 0.0174532925199433f;
+				}
+				geActor *Actor = CCD->ActorManager()->SpawnActor(WeaponCache[keynum].ActorName, 
+					WeaponCache[keynum].Rotation, WeaponCache[keynum].Rotation, "", "", NULL);
+				CCD->ActorManager()->RemoveActor(Actor);
+				geActor_Destroy(&Actor);
+				WeaponCache[keynum].Scale = (float)AttrFile.GetValueF(KeyName, "actorscale");
+				geVec3d FillColor = {0.0f, 0.0f, 0.0f};
+				geVec3d AmbientColor = {0.0f, 0.0f, 0.0f};
+				Vector = AttrFile.GetValue(KeyName, "fillcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					FillColor = Extract(szName);
+				}
+				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
+				if(Vector!="")
+				{
+					strcpy(szName,Vector);
+					AmbientColor = Extract(szName);
+				}
+				WeaponCache[keynum].FillColor.r = FillColor.X;
+				WeaponCache[keynum].FillColor.g = FillColor.Y;
+				WeaponCache[keynum].FillColor.b = FillColor.Z;
+				WeaponCache[keynum].FillColor.a = 255.0f;
+				WeaponCache[keynum].AmbientColor.r = AmbientColor.X;
+				WeaponCache[keynum].AmbientColor.g = AmbientColor.Y;
+				WeaponCache[keynum].AmbientColor.b = AmbientColor.Z;
+				WeaponCache[keynum].AmbientColor.a = 255.0f;
 			}
 			KeyName = AttrFile.FindNextKey();
 		}
@@ -582,6 +646,86 @@ void CPawn::Tick(float dwTicks)
 	}
 }
 
+void CPawn::AnimateWeapon()
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+	//	Ok, check to see if there are Pawns in this world
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "Pawn");
+	
+	if(pSet) 
+	{
+		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+		{
+			Pawn *pSource = (Pawn*)geEntity_GetUserData(pEntity);
+			if(pSource->Data)
+			{
+				ScriptedObject *Object = (ScriptedObject *)pSource->Data;
+				if(!Object->alive)
+					continue;
+				
+				if(Object->active)
+				{
+					if(Object->WeaponActor && Object->Actor)
+					{
+						geXForm3d XForm;
+						geVec3d theRotation;
+						geVec3d thePosition;
+						geMotion *ActorMotion;
+						geMotion *ActorBMotion;
+						
+						geXForm3d_SetIdentity (&XForm);
+						CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
+						CCD->ActorManager()->GetPosition(Object->Actor, &thePosition);
+						geXForm3d_RotateZ(&XForm, ((Object->WRotation.Z)) + theRotation.Z);
+						geXForm3d_RotateX(&XForm, ((Object->WRotation.X)) + theRotation.X);
+						geXForm3d_RotateY(&XForm, ((Object->WRotation.Y)) + theRotation.Y);
+						geXForm3d_Translate (&XForm, thePosition.X, thePosition.Y, thePosition.Z); 
+						ActorMotion = CCD->ActorManager()->GetpMotion(Object->Actor);
+						ActorBMotion = CCD->ActorManager()->GetpBMotion(Object->Actor);
+						if(ActorMotion)
+						{
+							if(CCD->ActorManager()->GetTransitionFlag(Object->Actor))
+							{
+								geActor_SetPose(Object->WeaponActor, ActorMotion, 0.0f, &XForm);
+								if(ActorBMotion)
+								{
+									float BM = (CCD->ActorManager()->GetBlendAmount(Object->Actor)
+										- CCD->ActorManager()->GetAnimationTime(Object->Actor))
+										/CCD->ActorManager()->GetBlendAmount(Object->Actor);
+									if(BM<0.0f)
+										BM = 0.0f;
+									geActor_BlendPose(Object->WeaponActor, ActorBMotion, 
+										CCD->ActorManager()->GetStartTime(Object->Actor), &XForm, 
+										BM);
+								}
+							}
+							else
+							{
+								geActor_SetPose(Object->WeaponActor, ActorMotion, CCD->ActorManager()->GetAnimationTime(Object->Actor), &XForm);
+								if(ActorBMotion)
+								{
+									geActor_BlendPose(Object->WeaponActor, ActorBMotion, 
+										CCD->ActorManager()->GetAnimationTime(Object->Actor), &XForm, 
+										CCD->ActorManager()->GetBlendAmount(Object->Actor));
+								}
+							}
+						}
+						else
+							geActor_ClearPose(Object->WeaponActor, &XForm);
+						geFloat fAlpha;
+						CCD->ActorManager()->GetAlpha(Object->Actor, &fAlpha);
+						geActor_SetAlpha(Object->WeaponActor, fAlpha);
+					}
+				}
+			}
+		}
+	}
+}
+
 void CPawn::Spawn(void *Data)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
@@ -617,6 +761,7 @@ void CPawn::Spawn(void *Data)
 	theRotation.Y = Object->YRotation;
 	theRotation.Z = 0.0f; 
 	CCD->ActorManager()->Rotate(Object->Actor, theRotation);
+	CCD->ActorManager()->SetEntityName(Object->Actor, Object->szName);
 }
 
 void CPawn::PreLoad(char *filename)

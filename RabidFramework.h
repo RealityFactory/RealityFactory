@@ -61,6 +61,7 @@ enum
 #include <stdio.h>
 #include <stdarg.h>
 #include <direct.h>
+#include <conio.h>
 
 //	Run-time library includes
 
@@ -156,9 +157,6 @@ class CCommonData;
 #include "CActMaterial.h"
 #include "CArmour.h"
 // end change RF064
-#include "track.h"
-#include "CNPCPathPoint.h"
-#include "CNPC.h"										// Non-Player Character Manager
 #include "CTriggers.h"							// Ralph Deane's Generic Triggers
 #include "CLogic.h"									// Ralph Deane's Trigger Logic
 #include "CMessage.h"
@@ -178,6 +176,7 @@ class CCommonData;
 #include "CViewSwitch.h"
 #include "CInventory.h"
 #include "CLiquid.h"
+#include "CDSpotLight.h"
 // end change RF063
 
 // start multiplayer

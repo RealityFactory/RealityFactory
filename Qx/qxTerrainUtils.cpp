@@ -122,12 +122,6 @@ qxTerrainVert* qxVertPool::ExtractVert()
 	// else
 	qxTerrainVert* out = List_Head;
 	List_Head = List_Head->m_pNext;
-
-/*	GE_RGBA* pRGB = TerrainMgr()->GetAmbientLightColor();
-	out->CurrentVert.a = pRGB->a;
-	out->CurrentVert.r = pRGB->r;
-	out->CurrentVert.g = pRGB->g;
-	out->CurrentVert.b = pRGB->b;*/
 	return out;
 }
 

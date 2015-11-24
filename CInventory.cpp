@@ -457,6 +457,7 @@ void CInventory::Display()
 	/////////////////////////// end change
 	if(!isactive)
 	{
+		CCD->Weapons()->DisplayZoom();
 		CCD->HUD()->Render();
 		return;
 	}

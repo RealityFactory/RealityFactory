@@ -148,11 +148,8 @@ int qxStarField::Frame()
 	else if ( fSunPercentToZenith >= - CCD->TerrainMgr()->GetTwilightDistanceFromHorizon() )
 	{
 		fSunupAlphaAdjust = -fSunPercentToZenith / CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
-		//TRACE(" d %.2f a %.2f \n",fDistanceFromHorizon, fSunupAlphaAdjust);
 	}
 
-	//Printer()->AddDebugStringBottom("%.2f", fSunupAlphaAdjust );
-	
 	geVec3d thePosition;
 	CCD->CameraManager()->GetPosition(&thePosition);
 	const geVec3d* pCam = &thePosition;
