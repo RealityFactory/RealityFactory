@@ -88,6 +88,10 @@ public:
     bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
     bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
 	int DoConversation(int charpersec);
+
+//not commented, from picklses newsource.zip, nouts soundconversation...
+	int DoSoundConversation(int charpersec);
+
 	void TextDisplay(char *Text, int Width, int Font);
 	int TextOut(int startline, int Height, int Font, int X, int Y);
 	void CreateCamera()
@@ -97,7 +101,38 @@ public:
 
 	char	Order[64];
 	geBitmap	*Background;
+
+//not commented, from picklses newsource.zip, nouts soundconversation...
+	geBitmap	*rBackground;
+
 	geBitmap	*Icon;
+
+//not commented, from picklses newsource.zip, nouts soundconversation...
+	geBitmap	*rIcon;
+
+	
+//begin add 16/09/2003 Nout
+	int SpeachWindowX;
+	int SpeachWindowY;
+	int ReplyWindowX;
+	int ReplyWindowY;
+	int rBackgroundX;
+	int rBackgroundY;
+	bool DrawBackground;
+	bool DrawrBackground;
+	bool ReplyInSpeakWindow;
+	StreamingAudio *m_Streams_reply;
+	CString ReplySoundFileName[9];
+	bool BlackClear;
+	geVec3d	 PawnPos;
+//end add 16/09/2003 Nout
+
+//Sound Conversation 
+//Begin add Nout 23092003
+	int SpeakShowTime;
+	int ReplyShowTime;
+//End add Nout 23092003
+
 	int BackgroundX;
 	int BackgroundY;
 	int IconX;
@@ -115,8 +150,19 @@ public:
 	bool replyflg[9];
 	CString Text;
 	StreamingAudio *m_Streams;
+
+//Changed nout 16/09/2003 Nout
+/* not commented, from picklses newsource.zip, nouts soundconversation...
+	StreamingAudio *m_Streams_reply;*/
+
 	LPDIRECTSOUND m_dsPtr;
 	CString Reply[9];
+
+//Changed nout 16/09/2003 Nout
+/* not commented, from picklses newsource.zip, nouts soundconversation...
+	CString ReplySoundFileName[9];
+	bool BlackClear;*/
+
 	CStringArray TextLines;
 	bool ConvFlag;
 private:
@@ -239,6 +285,11 @@ public:
 	bool		SoundLoop;
 	float		Circle;
 
+    //FindPointOrder code.
+	//added quest of dreams
+	bool PointFind;
+	char PointOrder[64];
+
 // Low Level variables
 
 	float		lowTime;
@@ -328,6 +379,9 @@ public:
 	void SetPawnFlag(int index, bool flag)
 	{ PawnFlag[index] = flag; }
 	bool CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone);
+	//FindPointOrder code
+	//Added QuestOfDreams RF07E
+	bool CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *Bone);
 	int GetBlock()
 	{ return ConsoleBlock; }
 	void IncBlock()
@@ -359,7 +413,24 @@ private:
 
 	CIniFile AttrFile;
 	geBitmap	*Background;
+
+//not commented, from picklses newsource.zip, nouts soundconversation...
+	geBitmap	*rBackground;
+
 	geBitmap	*Icon;
+
+//not commented, from picklses newsource.zip, nouts soundconversation...
+	geBitmap	*rIcon;
+
+//begin add 16/09/2003 Nout
+	int SpeachWindowX;
+	int SpeachWindowY;
+	int ReplyWindowX;
+	int ReplyWindowY;
+	int rBackgroundX;
+	int rBackgroundY;
+//begin add 16/09/2003 Nout
+
 	int BackgroundX;
 	int BackgroundY;
 	int IconX;

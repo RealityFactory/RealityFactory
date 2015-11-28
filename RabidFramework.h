@@ -184,6 +184,9 @@ class CCommonData;
 #include "CNetwork.h"
 // end multiplayer
 
+//Start Aug2003DCS
+#include "CLevelController.h"
+//End Aug2003DCS
 #include "CCommonData.h"						// Common data handler component
 
 //	Various zone constants.  A "zone" is an area, defined by a brush, that

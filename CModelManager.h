@@ -21,6 +21,9 @@ struct ModelInstanceList
 	int ModelType;								// The model type (door, platform, etc.)
 	geFloat ModelTime;						// Animation time for model
 	geFloat OldModelTime;					// Previous time count for model
+//Start Aug2003DCS
+    geXForm3d     OldModelXForm;            // Last transform - in case we have to back up
+//End Aug2003DCS
 	geFloat ModelAnimationSpeed;	// Speed of models motion
 	geVec3d Translation;					// Model translation
 	geVec3d Rotation;							// Model rotation
@@ -40,7 +43,15 @@ struct ModelInstanceList
 	int  TLIndex;                       // Current index into TimeList
 	geFloat AnimStartTime;              // Last animation start time
 	bool ListWrapAround;                // Indicates when the list index is wrapping from max to 0 or 0 to max
-	
+//Start Aug2003DCS
+    geFloat       TargetTime;              //External controller animation time command
+    geWorld_Model *ParentModel;            //This model is attached to another model
+    geWorld_Model *ChildModel;             // Model attached to this model
+    geWorld_Model *SiblingModel;           // Model that has same parent as this model
+    geVec3d       OriginOffset;            //Offset to attached model
+    geVec3d       origin;                  //Origin of this model
+    bool          bModelInCollision;       //Indicates if the model is currently colliding with anything
+//End Aug2003DCS
 	bool bReverse;
 	bool bAllowInside;
 	bool bRotating;
@@ -74,6 +85,15 @@ public:
 	int SetTimeEachTrig(geWorld_Model *theModel, geFloat fTET);
 	int SetRunFromList(geWorld_Model *theModel, bool bRFL);
 	int SetTimeList(geWorld_Model *theModel, geFloat *fTL);
+//Start Aug2003DCS
+    int SetParentModel(geWorld_Model *theModel, geWorld_Model *ParentModel);
+    int SetModelOriginOffset(geWorld_Model *theModel, geVec3d *OriginOffset);
+    int SetModelOrigin(geWorld_Model *theModel, geVec3d *Origin);
+    int SetTargetTime(geWorld_Model *theModel, geFloat TT);        //Script controller animation time command
+	 int GetTargetTime(geWorld_Model *theModel, geFloat *TT);
+    int GetModelCurrentTime(geWorld_Model *theModel, geFloat *time);
+    int ModelInCollision(geWorld_Model *theModel, bool *Colliding);
+//End Aug2003DCS
 	
 	int SetReverseOnCollide(geWorld_Model *theModel, bool bReverseIt);
 	int SetReverse(geWorld_Model *theModel, bool bReverseIt);
@@ -108,8 +128,17 @@ private:
 	int RemoveModelFromList(geWorld_Model *theModel);
 	ModelInstanceList *FindModel(geWorld_Model *theModel);
 	int MoveModel(ModelInstanceList *theEntry, gePath *pPath);
+//Start Aug2003DCS
+	int ModelIndex(geWorld_Model *theModel);
+   int ProcessModelTick(int nEntry, geFloat dwTicks);
+   int ProcessChildModelTick(int nEntry, geFloat dwTicks);
+//End Aug2003DCS
 	//	Private member variables
 	ModelInstanceList *MainList[512];	// Database of managed models
+//Start Aug2003DCS
+    int               ManagedModels;    // Always set to the number of managed models. We can use this to only loop
+                                        // thru the models that are defined, not all 512 every time (saves time).
+//End Aug2003DCS
 };
 
 #endif

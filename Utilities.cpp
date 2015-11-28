@@ -449,6 +449,13 @@ geBoolean EffectC_IsPointVisible(geWorld *World, geCamera *Camera, geVec3d *Targ
 		{
 			return GE_FALSE;
 		}
+	// changed QuestOfDreams 09/23/03
+	geActor *pActor;
+	geFloat T;
+	geVec3d Normal;
+	if(CCD->ActorManager()->DoesRayHitActor(CameraXf->Translation, *Target, &pActor, NULL, &T, &Normal) == GE_TRUE)
+	return GE_FALSE;
+	// end change QuestOfDreams
 	}
 	
 	// if we got to here then its visible
@@ -692,8 +699,12 @@ geBitmap * CreateFromFileName(char * BmName)
 					Bmp = NULL;
 				}
 			}
+			/* 09/30/2003 Wendell Buckner
+			updated freeimage library for Show save game image add Nout
 			FreeImage_Free(Fbmp32);
-			FreeImage_Free(Fbmp);
+			FreeImage_Free(Fbmp); */
+			FreeImage_Unload(Fbmp32);
+			FreeImage_Unload(Fbmp);
 		}
 	}
 	geVFile_Close(File);

@@ -68,6 +68,10 @@ CAutoDoors::CAutoDoors()
 		CCD->ModelManager()->AddModel(pDoor->Model, ENTITY_DOOR);
 		CCD->ModelManager()->SetLooping(pDoor->Model, false);
 		CCD->ModelManager()->SetReverseOnCollide(pDoor->Model, pDoor->bReverse);
+      //Start Aug2003DCS
+      CCD->ModelManager()->SetModelOrigin(pDoor->Model, &pDoor->origin);
+      CCD->ModelManager()->SetTargetTime(pDoor->Model, -1.0);
+      //End Aug2003DCS
 		CCD->ModelManager()->SetRotating(pDoor->Model, pDoor->bRotating);
 		CCD->ModelManager()->SetAnimationSpeed(pDoor->Model, pDoor->AnimationSpeed);
 		CCD->ModelManager()->SetOneShot(pDoor->Model, pDoor->bOneShot);
@@ -469,6 +473,18 @@ void CAutoDoors::Tick(float dwTicks)
 				pDoor->SoundHandle = -1;
 			}
 		}
+      //Start Aug2003DCS
+      //Handle the case where the model is animating on command from a script
+      if (CCD->ModelManager()->IsRunning(pDoor->Model) && (pDoor->bInAnimation == GE_FALSE) && (pDoor->SoundHandle == -1))
+      {
+         pDoor->SoundHandle = PlaySound(pDoor->theSound, pDoor->origin, pDoor->bAudioLoops);
+      }
+      if (!CCD->ModelManager()->IsRunning(pDoor->Model) && (pDoor->SoundHandle != -1))
+      {
+         CCD->EffectManager()->Item_Delete(EFF_SND, pDoor->SoundHandle);
+         pDoor->SoundHandle = -1;
+      }
+      //End Aug2003DCS
 	}
 	
 	return;
@@ -624,3 +640,4 @@ int CAutoDoors::ReSynchronize()
 {
 	return RGF_SUCCESS;
 }
+

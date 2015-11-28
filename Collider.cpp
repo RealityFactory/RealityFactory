@@ -1687,8 +1687,10 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 		case ENTITY_ATTRIBUTE_MOD: // Attribute
 			if(!bShoot)
 // changed RF063
-				CCD->Attributes()->HandleCollision(theActor, theCollision.Actor);
-			return kNoCollision;
+// changed QuestOfDreams 08/13/03 
+				CCD->Attributes()->HandleCollision(theActor, theCollision.Actor,false);
+			return kCollideActor;//kNoCollision;
+// end change 08/13/03 
 			break;
 		default:
 			return kNoCollision;

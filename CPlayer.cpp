@@ -1845,6 +1845,7 @@ int CPlayer::Move(int nHow, geFloat fSpeed)
 	if(CCD->ActorManager()->CheckTransitionMotion(Actor, ANIMSWIM))
 		return RGF_SUCCESS;
 // end change RF064	
+
 	m_LastMovementSpeed = fSpeed;
 	m_lastdirection = nHow;
 	
@@ -3789,7 +3790,56 @@ void CPlayer::Tick(geFloat dwTicks)
 
 		break;
 	case MOVESLIDERIGHT:
-		m_JumpActive = false;
+		m_JumpActive=false;
+// changed QuestOfDreams 08/29/03
+		if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor)==GE_TRUE))
+		{
+			if(CCD->ActorManager()->ReallyFall(Actor)==RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
+			{
+				if(!Falling)
+				{
+					CCD->ActorManager()->GetPosition(Actor, &(FallStart));
+					Falling = true;
+				}
+				if(!(Zone & kInLiquidZone || Zone & kLiquidZone) || !strcmp(Motion, ANIMJUMP))
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
+				}
+				CCD->Weapons()->SetAttackFlag(false);
+				break;
+			}
+		}
+		
+		if(FALLING && (CCD->ActorManager()->Falling(Actor)==GE_FALSE))
+		{
+			Falling=false;
+			
+			if(m_crouch)
+			{
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSLIDECRIGHT, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDECRIGHT);
+			}
+			else
+			{
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				if(!m_run)
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSLIDERIGHT, ANIMFALL2WALKTIME, ANIMFALL2WALK);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDERIGHT);
+				}
+				else
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNSLIDERIGHT, ANIMFALL2WALKTIME, ANIMFALL2RUN);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNSLIDERIGHT);
+				}
+			}
+			CCD->Weapons()->SetAttackFlag(false);
+			break;
+		}
+// end change 08/29/03
 		if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE)
 			|| !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMAIM)
 			|| !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMI2WALK)
@@ -3938,6 +3988,56 @@ void CPlayer::Tick(geFloat dwTicks)
 		break;
 	case MOVESLIDELEFT:
 		m_JumpActive = false;
+// changed QuestOfDreams 08/29/03
+		if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor)==GE_TRUE))
+		{
+			if(CCD->ActorManager()->ReallyFall(Actor)==RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
+			{
+				if(!Falling)
+				{
+					CCD->ActorManager()->GetPosition(Actor, &(FallStart));
+					Falling = true;
+				}
+				if(!(Zone & kInLiquidZone || Zone & kLiquidZone) || !strcmp(Motion, ANIMJUMP))
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
+				}
+				CCD->Weapons()->SetAttackFlag(false);
+				break;
+			}
+		}
+		
+		if(FALLING && (CCD->ActorManager()->Falling(Actor)==GE_FALSE))
+		{
+			Falling=false;
+			
+			if(m_crouch)
+			{
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSLIDECLEFT, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDECLEFT);
+			}
+			else
+			{
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				if(!m_run)
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSLIDELEFT, ANIMFALL2WALKTIME, ANIMFALL2WALK);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDELEFT);
+				}
+				else
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNSLIDELEFT, ANIMFALL2WALKTIME, ANIMFALL2RUN);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNSLIDELEFT);
+				}
+			}
+			CCD->Weapons()->SetAttackFlag(false);
+			break;
+		}
+// end change 08/29/03
+
 		if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE)
 			|| !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMAIM)
 			|| !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMI2WALK)
@@ -4695,8 +4795,12 @@ void CPlayer::UseItem()
 			}
 			if(CCD->Doors()->HandleCollision(Collision.Model, false, true, Actor))
 				return;
-			if(CCD->Platforms()->HandleCollision(Collision.Model, false, true, Actor))
-				return;
+//Start Aug2003DCS
+            // We can't just return now, there may be triggers attached to the Moving Platform that use keys also
+//			if(CCD->Platforms()->HandleCollision(Collision.Model, false, true, Actor))
+//				return;
+			CCD->Platforms()->HandleCollision(Collision.Model, false, true, Actor);
+//End Aug2003DCS
 			if(CCD->Triggers()->HandleCollision(Collision.Model, false, true, Actor) == RGF_SUCCESS)
 				return;
 		}
@@ -4704,6 +4808,10 @@ void CPlayer::UseItem()
 		{
 			if(CCD->Props()->HandleCollision(Collision.Actor, Actor, true, true) == RGF_SUCCESS)
 				return;
+// changed QuestOfDreams 08/13/03
+			if(CCD->Attributes()->HandleCollision(Actor, Collision.Actor, true) == GE_TRUE)
+				return;
+// end change 08/13/03
 // changed RF064
 			if(CCD->Pawns()->Converse(Collision.Actor))
 				return;

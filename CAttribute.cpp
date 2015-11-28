@@ -132,7 +132,6 @@ CAttribute::~CAttribute()
 	}
 }
 
-
 //
 // Tick
 //
@@ -185,7 +184,11 @@ void CAttribute::Tick(float dwTicks)
 				continue;
 			}
 			pSource->origin = pSource->OriginOffset;
-			SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
+// changed QuestOfDreams 08/14/03
+// fixed: attribute following another entity
+			if(SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin)))
+				CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
+// end change 08/14/03
 			if(!EffectC_IsStringNull(pSource->TriggerName))
 			{
 				if(GetTriggerState(pSource->TriggerName))
@@ -288,8 +291,9 @@ void CAttribute::Tick(float dwTicks)
 // end change RF063
 }
 
-
-bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor)
+// changed QuestOfDreams 08/13/03 added UseKey
+bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey)
+// end change 08/13/03
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -315,7 +319,13 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor)
 // end change RF063
 		if(pSource->active == GE_FALSE)
 			continue;
-// changed RF063		
+// changed RF063
+// changed QuestOfDreams 08/13/03 
+		if(pSource->UseKey && !UseKey)
+			continue;
+		if(UseKey && !pSource->UseKey)
+			return false;
+// end change 08/13/03 
 		bool flag = false;
 
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theTarget);

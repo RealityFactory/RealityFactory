@@ -262,6 +262,9 @@ public:
 	int SetHideRadar(geActor *theActor, bool flag);
 	int GetHideRadar(geActor *theActor, bool *flag);
 	char *GetGroup(geActor *theActor);
+// Added By Pickles to RF07D ---------------------------------------------
+	char *GetEntityName(geActor *theActor);
+// END Added By Pickles to RF07D ---------------------------------------------
 	int SetGroup(geActor *theActor, char *name);
 	void SetShadowAlpha(geFloat Alpha)
 	{ ShadowAlpha = Alpha; }

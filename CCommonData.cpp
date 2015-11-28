@@ -88,6 +88,9 @@ CCommonData::CCommonData()
 	theFlipBook = NULL;
 	theDecal = NULL;
 	theWallDecal = NULL;
+   //Start Aug2003DCS
+   theLevelController = NULL;
+   //End Aug2003DCS
 	theAttribute = NULL;
 	theDamage = NULL;
 	theExplosion = NULL;
@@ -1195,6 +1198,16 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7;
 	}
 	
+   //Start Aug2003DCS
+	theLevelController = new CLevelController();
+	if(theLevelController == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create LevelController handling class",
+			false);
+		return -7;
+	}
+	//End Aug2003DCS
+
 	// Attribute
 	theAttribute = new CAttribute();
 	if(theAttribute == NULL)
@@ -1404,7 +1417,13 @@ void CCommonData::ShutdownLevel()
 	if(theWallDecal != NULL)
 		delete theWallDecal;
 	theWallDecal = NULL;
-	
+
+	   //Start Aug2003DCS
+	if(theLevelController != NULL)
+		delete theLevelController;
+	theLevelController = NULL;
+	//End Aug2003DCS
+		
 	if(theFlipBook != NULL)
 		delete theFlipBook;
 	theFlipBook = NULL;
@@ -1969,7 +1988,9 @@ bool CCommonData::HandleGameInput()
 					theGameEngine->RestoreFrom(inFD);
 					theMenu->RestoreFrom(inFD, false);
 					InitializeLevel(theGameEngine->LevelName());
+					TerrainMgr()->Init(); // Pickles
 					thePlayer->RestoreFrom(inFD);
+					theTerrainMgr->Frame(); // Pickles
 // start multiplayer
 					theAutoDoors->RestoreFrom(inFD, false);
 					thePlatforms->RestoreFrom(inFD, false);
@@ -2047,7 +2068,13 @@ bool CCommonData::HandleGameInput()
 		bPlayerMoved = thePlayer->DoMovements();	//Manage player "wanted" movements
 		
 		thePlayer->CheckKeyLook(keyrotate); // update #2
-		thePlayer->CheckMouseLook();
+//Start Aug2003DCS
+#ifdef _DEBUG
+//		thePlayer->CheckMouseLook();
+#else
+	   thePlayer->CheckMouseLook();
+#endif
+//End Aug2003DCS
 		thePlayer->ProcessMove(bPlayerMoved);
 		
 		return bKeepPlaying;
@@ -2230,6 +2257,9 @@ int CCommonData::DispatchTick()
 // changed RF063
 	theViewSwitch->Tick();
 // end change RF063
+	//Start Aug2003DCS	
+   theLevelController->Tick(dwTicksGoneBy);          // Execute the LevelControllers
+	//End Aug2003DCS
 	theCameraManager->Tick(dwTicksGoneBy);
 
 	//	Finally, now that everything has moved, update all audio

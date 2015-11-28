@@ -375,6 +375,16 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			TargetFind = false;
 		return true;
 	}
+	// added questofdreams 
+	else if (IS_METHOD(methodName, "FindPointOrder"))
+	{
+	PARMCHECK(1);
+	PointFind = true;
+	strcpy(PointOrder, arguments[0].str());
+	if(PointOrder == "")
+		PointFind = false;
+	return true;
+	}
 	else if (IS_METHOD(methodName, "NewPoint"))
 	{
 		PARMCHECK(1);
@@ -1145,6 +1155,35 @@ bool CPawn::CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone)
 	}
 	return false;
 }
+
+bool CPawn::CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *Bone)
+{
+	geVec3d Pos, temp, In;
+	float dotProduct;
+
+	CCD->ActorManager()->GetPosition(Actor, &Pos);
+	CCD->ActorManager()->InVector(Actor, &In);
+	if(!EffectC_IsStringNull(Bone))
+	{
+	geXForm3d Xf;
+		if(geActor_GetBoneTransform(Actor, Bone, &Xf)==GE_TRUE)
+		{
+		geVec3d_Copy(&(Xf.Translation), &Pos);
+		geXForm3d_GetIn(&Xf, &In);
+		}
+	}
+	geVec3d_Subtract(TargetPoint,&Pos,&temp);
+	geVec3d_Normalize(&temp);
+	dotProduct = geVec3d_DotProduct(&temp,&In);
+
+	if(dotProduct > FOV)
+	{
+		if(CanSeeActorToPoint(Actor, TargetPoint))
+		return true;
+	}
+	return false;
+}
+
 
 bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d DeadPos, char *Bone)
 {
@@ -2144,6 +2183,73 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					}
 				}
 			}
+
+// added quest of dreams - FindPointOrder code
+	if(Object->PointFind)
+	{
+		if(Object->FOV>-2.0f && Object->Actor) 
+		{
+		float dist = 9000000.0f;// only ScripPoints within 3000 texels
+		bool done = false;
+
+		geEntity_EntitySet *pSet;
+		geEntity *pEntity;
+
+		// Ok, check to see if there are ScriptPoints in this world
+
+		pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+
+			if(pSet) 
+			{ 
+			// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
+				for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+				pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+				{
+				ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+				// search for nearest visible ScripPoint
+					if(CanSeePoint(Object->FOV, Object->Actor, &(pSource->origin), Object->FOVBone))
+					{
+					float newdist;
+					geVec3d Pos, Dist;
+
+					//calc newdist
+					CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
+					geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
+					newdist = geVec3d_LengthSquared(&Dist);
+						if(newdist< dist)
+						{
+						dist = newdist;
+						strcpy(Object->Point, pSource->szEntityName);
+						Object->CurrentPoint= pSource->origin;
+						Object->ValidPoint = true;
+						done = true;
+						} 
+					}
+				}
+			} 
+
+			if(done)
+			{
+			strcpy(Object->Order, Object->PointOrder);
+			Object->RunOrder = true;
+			Object->ActionActive = false;
+			ActionList *pool, *temp;
+			pool = Object->Bottom;
+				while (pool!= NULL)
+				{
+				temp = pool->next;
+				geRam_Free(pool);
+				pool = temp;
+				}
+			Object->Top = NULL;
+			Object->Bottom = NULL;
+			Object->Index = NULL;
+			Object->PointFind = false;
+			}
+		}
+	}
+// end FIndPointOrder code - QuestOfDreams
+
 			if(Object->TargetFind && !Object->TargetDisable)
 			{
 				//Object->TargetActor = NULL;

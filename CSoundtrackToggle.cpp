@@ -147,8 +147,17 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 		}
 		if(!EffectC_IsStringNull(pToggle->szStreamFileOne) && m_Streams)
 		{
+// changed QuestOfDreams 09/02/03
+// build filename
+			char music[256];
+			strcpy(music, CCD->GetDirectory(kAudioStreamFile));
+			strcat(music, "\\");
+			strcat(music, pToggle->szStreamFileOne);
+
 			m_Streams->Stop();
-			m_Streams->Create(pToggle->szStreamFileOne);
+//			m_Streams->Create(pToggle->szStreamFileOne);
+			m_Streams->Create(music);
+// end change
 			m_Streams->Play(pToggle->bStreamLoops);
 		}
 		

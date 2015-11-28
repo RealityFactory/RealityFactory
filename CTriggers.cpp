@@ -40,8 +40,8 @@ CTriggers::CTriggers()
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
-		if(pTrigger->Model==NULL)
-			continue;
+  		if(pTrigger->Model==NULL)  
+  			continue;
 		if(EffectC_IsStringNull(pTrigger->szEntityName))
 		{
 			char szName[128];
@@ -60,14 +60,17 @@ CTriggers::CTriggers()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
-			CCD = NULL;
 			MessageBox(NULL, szError,"Missing Trigger Model", MB_OK);
 			exit(-333);
 		}
-		CCD->ModelManager()->AddModel(pTrigger->Model, ENTITY_TRIGGER);
-		CCD->ModelManager()->SetLooping(pTrigger->Model, false);
-		CCD->ModelManager()->SetAnimationSpeed(pTrigger->Model, pTrigger->AnimationSpeed);
-		
+		if (pTrigger->Model) 
+      {
+         CCD->ModelManager()->AddModel(pTrigger->Model, ENTITY_TRIGGER);
+		   CCD->ModelManager()->SetLooping(pTrigger->Model, false);
+		   CCD->ModelManager()->SetAnimationSpeed(pTrigger->Model, pTrigger->AnimationSpeed);
+      }
+      //End Aug2003DCS
+
 		// Reset all the animation data for each and every trigger
 		pTrigger->bInAnimation= GE_FALSE;	// Not animating
 		pTrigger->AnimationTime = 0;		// No time in animation
@@ -589,3 +592,4 @@ void CTriggers::FreeState()
 		pool = temp;
 	}
 }
+

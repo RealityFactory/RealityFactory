@@ -17,10 +17,16 @@ public:
   C3DAudioSource();
   ~C3DAudioSource();
   void Tick(float dwTicks);
+  //Start Aug2003DCS
+  int SetProgrammedTrigger(char *szName, geBoolean Flag);
+  geBoolean IsPlaying(char *szName);
+  //End Aug2003DCS
   int LocateEntity(char *szName, void **pEntityData);
   int ReSynchronize();
 private:
-  int Create(geVec3d Origin, char *SoundFile, float radius);
+  //Start Aug2003DCS
+  int Create(geVec3d Origin, char *SoundFile, float radius, geBoolean Looping);
+  //End Aug2003DCS
   int Count;		// Count of 3D audio sources
 };
 

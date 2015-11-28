@@ -135,6 +135,9 @@ public:
 	inline CFirePoint *FirePoints() { return theFirePoint;}
 	inline CDecal *Decals() { return theDecal;}
 	inline CWallDecal *WallDecals() { return theWallDecal;}
+   //Start Aug2003DCS
+	inline CLevelController *LevelControllers() { return theLevelController;}
+   //End Aug2003DCS
 	inline CFlipBook *FlipBooks() { return theFlipBook;}
 	inline CExplosionInit *Explosions() { return theExplosion;}
 	inline CExplosion *CExplosions() { return theCExplosion;}
@@ -246,6 +249,9 @@ private:
 	CFlipBook  *theFlipBook;
 	CDecal  *theDecal;
 	CWallDecal  *theWallDecal;
+	//Start Aug2003DCS
+	CLevelController  *theLevelController;
+   //End Aug2003DCS
 	CAttribute  *theAttribute;
 	CDamage  *theDamage;
 	CExplosionInit  *theExplosion;

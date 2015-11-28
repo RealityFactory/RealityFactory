@@ -1404,6 +1404,20 @@ int CActorManager::SetEntityName(geActor *theActor, char *name)
 	return RGF_SUCCESS;
 }
 
+// Added By Pickles to RF07D ---------------------------------------------
+
+char *CActorManager::GetEntityName(geActor *theActor)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return NULL;					// Actor not found?!?!
+
+	return pEntry->szEntityName;
+}
+
+// END Added By Pickles to RF07D ---------------------------------------------
+
+
 // end change RF064
 
 //	SetShadow

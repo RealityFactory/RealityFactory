@@ -14,6 +14,12 @@ extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName,
 
 //#define BLIT
 
+// Show save game image
+// start add Nout
+static void CopyFile(const char *srcPath, const char *destPath);
+void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height);
+//end add Nout
+
 static int GetGammaPercent();
 static void SetGamma(int percent);
 static void SetDetail(int percent);
@@ -64,6 +70,10 @@ typedef enum
 {
 	END_LIST=0,
 		CLICKABLE,
+		// Show save game image
+		//begin add Nout
+		SAVEGAMEIMAGE,
+		//end add Nout
 		IMAGE,
 		// changed RF063
 		CHARIMAGE,
@@ -384,6 +394,25 @@ typedef struct LSBox
 	int Rev_Height;	// height of highlight bar
 	int Font;
 } LSBox;
+
+// Show save game image
+// start change Nout
+//-----------------------------
+// structure of SaveGameImage 
+//-----------------------------
+
+typedef struct SaveGameImage
+{
+	int X;            // X location on screen
+	int Y;            // Y location on screen
+	int Width;        // width of graphic
+	int Height;       // height of graphic
+	int Image_X;      // X location on bitmap of graphic
+	int Image_Y;      // Y location on bitmap of graphic
+	char EmptySlotImage[64]; // name of bitmap of graphic to be displayed when the slot is empty
+
+} SaveGameImage;
+// end change Nout
 
 //-----------------------------
 // structure of menu titles
@@ -778,6 +807,12 @@ MenuItem OptionMenu[] =
 Savedef SavedGame[16];
 // end change RF063
 
+// Show save game image
+// begin add Nout
+SaveGameImage SaveScreen = {0, 0, 0, 0, 0, 0, NULL};
+int NotVisible;
+// end add Nout
+
 //-------------------------------------
 // Save Game Menu
 //-------------------------------------
@@ -794,6 +829,10 @@ MenuItem SaveMenu[] =
 	{CLICKABLE, 0, 0, (void *)&SaveSlot},
 	{LSBOX,     0, 0, (void *)&SaveBox},
 	{SCROLLBAR, 0, 0, (void *)&SaveBar},
+// Show save game image
+// begin add Nout
+	{SAVEGAMEIMAGE, 0, 0, (void *)&SaveScreen},
+// end add Nout
 	{END_LIST, 0, 0, NULL}
 };
 
@@ -1985,6 +2024,21 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				SaveBar.AnimationDwnOver = NextValue();
 				SaveBar.AnimationDwnPush = NextValue();
 			}
+			// Show save game image
+			// start change Nout
+			else if(!stricmp(szAtom,"savegameimage"))
+			{
+				SaveScreen.X = NextValue();
+				SaveScreen.Y = NextValue();
+				SaveScreen.Width = NextValue();
+				SaveScreen.Height = NextValue();
+				SaveScreen.Image_X = NextValue();
+				SaveScreen.Image_Y = NextValue();
+				strcpy(SaveScreen.EmptySlotImage,NextToken());
+				if(strlen(SaveScreen.EmptySlotImage)<5) //if param empty, use the SaveScreen bitmap
+					strcpy(SaveScreen.EmptySlotImage,"Media\\Bitmaps\\SaveScreen.bmp");
+			}
+			// end change Nout
 			else if(!stricmp(szAtom,"audio"))
 			{
 				OptionMenu[0].X = NextValue();
@@ -3387,7 +3441,16 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	remapf = -1;
 	focus = -1;
 	lsbox_click = -1;
-	
+	// Show save game image
+	//add Nout
+	char filename[64];
+    geBitmap *savescr = (geBitmap *)NULL;
+    geBitmap *savescrbmp = (geBitmap *)NULL;
+	NotVisible = 1;
+	int LastCurrent;
+	LastCurrent = 0;
+	//end Nout
+
 	// start multiplayer
 	textedit_click=-1;
 	// end multiplayer
@@ -3417,7 +3480,39 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// end multiplayer
 			DispatchMessage(&msg);
 		}
-		
+		// Show save game image
+		// begin add Nout
+		if(SaveScreen.Width>0 && SaveScreen.Height>0 && NotVisible==1)
+		{
+            if(LoadBox.text[LoadBox.Current].empty != 0 && SaveBox.text[SaveBox.Current].empty != 0)
+				sprintf(filename, "SaveScreen%d.bmp",LastCurrent); 
+			else
+				strcpy(filename, SaveScreen.EmptySlotImage); 
+			geBitmap *savescr = CreateFromFileName(filename);
+			if(savescr == (geBitmap *)NULL)
+			{
+				char szBug[256];
+				sprintf(szBug, "Bad file name %s", filename);
+				CCD->ReportError(szBug, false);
+				exit(-100);
+			}
+			geBitmap_GetInfo(savescr, &BmpInfo, NULL);
+			savescrbmp = geBitmap_Create(BmpInfo.Width, BmpInfo.Height, BmpInfo.MaximumMip+1, BmpInfo.Format);
+			geBitmap_BlitBitmap(savescr, savescrbmp); 
+			geBitmap_Destroy(&savescr);
+			if(savescrbmp == (geBitmap *)NULL)
+			{
+				char szBug[256];
+				sprintf(szBug, "Bad file name %s", filename);
+				CCD->ReportError(szBug, false);
+				exit(-100);
+			}
+			if(savescrbmp)
+				geBitmap_SetColorKey(savescrbmp, GE_TRUE, 255, GE_FALSE);
+			geEngine_AddBitmap(CCD->Engine()->Engine(), savescrbmp);
+			NotVisible=0;
+		}
+		// end add Nout		
 		if(!CCD->GetHasFocus())
 			continue;
 		
@@ -4075,6 +4170,22 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 				   lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
 			   }
 		   } 
+		    // Show save game image
+    		// begin add Nout
+			BitRect.Left=SaveScreen.Image_X;
+			BitRect.Top=SaveScreen.Image_Y;
+			BitRect.Right=SaveScreen.Image_X+SaveScreen.Width;
+			BitRect.Bottom=SaveScreen.Image_Y+SaveScreen.Height;
+			if(SaveScreen.Width>0 && SaveScreen.Height>0)
+			    DrawBitmap(savescrbmp, &BitRect, SaveScreen.X, SaveScreen.Y);
+            if(LastCurrent==lrdata->Current)
+				NotVisible=0;
+            else
+			{
+				NotVisible=1;  //set a flag to load the bitmap .BMP file
+				LastCurrent=lrdata->Current; //ensure the bitmap is loaded only when a new has to be loaded
+			}
+			// end add Nout
 	   }
 	   
 	}
@@ -4904,7 +5015,12 @@ void CRFMenu::GameLevel()
 		}
 		
 	}					// End main game loop
-	
+	// Show save game image
+	// change begin Nout
+	//save the screen just before ESC is pressed (in RF dir)
+	geEngine_ScreenShot(CCD->Engine()->Engine(), "Media\\Bitmaps\\SaveScreen.bmp");
+	ScaleBitmapFromFile(".\\Media\\Bitmaps\\SaveScreen.bmp", SaveScreen.Width, SaveScreen.Height);
+	// change end Nout
 	while((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
 	{
 	}
@@ -5017,7 +5133,10 @@ void CRFMenu::DisplayCrossHair()
 	Vert.X = Back.X;
 	Vert.Y = Back.Y;
 	Vert.Z = Back.Z;
-	geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(), GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 1.0f);
+//Start Aug2003DCS - Added "| GE_RENDER_DEPTH_SORT_BF" so that crosshair always draws on top of wall decals
+    geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(), GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF | GE_RENDER_DEPTH_SORT_BF, 1.0f);
+//	geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(), GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 1.0f);
+//End Aug2003DCS
 }
 
 
@@ -5040,6 +5159,10 @@ void CRFMenu::DisplaySplash()
 		{
 			x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 			y = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
+			// Show save game image
+			// change begin Nout
+			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
+	        // change begin Nout
 			if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
 			{
 				char szError[200];
@@ -5047,7 +5170,10 @@ void CRFMenu::DisplaySplash()
 				CCD->ReportError(szError, false);
 				return;
 			}
-			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
+			// Show save game image
+			// change begin Nout
+			// geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
+			// change begin Nout
 			if(CCD->GetHasFocus())
 			{
 				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
@@ -5144,7 +5270,13 @@ void CRFMenu::MenuInitalize()
 	else if(CurrentLanguage == 4)
 		boxL5.Current = BOX_ON;
 	// end change QuestOfDreams
-	
+
+	// Show save game image
+	// begin add Nout
+	SaveBox.Current=0;
+	LoadBox.Current=0;
+	//end add Nout
+
 	// load saved game file if it exists
 	FILE *fd = CCD->OpenRFFile(kInstallFile, "savedgames.rgf", "rb");
 	if(fd)
@@ -6395,6 +6527,12 @@ static void SetSlot()
 			CCD->SaveTo(outFD);
 			// end change RF063
 			fclose(outFD); 
+			// Show save game image
+			//add Nout
+			sprintf(filename, "Media\\Bitmaps\\SaveScreen%d.bmp",SaveBox.Current); 
+			CopyFile("Media\\Bitmaps\\SaveScreen.bmp", filename);
+			NotVisible=1; //set flag to re-display the savegameimage
+			//end add Nout
 		}
 	}
 }
@@ -6431,7 +6569,9 @@ static void GetSlot()
 			CCD->Engine()->RestoreFrom(inFD);
 			CCD->MenuManager()->RestoreFrom(inFD, false);
 			CCD->InitializeLevel(CCD->Engine()->LevelName());
+			CCD->TerrainMgr()->Init(); // Pickles
 			CCD->Player()->RestoreFrom(inFD);
+			CCD->TerrainMgr()->Frame(); // Pickles
 			CCD->Doors()->RestoreFrom(inFD, false);
 			CCD->Platforms()->RestoreFrom(inFD, false);
 			CCD->Props()->RestoreFrom(inFD, false);
@@ -6469,6 +6609,68 @@ static void GetSlot()
 		}
 	}
 }
+
+// Show save game image
+//add Nout
+static void CopyFile(const char *srcPath, const char *destPath)
+{
+	CFile sourceFile;
+	CFile destFile;
+	BYTE buffer[16384];
+	DWORD dwRead;
+	
+	CFileException ex;
+	sourceFile.Open(srcPath, CFile::modeRead | CFile::shareDenyWrite, &ex);
+	destFile.Open(destPath, CFile::modeWrite | CFile::shareExclusive | CFile::modeCreate, &ex);
+	do
+	{
+		dwRead = sourceFile.Read(buffer, 16384);
+		destFile.Write(buffer, dwRead);
+	}
+	while (dwRead > 0);
+	
+	destFile.Close();
+	sourceFile.Close();
+}
+
+// rescales a bitmap file
+void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height)
+{
+	FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(FileName);
+	FREE_IMAGE_FILTER myfilter = FILTER_BOX;
+	if(fif>=0)
+	{
+		FIBITMAP *Fbmp = FreeImage_Load(fif, FileName, 0);
+		Fbmp = FreeImage_ConvertTo32Bits(Fbmp);
+		Fbmp = FreeImage_Rescale(Fbmp, dst_width, dst_height, myfilter);
+		Fbmp = FreeImage_ConvertTo24Bits(Fbmp);
+		FreeImage_Save(fif, Fbmp, FileName, 0);
+		FreeImage_Unload(Fbmp);
+	}
+}
+
+/*
+static void ScaleBmp(short x,short y, short x2, short y2)
+{ float xstep,ystep,xratio,yratio;
+  short xdiff,ydiff,xcount,ycount;
+  long VStart= vid->Screen_Width*y2;
+
+  ydiff=y2-y;
+  xdiff=x2-x;
+  xratio=(float)BitmapWidth/xdiff;
+  yratio=(float)BitmapHeight/ydiff;
+
+  for(ystep=0,ycount=y;   ycount<ydiff; ystep+=yratio,ycount++)
+   { for(xstep=0,xcount=x;xcount<xdiff; xstep+=xratio,xcount++)
+     { 
+       video_buffer[(y2-ycount)*Screen_Width+xcount]=
+       Bmp[(short)ystep*(short)BitmapWidth+(short)xstep];
+     }
+   }
+
+}
+*/
+//end add Nout
 
 static int PowerOfTwo(int value)
 {
@@ -6988,6 +7190,16 @@ void CRFMenu::Reset()
 	SaveGame.Animation = -1;
 	SaveGame.AnimationOver = -1;
 	
+	// Show save game image
+	// start change Nout
+	SaveScreen.X = 0;
+	SaveScreen.Y = 0;
+	SaveScreen.Width = 0;
+	SaveScreen.Height = 0;
+	SaveScreen.Image_X = 0;
+	SaveScreen.Image_Y = 0;
+	// end change Nout
+
 	Options.Image_Number = 0;
 	Options.Width = 0;
 	Options.Height = 0;

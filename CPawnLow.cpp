@@ -32,6 +32,7 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = skString(szName);
 		return true;
 	}
+
 	else if (fieldName == "health")
 	{
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
@@ -53,6 +54,11 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 	}
 	else if (fieldName == "enemy_vis")
 	{
+		if(!TargetActor)
+		{
+			value = false;
+			return true;
+		}
 		bool flag = CCD->Pawns()->CanSee(FOV, Actor, TargetActor, FOVBone);
 		if(flag)
 		{
@@ -64,6 +70,7 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = flag;
 		return true;
 	}
+
 	else if (fieldName == "enemy_infront")
 	{
 		GetAngles(true);
@@ -192,6 +199,123 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = Pos.Z;
 		return true;
 	}
+
+// Added By Pickles to RF07D --------------------------
+
+	else if (fieldName == "player_Z")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+		value = Pos.Z;
+		return true;
+	}
+	else if (fieldName == "player_Y")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+		value = Pos.Y;
+		return true;
+	}
+	else if (fieldName == "player_X")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+		value = Pos.X;
+		return true;
+	}
+	else if (fieldName == "distancetopoint")
+	{
+		value = -1;
+		if(ValidPoint)
+		{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+		value = geVec3d_DistanceBetween(&CurrentPoint, &Pos);
+		}
+		return true;
+	}
+	else if (fieldName == "key_pressed")
+	{
+		value = CCD->Input()->GetKeyboardInputNoWait();
+		return true;
+	}
+	else if (fieldName == "player_vis")
+	{
+		GetAngles(true);
+		bool flag = CCD->Pawns()->CanSee(FOV, Actor, CCD->Player()->GetActor(), FOVBone);
+		value = flag;
+		return true;
+	}
+	else if (fieldName == "target_name")
+	{
+		if(CCD->ActorManager()->IsActor(TargetActor))
+			value = skString(CCD->ActorManager()->GetEntityName(TargetActor));
+		else
+			value = false;
+		return true;
+	}
+	else if (fieldName == "enemy_X")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+		value = Pos.X;
+		return true;
+	}
+	else if (fieldName == "enemy_Y")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+		value = Pos.Y;
+		return true;
+	}
+	else if (fieldName == "enemy_Z")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+		value = Pos.Z;
+		return true;
+	}
+
+	else if (fieldName == "player_yaw")
+	{
+		geVec3d Orient;
+		CCD->ActorManager()->GetRotation(CCD->Player()->GetActor(), &Orient);
+		value = Orient.Y;
+		return true;
+	}
+
+	else if (fieldName == "point_vis")
+	{
+	bool flag = CCD->Pawns()->CanSeePoint(FOV, Actor, &CurrentPoint, FOVBone);
+	value = flag;
+	return true;
+	}
+
+	else if (fieldName == "player_weapon")
+	{
+		value = CCD->Weapons()->GetCurrent();
+		return true;
+	}
+
+	else if (fieldName == "point_name")
+	{
+		if(!Point)
+		{
+			value=skString("FALSE");
+			return true;
+		}
+		value = skString(Point);
+		return true;
+	}
+
+	else if (fieldName == "camera_pitch")
+	{
+		value = CCD->CameraManager()->GetTilt();
+		return true;
+	}
+
+// END Added By Pickles ----------------------------------------
+
 	else if (fieldName == "LODLevel")
 	{
 		int Level = 0;
@@ -264,6 +388,7 @@ bool ScriptedObject::setValue(const skString& fieldName, const skString& attribu
 bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
 {
 	char param0[128], param4[128];
+	bool param2;
 	float param1, param3;
 	param0[0] = '\0';
 	param4[0] = '\0';
@@ -385,6 +510,452 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		returnValue = (int)theInv->Modify(param0, arguments[1].intValue());
 		return true;
 	}
+
+// Added By Pickles to RF07D --------------------------
+
+	else if (IS_METHOD(methodName, "SetAttribute"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		returnValue = (int)theInv->Set(param0, arguments[1].intValue());
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetPlayerWeapon"))
+	{
+		PARMCHECK(1);
+		int temp =arguments[0].intValue();
+		CCD->Weapons()->SetWeapon(temp);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetUseItem"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CCD->Player()->SetUseAttribute(param0);
+		CCD->HUD()->ActivateElement(param0,true);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "ClearUseItem"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CCD->HUD()->ActivateElement(param0,false);
+		CCD->Player()->DelUseAttribute(param0);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "StringCopy"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		returnValue = skString(param0);
+		return true;
+	}
+
+		else if (IS_METHOD(methodName, "LeftCopy"))
+	{
+		PARMCHECK(2);
+		int temp = arguments[1].intValue();
+		char* cstemp="";
+		strncpy(cstemp,arguments[0].str(),temp);
+		cstemp[temp]='\0';
+		returnValue = skString(cstemp);
+		return true;
+	}
+		else if (IS_METHOD(methodName, "IsEntityVisible"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		bool flag = CCD->Pawns()->CanSee(FOV, Actor,CCD->ActorManager()->GetByEntityName(param0), FOVBone);
+		returnValue = flag;
+		return true;
+	}
+		else if (IS_METHOD(methodName, "DamageEntity"))
+	{
+		PARMCHECK(3);
+		float amount = arguments[0].floatValue();
+		strcpy(param0, arguments[1].str());
+		strcpy(param4, arguments[2].str());
+		CCD->Damage()->DamageActor(CCD->ActorManager()->GetByEntityName(param4), amount, param0, amount, param0, "Melee");
+		return true;
+	}
+		else if (IS_METHOD(methodName, "AnimateEntity"))
+	{
+		PARMCHECK(3);
+		strcpy(param0, arguments[0].str());
+		strcpy(param4, arguments[1].str());
+		param2 = arguments[2].boolValue();
+		CCD->ActorManager()->SetMotion(CCD->ActorManager()->GetByEntityName(param4), param0);
+		CCD->ActorManager()->SetHoldAtEnd(CCD->ActorManager()->GetByEntityName(param4), param2);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "AnimateHold"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CCD->ActorManager()->SetMotion(Actor, param0);
+		CCD->ActorManager()->SetHoldAtEnd(Actor, true);
+		return true;
+	}
+		else if (IS_METHOD(methodName, "AnimateTarget"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+		param2 = arguments[1].boolValue();
+		CCD->ActorManager()->SetMotion(TargetActor, param0);
+		CCD->ActorManager()->SetHoldAtEnd(TargetActor, param2);
+		return true;
+	}
+		else if (IS_METHOD(methodName, "GetEntityX"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+		returnValue = Pos.X;
+		return true;
+	}
+		else if (IS_METHOD(methodName, "GetEntityY"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+		returnValue = Pos.Y;
+		return true;
+	}
+		else if (IS_METHOD(methodName, "GetEntityZ"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+		returnValue = Pos.Z;
+		return true;
+	}
+		else if (IS_METHOD(methodName, "IsKeyDown"))
+	{
+		PARMCHECK(1);
+		int temp = arguments[0].intValue();
+		if(CCD->Input()->GetKeyCheck(temp) == true)
+		{
+		returnValue=true;
+		}
+		else
+		{
+		returnValue=false;
+		}
+		return true;
+	}
+
+		else if (IS_METHOD(methodName, "GetEntityYaw"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		geVec3d Orient;
+		geActor *MasterActor;
+		strcpy(param0, arguments[0].str());
+		MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MasterActor)
+		return true;
+		CCD->ActorManager()->GetRotate(MasterActor, &Orient);
+		returnValue = Orient.Y;
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "MatchEntityAngles"))
+	{
+		PARMCHECK(1);
+		GetAngles(true);
+		geVec3d theRotation;
+		geActor *MasterActor;
+		strcpy(param0, arguments[0].str());
+		MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MasterActor)
+		return true;
+		CCD->ActorManager()->GetRotate(MasterActor, &theRotation);
+		CCD->ActorManager()->Rotate(Actor, theRotation);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "FacePoint"))
+	{
+		if(ValidPoint)
+			CCD->ActorManager()->RotateToFacePoint(Actor,CurrentPoint);
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "NewPoint"))
+	{
+	PARMCHECK(1);
+	strcpy(param0, arguments[0].str());
+	char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+		if(EntityType)
+			{
+			if(!stricmp(EntityType, "ScriptPoint"))
+				{
+				ScriptPoint *pProxy;
+				CCD->ScriptPoints()->LocateEntity(param0, (void**)&pProxy);
+				CurrentPoint = pProxy->origin;
+				ValidPoint = true;
+				strcpy(Point, param0);
+				NextOrder[0] = '\0';
+					if(!EffectC_IsStringNull(pProxy->NextOrder))
+					strcpy(NextOrder, pProxy->NextOrder);
+				}
+			}
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "SetTarget"))
+	{
+	PARMCHECK(1);
+	geActor *MActor;
+	strcpy(param0, arguments[0].str());
+		if(param0 == "Player")
+		{
+		TargetActor = CCD->Player()->GetActor();
+		return true;
+		}
+	MActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MActor)
+		return true;
+	TargetActor = MActor;
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "GetDistanceTo"))
+	{
+	PARMCHECK(1);
+	strcpy(param0, arguments[0].str());
+	geVec3d Pos, tPos;
+	geActor *MActor;
+	MActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MActor)
+		return true;
+	CCD->ActorManager()->GetPosition(Actor, &tPos);
+	CCD->ActorManager()->GetPosition(MActor, &Pos);
+	returnValue = geVec3d_DistanceBetween(&tPos, &Pos);
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "TeleportEntity"))
+	{
+	PARMCHECK(2);
+	strcpy(param0, arguments[1].str());
+	strcpy(param4, arguments[0].str());
+	char *EType = CCD->EntityRegistry()->GetEntityType(param0);
+	geActor *tActor;
+	tActor = CCD->ActorManager()->GetByEntityName(param4);
+	if(!tActor)
+	return true;
+		if(EType)
+		{
+			if(!stricmp(EType, "ScriptPoint"))
+			{
+				ScriptPoint *pProxy;
+				CCD->ScriptPoints()->LocateEntity(param0, (void**)&pProxy);
+				geVec3d Pos = pProxy->origin;
+				CCD->ActorManager()->Position(tActor, Pos);
+			}
+		}
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "SaveAttributes"))
+	{
+	PARMCHECK(1);
+	strcpy(param0, arguments[0].str());
+	CCD->Player()->SaveAttributesAscii(param0);
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "TraceToActor"))
+	{
+	PARMCHECK(4);
+	geXForm3d Xf;
+	geVec3d OldPos, Pos, Normal, theRotation, Direction;
+	geActor *pActor;
+	geFloat T;
+	strcpy(param0, arguments[0].str());
+	CCD->ActorManager()->GetPosition(Actor, &OldPos);
+	returnValue = skString("FALSE");
+	bool bone;
+		if(WeaponActor)
+			bone = geActor_GetBoneTransform(WeaponActor, param0, &Xf);
+		else
+			bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+		if(!bone)
+			return true;
+
+	geVec3d_Copy(&(Xf.Translation), &OldPos);
+	CCD->ActorManager()->GetRotate(Actor, &theRotation);
+	Pos=OldPos;
+	geXForm3d_SetIdentity(&Xf);
+	geXForm3d_RotateZ(&Xf, theRotation.Z);
+	geXForm3d_RotateX(&Xf, theRotation.X);
+	geXForm3d_RotateY(&Xf, theRotation.Y);
+	geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+	geXForm3d_GetUp(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+	geXForm3d_GetLeft(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[1].floatValue(), &Pos);
+	geXForm3d_GetIn(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[3].floatValue(), &Pos);
+		if(CCD->ActorManager()->DoesRayHitActor(OldPos, Pos, &pActor, Actor, &T, &Normal) == GE_TRUE)
+			returnValue = skString(CCD->ActorManager()->GetEntityName(pActor));
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "AnimateBlend"))
+	{
+	PARMCHECK(2);
+	strcpy(param0, arguments[0].str());
+	param1 = arguments[1].floatValue();
+	if(param1 > 0.0f)
+		{
+		CCD->ActorManager()->SetTransitionMotion(Actor, param0, param1, NULL);
+		CCD->ActorManager()->SetHoldAtEnd(Actor, true);
+		}
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "AnimationSpeed"))
+	{
+		PARMCHECK(1);
+		CCD->ActorManager()->SetAnimationSpeed(Actor,arguments[0].floatValue());
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "SetCollision"))
+	{
+		CCD->ActorManager()->SetCollide(Actor);
+			if(WeaponActor)
+			{
+				CCD->ActorManager()->SetCollide(WeaponActor);
+				CCD->ActorManager()->SetNoCollide(WeaponActor);
+			}
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "SetNoCollision"))
+	{
+		CCD->ActorManager()->SetNoCollide(Actor);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "DamageArea"))
+	{
+		PARMCHECK(3);
+		char* dAttrib='\0';
+		geVec3d Pos;
+		geFloat dAmount,dRange;
+		dAmount = arguments[0].floatValue();
+		dRange = arguments[1].floatValue();
+		strcpy(dAttrib, arguments[2].str());
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+		CCD->Damage()->DamageActorInRange(Pos,dRange,dAmount,dAttrib,0.0f,"","Explosion");
+		CCD->Damage()->DamageModelInRange(Pos,dRange,dAmount,dAttrib,0.0f,"");
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "PlayerMatchAngles"))
+	{
+		PARMCHECK(1);
+		GetAngles(true);
+		geVec3d theRotation;
+		geActor *MasterActor;
+		strcpy(param0, arguments[0].str());
+		MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MasterActor)
+		return true;
+		CCD->ActorManager()->GetRotate(MasterActor, &theRotation);
+		CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "ConvertDegrees"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].floatValue();
+		returnValue = param3*0.0174532925199433f;
+		return true;
+	}
+
+
+	else if (IS_METHOD(methodName, "AttachCamera"))
+	{
+		CCD->CameraManager()->BindToActor(Actor);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "AttachCameraToBone"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CCD->CameraManager()->BindToActorBone(Actor,param0);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "AttachCameraToEntity"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());	
+		strcpy(param4, arguments[1].str());
+		CCD->CameraManager()->BindToActorBone(CCD->ActorManager()->GetByEntityName(param0),param4);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "DetachCamera"))
+	{
+		CCD->CameraManager()->BindToActor(CCD->Player()->GetActor());
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "TiltCamera"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].floatValue();
+		if(param3 < 0)
+		{
+		CCD->CameraManager()->TiltUp(param3*(+1));
+		}
+		else
+		{
+		CCD->CameraManager()->TiltDown(param3);
+		}
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "PositionToPlatform"))
+	{
+		PARMCHECK(5);
+		strcpy(param0, arguments[0].str());
+		bool flag = arguments[4].boolValue();
+		geVec3d theRotation,tPos;
+		MovingPlatform *pEntity;
+		CCD->Platforms()->LocateEntity(param0, (void**)&pEntity);
+		CCD->ModelManager()->GetPosition(pEntity->Model,&tPos);
+		CCD->ModelManager()->GetRotation(pEntity->Model,&theRotation);
+		tPos.X += arguments[1].floatValue();
+		tPos.Y += arguments[2].floatValue();
+		tPos.Z += arguments[3].floatValue();
+		CCD->ActorManager()->Position(Actor, tPos);
+			if(flag)
+				CCD->ActorManager()->Rotate(Actor, theRotation);
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "ActivateTrigger"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CCD->Triggers()->HandleTriggerEvent(param0);
+		return true;
+	}
+
+	//-------------------- End Added by Pickles -----------------------------------
+
 	else if (IS_METHOD(methodName, "ChangeYaw"))
 	{
 		ChangeYaw();
@@ -502,7 +1073,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 		CCD->ActorManager()->GetPosition(Actor, &Pos);
 
-		if (arguments.entries()==4)
+		if (arguments.entries() > 3) // Changed by Pickles RF07D
 		{
 			bool flag = arguments[3].boolValue();
 			if(flag)
@@ -520,7 +1091,16 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				geXForm3d_GetIn(&Xf, &Direction);
 				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
 				CCD->ActorManager()->Position(CCD->Player()->GetActor(), Pos);
+			// Added By Pickles to RF07D
+			if (arguments.entries() == 5)
+			{
+				bool flag1 = arguments[4].boolValue();
+				if(flag1)
 				CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
+			}
+			else
+				CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
+			// END Added By Pickles to RF07D
 				return true;
 			}
 		}
@@ -531,6 +1111,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 		return true;
 	}
+
 	else if (IS_METHOD(methodName, "PositionToPawn"))
 	{
 		PARMCHECK(4);
@@ -544,7 +1125,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 			return true;
 		CCD->ActorManager()->GetPosition(MasterActor, &Pos);
 
-		if (arguments.entries()==5)
+		if (arguments.entries() > 4) // Changed by Pickles RF07D
 		{
 			bool flag = arguments[4].boolValue();
 			if(flag)
@@ -562,10 +1143,22 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				geXForm3d_GetIn(&Xf, &Direction);
 				geVec3d_AddScaled (&Pos, &Direction, arguments[3].floatValue(), &Pos);
 				CCD->ActorManager()->Position(Actor, Pos);
-				CCD->ActorManager()->Rotate(Actor, theRotation);
+				// Added by Pickles ---------------
+				if(arguments.entries() == 6)
+				{
+					bool flag1 = arguments[5].boolValue();
+					if(flag1)
+					CCD->ActorManager()->Rotate(Actor, theRotation);
+				}
+				else
+				{
+					CCD->ActorManager()->Rotate(Actor, theRotation);
+				}
+					// END Added by Pickles ---------------
 				return true;
 			}
 		}
+
 		Pos.X += arguments[1].floatValue();
 		Pos.Y += arguments[2].floatValue();
 		Pos.Z += arguments[3].floatValue();
@@ -799,7 +1392,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	{
 		PARMCHECK(1);
 		int port = arguments[0].intValue();
-		returnValue = (int)_inp(port);
+		returnValue =  (int)_inp(port);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "PortOut"))
@@ -1009,7 +1602,9 @@ void ScriptedObject::ChangeYaw()
 	{
 		if(RotateAmt>GE_PI)
 		{
-			RotateAmt-=GE_PI;
+		// changed QuestOfDreams 09/21/03
+		RotateAmt=2.0f*GE_PI-RotateAmt;
+		//RotateAmt-=GE_PI;
 			if(RotateLeft)
 				RotateLeft=false;
 			else
@@ -1022,7 +1617,8 @@ void ScriptedObject::ChangeYaw()
 		{
 			amount = RotateAmt;
 		}
-		RotateAmt -= amount;
+	// changed QuestOfDreams 09/21/03
+	// RotateAmt -= amount;
 		if(RotateLeft)
 			CCD->ActorManager()->TurnRight(Actor,0.0174532925199433f*amount);
 		else
@@ -1046,7 +1642,8 @@ void ScriptedObject::ChangePitch()
 	{
 		if(RotateAmt>GE_PI)
 		{
-			RotateAmt-=GE_PI;
+		// changed QuestOfDreams 09/21/03
+		RotateAmt=2.0f*GE_PI-RotateAmt;//RotateAmt-=GE_PI;
 			if(RotateUp)
 				RotateUp=false;
 			else
@@ -1059,7 +1656,8 @@ void ScriptedObject::ChangePitch()
 		{
 			amount = RotateAmt;
 		}
-		RotateAmt -= amount;
+		// changed QuestOfDreams 09/21/03
+		// RotateAmt -= amount;
 		if(RotateUp)
 			CCD->ActorManager()->TiltUp(Actor,0.0174532925199433f*amount);
 		else

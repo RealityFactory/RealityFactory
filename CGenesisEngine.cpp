@@ -30,6 +30,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	    {
 			if(CCD!=NULL)
 			{
+            //Start Aug2003DCS
+#ifndef _DEBUG
 				ShowWindow(hWnd, SW_MINIMIZE); 
 				CCD->SetHasFocus(false);
 				if(CCD->Engine()!=NULL)
@@ -38,6 +40,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				{
 				}
 				return 0;
+#endif
+            //End Aug2003DCS
 			}
 		} 
 		break;

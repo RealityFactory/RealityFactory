@@ -27,6 +27,7 @@ public:
   int LoadKeymap(char *szFilename);
   int GetCodes(int action);
   int GetKeyboardInput();
+  bool GetKeyCheck(int keytemp);
 // changed RF064
   int GetKeyboardInputNoWait();
   void ClearCodes(int action);

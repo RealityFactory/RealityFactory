@@ -255,6 +255,18 @@ int CInput::GetKeyboardInputNoWait()
 	  }
 	  return -1;
 }
+
+//-----------------------------------------------------------------------
+bool CInput::GetKeyCheck(int keytemp)
+{
+		if((GetAsyncKeyState(m_WindowKeys[keytemp]) & 0x8000) != 0)
+		{
+			return true;
+		}
+	  return false;
+}
+//---------------------------------------------------------------------------
+
 // end change RF064
 
 //	SaveKeymap

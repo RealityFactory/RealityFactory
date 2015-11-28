@@ -111,10 +111,16 @@ typedef struct _Door
 	int SoundHandle;
 	geBoolean CallBack;
 	int CallBackCount;
+	//Start Aug2003DCS
+	geVec3d       OriginOffset;  // Translation from model center
+//End Aug2003DCS
 #pragma GE_Published
 	geWorld_Model	*Model;			// Door model to animate
 	geWorld_Model *NextToTrigger;	// Next door to trigger, if any
-	geVec3d origin;						// Location of same
+	geVec3d origin;
+//Start Aug2003DCS
+   geWorld_Model *ParentModel;   // Name of model this model is attached to
+//End Aug2003DCS// Location of same
 	char *szSoundFile;				// Name of sound to play on open
 	geBoolean bOneShot;				// TRUE if door opens ONLY ONCE
 	geBoolean bNoCollide;			// TRUE if door won't open on collision
@@ -178,6 +184,9 @@ typedef struct _Door
 #pragma GE_Documentation(UseKey, "if true then can be activated by Use Key")
 #pragma GE_Documentation(PlayerOnly, "if true then can be activated only by player")
 // end change RF063
+	//Start Aug2003DCS
+#pragma GE_Documentation(ParentModel, "Name of model this door model is attached to")
+//End Aug2003DCS
 } Door;
 
 //	The infamous and never-to-be-forgotten Moving Platform
@@ -199,11 +208,17 @@ typedef struct _MovingPlatform
 	int SoundHandle;			// For later modification of sound
 	geBoolean CallBack;
 	int CallBackCount;
+	//Start Aug2003DCS
+	geVec3d       OriginOffset;  // Translation from model center
+//End Aug2003DCS
 #pragma GE_Published
 	geWorld_Model *Model;			// Platform model
 	geWorld_Model *NextToTrigger;	// Next door to trigger, if any
-	geVec3d origin;						// Location of model
-	geFloat AnimationSpeed;		// Speed of the animation, in %
+	geVec3d origin;					// Location of model
+	//Start Aug2003DCS
+   geWorld_Model *ParentModel;   // Name of model this model is attached to
+//End Aug2003DCS
+   	geFloat AnimationSpeed;		// Speed of the animation, in %
 	char *szSoundFile;				// Name of sound to play on trigger
 	geBoolean bOneShot;				// TRUE if platform runs ONLY ONCE
 	geBoolean bNoCollide;			// TRUE if platform won't start on collision
@@ -274,7 +289,40 @@ typedef struct _MovingPlatform
 #pragma GE_Documentation(UseKey, "if true then can be activated by Use Key")
 #pragma GE_Documentation(PlayerOnly, "if true then can be activated only by player")
 // end change RF063
+//Start Aug2003DCS
+#pragma GE_Documentation(ParentModel, "Name of model this model is attached to")
+//End Aug2003DCS
 } MovingPlatform;
+
+//Start Aug2003DCS
+//	The Level Controller
+//
+#pragma GE_Type("icons\\model.ico")
+typedef struct _LevelController
+{
+#pragma GE_Private
+	void *Data;
+#pragma GE_Published
+	geVec3d origin;
+	char *szEntityName;						// Name of entity
+	char *ScriptName;
+	char *StartOrder;
+	char *InitOrder;
+	geBoolean Enable;
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(ScriptName, "")
+#pragma GE_DefaultValue(StartOrder, "")
+#pragma GE_DefaultValue(InitOrder, "")
+#pragma GE_DefaultValue(Enable, "True")
+
+#pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
+#pragma GE_Documentation(ScriptName, "Name of Action Script file to use")
+#pragma GE_Documentation(StartOrder, "Name of first runtime order")
+#pragma GE_Documentation(InitOrder, "Name of initial order to run")
+#pragma GE_Documentation(Enable, "if True then enable LevelController")
+} LevelController;
+//End Aug2003DCS
 
 //	Teleport entities (teleporter and teleport target)
 
@@ -451,6 +499,9 @@ typedef struct _AudioSource3D
 	int *effect;		  // pointer to array of effect indexs
 	geBoolean active;		  // is activated
 	geVec3d  OriginOffset;      //Translation from model center
+	//Start Aug2003DCS
+	geBoolean ProgrammedTrigger;	
+   //End Aug2003DCS
 #pragma GE_Published
 	geVec3d origin;		// Location of entity in world
 	char *szSoundFile;	// Audio that is the sound
@@ -460,6 +511,9 @@ typedef struct _AudioSource3D
 	geWorld_Model *Model;	// Name of model to attach to
 	char *BoneName;		// Name of actor bone to attach to
 	char *TriggerName;	// Name of trigger entity
+	//Start Aug2003DCS
+	geBoolean bLoopSound;
+   //End Aug2003DCS
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szSoundFile, "")
 #pragma GE_DefaultValue(fRadius, "200.0")
@@ -467,6 +521,9 @@ typedef struct _AudioSource3D
 #pragma GE_DefaultValue(EntityName, "")
 #pragma GE_DefaultValue(BoneName, "")
 #pragma GE_DefaultValue(TriggerName, "")
+//Start Aug2003DCS
+#pragma GE_DefaultValue(bLoopSound, "True")
+//End Aug2003DCS
 #pragma GE_Documentation(szSoundFile, "Audio loop to play")
 #pragma GE_Documentation(fRadius, "Maximum audible radius for sound")
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
@@ -474,6 +531,9 @@ typedef struct _AudioSource3D
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+//Start Aug2003DCS
+#pragma GE_Documentation(bLoopSound, "True-looping  False-one shot")
+//End Aug2003DCS
 } AudioSource3D;
 
 //	Static Entity proxy
@@ -1931,8 +1991,17 @@ typedef struct _WallDecal
 	geBitmap *Bitmap;
 	geBoolean active;
 	gePoly *Poly;
+	   //Start Aug2003DCS
+	geBoolean ProgrammedTrigger;	
+   geBoolean BmpChanged;
+   geVec3d   OriginalAngle;
+   geVec3d   LastAngle;
+   //End Aug2003DCS
 #pragma GE_Published
 	geVec3d	origin;
+	//Start Aug2003DCS
+	char     *szEntityName;	// Name of this entity
+   //End Aug2003DCS
 	geVec3d	Angle;
 	char 	*BmpName;
 	char 	*AlphaName;
@@ -2269,6 +2338,9 @@ typedef struct _Attribute
 	geFloat PercentMapping;
 	geFloat PercentMaterial;
 // end change RF064
+// changed QuestOfDreams 08/13/03
+	geBoolean UseKey;
+// end change 08/13/03
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue(EntityName, "")
@@ -2329,6 +2401,9 @@ typedef struct _Attribute
 #pragma GE_Documentation(PercentMapping, "percentage of mapping to apply")
 #pragma GE_Documentation(PercentMaterial, "percentage of material to use")
 // end change RF064
+// changed QuestOfDreams 08/13/03
+#pragma GE_DefaultValue(UseKey, "False")
+// end change 08/13/03
 } Attribute;
 
 // FlipBook

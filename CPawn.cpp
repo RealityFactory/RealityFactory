@@ -65,6 +65,8 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	collision = false;
 	pushable = false;
 	SoundLoop = false;
+	//added questofdreams FindPointOrder code
+	PointFind =false;
 }
 
 ScriptedObject::~ScriptedObject()

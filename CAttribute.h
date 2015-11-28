@@ -17,7 +17,9 @@ public:
   CAttribute();
   ~CAttribute();
   void Tick(float dwTicks);
-  bool HandleCollision(geActor *theTarget, geActor *pActor);
+// changed QuestOfDreams 08/13/03 added UseKey
+  bool HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey);
+// end change 08/13/03
 // changed RF063
   int SaveTo(FILE *SaveFD, bool type);
   int RestoreFrom(FILE *RestoreFD, bool type);
