@@ -591,6 +591,7 @@ geBitmap * CreateFromFileName(char * BmName)
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szError,"Bitmap Manager", MB_OK);
 		exit(-333);
 	}

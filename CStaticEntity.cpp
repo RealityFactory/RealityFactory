@@ -64,6 +64,7 @@ CStaticEntity::CStaticEntity()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"StaticEntity", MB_OK);
 			exit(-333);
 		}

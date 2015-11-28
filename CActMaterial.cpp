@@ -63,6 +63,7 @@ CActMaterial::CActMaterial()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"ActMaterial", MB_OK);
 			exit(-333);
 		}

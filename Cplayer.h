@@ -513,6 +513,11 @@ private:
 	bool deathspace;
 	float slideslope;
 	float slidespeed;
+	bool firstframe;
+	char szCDTrack[64];
+	char szMIDIFile[64];
+	char szStreamingAudio[64];
+	bool bSoundtrackLoops;
 // end change RF064
 };
 

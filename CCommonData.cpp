@@ -1284,7 +1284,8 @@ void CCommonData::ShutdownLevel()
 
 // changed RF064
 
-	theMenu->UnLoadWBitmap();
+	if(theMenu)
+		theMenu->UnLoadWBitmap();
 
 	if(theCDSpot != NULL)
 		delete theCDSpot;

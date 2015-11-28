@@ -392,6 +392,7 @@ CPreEffect::CPreEffect()
 						CCD->ReportError(szError, false);
 						CCD->ShutdownLevel();
 						delete CCD;
+						CCD = NULL;
 						MessageBox(NULL, szError,"Effect", MB_OK);
 						exit(-333);
 					}

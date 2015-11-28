@@ -61,6 +61,7 @@ CAutoDoors::CAutoDoors()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Missing Door Model", MB_OK);
 			exit(-333);
 		}

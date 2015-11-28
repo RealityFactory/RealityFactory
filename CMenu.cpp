@@ -51,6 +51,8 @@ char IP[NL_MAX_STRING_LENGTH]="";
 #define MOUSEMIN	0.0005f
 #define MOUSEMAX	0.005f
 
+#define FADETIME	0.75f
+
 //------------------------------
 // Menu Item Types
 //------------------------------
@@ -760,6 +762,18 @@ MenuItem CreditMenu[] =
   };
 
 //-------------------------------------
+// Mods Menu
+//-------------------------------------
+
+Clickable QuitMods =   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
+
+MenuItem ModsMenu[] = 
+  {
+     {EXIT_MENU, 0, 0, (void *)&QuitMods},
+     {END_LIST, 0, 0, NULL}
+  };
+
+//-------------------------------------
 // Multiplayer Game Menu
 //-------------------------------------
 // start Multiplayer
@@ -854,6 +868,7 @@ Clickable LoadGame = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, LoadGMenu, NULL, 0, -1, -1};
 Clickable SaveGame = {0, 0, 0, 0, 0, 0, 0, 2, 0, 0, SaveMenu, NULL, 0, -1, -1};
 Clickable Options =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, OptionMenu, NULL, 0, -1, -1};
 Clickable Credits =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CreditMenu, NULL, 0, -1, -1};
+Clickable Mods	=  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ModsMenu, NULL, 0, -1, -1};
 Clickable QuitGame = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
 Text return_text =   {0, "Press ESC to Return to Game", 1};
 
@@ -867,6 +882,7 @@ MenuItem MainMenu[] =
 	 {CLICKABLE, 0, 0, (void *)&Credits},
      {EXIT_MENU, 0, 0, (void *)&QuitGame},
 	 {TEXT,      0, 0, (void *)&return_text},
+	 {CLICKABLE, 0, 0, (void *)&Mods},
      {END_LIST, 0, 0, NULL}
   };
 
@@ -1009,6 +1025,13 @@ CRFMenu::CRFMenu()
   savetime = 0.0f;
   musictype = -1;
   mVolLevel = 0.5f;
+  DesignX = 640;
+  DesignY = 480;
+  HotX = 0;
+  HotY = 0;
+  TimeFade = FADETIME;
+  MusicFade = false;
+  fontloaded = false;
 // changed RF064
   theMIDIPlayer = NULL;
   strcpy(Loading, "menu\\loading.bmp");
@@ -1183,6 +1206,20 @@ CRFMenu::CRFMenu()
 				MTitles[index].Image_Y = NextValue();
 				MTitles[index].Animation = NextValue();
 			}
+			else if(!stricmp(szAtom,"designsize"))
+			{
+				DesignX = NextValue();
+				DesignY = NextValue();
+			}
+			else if(!stricmp(szAtom,"hotspot"))
+			{
+				HotX = NextValue();
+				HotY = NextValue();
+			}
+			else if(!stricmp(szAtom,"fadetime"))
+			{
+				TimeFade = ((float)NextValue())/1000;
+			}
 // end change RF063
 // changed RF064
 			else if(!stricmp(szAtom,"loadscreen"))
@@ -1329,6 +1366,22 @@ CRFMenu::CRFMenu()
 // changed RF063
 				Credits.Animation = NextValue();
 				Credits.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"mods"))
+			{
+				MainMenu[8].X = NextValue();
+				MainMenu[8].Y = NextValue();
+				Mods.Image_Number = NextValue();
+				Mods.Width = NextValue();
+				Mods.Height = NextValue();
+				Mods.Image_X = NextValue();
+				Mods.Image_Y = NextValue();
+				Mods.Mover_X = NextValue();
+				Mods.Mover_Y = NextValue();
+				Mods.background = NextValue();
+				Mods.title = NextValue();
+				Mods.Animation = NextValue();
+				Mods.AnimationOver = NextValue();
 			}
 			else if(!stricmp(szAtom,"quitmain"))
 			{
@@ -1858,6 +1911,20 @@ CRFMenu::CRFMenu()
 // changed RF063
 				QuitCredit.Animation = NextValue();
 				QuitCredit.AnimationOver = NextValue();
+			}
+			else if(!stricmp(szAtom,"quitmods"))
+			{
+				ModsMenu[0].X = NextValue();
+				ModsMenu[0].Y = NextValue();
+				QuitMods.Image_Number = NextValue();
+				QuitMods.Width = NextValue();
+				QuitMods.Height = NextValue();
+				QuitMods.Image_X = NextValue();
+				QuitMods.Image_Y = NextValue();
+				QuitMods.Mover_X = NextValue();
+				QuitMods.Mover_Y = NextValue();
+				QuitMods.Animation = NextValue();
+				QuitMods.AnimationOver = NextValue();
 			}
 			else if(!stricmp(szAtom,"creditimg"))
 			{
@@ -2468,6 +2535,7 @@ CRFMenu::CRFMenu()
 		CCD->ReportError("Missing menu INI file", false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, "Missing menu INI file","Fatal Error", MB_OK);
 		exit(-336);
 	}
@@ -2502,6 +2570,7 @@ CRFMenu::CRFMenu()
 		{
 			CCD->ReportError("Can't open character initialization file", false);
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, "Missing character INI file","Fatal Error", MB_OK);
 			exit(-100);
 		}
@@ -2524,6 +2593,7 @@ CRFMenu::CRFMenu()
 					sprintf(szBug, "Bad character image file name %s", szName);
 					CCD->ReportError(szBug, false);
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, "Bad character image file name","Fatal Error", MB_OK);
 					exit(-100);
 				}
@@ -2535,6 +2605,7 @@ CRFMenu::CRFMenu()
 					sprintf(szBug, "Missing character actor name %s", szName);
 					CCD->ReportError(szBug, false);
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, "Missing character actor name","Fatal Error", MB_OK);
 					exit(-100);
 				}
@@ -2620,6 +2691,7 @@ CRFMenu::CRFMenu()
 		{
 			CCD->ReportError("No characters defined", false);
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, "No characters defined","Fatal Error", MB_OK);
 			exit(-100);
 		}
@@ -2736,7 +2808,7 @@ int CRFMenu::DoMenu(char *levelname)
 		m_Streams->Play(true);
   }
 
-  FadeSet(-1, 1.5f);
+  FadeSet(-1, TimeFade);
 
   int ret = ProcessMenu(MainMenu, MainBack, MainTitle);
 
@@ -2793,8 +2865,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 // end multiplayer
 
   geBitmap_GetInfo(Backgrounds[Background_Number], &BmpInfo, NULL);
-  x = (CCD->Engine()->Width() - 640) / 2;
-  y = (CCD->Engine()->Height() - 480) / 2;
+  x = (CCD->Engine()->Width() - DesignX) / 2;
+  y = (CCD->Engine()->Height() - DesignY) / 2;
   int bx = 0;
   int by = 0;
   if(CCD->Engine()->Width() > BmpInfo.Width)
@@ -3425,12 +3497,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	{
 		if(AnimCursor<0 || Animation[AnimCursor]==NULL)
 		{
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x, temppos.y );
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY );
 		}
 		else
 		{
 			geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
-			DrawBitmap(theBmp, NULL, temppos.x, temppos.y );
+			DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY );
 		}
 	}
 
@@ -3442,8 +3514,11 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	geEngine_EndFrame(CCD->Engine()->Engine());
 
 	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && escapeon == 0)
+	{
 		escapeon = 1;
-	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1)
+		FadeSet(1, TimeFade);
+	}
+	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1 && !Fading)
 	{
 		escapeon = 0;
 		if(ingame == 1)
@@ -3479,16 +3554,17 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			if(LoopOnce==0)
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 			data=(Clickable *)Menu[click].data;
-			if(/*data->LoopOnce==1 && */ LoopOnce<2)
+			if(LoopOnce==0 && !Fading)
 			{
-				LoopOnce += 1;
+				FadeSet(1, TimeFade);
+				LoopOnce = 3;
 			}
-			else
+			else if(LoopOnce==3 && !Fading)
 			{
 				LoopOnce = 0;
 				if(Menu[click].Type==EXIT_MENU)
 				{
-					FadeSet(-1, 1.5f);
+					FadeSet(-1, TimeFade);
 					if(remapf != -1)
 						CCD->Input()->SaveKeymap("keyboard.ini");
 					if(data->Action>=10)
@@ -3505,13 +3581,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 				// end change RF063
 				if(Menu[click].Type==CLICKABLE)
 				{
+					FadeSet(-1, TimeFade);
 					if(data->Next!=NULL && (data->Action==0 || data->Action==2))
 					{
-						//FadeOut();
-						FadeSet(-1, 1.5f);
 						ProcessMenu(data->Next, data->background, data->title);
 					}
-					if(data->proc!=NULL && data->Action==1)
+					else if(data->proc!=NULL && data->Action==1)
 					{
 						data->proc();
 					}
@@ -3727,6 +3802,7 @@ void CRFMenu::FontRect(char *s, int FontNumber, int x, int y)
 // changed RF064
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
 		exit(-336);
 // end change RF064
@@ -3910,6 +3986,9 @@ void CRFMenu::GameLevel()
 		}
   }
 
+  FadeSet(-1, TimeFade);
+  MusicSet();
+
   for(;;)
   {
 		// If Winblows has something to say, take it in and pass it on in the
@@ -4034,6 +4113,9 @@ void CRFMenu::GameLevel()
 
 			CCD->Inventory()->Display();
 // end change RF064
+
+			if(Fading)
+				DoFade();
 
 			// Everything rendered, now end the frame.
 			CCD->Engine()->EndFrame();					// All done, do the necessary flip
@@ -4192,6 +4274,7 @@ void CRFMenu::GameLevel()
   	while((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
 	{
 	}
+
 	CCD->AudioStreams()->PauseAll(); // pause streaming audio
 	if(CCD->CDPlayer())
 		CCD->CDPlayer()->Stop(); // stop CD music
@@ -4207,6 +4290,9 @@ void CRFMenu::GameLevel()
 		else
 			m_Streams->Play(true);
 	}
+
+	FadeSet(-1, TimeFade);
+	MusicSet();
 }
 // end change RF063
 
@@ -4940,6 +5026,7 @@ void CRFMenu::MenuInitalize()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Controls", MB_OK);
 			exit(-333);
 		}
@@ -5337,7 +5424,10 @@ void CRFMenu::DoGame(bool editor)
 		if(CCD->GetCSelect())
 		{
 			if(CCD->MenuManager()->ProcessMenu(SelectMenu, SelectBack, SelectTitle)==1)
+			{
+				FadeSet(-1, TimeFade);
 				return;
+			}
 			useselect = true;
 		}
 		if(CCD->GetCDifficult())
@@ -5384,7 +5474,8 @@ void CRFMenu::DoGame(bool editor)
 	{
 		CCD->ReportError("Couldn't initialize first level", false);
 		CCD->ShutdownLevel();						// Clean up anything that got loaded
-		delete CCD;						// Kill off the engine and such
+		delete CCD;	
+		CCD = NULL;   // Kill off the engine and such
 		MessageBox(NULL, CCD->MenuManager()->GetLevelName(),"RGF: Can't load level", MB_OK);
 		exit(-333);
 	}
@@ -5760,10 +5851,14 @@ void CRFMenu::LoadWBitmap()
 			}
 		}
 	} 
+	fontloaded = true;
 }
 
 void CRFMenu::UnLoadWBitmap()
 { 
+	if(!fontloaded)
+		return;
+
 	for(int i=0; i<NUM_FONTS; i++)
 	{
 		if(MenuFont[i].Bitmap != NULL)
@@ -5778,6 +5873,7 @@ void CRFMenu::UnLoadWBitmap()
 			}
 		}
 	} 
+	fontloaded = false;
 }
 
 void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
@@ -5792,6 +5888,7 @@ void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
 		CCD->ReportError(szBug, false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
 		exit(-336);
   }
@@ -5814,7 +5911,7 @@ void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
 
 void CRFMenu::FadeSet(int Dir, float Time)
 {
-	Fading = false;
+	Fading = true;
 	FadeDir = Dir;
 	if(FadeDir==-1)
 		FadeAlpha = 255.0f;
@@ -5826,35 +5923,34 @@ void CRFMenu::FadeSet(int Dir, float Time)
 
 void CRFMenu::DoFade()
 {
-	float FadeDelta;
+	float FadeDelta, VolDelta;
 	float DeltaTime = (CCD->FreeRunningCounter_F() - CurrentFadeTime)/1000.0f;
+
 	if(FadeDir==-1)
 	{
 		FadeDelta = 255.0f - (255.0f * (DeltaTime/FadeTime));
-		if(FadeAlpha==0.0f)
+		if(MusicFade)
 		{
-			Fading = false;
-			FadeDir = 1;
+			VolDelta = OldMVol*(DeltaTime/FadeTime);
+			if(VolDelta>OldMVol)
+				VolDelta = OldMVol;
 		}
 	}
 	else
 	{
 		FadeDelta = 255.0f * (DeltaTime/FadeTime);
-		if(FadeAlpha==255.0f)
+		if(MusicFade)
 		{
-			Fading = false;
-			FadeDir = -1;
-		}
+			VolDelta = OldMVol - (OldMVol*(DeltaTime/FadeTime));
+			if(VolDelta<0)
+				VolDelta = 0;
+		} 
 	}
 	if(Fading)
 	{
 
 		FadeAlpha = FadeDelta;
-		if(FadeAlpha > 255.0f) 
-			FadeAlpha = 255.0f;
-		if ( FadeAlpha < 0.0f ) 
-			FadeAlpha = 0.0f;	// transparent
-		if (FadeAlpha > 0.0f)
+		if (FadeAlpha >= 0.0f)
 		{
 			GE_Rect Rect;
 			GE_RGBA	Color;
@@ -5865,25 +5961,32 @@ void CRFMenu::DoFade()
 			Color.g = 0.0f;
 			Color.b = 0.0f;
 			Color.a = FadeAlpha;
+			if(Color.a<0.0f)
+				Color.a = 0.0f;
+			if(Color.a>255.0f)
+				Color.a = 255.0f;
 			geEngine_FillRect(CCD->Engine()->Engine(), &Rect, &Color );
 		}
-	}
-}
-
-void CRFMenu::FadeOut()
-{
-	FadeSet(1, 1.5f);
-	for(int i=0;i<255;i++)
-	{
-		if(CCD->GetHasFocus())
+		if(MusicFade)
 		{
-			geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_FALSE);
-			DoFade();
-			geEngine_EndFrame(CCD->Engine()->Engine());
+			SetmMusicVol(VolDelta);
+		}
+		if(FadeDir==-1 && FadeAlpha<0.0f)
+			Fading = false;
+		else if(FadeDir==1 && FadeAlpha>255.0f)
+			Fading = false;
+		if(!Fading && MusicFade)
+		{
+			MusicFade = false;
 		}
 	}
 }
 
+void CRFMenu::MusicSet()
+{
+	//MusicFade = true;
+	//OldMVol = mVolLevel;
+}
 
 //	SaveTo
 //

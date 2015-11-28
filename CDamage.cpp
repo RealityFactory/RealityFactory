@@ -47,6 +47,7 @@ CDamage::CDamage()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Missing Destroyable Model", MB_OK);
 			exit(-333);
 		}

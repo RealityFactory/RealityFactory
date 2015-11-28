@@ -74,6 +74,7 @@ geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;
+	CCD = NULL;
 	MessageBox(NULL, szError,"Bitmap Manager", MB_OK);
 	exit(-333);
   }

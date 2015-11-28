@@ -466,9 +466,10 @@ void CWeapon::Display()
 	}
 	else
 	{
+		if(WeaponD[CurrentWeapon].VActor)
+			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, 0);
 		if(WeaponD[CurrentWeapon].PActor)
 		{
-			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, 0);
 			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
 			DisplayThirdPerson(CurrentWeapon);
 		}
@@ -830,9 +831,9 @@ void CWeapon::DisplayFirstPerson(int index)
 			bool magflag = false;
 			if(WeaponD[index].Catagory==PROJECTILE && VSequence == VWEPATTACK)
 			{
-				if(WeaponD[index].ShotperMag>0 && WeaponD[index].ShotFired>=WeaponD[index].ShotperMag)
+				if(theInv->Value(WeaponD[index].Ammunition)>=WeaponD[index].AmmoPerShot)
 				{
-					if(theInv->Value(WeaponD[index].Ammunition)>=WeaponD[index].AmmoPerShot)
+					if(WeaponD[index].ShotperMag>0 && WeaponD[index].ShotFired>=WeaponD[index].ShotperMag)
 					{
 						magflag = true;
 						VSequence = VWEPRELOAD;
@@ -889,6 +890,43 @@ void CWeapon::DisplayFirstPerson(int index)
 		geActor_ClearPose(WeaponD[index].VActor, &XForm);
 
 	VAnimTime = (float)CCD->FreeRunningCounter();
+}
+
+void CWeapon::Rendering(bool flag)
+{
+	if(CurrentWeapon==-1 || CurrentWeapon==MAX_WEAPONS)
+		return;
+
+	if(ViewPoint==FIRSTPERSON)
+	{
+		if(!flag)
+		{
+			if(WeaponD[CurrentWeapon].VActor)
+				geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, 0);
+		}
+		else
+		{
+			if(WeaponD[CurrentWeapon].VActor)
+			{
+				geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
+			}
+		}
+	}
+	else
+	{
+		if(!flag)
+		{
+			if(WeaponD[CurrentWeapon].PActor)
+				geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, 0);
+		}
+		else
+		{
+			if(WeaponD[CurrentWeapon].PActor)
+			{
+				geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
+			}
+		}
+	}
 }
 
 void CWeapon::Holster()
@@ -1383,8 +1421,18 @@ void CWeapon::Attack(bool Alternate)
 				return; // too soon
 		}
 // changed RF064
+		geActor *theActor = CCD->Player()->GetActor();
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+
 		if(WeaponD[CurrentWeapon].ShotperMag>0 && WeaponD[CurrentWeapon].ShotFired>=WeaponD[CurrentWeapon].ShotperMag)
+		{
+			if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)<WeaponD[CurrentWeapon].AmmoPerShot)
+				return;
+			VSequence = VWEPRELOAD;
+			VMCounter = 0.0f;
 			return;
+		}
+
 		AttackTime = CCD->FreeRunningCounter();
 		VSequence = VWEPATTACK; // shooting animation
 		if(WeaponD[CurrentWeapon].Catagory==MELEE)
@@ -1395,8 +1443,6 @@ void CWeapon::Attack(bool Alternate)
 
 		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
 		{
-			geActor *theActor = CCD->Player()->GetActor();
-			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
 			if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)<WeaponD[CurrentWeapon].AmmoPerShot)
 			{
 				if(!EffectC_IsStringNull(WeaponD[CurrentWeapon].VAttackEmpty))
@@ -2507,7 +2553,7 @@ void CWeapon::LoadDefaults()
 							strcpy(szName,Vector);
 							WeaponD[weapptr].PActorRotation = Extract(szName);
 						}
-						WeaponD[weapptr].PScale = (float)AttrFile.GetValueF(KeyName, "playerscale");
+						WeaponD[weapptr].PScale = CCD->Player()->GetScale() * (float)AttrFile.GetValueF(KeyName, "playerscale");
 						WeaponD[weapptr].PMOffset = (float)AttrFile.GetValueF(KeyName, "playermuzzleoffset");
 						WeaponD[weapptr].PBone[0] = '\0';
 						Vector = AttrFile.GetValue(KeyName, "playerbone");
@@ -2729,5 +2775,12 @@ void CWeapon::LoadDefaults()
 				
 		KeyName = AttrFile.FindNextKey();
 	}
+}
+
+int CWeapon::GetFixedView()
+{
+	if(CurrentWeapon == -1 || CurrentWeapon == MAX_WEAPONS)
+		return -1;
+	return WeaponD[CurrentWeapon].FixedView;
 }
 

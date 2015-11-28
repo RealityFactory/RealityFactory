@@ -62,6 +62,7 @@ CMovingPlatforms::CMovingPlatforms()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Missing Platform Model", MB_OK);
 			exit(-333);
 		}

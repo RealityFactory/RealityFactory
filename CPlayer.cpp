@@ -52,6 +52,7 @@ CPlayer::CPlayer()
 	m_Scale = 1.0f;
 	m_lastdirection = 0;
 	Alive = true;
+	firstframe = true;
 	
 	m_oldcrouch = m_crouch = GE_FALSE;
 	
@@ -599,6 +600,7 @@ int CPlayer::LoadAvatar(char *szFile)
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Player", MB_OK);
 			exit(-333);
 		}
@@ -617,6 +619,7 @@ int CPlayer::LoadAvatar(char *szFile)
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Fatal Error", MB_OK);
 			exit(-333);
 		}
@@ -644,6 +647,7 @@ int CPlayer::LoadAvatar(char *szFile)
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Player", MB_OK);
 			exit(-333);
 		}
@@ -682,6 +686,7 @@ int CPlayer::LoadConfiguration()
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szError,"Fatal Error", MB_OK);
 		exit(-333);
 	}
@@ -790,6 +795,7 @@ int CPlayer::LoadConfiguration()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Fixed Camera", MB_OK);
 			exit(-333);
 		}
@@ -1152,6 +1158,7 @@ int CPlayer::MoveToStart()
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szError,"Fatal Error", MB_OK);
 		exit(-333);
 	}
@@ -1211,34 +1218,23 @@ int CPlayer::MoveToStart()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
+				CCD = NULL;
 				MessageBox(NULL, szError,"Fixed Camera", MB_OK);
 				exit(-333);
 			}
 		}
 		CCD->CameraManager()->TrackMotion();
-		
+
+		szCDTrack[0] = '\0';
+		szMIDIFile[0] = '\0';
+		szStreamingAudio[0] = '\0';
 		if(!EffectC_IsStringNull(theStart->szCDTrack))
-		{
-			// Start CD player running, if we have one
-			if(CCD->CDPlayer())
-			{
-				CCD->CDPlayer()->SetCdOn(true);
-				CCD->CDPlayer()->Play(atoi(theStart->szCDTrack), theStart->bSoundtrackLoops);
-			}
-		}
+			strcpy(szCDTrack, theStart->szCDTrack);
 		if(!EffectC_IsStringNull(theStart->szMIDIFile))
-		{
-			// Start MIDI file playing
-			if(CCD->MIDIPlayer())
-				CCD->MIDIPlayer()->Play(theStart->szMIDIFile, theStart->bSoundtrackLoops);
-		}
+			strcpy(szMIDIFile, theStart->szMIDIFile);
 		if(!EffectC_IsStringNull(theStart->szStreamingAudio))
-		{
-			// Start streaming audio file playing
-			if(CCD->AudioStreams())
-				CCD->AudioStreams()->Play(theStart->szStreamingAudio, theStart->bSoundtrackLoops,
-				true);
-		}
+			strcpy(szStreamingAudio, theStart->szStreamingAudio);
+		bSoundtrackLoops = theStart->bSoundtrackLoops;
 	}
 	else
 	{
@@ -1247,6 +1243,7 @@ int CPlayer::MoveToStart()
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
+		CCD = NULL;
 		MessageBox(NULL, szError,"Fatal Error", MB_OK);
 		exit(-333);
 	}
@@ -1963,6 +1960,13 @@ void CPlayer::SwitchCamera(int mode)
 		return;
 // end change RF064
 
+	int FixedView = CCD->Weapons()->GetFixedView();
+	if(FixedView!=-1)
+	{
+		if(mode!=FixedView)
+			return;
+	}
+
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
@@ -2098,6 +2102,33 @@ void CPlayer::Tick(geFloat dwTicks)
 			}
 		}
 	}
+	if(firstframe)
+	{
+		if(!EffectC_IsStringNull(szCDTrack))
+		{
+			// Start CD player running, if we have one
+			if(CCD->CDPlayer())
+			{
+				CCD->CDPlayer()->SetCdOn(true);
+				CCD->CDPlayer()->Play(atoi(szCDTrack), bSoundtrackLoops);
+			}
+		}
+		if(!EffectC_IsStringNull(szMIDIFile))
+		{
+			// Start MIDI file playing
+			if(CCD->MIDIPlayer())
+				CCD->MIDIPlayer()->Play(szMIDIFile, bSoundtrackLoops);
+		}
+		if(!EffectC_IsStringNull(szStreamingAudio))
+		{
+			// Start streaming audio file playing
+			if(CCD->AudioStreams())
+				CCD->AudioStreams()->Play(szStreamingAudio, bSoundtrackLoops,
+				true);
+		}
+		firstframe = false;
+	}
+
 // end change RF064
 	float distance;
 	geVec3d FallEnd;

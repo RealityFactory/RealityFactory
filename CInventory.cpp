@@ -143,6 +143,7 @@ CInventory::CInventory()
 					CCD->ReportError("Missing Data in Inventory", false);
 					CCD->ShutdownLevel();
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, "Missing Data in Inventory","Inventory Setup", MB_OK);
 					exit(-333);
 				}

@@ -28,26 +28,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			break;
 	    case WM_KILLFOCUS:	
 	    {
-			ShowWindow(hWnd, SW_MINIMIZE); 
-			CCD->SetHasFocus(false);
-			if(CCD->Engine())
-				geEngine_Activate(CCD->Engine()->Engine(), false);
-			if(CCD->MenuManager())
+			if(CCD!=NULL)
 			{
+				ShowWindow(hWnd, SW_MINIMIZE); 
+				CCD->SetHasFocus(false);
+				if(CCD->Engine()!=NULL)
+					geEngine_Activate(CCD->Engine()->Engine(), false);
+				if(CCD->MenuManager())
+				{
+				}
+				return 0;
 			}
-			return 0;
 		} 
 		break;
 		case WM_SETFOCUS:	
 	    {
-			ShowWindow(hWnd, SW_SHOWNORMAL); 
-			CCD->SetHasFocus(true);
-			if(CCD->Engine())
-				geEngine_Activate(CCD->Engine()->Engine(), true);
-			if(CCD->MenuManager())
+			if(CCD!=NULL)
 			{
+				ShowWindow(hWnd, SW_SHOWNORMAL); 
+				CCD->SetHasFocus(true);
+				if(CCD->Engine()!=NULL)
+					geEngine_Activate(CCD->Engine()->Engine(), true);
+				if(CCD->MenuManager())
+				{
+				}
+				return 0;
 			}
-			return 0;
 		} 
 		break;
 
@@ -92,6 +98,34 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	m_CurrentLevel[0] = 0;
 	m_SelectedDriverID = chDriverID;			// Use the desired driver
 	fFogStart = fFogEnd = 0.0f;						// Fog start, end distances
+
+	if(UseDialog)
+	{
+		char m_currentdir[512];
+		_getcwd(m_currentdir, 512);
+		ShowCursor(TRUE);
+		CFileDialog dlg(TRUE, "bsp", NULL, OFN_HIDEREADONLY,
+			"Level BSP Files (*.bsp)|*.bsp|All Files (*.*)|*.*||");
+		
+		dlg.m_ofn.lpstrTitle = "Load Level";
+		TCHAR m_dir[512];
+		strcpy(m_dir, m_currentdir);
+		strcat(m_dir, "\\media\\levels");
+		dlg.m_ofn.lpstrInitialDir = m_dir;
+		if (dlg.DoModal() == IDOK) 
+		{
+			CString FileName = dlg.GetFileName();
+			strcpy(szStartLevel, FileName);
+			CString PathName = dlg.GetPathName();
+			PathName = PathName.Left(PathName.ReverseFind('\\'));
+			TCHAR m_lev[512];
+			strcpy(m_lev, PathName);
+			CCD->SetLevelDirectory(m_lev);
+		}
+		chdir(m_currentdir);
+		
+		ShowCursor(FALSE);
+	}
 	
 	GetWindowRect(GetDesktopWindow(), &m_ScreenRect);
 	
@@ -128,35 +162,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 		nWidth, nHeight, SWP_NOCOPYBITS | SWP_NOZORDER | SWP_NOSIZE | SWP_SHOWWINDOW);
 	
 	m_wndMain = hWnd;						// Save for later use
-	
-	if(UseDialog)
-	{
-		char m_currentdir[512];
-		_getcwd(m_currentdir, 512);
-		ShowCursor(TRUE);
-		CFileDialog dlg(TRUE, "bsp", NULL, OFN_HIDEREADONLY,
-			"Level BSP Files (*.bsp)|*.bsp|All Files (*.*)|*.*||");
-		
-		dlg.m_ofn.lpstrTitle = "Load Level";
-		TCHAR m_dir[512];
-		strcpy(m_dir, m_currentdir);
-		strcat(m_dir, "\\media\\levels");
-		dlg.m_ofn.lpstrInitialDir = m_dir;
-		if (dlg.DoModal() == IDOK) 
-		{
-			CString FileName = dlg.GetFileName();
-			strcpy(szStartLevel, FileName);
-			CString PathName = dlg.GetPathName();
-			PathName = PathName.Left(PathName.ReverseFind('\\'));
-			TCHAR m_lev[512];
-			strcpy(m_lev, PathName);
-			CCD->SetLevelDirectory(m_lev);
-		}
-		chdir(m_currentdir);
-		
-		ShowCursor(FALSE);
-	}
-	
+
 	///////////////////////////////
 	//Dee
 	m_Instance = theInstance;			//Save for later

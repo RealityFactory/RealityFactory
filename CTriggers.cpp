@@ -60,6 +60,7 @@ CTriggers::CTriggers()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"Missing Trigger Model", MB_OK);
 			exit(-333);
 		}

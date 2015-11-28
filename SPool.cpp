@@ -33,6 +33,7 @@ geSound_Def *SPool_Sound(char *SName)
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;
+	CCD = NULL;
 	MessageBox(NULL, szError,"Sound Manager", MB_OK);
 	exit(-333);
   }
@@ -67,6 +68,7 @@ geSound_Def *SPool_Sound(char *SName)
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;
+	CCD = NULL;
 	MessageBox(NULL, szError,"Sound Manager", MB_OK);
 	exit(-333);
   }

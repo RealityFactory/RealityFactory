@@ -540,6 +540,7 @@ bool qxTerrainMgr::Init()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
+				CCD = NULL;
 				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
 				exit(-333);
 			}
@@ -554,6 +555,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
 					exit(-333);
 				}
@@ -566,6 +568,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
 					exit(-333);
 				}
@@ -578,6 +581,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
 					exit(-333);
 				}
@@ -593,6 +597,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
+					CCD = NULL;
 					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
 					exit(-333);
 				}

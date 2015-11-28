@@ -3064,6 +3064,9 @@ void CActorManager::ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks)
 	
 	for(int nItem = 0; nItem < 4; nItem++)
 	{
+		theEntry->ForceLevel[nItem] -= theEntry->ForceDecay[nItem] * (dwTicks / 900.0f);
+		if(theEntry->ForceLevel[nItem] < 0.0f)
+			theEntry->ForceLevel[nItem] = 0.0f;	
 		if(theEntry->ForceLevel[nItem] == 0.0f)
 			continue;						// Nothing in this force
 		// Ok, we have a force, process it!  Forces act only on translations, we
@@ -3088,9 +3091,6 @@ void CActorManager::ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks)
 		}
 
 		// Ok, decay the force
-		theEntry->ForceLevel[nItem] -= theEntry->ForceDecay[nItem] * (dwTicks / 900.0f);
-		if(theEntry->ForceLevel[nItem] < 0.0f)
-			theEntry->ForceLevel[nItem] = 0.0f;					// Turn off the force
 	}
 	
 	UpdateActorState(theEntry);

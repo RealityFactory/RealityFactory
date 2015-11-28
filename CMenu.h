@@ -242,8 +242,8 @@ private:
   void ResetVol();
   void DisplayCrossHair();
   void FadeSet(int Dir, float Time);
+  void MusicSet();
   void DoFade();
-  void FadeOut();
 
   geBitmap	 *ScreenBmp;
   geBitmap	 *Backgrounds[NUM_BACKGROUNDS];
@@ -272,6 +272,8 @@ private:
   float		 FadeTime;
   float		 CurrentFadeTime;
   float		 FadeAlpha;
+  bool		 MusicFade;
+  float		 OldMVol;
   float		 MouseSen;
   bool		 MouseReverse;
   bool		 MouseFilter;
@@ -309,6 +311,12 @@ private:
   int	 DifficultBack;
   int	 DifficultTitle;
   float  mVolLevel;
+  int	DesignX;
+  int	DesignY;
+  int	HotX;
+  int	HotY;
+  float	TimeFade;
+  bool fontloaded;
 // end change RF064
 };
 

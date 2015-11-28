@@ -47,6 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 //	Initialize the Common Data class that handles components
 
+  CCD = NULL;
   CCD = new CCommonData();
 	if(CCD == NULL)
 	  {
@@ -104,6 +105,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		MessageBox(NULL, "RGF Initialization Failure", "GAME ERROR",
 			MB_ICONSTOP | MB_OK);
 		delete CCD;						// Drop everything to prevent leaks
+		CCD = NULL;
 	  exit(nResult);							// Failure to initialize RGF
 		}
 
@@ -116,6 +118,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		if(szFirstLevel[0] == 0)
 		{
 			delete CCD;					// Unknown command line parm
+			CCD = NULL;
 			MessageBox(NULL,"No Level to Load","RF Error", MB_OK);
 			exit(-335);
 		}

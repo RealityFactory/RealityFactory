@@ -950,6 +950,7 @@ void CPawn::ParmCheck(int Entries, int Desired, char *Order, char *szName, const
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;
+	CCD = NULL;
 	MessageBox(NULL, szError,"Player", MB_OK);
 	exit(-333);
 }

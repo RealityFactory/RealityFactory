@@ -233,6 +233,7 @@ public:
   geBitmap *GetCrossHair();
   int ZoomAmount();
   void DisplayZoom();
+  void Rendering(bool flag);
   void ReSetWeapon(int value);
   void ClearWeapon();
   char *PlayerAnim(int index);
@@ -276,6 +277,7 @@ public:
 // changed RF063
   geVec3d GetProjectedPoint()
   { return ProjectedPoint; }
+  int GetFixedView();
 // end change RF063
 private:
   void DisplayThirdPerson(int index);

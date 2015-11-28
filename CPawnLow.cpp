@@ -312,6 +312,29 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		}
 		return true;
 	}
+	else if (IS_METHOD(methodName, "GetEventState"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		returnValue = (bool)GetTriggerState(param0);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "GetAttribute"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		returnValue = (int)theInv->Value(param0);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "ModifyAttribute"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		returnValue = (int)theInv->Modify(param0, arguments[1].intValue());
+		return true;
+	}
 	else if (IS_METHOD(methodName, "ChangeYaw"))
 	{
 		ChangeYaw();
@@ -382,6 +405,126 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		float amount = arguments[0].floatValue();
 		strcpy(param0, arguments[1].str());
 		CCD->Damage()->DamageActor(CCD->Player()->GetActor(), amount, param0, amount, param0, "Melee");
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PositionToPlayer"))
+	{
+		PARMCHECK(3);
+		geXForm3d Xf;
+		geVec3d Pos, theRotation, Direction;
+
+		Pos = CCD->Player()->Position();
+
+		if (arguments.entries()==4)
+		{
+			bool flag = arguments[3].boolValue();
+			if(flag)
+			{
+				CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &theRotation);
+				geXForm3d_SetIdentity(&Xf);
+				geXForm3d_RotateZ(&Xf, theRotation.Z);
+				geXForm3d_RotateX(&Xf, theRotation.X);
+				geXForm3d_RotateY(&Xf, theRotation.Y);
+				geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+				geXForm3d_GetUp(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[1].floatValue(), &Pos);
+				geXForm3d_GetLeft(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[0].floatValue(), &Pos);
+				geXForm3d_GetIn(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+				CCD->ActorManager()->Position(Actor, Pos);
+				return true;
+			}
+		}
+		Pos.X += arguments[0].floatValue();
+		Pos.Y += arguments[1].floatValue();
+		Pos.Z += arguments[2].floatValue();
+		CCD->ActorManager()->Position(Actor, Pos);
+
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PlayerToPosition"))
+	{
+		PARMCHECK(3);
+		geXForm3d Xf;
+		geVec3d Pos, theRotation, Direction;
+
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+
+		if (arguments.entries()==4)
+		{
+			bool flag = arguments[3].boolValue();
+			if(flag)
+			{
+				CCD->ActorManager()->GetRotate(Actor, &theRotation);
+				geXForm3d_SetIdentity(&Xf);
+				geXForm3d_RotateZ(&Xf, theRotation.Z);
+				geXForm3d_RotateX(&Xf, theRotation.X);
+				geXForm3d_RotateY(&Xf, theRotation.Y);
+				geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+				geXForm3d_GetUp(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[1].floatValue(), &Pos);
+				geXForm3d_GetLeft(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[0].floatValue(), &Pos);
+				geXForm3d_GetIn(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+				CCD->ActorManager()->Position(CCD->Player()->GetActor(), Pos);
+				return true;
+			}
+		}
+		Pos.X += arguments[0].floatValue();
+		Pos.Y += arguments[1].floatValue();
+		Pos.Z += arguments[2].floatValue();
+		CCD->ActorManager()->Position(CCD->Player()->GetActor(), Pos);
+
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetKeyPause"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->SetPaused(flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PlayerRender"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		if(flag)
+		{
+			CCD->ActorManager()->SetCollide(CCD->Player()->GetActor());
+			CCD->Weapons()->Rendering(true);
+		}
+		else
+		{
+			CCD->ActorManager()->SetNoCollide(CCD->Player()->GetActor());
+			geWorld_SetActorFlags(CCD->World(), CCD->Player()->GetActor(), 0);
+			CCD->Weapons()->Rendering(false);
+		}
+		return true;
+	}
+	else if (IS_METHOD(methodName, "PawnRender"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		if(flag)
+		{
+			CCD->ActorManager()->SetCollide(Actor);
+			if(WeaponActor)
+			{
+				CCD->ActorManager()->SetCollide(WeaponActor);
+				CCD->ActorManager()->SetNoCollide(WeaponActor);
+			}
+		}
+		else
+		{
+			CCD->ActorManager()->SetNoCollide(Actor);
+			geWorld_SetActorFlags(CCD->World(), Actor, 0);
+			if(WeaponActor)
+			{
+				geWorld_SetActorFlags(CCD->World(), WeaponActor, 0);
+			}
+		}
 		return true;
 	}
 	else if (IS_METHOD(methodName, "ChangeMaterial"))

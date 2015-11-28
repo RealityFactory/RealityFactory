@@ -36,6 +36,7 @@ Chaos::Chaos()
                        CCD->ReportError(szError, false);
                        CCD->ShutdownLevel();
                        delete CCD;
+					   CCD = NULL;
                        MessageBox(NULL, szError,"EChaos", MB_OK);
                        exit(-333);// or continue
                }

@@ -75,6 +75,7 @@ CMorph::CMorph()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"EM_Morph", MB_OK);
 			exit(-333);
 			//or just continue;
@@ -94,6 +95,7 @@ CMorph::CMorph()
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
+			CCD = NULL;
 			MessageBox(NULL, szError,"EM_Morph", MB_OK);
 			exit(-333);
 			//or just continue;
@@ -116,6 +118,7 @@ CMorph::CMorph()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
+				CCD = NULL;
 				MessageBox(NULL, szError,"EChaos", MB_OK);
 				exit(-333);// or continue
 			}
@@ -165,6 +168,7 @@ CMorph::CMorph()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
+				CCD = NULL;
 				MessageBox(NULL, szError,"EM_Morph", MB_OK);
 				exit(-333);
 			}
@@ -181,6 +185,7 @@ CMorph::CMorph()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
+				CCD = NULL;
 				MessageBox(NULL, szError,"EM_Morph", MB_OK);
 				exit(-333);
 			}	
