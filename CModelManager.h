@@ -30,6 +30,7 @@ struct ModelInstanceList
 	geVec3d Mins;
 	geVec3d Maxs;
 	geXForm3d Xf;
+	bool Rideable; // Added by Pickles to RF071A
 	bool bForward;								// Forward/backward flag
 	bool bMoving;									// Is model moving?
 	bool bLooping;								// Animation automatically loops?
@@ -94,7 +95,9 @@ public:
     int GetModelCurrentTime(geWorld_Model *theModel, geFloat *time);
     int ModelInCollision(geWorld_Model *theModel, bool *Colliding);
 //End Aug2003DCS
-	
+//Start Added by pickles to RF071A
+	int SetRideable(geWorld_Model *theModel, bool Rideable);
+//End Added by pickles to rf071a	
 	int SetReverseOnCollide(geWorld_Model *theModel, bool bReverseIt);
 	int SetReverse(geWorld_Model *theModel, bool bReverseIt);
 	int SetAllowInside(geWorld_Model *theModel, bool bAllowInside);
@@ -128,6 +131,9 @@ private:
 	int RemoveModelFromList(geWorld_Model *theModel);
 	ModelInstanceList *FindModel(geWorld_Model *theModel);
 	int MoveModel(ModelInstanceList *theEntry, gePath *pPath);
+   //Start Nov2003DCS
+   void GetEulerAngles(const geXForm3d *M, geVec3d *Angles);
+   //End Nov2003DCS
 //Start Aug2003DCS
 	int ModelIndex(geWorld_Model *theModel);
    int ProcessModelTick(int nEntry, geFloat dwTicks);

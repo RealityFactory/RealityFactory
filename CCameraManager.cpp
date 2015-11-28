@@ -726,10 +726,14 @@ int CCameraManager::TrackMotion()
 		}
 		if((TrackingFlags & kCameraTrackRotation) != 0)
 		{
+         //Start Nov2003DCS
+         geVec3d ActorRot;
 			if(szActorBone[0] != 0)
-				CCD->ActorManager()->GetBoneRotation(theActor,szActorBone, &Rotation);
+				CCD->ActorManager()->GetBoneRotation(theActor,szActorBone, &ActorRot);
 			else
-				CCD->ActorManager()->GetRotation(theActor, &Rotation);
+				CCD->ActorManager()->GetRotation(theActor, &ActorRot);
+         Rotation.Y = ActorRot.Y;
+         //End Nov2003DCS
 		}
 
 		Rotation.X += CameraOffsetRotation.X;
@@ -1047,7 +1051,10 @@ void CCameraManager::DoThirdPersonTracking()
 	CCD->ActorManager()->GetPosition(theActor, &ActorPosition);
 	ActorPosition.Y += CameraOffsetTranslation.Y;
 	CCD->ActorManager()->GetRotation(theActor, &ActorRotation);
-	ActorRotation.X = 0.0f;
+   //Start Nov2003DCS
+	geVec3d_Add(&ActorRotation, &CameraOffsetRotation, &ActorRotation);
+   //End Nov2003DCS
+   ActorRotation.X = 0.0f;
 	geXForm3d_SetIdentity(&theViewPoint);
 	geXForm3d_RotateZ(&theViewPoint, ActorRotation.Z+CameraOffsetRotation.Z);
 	geXForm3d_RotateX(&theViewPoint, ActorRotation.X+CameraOffsetRotation.X+0.0174532925199433f*(m_cameraX));
@@ -1215,3 +1222,4 @@ void CCameraManager::Set3rdData(float distance, float camerax, float cameray)
 	m_cameraX = camerax;
 	m_cameraY = cameray;
 }
+

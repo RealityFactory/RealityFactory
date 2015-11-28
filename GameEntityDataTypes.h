@@ -218,6 +218,9 @@ typedef struct _MovingPlatform
 	//Start Aug2003DCS
    geWorld_Model *ParentModel;   // Name of model this model is attached to
 //End Aug2003DCS
+   //Added Pickles RF071A
+	geBoolean Rideable;
+   //End Added PIckles RF071A
    	geFloat AnimationSpeed;		// Speed of the animation, in %
 	char *szSoundFile;				// Name of sound to play on trigger
 	geBoolean bOneShot;				// TRUE if platform runs ONLY ONCE
@@ -271,6 +274,9 @@ typedef struct _MovingPlatform
 #pragma GE_DefaultValue(bRunToNextEvent, "False") 
 #pragma GE_DefaultValue(bRunFromList, "False")
 #pragma GE_DefaultValue(TimeList, "") 
+//Added Pickles RF071A
+#pragma GE_DefaultValue(Rideable, "True")
+//End Added PIckles RF071A
 #pragma GE_Documentation(Model,"Platform to use")
 #pragma GE_Documentation(NextToTrigger, "Next platform to trigger, if any")
 #pragma GE_Documentation(szSoundFile, "Sound file to play when platform triggers")

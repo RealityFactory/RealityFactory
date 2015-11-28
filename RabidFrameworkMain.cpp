@@ -36,7 +36,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
   char szFirstLevel[256];
 // changed RF064
   char m_currentdir[512];
-
   _getcwd(m_currentdir, 512);
   chdir(m_currentdir);
 // end change RF064
@@ -85,7 +84,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 			CommandLine = true;
 		}
 		else if(!stricmp("-video", szFoo))
+		{
 			vidsetup = true;
+		}
+		// 10.21.2003 - gekido
+		// add launch multiplayer from command line
+		else if (!stricmp("+connect", szFoo))
+		{
+			// connect to 'szFoo' IP address:Port
+			// TODO: Set our server ip:port to connect to automatically, bypass menu
+		}
 	}
 
 	if(vidsetup)

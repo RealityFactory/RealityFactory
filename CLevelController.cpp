@@ -362,6 +362,16 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		CCD->HUD()->ActivateElement(string1,true);
 		return true;
 	}
+	// Changed RF071A
+	else if (IS_METHOD(methodName, "IsKeyDown"))
+	{
+		PARMCHECK(1);
+		int temp = arguments[0].intValue();
+		returnValue=false;
+		if(CCD->Input()->GetKeyCheck(temp) == true)
+				returnValue=true;
+		return true;
+	}
 
 	else
 	{
@@ -389,6 +399,12 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 	else if (fieldName == "EntityName")
 	{
 		value = skString(szName);
+		return true;
+	}
+	// Changed RF071A
+	else if (fieldName == "key_pressed")
+	{
+		value = CCD->Input()->GetKeyboardInputNoWait();
 		return true;
 	}
 	else

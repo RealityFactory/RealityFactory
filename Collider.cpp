@@ -621,7 +621,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	if(Result == GE_FALSE)
 		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 	
-	if(Result2 == GE_FALSE)
+   //Start Nov2003DCS
+	if(Result2 == GE_TRUE)
+   //End Nov2003DCS
 	{
 		if(Contents.Actor != NULL)
 			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor

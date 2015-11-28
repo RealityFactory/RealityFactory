@@ -635,16 +635,12 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	}
 		else if (IS_METHOD(methodName, "IsKeyDown"))
 	{
+		// Changed RF071A Picklkes
 		PARMCHECK(1);
 		int temp = arguments[0].intValue();
-		if(CCD->Input()->GetKeyCheck(temp) == true)
-		{
-		returnValue=true;
-		}
-		else
-		{
 		returnValue=false;
-		}
+		if(CCD->Input()->GetKeyCheck(temp) == true)
+				returnValue=true;
 		return true;
 	}
 
@@ -707,18 +703,74 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 	return true;
 	}
 
+	//ADDED TO RF071 BY PICKLES	
+
+	else if (IS_METHOD(methodName, "GetPointYaw"))
+	{
+	PARMCHECK(1);
+	strcpy(param0, arguments[0].str());
+	geVec3d pRotation;
+	char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+		if(EntityType)
+			{
+			if(!stricmp(EntityType, "ScriptPoint"))
+				{
+				ScriptPoint *pProxy;
+				CCD->ScriptPoints()->LocateEntity(param0, (void**)&pProxy);
+				pRotation = pProxy->Angle;
+				returnValue=pRotation.Y;
+				}
+			}
+	return true;
+	}
+
+
+	else if (IS_METHOD(methodName, "NextPoint"))
+	{
+	char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
+	if(EntityType)
+	{
+		if(!stricmp(EntityType, "ScriptPoint"))
+		{
+			ScriptPoint *pProxy;
+			CCD->ScriptPoints()->LocateEntity(Point, (void**)&pProxy);
+			ValidPoint = false;
+			if(!EffectC_IsStringNull(pProxy->NextPoint))
+			{
+				strcpy(Point, pProxy->NextPoint);
+				NextOrder[0] = '\0';
+				if(!EffectC_IsStringNull(pProxy->NextOrder))
+					strcpy(NextOrder, pProxy->NextOrder);
+				if(!EffectC_IsStringNull(Point))
+				{
+					char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
+					if(EntityType)
+					{
+						if(!stricmp(EntityType, "ScriptPoint"))
+						{
+							ScriptPoint *pProxy;
+							CCD->ScriptPoints()->LocateEntity(Point, (void**)&pProxy);
+							CurrentPoint = pProxy->origin;
+							ValidPoint = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	return true;
+	}
+
+
+	//END ADDED TO RF071 BY PICKLES	
+
 	else if (IS_METHOD(methodName, "SetTarget"))
 	{
 	PARMCHECK(1);
 	geActor *MActor;
 	strcpy(param0, arguments[0].str());
-		if(param0 == "Player")
-		{
-		TargetActor = CCD->Player()->GetActor();
-		return true;
-		}
 	MActor = CCD->ActorManager()->GetByEntityName(param0);
-		if(!MActor)
+	if(!MActor)
 		return true;
 	TargetActor = MActor;
 	return true;
@@ -757,6 +809,11 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				CCD->ScriptPoints()->LocateEntity(param0, (void**)&pProxy);
 				geVec3d Pos = pProxy->origin;
 				CCD->ActorManager()->Position(tActor, Pos);
+
+				// Added Pickles RF071
+				if(WeaponActor)
+					CCD->ActorManager()->Position(WeaponActor, Pos);
+				// End Added Pickles RF071
 			}
 		}
 	return true;
@@ -929,21 +986,37 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 	else if (IS_METHOD(methodName, "PositionToPlatform"))
 	{
+		//Changed Pickles rf07A
 		PARMCHECK(5);
+		geVec3d Pos,theRotation;
+		geXForm3d Xf;
 		strcpy(param0, arguments[0].str());
-		bool flag = arguments[4].boolValue();
-		geVec3d theRotation,tPos;
 		MovingPlatform *pEntity;
 		CCD->Platforms()->LocateEntity(param0, (void**)&pEntity);
-		CCD->ModelManager()->GetPosition(pEntity->Model,&tPos);
+		CCD->ModelManager()->GetPosition(pEntity->Model,&Pos);
 		CCD->ModelManager()->GetRotation(pEntity->Model,&theRotation);
-		tPos.X += arguments[1].floatValue();
-		tPos.Y += arguments[2].floatValue();
-		tPos.Z += arguments[3].floatValue();
-		CCD->ActorManager()->Position(Actor, tPos);
+		if(pEntity->ParentModel)
+		{
+		geWorld_GetModelXForm(CCD->World(), pEntity->Model, &Xf);
+		Pos.X += Xf.Translation.X;
+		Pos.Y += Xf.Translation.Y;
+		Pos.Z += Xf.Translation.Z;
+		Pos.X += arguments[1].floatValue();
+		Pos.Y += arguments[2].floatValue();
+		Pos.Z += arguments[3].floatValue();
+		}
+		
+		CCD->ActorManager()->Position(Actor, Pos);
+
+		bool flag = arguments[4].boolValue();
 			if(flag)
 				CCD->ActorManager()->Rotate(Actor, theRotation);
+			// Added Pickles RF071
+			if(WeaponActor)
+				CCD->ActorManager()->Position(WeaponActor, Pos);
+			// End Added Pickles RF071
 		return true;
+		//Changed Pickles rf07A
 	}
 
 	else if (IS_METHOD(methodName, "ActivateTrigger"))
@@ -953,8 +1026,93 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		CCD->Triggers()->HandleTriggerEvent(param0);
 		return true;
 	}
+	// Added Pickles to RF071A
+	else if (IS_METHOD(methodName, "UpdateEnemyVis"))
+	{
+		GetAngles(true);
+		if(!TargetActor)
+			return true;
+		CCD->ActorManager()->GetPosition(TargetActor, &LastTargetPoint);
+		geExtBox theBox;
+		CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
+		LastTargetPoint.Y += ((theBox.Max.Y)/2.0f);
+		return true;
+	}
 
-	//-------------------- End Added by Pickles -----------------------------------
+	else if (IS_METHOD(methodName, "TargetPlayer"))
+	{
+		TargetActor = CCD->Player()->GetActor();
+		return true;
+	}
+
+	else if (IS_METHOD(methodName, "FireProjectileBlind"))
+	{
+	PARMCHECK(6);
+	geXForm3d Xf;
+	geVec3d Pos, theRotation, Direction, Orient,tPoint;
+	char *dAttrib ="\0";
+	strcpy(param0, arguments[1].str());// Bone
+	strcpy(param4, arguments[0].str());// Projectile
+	strcpy(dAttrib, arguments[5].str());// Attribute
+	bool bone;
+		if(WeaponActor)
+			bone = geActor_GetBoneTransform(WeaponActor, param0, &Xf);
+		else
+			bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+		if(!bone)
+			return true;
+
+		geVec3d_Copy(&(Xf.Translation), &Pos);
+		CCD->ActorManager()->GetRotate(Actor, &theRotation);
+		geXForm3d_SetIdentity(&Xf);
+		geXForm3d_RotateZ(&Xf, theRotation.Z);
+		geXForm3d_RotateX(&Xf, theRotation.X);
+		geXForm3d_RotateY(&Xf, theRotation.Y);
+		geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+		geXForm3d_GetIn(&Xf, &Direction);
+		geVec3d_AddScaled (&Pos, &Direction, 1000.0f, &tPoint);
+		geXForm3d_GetUp(&Xf, &Direction);
+		geVec3d_AddScaled (&Pos, &Direction, arguments[3].floatValue(), &Pos);
+		geXForm3d_GetLeft(&Xf, &Direction);
+		geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+		geXForm3d_GetIn(&Xf, &Direction);
+		geVec3d_AddScaled (&Pos, &Direction, arguments[4].floatValue(), &Pos);
+		geVec3d_Subtract(&tPoint, &Pos, &Orient);
+		float l = geVec3d_Length(&Orient);
+			if(l > 0.0f) 
+			{
+				float x = Orient.X;
+				Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
+				Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
+				// roll is zero - always!!?
+				Orient.Z = 0.0;
+				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, param4, dAttrib, dAttrib);
+			}
+	return true;
+	}
+
+	else if (IS_METHOD(methodName, "SetTargetPoint"))
+	{
+	PARMCHECK(3);
+	geXForm3d Xf;
+	geVec3d Pos, theRotation, Direction;
+	CCD->ActorManager()->GetPosition(Actor, &Pos);
+	CCD->ActorManager()->GetRotate(Actor, &theRotation);
+	geXForm3d_SetIdentity(&Xf);
+	geXForm3d_RotateZ(&Xf, theRotation.Z);
+	geXForm3d_RotateX(&Xf, theRotation.X);
+	geXForm3d_RotateY(&Xf, theRotation.Y);
+	geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+	geXForm3d_GetUp(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[1].floatValue(), &Pos);
+	geXForm3d_GetLeft(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[0].floatValue(), &Pos);
+	geXForm3d_GetIn(&Xf, &Direction);
+	geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+	UpdateTargetPoint=Pos;
+	return true;
+	}
+//-------------------- End Added by Pickles -----------------------------------
 
 	else if (IS_METHOD(methodName, "ChangeYaw"))
 	{
@@ -1062,7 +1220,10 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		Pos.Y += arguments[1].floatValue();
 		Pos.Z += arguments[2].floatValue();
 		CCD->ActorManager()->Position(Actor, Pos);
-
+			// Added Pickles RF071
+			if(WeaponActor)
+				CCD->ActorManager()->Position(WeaponActor, Pos);
+			// End Added Pickles RF071
 		return true;
 	}
 	else if (IS_METHOD(methodName, "PlayerToPosition"))
@@ -1155,6 +1316,11 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 					CCD->ActorManager()->Rotate(Actor, theRotation);
 				}
 					// END Added by Pickles ---------------
+				// Added Pickles RF071
+				if(WeaponActor)
+					CCD->ActorManager()->Position(WeaponActor, Pos);
+				// End Added Pickles RF071
+
 				return true;
 			}
 		}

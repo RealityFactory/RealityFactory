@@ -774,23 +774,25 @@ int CPlayer::LoadConfiguration()
 	{
 	case FIRSTPERSON:
 	default:
-		nFlags = kCameraTrackPosition;
+      //Start Nov2003DCS  Added rotation tracking
+		nFlags = kCameraTrackPosition + kCameraTrackRotation;
+      //End Nov2003DCS
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
-			theRotation);				// Set offset
+			m_Rotation); //theRotation);				// Set offset
 		SwitchToFirstPerson();
 		break;
 	case THIRDPERSON:
 		nFlags = kCameraTrackThirdPerson | kCameraTrackFree;
-		theRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
+		/*theRotation.X*/m_Rotation.X = CCD->CameraManager()->GetPlayerAngleUp();
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetPlayerHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetPlayerHeight()*m_Scale;
 		theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
-			theRotation);				// Set offset
+			m_Rotation); //theRotation);				// Set offset
 		Allow3rdLook = CCD->CameraManager()->GetPlayerAllowLook();
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
@@ -2026,12 +2028,15 @@ void CPlayer::SwitchCamera(int mode)
 	int nFlags = 0;
 	
 	// Mode
-	geVec3d theRotation;
+   //Start Nov2003DCS
+	geVec3d theRotation, theAlignRotation;
+   CCD->ActorManager()->GetAligningRotation(Actor, &theAlignRotation);
 	CCD->ActorManager()->GetRotate(Actor, &theRotation);
 	CCD->CameraManager()->Rotate(theRotation);
-	theRotation.X = 0.0f;
-	theRotation.Y = 0.0f;
-	theRotation.Z = 0.0f;
+	theAlignRotation.X = 0.0f;
+	//theAlignRotation.Y = 0.0f;
+	theAlignRotation.Z = 0.0f;
+   //End Nov2003DCS
 	geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
 	switch(mode)
 	{
@@ -2039,12 +2044,18 @@ void CPlayer::SwitchCamera(int mode)
 		mode = FIRSTPERSON;
 	case FIRSTPERSON:
 		CCD->CameraManager()->BindToActor(Actor);
-		nFlags = kCameraTrackPosition;
+		//Start Nov2003DCS  Added rotation tracking
+      nFlags = kCameraTrackPosition + kCameraTrackRotation;
+      //End Nov2003DCS
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
+		//Start Nov2003DCS
+      //CCD->CameraManager()->SetCameraOffset(theTranslation, 
+		//	theRotation);				// Set offset
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
-			theRotation);				// Set offset
+			theAlignRotation);				// Set offset
+      //End Nov2003DCS
 		SwitchToFirstPerson();
 		CCD->CameraManager()->ResetCamera();
 		m_HeadBobSpeed = pSetup->HeadBobSpeed;
@@ -2061,13 +2072,20 @@ void CPlayer::SwitchCamera(int mode)
 	case THIRDPERSON:
 		CCD->CameraManager()->BindToActor(Actor);
 		nFlags = kCameraTrackThirdPerson | kCameraTrackFree;
-		theRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
+		//Start Nov2003DCS
+      //theRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
+		theAlignRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
+      //End Nov2003DCS
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetPlayerHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetPlayerHeight()*m_Scale;
 		theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
+		//Start Nov2003DCS
+      //CCD->CameraManager()->SetCameraOffset(theTranslation, 
+		//	theRotation);				// Set offset
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
-			theRotation);				// Set offset
+			theAlignRotation);				// Set offset
+      //End Nov2003DCS
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		Allow3rdLook = CCD->CameraManager()->GetPlayerAllowLook();

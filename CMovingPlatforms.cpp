@@ -74,6 +74,9 @@ CMovingPlatforms::CMovingPlatforms()
       CCD->ModelManager()->SetModelOrigin(pPlatform->Model, &pPlatform->origin);
       CCD->ModelManager()->SetTargetTime(pPlatform->Model, -1.0);
       //End Aug2003DCS
+	  //Start Added By Pickles
+		CCD->ModelManager()->SetRideable(pPlatform->Model,pPlatform->Rideable);
+	  //End Added by Pickles
       //MOD010122 - Start of new data initializations
       CCD->ModelManager()->SetOneShot(pPlatform->Model, pPlatform->bOneShot);
       CCD->ModelManager()->SetRunTimed(pPlatform->Model, pPlatform->bRunTimed);

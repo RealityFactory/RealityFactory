@@ -446,6 +446,19 @@ int CModelManager::SetReverseOnCollide(geWorld_Model *theModel, bool bReverseIt)
    return RGF_SUCCESS;
 }
 
+// Added by Pickles to RF071A
+int CModelManager::SetRideable(geWorld_Model *theModel, bool Rideable)
+{
+   ModelInstanceList *pEntry = FindModel(theModel);
+   if(pEntry == NULL)
+      return RGF_NOT_FOUND;					// Model not managed by us...
+   
+   pEntry->Rideable= Rideable;
+   
+   return RGF_SUCCESS;
+}
+// End Added by Pickles to RF071A
+
 int CModelManager::SetReverse(geWorld_Model *theModel, bool bReverseIt)
 {
    ModelInstanceList *pEntry = FindModel(theModel);
@@ -611,6 +624,13 @@ int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 }
 // end multiplayer
 
+
+// Data required to undo actor motion caused by models
+int     UndoIndex;
+geActor *UndoActor[512];
+geVec3d UndoActorPos[512];
+geVec3d UndoActorRot[512];
+
 //	Tick
 //
 //	Dispatch time to all animating models, let them move, and make any
@@ -659,18 +679,33 @@ void CModelManager::Tick(geFloat dwTicks)
    {
       if ((MainList[nEntry] != NULL) && !MainList[nEntry]->ParentModel)
       {
-         ProcessModelTick(nEntry, dwTicks);
-         if (MainList[nEntry]->ChildModel)
+         UndoIndex = -1;
+         if (ProcessModelTick(nEntry, dwTicks) == RGF_SUCCESS)
          {
-			if (ProcessChildModelTick(ModelIndex(MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
-			{
-			   if (ModelState[nEntry] == MOVED_IT) 
-			   {  //Model moved, since its child can't move then neither can the parent.  Undo parent motion.
-		          MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-				  geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
-				  ModelState[nEntry] = NO_MOVEMENT;
-			   }
-			}
+            if (MainList[nEntry]->ChildModel)
+            {
+			      if (ProcessChildModelTick(ModelIndex(MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
+			      {
+			         if (ModelState[nEntry] == MOVED_IT) 
+			         {  //Model moved, since its child can't move then neither can the parent.  Undo parent motion.
+		               MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
+				         geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+				         ModelState[nEntry] = NO_MOVEMENT;
+			         }
+                  // This model family group can't move, undo any actor motion induced
+                  for (int i = 0; i <= UndoIndex; i++)
+                  {
+                     UndoActorPos[i].X = -UndoActorPos[i].X;
+                     UndoActorPos[i].Y = -UndoActorPos[i].Y;
+                     UndoActorPos[i].Z = -UndoActorPos[i].Z;
+                     UndoActorRot[i].X = -UndoActorRot[i].X;
+                     UndoActorRot[i].Y = -UndoActorRot[i].Y;
+                     UndoActorRot[i].Z = -UndoActorRot[i].Z;
+                     CCD->ActorManager()->AddTranslation(UndoActor[i], UndoActorPos[i]);
+                     CCD->ActorManager()->AddRotation(UndoActor[i], UndoActorRot[i]);
+                  }
+			      }
+            }
          }
       }
    }
@@ -695,7 +730,7 @@ int CModelManager::ProcessChildModelTick(int nEntry, geFloat dwTicks)
          if (ProcessChildModelTick(ModelIndex(MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
          {
             MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-		    geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+		      geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
             ModelState[nEntry] = NO_MOVEMENT;
             return RGF_FAILURE;
          }
@@ -705,7 +740,7 @@ int CModelManager::ProcessChildModelTick(int nEntry, geFloat dwTicks)
          if (ProcessChildModelTick(ModelIndex(MainList[nEntry]->SiblingModel), dwTicks) == RGF_FAILURE)
          {
             MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-		    geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+		      geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
             ModelState[nEntry] = NO_MOVEMENT;
             return RGF_FAILURE;
          }
@@ -735,52 +770,49 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
          // changed RF064
          if (CCD->MenuManager()->GetSEBoundBox())
          {
-            geExtBox Result;
-            geVec3d Forward, Up, Left, Pos;
+            //Start Oct2003DCS
+            geExtBox  Result;
+            geVec3d   Verts[8];
             geXForm3d Xf;
+	         int		 i;
+	         geFloat	 dx, dy, dz;
+
+	         for (i = 0; i < 8; i++)
+		         Verts[i] = MainList[nEntry]->Mins;
+
+	         dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
+	         dy = MainList[nEntry]->Maxs.Y - MainList[nEntry]->Mins.Y;
+	         dz = MainList[nEntry]->Maxs.Z - MainList[nEntry]->Mins.Z;
+
+	         Verts[0].Y += dy;
+	         Verts[3].Y += dy;
+	         Verts[3].X += dx;
+	         Verts[7].X += dx;
+
+	         Verts[1].Y += dy;
+	         Verts[1].Z += dz;
+	         Verts[5].Z += dz;
+	         Verts[6].Z += dz;
+	         Verts[6].X += dx;
+
+	         Verts[2].X += dx;
+	         Verts[2].Y += dy;
+	         Verts[2].Z += dz;
+
             geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &Xf); 
-            geXForm3d_GetUp (&Xf, &Up);
-            geVec3d_Normalize(&Up);
-            geXForm3d_GetIn (&Xf, &Forward);
-            geVec3d_Normalize(&Forward);
-            geXForm3d_GetLeft (&Xf, &Left);
-            geVec3d_Normalize(&Left);
-            geWorld_GetModelRotationalCenter(CCD->World(), MainList[nEntry]->Model, &Pos);
-            geVec3d_AddScaled (&Pos, &Forward, -MainList[nEntry]->Mins.Z, &Result.Min);
-            geVec3d_AddScaled (&Result.Min, &Left, -MainList[nEntry]->Mins.X, &Result.Min);
-            geVec3d_AddScaled (&Result.Min, &Up, MainList[nEntry]->Mins.Y, &Result.Min);
-            geVec3d_AddScaled (&Pos, &Forward, -MainList[nEntry]->Maxs.Z, &Result.Max);
-            geVec3d_AddScaled (&Result.Max, &Left, -MainList[nEntry]->Maxs.X, &Result.Max);
-            geVec3d_AddScaled (&Result.Max, &Up, MainList[nEntry]->Maxs.Y, &Result.Max);
-            
-            Result.Min.X -= Pos.X;
-            Result.Min.Y -= Pos.Y;
-            Result.Min.Z -= Pos.Z;
-            Result.Max.X -= Pos.X;
-            Result.Max.Y -= Pos.Y;
-            Result.Max.Z -= Pos.Z;
-            float Mtemp;
-            if(Result.Min.X > Result.Max.X)
+            geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
+	         Result.Min = Result.Max = Verts[0];
+            for (i = 1; i < 8; i++)
             {
-               Mtemp = Result.Min.X;
-               Result.Min.X = Result.Max.X;
-               Result.Max.X = Mtemp;
+               if (Verts[i].X < Result.Min.X) Result.Min.X = Verts[i].X;
+               else if (Verts[i].X > Result.Max.X) Result.Max.X = Verts[i].X;
+               if (Verts[i].Y < Result.Min.Y) Result.Min.Y = Verts[i].Y;
+               else if (Verts[i].Y > Result.Max.Y) Result.Max.Y = Verts[i].Y;
+               if (Verts[i].Z < Result.Min.Z) Result.Min.Z = Verts[i].Z;
+               else if (Verts[i].Z > Result.Max.Z) Result.Max.Z = Verts[i].Z;
             }
-            if(Result.Min.Y > Result.Max.Y)
-            {
-               Mtemp = Result.Min.Y;
-               Result.Min.Y = Result.Max.Y;
-               Result.Max.Y = Mtemp;
-            }
-            if(Result.Min.Z > Result.Max.Z)
-            {
-               Mtemp = Result.Min.Z;
-               Result.Min.Z = Result.Max.Z;
-               Result.Max.Z = Mtemp;
-            }
-            
-            DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation,
-               &Result.Min, &Result.Max);
+            //End Oct2003DCS
+            DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
          }
          // end change RF064
          
@@ -1126,7 +1158,54 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
       {  //This model is not moving on its own, but we must check if it's parent moved
          if (MainList[nEntry]->ParentModel && (ModelState[ModelIndex(MainList[nEntry]->ParentModel)] == MOVED_IT)) 
          {  //Parent moved, so the child must too!  Whether it likes it or not.
-            
+
+            //Start Oct2003DCS
+            if (CCD->MenuManager()->GetSEBoundBox())
+            {
+               geExtBox  Result;
+               geVec3d   Verts[8];
+               geXForm3d Xf;
+	            int		 i;
+	            geFloat	 dx, dy, dz;
+
+	            for (i = 0; i < 8; i++)
+		            Verts[i] = MainList[nEntry]->Mins;
+
+	            dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
+	            dy = MainList[nEntry]->Maxs.Y - MainList[nEntry]->Mins.Y;
+	            dz = MainList[nEntry]->Maxs.Z - MainList[nEntry]->Mins.Z;
+
+	            Verts[0].Y += dy;
+	            Verts[3].Y += dy;
+	            Verts[3].X += dx;
+	            Verts[7].X += dx;
+
+	            Verts[1].Y += dy;
+	            Verts[1].Z += dz;
+	            Verts[5].Z += dz;
+	            Verts[6].Z += dz;
+	            Verts[6].X += dx;
+
+	            Verts[2].X += dx;
+	            Verts[2].Y += dy;
+	            Verts[2].Z += dz;
+
+               geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &Xf); 
+               geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
+	            Result.Min = Result.Max = Verts[0];
+               for (i = 1; i < 8; i++)
+               {
+                  if (Verts[i].X < Result.Min.X) Result.Min.X = Verts[i].X;
+                  else if (Verts[i].X > Result.Max.X) Result.Max.X = Verts[i].X;
+                  if (Verts[i].Y < Result.Min.Y) Result.Min.Y = Verts[i].Y;
+                  else if (Verts[i].Y > Result.Max.Y) Result.Max.Y = Verts[i].Y;
+                  if (Verts[i].Z < Result.Min.Z) Result.Min.Z = Verts[i].Z;
+                  else if (Verts[i].Z > Result.Max.Z) Result.Max.Z = Verts[i].Z;
+               }
+               DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
+            }
+            //End Oct2003DCS
+
             // Make sure we have animation data for the model
             pMotion= geWorld_ModelGetMotion(MainList[nEntry]->Model);
             if (pMotion)					
@@ -1359,6 +1438,12 @@ geBoolean CModelManager::DoesBoxHitModel(geVec3d thePoint, geExtBox theBox,
                                          geWorld_Model **theModel)
 {
    geExtBox Result, Temp;
+   //Start Nov2003DCS
+	geVec3d   Verts[8];
+	geXForm3d Xf;
+	int		 i;
+	geFloat	 dx, dy, dz;
+   //End Nov2003DCS
    
    *theModel = NULL;
    
@@ -1373,48 +1458,44 @@ geBoolean CModelManager::DoesBoxHitModel(geVec3d thePoint, geExtBox theBox,
       if(MainList[nTemp]->bAllowInside)
          continue;
       
-      geVec3d Forward, Up, Left, Pos;
-      geXForm3d Xf;
-      geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf); 
-      geXForm3d_GetUp (&Xf, &Up);
-      geVec3d_Normalize(&Up);
-      geXForm3d_GetIn (&Xf, &Forward);
-      geVec3d_Normalize(&Forward);
-      geXForm3d_GetLeft (&Xf, &Left);
-      geVec3d_Normalize(&Left);
-      geWorld_GetModelRotationalCenter(CCD->World(), MainList[nTemp]->Model, &Pos);
-      geVec3d_AddScaled (&Pos, &Forward, -MainList[nTemp]->Mins.Z, &Result.Min);
-      geVec3d_AddScaled (&Result.Min, &Left, -MainList[nTemp]->Mins.X, &Result.Min);
-      geVec3d_AddScaled (&Result.Min, &Up, MainList[nTemp]->Mins.Y, &Result.Min);
-      geVec3d_AddScaled (&Pos, &Forward, -MainList[nTemp]->Maxs.Z, &Result.Max);
-      geVec3d_AddScaled (&Result.Max, &Left, -MainList[nTemp]->Maxs.X, &Result.Max);
-      geVec3d_AddScaled (&Result.Max, &Up, MainList[nTemp]->Maxs.Y, &Result.Max);
-      
-      Result.Min.X -= Pos.X;
-      Result.Min.Y -= Pos.Y;
-      Result.Min.Z -= Pos.Z;
-      Result.Max.X -= Pos.X;
-      Result.Max.Y -= Pos.Y;
-      Result.Max.Z -= Pos.Z;
-      float Mtemp;
-      if(Result.Min.X > Result.Max.X)
-      {
-         Mtemp = Result.Min.X;
-         Result.Min.X = Result.Max.X;
-         Result.Max.X = Mtemp;
-      }
-      if(Result.Min.Y > Result.Max.Y)
-      {
-         Mtemp = Result.Min.Y;
-         Result.Min.Y = Result.Max.Y;
-         Result.Max.Y = Mtemp;
-      }
-      if(Result.Min.Z > Result.Max.Z)
-      {
-         Mtemp = Result.Min.Z;
-         Result.Min.Z = Result.Max.Z;
-         Result.Max.Z = Mtemp;
-      }
+      //Start Nov2003DCS
+		for (i = 0; i < 8; i++)
+			Verts[i] = MainList[nTemp]->Mins;
+
+		dx = MainList[nTemp]->Maxs.X - MainList[nTemp]->Mins.X;
+		dy = MainList[nTemp]->Maxs.Y - MainList[nTemp]->Mins.Y;
+		dz = MainList[nTemp]->Maxs.Z - MainList[nTemp]->Mins.Z;
+
+		Verts[0].Y += dy;
+		Verts[3].Y += dy;
+		Verts[3].X += dx;
+		Verts[7].X += dx;
+
+		Verts[1].Y += dy;
+		Verts[1].Z += dz;
+		Verts[5].Z += dz;
+		Verts[6].Z += dz;
+		Verts[6].X += dx;
+
+		Verts[2].X += dx;
+		Verts[2].Y += dy;
+		Verts[2].Z += dz;
+
+		geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf); 
+		geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
+		Result.Min = Result.Max = Verts[0];
+		for (i = 1; i < 8; i++)
+		{
+		  if (Verts[i].X < Result.Min.X) Result.Min.X = Verts[i].X;
+		  else if (Verts[i].X > Result.Max.X) Result.Max.X = Verts[i].X;
+		  if (Verts[i].Y < Result.Min.Y) Result.Min.Y = Verts[i].Y;
+		  else if (Verts[i].Y > Result.Max.Y) Result.Max.Y = Verts[i].Y;
+		  if (Verts[i].Z < Result.Min.Z) Result.Min.Z = Verts[i].Z;
+		  else if (Verts[i].Z > Result.Max.Z) Result.Max.Z = Verts[i].Z;
+		}
+//      DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation, &Result.Min, &Result.Max);
+      //End Nov2003DCS
+
       // changed RF064			
       //if(CCD->MenuManager()->GetSEBoundBox())
       //DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation,
@@ -1716,6 +1797,9 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
          MainList[nTemp]->bMoving = false;
          MainList[nTemp]->ModelAnimationSpeed = 1.0f;		// 100%
          MainList[nTemp]->ModelTime = 0.0f;
+         //Start Nov2003DCS
+         MainList[nTemp]->TargetTime = -1.0;
+         //End Nov2003DCS
          MainList[nTemp]->ModelType = nModelType;
          MainList[nTemp]->bLooping = false;
          MainList[nTemp]->bRotating = false;
@@ -1825,165 +1909,223 @@ int CModelManager::ModelIndex(geWorld_Model *theModel)
 //	..perform motion checking to make sure that all actors within the
 //	..models bounding box will remain unaffected by its motion...
 
+//Start Nov2003DCS
 int CModelManager::MoveModel(ModelInstanceList *theEntry, gePath *pPath)
 {
    geActor *ActorsInRange[512];
-   geVec3d ModelCenter;
+   geVec3d ActorsInRangeDeltaTranslation[512];
+   geVec3d ActorsInRangeDeltaRotation[512];
+   geVec3d Center, OldRotation;
    geFloat ModelRange = 500.0f;			// Reasonable default *HACK*
    geXForm3d xfmDest, xfmOldPosition;
    geFloat theTime;
-   //Start Aug2003DCS   
    geXForm3d ParentXfm, ResultXfm;
-   //End Aug2003DCS
-   
-   // Compute animation time and find our position
-   
+   int i;
+
+   //	Get the old transform for this model. (Note: this includes any motion due to a parent)
+   geWorld_GetModelXForm(CCD->World(), theEntry->Model, &xfmOldPosition);
+   // Compute the new animation time
    theTime = theEntry->ModelTime / 1000.0f;
-   
-   //	Get the transform to be added to the origin for the platform model.  Also
-   //	..grab the old position for later use...
-   
-   //Start Aug2003DCS   
-   //If this platform is attached to another model then we must include the 
-   //translation and rotation of the parent model
-   if (theEntry->ParentModel)
-   {
-      geWorld_GetModelXForm(CCD->World(), theEntry->ParentModel, &ParentXfm);
-   }
-   //End Aug2003DCS
+   // Get the new transform from the path (Note: this does not include any parent movement)
    gePath_Sample(pPath, theTime, &xfmDest);
-   //Start Aug2003DCS   
-   geXForm3d_Copy(&xfmDest, &ResultXfm);
-   //End Aug2003DCS
-   gePath_Sample(pPath, (theEntry->OldModelTime / 1000.0f), &xfmOldPosition);
-   geWorld_GetModelRotationalCenter(CCD->World(), theEntry->Model, &ModelCenter);
-   
-   ModelCenter.X += xfmDest.Translation.X;
-   ModelCenter.Y += xfmDest.Translation.Y;
-   ModelCenter.Z += xfmDest.Translation.Z;
-   
-   // Get the Euler angles out of the transform for our rotation
-   
-   geXForm3d_GetEulerAngles(&xfmDest, &theEntry->Rotation);
-   
+   //Include the translation and rotation of the parent model, if any
+   if (theEntry->ParentModel)
+   {  // Get the parent's transform
+      geWorld_GetModelXForm(CCD->World(), theEntry->ParentModel, &ParentXfm);
+      // Move model with its parent model
+      geVec3d RotatedOriginOffset, OriginOffsetOffset; // = theEntry->OriginOffset;
+   	geXForm3d_Rotate(&ParentXfm, &theEntry->OriginOffset, &RotatedOriginOffset);
+      geVec3d_Subtract(&RotatedOriginOffset, &theEntry->OriginOffset, &OriginOffsetOffset);
+      geXForm3d_Multiply(&ParentXfm, &xfmDest, &ResultXfm);
+      geVec3d_Add(&OriginOffsetOffset, &ResultXfm.Translation, &ResultXfm.Translation);
+   }
+   else
+   {  // If no parent then just copy model's new transform into ResultXfm for later use
+      geXForm3d_Copy(&xfmDest, &ResultXfm);
+   }
+   // Find the current center of rotation
+   geWorld_GetModelRotationalCenter(CCD->World(), theEntry->Model, &Center);
+
    //	At this point, we need to check to see if we have any actors within a
    //	..reasonable range of our platform, and if so, we'll need to check to see
    //	..if moving the platform will end up forcing any of the actors in this
    //	..platforms range to move.
    
-   int nActorCount = CCD->ActorManager()->GetActorsInRange(ModelCenter, 
-      ModelRange, 512, &ActorsInRange[0]);
+   int nActorCount = CCD->ActorManager()->GetActorsInRange(Center, ModelRange, 512, &ActorsInRange[0]);
+
+   	// Added Pickles RF071A
+   if(theEntry->Rideable == GE_FALSE)
+	   nActorCount = 0; 
+   // End Added Pickles RF071A
    
    if(nActorCount == 0)
    {
       // No actors to test collisions with, LET'S ROCK ON!
-      //Start Aug2003DCS   
-      //If this platform is attached to another model then we must include the 
-      //translation and rotation of the parent model
-      if (theEntry->ParentModel)
-      {
-         //Move model with its parent model
-         geVec3d RotatedOriginOffset, OriginOffsetOffset; // = theEntry->OriginOffset;
-   		geXForm3d_Rotate(&ParentXfm, &theEntry->OriginOffset, &RotatedOriginOffset);
-         geVec3d_Subtract(&RotatedOriginOffset, &theEntry->OriginOffset, &OriginOffsetOffset);
-         geXForm3d_Multiply(&ParentXfm, &ResultXfm, &ResultXfm);
-         geVec3d_Add(&OriginOffsetOffset, &ResultXfm.Translation, &ResultXfm.Translation);
-      } 
       geWorld_SetModelXForm(CCD->World(), theEntry->Model, &ResultXfm);
-      //			geWorld_SetModelXForm(CCD->World(), theEntry->Model, &xfmDest);
-      //End Aug2003DCS
-      theEntry->Translation = ModelCenter;			// Update position
+      theEntry->Translation = Center;			             // Update position
+      GetEulerAngles(&ResultXfm, &theEntry->Rotation);    // Update rotation
       return RGF_SUCCESS;
    }
    
    //	Ugh, we have to check EACH and EVERY ACTOR that was returned for a possible
    //	..collision.  Is this a pain, or what?
    
-   geVec3d ActorPosition, NewActorPosition;
-   bool fModelMoveOK;
-   
-   for(int nTemp = 0; nTemp < nActorCount; nTemp++)
+   geVec3d ActorPosition, NewActorPosition, DeltaRotation, Delta1;
+   bool    fModelMoveOK;
+   bool    InitDataForPassengers = true;
+   int     nTemp;
+
+   for(nTemp = 0; nTemp < nActorCount; nTemp++)
    {
+      ActorsInRangeDeltaTranslation[nTemp].X = 0.0;
+      ActorsInRangeDeltaTranslation[nTemp].Y = 0.0;
+      ActorsInRangeDeltaTranslation[nTemp].Z = 0.0;
+      ActorsInRangeDeltaRotation[nTemp].X = 0.0;
+      ActorsInRangeDeltaRotation[nTemp].Y = 0.0;
+      ActorsInRangeDeltaRotation[nTemp].Z = 0.0;
       // Note that, if at ANY point we can't adjust an actors position to allow
       // ..the model to move we abort moving the model AT ALL and set the current
       // ..time back to the previous time, effectively "freezing time" for the
       // ..model.
       CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &ActorPosition);
-      fModelMoveOK = CCD->Collision()->CheckModelMotionActor(theEntry->Model, &xfmDest,
+      fModelMoveOK = CCD->Collision()->CheckModelMotionActor(theEntry->Model, &ResultXfm,
          ActorsInRange[nTemp], &ActorPosition, &NewActorPosition);
+      
       if(fModelMoveOK == false)
-         // changed RF064
       {
          HandleCollision(theEntry->Model, ActorsInRange[nTemp]);
-         //Start Aug2003DCS
-         if(IsAPassenger(theEntry->Model, ActorsInRange[nTemp]))
+         // Ok, since we did collide, if this model is flagged as reverse 
+         // on collision, we need to flip this models motion direction
+         if(theEntry->bReverseOnCollision == true)
+            theEntry->bForward = !theEntry->bForward;		// Switch direction
+         return RGF_FAILURE;					// Couldn't move the model
+      }
+
+      if (IsAPassenger(theEntry->Model, ActorsInRange[nTemp]) && theEntry->Rideable)
+      {
+         geXForm3d DeltaXfm;
+         geVec3d Offset, NewOffset;
+         if (InitDataForPassengers)
          {
-            geVec3d Delta1 = xfmDest.Translation;
+            Delta1 = ResultXfm.Translation;
             Delta1.X = Delta1.X - xfmOldPosition.Translation.X;
             Delta1.Y = Delta1.Y - xfmOldPosition.Translation.Y;
             Delta1.Z = Delta1.Z - xfmOldPosition.Translation.Z;
-            CCD->ActorManager()->AddTranslation(ActorsInRange[nTemp], Delta1);
-            return RGF_SUCCESS;
+            GetEulerAngles(&xfmOldPosition, &OldRotation);
+            GetEulerAngles(&ResultXfm, &theEntry->Rotation);
+            geVec3d_Subtract(&theEntry->Rotation, &OldRotation, &DeltaRotation);
+            InitDataForPassengers = false;
          }
-         else
-            CCD->ActorManager()->Position(ActorsInRange[nTemp], NewActorPosition);
-         // Ok, if we DID collide (ActorPosition != NewActorPosition) and this
-         // ..model is flagged as reverse on collision, we need to flip this
-         // ..models motion direction
-         if((memcmp(&ActorPosition, &NewActorPosition, sizeof(geVec3d)) != 0) &&
-            (theEntry->bReverseOnCollision == true))
-            theEntry->bForward = !theEntry->bForward;		// Switch direction
-         //				return RGF_SUCCESS;					// Couldn't move the model
-         return RGF_FAILURE;					// Couldn't move the model
-         //End Aug2003DCS
-      }
-      // end change RF064
-      //Start Aug2003DCS
-      //			geVec3d Delta1 = xfmDest.Translation;
-      //			Delta1.X = Delta1.X - xfmOldPosition.Translation.X;
-      //			Delta1.Y = Delta1.Y - xfmOldPosition.Translation.Y;
-      //			Delta1.Z = Delta1.Z - xfmOldPosition.Translation.Z;
-      if(IsAPassenger(theEntry->Model, ActorsInRange[nTemp]))
-      {
-         geVec3d Delta1 = xfmDest.Translation;
-         Delta1.X = Delta1.X - xfmOldPosition.Translation.X;
-         Delta1.Y = Delta1.Y - xfmOldPosition.Translation.Y;
-         Delta1.Z = Delta1.Z - xfmOldPosition.Translation.Z;
-         //End Aug2003DCS
-         CCD->ActorManager()->AddTranslation(ActorsInRange[nTemp], Delta1);
-         // changed RF064
-         //RemovePassenger(theEntry->Model, ActorsInRange[nTemp]);
+         CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &Offset);
+         geVec3d_Subtract(&Offset, &Center, &Offset);
+         geXForm3d_SetIdentity(&DeltaXfm);
+         geXForm3d_RotateZ(&DeltaXfm, DeltaRotation.Z);
+         geXForm3d_RotateX(&DeltaXfm, DeltaRotation.X);
+         geXForm3d_RotateY(&DeltaXfm, DeltaRotation.Y);
+         geXForm3d_Rotate(&DeltaXfm, &Offset, &NewOffset);
+         geVec3d_Subtract(&NewOffset, &Offset, &Offset);
+         geVec3d_Add(&Offset, &Delta1, &ActorsInRangeDeltaTranslation[nTemp]);
+         ActorsInRangeDeltaRotation[nTemp] = DeltaRotation;
       }
       else
-         CCD->ActorManager()->Position(ActorsInRange[nTemp], NewActorPosition);
+      {
+         geVec3d_Subtract(&NewActorPosition, &ActorPosition, &ActorsInRangeDeltaTranslation[nTemp]);
+      }
       // Ok, if we DID collide (ActorPosition != NewActorPosition) and this
       // ..model is flagged as reverse on collision, we need to flip this
       // ..models motion direction
       if((memcmp(&ActorPosition, &NewActorPosition, sizeof(geVec3d)) != 0) &&
          (theEntry->bReverseOnCollision == true))
          theEntry->bForward = !theEntry->bForward;		// Switch direction
+      if(memcmp(&ActorPosition, &NewActorPosition, sizeof(geVec3d)) != 0)
+         i = 0;
    }
-   
-   //	Ok, at this point we _know_ no actors need be moved to compensate for the
-   //	..motion of this model, so let's Just Move It.
-   
-   //Start Aug2003DCS   
-   //If this platform is attached to another model then we must include the 
-   //translation and rotation of the parent model
-   if (theEntry->ParentModel)
+
+   //If we made it this far the model CAN move so let's move the affected actors
+   for(nTemp = 0; nTemp < nActorCount; nTemp++)
    {
-      //Move model with its parent model
-      geVec3d RotatedOriginOffset, OriginOffsetOffset;
-   	geXForm3d_Rotate(&ParentXfm, &theEntry->OriginOffset, &RotatedOriginOffset);
-      geVec3d_Subtract(&RotatedOriginOffset, &theEntry->OriginOffset, &OriginOffsetOffset);
-      geXForm3d_Multiply(&ParentXfm, &ResultXfm, &ResultXfm);
-      geVec3d_Add(&OriginOffsetOffset, &ResultXfm.Translation, &ResultXfm.Translation);
-   } 
+      CCD->ActorManager()->AddTranslation(ActorsInRange[nTemp], ActorsInRangeDeltaTranslation[nTemp]);
+      CCD->ActorManager()->AddRotation(ActorsInRange[nTemp], ActorsInRangeDeltaRotation[nTemp]);
+      UndoIndex++;
+      if (UndoIndex < 512)
+      {
+         UndoActor[UndoIndex]    = ActorsInRange[nTemp];
+         UndoActorPos[UndoIndex] = ActorsInRangeDeltaTranslation[nTemp];
+         UndoActorRot[UndoIndex] = ActorsInRangeDeltaRotation[nTemp];
+      }
+      else
+      {
+         UndoIndex--;
+      }
+   }
+
+   //	Ok, let's move the model   
    geWorld_SetModelXForm(CCD->World(), theEntry->Model, &ResultXfm);
-   //		geWorld_SetModelXForm(CCD->World(), theEntry->Model, &xfmDest);
-   //End Aug2003DCS
-   
-   theEntry->Translation = ModelCenter;			// Update position
-   
+   theEntry->Translation = Center;			             // Update position
+   GetEulerAngles(&ResultXfm, &theEntry->Rotation);    // Update rotation
    return RGF_SUCCESS;
 }
+//End Nov2003DCS
+
+//Start Nov2003DCS
+//This function is a rewrite of the Genesis function called geXForm3d_GetEulerAngles.
+//  The Genesis version assumes the matrix was created in the rotation order of z,y,x. Why?
+//  We need this function to assume the order of z,x,y.  In addition, the Genesis 
+//  version doesn't evaluate the Y angle beyond doing an inverse sin.  The inverse sin
+//  only gives a range of +-90 degrees.  We need +-180 degrees.  In our version the
+//  X angle has this problem, but we recalculate X using the atan2 function once we
+//  know the value of the Y angle.
+void CModelManager::GetEulerAngles(const geXForm3d *M, geVec3d *Angles)
+// order of angles z,x,y
+//         Z rotation                  X rotation                 Y rotation            
+//  /  cos(Z) -sin(Z) 0 0 \     / 1     0      0    0 \     /  cos(Y) 0  sin(Y) 0 \     
+//  |  sin(Z)  cos(Z) 0 0 |  *  | 0  cos(X) -sin(X) 0 |  *  |     0   1     0   0 |  =
+//  |     0       0   1 0 |     | 0  sin(X)  cos(X) 0 |     | -sin(Y) 0  cos(Y) 0 |     
+//  \     0       0   0 1 /     \ 0     0      0    1 /     \     0   0     0   1 /     
+//
+//  / cos(Y)*cos(Z)-sin(X)*sin(Y)*sin(Z)  -cos(X)*sin(Z)  sin(X)*cos(Y)*sin(Z)+sin(Y)*cos(Z)  0 \
+//  | sin(X)*sin(Y)*cos(Z)+cos(Y)*sin(Z)   cos(X)*cos(Z)  sin(Y)*sin(Z)-sin(X)*cos(Y)*cos(Z)  0 |
+//  |          -cos(X)*sin(Y)                  sin(X)               cos(X)*cos(Y)             0 |
+//  \                 0                           0                       0                   1 /
+
+{
+	geFloat BZ;
+	assert( M      != NULL );
+	assert( Angles != NULL );
+
+	assert ( geXForm3d_IsOrthonormal(M) == GE_TRUE );
+
+	//ack.  due to floating point error, the value can drift away from 1.0 a bit
+	//      this will clamp it.  The _IsOrthonormal test will pass because it allows
+	//      for a tolerance.
+	BZ = M->BZ;
+	if (BZ > 1.0f) 
+		BZ = 1.0f;
+	if (BZ < -1.0f) 
+		BZ = -1.0f;
+
+	Angles->X = -(geFloat)asin(BZ);
+
+	if ( cos(Angles->X) != 0 )
+	{
+		Angles->Y = -(geFloat)atan2(-M->AZ, M->CZ);
+		Angles->Z = -(geFloat)atan2(-M->BX, M->BY);
+	}
+	else
+	{
+		Angles->Y = -(geFloat)atan2(M->BX, -M->BY / sin(Angles->X));
+		Angles->Z = 0.0f;
+	}
+   if (cos(Angles->Y) != 0.0f)
+   {
+      Angles->X = -(geFloat)atan2(BZ, M->CZ / cos(Angles->Y));
+   }
+   else
+   {
+      Angles->Y = -(geFloat)atan2(BZ, -M->AZ / sin(Angles->Y));
+   }
+
+   assert( geVec3d_IsValid(Angles)!=GE_FALSE);
+}
+//End Nov2003DCS
+
