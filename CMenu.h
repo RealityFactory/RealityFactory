@@ -99,6 +99,9 @@ typedef struct	SoundList
   SoundList		*next;
   SoundList		*prev;
   geSound		*Sound;
+  geFloat		Volume;
+  geFloat		Pan;
+  geFloat		Frequency;
 } SoundList;
 
 // class declaration for CRFMenu
@@ -236,6 +239,7 @@ public:
 // end change RF064
 private:
   void ClearVol();
+  void ResetVol();
   void DisplayCrossHair();
   void FadeSet(int Dir, float Time);
   void DoFade();

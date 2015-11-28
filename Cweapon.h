@@ -107,6 +107,7 @@ typedef struct DefaultWeapons
 	char AttackSound[64];
 	char HitSound[64];
 	char EmptySound[64];
+	char UseSound[64];
 	float MeleeDamage;
 	char MeleeExplosion[64];
 	char Attribute[64];
@@ -153,6 +154,7 @@ typedef struct DefaultWeapons
 	char VReload[64];
 	char VKeyReload[64];
 	char VAttackEmpty[64];
+	char VUse[64];
 // end change RF064
 	geVec3d VOffset;
 	geVec3d VMOffset;
@@ -196,6 +198,7 @@ typedef enum
 	VWEPRELOAD,
 	VWEPKEYRELOAD,
 	VWEPATTACKEMPTY,
+	VWEPUSE,
 // end change RF064
 	VWEPHIT,
 	VWEPALTHIT
@@ -246,6 +249,7 @@ public:
 // changed RF064
   void KeyReload();
   void DropWeapon();
+  void Use();
   void SetView(int value)
   { ViewPoint = value; OldViewPoint = value; }
   char *GetWeaponName()

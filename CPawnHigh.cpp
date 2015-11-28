@@ -72,6 +72,7 @@ typedef enum
 		REMOVEWEAPON,
 		ISPUSHABLE,
 		HIDEFROMRADAR,
+		STEPHEIGHT,
 		ISVEHICLE,
 		DELAY
 };
@@ -141,6 +142,7 @@ char *ActionText[] =
 	"RemoveWeapon",
 	"IsPushable",
 	"HideFromRadar",
+	"StepHeight",
 	"IsVehicle",
 	"Delay"
 };
@@ -683,6 +685,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		if (arguments.entries()==2)
 			strcpy(param0, arguments[1].str());
 		AddAction(FIELDOFVIEW, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "StepHeight"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		AddAction(STEPHEIGHT, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetGroup"))
@@ -2846,6 +2855,20 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->ActionActive = false;
 					runflag = true;
 					break;
+				case STEPHEIGHT:
+					if(Object->Actor)
+					{
+						if(Object->Index->Speed<=0.0f)
+							CCD->ActorManager()->SetAutoStepUp(Object->Actor, false);
+						else
+						{
+							CCD->ActorManager()->SetAutoStepUp(Object->Actor, true);
+							CCD->ActorManager()->SetStepHeight(Object->Actor, Object->Index->Speed);
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
 				case SETGROUP:
 					if(!EffectC_IsStringNull(Object->Index->AnimName))
 					{
@@ -3097,6 +3120,9 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
 								geXForm3d_GetIn(&Xf, &Direction);
 								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+								Pos.X = Object->Index->Value1;
+								Pos.Y = Object->Index->Value2;
+								Pos.Z = Object->Index->Value3;
 								CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
 							}
 						}

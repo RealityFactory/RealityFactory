@@ -3463,6 +3463,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			}
 			if(CCD->MIDIPlayer())
 				CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
+			ResetVol();
 			GameLevel();
 		}
 	}
@@ -5111,6 +5112,9 @@ geSound	*CRFMenu::PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef, ge
 		if(pool->next)
 			pool->next->prev = pool;
 		pool->Sound = Sound;
+		pool->Volume = Volume;
+		pool->Pan = Pan;
+		pool->Frequency = Frequency;
 	}
 	return Sound;
 }
@@ -5182,6 +5186,19 @@ void CRFMenu::ClearVol()
 		}
 		free(pool);
 	} 
+	pool = temp;
+  }
+}
+
+void CRFMenu::ResetVol()
+{
+  SoundList *pool, *temp;
+
+  pool = Bottom;
+  while	(pool!= NULL)
+  {
+	temp = pool->next;
+	geSound_ModifySound(CCD->Engine()->AudioSystem(), pool->Sound, pool->Volume, pool->Pan, pool->Frequency);
 	pool = temp;
   }
 }

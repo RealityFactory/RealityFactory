@@ -133,6 +133,10 @@ void CCameraManager::Defaults()
 			{
 				viewheight = (float)AttrFile.GetValueF(KeyName, "height");
 			}
+			allowmouse1st = true;
+			Type = AttrFile.GetValue(KeyName, "disablemouse");
+			if(Type=="true")
+				allowmouse1st = false;
 		}
 		else if(KeyName=="ThirdPerson")
 		{
@@ -165,6 +169,10 @@ void CCameraManager::Defaults()
 				if(Type=="true")
 					playerallowlook = true;
 			}
+			allowmouse3rd = true;
+			Type = AttrFile.GetValue(KeyName, "disablemouse");
+			if(Type=="true")
+				allowmouse3rd = false;
 		}
 		else if(KeyName=="Isometric")
 		{
@@ -184,6 +192,10 @@ void CCameraManager::Defaults()
 			Type = AttrFile.GetValue(KeyName, "collisiondetection");
 			if(Type=="true")
 				IsoCollFlag = true;
+			allowmouseiso = true;
+			Type = AttrFile.GetValue(KeyName, "disablemouse");
+			if(Type=="true")
+				allowmouseiso = false;
 		}
 		else if(KeyName=="MultipleFixed")
 		{

@@ -35,6 +35,7 @@ typedef struct DelayExp
 	geActor *Actor;
 	char Bone[64];
 	int index;
+	bool Tilt;
 // end change RF063
 } DelayExp;
 
@@ -44,6 +45,8 @@ public:
   CExplosionInit();
   ~CExplosionInit();	
   void AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone);
+  void AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone, bool Tilt);
+  void AddExplosion(char *Name, geVec3d Position);
   void Tick(geFloat dwTicks);
   void UnAttach(geActor *Actor);
 private:

@@ -138,6 +138,12 @@ public:
 	{ return &m_vMoveDif;		}
 	float	GetDistanceMoved()
 	{ return geVec3d_Length( &m_vMoveDif ); }
+	bool	GetAllowMouse1st()
+	{ return allowmouse1st;	}
+	bool	GetAllowMouse3rd()
+	{ return allowmouse3rd;	}
+	bool	GetAllowMouseIso()
+	{ return allowmouseiso;	}
 // end change RF064
 private:
 	//	Member functions
@@ -219,6 +225,9 @@ private:
 	geVec3d		m_vMoveDif;
 	bool		m_bViewChanged;
 	bool		m_bPositionMoved;
+	bool	allowmouse1st;
+	bool	allowmouse3rd;
+	bool	allowmouseiso;
 // end change RF064
 };
 

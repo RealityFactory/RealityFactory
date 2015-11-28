@@ -1413,6 +1413,8 @@ void CPlayer::CheckMouseLook()
 		}
 		if(m_FirstPersonView)
 		{
+			if(!CCD->CameraManager()->GetAllowMouse1st())
+				return;
 			// First person we run both the camera AND the actor
 			if(temppos.y > pos.y) // is it to the top?
 			{
@@ -1439,6 +1441,8 @@ void CPlayer::CheckMouseLook()
 		{
 			if(m_PlayerViewPoint==THIRDPERSON)
 			{
+				if(!CCD->CameraManager()->GetAllowMouse3rd())
+					return;
 				if(CCD->CameraManager()->GetPlayerMouseRotation())
 				{
 					if(temppos.x > pos.x) // is it to the left?
@@ -1477,6 +1481,8 @@ void CPlayer::CheckMouseLook()
 			}
 			else if(m_PlayerViewPoint==ISOMETRIC)
 			{
+				if(!CCD->CameraManager()->GetAllowMouseIso())
+					return;
 				// In third-person the camera handles all the hard work for us.
 				if(temppos.x > pos.x) // is it to the left?
 					CCD->ActorManager()->TurnLeft(Actor, TURN_SPEED);
@@ -4129,6 +4135,7 @@ void CPlayer::UseItem()
 
 	if(m_PlayerViewPoint==FIRSTPERSON)
 	{
+		CCD->Weapons()->Use();
 		CCD->CameraManager()->GetRotation(&theRotation);
 		CCD->CameraManager()->GetPosition(&thePosition);
 		geXForm3d_SetIdentity(&Xf);

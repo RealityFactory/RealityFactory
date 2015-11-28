@@ -243,6 +243,11 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		CCD->TerrainMgr()->SetAllowCloud(!flag);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "ToggleMoveWithCamera"))
+	{
+		CCD->TerrainMgr()->ToggleSkyFollow();
+		return true;
+	}
 	else if (IS_METHOD(methodName, "SetWindDirection"))
 	{
 		PARMCHECK(1);
@@ -1202,4 +1207,12 @@ void qxTerrainMgr::CalculatePlayerLatitude()
 	float f2 = fPlayerLatitude + f + 90.0f; // Shift 90 since matrix assumes we are at north pole
 	m_fPlayerLatitudeRotation = RADIANS( f2 );
 
+}
+
+void qxTerrainMgr::ToggleSkyFollow()
+{
+	if(m_pSkyDome)
+	{
+		m_pSkyDome->ToggleMoveWithCamera();
+	}
 }

@@ -188,6 +188,7 @@ public:
 	void	SetRenderLandscape(bool flag) { m_bRenderLandscape = flag; }
 
 	qxSkyDome*	GetSkyDome() { return m_pSkyDome; }
+	void ToggleSkyFollow();
 
 	geBitmap *GetTexture() { return PolyTex; }
 	void SetTexture(geBitmap *Bitmap) { PolyTex = Bitmap; }

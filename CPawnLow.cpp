@@ -376,6 +376,14 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0, "Melee");
 		return true;
 	}
+	else if (IS_METHOD(methodName, "DamagePlayer"))
+	{
+		PARMCHECK(2);
+		float amount = arguments[0].floatValue();
+		strcpy(param0, arguments[1].str());
+		CCD->Damage()->DamageActor(CCD->Player()->GetActor(), amount, param0, amount, param0, "Melee");
+		return true;
+	}
 	else if (IS_METHOD(methodName, "ChangeMaterial"))
 	{
 		PARMCHECK(1);
@@ -543,6 +551,9 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 			geVec3d_AddScaled (&Pos, &Direction, OffsetX, &Pos);
 			geXForm3d_GetIn(&Xf, &Direction);
 			geVec3d_AddScaled (&Pos, &Direction, OffsetZ, &Pos);
+			Pos.X = OffsetX;
+			Pos.Y = OffsetY;
+			Pos.Z = OffsetZ;
 			CCD->Explosions()->AddExplosion(param0, Pos, Actor, param4);
 		}
 		return true;

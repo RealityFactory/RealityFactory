@@ -208,6 +208,124 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActo
 								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
 								{
 									DelayExp *pool;
+									geXForm3d Xf;
+
+									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
+									memset(pool, 0, sizeof(DelayExp));
+									pool->next = NULL;
+									pool->prev = Bottom;
+									if(Bottom != NULL) Bottom->next = pool;
+										Bottom = pool;
+									pool->Type = k;
+									pool->Offset = Explosions[i].Offset[j];
+									pool->Delay = Explosions[i].Delay[j];
+									geVec3d_Add(&Position, &pool->Offset, &pool->Offset);
+									pool->Attached = false;
+									pool->Actor = theActor;
+									if(theActor)
+									{
+										pool->Bone[0] = '\0';
+										if(theBone!=NULL)
+											strcpy(pool->Bone, theBone);
+										
+										if(pool->Bone[0]!='\0')
+											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
+										else
+											geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+										pool->Position = Xf.Translation;
+										pool->Tilt = false;
+									}
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActor, char *theBone, bool Tilt)
+{
+	int i;
+
+	for(i=0;i<MAXEXP;i++)
+	{
+		if(Explosions[i].Active)
+		{
+			if(!stricmp(Explosions[i].Name, Name))
+			{
+				for(int j=0;j<10;j++)
+				{
+					if(Explosions[i].Effect[j][0] != '\0')
+					{
+						for(int k=0;k<MAXEXPITEM;k++)
+						{
+							if(CCD->Effect()->EffectActive(k))
+							{
+								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
+								{
+									DelayExp *pool;
+									geXForm3d Xf;
+
+									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
+									memset(pool, 0, sizeof(DelayExp));
+									pool->next = NULL;
+									pool->prev = Bottom;
+									if(Bottom != NULL) Bottom->next = pool;
+										Bottom = pool;
+									pool->Type = k;
+									pool->Offset = Explosions[i].Offset[j];
+									pool->Delay = Explosions[i].Delay[j];
+									geVec3d_Add(&Position, &pool->Offset, &pool->Offset);
+									pool->Attached = false;
+									pool->Actor = theActor;
+									if(theActor)
+									{
+										pool->Bone[0] = '\0';
+										if(theBone!=NULL)
+											strcpy(pool->Bone, theBone);
+										
+										if(pool->Bone[0]!='\0')
+											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
+										else
+											geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+										pool->Position = Xf.Translation;
+										pool->Tilt = Tilt;
+									}
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void CExplosionInit::AddExplosion(char *Name, geVec3d Position)
+{
+	int i;
+
+	for(i=0;i<MAXEXP;i++)
+	{
+		if(Explosions[i].Active)
+		{
+			if(!stricmp(Explosions[i].Name, Name))
+			{
+				for(int j=0;j<10;j++)
+				{
+					if(Explosions[i].Effect[j][0] != '\0')
+					{
+						for(int k=0;k<MAXEXPITEM;k++)
+						{
+							if(CCD->Effect()->EffectActive(k))
+							{
+								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
+								{
+									DelayExp *pool;
 									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
 									memset(pool, 0, sizeof(DelayExp));
 									pool->next = NULL;
@@ -219,10 +337,8 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActo
 									pool->Delay = Explosions[i].Delay[j];
 									pool->Position = Position;
 									pool->Attached = false;
-									pool->Actor = theActor;
+									pool->Actor = NULL;
 									pool->Bone[0] = '\0';
-									if(theBone!=NULL)
-										strcpy(pool->Bone, theBone);
 									break;
 								}
 							}
@@ -283,15 +399,15 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					else
 						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 					geVec3d Position = Xf.Translation;
-					geVec3d_Subtract( &pool->Position, &Position, &Position);
-					geVec3d_Add( &Position, &pool->Offset, &pool->Offset);
-
-					Position = Xf.Translation;
 
 					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					if(pool->Tilt)
+						geXForm3d_RotateX(&Xf, CCD->CameraManager()->GetTilt());
+
 					geVec3d Direction;
 					geXForm3d_GetIn(&Xf, &Direction);
-					geVec3d_Inverse( &Direction);
+					if(!pool->Tilt)
+						geVec3d_Inverse( &Direction);
 					geVec3d_AddScaled (&Position, &Direction, pool->Offset.Z, &Position);
 					geXForm3d_GetUp(&Xf, &Direction);
 					geVec3d_AddScaled (&Position, &Direction, pool->Offset.Y, &Position);
@@ -306,21 +422,18 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					case EFF_SPRAY:
 						Spray Sp;
 						geVec3d_Copy( &(Position ), &( Sp.Source ) );
-						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 						geXForm3d_Copy(&Xf, &Sp.Xform);
 						CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
 						break;
 					case EFF_ACTORSPRAY:
 						ActorSpray aSp;
 						geVec3d_Copy( &(Position ), &( aSp.Source ) );
-						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 						geXForm3d_Copy(&Xf, &aSp.Xform);
 						CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
 						break;
 					case EFF_BOLT:
 						EBolt Bl;
 						geVec3d_Copy( &(Position ), &(Bl.Start) );
-						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 						geXForm3d_Copy(&Xf, &Bl.Xform);
 						CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
 					break;
@@ -351,9 +464,14 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				geVec3d Position = Xf.Translation;
 
 				geVec3d Direction;
+
 				geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+				if(pool->Tilt)
+					geXForm3d_RotateX(&Xf, CCD->CameraManager()->GetTilt());
+
 				geXForm3d_GetIn(&Xf, &Direction);
-				geVec3d_Inverse( &Direction);
+				if(!pool->Tilt)
+					geVec3d_Inverse( &Direction);
 				geVec3d_AddScaled (&Position, &Direction, pool->Offset.Z, &Position);
 				geXForm3d_GetUp(&Xf, &Direction);
 				geVec3d_AddScaled (&Position, &Direction, pool->Offset.Y, &Position);
@@ -369,7 +487,6 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				case EFF_SPRAY:
 					Spray Sp;
 					geVec3d_Copy( &(Position ), &( Sp.Source ) );
-					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 					geXForm3d_Copy(&Xf, &Sp.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
 					break;
@@ -398,7 +515,6 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				case EFF_BOLT:
 					EBolt Bl;
 					geVec3d_Copy( &(Position ), &(Bl.Start) );
-					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 					geXForm3d_Copy(&Xf, &Bl.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
 					break;
@@ -406,7 +522,6 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				case EFF_ACTORSPRAY:
 					ActorSpray aSp;
 					geVec3d_Copy( &(Position ), &( aSp.Source ) );
-					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
 					geXForm3d_Copy(&Xf, &aSp.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
 					break;
@@ -496,7 +611,7 @@ void CExplosion::Tick(float dwTicks)
 					if(pSource->active==GE_FALSE)
 					{
 // changed RF063
-						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin, NULL, NULL);
+						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
 						if(pSource->ShakeAmt>0.0f)
 							CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
 						pSource->active=GE_TRUE;
@@ -525,7 +640,7 @@ void CExplosion::Tick(float dwTicks)
 				if(pSource->active==GE_FALSE)
 				{
 // changed RF063
-					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin, NULL, NULL);
+					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
 					if(pSource->ShakeAmt>0.0f)
 						CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
 					pSource->active=GE_TRUE;
