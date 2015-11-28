@@ -6,6 +6,13 @@ Collider.cpp	:	Collision and Contents Checking Class
   detailed actor collision code and the high level of checking it
   performs.
   
+Edit History:
+
+ 07/15/2004 Wendell Buckner
+  BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+  overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+  the bone bounding boxes until the whatever hit the overall bounding box no longer exists. 
+
 */
 
 //	You only need the one, master include file.
@@ -313,15 +320,19 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	GE_Contents Contents;
 	int Result, Result2;
 	
-	Result = geWorld_Collision(CCD->World(), Min, 
-		Max, &OldPosition, &NewPosition, kCollideFlags, 
+	Result = geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_ACTORS, 0xffffffff, NULL, NULL, &Collision);
 	
 	if((Result == GE_FALSE) && (geWorld_Collision(CCD->World(), Min, 
 		Max, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision) == GE_TRUE))
 		Result = GE_TRUE;
-	
+
+// changed QuestOfDreams 01/2004
+	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, NULL))
+		Result = GE_TRUE;
+// end change	
+
 	//	Only do a GetContents if we're not doing a ray collision AND there
 	//	..wasn't a geWorld collision detected.
 	
@@ -371,16 +382,20 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 {
 	GE_Contents Contents;
 	int Result, Result2;
-	
-	Result = geWorld_Collision(CCD->World(), Min, 
-		Max, &OldPosition, &NewPosition, kCollideFlags, 
+
+	Result = geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_ACTORS, 0xffffffff, NULL, NULL, Collision);
 	
 	if((Result == GE_FALSE) && (geWorld_Collision(CCD->World(), Min, 
 		Max, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
 		Result = GE_TRUE;
-	
+
+// changed QuestOfDreams 01/2004
+	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
+		Result = GE_TRUE;
+// end change
+
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
 	{
 		Result2 = geWorld_GetContents(CCD->World(), 
@@ -571,6 +586,16 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	Result = geWorld_Collision(CCD->World(), Min, 
 		Max, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_ACTORS, 0xffffffff, CBExclusion, Actor, Collision);
+
+// changed QuestOfDreams 01/2004
+	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
+	{
+		Result = GE_TRUE;
+		Collision->Mesh = (geMesh*)CCD->Meshes();// just give it a pointer
+		Collision->Model = NULL;
+		Collision->Actor = NULL;
+	}		
+// end change
 
 	if((Result == GE_FALSE) && (geWorld_Collision(CCD->World(), Min, 
 		Max, &OldPosition, &NewPosition, kCollideFlags, 
@@ -899,10 +924,21 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 	
 	memset(&Contents, 0, sizeof(GE_Contents));
 	
+	
 	int Result = geWorld_GetContents(CCD->World(), 
 		thePoint, &theBox->Min, &theBox->Max, GE_COLLIDE_ACTORS, 
 		0xffffffff, CBExclusion, Actor, &Contents);
-	
+
+// changed QuestOfDreams 01/2004
+	geVec3d temp;
+	geVec3d_Add(thePoint, &theBox->Max, &temp);
+	if((Result == GE_FALSE) &&CCD->Meshes()->CollisionCheck(&theBox->Min, &theBox->Max, *thePoint, temp, NULL))
+	{ 
+		Contents.Mesh=(geMesh*)CCD->Meshes();
+		Result=GE_TRUE;
+	}
+// end change
+
 	if((Result == GE_FALSE) && (geWorld_GetContents(CCD->World(), 
 		thePoint, &theBox->Min, &theBox->Max, GE_COLLIDE_MODELS, 
 		0xffffffff, NULL, NULL, &Contents) == GE_TRUE))
@@ -927,6 +963,7 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 				Result = GE_FALSE; 
 		}
 	}
+
 	
 	if(Result == GE_FALSE)
 	{
@@ -1493,6 +1530,11 @@ geBoolean Collider::Probe(geXForm3d theXForm, float fDistance, GE_Collision *the
 	geBoolean ItHit = geWorld_Collision(CCD->World(), NULL, NULL,
 		&Start, &End, kCollideFlags, GE_COLLIDE_ALL, 
 		0xffffffff, NULL, NULL, theCollision);
+
+// changed QuestOfDreams
+	if(ItHit==GE_FALSE)
+		ItHit=CCD->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
+// end change
 	
 	return ItHit;					// Return collision status
 }
@@ -1522,6 +1564,11 @@ geBoolean Collider::Probe(geXForm3d theXForm, float fDistance, GE_Collision *the
 	geBoolean ItHit = geWorld_Collision(CCD->World(), NULL, NULL,
 		&Start, &End, kCollideFlags, GE_COLLIDE_ALL, 
 		0xffffffff, CBExclusion, theActor, theCollision);
+
+// changed QuestOfDreams
+	if(ItHit==GE_FALSE)
+		ItHit=CCD->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
+// end change
 	
 	return ItHit;					// Return collision status
 }
@@ -1592,7 +1639,7 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 		if(aType==ENTITY_PROJECTILE)
 			bShoot = true;
 	}
-	
+
 	if(theCollision.Model != NULL)
 	{
 		// We hit a world model.  Check each kind of world model that
@@ -1699,6 +1746,10 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 			break;
 		}
 	}
+// changed QuestOfDreams 01/2004
+	if(theCollision.Mesh!= NULL)
+		return kCollideMesh;
+// end change
 	
 	return kNoCollision;
 }
@@ -1979,6 +2030,147 @@ void Collider::Debug()
 
 }
 
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
+bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
+								 geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
+								 geActor *Actor, char *BoneHit, bool BoneLevel, void *CollisionObject )
+{
+	GE_Contents Contents;
+	int Result, Result1;
+    
+	memset(Collision, 0, sizeof(GE_Collision));
+
+	geActor *pActor;
+	geFloat T;
+	geVec3d Normal;
+
+	geBoolean RayHitActor = GE_FALSE;
+
+	RayHitActor = CCD->ActorManager()->DoesRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject ); 
+
+	if (!RayHitActor && BoneLevel )
+		RayHitActor = CCD->ActorManager()->DidRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject ); 
+
+	if( RayHitActor )
+	{
+		Collision->Actor = pActor;
+		Collision->Model = NULL;
+		Collision->Plane.Normal = Normal;
+		geVec3d Vec;
+		geVec3d_Subtract(&NewPosition, &OldPosition, &Vec);
+		float len = geVec3d_Length(&Vec);
+		geVec3d_Normalize(&Vec);
+		geVec3d_AddScaled(&OldPosition, &Vec, len*T, &Collision->Impact);
+
+		if(!BoneLevel)
+			return true;
+
+		int TotalStaticBoneCount = geActor_GetBoneCount(Collision->Actor);
+		geExtBox theStaticBoneBox;
+		for(int nStatic = 0; nStatic < TotalStaticBoneCount; nStatic++)
+		{
+			// The bone bounding box comes back in worldspace coordinates...
+			if(geActor_GetBoneExtBoxByIndex(Collision->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)
+				continue;								// Nothing here, skip it
+
+			if(geExtBox_RayCollision(&theStaticBoneBox, &OldPosition, &NewPosition,
+				&T, &Normal)==GE_TRUE)
+			{
+				geXForm3d Attachment;
+				int ParentBoneIndex;
+				const char *BoneName;
+				geBody_GetBone(geActor_GetBody(geActor_GetActorDef(Collision->Actor)),
+					nStatic, &BoneName, &Attachment, &ParentBoneIndex); 
+
+				if(BoneName!=NULL)
+					strcpy(BoneHit, BoneName);
+
+				if ( BoneName )
+					CCD->ActorManager()->SetLastBoneHit ( pActor, BoneName );
+
+				return true;
+			}
+		}
+	}
+
+	memset(Collision, 0, sizeof(GE_Collision));
+
+	Result = GE_FALSE;
+	if(geWorld_Collision(CCD->World(), NULL, 
+		NULL, &OldPosition, &NewPosition, kCollideFlags, 
+		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
+	{
+		Collision->Actor = NULL;
+		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+			return true;
+		else
+			Collision->Model = NULL;
+	}
+
+	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
+	{
+		Result1 = geWorld_GetContents(CCD->World(), 
+			&NewPosition, Min, Max, GE_COLLIDE_MODELS, 
+			0xffffffff, NULL, NULL, &Contents);
+
+		if(Result1 == GE_TRUE)
+		{
+			Contents.Actor = NULL;
+			if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+				Result = GE_FALSE;
+			else if((Contents.Contents & GE_CONTENTS_HINT))
+			{
+				Result = GE_FALSE;
+			}
+/*			else if((Contents.Contents & GE_CONTENTS_AREA))
+			{
+				Result = GE_FALSE;
+			} */
+			else
+			{
+				Result = GE_TRUE;
+				if(CCD->Doors()->IsADoor(Contents.Model))
+					Result = GE_FALSE; 
+			}
+		}
+		if(Result == GE_FALSE)
+		{
+			geWorld_Model *pModel;
+			geExtBox pBox;
+			pBox.Min.X = Min->X + NewPosition.X;
+			pBox.Min.Y = Min->Y + NewPosition.Y;
+			pBox.Min.Z = Min->Z + NewPosition.Z;
+			pBox.Max.X = Max->X + NewPosition.X;
+			pBox.Max.Y = Max->Y + NewPosition.Y;
+			pBox.Max.Z = Max->Z + NewPosition.Z; 
+
+			Contents.Model = NULL;
+			Contents.Actor = NULL;
+			// Gotta check to see if we're hitting a world model
+			if(CCD->ModelManager()->DoesBoxHitModel(NewPosition, pBox, &pModel) == GE_TRUE)
+			{
+				Contents.Model = pModel;		// Model we hit
+				Result = GE_TRUE;					// Sorry, you can't be here...
+			} 
+		}
+		if(Result==GE_TRUE)
+		{
+			// Fill collision struct with information
+			Collision->Mesh = Contents.Mesh;
+			Collision->Model = Contents.Model;
+			Collision->Actor = NULL;
+			Collision->Impact = OldPosition;
+			return true;
+		} 
+	}
+
+	return false;
+}
+
+//***
 
 bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 								 geVec3d OldPosition, geVec3d NewPosition, GE_Collision *Collision,
@@ -1989,6 +2181,15 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
+// changed QuestOfDreams 01/2004
+	if(CCD->Meshes()->CollisionCheck(NULL,NULL,/*Min, Max,*/ OldPosition, NewPosition, Collision))
+	{
+		Collision->Mesh = (geMesh*)CCD->Meshes();
+		Collision->Actor = NULL;
+		Collision->Model = NULL;
+		return true;
+	}
+// end change
 	geActor *pActor;
 	geFloat T;
 	geVec3d Normal;
@@ -2000,8 +2201,11 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 		Collision->Plane.Normal = Normal;
 		geVec3d Vec;
 		geVec3d_Subtract(&NewPosition, &OldPosition, &Vec);
-		float len = geVec3d_Length(&Vec);
-		geVec3d_Normalize(&Vec);
+// changed QuestOfDreams 01/2004
+//		float len = geVec3d_Length(&Vec);
+//		geVec3d_Normalize(&Vec);
+		float len = geVec3d_Normalize(&Vec);
+// end change
 		geVec3d_AddScaled(&OldPosition, &Vec, len*T, &Collision->Impact);
 
 		if(!BoneLevel)
@@ -2045,6 +2249,8 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 		else
 			Collision->Model = NULL;
 	}
+
+
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
 	{

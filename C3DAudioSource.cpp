@@ -62,6 +62,14 @@ C3DAudioSource::C3DAudioSource()
       if(!EffectC_IsStringNull(pSource->szSoundFile))
       {
          SPool_Sound(pSource->szSoundFile);
+		 // changed QD 02/12/2005
+		 // set the entity active if there's no trigger
+		 if(EffectC_IsStringNull(pSource->TriggerName))
+		 {
+			 pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius, pSource->bLoopSound);
+			 pSource->active=true;
+		 }
+		 // end change
       }
       //Start Aug2003DCS
       pSource->ProgrammedTrigger = GE_FALSE;
@@ -142,8 +150,8 @@ void C3DAudioSource::Tick(float dwTicks)
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-  if(Count == 0)
-	  return;						// Don't waste CPU cycles
+	if(Count == 0)
+		return;						// Don't waste CPU cycles
 
 //	Ok, check to see if there are 3D audio sources in this world
 
@@ -158,43 +166,45 @@ void C3DAudioSource::Tick(float dwTicks)
 	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		
 		if(!EffectC_IsStringNull(pSource->TriggerName))
 		{
-         //Start Aug2003DCS
-         if( ((strcmp(pSource->TriggerName,"*Programmed*") == 0) && pSource->ProgrammedTrigger) ||
+        //Start Aug2003DCS
+			if( ((strcmp(pSource->TriggerName,"*Programmed*") == 0) && pSource->ProgrammedTrigger) ||
              ((strcmp(pSource->TriggerName,"*Programmed*") != 0) && GetTriggerState(pSource->TriggerName)) )
 			{
 				if(pSource->active==false)
 				{
 					pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius, pSource->bLoopSound);
 					pSource->active=true;
-               if (!pSource->bLoopSound)
-                  pSource->ProgrammedTrigger = GE_FALSE;
+					if (!pSource->bLoopSound)
+						pSource->ProgrammedTrigger = GE_FALSE;
 				}
 			}
 			else
 			{
-            if (pSource->bLoopSound)
-            {
-				   if(pSource->effect[0]!=-1)
-				   {
+				if (pSource->bLoopSound)
+				{
+					if(pSource->effect[0]!=-1)
+					{	
     					CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect[0]);
-					   pSource->effect[0]=-1;
-				   }
-				   pSource->active=false;
-            }
-            else
-            {
-				   if ((pSource->effect[0]!=-1) && !CCD->EffectManager()->Item_Alive(pSource->effect[0]))
-				   {
+						pSource->effect[0]=-1;
+					}
+					pSource->active=false;
+				}
+				else
+				{
+					if ((pSource->effect[0]!=-1) && !CCD->EffectManager()->Item_Alive(pSource->effect[0]))
+					{
     					CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect[0]);
-					   pSource->effect[0]=-1;
-				   }
-				   pSource->active=false;
-            }
+						pSource->effect[0]=-1;
+					}
+					pSource->active=false;
+				}
 			}
-         //End Aug2003DCS
-      }
+        //End Aug2003DCS
+		}
+		
 		if(pSource->active==GE_TRUE)
 		{
 			pSource->origin = pSource->OriginOffset;
@@ -233,13 +243,14 @@ int C3DAudioSource::SetProgrammedTrigger(char *szName, geBoolean Flag)
 	
 	//	Ok, we have 3D audio sources.  Dig through 'em all.
 	
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity; pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity; 
+		pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity)) 
 	{
 		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
 		if(strcmp(pSource->szEntityName, szName) == 0)
 		{
-         pSource->ProgrammedTrigger = Flag;
-         return RGF_SUCCESS;
+			pSource->ProgrammedTrigger = Flag;
+			return RGF_SUCCESS;
 		}
 	}
 	
@@ -270,10 +281,10 @@ geBoolean C3DAudioSource::IsPlaying(char *szName)
 		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
 		if(strcmp(pSource->szEntityName, szName) == 0)
 		{
-         if (pSource->effect[0]!=-1)
-            return GE_TRUE;
-         else
-            return GE_FALSE;
+			if (pSource->effect[0]!=-1)
+				return GE_TRUE;
+			else
+				return GE_FALSE;
 		}
 	}
 	
@@ -305,14 +316,14 @@ int C3DAudioSource::LocateEntity(char *szName, void **pEntityData)
 
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
-		{
+	{
 		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
 		if(strcmp(pSource->szEntityName, szName) == 0)
-		  {
+		{
 			*pEntityData = (void *)pSource;
 			return RGF_SUCCESS;
-			}
 		}
+	}
 
   return RGF_NOT_FOUND;								// Sorry, no such entity here
 }

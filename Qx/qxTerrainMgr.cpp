@@ -33,7 +33,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName)
+
+TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //change simkin
 {
 	Order[0] = '\0';
 	ElapseTime = 0.0f;
@@ -44,7 +45,7 @@ TerrainObject::~TerrainObject()
 {
 }
 
-bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
+bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)
 {
 	char param0[128];
 	float param1;
@@ -283,7 +284,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 	}
 	else
 	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue);
+		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt);
 	}
 }
 
@@ -482,13 +483,13 @@ bool qxTerrainMgr::Init()
 				} 
 				if(!EffectC_IsStringNull(pSource->InitOrder))
 				{
-					skRValueArray args(1);
+					skRValueArray args;//change simkin
 					skRValue ret;
 
 					strcpy(Object->Order, pSource->InitOrder);
 					try
 					{
-						Object->method(skString(Object->Order), args, ret);
+						Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
 					}
 					catch(skRuntimeException e)
 					{
@@ -659,12 +660,12 @@ bool qxTerrainMgr::Frame()
 	{
 		if(!EffectC_IsStringNull(Object->Order))
 		{
-			skRValueArray args(1);
+			skRValueArray args; //change simkin
 			skRValue ret;
 
 			try
 			{
-				Object->method(skString(Object->Order), args, ret);
+				Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
 			}
 			catch(skRuntimeException e)
 			{
@@ -871,6 +872,7 @@ bool qxTerrainMgr::Render()
 
 void qxTerrainMgr::Draw()
 {
+
 	if(!Initialized)
 		return;
 
@@ -1060,7 +1062,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	m_pTerrainDefinitionFile->m_pTerrainDef->MapOffsetIndexX = OffsetX;
 	m_pTerrainDefinitionFile->m_pTerrainDef->MapOffsetIndexZ = OffsetZ;
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = GetFarPlane();
-	m_pTerrainDefinitionFile->m_pTerrainDef->m_eType = TT_LAND;
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_eType = TT_LAND; // water mod
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_eHeightFieldSourceType = HEIGHTFIELD_GREY_BMP;
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = CCD->TerrainMgr()->GetFarPlane();
 

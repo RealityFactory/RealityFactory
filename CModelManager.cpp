@@ -381,8 +381,7 @@ bool CModelManager::HasMoved(geWorld_Model *theModel)
 {
    ModelInstanceList *pEntry = FindModel(theModel);
    if(pEntry == NULL)
-      return false;					// Model not managed by us...
-   
+      return false;				// Model not managed by us... 
    return pEntry->bHasMoved;
 }
 
@@ -1880,7 +1879,7 @@ ModelInstanceList *CModelManager::FindModel(geWorld_Model *theModel)
       if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
          return MainList[nTemp];			// Entry to caller
    }
-   
+
    return NULL;										// Heh, not found, sucker!
 }
 

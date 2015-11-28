@@ -23,6 +23,9 @@ void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height);
 static int GetGammaPercent();
 static void SetGamma(int percent);
 static void SetDetail(int percent);
+// changed QD Shadows
+static void SetStencilShadows(int current);
+// end change
 static void SetSens(int percent);
 static void SetVol(int percent);
 static void SetmVol(int percent);
@@ -494,7 +497,7 @@ Keyname Rename[] =
 	{"O", KEY_O},
 	{"P", KEY_P},
 	{"Return", KEY_RETURN},
-	{"Cntrl", KEY_CONTROL},
+	{"Ctrl", KEY_CONTROL},
 	{"A", KEY_A},
 	{"S", KEY_S},
 	{"D", KEY_D},
@@ -663,12 +666,15 @@ MenuItem ControlMenu[] =
 //-------------------------------------
 
 Clickable QuitVideo = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Text gam_text =     {0, "", 0};
+Text gam_text		= {0, "", 0};
 Image Gamma_Img     = {0, 0, 0, 0, 0, -1};
 Slider Gamma_Slide  = {0, 0, 0, 0, 0, 0, 0, 0, 0, SetGamma, -1};
-Text det_text =     {0, "", 0};
-Image Detail_Img     = {0, 0, 0, 0, 0, -1};
-Slider Detail_Slide  = {0, 0, 0, 0, 0, 0, 0, 0, 0, SetDetail, -1};
+Text det_text		= {0, "", 0};
+Image Detail_Img    = {0, 0, 0, 0, 0, -1};
+Slider Detail_Slide = {0, 0, 0, 0, 0, 0, 0, 0, 0, SetDetail, -1};
+// changed QD Shadows
+Box ShadowBox		= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetStencilShadows, -1, -1, -1};
+Text shadow_text	= {0, "", 0};
 
 MenuItem VideoMenu[] = 
 {
@@ -679,9 +685,11 @@ MenuItem VideoMenu[] =
 	{TEXT,      0, 0, (void *)&det_text},
 	{IMAGE,     0, 0, (void *)&Detail_Img},
 	{SLIDER,    0, 0, (void *)&Detail_Slide},
+	{BOX,		0, 0, (void *)&ShadowBox},
+	{TEXT,		0, 0, (void *)&shadow_text},
 	{END_LIST, 0, 0, NULL}
 };
-
+// end change
 //-------------------------------------
 // Audio Menu
 //-------------------------------------
@@ -1122,6 +1130,10 @@ CRFMenu::CRFMenu()
 	int i;
 	
 	// start multiplayer
+
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Initializing Network...", false);
+	// 08.05.2004 - end change gekido
 	if(CCD->GetNetwork())
 	{
 		if(nlSelectNetwork(NL_IP))
@@ -1187,6 +1199,9 @@ CRFMenu::CRFMenu()
 	filter_text.text = strdup("Mouse filter");
 	rev_text.text = strdup("Reverse mouse");
 	xhair_text.text = strdup("Crosshair");
+// changed QD Shadows
+	shadow_text.text = strdup("Enable Stencil Shadows");
+// end change
 
 	L1text.text = NULL;
 	L2text.text = NULL;
@@ -1194,6 +1209,9 @@ CRFMenu::CRFMenu()
 	L4text.text = NULL;
 	L5text.text = NULL;
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Loading Menu.ini...", false);
+	// 08.05.2004 - end change gekido
 	LoadMenuIni(CCD->MenuIni());
 	// end change QuestOfDreams
 	
@@ -1222,6 +1240,9 @@ CRFMenu::CRFMenu()
 	// changed RF064
 	if(CCD->GetCSelect())
 	{
+		// 08.05.2004 - begin change gekido
+		CCD->ReportError("Loading Character.ini...", false);
+		// 08.05.2004 - end change gekido
 		CIniFile AttrFile("character.ini");
 		if(!AttrFile.ReadFile())
 		{
@@ -1304,6 +1325,13 @@ CRFMenu::CRFMenu()
 				CharSelect[MaxSelect].AmbientColor.g = AmbientColor.Y;
 				CharSelect[MaxSelect].AmbientColor.b = AmbientColor.Z;
 				CharSelect[MaxSelect].AmbientColor.a = 255.0f;
+
+				// changed QD 07/21/04
+				CharSelect[MaxSelect].AmbientLightFromFloor = true;
+				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+				if(Type=="false")
+					CharSelect[MaxSelect].AmbientLightFromFloor = false;
+				// end change
 				
 				CharSelect[MaxSelect].Attribute[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "attributefile");
@@ -1370,13 +1398,19 @@ CRFMenu::CRFMenu()
 	
 	// end change RF063
 	// initalize all menu items that need it
-	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Initializing Menu", false);
+	// 08.05.2004 - end change gekido
+
 	MenuInitalize(); 
 }
 
 // changed QuestOfDreams Language Menu
 void CRFMenu::LoadMenuIni(char *menuini)
 {
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Parsing Menu.ini...", false);
+	// 08.05.2004 - end change gekido
 	geVFile *MainFS;
 	geVFile *SecondFS;
 	geBitmap_Info	BmpInfo;
@@ -2670,6 +2704,31 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				// changed RF063
 				Detail_Slide.Animation = NextValue();
 			}
+// changed QD Shadows
+			else if(!stricmp(szAtom,"shadowbox"))
+			{
+				VideoMenu[7].X = NextValue();
+				VideoMenu[7].Y = NextValue();
+				ShadowBox.Image_Number = NextValue();
+				ShadowBox.Width = NextValue();
+				ShadowBox.Height = NextValue();
+				ShadowBox.Image_X = NextValue();
+				ShadowBox.Image_Y = NextValue();
+				ShadowBox.Mover_X = NextValue();
+				ShadowBox.Mover_Y = NextValue();
+				ShadowBox.Set_X = NextValue();
+				ShadowBox.Set_Y = NextValue();
+				ShadowBox.Animation = NextValue();
+				ShadowBox.AnimationOver = NextValue();
+				ShadowBox.AnimationLit = NextValue();
+			}
+			else if(!stricmp(szAtom,"shadowtext"))
+			{
+				VideoMenu[8].X = NextValue();
+				VideoMenu[8].Y = NextValue();
+				shadow_text.Font = NextFont();
+			}
+// end change
 			else if(!stricmp(szAtom,"advance"))
 			{
 				ControlMenu[0].X = NextValue();
@@ -2981,7 +3040,8 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				}
 			}
 			// changed RF063
-			else if(!stricmp(szAtom,"select"))
+			//else
+			if(!stricmp(szAtom,"select"))
 			{
 				SelectBack = NextValue();
 				SelectTitle = NextValue();
@@ -3059,7 +3119,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				strcpy(Savemsg, strtok(NULL,"\n"));
 			}
 			// end change RF063
-			if(!stricmp(szAtom,"difficult"))
+			else if(!stricmp(szAtom,"difficult"))
 			{
 				DifficultBack = NextValue();
 				DifficultTitle = NextValue();
@@ -3137,6 +3197,13 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				free(det_text.text);
 				det_text.text = strdup(NextString());
 			}
+// changed QD Shadows
+			else if(!stricmp(szAtom,"vshadowtext"))
+			{
+				free(shadow_text.text);
+				shadow_text.text = strdup(NextString());
+			}
+// end change
 			else if(!stricmp(szAtom,"volumetext"))
 			{
 				free(vol_text.text);
@@ -3258,7 +3325,9 @@ CRFMenu::~CRFMenu()
 	free(filter_text.text);
 	free(rev_text.text);
 	free(xhair_text.text);
-
+// changed QD Shadows
+	free(shadow_text.text);
+// end change
 
 	// free click sounds
 	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
@@ -3334,6 +3403,11 @@ CRFMenu::~CRFMenu()
 
 int CRFMenu::DoMenu(char *levelname)
 {
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Entering CRFMenu::DoMenu()", false);
+	CCD->ReportError("Creating Camera", false);
+	// 08.05.2004 - end change gekido
+
 	M_CameraRect.Left = 0;
 	M_CameraRect.Right = CCD->Engine()->Width() - 1;
 	M_CameraRect.Top = 0;
@@ -3353,6 +3427,9 @@ int CRFMenu::DoMenu(char *levelname)
 	
 	FadeSet(-1, TimeFade);
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Entering ProcessMenu...", false);
+	// 08.05.2004 - end change gekido
 	int ret = ProcessMenu(MainMenu, MainBack, MainTitle);
 	
 	if(musictype!=-1)
@@ -3365,6 +3442,10 @@ int CRFMenu::DoMenu(char *levelname)
 			delete m_Streams;
 		}
 	}
+
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Saving Attributes & Settings files...", false);
+	// 08.05.2004 - end change gekido
 
 	if(ingame==1)
 		CCD->Player()->SaveAttributesAscii("attributes.txt");
@@ -3384,9 +3465,15 @@ int CRFMenu::DoMenu(char *levelname)
 		fwrite(&box4.Current, sizeof(int), 1, fd);
 		fwrite(&Detail_Slide.Current, sizeof(int), 1, fd);
 		fwrite(&mVol_Slide.Current, sizeof(int), 1, fd);
+// changed QD Shadows
+		fwrite(&ShadowBox.Current, sizeof(int), 1, fd);
+// end change
 		fclose(fd);
 	}	 
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Destroying Camera...", false);
+	// 08.05.2004 - end change gekido
 	geCamera_Destroy(&M_Camera);
 	return ret;
 }
@@ -3414,6 +3501,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	TextEdit *tedata;
 	// end multiplayer
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("CRFMenu::ProcessMenu Entered", false);
+	// 08.05.2004 - end change gekido
+
 	geBitmap_GetInfo(Backgrounds[Background_Number], &BmpInfo, NULL);
 	x = (CCD->Engine()->Width() - DesignX) / 2;
 	y = (CCD->Engine()->Height() - DesignY) / 2;
@@ -3454,7 +3545,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	// start multiplayer
 	textedit_click=-1;
 	// end multiplayer
-	
+
 	POINT pos;
 	if(!CCD->Engine()->FullScreen())
 	{
@@ -3464,6 +3555,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		pos.y = client.top;
 		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);
 	}
+
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Entering Windows Message Loop, Rendering Game Menu", false);
+	// 08.05.2004 - end change gekido
 	
 	for(;;)
 	{
@@ -3503,7 +3598,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			if(savescrbmp == (geBitmap *)NULL)
 			{
 				char szBug[256];
-				sprintf(szBug, "Bad file name %s", filename);
+				sprintf(szBug, "CRFMenu::ProcessMenu - Bad SaveGame Screenshot File Name %s", filename);
 				CCD->ReportError(szBug, false);
 				exit(-100);
 			}
@@ -3994,354 +4089,338 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
 					}
 				}
-	   }
-	   
-	   if(Menu[i].Type==SCROLLBAR)
-	   {
-		   geBitmap *theBmp;
-		   bool up = false;
-		   bool dwn = false;
-		   scdata=(ScrollBar *)Menu[i].data;
-		   if(scdata->AnimationUp<0 || Animation[scdata->AnimationUp]==NULL)
-		   {
-			   BitRect.Left=scdata->Up_Nor_X;
-			   BitRect.Top=scdata->Up_Nor_Y;
-			   BitRect.Right=scdata->Up_Nor_X+scdata->Up_Width;
-			   BitRect.Bottom=scdata->Up_Nor_Y+scdata->Up_Height;
-			   if(scdata->Up_Width>0 && scdata->Up_Height>0)
-					DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-		   }
-		   else
-		   {
-			   up = true;
-		   }
-		   if(scdata->AnimationDwn<0 || Animation[scdata->AnimationDwn]==NULL)
-		   {
-			   BitRect.Left=scdata->Dwn_Nor_X;
-			   BitRect.Top=scdata->Dwn_Nor_Y;
-			   BitRect.Right=scdata->Dwn_Nor_X+scdata->Dwn_Width;
-			   BitRect.Bottom=scdata->Dwn_Nor_Y+scdata->Dwn_Height;
-			   if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
-					DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-		   }
-		   else
-		   {
-			   dwn = true;
-		   }
-		   
-		   if((temppos.x>=Menu[i].X+x+scdata->Up_X) && (temppos.x<=(Menu[i].X+x+scdata->Up_X+scdata->Up_Width)) && (temppos.y>=Menu[i].Y+y+scdata->Up_Y) && (temppos.y<=(Menu[i].Y+y+scdata->Up_Y+scdata->Up_Height)) && slide_click==-1)
-		   {
-			   if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-			   {
-				   if(scdata->AnimationUpPush<0 || Animation[scdata->AnimationUpPush]==NULL)
-				   {
-					   BitRect.Left=scdata->Up_Push_X;
-					   BitRect.Top=scdata->Up_Push_Y;
-					   BitRect.Right=scdata->Up_Push_X+scdata->Up_Width;
-					   BitRect.Bottom=scdata->Up_Push_Y+scdata->Up_Height;
-					   if(scdata->Up_Width>0 && scdata->Up_Height>0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-				   }
-				   else
-				   {
-					   theBmp = Animation[scdata->AnimationUpPush]->NextFrame(true);
-					   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-				   }
-				   up = false;
-				   scroll_click=i;
-				   scroll_dir = 0;
-			   }
-			   else
-			   {
-				   if(scdata->AnimationUpOver<0 || Animation[scdata->AnimationUpOver]==NULL)
-				   {
-					   BitRect.Left=scdata->Up_Lit_X;
-					   BitRect.Top=scdata->Up_Lit_Y;
-					   BitRect.Right=scdata->Up_Lit_X+scdata->Up_Width;
-					   BitRect.Bottom=scdata->Up_Lit_Y+scdata->Up_Height;
-					   if(scdata->Up_Width>0 && scdata->Up_Height>0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-				   }
-				   else
-				   {
-					   theBmp = Animation[scdata->AnimationUpOver]->NextFrame(true);
-					   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-				   }
-				   up = false;
-			   }
-		   }
-		   if(up)
-		   {
-			   theBmp = Animation[scdata->AnimationUp]->NextFrame(true);
-			   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
-		   }
-		   if((temppos.x>=Menu[i].X+x+scdata->Dwn_X) && (temppos.x<=(Menu[i].X+x+scdata->Dwn_X+scdata->Dwn_Width)) && (temppos.y>=Menu[i].Y+y+scdata->Dwn_Y) && (temppos.y<=(Menu[i].Y+y+scdata->Dwn_Y+scdata->Dwn_Height)) && slide_click==-1)
-		   {
-			   if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-			   {
-				   if(scdata->AnimationDwnPush<0 || Animation[scdata->AnimationDwnPush]==NULL)
-				   {
-					   BitRect.Left=scdata->Dwn_Push_X;
-					   BitRect.Top=scdata->Dwn_Push_Y;
-					   BitRect.Right=scdata->Dwn_Push_X+scdata->Dwn_Width;
-					   BitRect.Bottom=scdata->Dwn_Push_Y+scdata->Dwn_Height;
-					   if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-				   }
-				   else
-				   {
-					   theBmp = Animation[scdata->AnimationDwnPush]->NextFrame(true);
-					   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-				   }
-				   dwn = false;
-				   scroll_click=i;
-				   scroll_dir = 1;
-			   }
-			   else 
-			   {
-				   if(scdata->AnimationDwnOver<0 || Animation[scdata->AnimationDwnOver]==NULL)
-				   {
-					   BitRect.Left=scdata->Dwn_Lit_X;
-					   BitRect.Top=scdata->Dwn_Lit_Y;
-					   BitRect.Right=scdata->Dwn_Lit_X+scdata->Dwn_Width;
-					   BitRect.Bottom=scdata->Dwn_Lit_Y+scdata->Dwn_Height;
-					   if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-				   }
-				   else
-				   {
-					   theBmp = Animation[scdata->AnimationDwnOver]->NextFrame(true);
-					   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-				   }
-				   dwn = false;
-			   }
-		   } 
-		   if(dwn)
-		   {
-			   theBmp = Animation[scdata->AnimationDwn]->NextFrame(true);
-			   DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
-		   }
-	   }
-	   
-	   if(Menu[i].Type==LSBOX)
-	   {
-		   lrdata=(LSBox *)Menu[i].data;
-		   Savedef *Kdata = lrdata->text;
-		   if(lrdata->Max==-1)
-		   {
-			   lrdata->Max=0;
-			   while(Kdata[lrdata->Max].text!=NULL)
-			   {
-				   lrdata->Max+=1;
-			   }
-		   } 
-		   BitRect.Left=lrdata->Image_X;
-		   BitRect.Top=lrdata->Image_Y;
-		   BitRect.Right=lrdata->Image_X+lrdata->Width;
-		   BitRect.Bottom=lrdata->Image_Y+lrdata->Height;
-		   if(lrdata->Width>0 && lrdata->Height>0)
-				DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y );
-		   int tempstep=0; 
-		   for(int j=lrdata->Start;j<lrdata->Max;j++)
-		   {
-			   if(j<(lrdata->Start+lrdata->Max_Show))
-			   {
-				   char *s;
-				   
-				   if(j==lrdata->Current)
-				   {
-					   BitRect.Left=lrdata->Rev_X;
-					   BitRect.Top=lrdata->Rev_Y;
-					   BitRect.Right=lrdata->Rev_X+lrdata->Rev_Width;
-					   BitRect.Bottom=lrdata->Rev_Y+lrdata->Rev_Height;
-					   if(lrdata->Width>0 && lrdata->Height>0)
-							DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x+lrdata->Corner_X, Menu[i].Y+y+lrdata->Corner_Y+tempstep );
-				   }
-				   s=Kdata[j].text;
-				   MFontRect(s, lrdata->Font, Menu[i].X+x+lrdata->Start_X, Menu[i].Y+y+lrdata->Start_Y+tempstep);
-			   } 
-			   tempstep+=lrdata->Step;
-		   } 
-		   if((temppos.x>=Menu[i].X+x+lrdata->Corner_X) && (temppos.x<=(Menu[i].X+x+lrdata->Corner_X+lrdata->Click_Width)) && (temppos.y>=Menu[i].Y+y+lrdata->Corner_Y) && (temppos.y<=(Menu[i].Y+y+lrdata->Corner_Y+(lrdata->Max_Show*lrdata->Step))) && slide_click==-1)
-		   {
-			   if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-			   {
-				   lsbox_click=i;
-				   lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
-			   }
-		   } 
-		    // Show save game image
-    		// begin add Nout
-			BitRect.Left=SaveScreen.Image_X;
-			BitRect.Top=SaveScreen.Image_Y;
-			BitRect.Right=SaveScreen.Image_X+SaveScreen.Width;
-			BitRect.Bottom=SaveScreen.Image_Y+SaveScreen.Height;
-			if(SaveScreen.Width>0 && SaveScreen.Height>0)
-			    DrawBitmap(savescrbmp, &BitRect, SaveScreen.X, SaveScreen.Y);
-            if(LastCurrent==lrdata->Current)
-				NotVisible=0;
-            else
-			{
-				NotVisible=1;  //set a flag to load the bitmap .BMP file
-				LastCurrent=lrdata->Current; //ensure the bitmap is loaded only when a new has to be loaded
 			}
-			// end add Nout
-	   }
+
 	   
-	}
+		   if(Menu[i].Type==SCROLLBAR)
+		   {
+				geBitmap *theBmp;
+				bool up = false;
+				bool dwn = false;
+				scdata=(ScrollBar *)Menu[i].data;
+				if(scdata->AnimationUp<0 || Animation[scdata->AnimationUp]==NULL)
+				{
+					BitRect.Left=scdata->Up_Nor_X;
+					BitRect.Top=scdata->Up_Nor_Y;
+					BitRect.Right=scdata->Up_Nor_X+scdata->Up_Width;
+					BitRect.Bottom=scdata->Up_Nor_Y+scdata->Up_Height;
+					if(scdata->Up_Width>0 && scdata->Up_Height>0)
+						DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+				}
+				else
+				{
+					up = true;
+				}
+				if(scdata->AnimationDwn<0 || Animation[scdata->AnimationDwn]==NULL)
+				{
+					BitRect.Left=scdata->Dwn_Nor_X;
+					BitRect.Top=scdata->Dwn_Nor_Y;
+					BitRect.Right=scdata->Dwn_Nor_X+scdata->Dwn_Width;
+					BitRect.Bottom=scdata->Dwn_Nor_Y+scdata->Dwn_Height;
+					if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
+						DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+				}
+				else
+				{
+					dwn = true;
+				}
+		   
+				if((temppos.x>=Menu[i].X+x+scdata->Up_X) && (temppos.x<=(Menu[i].X+x+scdata->Up_X+scdata->Up_Width)) && (temppos.y>=Menu[i].Y+y+scdata->Up_Y) && (temppos.y<=(Menu[i].Y+y+scdata->Up_Y+scdata->Up_Height)) && slide_click==-1)
+				{
+					if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+					{
+						if(scdata->AnimationUpPush<0 || Animation[scdata->AnimationUpPush]==NULL)
+						{
+							BitRect.Left=scdata->Up_Push_X;
+							BitRect.Top=scdata->Up_Push_Y;
+							BitRect.Right=scdata->Up_Push_X+scdata->Up_Width;
+							BitRect.Bottom=scdata->Up_Push_Y+scdata->Up_Height;
+							if(scdata->Up_Width>0 && scdata->Up_Height>0)
+								DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+						}
+						else
+						{
+							theBmp = Animation[scdata->AnimationUpPush]->NextFrame(true);
+							DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+						}
+						up = false;
+						scroll_click=i;
+						scroll_dir = 0;
+					}
+					else
+					{
+						if(scdata->AnimationUpOver<0 || Animation[scdata->AnimationUpOver]==NULL)
+						{
+							BitRect.Left=scdata->Up_Lit_X;
+							BitRect.Top=scdata->Up_Lit_Y;
+							BitRect.Right=scdata->Up_Lit_X+scdata->Up_Width;
+							BitRect.Bottom=scdata->Up_Lit_Y+scdata->Up_Height;
+							if(scdata->Up_Width>0 && scdata->Up_Height>0)
+								DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+						}
+						else
+						{
+							theBmp = Animation[scdata->AnimationUpOver]->NextFrame(true);
+							DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+						}
+						up = false;
+					}
+				}
+				if(up)
+				{
+					theBmp = Animation[scdata->AnimationUp]->NextFrame(true);
+					DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y );
+				}
+				if((temppos.x>=Menu[i].X+x+scdata->Dwn_X) && (temppos.x<=(Menu[i].X+x+scdata->Dwn_X+scdata->Dwn_Width)) && (temppos.y>=Menu[i].Y+y+scdata->Dwn_Y) && (temppos.y<=(Menu[i].Y+y+scdata->Dwn_Y+scdata->Dwn_Height)) && slide_click==-1)
+				{
+					if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+					{
+						if(scdata->AnimationDwnPush<0 || Animation[scdata->AnimationDwnPush]==NULL)
+						{
+							BitRect.Left=scdata->Dwn_Push_X;
+							BitRect.Top=scdata->Dwn_Push_Y;
+							BitRect.Right=scdata->Dwn_Push_X+scdata->Dwn_Width;
+							BitRect.Bottom=scdata->Dwn_Push_Y+scdata->Dwn_Height;
+							if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
+								DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+						}
+						else
+						{
+							theBmp = Animation[scdata->AnimationDwnPush]->NextFrame(true);
+							DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+						}
+						dwn = false;
+						scroll_click=i;
+						scroll_dir = 1;
+					}
+					else 
+					{
+						if(scdata->AnimationDwnOver<0 || Animation[scdata->AnimationDwnOver]==NULL)
+						{
+							BitRect.Left=scdata->Dwn_Lit_X;
+							BitRect.Top=scdata->Dwn_Lit_Y;
+							BitRect.Right=scdata->Dwn_Lit_X+scdata->Dwn_Width;
+							BitRect.Bottom=scdata->Dwn_Lit_Y+scdata->Dwn_Height;
+							if(scdata->Dwn_Width>0 && scdata->Dwn_Height>0)
+								DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+						}
+						else
+						{
+							theBmp = Animation[scdata->AnimationDwnOver]->NextFrame(true);
+							DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+						}
+						dwn = false;
+					}
+				} 
+				if(dwn)
+				{
+					theBmp = Animation[scdata->AnimationDwn]->NextFrame(true);
+					DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y );
+				}
+			}
+	   
+			if(Menu[i].Type==LSBOX)
+			{
+				lrdata=(LSBox *)Menu[i].data;
+				Savedef *Kdata = lrdata->text;
+				if(lrdata->Max==-1)
+				{
+					lrdata->Max=0;
+					while(Kdata[lrdata->Max].text!=NULL)
+					{
+						lrdata->Max+=1;
+					}
+				} 
+				BitRect.Left=lrdata->Image_X;
+				BitRect.Top=lrdata->Image_Y;
+				BitRect.Right=lrdata->Image_X+lrdata->Width;
+				BitRect.Bottom=lrdata->Image_Y+lrdata->Height;
+				if(lrdata->Width>0 && lrdata->Height>0)
+					DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y );
+				int tempstep=0; 
+				for(int j=lrdata->Start;j<lrdata->Max;j++)
+				{
+					if(j<(lrdata->Start+lrdata->Max_Show))
+					{
+						char *s;
+				   
+						if(j==lrdata->Current)
+						{
+							BitRect.Left=lrdata->Rev_X;
+							BitRect.Top=lrdata->Rev_Y;
+							BitRect.Right=lrdata->Rev_X+lrdata->Rev_Width;
+							BitRect.Bottom=lrdata->Rev_Y+lrdata->Rev_Height;
+							if(lrdata->Width>0 && lrdata->Height>0)
+								DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x+lrdata->Corner_X, Menu[i].Y+y+lrdata->Corner_Y+tempstep );
+						}
+						s=Kdata[j].text;
+						MFontRect(s, lrdata->Font, Menu[i].X+x+lrdata->Start_X, Menu[i].Y+y+lrdata->Start_Y+tempstep);
+					} 
+					tempstep+=lrdata->Step;
+				} 
+				if((temppos.x>=Menu[i].X+x+lrdata->Corner_X) && (temppos.x<=(Menu[i].X+x+lrdata->Corner_X+lrdata->Click_Width)) && (temppos.y>=Menu[i].Y+y+lrdata->Corner_Y) && (temppos.y<=(Menu[i].Y+y+lrdata->Corner_Y+(lrdata->Max_Show*lrdata->Step))) && slide_click==-1)
+				{
+					if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+					{
+						lsbox_click=i;
+						lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
+					}
+				} 
+				// Show save game image
+    			// begin add Nout
+				BitRect.Left=SaveScreen.Image_X;
+				BitRect.Top=SaveScreen.Image_Y;
+				BitRect.Right=SaveScreen.Image_X+SaveScreen.Width;
+				BitRect.Bottom=SaveScreen.Image_Y+SaveScreen.Height;
+				if(SaveScreen.Width>0 && SaveScreen.Height>0)
+					DrawBitmap(savescrbmp, &BitRect, SaveScreen.X, SaveScreen.Y);
+				if(LastCurrent==lrdata->Current)
+					NotVisible=0;
+				else
+				{
+					NotVisible=1;  //set a flag to load the bitmap .BMP file
+					LastCurrent=lrdata->Current; //ensure the bitmap is loaded only when a new has to be loaded
+				}
+				// end add Nout
+			}
+		}
 	
 #ifdef BLIT
-	geEngine_DrawBitmap(CCD->Engine()->Engine(), ScreenBmp, NULL, 0, 0);
+		geEngine_DrawBitmap(CCD->Engine()->Engine(), ScreenBmp, NULL, 0, 0);
 #endif
 	
-	if(LoopOnce==0 && !Fading)
-	{
-		if(AnimCursor<0 || Animation[AnimCursor]==NULL)
+		if(LoopOnce==0 && !Fading)
 		{
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY );
-		}
-		else
-		{
-			geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
-			DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY );
-		}
-	}
-	
-	if(Fading)
-	{
-		DoFade();
-	}
-	
-	geEngine_EndFrame(CCD->Engine()->Engine());
-	
-	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && escapeon == 0 && ingame == 1)
-	{
-		escapeon = 1;
-		FadeSet(1, TimeFade);
-	}
-	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1 && !Fading)
-	{
-		escapeon = 0;
-		if(ingame == 1)
-		{
-			if(musictype!=-1)
+			if(AnimCursor<0 || Animation[AnimCursor]==NULL)
 			{
-				if(musictype==1)
-					MIDIPlayer()->Stop();
-				else
-					m_Streams->Stop();
+				geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY );
 			}
-			CCD->AudioStreams()->PauseAll(); // restart streaming audio
-			if(CCD->CDPlayer())
+			else
 			{
-				if(CCD->CDPlayer()->GetCdOn())
-					CCD->CDPlayer()->Restore(); // restart CD music if CD is on
+				geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
+				DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY );
 			}
-			if(CCD->MIDIPlayer())
-				CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
-			ResetVol();
-			GameLevel();
 		}
-	}
 	
-	if(!Fading)
-	{
-		//--------------------------------------
-		// if clicked on Clickable or Exit Menu
-		//--------------------------------------
+		if(Fading)
+		{
+			DoFade();
+		}
+	
+		geEngine_EndFrame(CCD->Engine()->Engine());
+	
+		if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && escapeon == 0 && ingame == 1)
+		{
+			escapeon = 1;
+			FadeSet(1, TimeFade);
+		}
+		if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1 && !Fading)
+		{
+			// 08.05.2004 - begin change gekido
+			CCD->ReportError("Exiting Menu, Returning to Game", false);
+			// 08.05.2004 - end change gekido
+			escapeon = 0;
+			if(ingame == 1)
+			{
+				if(musictype!=-1)
+				{
+					if(musictype==1)
+						MIDIPlayer()->Stop();
+					else
+						m_Streams->Stop();
+				}
+				CCD->AudioStreams()->PauseAll(); // restart streaming audio
+				if(CCD->CDPlayer())
+				{
+					if(CCD->CDPlayer()->GetCdOn())
+						CCD->CDPlayer()->Restore(); // restart CD music if CD is on
+				}
+				if(CCD->MIDIPlayer())
+					CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
+				ResetVol();
+				GameLevel();
+			}
+		}
+	
+		if(!Fading)
+		{
+			//--------------------------------------
+			// if clicked on Clickable or Exit Menu
+			//--------------------------------------
 		
-		if(click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			if(LoopOnce==0)
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			data=(Clickable *)Menu[click].data;
-			if(LoopOnce==0 && !Fading)
+			if(click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
 			{
-				FadeSet(1, TimeFade);
-				LoopOnce = 3;
-			}
-			else if(LoopOnce==3 && !Fading)
-			{
-				LoopOnce = 0;
-				if(Menu[click].Type==EXIT_MENU)
+				if(LoopOnce==0)
+					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				data=(Clickable *)Menu[click].data;
+				if(LoopOnce==0 && !Fading)
 				{
-					FadeSet(-1, TimeFade);
-					if(remapf != -1)
-						CCD->Input()->SaveKeymap("keyboard.ini");
-					// changed QuestOfDreams Language Menu
-					if(data->proc!=NULL)
-						data->proc();
-					// end change QuestOfDreams
-					if(data->Action>=10)
-						return data->Action-9;
-					return 0;
+					FadeSet(1, TimeFade);
+					LoopOnce = 3;
 				}
-				// changed RF063
-				if(Menu[click].Type==CANCEL_MENU)
+				else if(LoopOnce==3 && !Fading)
 				{
-					if(remapf != -1)
-						CCD->Input()->SaveKeymap("keyboard.ini");
-					return 1;
-				}
-				// end change RF063
-				if(Menu[click].Type==CLICKABLE)
-				{
-					FadeSet(-1, TimeFade);
-					if(data->Next!=NULL && (data->Action==0 || data->Action==2))
+					LoopOnce = 0;
+					if(Menu[click].Type==EXIT_MENU)
 					{
-						ProcessMenu(data->Next, data->background, data->title);
+						FadeSet(-1, TimeFade);
+						if(remapf != -1)
+							CCD->Input()->SaveKeymap("keyboard.ini");
+						// changed QuestOfDreams Language Menu
+						if(data->proc!=NULL)
+							data->proc();
+						// end change QuestOfDreams
+						if(data->Action>=10)
+							return data->Action-9;
+						return 0;
 					}
-					else if(data->proc!=NULL && data->Action==1)
+					// changed RF063
+					if(Menu[click].Type==CANCEL_MENU)
 					{
-						data->proc();
+						if(remapf != -1)
+							CCD->Input()->SaveKeymap("keyboard.ini");
+						return 1;
 					}
-					else if(data->proc!=NULL && data->Action==3)
+					// end change RF063
+					if(Menu[click].Type==CLICKABLE)
 					{
-						data->proc();
-						remapf = 0;
-					}
-					else if(data->proc!=NULL && data->Action==4)
-					{
-						// changed RF064
-						if(LoadBox.Current != -1)
+						FadeSet(-1, TimeFade);
+						if(data->Next!=NULL && (data->Action==0 || data->Action==2))
 						{
-							if(LoadBox.text[LoadBox.Current].empty != 0)
+							ProcessMenu(data->Next, data->background, data->title);
+						}
+						else if(data->proc!=NULL && data->Action==1)
+						{
+							data->proc();
+						}
+						else if(data->proc!=NULL && data->Action==3)
+						{
+							data->proc();
+							remapf = 0;
+						}
+						else if(data->proc!=NULL && data->Action==4)
+						{
+							// changed RF064
+							if(LoadBox.Current != -1)
 							{
-								// end change RF064
-								data->proc();
-								return 0;
+								if(LoadBox.text[LoadBox.Current].empty != 0)
+								{
+									// end change RF064
+									data->proc();
+									return 0;
+								}
 							}
 						}
 					}
+					click=-1;
 				}
-				click=-1;
 			}
-		}
 		
-		//--------------------------
-		// if clicked on slider
-		//--------------------------
+			//--------------------------
+			// if clicked on slider
+			//--------------------------
 		
-		if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			temp=temppos.x-slide_x;
-			sdata=(Slider *)Menu[slide_click].data;
-			sdata->Current+=temp;
-			if(sdata->Current>sdata->Max_X)
-				sdata->Current=sdata->Max_X;
-			if(sdata->Current<sdata->Min_X)
-				sdata->Current=sdata->Min_X;
-			slide_x=temppos.x;
-			temp=(sdata->Current*100)/sdata->Max_X;
-			if(sdata->proc!=NULL && sdata->On_the_Fly==0)
-				sdata->proc(temp);
-			slide_click=-1;
-		}
-		if(slide_click==-1)
-			slide_x=-1;
-		if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
-		{
-			if(slide_x!=temppos.x)
+			if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
 			{
 				temp=temppos.x-slide_x;
 				sdata=(Slider *)Menu[slide_click].data;
@@ -4352,103 +4431,121 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					sdata->Current=sdata->Min_X;
 				slide_x=temppos.x;
 				temp=(sdata->Current*100)/sdata->Max_X;
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), slideclick, 0.75f, 0.0f, 1.0f, false);
-				if(sdata->proc!=NULL && sdata->On_the_Fly==1)
+				if(sdata->proc!=NULL && sdata->On_the_Fly==0)
 					sdata->proc(temp);
+				slide_click=-1;
 			}
-		} 
-		
-		//--------------------------
-		// if clicked on box
-		//--------------------------
-		
-		if(box_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			bdata=(Box *)Menu[box_click].data;
-			bdata->Current=(bdata->Current+1) & 1;
-			if(bdata->proc!=NULL)
-				bdata->proc(bdata->Current);
-			box_click=-1;
-		}
-		
-		// changed QuestOfDreams Language Menu
-		//--------------------------
-		// if clicked on radio box
-		//--------------------------
-		
-		if(radio_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			radiodata=(Radio *)Menu[radio_click].data;
-			
-			for(i=0;i<max;i++)
-			{			
-				if(Menu[i].Type==RADIO)
+			if(slide_click==-1)
+				slide_x=-1;
+			if(slide_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
+			{
+				if(slide_x!=temppos.x)
 				{
-					Radio *radiodata1=(Radio *)Menu[i].data;
-					radiodata1->Current=0;
+					temp=temppos.x-slide_x;
+					sdata=(Slider *)Menu[slide_click].data;
+					sdata->Current+=temp;
+					if(sdata->Current>sdata->Max_X)
+						sdata->Current=sdata->Max_X;
+					if(sdata->Current<sdata->Min_X)
+						sdata->Current=sdata->Min_X;
+					slide_x=temppos.x;
+					temp=(sdata->Current*100)/sdata->Max_X;
+					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), slideclick, 0.75f, 0.0f, 1.0f, false);
+					if(sdata->proc!=NULL && sdata->On_the_Fly==1)
+						sdata->proc(temp);
 				}
-			}
-			
-			radiodata->Current=1;
-			
-			if(radiodata->proc!=NULL)
-				radiodata->proc(radiodata->ID);
-			radio_click=-1;
-		}
-		// end change QuestOfDreams	
+			} 
 		
-		//--------------------------
-		// if clicked on remap
-		//--------------------------
+			//--------------------------
+			// if clicked on box
+			//--------------------------
 		
-		if(remap_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			rdata=(Remap *)Menu[remap_click].data;
-			rdata->Current = remap_line + rdata->Start;
-			remap_click=-1;
-		}
-		
-		//--------------------------
-		// if clicked on scrollbar
-		//--------------------------
-		
-		if(scroll_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			scdata=(ScrollBar *)Menu[scroll_click].data;
-			int max = *(scdata->Max);
-			int current = *(scdata->Current);
-			if(scroll_dir==0)
+			if(box_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
 			{
-				if(current>0)
-					*(scdata->Current)-=1;
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				bdata=(Box *)Menu[box_click].data;
+				bdata->Current=(bdata->Current+1) & 1;
+				if(bdata->proc!=NULL)
+					bdata->proc(bdata->Current);
+				box_click=-1;
 			}
-			else
+		
+			// changed QuestOfDreams Language Menu
+			//--------------------------
+			// if clicked on radio box
+			//--------------------------
+		
+			if(radio_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
 			{
-				if(current<(max-scdata->Show))
-					*(scdata->Current)+=1;
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				radiodata=(Radio *)Menu[radio_click].data;
+			
+				for(i=0;i<max;i++)
+				{			
+					if(Menu[i].Type==RADIO)
+					{
+						Radio *radiodata1=(Radio *)Menu[i].data;
+						radiodata1->Current=0;
+					}
+				}
+			
+				radiodata->Current=1;
+			
+				if(radiodata->proc!=NULL)
+					radiodata->proc(radiodata->ID);
+				radio_click=-1;
 			}
-			scroll_click=-1;
-		}
+			// end change QuestOfDreams	
 		
-		//--------------------------
-		// if clicked on lsbox
-		//--------------------------
+			//--------------------------
+			// if clicked on remap
+			//--------------------------
 		
-		if(lsbox_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
-		{
-			geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-			lrdata=(LSBox *)Menu[lsbox_click].data;
-			lrdata->Current = lsbox_line + lrdata->Start;
-			lsbox_click=-1;
+			if(remap_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+			{
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				rdata=(Remap *)Menu[remap_click].data;
+				rdata->Current = remap_line + rdata->Start;
+				remap_click=-1;
+			}
+		
+			//--------------------------
+			// if clicked on scrollbar
+			//--------------------------
+		
+			if(scroll_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+			{
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				scdata=(ScrollBar *)Menu[scroll_click].data;
+				int max = *(scdata->Max);
+				int current = *(scdata->Current);
+				if(scroll_dir==0)
+				{
+					if(current>0)
+						*(scdata->Current)-=1;
+				}
+				else
+				{
+					if(current<(max-scdata->Show))
+						*(scdata->Current)+=1;
+				}
+				scroll_click=-1;
+			}
+		
+			//--------------------------
+			// if clicked on lsbox
+			//--------------------------
+		
+			if(lsbox_click!=-1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+			{
+				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
+				lrdata=(LSBox *)Menu[lsbox_click].data;
+				lrdata->Current = lsbox_line + lrdata->Start;
+				lsbox_click=-1;
+			}
 		}
 	}
-	
-  }
-  return 1;
+	return 1;
 }
 
 void CRFMenu::DrawBitmap(const geBitmap *Bitmap, geRect *Source, uint32 x, uint32 y)
@@ -4668,6 +4765,10 @@ void CRFMenu::GameLoop()
 		CCD->PlayOpeningCutScene();
 	end change RF064 */
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("CRFMenu::GameLoop() - Setup and Run Level", false);
+	// 08.05.2004 - end change gekido
+
 	CCD->Player()->ShowFog();					// Show fog, if enabled
 	CCD->Player()->ActivateClipPlane();	// Activate clipping plane, if enabled
 	
@@ -4690,6 +4791,9 @@ void CRFMenu::GameLoop()
 // changed RF063
 void CRFMenu::GameLevel()
 {
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("CRFMenu::GameLevel() - Entering Inner Game Loop", false);
+	// 08.05.2004 - end change gekido
 	MSG msg;
 	int FirstFont;
 	geRect	 firstRect;
@@ -4822,6 +4926,9 @@ void CRFMenu::GameLevel()
 			}
 			
 			CCD->Messages()->Display();
+
+			CCD->PWXImMgr()->Display();//PWX
+
 			if(CCD->GetSaving())
 			{
 				savetime = SavingTime;
@@ -4844,6 +4951,9 @@ void CRFMenu::GameLevel()
 			if(CCD->GetConsole())
 			{
 				// call the console render function here as it is active
+				// begin change gekido
+				CCD->ConsoleRender();
+				// end change gekido
 			}
 			
 			CCD->Inventory()->Display();
@@ -4976,6 +5086,9 @@ void CRFMenu::GameLevel()
 				// Version 053
 				if(CCD->ChangeLevel())
 				{
+					// 08.05.2004 - begin change gekido
+					CCD->ReportError("CRFMenu::GameLevel() - ChangeLevel Triggered, begin Changelevel Process...", false);
+					// 08.05.2004 - end change gekido
 					CCD->Player()->DisableFog();			// Fogging OFF
 					CCD->Player()->DisableClipPlane();	// Clip plane OFF
 					if(EffectC_IsStringNull(CCD->NextLevel()))
@@ -5172,7 +5285,7 @@ void CRFMenu::DisplaySplash()
 			}
 			// Show save game image
 			// change begin Nout
-			// geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
+			 //geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
 			// change begin Nout
 			if(CCD->GetHasFocus())
 			{
@@ -5256,6 +5369,10 @@ void CRFMenu::MenuInitalize()
 	box8.Current = BOX_OFF;
 	SEBoundingBox = false;
 	box9.Current = BOX_OFF;
+// changed QD Shadows
+	ShadowBox.Current = BOX_OFF;
+	StencilShadows = false;
+// end change
 	
 	// changed QuestOfDreams Language Menu
 	CurrentLanguage = CCD->GetLanguage();
@@ -5321,7 +5438,13 @@ void CRFMenu::MenuInitalize()
 		mVolLevel=((float)percent/100.0f);
 		if(percent == 0)
 			mVolLevel = 0.0f;
-		
+// changed QD Shadows
+		fread(&ShadowBox.Current, sizeof(int), 1, fd);
+		if(ShadowBox.Current==BOX_ON)
+			StencilShadows = true;
+		else
+			StencilShadows = false;
+// end change
 		fclose(fd);
 	}	 
 	// changed RF064
@@ -6126,7 +6249,6 @@ static void SetGamma(int percent)
 	geEngine_SetGamma(CCD->Engine()->Engine(), gamma);
 }
 
-
 //-----------------------------------
 // set detail from slider percentage
 //-----------------------------------
@@ -6152,6 +6274,24 @@ static void SetDetail(int percent)
 		}
 	}
 }
+
+// changed QD Shadows
+static void SetStencilShadows(int current)
+{
+	if(current ==BOX_ON)
+		CCD->MenuManager()->SetStencilShadows(true);
+	else
+		CCD->MenuManager()->SetStencilShadows(false);
+
+	if(CCD->MenuManager()->GetInGame()==1)
+	{
+		EnvironmentSetup *theState = CCD->Player()->GetEnvSetup();
+		
+		geEngine_SetStencilShadowsEnable(CCD->Engine()->Engine(), current, theState->SShadowsMaxLightToUse,
+			theState->SShadowsColor.r, theState->SShadowsColor.g, theState->SShadowsColor.b, theState->SShadowsAlpha);
+	}
+}
+// end change
 
 //----------------------------------------------
 // set mouse sensitivity from slider percentage
@@ -6276,7 +6416,6 @@ void CRFMenu::DoGame(bool editor)
 	// changed RF064
 	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
 	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
-	
 	// end change RF064
 	
 	//	Ok, move the player avatar to the correct player start in the
@@ -7122,8 +7261,8 @@ void CRFMenu::Reset()
 		AudioMenu[i].X = 0;
 		AudioMenu[i].Y = 0;
 	}
-	
-	for(i=0;i<7;i++)
+// changed QD Shadows	
+	for(i=0;i<9;i++)
 	{
 		VideoMenu[i].X = 0;
 		VideoMenu[i].Y = 0;
@@ -7153,7 +7292,6 @@ void CRFMenu::Reset()
 	NewGame.Mover_Y = 0;
 	NewGame.Animation = -1;
 	NewGame.AnimationOver = -1;
-	
 	MultiPlayer.Image_Number = 0;
 	MultiPlayer.Width = 0;
 	MultiPlayer.Height = 0;
@@ -7812,6 +7950,23 @@ void CRFMenu::Reset()
 	Detail_Slide.Min_X = 0;
 	Detail_Slide.Max_X = 0;
 	Detail_Slide.Animation = -1;
+
+// changed QD Shadows
+	ShadowBox.Image_Number = 0;
+	ShadowBox.Width = 0;
+	ShadowBox.Height = 0;
+	ShadowBox.Image_X = 0;
+	ShadowBox.Image_Y = 0;
+	ShadowBox.Mover_X = 0;
+	ShadowBox.Mover_Y = 0;
+	ShadowBox.Set_X = 0;
+	ShadowBox.Set_Y = 0;
+	ShadowBox.Animation = -1;
+	ShadowBox.AnimationOver = -1;
+	ShadowBox.AnimationLit = -1;
+	
+	shadow_text.Font = 0;
+// end change
 	
 	AdvancedItem.Image_Number = 0;
 	AdvancedItem.Width = 0;
@@ -8078,6 +8233,9 @@ void CRFMenu::Reset()
 	free(filter_text.text);
 	free(rev_text.text);
 	free(xhair_text.text);
+// changed QD Shadows
+	free(shadow_text.text);
+// end change
 
 	return_text.text = strdup("Press ESC to Return to Game");
 	PlayerIP_Text.text = strdup("Your IP :");
@@ -8097,5 +8255,8 @@ void CRFMenu::Reset()
 	filter_text.text = strdup("Mouse filter");
 	rev_text.text = strdup("Reverse mouse");
 	xhair_text.text = strdup("Crosshair");
+// changed QD Shadows
+	shadow_text.text = strdup("Enable Stencil Shadows");
+// end change
 }
 // end change QuestOfDreams

@@ -29,7 +29,7 @@ geSound_Def *SPool_Sound(char *SName)
   if(EffectC_IsStringNull(SName)==GE_TRUE)
   {
     char szError[256];
-	sprintf(szError,"Missing Sound File %s", SName);
+	sprintf(szError,"Missing Required Field from Entity - Sound File: %s", SName);
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;
@@ -64,7 +64,7 @@ geSound_Def *SPool_Sound(char *SName)
   if(!pool->SoundDef)
   {
 	char szError[256];
-	sprintf(szError,"Missing Sound File %s", SName);
+	sprintf(szError,"Unable to load file, invalid path or filename: Sound File %s", SName);
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();
 	delete CCD;

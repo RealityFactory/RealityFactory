@@ -8,11 +8,9 @@ Reality Factory (RGF) for creating Genesis3D-based games.
 */
 
 //	Disable unknown pragma warnings (GEdit #pragmas used here)
-
 #pragma warning(disable : 4068)
 
 //	Disable forcing int to bool 'true' or 'false' warnings
-
 #pragma warning(disable : 4800)
 
 #ifndef __RGF_RABIDMASTERFRAMEWORK_INCLUDE_
@@ -78,10 +76,15 @@ enum
 #include <uuids.h>
 
 //	Genesis3D includes
-#include "FreeImage.h"
+#include <FreeImage.h>
 #include <Genesis.h>
 #include <font.h>
 
+//start pickles JUL 04
+#include <joystick.h> 
+#pragma comment(lib,"dxguid.lib")
+#pragma comment(lib,"dinput8.lib")
+// end pickles JUL 04
 //	Additional data types
 
 typedef struct
@@ -179,6 +182,17 @@ class CCommonData;
 #include "CLiquid.h"
 #include "CDSpotLight.h"
 // end change RF063
+// changed QD 01/2004
+#include "CStaticMesh.h"
+// end change QD
+
+//Start PWX
+#include "PWXImageManager.h"
+//End PWX
+#include "CPolyShadow.h" //Fake Shadow
+#include "CFlipTree.h" //Pickles Jul 04
+#include "CFoliage.h" //Pickles Jul 04
+#include "CAreaChecker.h" // Pickles Oct 04
 
 // start multiplayer
 #include "CNetwork.h"
@@ -187,6 +201,13 @@ class CCommonData;
 //Start Aug2003DCS
 #include "CLevelController.h"
 //End Aug2003DCS
+
+// start change gekido
+// 02.17.2004
+// our new console manager class
+//#include "CConsoleManager.h"
+// end change gekido
+
 #include "CCommonData.h"						// Common data handler component
 
 //	Various zone constants.  A "zone" is an area, defined by a brush, that
@@ -225,6 +246,9 @@ const int kCollideVehicle = 0x0006;			// Collided with a vehicle
 const int kCollideWeapon = 0x0007;
 const int kCollideDoor = 0x0008;
 const int kCollideRecheck = 0x0009;
+// changed QuestOfDreams 01/2004
+const int kCollideMesh = 0x000a;
+// end change
 const int kCollideMove = 0xfffe;				// Unknown collision, move OK
 const int kCollideNoMove = 0xffff;			// Unknown collision but don't move
 

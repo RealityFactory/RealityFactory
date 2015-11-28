@@ -85,6 +85,9 @@ typedef struct Selection
   float ShadowSize;
   GE_RGBA FillColor;
   GE_RGBA AmbientColor;
+// changed QD 07/21/04
+  geBoolean AmbientLightFromFloor;
+// end change
   char Attribute[64];
   char pSetup[64];
   float JumpSpeed;
@@ -190,6 +193,12 @@ public:
   { return Detail; }
   void SetDetail(int value)
   { Detail = value; }
+// changed QuestOfDreams Shadows
+  void SetStencilShadows(bool value)
+  { StencilShadows = value; }
+  bool GetStencilShadows()
+  { return StencilShadows; }
+// end change
 // Message
   int FontHeight(int FontNumber);
   int FontWidth(int FontNumber, char *s);
@@ -240,6 +249,10 @@ public:
   { return CharSelect[CurrentSelect].FillColor; }
   GE_RGBA GetCurrentAmbientColor()
   { return CharSelect[CurrentSelect].AmbientColor; }
+// changed QD 07/21/04
+  geBoolean GetCurrentAmbientLightFromFloor()
+  { return CharSelect[CurrentSelect].AmbientLightFromFloor; }
+// end change
   float GetCurrentSlopeSlide()
   { return CharSelect[CurrentSelect].SlopeSlide; }
   float GetCurrentSlopeSpeed()
@@ -297,6 +310,9 @@ private:
   bool		 NoClip;
   POINT		 Filter;
   int		 Detail;
+// changed QD Shadows
+  bool		StencilShadows;
+// end change
   geSound_Def *mouseclick;
   geSound_Def *keyclick;
   geSound_Def *slideclick;

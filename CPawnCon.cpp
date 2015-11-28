@@ -7,6 +7,7 @@ extern geSound_Def *SPool_Sound(char *SName);
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 
+
 //not commented, from picklses newsource.zip, nouts soundconversation...
 // #define BACKCLEAR	GE_TRUE
 #define BACKCLEAR	GE_FALSE
@@ -16,7 +17,7 @@ extern geSound_Def *SPool_Sound(char *SName);
 // ScriptConverse class
 //
 
-ScriptedConverse::ScriptedConverse(char *fileName) : skScriptedExecutable(fileName)
+ScriptedConverse::ScriptedConverse(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //update simkin
 {
 	M_CameraRect.Left = 0;
 	M_CameraRect.Right = CCD->Engine()->Width() - 1;
@@ -72,7 +73,7 @@ bool ScriptedConverse::setValue(const skString& fieldName, const skString& attri
 }
 
 // calls a method in this object
-bool ScriptedConverse::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
+bool ScriptedConverse::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)
 {
 	char param0[128];
 	int param1;
@@ -388,7 +389,7 @@ bool ScriptedConverse::method(const skString& methodName, skRValueArray& argumen
 	}
 	else
 	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue);
+		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt);//change simkin
 	}
 }
 
@@ -1401,7 +1402,7 @@ CString CPawn::GetText(char *Name)
 
 void CPawn::RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIcon)
 {
-	skRValueArray args(1);
+	skRValueArray args;// change simkin
 	skRValue ret;
 
 	if(!EffectC_IsStringNull(Converse->Order))
@@ -1452,7 +1453,7 @@ void CPawn::RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIco
 
 				for(int i=0;i<9;i++)
 					Converse->replyflg[i] = false;
-				Converse->method(skString(Converse->Order), args, ret);
+				Converse->method(skString(Converse->Order), args, ret,CCD->GetskContext()); // change simkin
 			} while (!Converse->ConvFlag);
 		}
 		catch (...)
@@ -1472,7 +1473,7 @@ bool CPawn::Converse(geActor *pActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	skRValueArray args(1);
+	skRValueArray args;// change simkin
 	skRValue ret;
 
 	//	Ok, check to see if there are Pawns in this world

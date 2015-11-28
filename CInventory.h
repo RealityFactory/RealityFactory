@@ -46,13 +46,13 @@ typedef struct InvItem
 class CInventory : public CRGFComponent
 {
 public:
-  CInventory();
-  ~CInventory();
-  void Display();
+	CInventory();
+	~CInventory();
+	void Display();
 // changed RF064
-  void SetActive(bool flag);
-  bool GetStopTime()
-  { return !isactive || (isactive && !stoptime); }
+	void SetActive(bool flag);
+	bool GetStopTime()
+	{ return !isactive || (isactive && !stoptime); }
 // end change RF064
 private:
 

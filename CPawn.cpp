@@ -2,6 +2,10 @@
 #include "RabidFramework.h"
 
 extern geSound_Def *SPool_Sound(char *SName);
+// changed QD 06/26/04
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+// end change
+
 
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
@@ -15,7 +19,7 @@ extern geSound_Def *SPool_Sound(char *SName);
 // ScriptedObject class
 //
 
-ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
+ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())// change simkin
 {
 	highlevel = true;
 	RunOrder = false;
@@ -67,12 +71,28 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	SoundLoop = false;
 	//added questofdreams FindPointOrder code
 	PointFind =false;
+// changed QD 06/26/04
+	ShadowAlpha = 0.0f;
+	ShadowBitmap[0] = '\0';
+	ShadowAlphamap[0] = '\0';
+// end change
+// begin change gekido 
+// projected shadows
+	ProjectedShadows = false;
+// changed QD Shadows
+	StencilShadows = GE_FALSE;
+// end change
+// changed QD 07/21/04
+	AmbientLightFromFloor = true;
+// end change
+
 }
 
 ScriptedObject::~ScriptedObject()
 {
 	if(Actor)
 	{
+		CCD->RemoveScriptedObject(CCD->ActorManager()->GetEntityName(Actor));//change scripting
 		CCD->ActorManager()->RemoveActor(Actor);
 		geActor_Destroy(&Actor);
 	}
@@ -127,14 +147,14 @@ ScriptedObject::~ScriptedObject()
 }
 
 // calls a method in this object
-bool ScriptedObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
+bool ScriptedObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)//change skimkin
 {
 	bool flag;
 
 	if(highlevel)
-		flag = highmethod(methodName, arguments, returnValue);
+		flag = highmethod(methodName, arguments, returnValue,ctxt);//change simkin
 	else
-		flag = lowmethod(methodName, arguments, returnValue);
+		flag = lowmethod(methodName, arguments, returnValue,ctxt); //change simkin
 
 	return flag;
 }
@@ -152,6 +172,10 @@ CPawn::CPawn()
 	
 	Background = NULL;
 	Icon = NULL;
+//begin add Nout 16/09/2003
+	rBackground = NULL;
+	rIcon = NULL;
+//end add Nout 16/09/2003
 	Events = NULL;
 	for(int ii=0;ii<MAXFLAGS;ii++)
 		PawnFlag[ii] = false;
@@ -204,7 +228,36 @@ CPawn::CPawn()
 					geBitmap_GetInfo(Background, &BmpInfo, NULL);
 					BackgroundX = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 					BackgroundY = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
+				} 
+//begin add Nout 16/09/2003
+				Type = AttrFile.GetValue(KeyName, "replybackground");
+				if(Type!="")
+				{
+					Type = "conversation\\"+Type;
+					strcpy(szName,Type);
+					geBitmap *rTB = CreateFromFileName(szName);
+					geBitmap_GetInfo(rTB, &BmpInfo, NULL);
+					int rTBw = BmpInfo.Width;
+					int rTBh = BmpInfo.Height;
+					int rTBx = (BmpInfo.Width - CCD->Engine()->Width()) / 2;
+					if(rTBx<0)
+						rTBx = 0;
+					else
+						rTBw = CCD->Engine()->Width();
+					int rTBy = (BmpInfo.Height - CCD->Engine()->Height()) / 2;
+					if(rTBy<0)
+						rTBy = 0;
+					else
+						rTBh = CCD->Engine()->Height();
+					rBackground = geBitmap_Create(rTBw, rTBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
+					geBitmap_Blit(rTB, rTBx, rTBy, rBackground, 0, 0, rTBw, rTBh); 
+					geBitmap_Destroy(&rTB);
+					geEngine_AddBitmap(CCD->Engine()->Engine(), rBackground);
+					geBitmap_GetInfo(rBackground, &BmpInfo, NULL);
+					rBackgroundX = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
+					rBackgroundY = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
 				}
+//end add Nout 16/09/2003
 				IconX = AttrFile.GetValueI(KeyName, "iconx");
 				IconY = AttrFile.GetValueI(KeyName, "icony");
 				SpeachX = AttrFile.GetValueI(KeyName, "speachx");
@@ -217,6 +270,20 @@ CPawn::CPawn()
 				ReplyWidth = AttrFile.GetValueI(KeyName, "replywidth");
 				ReplyHeight = AttrFile.GetValueI(KeyName, "replyheight");
 				ReplyFont = AttrFile.GetValueI(KeyName, "replyfont");
+//begin add Nout 16/09/2003
+				SpeachWindowX = AttrFile.GetValueI(KeyName, "speachwindowx");
+				if(SpeachWindowX>=0)
+					BackgroundX = SpeachWindowX;
+				SpeachWindowY = AttrFile.GetValueI(KeyName, "speachwindowy");
+				if(SpeachWindowY>=0)
+					BackgroundY = SpeachWindowY;
+				ReplyWindowX = AttrFile.GetValueI(KeyName, "replywindowx");
+				if(SpeachWindowX>=0)
+					rBackgroundX = ReplyWindowX;
+				ReplyWindowY = AttrFile.GetValueI(KeyName, "replywindowy");
+				if(SpeachWindowY>=0)
+					rBackgroundY = ReplyWindowY;
+//end add Nout 16/09/2003
 				break;
 			}
 			KeyName = AttrFile.FindNextKey();
@@ -269,6 +336,12 @@ CPawn::CPawn()
 				WeaponCache[keynum].AmbientColor.g = AmbientColor.Y;
 				WeaponCache[keynum].AmbientColor.b = AmbientColor.Z;
 				WeaponCache[keynum].AmbientColor.a = 255.0f;
+				// changed QD 07/21/04
+				WeaponCache[keynum].AmbientLightFromFloor = true;
+				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+				if(Type=="false")
+					WeaponCache[keynum].AmbientLightFromFloor = false;
+				// end change
 				WeaponCache[keynum].EnvironmentMapping = false;
 				Type = AttrFile.GetValue(KeyName, "environmentmapping");
 				if(Type=="true")
@@ -308,6 +381,7 @@ CPawn::CPawn()
 				try
 				{
 					pSource->Data = new ScriptedObject(script);
+
 				}
 				catch(skParseException e)
 				{
@@ -355,6 +429,11 @@ CPawn::CPawn()
 				PreLoad(script);
 				ScriptedObject *Object = (ScriptedObject *)pSource->Data;
 
+				//start change scripting
+				//add global object
+				if(!EffectC_IsStringNull(pSource->szEntityName))
+					CCD->AddScriptedObject(pSource->szEntityName,Object);
+				//end change scripting
 				strcpy(Object->szName, pSource->szEntityName);
 
 				KeyName = AttrFile.FindFirstKey();
@@ -409,6 +488,13 @@ CPawn::CPawn()
 							Object->AmbientColor.g = AmbientColor.Y;
 							Object->AmbientColor.b = AmbientColor.Z;
 							Object->AmbientColor.a = 255.0f;
+							// changed QD 07/21/04
+							Object->AmbientLightFromFloor = true;
+							Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+							if(Type=="false")
+								Object->AmbientLightFromFloor = false;
+							// end change
+
 							Object->ActorAlpha = 255.0f;
 							Object->EnvironmentMapping = false;
 							Type = AttrFile.GetValue(KeyName, "environmentmapping");
@@ -438,6 +524,56 @@ CPawn::CPawn()
 							if(Type!="")
 								strcpy(Object->RootBone, Type);
 							Object->ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
+// changed QD 06/26/04
+							Object->ShadowAlpha = (geFloat)AttrFile.GetValueF(KeyName, "shadowalpha");
+							Type = AttrFile.GetValue(KeyName, "shadowbitmap");
+							if(Type!="")
+								strcpy(Object->ShadowBitmap, Type);
+							Type = AttrFile.GetValue(KeyName, "shadowalphamap");
+							if(Type!="")
+								strcpy(Object->ShadowAlphamap, Type);
+// end change
+// begin change gekido
+							// projected shadows enabled per pawn type
+							// yes there is obscene amounts of output to the debug log, might want to trim this down
+							Type = AttrFile.GetValue(KeyName, "projectedshadows");
+							if(Type!="")
+							{
+								char szBug[256];
+								sprintf(szBug, "Setting Projected Shadows for %s", Object->szName);
+								CCD->ReportError(szBug, false);
+						
+								if(!strcmp(Type, "true"))
+								{
+									char szBug[256];
+									Object->ProjectedShadows = true;
+									sprintf(szBug, "   Projected Shadows : %s", Type);
+									CCD->ReportError(szBug, false);
+								}
+								else
+								{
+									char szBug[256];
+									Object->ProjectedShadows = false;
+									sprintf(szBug, "   Projected Shadows : %s", Type);
+									CCD->ReportError(szBug, false);
+								}
+							}
+// end change
+// changed QD Shadows
+							// stencil shadows enabled per pawn type						
+							Type = AttrFile.GetValue(KeyName, "stencilshadows");
+							if(Type!="")
+							{
+								char szBug[256];
+								sprintf(szBug, "Setting Stencil Shadows for %s", Object->szName);
+								CCD->ReportError(szBug, false);
+						
+								if(!strcmp(Type, "true"))
+									Object->StencilShadows = GE_TRUE;
+								else
+									Object->ProjectedShadows = GE_FALSE;
+							}	
+// end change
 							Object->Icon = NULL;
 							Type = AttrFile.GetValue(KeyName, "icon");
 							if(Type!="")
@@ -582,6 +718,7 @@ CPawn::~CPawn()
 			if(pSource->Data)
 			{
 				ScriptedObject *Object = (ScriptedObject *)pSource->Data;
+				CCD->RemoveScriptedObject(pSource->szEntityName);//change scripting - remove object
 				delete Object;
 				pSource->Data = NULL;
 			}
@@ -599,7 +736,7 @@ void CPawn::Tick(float dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	skRValueArray args(1);
+	skRValueArray args;// change simkin
 	skRValue ret;
 	
 	//	Ok, check to see if there are Pawns in this world
@@ -824,8 +961,25 @@ void CPawn::Spawn(void *Data)
 
 	Object->Actor = CCD->ActorManager()->SpawnActor(Object->ActorName, 
 		Object->Location, Object->Rotation, Object->BoxAnim, Object->BoxAnim, NULL);
-	CCD->ActorManager()->SetActorDynamicLighting(Object->Actor, Object->FillColor, Object->AmbientColor);
+// changed QD 07/21/04
+//	CCD->ActorManager()->SetActorDynamicLighting(Object->Actor, Object->FillColor, Object->AmbientColor);
+	CCD->ActorManager()->SetActorDynamicLighting(Object->Actor, Object->FillColor, Object->AmbientColor, Object->AmbientLightFromFloor);
+// end change
 	CCD->ActorManager()->SetShadow(Object->Actor, Object->ShadowSize);
+// changed QD 06/26/04
+	if(Object->ShadowAlpha > 0.0f)
+		CCD->ActorManager()->SetShadowAlpha(Object->Actor, Object->ShadowAlpha);
+				
+	if(!EffectC_IsStringNull(Object->ShadowBitmap))
+		CCD->ActorManager()->SetShadowBitmap(Object->Actor, TPool_Bitmap(Object->ShadowBitmap, Object->ShadowAlphamap, NULL, NULL));
+// end change
+// begin change gekido
+	// projected shadows per pawn type
+	CCD->ActorManager()->SetProjectedShadows(Object->Actor, Object->ProjectedShadows);
+// end change gekido
+// changed QD Shadows
+	CCD->ActorManager()->SetStencilShadows(Object->Actor, Object->StencilShadows);
+// end change
 	CCD->ActorManager()->SetHideRadar(Object->Actor, Object->HideFromRadar);
 	CCD->ActorManager()->SetScale(Object->Actor, Object->Scale);
 	CCD->ActorManager()->SetType(Object->Actor, ENTITY_NPC);
@@ -1030,3 +1184,8 @@ int CPawn::RestoreFrom(FILE *RestoreFD, bool type)
 	
 	return RGF_SUCCESS;
 }
+
+
+
+
+

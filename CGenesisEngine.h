@@ -80,6 +80,9 @@ public:
 	int SetFogParameters(GE_RGBA FogColor, geFloat fFogStart, geFloat fFogEnd);
 	// Set up fogging parameters
 	void EnableFog(geBoolean FogOn);	// Enable/disable fog
+// changed QD Shadows
+//	void EnableStencilShadows(geBoolean ShadowOn, GE_RGBA ShadowColor, int MaxLightsToUse);	// Enable/disable shadows
+// end change
 	bool ReportError(char *szError, bool bMessageBoxIt);
 	// Report error to error log file
 	int SaveTo(FILE *SaveFD);			// Save engine data to file

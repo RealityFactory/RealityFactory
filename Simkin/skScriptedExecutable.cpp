@@ -1,5 +1,5 @@
 /*
-  copyright 1996-2001
+  copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,24 +16,31 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skScriptedExecutable.cpp,v 1.11 2001/11/22 11:13:21 sdw Exp $
+* $Id: skScriptedExecutable.cpp,v 1.15 2003/03/27 23:13:54 simkin_cvs Exp $
 */
 #include "skScriptedExecutable.h"
 #include "skTreeNode.h"
 
+#ifndef __SYMBIAN32__
 //------------------------------------------
-skScriptedExecutable::skScriptedExecutable(const skString& filename)
+skScriptedExecutable::skScriptedExecutable(const skString& filename,skExecutableContext& ctxt)
 //------------------------------------------
-  : skTreeNodeObject(filename,skTreeNode::read(filename),true)
+  : skTreeNodeObject(filename,skTreeNode::read(filename,ctxt),true)
 {
 }
+#endif
 //------------------------------------------
-skScriptedExecutable::~skScriptedExecutable()
+skScriptedExecutable::skScriptedExecutable()
 //------------------------------------------
 {
 }
 //------------------------------------------
 skScriptedExecutable::skScriptedExecutable(const skScriptedExecutable& other)
+//------------------------------------------
+{
+}
+//------------------------------------------
+skScriptedExecutable::~skScriptedExecutable()
 //------------------------------------------
 {
 }

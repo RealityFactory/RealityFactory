@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,26 +16,57 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skTracer.cpp,v 1.6 2001/11/22 11:13:21 sdw Exp $
+* $Id: skTracer.cpp,v 1.17 2003/11/20 16:24:22 sdw Exp $
 */
 #include "skTracer.h"
-#include <stdio.h>
+#ifdef STL_STREAMS
+#include <iostream>
+using namespace std;
+#endif
 
 //------------------------------------------
 void skTracer::trace(const skString& s)
 //------------------------------------------
 {
 #ifdef STREAMS_ENABLED
-    cout << s;
+  cout << s;
+  cout.flush();
 #else
 #ifdef UNICODE_STRINGS
-	wprintf((const Char *)s);
+#ifdef _WIN32_WCE
+  NKDbgPrintfW((Char *)(const Char *)s);
 #else
-	printf((const Char *)s);
-	FILE *fd = fopen(".\\RealityFactory.log", "at");
-	fputs((const Char *)s, fd); fputs("\n", fd);
-	fclose(fd);
-	OutputDebugString((const Char *)s); OutputDebugString("\n");
+#ifdef __SYMBIAN32__
+  // TO BE IMPLEMENTED
+#else
+  wprintf((const Char *)s);
+#endif
+#endif
+#else
+  printf((const Char *)s);
+#endif
+#endif
+}
+//------------------------------------------
+void skTracer::trace(const Char * s)
+//------------------------------------------
+{
+#ifdef STREAMS_ENABLED
+  cout << s;
+  cout.flush();
+#else
+#ifdef UNICODE_STRINGS
+#ifdef _WIN32_WCE
+  NKDbgPrintfW((Char *)(const Char *)s);
+#else
+#ifdef __SYMBIAN32__
+  // TO BE IMPLEMENTED
+#else
+  wprintf((const Char *)s);
+#endif
+#endif
+#else
+  printf((const Char *)s);
 #endif
 #endif
 }

@@ -220,6 +220,15 @@ void CInput::ScanKeyboardInput()
   return;
 }
 
+//PWX
+int CInput::GetRGFKey(int key)
+{
+	int value;
+	value = m_RGFKeys[key];
+	return value;
+}
+//PWX
+
 //-------------------------------
 // get a key from the keyboard and wait until released
 //-------------------------------
@@ -352,3 +361,5 @@ void CInput::ClearCodes(int action)
 }
 
 //	-------------------------------------------------------------------------
+
+

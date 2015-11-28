@@ -1042,6 +1042,9 @@ void CCameraManager::DoThirdPersonTracking()
 	geFloat ActorScale;
 	geVec3d Orient;
 	geFloat x;
+	// changed QuestOfDreams 01/2004
+	geFloat PlayerScale = CCD->Player()->GetScale();
+	// end change
 	
 	CCD->ActorManager()->GetScale(theActor, &ActorScale);		// Get actor scale
 	CCD->ActorManager()->GetBoundingBox(theActor, &ActorExtBox);
@@ -1068,15 +1071,44 @@ void CCameraManager::DoThirdPersonTracking()
 	geVec3d_AddScaled (&Pos, &Direction, 0.0f, &Front);
 	
 	if(geWorld_Collision(CCD->World(), &CameraExtBox.Min, &CameraExtBox.Max, &Front, 
-		&Back, GE_VISIBLE_CONTENTS, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
+		&Back, /*GE_VISIBLE_CONTENTS*/GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
     {
-		CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
-		if(CurrentDistance < 0.0f)
-			CurrentDistance = 0.0f;
+		// changed QuestOfDreams 01/2004
+		// can't be negative
+		//CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
+		//if(CurrentDistance < 0.0f)
+		//	CurrentDistance = 0.0f;
+		CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
+		// end change
 		if(CurrentDistance > (m_defaultdistance*ActorScale))
 			CurrentDistance = m_defaultdistance*ActorScale;
 		geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
 	}
+	// changed QuestOfDreams 01/2004
+	geVec3d_AddScaled (&Pos, &Direction, playermindistance*ActorScale, &Front);
+	if(CCD->Meshes()->CollisionCheck(&CameraExtBox.Min, &CameraExtBox.Max, Front, Back, &Collision))
+	{
+		geFloat CurrentDistance2 = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));//-4.0f;
+		CurrentDistance2+=playermindistance*ActorScale;
+		if(theActor==CCD->Player()->GetActor())
+		{
+			if(CurrentDistance2 < (playermindistance*ActorScale))
+				CurrentDistance2 = playermindistance*ActorScale;
+			if(CurrentDistance2 > (playermaxdistance*ActorScale))
+				CurrentDistance2 = playermaxdistance*ActorScale;
+		}
+		else
+		{
+			if(CurrentDistance2 > (m_defaultdistance*ActorScale))
+				CurrentDistance2 = m_defaultdistance*ActorScale;
+		}
+		if(CurrentDistance2<CurrentDistance)
+		{
+			CurrentDistance=CurrentDistance2;
+			geVec3d_AddScaled (&Pos, &Direction, CurrentDistance2, &Back);
+		}
+	}
+	// end change 
 	m_currentdistance = CurrentDistance/ActorScale;
 
 	// Ok, here's the implementation of Ralph Deane's too-cool
@@ -1160,15 +1192,34 @@ void CCameraManager::DoIsoTracking()
 	if(IsoCollFlag)
 	{
 		if(geWorld_Collision(CCD->World(), &CameraExtBox.Min, &CameraExtBox.Max, &Front, 
-		&Back, GE_VISIBLE_CONTENTS, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
+		&Back, /*GE_VISIBLE_CONTENTS*/GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
 		{
-			CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
-			if(CurrentDistance < 0.0f)
-				CurrentDistance = 0.0f;
+			// changed QuestOfDreams 01/2004
+			// can't be negative
+			//CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
+			//if(CurrentDistance < 0.0f)
+			//	CurrentDistance = 0.0f;
+			CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
+			// end change
 			if(CurrentDistance > (m_defaultdistance*ActorScale))
 				CurrentDistance = m_defaultdistance*ActorScale;
 			geVec3d_AddScaled (&Pos, &Direction, CurrentDistance, &Back);
 		}
+		// changed QuestOfDreams 01/2004
+		if(CCD->Meshes()->CollisionCheck(&CameraExtBox.Min, &CameraExtBox.Max, Front, Back, &Collision))
+		{
+			geFloat CurrentDistance2 = geVec3d_DistanceBetween(&Collision.Impact, &Front);
+				
+			if(CurrentDistance2 > (m_defaultdistance*ActorScale))
+				CurrentDistance2 = m_defaultdistance*ActorScale;
+				
+			if(CurrentDistance2<CurrentDistance)
+			{
+				CurrentDistance=CurrentDistance2;
+				geVec3d_AddScaled (&Pos, &Direction, CurrentDistance2, &Back);
+			}
+		}
+		// end change 
 	}
 
 	m_currentdistance = CurrentDistance/ActorScale;

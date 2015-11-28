@@ -8,6 +8,14 @@ CActorManager.cpp:		Actor Manager
 	rotate, and scale all the actors in the system.  The Actor Manager
 	maintains a database of "loaded actors" from which instances can
 	be created.
+
+Edit History:
+
+ 07/15/2004 Wendell Buckner
+  BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+  overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+  the bone bounding boxes until the whatever hit the overall bounding box no longer exists. 
+
 */
 
 #include "RabidFramework.h"		// The One True Include File
@@ -24,8 +32,10 @@ CActorManager::CActorManager()
 	
 	m_GlobalInstanceCount = 0;			// No instances
 // changed RF064
-	ShadowBitmap = TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
-	ShadowAlpha = 128.0f;
+// changed QD 06/26/04
+//	ShadowBitmap = TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
+//	ShadowAlpha = 128.0f;
+// end change
 	AttrFile.SetPath("material.ini");
 	ValidAttr = true;
 	if(!AttrFile.ReadFile())
@@ -70,6 +80,248 @@ CActorManager::~CActorManager()
 	}
 	
 	return;
+}
+
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+    overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+    the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
+
+CollideObjectInformation *CActorManager::AddCollideObject ( CollideObjectLevels CollideObjectLevel, ActorInstanceList *ActorInstance, CollideObjectInformation *CollideObject )
+{
+	long StartCollideObjectLevel;
+	long CurrCollideObjectLevel;
+	long EndCollideObjectLevel;
+	CollideObjectInformation *NewCollideObject = NULL;
+
+	if ( CollideObjectLevel < COLActorBBox ) CollideObjectLevel = COLActorBBox;
+	if ( CollideObjectLevel > COLMaxBBox ) CollideObjectLevel = COLMaxBBox;
+
+	if ( CollideObjectLevel == COLMaxBBox ) 
+	{
+		StartCollideObjectLevel= COLActorBBox;
+		EndCollideObjectLevel = COLMaxBBox;
+	}
+    else
+	{
+		StartCollideObjectLevel= CollideObjectLevel;
+		EndCollideObjectLevel = CollideObjectLevel+1;
+	}
+
+	do
+	{
+		if ( !CollideObject ) break;
+
+		for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+		{
+			if ( (MainList[nTemp] == NULL) && (ActorInstance == NULL) )
+				continue;				// Empty slot
+
+			ActorInstanceList *pEntry = NULL;
+
+			if ( ActorInstance )
+				pEntry = ActorInstance;
+			else
+				pEntry = MainList[nTemp]->IList;
+
+			while(pEntry != NULL)
+			{
+
+				if (  pEntry->NoCollision && !ActorInstance )
+				{
+					pEntry = pEntry->pNext;
+					continue;
+				}
+
+				for(CurrCollideObjectLevel=StartCollideObjectLevel; CurrCollideObjectLevel < EndCollideObjectLevel; CurrCollideObjectLevel++)
+				{				
+					NewCollideObject = ( CollideObjectInformation * ) geRam_Allocate( sizeof(CollideObjectInformation) );
+					if ( !NewCollideObject ) break;
+
+					NewCollideObject->CollideObject = CollideObject->CollideObject;
+					NewCollideObject->Normal  = CollideObject->Normal;
+					NewCollideObject->Percent = CollideObject->Percent;
+					NewCollideObject->NextCollideObject = NULL;
+					NewCollideObject->PrevCollideObject = NULL;
+
+					if ( !ActorInstance->CollideObjects[CurrCollideObjectLevel] )
+						ActorInstance->CollideObjects[CurrCollideObjectLevel] = NewCollideObject;
+
+					CollideObjectInformation *CurrentCollideObject = NULL;
+					CurrentCollideObject = ActorInstance->CollideObjects[CollideObjectLevel]->PrevCollideObject;
+		
+					if ( CurrentCollideObject ) 
+						CurrentCollideObject->NextCollideObject = NewCollideObject;
+
+					NewCollideObject->PrevCollideObject = CurrentCollideObject;
+
+					ActorInstance->CollideObjects[CurrCollideObjectLevel]->PrevCollideObject = NewCollideObject;
+				}
+
+				if ( !NewCollideObject ) break;
+
+				pEntry = pEntry->pNext;				// Next instance in list
+			}
+
+			if ( !NewCollideObject ) break;
+			if ( ActorInstance ) break;
+		}
+
+	} while (GE_FALSE);
+
+	return NewCollideObject;
+}
+
+geBoolean CActorManager::RemoveCollideObject ( CollideObjectLevels CollideObjectLevel, ActorInstanceList *ActorInstance, void *theCollideObject )
+{
+	long StartCollideObjectLevel;
+	long CurrCollideObjectLevel;
+	long EndCollideObjectLevel;
+	geBoolean CollideObjectRemoved = GE_FALSE;
+
+	if ( CollideObjectLevel < COLActorBBox ) CollideObjectLevel = COLActorBBox;
+	if ( CollideObjectLevel > COLMaxBBox ) CollideObjectLevel = COLMaxBBox;
+
+	if ( CollideObjectLevel == COLMaxBBox ) 
+	{
+		StartCollideObjectLevel= COLActorBBox;
+		EndCollideObjectLevel = COLMaxBBox;
+	}
+    else
+	{
+		StartCollideObjectLevel= CollideObjectLevel;
+		EndCollideObjectLevel = CollideObjectLevel+1;
+	}
+
+	do
+	{
+		for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+		{
+			if ( (MainList[nTemp] == NULL) && (ActorInstance == NULL) )
+				continue;				// Empty slot
+
+			ActorInstanceList *pEntry = NULL;
+
+			if ( ActorInstance )
+				pEntry = ActorInstance;
+			else
+				pEntry = MainList[nTemp]->IList;
+
+			while(pEntry != NULL)
+			{
+
+				if (  pEntry->NoCollision && !ActorInstance )
+				{
+					pEntry = pEntry->pNext;
+					continue;
+				}
+
+				for(CurrCollideObjectLevel=StartCollideObjectLevel; CurrCollideObjectLevel < EndCollideObjectLevel; CurrCollideObjectLevel++)
+				{
+					CollideObjectInformation *FoundCollideObject = NULL;     
+					FoundCollideObject = GetCollideObject ( (CollideObjectLevels) CurrCollideObjectLevel, pEntry, theCollideObject );
+
+					if ( FoundCollideObject )
+					{
+						CollideObjectInformation *CurrentCollideObject;
+						CurrentCollideObject = FoundCollideObject->PrevCollideObject;
+						CurrentCollideObject->NextCollideObject = FoundCollideObject->NextCollideObject;
+
+						if ( pEntry->CollideObjects[CurrCollideObjectLevel] == FoundCollideObject )
+							pEntry->CollideObjects[CurrCollideObjectLevel] = NULL;
+
+						geRam_Free ( FoundCollideObject );
+
+						CollideObjectRemoved = GE_TRUE;
+					}
+				}
+
+				pEntry = pEntry->pNext;				// Next instance in list
+			}
+
+			if ( ActorInstance ) break;
+		}
+
+	} while(GE_FALSE);
+
+	return CollideObjectRemoved;
+}
+
+CollideObjectInformation *CActorManager::GetCollideObject ( CollideObjectLevels CollideObjectLevel, ActorInstanceList *ActorInstance, void * theCollideObject )
+{
+	long StartCollideObjectLevel;
+	long CurrCollideObjectLevel;
+	long EndCollideObjectLevel;
+	CollideObjectInformation *FoundCollideObject = NULL;
+    geBoolean CollideObjectFound = GE_FALSE;
+
+	if ( CollideObjectLevel < COLActorBBox ) CollideObjectLevel = COLActorBBox;
+	if ( CollideObjectLevel > COLMaxBBox ) CollideObjectLevel = COLMaxBBox;
+
+
+	if ( CollideObjectLevel == COLMaxBBox ) 
+	{
+		StartCollideObjectLevel= COLActorBBox;
+		EndCollideObjectLevel = COLMaxBBox;
+	}
+    else
+	{
+		StartCollideObjectLevel= CollideObjectLevel;
+		EndCollideObjectLevel = CollideObjectLevel+1;
+	}
+
+	do
+	{
+
+		for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+		{
+			if ( (MainList[nTemp] == NULL) && (ActorInstance == NULL) )
+				continue;				// Empty slot
+
+			ActorInstanceList *pEntry = NULL;
+
+			if ( ActorInstance )
+				pEntry = ActorInstance;
+			else
+				pEntry = MainList[nTemp]->IList;
+
+			while(pEntry != NULL)
+			{
+
+				if (  pEntry->NoCollision && !ActorInstance )
+				{
+					pEntry = pEntry->pNext;
+					continue;
+				}
+
+				for(CurrCollideObjectLevel=StartCollideObjectLevel; CurrCollideObjectLevel < EndCollideObjectLevel; CurrCollideObjectLevel++)
+				{
+
+					for ( FoundCollideObject = pEntry->CollideObjects[CurrCollideObjectLevel]; FoundCollideObject; FoundCollideObject = FoundCollideObject->NextCollideObject)
+					{
+						CollideObjectFound = ( FoundCollideObject->CollideObject == theCollideObject );
+						if ( CollideObjectFound ) break;
+
+						CollideObjectFound = ( FoundCollideObject->CollideObject && !theCollideObject );
+						if ( CollideObjectFound ) break;					
+					}
+
+					if ( CollideObjectFound ) break;					
+				}
+
+				if ( CollideObjectFound ) break;					
+				if ( ActorInstance ) break;
+
+				pEntry = pEntry->pNext;				// Next instance in list
+			}
+
+			if ( CollideObjectFound ) break;					
+			if ( ActorInstance ) break;
+		}
+
+	} while(GE_FALSE);
+
+	return FoundCollideObject;
 }
 
 //	LoadActor
@@ -222,9 +474,20 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 geActor *CActorManager::SpawnActor(char *szFilename, geVec3d thePosition, geVec3d Rotation,
 								   char *DefaultMotion, char *CurrentMotion, geActor *OldActor)
 {
+	// begin change gekido
+	char szDebugLog[256]; 
+	// end change gekido
+
 	//	Try and load it...
 	if(EffectC_IsStringNull(szFilename))
+	{
+		// begin change gekido
+		strcat (szDebugLog, "Null Actor Name, Cannot Load:\n");
+		strcat (szDebugLog, szFilename);
+		CCD->ReportError(szDebugLog, false);
+		// end change gekido
 		return NULL;
+	}
 	
 	geActor *theActor = LoadActor(szFilename, OldActor);
 	
@@ -238,6 +501,12 @@ geActor *CActorManager::SpawnActor(char *szFilename, geVec3d thePosition, geVec3
 		SetMotion(theActor, CurrentMotion);	// Set actor motion
 		SetDefaultMotion(theActor, DefaultMotion);	// Set default motion
 	}
+	// begin change gekido
+	else
+	{
+		OutputDebugString("Error Loading Actor\n");
+	}
+	// end change gekido
 	
 	return theActor;
 }
@@ -975,8 +1244,7 @@ int CActorManager::SetBoxChange(geActor *theActor, bool Flag)
 //
 //	Assign a new motion to an actor instance.  This replaces
 //	..the current animation on the next time cycle.
-
-int CActorManager::SetMotion(geActor *theActor, char *MotionName)
+int CActorManager::SetMotion(geActor *theActor, char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -997,7 +1265,7 @@ int CActorManager::SetMotion(geActor *theActor, char *MotionName)
 //	Assign motion to switch to when the current animation cycle
 //	..is complete.
 
-int CActorManager::SetNextMotion(geActor *theActor, char *MotionName)
+int CActorManager::SetNextMotion(geActor *theActor, char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1013,7 +1281,7 @@ int CActorManager::SetNextMotion(geActor *theActor, char *MotionName)
 //
 //	Assign the "default motion" for an actor
 
-int CActorManager::SetDefaultMotion(geActor *theActor, char *MotionName)
+int CActorManager::SetDefaultMotion(geActor *theActor, char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1029,7 +1297,7 @@ int CActorManager::SetDefaultMotion(geActor *theActor, char *MotionName)
 //	Clear all current and pending motions for an actor and set the
 //	..current motion to the default.
 
-int CActorManager::ClearMotionToDefault(geActor *theActor)
+int CActorManager::ClearMotionToDefault(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1046,7 +1314,8 @@ int CActorManager::ClearMotionToDefault(geActor *theActor)
 //	SetActorDynamicLighting
 //
 
-int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor, GE_RGBA AmbientColor)
+// changed QD 07/21/04
+int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor, GE_RGBA AmbientColor, geBoolean AmbientLightFromFloor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1054,6 +1323,9 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor,
 
 	pEntry->FillColor = FillColor;
 	pEntry->AmbientColor = AmbientColor;
+// changed QD 07/21/04
+	pEntry->AmbientLightFromFloor = AmbientLightFromFloor;
+// end change
 	geVec3d Fill = {0.0f, 1.0f, 0.0f};
 	geVec3d_Normalize(&Fill);
 	geXForm3d	Xf;
@@ -1062,8 +1334,29 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor, GE_RGBA FillColor,
 	geActor_GetBoneTransform(theActor, RootBoneName(theActor), &Xf );
 	geXForm3d_GetTranspose( &Xf, &XfT );
 	geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
+// changed QD 07/21/04
+//	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
+//						AmbientColor.r, AmbientColor.g, AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
 	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
-						AmbientColor.r, AmbientColor.g, AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
+						AmbientColor.r, AmbientColor.g, AmbientColor.b, AmbientLightFromFloor, 6, NULL, GE_FALSE);
+
+	for(int i=0;i<3;i++)
+	{
+		if(pEntry->LODActor[i])
+			geActor_SetLightingOptions(pEntry->LODActor[i], GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
+						AmbientColor.r, AmbientColor.g, AmbientColor.b, AmbientLightFromFloor, 6, NULL, GE_FALSE);
+	}
+
+// also the geActor_SetStaticLightingOptions must be updated, because both - dynamic and static - AmbientLightFromFloor options
+// must be set to GE_FALSE to make the engine use the specified AmbientColor 
+	geActor_SetStaticLightingOptions(theActor, AmbientLightFromFloor, GE_TRUE, 6);
+
+	for(i=0;i<3;i++)
+	{
+		if(pEntry->LODActor[i])
+			geActor_SetStaticLightingOptions(pEntry->LODActor[i], AmbientLightFromFloor, GE_TRUE, 6);
+	}
+// end change
 
 	return RGF_SUCCESS;
 }
@@ -1082,8 +1375,29 @@ int CActorManager::ResetActorDynamicLighting(geActor *theActor)
 	geActor_GetBoneTransform(theActor, RootBoneName(theActor), &Xf );
 	geXForm3d_GetTranspose( &Xf, &XfT );
 	geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
+// changed QD 07/21/04
+//	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
+//						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
 	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
-						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
+						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, pEntry->AmbientLightFromFloor, 6, NULL, GE_FALSE);
+
+	for(int i=0;i<3;i++)
+	{
+		if(pEntry->LODActor[i])
+			geActor_SetLightingOptions(pEntry->LODActor[i], GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
+						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, pEntry->AmbientLightFromFloor, 6, NULL, GE_FALSE);
+	}
+
+// also the geActor_SetStaticLightingOptions must be updated, because both - dynamic and static - AmbientLightFromFloor options
+// must be set to GE_FALSE to make the engine use the specified AmbientColor 
+	geActor_SetStaticLightingOptions(theActor, pEntry->AmbientLightFromFloor, GE_TRUE, 6);
+
+	for(i=0;i<3;i++)
+	{
+		if(pEntry->LODActor[i])
+			geActor_SetStaticLightingOptions(pEntry->LODActor[i], pEntry->AmbientLightFromFloor, GE_TRUE, 6);
+	}
+// end change
 
 	return RGF_SUCCESS;
 }
@@ -1185,8 +1499,13 @@ int CActorManager::GetColDetLevel(geActor *theActor, int *ColDetLevel)
 	
 	return RGF_SUCCESS;
 }
+
+// begin change gekido
+// SetBlendMot
+// 
+// Description:  Creates a custom pose based on 2 animations, does NOT reset the animation timing
 // changed RF063
-int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, float Amount)
+int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1203,7 +1522,12 @@ int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, floa
 	return RGF_SUCCESS;
 }
 // end change RF063
-int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, float Amount)
+// end change gekido
+
+// SetBlendMotion
+// 
+// Description:  Creates a custom pose based on 2 animations, first RESETS the animation timing
+int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1221,7 +1545,7 @@ int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, f
 	return RGF_SUCCESS;
 }
 
-int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name2, float Amount)
+int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name2, float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1236,7 +1560,7 @@ int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name
 }
 
 // changed RF064
-int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amount, char *name2)
+int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amount, char *name2, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1267,7 +1591,7 @@ int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amo
 	return RGF_SUCCESS;
 }
 
-bool CActorManager::CheckTransitionMotion(geActor *theActor, char *name1)
+bool CActorManager::CheckTransitionMotion(geActor *theActor, char *name1, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -1436,6 +1760,47 @@ int CActorManager::SetShadow(geActor *theActor, geFloat fSize)
 	} 
 	return RGF_SUCCESS;
 }
+
+// changed QD 06/26/04
+int CActorManager::SetShadowAlpha(geActor *theActor, geFloat Alpha)
+{ 
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;
+
+	pEntry->ShadowAlpha = Alpha; 
+	return RGF_SUCCESS;
+}
+
+int CActorManager::SetShadowBitmap(geActor *theActor, geBitmap *Bitmap)
+{ 
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;
+
+	pEntry->ShadowBitmap = Bitmap; 
+	return RGF_SUCCESS;
+}
+// end change
+
+// activates projected shadows for this actor
+int CActorManager::SetProjectedShadows(geActor *theActor, bool flag)
+{ 
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+	if(pEntry == NULL)
+		return RGF_NOT_FOUND;
+
+	pEntry->ProjectedShadows = flag; 
+	return RGF_SUCCESS;
+}
+// end change
+
+// changed QD Shadows
+geBoolean CActorManager::SetStencilShadows(geActor *theActor, geBoolean flag)
+{ 
+	return(geActor_SetStencilShadow(theActor, flag)); 
+}
+// end change
 
 //	SetScale
 //
@@ -2027,7 +2392,7 @@ char *CActorManager::GetMotion(geActor *theActor)
 	return pEntry->szMotionName;
 }
 
-geMotion *CActorManager::GetpMotion(geActor *theActor)
+geMotion *CActorManager::GetpMotion(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2035,7 +2400,7 @@ geMotion *CActorManager::GetpMotion(geActor *theActor)
 	return pEntry->pMotion;
 }
 
-geMotion *CActorManager::GetpBMotion(geActor *theActor)
+geMotion *CActorManager::GetpBMotion(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2045,7 +2410,7 @@ geMotion *CActorManager::GetpBMotion(geActor *theActor)
 	return NULL;
 }
 
-float CActorManager::GetBlendAmount(geActor *theActor)
+float CActorManager::GetBlendAmount(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2056,7 +2421,7 @@ float CActorManager::GetBlendAmount(geActor *theActor)
 }
 
 // changed RF064
-float CActorManager::GetStartTime(geActor *theActor)
+float CActorManager::GetStartTime(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2064,7 +2429,7 @@ float CActorManager::GetStartTime(geActor *theActor)
 	return pEntry->StartTime;
 }
 
-bool CActorManager::GetTransitionFlag(geActor *theActor)
+bool CActorManager::GetTransitionFlag(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2435,6 +2800,14 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->TiltX = 0.0f;
 // changed RF063
 	NewEntry->ShadowSize = 0.0f;
+// changed QD 06/26/04
+	NewEntry->ShadowBitmap=NULL;
+	NewEntry->ShadowAlpha = 128.0f;
+// end change
+	// change gekido
+	// projected shadows
+	NewEntry->ProjectedShadows = false;
+	// end change gekido
 	NewEntry->Moving = false;
 	NewEntry->OldZone = 0;
 	NewEntry->LQ = NULL;
@@ -2449,6 +2822,9 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->AmbientColor.r = NewEntry->AmbientColor.g = NewEntry->AmbientColor.b = 0.0f;
 	NewEntry->FillColor.a = NewEntry->AmbientColor.a = 255.0f;
 // end change RF064
+// changed QD 07/21/04
+	NewEntry->AmbientLightFromFloor = GE_TRUE;
+// end change
 	NewEntry->BoxChange = true;
 	NewEntry->BlendFlag = false;
 	NewEntry->HoldAtEnd = false;
@@ -2656,7 +3032,7 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 	return;
 }
 
-float CActorManager::GetAnimationTime(geActor *theActor)
+float CActorManager::GetAnimationTime(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2666,7 +3042,7 @@ float CActorManager::GetAnimationTime(geActor *theActor)
 }
 
 // start multiplayer
-void CActorManager::SetAnimationTime(geActor *theActor, float time)
+void CActorManager::SetAnimationTime(geActor *theActor, float time, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2675,7 +3051,7 @@ void CActorManager::SetAnimationTime(geActor *theActor, float time)
 }
 // end multiplayer
 
-void CActorManager::SetHoldAtEnd(geActor *theActor, bool State)
+void CActorManager::SetHoldAtEnd(geActor *theActor, bool State, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2683,7 +3059,7 @@ void CActorManager::SetHoldAtEnd(geActor *theActor, bool State)
 	pEntry->HoldAtEnd = State;
 }
 
-bool CActorManager::EndAnimation(geActor *theActor)
+bool CActorManager::EndAnimation(geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2819,23 +3195,39 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 	else
 		pMotion = geActor_GetMotionByName(theDef,
 			theEntry->szMotionName);			// Get the motion name
+
+	// 03.04.2004 - begin change gekido 
+	// need to cycle through each animation channel and build our pose for this frame
+	// root channel first, then cycle through each sub-channel in order
+	//	0	-- root / lower body
+	//	1	-- upper body
+	//	2	-- head
+	//	3	-- user channel 1
+	//	4	-- user channel 2
+
+	// no motion? 
 	if(!pMotion)
 	{
 		char szBug[256];
+
+		// is the animation missing from the actor?
 		if(!EffectC_IsStringNull(theEntry->szMotionName) && theEntry->Actor==CCD->Player()->GetActor())
 		{
 			sprintf(szBug, "Player missing animation %s", theEntry->szMotionName);
 			CCD->ReportError(szBug, false);
 		}
+		// check to see if we have a 'next motion name', maybe we just need to play it instead
 		if(!EffectC_IsStringNull(theEntry->szNextMotionName))
 		{
 			strcpy(theEntry->szMotionName, theEntry->szNextMotionName);
+			// do we need to blend our current pose with the 'next motion'?
 			if(theEntry->BlendNextFlag)
 			{
 				theEntry->BlendFlag = true;
 				theEntry->BlendAmount = theEntry->BlendNextAmount;
 				strcpy(theEntry->szBlendMotionName, theEntry->szBlendNextMotionName);
 			}
+			// no blending, just play next animation
 			else
 			{
 				theEntry->BlendFlag = false;
@@ -2843,6 +3235,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 			strcpy(theEntry->szNextMotionName, "");		// Zap next motion
 			theEntry->NeedsNewBB = true;
 		}
+		// no 'next' motion, lets just defualt to the 'default' animation instead
 		else
 		{
 			if(EffectC_IsStringNull(theEntry->szDefaultMotionName))
@@ -2892,7 +3285,8 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 		if(theEntry->TransitionFlag)
 		{
 			tEnd = theEntry->BlendAmount;
-			geActor_SetPose(RActor, pMotion, 0.0f, &thePosition);
+			//geActor_SetPose(RActor, pMotion, 0.0f, &thePosition); //PWX
+			geActor_SetPose(RActor, pMotion, tEnd-time, &thePosition); //PWX
 			pBMotion = geActor_GetMotionByName(theDef, theEntry->szBlendMotionName);
 			if(pBMotion)
 			{
@@ -2968,136 +3362,184 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 
 
 // changed RF063	
-	if(theEntry->ShadowSize>0.0f)
+
+	// begin change gekido
+	// projected shadows
+	// only render the bitmap shadows:
+	// 1) if we are NOT rendering projected shadows, then render by default
+	// 2) if we ARE rendering projected shadows, and we are higher than LOD0, render bitmap shadow
+
+	bool RenderBitmapShadow;
+
+	if(theEntry->ProjectedShadows == true)
 	{
-		geVec3d	Pos1, Pos2;
-		GE_Collision Collision;
-		geVec3d right, up;
-		GE_LVertex	vertex[4];
-		geVec3d Axis[3];
-		int major, i;
-		geVec3d Impact, normal;
-		#define fab(a) (a > 0 ? a : -a)
-		
-		Pos1 = thePosition.Translation;
-		Pos2 = Pos1;
-		Pos2.Y -= 30000.0f;
-		geWorld_Collision(CCD->World(), NULL, NULL,
-			&Pos1, &Pos2, GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW, 
-			GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision);
-		//CCD->Collision()->CheckForWCollision(NULL, NULL,
-			//Pos1, Pos2, &Collision, theEntry->Actor);
-		Impact = Collision.Impact;
-		normal = Collision.Plane.Normal;
-		float dist = (float)fabs(geVec3d_DistanceBetween(&Pos1, &Impact));
-		if(dist<0.0f)
-			dist = 0.0f;
-		if(dist<(theEntry->ShadowSize*2.0f))
+		// only render projected shadows at further than closest LOD
+		if(theEntry->LODLevel==0)
 		{
-			for(i = 0; i < 4; i++)
-			{
-				// texture coordinates
-				vertex[i].u = 0.0f;
-				vertex[i].v = 0.0f;
-				// color
-				vertex[i].r = 24.0f;
-				vertex[i].g = 24.0f;
-				vertex[i].b = 24.0f;
-// changed RF064
-				vertex[i].a = ShadowAlpha;
-// end change RF064
-			}
-			
-			vertex[3].u = 1.0f;
-			vertex[2].u = 1.0f;
-			vertex[2].v = 1.0f;
-			vertex[1].v = 1.0f;
-			
-			for(i = 0; i < 3; i++)
-			{
-				Axis[i].X = 0.0f;
-				Axis[i].Y = 0.0f;
-				Axis[i].Z = 0.0f;
-			}
-			Axis[0].X = 1.0f;
-			Axis[1].Y = 1.0f;
-			Axis[2].Z = 1.0f;
-			
-			major = 0;
-			
-			if(fab(normal.Y) > fab(normal.X))
-			{
-				major = 1;
-				if(fab(normal.Z) > fab(normal.Y))
-					major = 2;
-			}
-			else
-			{
-				if(fab(normal.Z) > fab(normal.X))
-					major = 2;
-			}
-			
-			if(fab(normal.X)==1.0f || fab(normal.Y)==1.0f || fab(normal.Z)==1.0f)
-			{
-				if ((major == 0 && normal.X > 0) || major == 1)
-				{
-					right.X = 0.0f;
-					right.Y = 0.0f;
-					right.Z = -1.0f;
-				}
-				else if (major == 0)
-				{
-					right.X = 0.0f;
-					right.Y = 0.0f;
-					right.Z = 1.0f;
-				}
-				else 
-				{
-					right.X = normal.Z;
-					right.Y = 0.0f;
-					right.Z = 0.0f;
-				}
-			}
-			else 
-				geVec3d_CrossProduct(&Axis[major], &normal, &right);
-			
-			geVec3d_CrossProduct(&normal, &right, &up);
-			geVec3d_Normalize(&up);
-			geVec3d_Normalize(&right);
-			geVec3d_Scale(&right, (theEntry->ShadowSize-(dist/2.0f))/2.0f, &right); 
-			geVec3d_Scale(&up, (theEntry->ShadowSize-(dist/2.0f))/2.0f, &up);
-			
-			geVec3d_MA(&Impact, 0.4f, &normal, &Impact);
-			
-			//calculate vertices from corners
-			vertex[1].X = Impact.X + ((-right.X - up.X));
-			vertex[1].Y = Impact.Y + ((-right.Y - up.Y));
-			vertex[1].Z = Impact.Z + ((-right.Z - up.Z));
-			
-			vertex[2].X = Impact.X + ((right.X - up.X));
-			vertex[2].Y = Impact.Y + ((right.Y - up.Y));
-			vertex[2].Z = Impact.Z + ((right.Z - up.Z));
-			
-			vertex[3].X = Impact.X + ((right.X + up.X));
-			vertex[3].Y = Impact.Y + ((right.Y + up.Y));
-			vertex[3].Z = Impact.Z + ((right.Z + up.Z));
-			
-			vertex[0].X = Impact.X + ((-right.X + up.X));
-			vertex[0].Y = Impact.Y + ((-right.Y + up.Y));
-			vertex[0].Z = Impact.Z + ((-right.Z + up.Z));
-			
-			geWorld_AddPolyOnce(CCD->World(),
-				vertex,
-				4,
-// changed RF064
-				ShadowBitmap,
-// end change RF064
-				GE_TEXTURED_POLY,
-				GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-				1.0f);
+			RenderBitmapShadow = false;
+		}
+		else
+		{
+			RenderBitmapShadow = true;
 		}
 	}
+	else
+	{
+		RenderBitmapShadow = true;
+	}
+
+	if(RenderBitmapShadow)
+	{
+		// end change gekido
+		if(theEntry->ShadowSize>0.0f && theEntry->ShadowBitmap) // changed QD 06/26/04
+		{
+			geVec3d	Pos1, Pos2;
+			GE_Collision Collision;
+			geVec3d right, up;
+			GE_LVertex	vertex[4];
+			geVec3d Axis[3];
+			int major, i;
+			geVec3d Impact, normal;
+			#define fab(a) (a > 0 ? a : -a)
+			
+			//changed Pickles Jul 04 -- PWX
+			//Pos1 = thePosition.Translation;
+			geXForm3d BoneXForm;
+			geActor_GetBoneTransformByIndex(theEntry->Actor, 0, &BoneXForm);
+			Pos1 = BoneXForm.Translation;
+			//end changed pickles Jul 04 -- PWX
+			Pos2 = Pos1;
+			Pos2.Y -= 30000.0f;
+			geWorld_Collision(CCD->World(), NULL, NULL,
+				&Pos1, &Pos2, GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW, 
+				GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision);
+			//CCD->Collision()->CheckForWCollision(NULL, NULL,
+				//Pos1, Pos2, &Collision, theEntry->Actor);
+			Impact = Collision.Impact;
+			normal = Collision.Plane.Normal;
+			float dist = (float)fabs(geVec3d_DistanceBetween(&Pos1, &Impact));
+			if(dist<0.0f)
+				dist = 0.0f;
+			if(dist<(theEntry->ShadowSize*2.0f))
+			{
+				for(i = 0; i < 4; i++)
+				{
+					// texture coordinates
+					vertex[i].u = 0.0f;
+					vertex[i].v = 0.0f;
+					// color
+					vertex[i].r = 24.0f;
+					vertex[i].g = 24.0f;
+					vertex[i].b = 24.0f;
+	// changed QD 06/26/04
+	// changed RF064
+	//				vertex[i].a = ShadowAlpha;
+	// end change RF064
+					vertex[i].a = theEntry->ShadowAlpha;
+	// end change
+				}
+				
+				vertex[3].u = 1.0f;
+				vertex[2].u = 1.0f;
+				vertex[2].v = 1.0f;
+				vertex[1].v = 1.0f;
+				
+				for(i = 0; i < 3; i++)
+				{
+					Axis[i].X = 0.0f;
+					Axis[i].Y = 0.0f;
+					Axis[i].Z = 0.0f;
+				}
+				Axis[0].X = 1.0f;
+				Axis[1].Y = 1.0f;
+				Axis[2].Z = 1.0f;
+				
+				major = 0;
+				
+				if(fab(normal.Y) > fab(normal.X))
+				{
+					major = 1;
+					if(fab(normal.Z) > fab(normal.Y))
+						major = 2;
+				}
+				else
+				{
+					if(fab(normal.Z) > fab(normal.X))
+						major = 2;
+				}
+				
+				if(fab(normal.X)==1.0f || fab(normal.Y)==1.0f || fab(normal.Z)==1.0f)
+				{
+					if ((major == 0 && normal.X > 0) || major == 1)
+					{
+						right.X = 0.0f;
+						right.Y = 0.0f;
+						right.Z = -1.0f;
+					}
+					else if (major == 0)
+					{
+						right.X = 0.0f;
+						right.Y = 0.0f;
+						right.Z = 1.0f;
+					}
+					else 
+					{
+						right.X = normal.Z;
+						right.Y = 0.0f;
+						right.Z = 0.0f;
+					}
+				}
+				else 
+					geVec3d_CrossProduct(&Axis[major], &normal, &right);
+				
+				//start pickles Jul 04
+				InVector(theEntry->Actor,&up);
+				LeftVector(theEntry->Actor,&right);
+				geVec3d_Inverse(&right);
+				//end pickles Jul 04
+
+				geVec3d_CrossProduct(&normal, &right, &up);
+				geVec3d_Normalize(&up);
+				geVec3d_Normalize(&right);
+				geVec3d_Scale(&right, (theEntry->ShadowSize-(dist/2.0f))/2.0f, &right); 
+				geVec3d_Scale(&up, (theEntry->ShadowSize-(dist/2.0f))/2.0f, &up);
+				
+				geVec3d_MA(&Impact, 0.4f, &normal, &Impact);
+				
+				//calculate vertices from corners
+				vertex[1].X = Impact.X + ((-right.X - up.X));
+				vertex[1].Y = Impact.Y + ((-right.Y - up.Y));
+				vertex[1].Z = Impact.Z + ((-right.Z - up.Z));
+				
+				vertex[2].X = Impact.X + ((right.X - up.X));
+				vertex[2].Y = Impact.Y + ((right.Y - up.Y));
+				vertex[2].Z = Impact.Z + ((right.Z - up.Z));
+				
+				vertex[3].X = Impact.X + ((right.X + up.X));
+				vertex[3].Y = Impact.Y + ((right.Y + up.Y));
+				vertex[3].Z = Impact.Z + ((right.Z + up.Z));
+				
+				vertex[0].X = Impact.X + ((-right.X + up.X));
+				vertex[0].Y = Impact.Y + ((-right.Y + up.Y));
+				vertex[0].Z = Impact.Z + ((-right.Z + up.Z));
+				
+				geWorld_AddPolyOnce(CCD->World(),
+					vertex,
+					4,
+	// changed QD 06/26/04
+	// changed RF064
+	//				ShadowBitmap,
+	// end change RF064
+					theEntry->ShadowBitmap,
+	// end change
+					GE_TEXTURED_POLY,
+					GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF,
+					1.0f);
+			}
+		}
 // end change RF063
+	}
+	// end change projected shadows
 
 	//	Ok, let's check to see if we've hit the end of this motion,
 	//	..If so, and we have a next motion, move to it - otherwise
@@ -3128,13 +3570,15 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 				}
 				// Clear out the animation time
 // changed RF063
-				theEntry->AnimationTime = (time - tEnd);//0.0f;
+				if(!theEntry->TransitionFlag) //PWX
+					theEntry->AnimationTime = (time - tEnd);//0.0f; //PWX
 			}
 // changed RF064
 			if(theEntry->TransitionFlag)
 			{
 				theEntry->TransitionFlag = false;
-				theEntry->AnimationTime = 0.0f;
+				//theEntry->AnimationTime = 0.0f; //pwx
+				theEntry->AnimationTime = time; //pwx
 			}
 // end change RF064
 		}
@@ -3225,7 +3669,14 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry,
 			geActor_SetRenderHintExtBox(theEntry->Actor, &ExtBox, NULL);
 		}
 	}
-	
+	// added by gekido (thanx for pickles for the shadow code)
+	//Draw Poly Shadow at LOD0 - TEMP MOD
+	//	if(theEntry->LODLevel == 0)
+	if(theEntry->ProjectedShadows==true && theEntry->LODLevel==0)
+	{
+		CCD->PlyShdw()->DrawShadow(theEntry->Actor);
+	}
+	// end shadow change gekido
 	return;
 }
 
@@ -3522,56 +3973,108 @@ int CActorManager::Move(ActorInstanceList *pEntry, int nHow, geFloat fSpeed)
 	if((nZoneType & kClimbLaddersZone))
 	{
 		geXForm3d_SetIdentity(&Xform);
-		if((nHow != RGF_K_FORWARD))
+
+		// changed QD 01/15/05
+		if((pEntry->Actor==CCD->Player()->GetActor()) && (CCD->Player()->GetViewPoint()!=FIRSTPERSON))
 		{
-			geXForm3d_RotateZ(&Xform, pEntry->localRotation.Z);
-			if(pEntry->AllowTilt)
-				geXForm3d_RotateX(&Xform, pEntry->localRotation.X);
-			else
-				geXForm3d_RotateX(&Xform, pEntry->TiltX);
-			geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
-			geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+			if((nHow == RGF_K_FORWARD) || (nHow == RGF_K_BACKWARD))
+			{
+				
+				geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
 				pEntry->localTranslation.Z);
-			if((nHow == RGF_K_BACKWARD))
-				geXForm3d_GetIn(&Xform, &In);						// get forward vector 
+
+				geXForm3d_GetUp(&Xform, &In);
+				NewPosition = pEntry->localTranslation;				// From the old position...
+				SavedPosition = pEntry->localTranslation;			// Back this up..
+				geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+				if(nHow == RGF_K_BACKWARD)
+				{
+					GE_Collision Collision;
+					if(CCD->Collision()->CheckActorCollision(SavedPosition, NewPosition, pEntry->Actor, &Collision))
+					{						
+						geXForm3d_SetIdentity(&Xform);
+						geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
+						geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+							pEntry->localTranslation.Z);
+						geXForm3d_GetIn(&Xform, &In);						// get forward vector 
+						NewPosition = pEntry->localTranslation;						// From the old position...
+						SavedPosition = pEntry->localTranslation;					// Back this up..
+						geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+					}
+				}
+			}
 			else
+			{
+				geXForm3d_RotateZ(&Xform, pEntry->localRotation.Z);
+				if(pEntry->AllowTilt)
+					geXForm3d_RotateX(&Xform, pEntry->localRotation.X);
+				else
+					geXForm3d_RotateX(&Xform, pEntry->TiltX);
+				geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
+				geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+					pEntry->localTranslation.Z);
+				
 				geXForm3d_GetLeft(&Xform, &In);
-			NewPosition = pEntry->localTranslation;				// From the old position...
-			SavedPosition = pEntry->localTranslation;			// Back this up..
-			geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+				NewPosition = pEntry->localTranslation;				// From the old position...
+				SavedPosition = pEntry->localTranslation;			// Back this up..
+				geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+			}
+			
 		}
 		else
 		{
-			geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
-			pEntry->localTranslation.Z);
-			float Tilt;
-			if(pEntry->AllowTilt)
-				Tilt = pEntry->localRotation.X;
-			else
-				Tilt = pEntry->TiltX;
-			if(Tilt<0.0)
-				fSpeed = -(fSpeed);
-			geXForm3d_GetUp(&Xform, &In);
-			NewPosition = pEntry->localTranslation;				// From the old position...
-			SavedPosition = pEntry->localTranslation;			// Back this up..
-			geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
-			if(Tilt<0.0)
+			if((nHow != RGF_K_FORWARD))
 			{
-				GE_Collision Collision;
-				if(CCD->Collision()->CheckActorCollision(SavedPosition, NewPosition, pEntry->Actor, &Collision))
-				{
-					fSpeed = -(fSpeed);
-					geXForm3d_SetIdentity(&Xform);
-					geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
-					geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
-						pEntry->localTranslation.Z);
+				geXForm3d_RotateZ(&Xform, pEntry->localRotation.Z);
+				if(pEntry->AllowTilt)
+					geXForm3d_RotateX(&Xform, pEntry->localRotation.X);
+				else
+					geXForm3d_RotateX(&Xform, pEntry->TiltX);
+				geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
+				geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+					pEntry->localTranslation.Z);
+				if((nHow == RGF_K_BACKWARD))
 					geXForm3d_GetIn(&Xform, &In);						// get forward vector 
-					NewPosition = pEntry->localTranslation;						// From the old position...
-					SavedPosition = pEntry->localTranslation;					// Back this up..
-					geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+				else
+					geXForm3d_GetLeft(&Xform, &In);
+				NewPosition = pEntry->localTranslation;				// From the old position...
+				SavedPosition = pEntry->localTranslation;			// Back this up..
+				geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+			}
+			else
+			{
+				geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+				pEntry->localTranslation.Z);
+				float Tilt;
+				if(pEntry->AllowTilt)
+					Tilt = pEntry->localRotation.X;
+				else
+					Tilt = pEntry->TiltX;
+				if(Tilt<0.0)
+					fSpeed = -(fSpeed);
+				geXForm3d_GetUp(&Xform, &In);
+				NewPosition = pEntry->localTranslation;				// From the old position...
+				SavedPosition = pEntry->localTranslation;			// Back this up..
+				geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+				if(Tilt<0.0)
+				{
+					GE_Collision Collision;
+					if(CCD->Collision()->CheckActorCollision(SavedPosition, NewPosition, pEntry->Actor, &Collision))
+					{
+						fSpeed = -(fSpeed);
+						geXForm3d_SetIdentity(&Xform);
+						geXForm3d_RotateY(&Xform, pEntry->localRotation.Y);
+						geXForm3d_Translate(&Xform, pEntry->localTranslation.X, pEntry->localTranslation.Y,
+							pEntry->localTranslation.Z);
+						geXForm3d_GetIn(&Xform, &In);						// get forward vector 
+						NewPosition = pEntry->localTranslation;						// From the old position...
+						SavedPosition = pEntry->localTranslation;					// Back this up..
+						geVec3d_AddScaled(&SavedPosition, &In, fSpeed, &NewPosition);
+					}
 				}
 			}
 		}
+		// end change
 	}
 // changed RF063
 	else if((nZoneType == kLiquidZone) || (nZoneType == kNoGravityZone))
@@ -4012,14 +4515,32 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 			{
 				if(!(CCD->MenuManager()->GetNoClip()))
 				{
+// changed QD 09/29/2004
+// fix sliding
+					// don't do any calculations/collision-tests if we don't want to slide at all
+					if(!slide)
+					{
+						// No good move, back to where we came from
+						pEntry->localTranslation = StartPos;
+						EFlag = GE_FALSE;
+						goto exitcoll;
+					}
+
 					geFloat Slide = 1.0f;
+					// the ground doesn't allow normal sliding if Collision.Plane.Normal.Y < 0.0f
 					if(Collision.Plane.Normal.Y < 0.0f)
 					{
-						Slide = geVec3d_DotProduct(&EndPos, &Collision.Plane.Normal) +
+						Slide = geVec3d_DotProduct(&EndPos, &Collision.Plane.Normal) -
 							Collision.Plane.Dist;
 						EndPos.X -= Collision.Plane.Normal.X * Slide;
-						EndPos.Y -= Collision.Plane.Normal.Y * Slide;
+						EndPos.Y = Collision.Impact.Y;
 						EndPos.Z -= Collision.Plane.Normal.Z * Slide;
+
+						Slide = (Collision.Plane.Dist - geVec3d_DotProduct(&EndPos, &(Collision.Plane.Normal)))/
+							(Collision.Plane.Normal.X*Collision.Plane.Normal.X + Collision.Plane.Normal.Z*Collision.Plane.Normal.Z);
+						
+						EndPos.X += Collision.Plane.Normal.X * Slide;
+						EndPos.Z += Collision.Plane.Normal.Z * Slide;
 					}
 					else
 					{
@@ -4032,7 +4553,7 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 					CCD->Collision()->IgnoreContents(false);
 					CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1); // RGF_COLLISIONLEVEL_2
 					if(CCD->Collision()->CheckActorCollision(StartPos, EndPos, pEntry->Actor,
-						&Collision) == true || !slide)
+						&Collision) == true)// || !slide)
 					{
 						// No good move, back to where we came from
 						pEntry->localTranslation = StartPos;
@@ -4044,6 +4565,7 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 						// Motion OK, go for it
 						pEntry->localTranslation = EndPos;
 					}
+// end change
 				} 
 				else 
 				{
@@ -4136,7 +4658,8 @@ int CActorManager::TranslateAllPassengers(ActorInstanceList *pEntry)
 	return RGF_SUCCESS;
 }
 
-int CActorManager::CheckAnimation(geActor *theActor, char *Animation)
+// check to see if our new animation collides with something
+int CActorManager::CheckAnimation(geActor *theActor, char *Animation, int Channel)
 {
 	
 	ActorInstanceList *theEntry = LocateInstance(theActor);
@@ -4401,6 +4924,155 @@ int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool C
 	return RGF_SUCCESS;
 	
 }
+
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
+
+// Added RF072
+
+geBoolean CActorManager::DoesRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 
+		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal, void *CollisionObject )
+{
+	geExtBox Result;
+	geFloat T;
+	geVec3d Norm;
+	
+	*theActor = NULL;
+
+	for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+	{
+		if(MainList[nTemp] == NULL)
+			continue;				// Empty slot
+
+		ActorInstanceList *pEntry = MainList[nTemp]->IList;
+
+		while(pEntry != NULL)
+		{
+			if(pEntry->Actor == ActorToExclude)
+			{
+				// We want to ignore this actor, do so.
+				pEntry = pEntry->pNext;
+				continue;
+			}
+			if(pEntry->NoCollision)
+			{
+				pEntry = pEntry->pNext;
+				continue;
+			}
+			// Get actor instance bounding box in MODEL SPACE
+			GetBoundingBox(pEntry->Actor, &Result);
+			Result.Min.X += pEntry->localTranslation.X;
+			Result.Min.Y += pEntry->localTranslation.Y;
+			Result.Min.Z += pEntry->localTranslation.Z;
+			Result.Max.X += pEntry->localTranslation.X;
+			Result.Max.Y += pEntry->localTranslation.Y;
+			Result.Max.Z += pEntry->localTranslation.Z;
+
+			if(geExtBox_RayCollision(&Result, &OldPosition, &NewPosition,
+				&T, &Norm)==GE_TRUE)
+			{
+				// Heh, we hit someone.  Return the actor we ran into.
+				*theActor = pEntry->Actor;
+				*Percent = T;
+				*Normal = Norm;
+
+				CollideObjectInformation ci;
+
+				ci.CollideObject = CollisionObject;
+				ci.Normal = *Normal;
+				ci.Percent = *Percent;
+
+                AddCollideObject ( COLActorBBox, pEntry, &ci );
+				
+				return GE_TRUE;
+			}
+			pEntry = pEntry->pNext;				// Next instance in list
+		}
+		// Next master instance
+	}
+	
+	//	No hit, all be hunky-dory.
+	
+	return GE_FALSE;						// Hey, no collisions!
+}
+
+geBoolean CActorManager::DidRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 
+		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal, void *CollisionObj )
+{	
+	*theActor = NULL;
+
+	for(int nTemp = 0; nTemp < ACTOR_LIST_SIZE; nTemp++)
+	{
+		if(MainList[nTemp] == NULL)
+			continue;				// Empty slot
+
+		ActorInstanceList *pEntry = MainList[nTemp]->IList;
+
+		while(pEntry != NULL)
+		{
+			if(pEntry->Actor == ActorToExclude)
+			{
+				// We want to ignore this actor, do so.
+				pEntry = pEntry->pNext;
+				continue;
+			}
+			if(pEntry->NoCollision)
+			{
+				pEntry = pEntry->pNext;
+				continue;
+			}
+
+			CollideObjectInformation *ci;
+
+			ci = GetCollideObject ( COLActorBBox, pEntry, CollisionObj );
+
+			if ( ci )
+			{
+				// Heh, we hit someone.  Return the actor we ran into.
+				*theActor = pEntry->Actor;
+				*Percent = ci->Percent;
+				*Normal = ci->Normal;
+
+				return GE_TRUE;
+			}
+
+			pEntry = pEntry->pNext;				// Next instance in list
+		}
+		// Next master instance
+	}
+	
+	//	No hit, all be hunky-dory.
+	
+	return GE_FALSE;						// Hey, no collisions!
+}
+
+geBoolean CActorManager::SetLastBoneHit ( geActor *theActor, const char *LastBoneHit )
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+
+	geBoolean SetHitBoneName = ( pEntry && LastBoneHit );
+	
+	if ( SetHitBoneName ) strcpy ( pEntry->LastBoneHit, LastBoneHit );
+		
+	return SetHitBoneName;
+}
+
+char * CActorManager::GetLastBoneHit ( geActor *theActor )
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+
+	geBoolean GetHitBoneName = ( pEntry != NULL );
+	
+	char *LastBoneHit = NULL;
+
+	if ( GetHitBoneName ) LastBoneHit = &pEntry->LastBoneHit[0];
+		
+	return LastBoneHit;
+}
+
+//***
 
 // changed RF064
 geBoolean CActorManager::DoesRayHitActor(geVec3d OldPosition, geVec3d NewPosition, 

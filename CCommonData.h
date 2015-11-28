@@ -11,6 +11,19 @@ CCommonData.h:		Global Data Pool class
 #ifndef __RGF_CCOMMONDATA_H_
 #define __RGF_CCOMMONDATA_H_
 
+#define CONSOLEMAXROWS 30
+#define CONSOLEMAXCOLS 80
+
+
+// start change scripting
+#include "hashtable\\hash_table.h"
+// end change scripting
+
+// start change scripting
+typedef CHashTable<long> CLongHashT;
+//ed change scripting
+
+
 class CCommonData
 {
 public:
@@ -31,6 +44,33 @@ public:
 	int DispatchTick();								// Send time tick to components
 	bool ProcessLevelChange();				// Process a level change
 	void RenderComponents();					// Render all components
+
+	// begin change gekido
+	// new console commands
+	void ConsoleInit (int nMaxRows);			// initialize console
+	bool ConsoleRender();						// renders the current buffer to screen
+	bool ConsolePrint(char *szMsg, bool *bBox);	// print to console
+	bool ShowConsole (bool bConsoleFlag, int nTransition);		// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out transition when showing the console
+	bool ConsoleExec(char *szMsg, bool *bBox);	// execute console command
+	bool ConsoleClear();						// clears console
+	// end change gekido
+
+	//start pickles Jul 04
+	void InitJoysticks();
+	void CloseJoysticks();
+	int PollJoystickAxis(int jn, int a);
+	bool CheckJoystickButton(int jn, int bn);
+	int GetNumJoys();
+	// end pickles Jul 04
+
+	skExecutableContext GetskContext();//change simkin
+	void AddScriptedObject(char *objectName, skRValue Object);//change simkin
+	void RemoveScriptedObject(char *objectName);//change simkin
+
+	void FillHashCommands_LowLevel(); // change scripting
+	long GetHashCommand(std::string key);//change scripting
+	bool AddHashCommand(std::string key,long value);//change scripting
+
 	void PlayOpeningCutScene();				// Play opening cut scene
 	void CheckMediaPlayers();					// Poll all media players
 	FILE *OpenRFFile(int nFileType, char *szFilename, char *szHow);	
@@ -68,6 +108,9 @@ public:
 	inline C3DAudioSource *Audio3D() { return the3DAudio;}
 	inline CParticleSystem *Particles() { return theParticles;}
 	inline CStaticEntity *Props() { return theProps;}
+	// changed QD 01/2004
+	inline CStaticMesh *Meshes() {return theMeshes;}
+	// end change
 	inline CSoundtrackToggle *SoundtrackToggles() { return theSTToggles;}
 	inline CAudioStream *AudioStreams() { return theStreams;}
 	inline CVideoTexture *VideoTextures() { return theVidText;}
@@ -139,6 +182,11 @@ public:
 	inline CLevelController *LevelControllers() { return theLevelController;}
    //End Aug2003DCS
 	inline CFlipBook *FlipBooks() { return theFlipBook;}
+	inline CFoliage *Foliage() { return theFoliage;}   //Pickles Jul 04
+	inline CFlipTree *FlipTree() { return theFlipTree;}   //Pickles Jul 04
+	inline PWXImageManager *PWXImMgr() { return thePWXImage;}//Pickles PWX
+	inline CPolyShadow *PlyShdw() { return thePolyShadow;}    //PWX
+	inline CAreaChecker *AreaCheck() { return theAreaCheck;}    //PWX
 	inline CExplosionInit *Explosions() { return theExplosion;}
 	inline CExplosion *CExplosions() { return theCExplosion;}
 	inline CPreEffect *Effect() { return thePreEffect;}
@@ -199,11 +247,13 @@ public:
 	inline void SetLanguage(int language) {m_Language = language;}
 	inline float GetLODdistance(int index) { return LODdistance[index];}
 	inline bool GetLODAnimation() { return LODAnimation;}
+
 private:
 	CGenesisEngine *theGameEngine;		// Genesis engine class
 // start multiplayer
 	NetPlayerMgr *theNetPlayerMgr;
 // end multiplayer
+
 	CInput *theUserInput;							// User input class
 	CPlayer *thePlayer;								// Player avatar class
 	CAutoDoors *theAutoDoors;					// Automatic doors class
@@ -215,6 +265,9 @@ private:
 	C3DAudioSource *the3DAudio;				// 3D Audio Source class
 	CParticleSystem *theParticles;		// Particle systems handler class
 	CStaticEntity *theProps;					// Static entity handler class
+	// changed QD 01/2004
+	CStaticMesh *theMeshes;			// new staticmesh system
+	// end change
 	CSoundtrackToggle *theSTToggles;	// Soundtrack toggle handler class
 	CAudioStream *theStreams;					// Streaming audio handler
 	CVideoTexture *theVidText;				// Video texture handler
@@ -247,6 +300,11 @@ private:
 	CWeapon  *theWeapon;
 	CFirePoint  *theFirePoint;
 	CFlipBook  *theFlipBook;
+	CFoliage  *theFoliage;			//Pickles Jul 04
+	CFlipTree  *theFlipTree;			//Pickles Jul 04
+	PWXImageManager  *thePWXImage;			//PWX
+	CPolyShadow  *thePolyShadow;			//PWX
+	CAreaChecker  *theAreaCheck;			//PWX
 	CDecal  *theDecal;
 	CWallDecal  *theWallDecal;
 	//Start Aug2003DCS
@@ -278,6 +336,7 @@ private:
 	CArmour * theArmour;
 	CLiftBelt * theLiftBelt;
 	CDSpotLight *theCDSpot;
+	Joystick* joysticks[4]; // pickles Jul 04
 	float kAudibleRadius;
 // end change RF064
 	// Timekeeping information
@@ -362,6 +421,14 @@ private:
 	bool multiplayer;
 	bool server;
 // end multiplayer
+// begin change gekido 02.17.2004
+// start console vars
+	// current contents of the console
+	char ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS];
+	int nCurrentRow;	// what row of the console we're on
+// end console vars
+// end change gekido
+	CLongHashT CommandHash;//change scripting
 // changed RF064
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
 	                 DWORD dw1, DWORD dw2);		// Static timer callback

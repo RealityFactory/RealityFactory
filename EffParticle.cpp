@@ -678,6 +678,9 @@ void 	ActorParticle_SystemAddParticle(
 	geVec3d				RotationSpeed,
 	GE_RGBA				FillColor, 
 	GE_RGBA				AmbientColor,
+// changed QD 07/21/04
+	geBoolean			AmbientLightFromFloor,
+// end change
 	float				Alpha,
 	float				AlphaRate,
 	geFloat				Time,
@@ -708,7 +711,10 @@ void 	ActorParticle_SystemAddParticle(
 	}
 
 	// setup remaining data
-	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor);
+//	changed QD 07/21/04
+//	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor);
+	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor, AmbientLightFromFloor);
+// end change
 	if(EnvironmentMapping)
 		SetEnvironmentMapping(ptcl->Actor, true, AllMaterial, PercentMapping, PercentMaterial);
 	CCD->ActorManager()->SetScale(ptcl->Actor, Scale);

@@ -10,6 +10,7 @@
 #include "RabidFramework.h"
 #include "CCommonData.h"
 
+
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
@@ -20,8 +21,9 @@
 
 extern geSound_Def *SPool_Sound(char *SName);
 
+
 // ControllerObject
-ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileName)
+ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())//change simkin
 {
 	Order[0] = '\0';
 	ElapseTime = 0.0f;
@@ -48,7 +50,7 @@ ControllerObject::~ControllerObject()
 	}
 }
 
-bool ControllerObject::method(const skString& methodName, skRValueArray& arguments, skRValue& returnValue)
+bool ControllerObject::method(const skString& methodName, skRValueArray& arguments, skRValue& returnValue, skExecutableContext& ctxt)
 {
 	char  string1[128];
 	float float1;
@@ -375,7 +377,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 	else
 	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue);
+		return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);
 	}
 }
 
@@ -523,13 +525,13 @@ CLevelController::CLevelController()
 
          if(!EffectC_IsStringNull(pLC->InitOrder))
 			{
-				skRValueArray args(1);
+				skRValueArray args;//change simkin
 				skRValue ret;
 
 				strcpy(Object->Order, pLC->InitOrder);
 				try
 				{
-					Object->method(skString(Object->Order), args, ret);
+					Object->method(skString(Object->Order), args, ret,CCD->GetskContext()); //change simkin
 				}
 				catch(skRuntimeException e)
 				{
@@ -616,7 +618,7 @@ void CLevelController::Tick(geFloat TimeTicks)
 
          if(!EffectC_IsStringNull(Object->Order))
 		   {
-			   skRValueArray args(1);
+			   skRValueArray args;// change simkin
 			   skRValue ret;
 
 				if(Object->console)
@@ -655,7 +657,7 @@ void CLevelController::Tick(geFloat TimeTicks)
 
 			   try
 			   {
-				   Object->method(skString(Object->Order), args, ret);
+				   Object->method(skString(Object->Order), args, ret,CCD->GetskContext());
 			   }
 			   catch(skRuntimeException e)
 			   {

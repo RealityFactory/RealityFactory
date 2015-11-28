@@ -1,7 +1,7 @@
 #ifndef __RGF_CPAWN_H__ 
 #define __RGF_CPAWN_H__
 
-#include "Simkin\\skScriptedExecutable.h"
+#include "Simkin\\skScriptedExecutable.h" // Update Simkin
 
 #define DEBUGLINES	8
 #define MAXFLAGS  500
@@ -74,7 +74,6 @@ typedef struct EventStack
 	char EventName[128];
 } EventStack;
 
-
 //
 // ScriptConverse class
 //
@@ -86,7 +85,7 @@ public:
 	~ScriptedConverse();
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
     bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
-    bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
+    bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);
 	int DoConversation(int charpersec);
 
 //not commented, from picklses newsource.zip, nouts soundconversation...
@@ -183,9 +182,9 @@ public:
 	~ScriptedObject();
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
     bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
-    bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
-	bool highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
-	bool lowmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
+    bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);//change simkin
+	bool highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);
+	bool lowmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);
 	void Push();
 	void Pop();
 	void RemoveTriggerStack(TriggerStack *tpool);
@@ -200,7 +199,6 @@ public:
 	float anglemod(float a);
 	bool CloseEnough(float dist);
 	void MoveToGoal(float dist);
-
 	bool		active;
 	bool		alive;
 	bool		highlevel;
@@ -213,11 +211,26 @@ public:
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
+// changed QD 07/21/04
+	bool		AmbientLightFromFloor;
+// end change
 	bool		EnvironmentMapping;
 	bool		AllMaterial;
 	float		PercentMapping;
 	float		PercentMaterial;
 	float		ShadowSize;
+// changed QD 06/26/04
+	geFloat		ShadowAlpha;
+	char		ShadowBitmap[64];
+	char		ShadowAlphamap[64];
+// end change
+// begin change gekido 
+	// projected shadows configurable per pawn type
+	bool		ProjectedShadows;
+// end change
+// changed QD Shadows
+	geBoolean	StencilShadows;
+// end change
 	bool		HideFromRadar;
 	char		ChangeMaterial[64];
 	char		Attribute[64];
@@ -307,9 +320,6 @@ public:
 	float		targetpitch;
 	float		pitch_speed;
 	float		ideal_pitch;
-
-
-
 	geActor		*Actor;
 	geActor		*WeaponActor;
 	ActionList	*Top;
@@ -320,11 +330,11 @@ public:
 	geBitmap	*Icon;
 	ScriptedConverse *Converse;
 
-
 private:
 	void AddAction(int Action, char *AnimName, float Speed, bool Flag,
 		float Value1, float Value2, float Value3, float Value4,
 		char *Sound, char *Trigger);
+
 };
 
 typedef struct ConversationText
@@ -347,6 +357,9 @@ typedef struct WeaponPreCache
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
+// changed QD 07/21/04
+	bool		AmbientLightFromFloor;
+// end change
 	bool		EnvironmentMapping;
 	bool		AllMaterial;
 	float		PercentMapping;
@@ -411,6 +424,8 @@ private:
 	void PreLoadC(char *filename);
 	bool PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d DeadPos, char *Bone);
 
+
+
 	CIniFile AttrFile;
 	geBitmap	*Background;
 
@@ -452,6 +467,11 @@ private:
 	CArray<WeaponPreCache, WeaponPreCache> WeaponCache;
 	CArray<PreCache, PreCache> Cache;
 	int ConsoleBlock;
+
+
+
+private:
+
 };
 
 #endif

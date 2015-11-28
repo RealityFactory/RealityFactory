@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skAlist.h,v 1.12 2001/11/22 11:13:21 sdw Exp $
+* $Id: skAlist.h,v 1.23 2003/04/24 10:19:43 simkin_cvs Exp $
 */
 
 #ifndef skALIST_H
@@ -31,6 +31,9 @@ class  CLASSEXPORT skAList;
  * This class provides an interator for the list, it is subclassed to provide type-safety
  */
 class  CLASSEXPORT skAListIterator 
+#ifdef __SYMBIAN32__
+: public CBase
+#endif
 {       
  public:
   /**
@@ -69,59 +72,64 @@ class  CLASSEXPORT skAListIterator
 */
 
 class  CLASSEXPORT skAList 
+#ifdef __SYMBIAN32__
+: public CBase
+#endif
 {   
  public:
   /**
-   * default constructor - makes initial size zero, with growth increment of 4
-   */
-  skAList();
-  /**
-   * This constructor sets the initial size and growth increment for the list
-   * @param initial_size - initial size to make the list
-   * @param growth_increment - growth increment for list
-   */
-  skAList(USize initial_size,USize growth_increment);
-  /**
    * does NOT destroy items, this is done in the derived class
    */
-  virtual ~skAList();       
+  inline virtual ~skAList();       
   /** 
    * deletes all items in the list, calling deleteItem on each one
    */
-  void clearAndDestroy();
+  IMPORT_C void clearAndDestroy();
   /**
    * removes all items from the list, without deleting
    */
-  void clear();
+  IMPORT_C void clear();
   /**
    * returns the number of items in the list
    */
-  USize entries() const;
+  inline USize entries() const;
   /**
    * removes and deletes the nth item in the list, deleteItem is called to delete the item
    */
-  void deleteElt(USize  n);
+  IMPORT_C void deleteElt(USize  n);
   /**
    * performs some checks on the list
    */
-  void test() const;
+  IMPORT_C void test() const;
   /**
    * instructs the list to grow to the given size (which must be greater than the current size), the current contents are copied across
+   * @exception Symbian - a leaving function
    */
-  void growTo(USize size);
+  IMPORT_C void growTo(USize size);
+  /**
+   * returns the capacity of the current list - i.e. the number of items that can be stored in the underlying array
+   */
+  inline USize getArraySize() const;
  protected:
   /**
+   * default constructor - makes initial size zero
+   */
+  inline skAList();
+  /**
    * insert *before* the given position
+   * @exception Symbian - a leaving function
    */
   void insert(void *,USize index);
   /**
    * put at the start of the list
+   * @exception Symbian - a leaving function
    */
   void prepend(void *);
   /**
    * put at the end of the list
+   * @exception Symbian - a leaving function
    */
-  void append(void *);
+  inline void append(void *);
   /**
    * remove an item, but *not* delete it
    */
@@ -133,15 +141,15 @@ class  CLASSEXPORT skAList
   /**
    * retrieves the nth item within the list, a BoundsException is thrown if the index is out of range
    */
-  void * operator[](USize  n) const;
+  inline void * operator[](USize  n) const;
   /**
    * returns the index of the given object, or -1 if not found
    */
-  int index(const void *) const;
+  inline int index(const void *) const;
   /**
    * returns true if the given object is in the list
    */
-  bool contains(const void *) const;
+  inline bool contains(const void *) const;
   /**
    * this method is overriden in the derived classes so that the correct destructor is called
    */
@@ -150,11 +158,17 @@ class  CLASSEXPORT skAList
   /**
    * searches for an element, returns -1 if not found
    */
-  int findElt(const void * i) const;
+  inline int findElt(const void * i) const;
   /**
    * grows the array to the next size
+   * @exception Symbian - a leaving function
    */
-  void grow();
+  IMPORT_C void grow();
+  /**
+   * Create the underlying array
+   * @exception Symbian - a leaving function
+   */
+  IMPORT_C void createArray();
   /**
    * An array of pointers to the objects. This can be null
    */
@@ -167,20 +181,7 @@ class  CLASSEXPORT skAList
    * this gives the number of slots which are currently being used
    */
   USize m_Entries;
-  /**
-   * the amount to grow the list each time. 0 means "double in size"
-   */
-  USize m_GrowthIncrement;	
-
  private:
-  /**
-   * the default size for the list (0)
-   */
-  static const USize	DEFAULT_SIZE;
-  /**
-   * the default growth increment (4)
-   */
-  static const USize	DEFAULT_GROWTH_INCREMENT;
   /**
    * copy constructor is private to prevent copying at this level
    */
@@ -201,23 +202,22 @@ template <class T> class CLASSEXPORT skTAList : public skAList
    */
   skTAList();
   /**
-   * Constructor specifying the size and growth increment for the list
-   */
-  skTAList(USize initial_size,USize growth_increment);
-  /**
    * Destructor deletes all the contained objects by calling clearAndDestroy
    */
   virtual ~skTAList();
   /**
    * inserts the object *before* the given index
+   * @exception Symbian - a leaving function
    */
   void insert(T *,USize index);
   /**
    * puts the object at the start of the list
+   * @exception Symbian - a leaving function
    */
   void prepend(T *);
   /**
    * puts the object at the end of the list
+   * @exception Symbian - a leaving function
    */
   void append(T *);
   /**

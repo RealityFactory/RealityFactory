@@ -320,6 +320,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 			}
 			iLeftOffset = AttrFile.GetValueI(KeyName, "indicatoroffsetx");
 			iTopOffset = AttrFile.GetValueI(KeyName, "indicatoroffsety");
+
+
 			if(AttrFile.GetValue(KeyName, "active")=="false")
 				active = false;
 			if(AttrFile.GetValue(KeyName, "active")=="modify")
@@ -426,7 +428,7 @@ int CHeadsUpDisplay::ActivateElement(char *szAttributeName, bool activate)
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
 			m_theHUD[nItem].display = activate;
-			flag = true;;					// It's outta here
+			flag = true;					// It's outta here
 		}
 	}
 	

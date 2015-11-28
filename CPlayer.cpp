@@ -5,6 +5,11 @@ CPlayer.cpp:		Player character encapsulation class
   
 	This file contains the class implementation for the player
 	character (avatar) in an RGF-based game.
+
+Edit History:
+   04/30/2004 Wendell Buckner
+	CRASHING - Get rid of crashing due to missing entity or entity parameters 
+
 */
 
 //	You only need the one, master include file.
@@ -59,7 +64,7 @@ CPlayer::CPlayer()
 	m_Moving = MOVEIDLE;
 	m_SlideWalk = MOVEIDLE;
 
-	lighton = false;
+	lighton = true;
 	lightactive = false;
 	lighteffect = -1;
 	LiteDecayTime = 0.0f;
@@ -96,6 +101,9 @@ CPlayer::CPlayer()
 	InLiquidSound = -1;
 	slideslope = 0.8f;
 	slidespeed = 40.0f;
+// changed QuestOfDreams 01/2004
+	OnLadder = false;
+// end change
 // end change RF063
 	DefaultMotion[0] = NULL;
 	DefaultMotion[1] = NULL;
@@ -141,6 +149,14 @@ CPlayer::CPlayer()
 				strcpy(Animations[FALL],Type);
 				Type = AttrFile.GetValue(KeyName, "land");
 				strcpy(Animations[LAND],Type);
+// changed QD 01/15/05
+				Type = AttrFile.GetValue(KeyName, "climbidle");
+				strcpy(Animations[CLIMBIDLE],Type);
+				Type = AttrFile.GetValue(KeyName, "climbdown");
+				strcpy(Animations[CLIMBDOWN],Type);
+				Type = AttrFile.GetValue(KeyName, "climbup");
+				strcpy(Animations[CLIMBUP],Type);
+// end change
 				Type = AttrFile.GetValue(KeyName, "slidetoleft");
 				strcpy(Animations[SLIDELEFT],Type);
 				Type = AttrFile.GetValue(KeyName, "slideruntoleft");
@@ -555,6 +571,13 @@ CPlayer::CPlayer()
 			AmbientColor.b = TAmbientColor.Z;
 			AmbientColor.a = 255.0f;
 
+			// changed QD 07/21/04
+			AmbientLightFromFloor = true;
+			Vector = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+			if(Vector=="false")
+				AmbientLightFromFloor = false;
+			// end change
+
 			EnvironmentMapping = false;
 			Vector = AttrFile.GetValue(KeyName, "environmentmapping");
 			if(Vector=="true")
@@ -571,6 +594,11 @@ CPlayer::CPlayer()
 		
 		KeyName = AttrFile.FindNextKey();
 	};
+
+/*  04/30/2004 Wendell Buckner
+	CRASHING - Get rid of crashing due to missing entity or entity parameters */
+    Actor = NULL;
+
 	return;
 }
 
@@ -597,7 +625,11 @@ CPlayer::~CPlayer()
 		}
 	}
 	
-	geActor_Destroy(&Actor);
+/*  04/30/2004 Wendell Buckner
+	CRASHING - Get rid of crashing due to missing entity or entity parameters 
+	geActor_Destroy(&Actor); */
+	if ( Actor ) geActor_Destroy ( &Actor );
+
 	return;
 }
 
@@ -691,13 +723,22 @@ int CPlayer::LoadAvatar(char *szFile)
 
 int CPlayer::LoadConfiguration()
 {
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Loading Attributes and Player Configuration from PlayerSetup.ini", false);
+	// 08.05.2004 - end change gekido
+
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	
 	//	Load environmental audio
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Loading Environmental Audio", false);
 	LoadEnvironmentalAudio();
 	
+	CCD->ReportError("Parsing PlayerSetup Entity", false);
+	// 08.05.2004 - end change gekido
+
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 	
 	if(!pSet) 
@@ -717,7 +758,11 @@ int CPlayer::LoadConfiguration()
 	
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
-	
+		
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Set LevelViewpoint", false);
+	// 08.05.2004 - begin change gekido
+
 	m_PlayerViewPoint = pSetup->LevelViewPoint;
 // changed RF064
 	LockView = pSetup->LockView;
@@ -727,6 +772,11 @@ int CPlayer::LoadConfiguration()
 
 	geVec3d m_Rotation;
 	float ShadowSize;
+
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Set Initial Player Actor Scale, Rotation, Shadow and Lighting", false);
+	// 08.05.2004 - begin change gekido
+
 	if(CCD->MenuManager()->GetUseSelect())
 	{
 		m_Scale = CCD->MenuManager()->GetCurrentScale();
@@ -734,6 +784,9 @@ int CPlayer::LoadConfiguration()
 		ShadowSize = CCD->MenuManager()->GetCurrentShadow();
 		FillColor = CCD->MenuManager()->GetCurrentFillColor();
 		AmbientColor = CCD->MenuManager()->GetCurrentAmbientColor();
+// changed QD 07/21/04
+		AmbientLightFromFloor = CCD->MenuManager()->GetCurrentAmbientLightFromFloor();
+// end change
 		CCD->ActorManager()->SetAnimationSpeed(Actor, CCD->MenuManager()->GetCurrentSpeed());
 	}
 	else
@@ -754,9 +807,24 @@ int CPlayer::LoadConfiguration()
 	CCD->ActorManager()->SetScale(Actor, m_Scale*actscale);
 	CCD->ActorManager()->SetBoundingBox(Actor, Animations[IDLE]);
 	CCD->ActorManager()->SetType(Actor, ENTITY_ACTOR);
-	CCD->ActorManager()->SetActorDynamicLighting(Actor, FillColor, AmbientColor);
+// changed QD 07/21/04
+	CCD->ActorManager()->SetActorDynamicLighting(Actor, FillColor, AmbientColor, AmbientLightFromFloor);
+// end change
 	CCD->ActorManager()->SetShadow(Actor, ShadowSize);
 // end change RF064	
+
+// changed QD 06/26/04
+	if(pSetup->ShadowAlpha > 0.0f)
+		CCD->ActorManager()->SetShadowAlpha(Actor, pSetup->ShadowAlpha);
+				
+	if(!EffectC_IsStringNull(pSetup->ShadowBitmap))
+		CCD->ActorManager()->SetShadowBitmap(Actor, TPool_Bitmap(pSetup->ShadowBitmap, pSetup->ShadowAlphamap, NULL, NULL));
+// end change
+
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Set Player Bounding Box", false);
+	// 08.05.2004 - begin change gekido
+
 	geExtBox theBox;
 	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 	m_CurrentHeight = theBox.Max.Y;
@@ -770,6 +838,7 @@ int CPlayer::LoadConfiguration()
 	geVec3d theRotation = {0.0f, 0.0f, 0.0f};
 	CCD->ActorManager()->Rotate(Actor, theRotation);
 	geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
+	
 	switch(m_PlayerViewPoint)
 	{
 	case FIRSTPERSON:
@@ -781,7 +850,14 @@ int CPlayer::LoadConfiguration()
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
-			m_Rotation); //theRotation);				// Set offset
+			m_Rotation); //theRotation);				// Set offset		
+		// begin change gekido 12.27.2004
+		// no projected shadows in 1st person
+		CCD->ActorManager()->SetProjectedShadows(Actor, false);
+		// end change gekido
+// changed QD Shadows
+		CCD->ActorManager()->SetStencilShadows(Actor, GE_FALSE);
+// end change
 		SwitchToFirstPerson();
 		break;
 	case THIRDPERSON:
@@ -793,6 +869,13 @@ int CPlayer::LoadConfiguration()
 		theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
 			m_Rotation); //theRotation);				// Set offset
+		// begin change gekido
+		CCD->ReportError("Setting Projected Shadows for Player = False", false);
+		CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
+		// end change gekido
+// changed QD Shadows
+		CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
+// end change
 		Allow3rdLook = CCD->CameraManager()->GetPlayerAllowLook();
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
@@ -807,6 +890,13 @@ int CPlayer::LoadConfiguration()
 		theTranslation.Z = CCD->CameraManager()->GetIsoDistance();
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
 			theRotation);				// Set offset
+		// begin change gekido
+		CCD->ReportError("Setting Projected Shadows for Player", false);
+		CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
+		// end change gekido
+// changed QD Shadows
+		CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
+// end change
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		break;
@@ -824,6 +914,13 @@ int CPlayer::LoadConfiguration()
 		}
 		nFlags = kCameraTrackFixed;
 		CCD->CameraManager()->Unbind();
+		// begin change gekido
+		CCD->ReportError("Setting Projected Shadows for Player", false);
+		CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
+		// end change gekido
+// changed QD Shadows
+		CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
+// end change
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		break;
@@ -858,6 +955,10 @@ int CPlayer::LoadConfiguration()
 	geEntity_EntitySet* lEntitySet;
 	geEntity* lEntity;
 	
+	// 08.05.2004 - begin change gekido
+	CCD->ReportError("Parsing EnvironmentSetup Entity", false);
+	// 08.05.2004 - begin change gekido
+
 	lEntitySet = geWorld_GetEntitySet(CCD->World(), "EnvironmentSetup");
 	
 	if(lEntitySet != NULL)
@@ -897,9 +998,16 @@ int CPlayer::LoadConfiguration()
 				CCD->CameraManager()->SetFarClipPlane(dist);
 				m_ClipActive = true;
 			}
-			if(theState->ShadowAlpha > 0.0f)
+			CCD->CameraManager()->SetShakeMin(theState->MinShakeDist);
+// changed QD Shadows
+			if(CCD->MenuManager()->GetStencilShadows())
+				geEngine_SetStencilShadowsEnable(CCD->Engine()->Engine(), GE_TRUE, theState->SShadowsMaxLightToUse,
+			theState->SShadowsColor.r, theState->SShadowsColor.g, theState->SShadowsColor.b, theState->SShadowsAlpha);
+// end change
+// changed QD 06/26/04
+/*			if(theState->ShadowAlpha > 0.0f)
 				CCD->ActorManager()->SetShadowAlpha(theState->ShadowAlpha);
-			CCD->CameraManager()->SetShakeMin(theState->MinShakeDist);	
+				
 			if(!EffectC_IsStringNull(theState->ShadowBitmap))
 			{
 				if(!EffectC_IsStringNull(theState->ShadowAlphamap))
@@ -907,6 +1015,8 @@ int CPlayer::LoadConfiguration()
 				else
 					CCD->ActorManager()->SetShadowBitmap(TPool_Bitmap(theState->ShadowBitmap, theState->ShadowBitmap, NULL, NULL));
 			}
+*/
+// end change
 		}
 	}
 	CCD->ActorManager()->SetStepHeight(Actor, m_StepHeight);
@@ -1993,7 +2103,20 @@ void CPlayer::SetJump()
 		}
 		CCD->ActorManager()->SetForce(Actor, 1, theDir, m_JumpSpeed, m_JumpSpeed);
 	}
-	CCD->ActorManager()->SetForce(Actor, 0, theUp, m_JumpSpeed, m_JumpSpeed);
+	// changed QuestOfDreams 01/2004
+	if(!FIRSTPERSON && OnLadder)
+	{
+		// jump backwards if on ladder
+		geVec3d Back;
+		CCD->ActorManager()->InVector(Actor, &Back);
+		geVec3d_Inverse(&Back);
+		CCD->ActorManager()->SetForce(Actor, 2, Back, m_JumpSpeed*0.3f, m_JumpSpeed*0.2f);
+	}
+	else
+	{
+		CCD->ActorManager()->SetForce(Actor, 0, theUp, m_JumpSpeed, m_JumpSpeed);
+	}
+	// end change
 }
 
 
@@ -2193,8 +2316,7 @@ void CPlayer::Tick(geFloat dwTicks)
 		{
 			// Start streaming audio file playing
 			if(CCD->AudioStreams())
-				CCD->AudioStreams()->Play(szStreamingAudio, bSoundtrackLoops,
-				true);
+				CCD->AudioStreams()->Play(szStreamingAudio, bSoundtrackLoops,true);
 		}
 		firstframe = false;
 	}
@@ -2521,6 +2643,15 @@ void CPlayer::Tick(geFloat dwTicks)
 	}
 
 // end change RF063	
+
+// changed QuestOfDreams 01/15/05
+	// TODO: rotate player to face the ladder
+	if(Zone & kClimbLaddersZone)
+		OnLadder=true;
+	else
+		OnLadder=false;
+// end change
+
 	if(theInv->Has("light"))
 	{
 		if(theInv->Value("light")!=0 && lighton)
@@ -2540,7 +2671,9 @@ void CPlayer::Tick(geFloat dwTicks)
 						Pos = thePosition.Translation;
 				}
 				else
-					geActor_GetBoneTransform(Actor, RootBoneName(Actor), &thePosition);
+					//Cell Division
+					geActor_GetBoneTransform(CCD->Weapons()->GetVActor(),"joint2", &thePosition);
+					//Cell Division
 				memset( &Gl, 0, sizeof(Gl));
 				geVec3d_Copy(&(Pos), &(Gl.Pos));
 				Gl.Spot = LiteSpot;
@@ -2594,7 +2727,7 @@ void CPlayer::Tick(geFloat dwTicks)
 		geExtBox theBox;
 		//changed QuestOfDreams
 		geXForm3d 	thePosition;
-		geVec3d	theRotation;
+		//geVec3d	theRotation;
 		geVec3d Pos = Position();
 		CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 		Pos.Y += theBox.Max.Y;
@@ -2605,13 +2738,15 @@ void CPlayer::Tick(geFloat dwTicks)
 				Pos = thePosition.Translation;
 		}
 		else
-				geActor_GetBoneTransform(Actor, RootBoneName(Actor), &thePosition);
+			//Cell Division
+			geActor_GetBoneTransform(CCD->Weapons()->GetVActor(),"joint2", &thePosition);
+			//Cell Division
 		geVec3d_Copy(&(Pos), &(Gl.Pos));
 		geXForm3d_RotateY(&thePosition, LiteOffset.Y);
 		geXForm3d_GetEulerAngles(&thePosition, &Gl.Direction);
 		// move the light up/down when looking up/down
-		CCD->CameraManager()->GetRotation(&theRotation);
-		Gl.Direction.Z += theRotation.X;
+		//CCD->CameraManager()->GetRotation(&theRotation);
+		//Gl.Direction.Z += theRotation.X;
 		Gl.Direction.Z += LiteOffset.Z;
 		geVec3d_Scale(&Gl.Direction, 57.3f, &Gl.Direction);
 // end change QuestOfDreams
@@ -2646,6 +2781,8 @@ void CPlayer::Tick(geFloat dwTicks)
 	}
 
 // changed RF064
+// changed QD 01/15/05
+#define CLIMBING (!strcmp(Motion, ANIMCLIMBUP) || !strcmp(Motion, ANIMCLIMBDOWN))
 #define JUMPING (!strcmp(Motion, ANIMJUMP) || !strcmp(Motion, ANIMJUMPSHOOT))
 #define FALLING (!strcmp(Motion, ANIMFALL) || !strcmp(Motion, ANIMFALLSHOOT))
 #define STARTLAND (!strcmp(Motion, ANIMSTARTJUMP) || !strcmp(Motion, ANIMLAND))
@@ -2660,11 +2797,14 @@ void CPlayer::Tick(geFloat dwTicks)
 #define TRANS4 (!strcmp(Motion, ANIMIDLE2CRAWL) || !strcmp(Motion, ANIMAIM2CROUCH) || !strcmp(Motion, ANIMCROUCH2AIM) || !strcmp(Motion, ANIMW2TREAD) || !strcmp(Motion, ANIMFALL2RUN) || !strcmp(Motion, ANIMCRAWL2RUN))
 #define ALLBACK ( !strcmp(Motion, ANIMWALKBACK) || !strcmp(Motion, ANIMRUNBACK) || !strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK) || !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK))
 #define ALLTRANS (TRANS1 || TRANS2 || TRANS3 || TRANS4)
-#define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
-#define ALLWALK (SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
+//#define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
+#define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
+//#define ALLWALK (SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
+#define ALLWALK (CLIMBING || SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
 #define ALLSLIDERIGHT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDERIGHT) || !strcmp(Motion, ANIMRUNSLIDERIGHT) || !strcmp(Motion, ANIMSLIDECRIGHT) || !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMSLIDECRIGHTSHOOT))
 #define ALLSLIDELEFT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDELEFT) || !strcmp(Motion, ANIMRUNSLIDELEFT) || !strcmp(Motion, ANIMSLIDECLEFT) || !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT) || !strcmp(Motion, ANIMSLIDECLEFTSHOOT))
 
+// end change
 	char *Motion;
 	
 	Motion = CCD->ActorManager()->GetMotion(Actor);
@@ -2788,27 +2928,38 @@ void CPlayer::Tick(geFloat dwTicks)
 			Falling=false;
 			
 			m_JumpActive = false;
-			if(m_crouch)
+// changed QD 01/15/05
+			if(OnLadder)
 			{
-				CCD->ActorManager()->SetMotion(Actor, ANIMCLAND);
-				CCD->ActorManager()->SetNextMotion(Actor, ANIMCIDLE);
-				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMCLIMB);
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 			}
 			else
 			{
-				CCD->ActorManager()->SetMotion(Actor, ANIMLAND);
-// changed RF063
-				if(OldZone>0)
+				if(m_crouch)
 				{
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+					CCD->ActorManager()->SetMotion(Actor, ANIMCLAND);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMCIDLE);
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
 				}
 				else
 				{
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+					CCD->ActorManager()->SetMotion(Actor, ANIMLAND);
+// changed RF063
+					if(OldZone>0)
+					{
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+					}
+					else
+					{
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+					}
 				}
 			}
+// end change QD 01/15/05
 			CCD->Weapons()->SetAttackFlag(false);
 			break;
 		}
@@ -2975,22 +3126,31 @@ void CPlayer::Tick(geFloat dwTicks)
 			|| !strcmp(Motion, ANIMWALKBACK)|| !strcmp(Motion, ANIMRUNBACK)
 			|| !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK))
 		{
-			if(OldZone>0)
+// changed QD 01/15/05
+			if(OnLadder && !JUMPING)
 			{
-				// changed RF064
-				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMW2IDLETIME, ANIMW2TREAD);
-				// end change RF064
-				CCD->ActorManager()->SetMotion(Actor, ANIMTREADWATER);
-				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
 			}
 			else
 			{
-				// changed RF064
-				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMW2IDLETIME, ANIMW2IDLE);
-				// end change RF064
-				CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
-				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				if(OldZone>0)
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMW2IDLETIME, ANIMW2TREAD);
+					// end change RF064
+					CCD->ActorManager()->SetMotion(Actor, ANIMTREADWATER);
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				}
+				else
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMW2IDLETIME, ANIMW2IDLE);
+					// end change RF064
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				}
 			}
+// end change QD 01/15/05
 			break;
 		}
 		
@@ -3019,23 +3179,41 @@ void CPlayer::Tick(geFloat dwTicks)
 			|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 			|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 		{
-			if(OldZone>0)
+// changed QD 01/15/05
+			if(OnLadder)
 			{
-				// changed RF064
-				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMSLIDE2IDLETIME, NULL);
-				CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
-				// end change RF064
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
+				break;
 			}
 			else
-			// changed RF064
 			{
-				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMSLIDE2IDLETIME, NULL);
-				CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
+				if(OldZone>0)
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMSLIDE2IDLETIME, NULL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
+					// end change RF064
+				}
+				else
+				// changed RF064
+				{
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMSLIDE2IDLETIME, NULL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
+				}
 			}
+// end change QD 01/15/05
 			CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, false);
 			// end change RF064
 			break;
 		}
+
+// changed QD 01/15/05
+		if(OnLadder && CLIMBING)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
+			break;
+		}
+// end change
 // changed RF064		
 		if(!ALLIDLE)
 		{
@@ -3074,30 +3252,40 @@ void CPlayer::Tick(geFloat dwTicks)
 			
 			if(!m_JumpActive)
 			{
-				if(m_crouch)
+// changed QD 01/15/05
+				if(OnLadder)
 				{
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWL, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
-					// end change RF063
+					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMCLIMBUP);
 				}
 				else
 				{
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
-					if(!m_run)
-					// changed RF064
+					if(m_crouch)
 					{
-						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
-						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWL, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
+						// end change RF063
 					}
 					else
 					{
-						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMFALL2WALKTIME, ANIMFALL2RUN);
-						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+						if(!m_run)
+						// changed RF064
+						{
+							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
+							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
+						}
+						else
+						{
+							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMFALL2WALKTIME, ANIMFALL2RUN);
+							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+						}
+						// end change RF064
 					}
-					// end change RF064
 				}
+// end change QD 01/15/05
 			}
 			else
 			{
@@ -3186,38 +3374,48 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 // changed RF063	
 		// walk from idle
-		if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
+// changed QD 01/15/05
+		//if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
+		if(!strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 		{
-			if(!m_run)
+			if(OnLadder)
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-				{
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMI2WALKTIME, ANIMI2WALK);
-					// end change RF064
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
-				}
-				else
-				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOT, ANIMWALKSHOOT1, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
-				}
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
 			}
 			else
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
+				if(!m_run)
 				{
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMI2RUNTIME, ANIMI2RUN);
-					// end change RF064
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMI2WALKTIME, ANIMI2WALK);
+						// end change RF064
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOT, ANIMWALKSHOOT1, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
+					}
 				}
 				else
 				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOT, ANIMRUNSHOOT1, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMI2RUNTIME, ANIMI2RUN);
+						// end change RF064
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOT, ANIMRUNSHOOT1, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					}
 				}
 			}
+// end change QD 01/15/05
 			break;
 		}
 		// walk from attack
@@ -3349,26 +3547,36 @@ void CPlayer::Tick(geFloat dwTicks)
 			|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 			|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 		{
-			if(!m_run)
+// changed QD 01/15/05
+			if(OnLadder)
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-					CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
-				else
-				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOT, ANIMWALKSHOOT1, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
-				}
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMCLIMBUP);
 			}
 			else
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-					CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
+				if(!m_run)
+				{
+					if(!CCD->Weapons()->GetAttackFlag())
+						CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOT, ANIMWALKSHOOT1, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
+					}
+				}
 				else
 				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOT, ANIMRUNSHOOT1, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					if(!CCD->Weapons()->GetAttackFlag())
+						CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOT, ANIMRUNSHOOT1, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
+					}
 				}
 			}
+// end change
 			break;
 		}
 		
@@ -3379,6 +3587,21 @@ void CPlayer::Tick(geFloat dwTicks)
 			break;
 		}
 		
+// changed QD 01/15/05
+		if(!strcmp(Motion, ANIMCLIMB))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
+			break;
+		}
+		if((!strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL)) && OnLadder)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
+			break;
+		}
+
+		if(CLIMBING && !OnLadder)
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
+// end change
 		if(!strcmp(Motion, ANIMWALK) && m_run)
 		{
 			CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
@@ -3456,30 +3679,39 @@ void CPlayer::Tick(geFloat dwTicks)
 			
 			if(!m_JumpActive)
 			{
-				if(m_crouch)
+// changed QD 01/15/05
+				if(OnLadder)
 				{
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
-					// end change RF063
+					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
 				}
 				else
 				{
-					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
-					if(!m_run)
-					// changed RF064
+					if(m_crouch)
 					{
-						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
-						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
+						// end change RF063
 					}
 					else
 					{
-						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMFALL2WALKTIME, ANIMFALL2RUN);
-						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+						if(!m_run)
+						// changed RF064
+						{
+							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
+							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+						}
+						else
+						{
+							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMFALL2WALKTIME, ANIMFALL2RUN);
+							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+						}
+						// end change RF064
 					}
-					// end change RF064
 				}
+// end change QD 01/15/05
 			}
 			else
 			{
@@ -3568,38 +3800,50 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 // changed RF063	
 		// walk from idle
-		if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
+// changed QD 01/15/05
+		//if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
+		if(!strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 		{
-			if(!m_run)
+			
+			if(OnLadder)
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-				{
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMI2WALKTIME, ANIMI2WALK);
-					// end change RF064
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
-				}
-				else
-				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
-				}
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMCLIMBDOWN);
 			}
 			else
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
+				if(!m_run)
 				{
-					// changed RF064
-					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMI2RUNTIME, ANIMI2RUN);
-					// end change RF064
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMI2WALKTIME, ANIMI2WALK);
+						// end change RF064
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+					}
 				}
 				else
 				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMI2RUNTIME, ANIMI2RUN);
+						// end change RF064
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					}
 				}
 			}
+// end change QD 01/15/05
 			break;
 		}
 		// walk from attack
@@ -3731,26 +3975,36 @@ void CPlayer::Tick(geFloat dwTicks)
 			|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 			|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 		{
-			if(!m_run)
+// changed QD 01/15/05
+			if(OnLadder)
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-					CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
-				else
-				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
-				}
+				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMCLIMBUP);
 			}
 			else
 			{
-				if(!CCD->Weapons()->GetAttackFlag())
-					CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+				if(!m_run)
+				{
+					if(!CCD->Weapons()->GetAttackFlag())
+						CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+					}
+				}
 				else
 				{
-					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
-					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					if(!CCD->Weapons()->GetAttackFlag())
+						CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					}
 				}
 			}
+// end change QD 01/15/05
 			break;
 		}
 		
@@ -3760,7 +4014,22 @@ void CPlayer::Tick(geFloat dwTicks)
 			CCD->ActorManager()->SetMotion(Actor, ANIMCRAWLBACK);
 			break;
 		}
-		
+
+// changed QD 01/15/05
+		if(!strcmp(Motion, ANIMCLIMB))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
+			break;
+		}
+		if((!strcmp(Motion, ANIMWALKBACK) || !strcmp(Motion, ANIMRUNBACK) || !strcmp(Motion, ANIMCRAWLBACK)) && OnLadder)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
+			break;
+		}
+
+		if(CLIMBING && !OnLadder)
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+// end change
 		if(!strcmp(Motion, ANIMWALKBACK) && m_run)
 		{
 			CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);

@@ -18,6 +18,11 @@ enum {
 	STARTJUMP,
 	FALL,
 	LAND,
+// changed QD 01/15/05
+	CLIMBIDLE,
+	CLIMBDOWN,
+	CLIMBUP,
+// end change
 	SLIDELEFT,
 	RUNSLIDELEFT,
 	SLIDERIGHT,
@@ -141,6 +146,11 @@ enum {
 #define ANIMSTARTJUMP			CCD->Weapons()->PlayerAnim(STARTJUMP)
 #define ANIMFALL				CCD->Weapons()->PlayerAnim(FALL)
 #define ANIMLAND				CCD->Weapons()->PlayerAnim(LAND)
+// changed QD 01/15/05
+#define ANIMCLIMB				CCD->Weapons()->PlayerAnim(CLIMBIDLE)
+#define ANIMCLIMBDOWN			CCD->Weapons()->PlayerAnim(CLIMBDOWN)
+#define ANIMCLIMBUP				CCD->Weapons()->PlayerAnim(CLIMBUP)
+// end change
 #define ANIMSLIDELEFT			CCD->Weapons()->PlayerAnim(SLIDELEFT)
 #define ANIMRUNSLIDELEFT		CCD->Weapons()->PlayerAnim(RUNSLIDELEFT)
 #define ANIMSLIDERIGHT			CCD->Weapons()->PlayerAnim(SLIDERIGHT)
@@ -496,6 +506,9 @@ private:
 	float FallDamage;
 	GE_RGBA	FillColor;
 	GE_RGBA	AmbientColor;
+// changed QD 07/21/04
+	geBoolean AmbientLightFromFloor;
+// end change
 	geBoolean EnvironmentMapping;
 	geBoolean AllMaterial;
 	geFloat PercentMapping;
@@ -511,6 +524,9 @@ private:
 	int SwimSound;
 	int SurfaceSound;
 	int InLiquidSound;
+// changed QuestOfDreams 01/2004
+	bool OnLadder;
+// end change
 // end change RF063
 // start multiplayer
 	char PlayerName[50];

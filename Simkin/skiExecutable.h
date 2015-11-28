@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,18 +16,24 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skiExecutable.h,v 1.3 2001/11/22 11:13:21 sdw Exp $
+* $Id: skiExecutable.h,v 1.14 2003/04/19 13:22:24 simkin_cvs Exp $
 */
 
 #ifndef skiEXECUTABLE_H
 #define skiEXECUTABLE_H
 
 #include "skString.h"
+#include "skExecutableContext.h"
 
 class CLASSEXPORT skRValueArray;
+class CLASSEXPORT skRValueTable;
 class CLASSEXPORT skRValue;
 class CLASSEXPORT skExecutableIterator;
+class CLASSEXPORT skInterpreter;
 
+#ifndef EXCEPTIONS_DEFINED
+#include "skScriptError.h"
+#endif
 
 /*
  * this constant is for undefined type primitive objects
@@ -71,10 +77,12 @@ class CLASSEXPORT skiExecutable
    * returns a String equivalent of this object
    */
   virtual skString strValue() const=0; 
+#ifdef USE_FLOATING_POINT
   /**
    * returns a float equivalent of this object
    */
   virtual float floatValue() const=0;
+#endif
   /**
    * requests the object to set a field to the given value
    * @param field_name - the name of the field name to set
@@ -112,9 +120,14 @@ class CLASSEXPORT skiExecutable
    * @param method_name - the name of the method to execute
    * @param arguments - an array of RValue objects, which are the arguments to the method
    * @param return_value - an object to receive the return value of the method
-   * @param return true if the method could be executed, or false if the method is not supported
+   * @param context context object to receive errors
+   * @return true if the method could be executed, or false if the method is not supported
+   * @exception skParseException - if a syntax error is encountered while the script is running
+   * @exception skRuntimeException - if an error occurs while the script is running
+   * @exception skParseException - if a syntax error is encountered while the script is running
+   * @exception skRuntimeException - if an error occurs while the script is running
    */
-  virtual bool method(const skString& method_name,skRValueArray& arguments,skRValue& return_value)=0;
+  virtual bool method(const skString& method_name,skRValueArray& arguments,skRValue& return_value,skExecutableContext& context)=0;
   /**
    * This method compares this object with another object. 
    */
@@ -130,6 +143,23 @@ class CLASSEXPORT skiExecutable
    * @return an skExecutableIterator object that can be used to iterate over the components of this container
    */
   virtual skExecutableIterator * createIterator()=0;
+
+  /**
+  * This method returns the source for a scripted method described by the location
+  * @param location the location of the method - in the format passed to the execute functions in the Interpreter
+  * @return the source for the method
+  */
+  virtual skString getSource(const skString& location)=0;
+  /**
+  * This method returns the instance variables for this object
+  * @param table a table to filled with references to the instance variables
+  */
+  virtual void getInstanceVariables(skRValueTable& table)=0;
+  /**
+  * This method returns the attributes for this object
+  * @param table a table to filled with the values of the attributes
+  */
+  virtual void getAttributes(skRValueTable& table)=0;
 };
 
 // Some help-defines for method, getValue and setValue

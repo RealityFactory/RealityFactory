@@ -416,6 +416,9 @@ int CActorSpout::Create(ActorSpout *S)
       Sp.MaxUnitLife = Sp.MinUnitLife;
     Sp.FillColor = S->FillColor;
     Sp.AmbientColor = S->AmbientColor;
+// changed QD 07/21/04
+	Sp.AmbientLightFromFloor = S->AmbientLightFromFloor;
+// end change
     Sp.Rate = S->ParticleCreateRate;
     if(Sp.Rate < 0.0f )
       Sp.Rate = 0.1f;

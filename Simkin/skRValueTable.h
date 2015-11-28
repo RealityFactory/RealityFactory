@@ -1,6 +1,6 @@
 /**
-   $Id: skRValueTable.h,v 1.4 2001/11/22 11:13:21 sdw Exp $
-   Copyright 1996-2001
+   $Id: skRValueTable.h,v 1.11 2003/04/11 18:05:39 simkin_cvs Exp $
+   Copyright 1996-2003
    Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -21,29 +21,39 @@
 #ifndef skRVALUETABLE_H
 #define skRVALUETABLE_H
 
-#include "skHashTable.h"
+#include "skSHashTable.h"
 #include "skRValue.h"
 
-EXTERN_TEMPLATE template class CLASSEXPORT skTHashTable<skString,skRValue>;
+#ifdef INSTANTIATE_TEMPLATES
+EXTERN_TEMPLATE template class CLASSEXPORT skTSHashTable<skRValue>;
+EXTERN_TEMPLATE template class CLASSEXPORT skTSHashTableIterator<skRValue>;
+#endif
 
 /** This class is used to hold a hash table of skRValue's based on name. It is used to store local or global variables in the interpreter
  */
-class CLASSEXPORT skRValueTable: public skTHashTable<skString,skRValue>
+class CLASSEXPORT skRValueTable: public skTSHashTable<skRValue>
 {
  public:
   /** This method constructs a blank RValueTable
    * @param size - the initial size of the table
    */
-  skRValueTable(unsigned short  size)
-    : skTHashTable<skString,skRValue>(size){
+  inline skRValueTable(unsigned short  size)
+    : skTSHashTable<skRValue>(size){
   }
   /** Default constructor */
-  skRValueTable(){
+  inline skRValueTable(){
   }
   /** Destructor */
-  ~skRValueTable(){
+  inline virtual ~skRValueTable(){
   }
 
+};
+class CLASSEXPORT skRValueTableIterator: public skTSHashTableIterator<skRValue>
+{
+public:
+  inline skRValueTableIterator(const skRValueTable& table)
+    : skTSHashTableIterator<skRValue>(table){
+  }
 };
 
 #endif

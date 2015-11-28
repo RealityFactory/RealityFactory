@@ -464,6 +464,77 @@ geBoolean EffectC_IsPointVisible(geWorld *World, geCamera *Camera, geVec3d *Targ
 } // EffectC_IsPointVisible()
 
 
+// changed QuestOfDreams 01/2004
+// this is a non-conservative test
+// check all box corners, then shrink the box and check the corners again...
+geBoolean EffectC_IsBoxVisible(geWorld *World, geCamera *Camera, geExtBox* TestBox)
+{
+	// Box corners 
+	geVec3d BoxCorners[8];
+
+	BoxCorners[0] = TestBox->Min;
+	BoxCorners[1] = BoxCorners[0];  BoxCorners[1].X = TestBox->Max.X;
+	BoxCorners[2] = BoxCorners[0];  BoxCorners[2].Y = TestBox->Max.Y;
+	BoxCorners[3] = BoxCorners[0];  BoxCorners[3].Z = TestBox->Max.Z;
+	BoxCorners[4] = TestBox->Max;
+	BoxCorners[5] = BoxCorners[4];  BoxCorners[5].X = TestBox->Min.X;
+	BoxCorners[6] = BoxCorners[4];  BoxCorners[6].Y = TestBox->Min.Y;
+	BoxCorners[7] = BoxCorners[4];  BoxCorners[7].Z = TestBox->Min.Z;
+	
+	// is the camera inside the box? then we can definitly see it
+	geVec3d CamPos;
+	CCD->CameraManager()->GetPosition(&CamPos);
+	if(geExtBox_ContainsPoint(TestBox, &CamPos))
+		return GE_TRUE;
+
+	geVec3d temp;
+	geVec3d_Subtract(&TestBox->Max, &TestBox->Min, &temp);
+	geVec3d_Scale(&temp, 0.1f, &temp);
+
+	for(int step=1;step<6;step++)
+	{
+		for(int i=0;i<8;i++)
+		{
+			// check 1
+			int32 Leaf;
+			geWorld_GetLeaf(World, &(BoxCorners[i]), &(Leaf));
+
+			if( geWorld_MightSeeLeaf( World, Leaf ) == GE_FALSE )
+				continue;
+			
+			// check 2
+			GE_Collision	Collision;
+			const geXForm3d	*CameraXf;
+		
+			// get camera xform
+			CameraXf = geCamera_GetWorldSpaceXForm( Camera );
+		
+			if ( geWorld_Collision( World, (const geVec3d *)NULL, (const geVec3d *)NULL, &( CameraXf->Translation ), 
+				&(BoxCorners[i]), GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, (GE_CollisionCB *)NULL, NULL, &Collision ) == GE_FALSE )
+			{
+				return GE_TRUE;
+			}
+		}
+
+		BoxCorners[0].X = TestBox->Min.X+temp.X*step;
+		BoxCorners[0].Y = TestBox->Min.Y+temp.Y*step;
+		BoxCorners[0].Z = TestBox->Min.Z+temp.Z*step;
+		BoxCorners[1] = BoxCorners[0];  BoxCorners[1].X = TestBox->Max.X-temp.X*step;
+		BoxCorners[2] = BoxCorners[0];  BoxCorners[2].Y = TestBox->Max.Y-temp.Y*step;
+		BoxCorners[3] = BoxCorners[0];  BoxCorners[3].Z = TestBox->Max.Z-temp.Z*step;
+		BoxCorners[4].X = TestBox->Max.X-temp.X*step;
+		BoxCorners[4].Y = TestBox->Max.Y-temp.Y*step;
+		BoxCorners[4].Z = TestBox->Max.Z-temp.Z*step;
+		BoxCorners[5] = BoxCorners[4];  BoxCorners[5].X = TestBox->Min.X+temp.X*step;
+		BoxCorners[6] = BoxCorners[4];  BoxCorners[6].Y = TestBox->Min.Y+temp.Y*step;
+		BoxCorners[7] = BoxCorners[4];  BoxCorners[7].Z = TestBox->Min.Z+temp.Z*step;
+	}
+
+	return GE_FALSE;
+}
+// end change
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 //
 //	EffectC_Frand()

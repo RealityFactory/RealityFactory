@@ -85,12 +85,12 @@ typedef struct
 	float		Intensity;		// light intensity
 	geBoolean	DoNotClip;		// whether or not clipping should be ignored
 	geBoolean	CastShadows;	// whether or not the light should cast shadows
-	// change QuestOfDreams
+// change QuestOfDreams
 	geBoolean	Spot;			// is it a spotlight?
-	geFloat	Arc;			// angle of lightcone
-	geVec3d	Direction;		// direction of spotlight
-	int		Style;		// falloff style
-	// end change QuestOfDreams
+	geFloat		Arc;			// angle of lightcone
+	geVec3d		Direction;		// direction of spotlight
+	int			Style;			// falloff style
+// end change QuestOfDreams
 } Glow;
 
 #define SPRITE_POS	( 1 << 0 )
@@ -214,6 +214,9 @@ typedef struct
 	geVec3d		MaxRotationSpeed;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
+// changed QD 07/21/04
+	geBoolean	AmbientLightFromFloor;
+// end change
 	int			Style;
 	float		Alpha;
 	float		AlphaRate;

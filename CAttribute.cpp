@@ -14,6 +14,9 @@ CAttribute.cpp:		Attribute class implementation
 
 extern geSound_Def *SPool_Sound(char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
+// changed QD 06/26/04
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+// end change
 
 //
 //	Constructor
@@ -72,15 +75,27 @@ CAttribute::CAttribute()
 				MessageBox(NULL, szError,"Attribute", MB_OK);
 				exit(-333);
 			}
+			
 			CCD->ActorManager()->RemoveActor(pSource->Actor);
 			geActor_Destroy(&pSource->Actor); 
 // start multiplayer
 			pSource->Actor = NULL;
 // end multiplayer
 			if(!EffectC_IsStringNull(pSource->szSoundFile))
+			{
 				SPool_Sound(pSource->szSoundFile);
+			}
 			if(!EffectC_IsStringNull(pSource->szReSpawnSound))
+			{
 				SPool_Sound(pSource->szReSpawnSound);
+			}
+// changed QD 06/26/04
+			if(!EffectC_IsStringNull(pSource->ShadowBitmap))
+			{
+				pSource->Bitmap=TPool_Bitmap(pSource->ShadowBitmap, pSource->ShadowAlphamap, NULL, NULL);
+			}
+// end change
+
 		}
 	}
 
@@ -168,6 +183,7 @@ void CAttribute::Tick(float dwTicks)
 					if(pSource->Tick>=(pSource->Delay*1000.0f))
 					{
 						pSource->alive=GE_TRUE;
+
 						if(!EffectC_IsStringNull(pSource->szReSpawnSound))
 						{
 							Snd 	Sound;
@@ -202,8 +218,22 @@ void CAttribute::Tick(float dwTicks)
 						CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 						if(pSource->Gravity)
 							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+// changed QD 07/21/04
+//						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, 
+							pSource->AmbientColor, pSource->AmbientLightFromFloor);
+// end change					
 						CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+// changed QD 06/26/04
+						if(pSource->ShadowAlpha > 0.0f)
+							CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
+						if(!EffectC_IsStringNull(pSource->ShadowBitmap))
+							CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
+// end change
+// changed QD Shadows 
+						CCD->ActorManager()->SetProjectedShadows(pSource->Actor, pSource->UseProjectedShadows);
+						CCD->ActorManager()->SetStencilShadows(pSource->Actor, pSource->UseStencilShadows);
+// end change
 // changed RF064
 						CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 						if(!EffectC_IsStringNull(pSource->ChangeMaterial))
@@ -237,8 +267,22 @@ void CAttribute::Tick(float dwTicks)
 					CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 					if(pSource->Gravity)
 						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+// changed QD 07/21/04
+//					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, 
+							pSource->AmbientColor, pSource->AmbientLightFromFloor);
+// end change	
 					CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+// changed QD 06/26/04
+					if(pSource->ShadowAlpha > 0.0f)
+						CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
+					if(!EffectC_IsStringNull(pSource->ShadowBitmap))	
+						CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
+// end change
+// changed QD Shadows 
+					CCD->ActorManager()->SetProjectedShadows(pSource->Actor, pSource->UseProjectedShadows);
+					CCD->ActorManager()->SetStencilShadows(pSource->Actor, pSource->UseStencilShadows);
+// end change
 // changed RF064
 					CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 					if(!EffectC_IsStringNull(pSource->ChangeMaterial))
@@ -458,8 +502,18 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 			CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 			if(pSource->Gravity)
 				CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-			CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+// changed QD 07/21/04
+//						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
+						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, 
+							pSource->AmbientColor, pSource->AmbientLightFromFloor);
+// end change	
 			CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
+// changed QD 06/26/04
+			if(pSource->ShadowAlpha > 0.0f)
+				CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
+			if(!EffectC_IsStringNull(pSource->ShadowBitmap))	
+				CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
+// end change
 			CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 			if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 				CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);

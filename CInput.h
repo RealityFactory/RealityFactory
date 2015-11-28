@@ -26,6 +26,7 @@ public:
 	// Load saved keymaps from a user file
   int LoadKeymap(char *szFilename);
   int GetCodes(int action);
+  int GetRGFKey(int key); //pwx
   int GetKeyboardInput();
   bool GetKeyCheck(int keytemp);
 // changed RF064

@@ -340,8 +340,11 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 			// Models match, we hit this one.  If the entity doesn't activate
 			// ..on collide AND this isn't a call from a trigger, don't
 			// ..activate the entity.
-			if((pDoor->bNoCollide))
-				return;								// Fake a no-hit situation
+			
+			// changed QD 03/05/2005
+			//if((pDoor->bNoCollide))
+			//	return;								// Fake a no-hit situation
+			// end change
 			bool state = true;
 			if(!EffectC_IsStringNull(pDoor->TriggerName))
 				state = GetTriggerState(pDoor->TriggerName);
@@ -414,7 +417,8 @@ void CAutoDoors::Tick(float dwTicks)
 			if(GetTriggerState(pDoor->TriggerName))
 			{
 				if((!pDoor->bInAnimation) && (pDoor->bActive == GE_TRUE) && 
-					(!pDoor->bTrigger) && (pDoor->bNoCollide))
+					(!pDoor->bTrigger) && (pDoor->bNoCollide)
+					&& (!pDoor->UseKey)) // changed QD 03/05/2005
 				{
 					pDoor->bTrigger= true;			// It's this one, trigger the animation
 					if ( pDoor->bRunWhileTrig || pDoor->bRunFromList ||

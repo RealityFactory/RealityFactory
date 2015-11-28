@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skTreeNodeObjectEnumerator.h,v 1.7 2001/11/22 11:13:21 sdw Exp $
+  $Id: skTreeNodeObjectEnumerator.h,v 1.18 2003/04/19 13:22:24 simkin_cvs Exp $
 */
 #ifndef TREENODEOBJECTENUMERATOR_H
 #define TREENODEOBJECTENUMERATOR_H
@@ -36,20 +36,33 @@ class CLASSEXPORT skTreeNodeObjectEnumerator : public skExecutable, public skExe
   /**
    * This constructor is for an enumerator that gives *all* the child elements of this element
    */
-  skTreeNodeObjectEnumerator(skTreeNode * element,const skString& location);
+  IMPORT_C skTreeNodeObjectEnumerator(skTreeNodeObject * obj,const skString& location);
   /**
    * This constructor is for an enumerator that gives the child elements of this element whose tag name matches that given
    */
-  skTreeNodeObjectEnumerator(skTreeNode * element,const skString& location,const skString& tag);
+  IMPORT_C skTreeNodeObjectEnumerator(skTreeNodeObject * obj,const skString& location,const skString& tag);
+  /**
+   * Destructor
+   */
+  virtual ~skTreeNodeObjectEnumerator();
   /**
    * This method exposes the following methods to Simkin scripts:
-   * returns the next object in the enumeration - or null if there are no more
-     */
-  bool method(const skString& s,skRValueArray& args,skRValue& r);
+   * "next" - returns the next object in the enumeration - or null if there are no more
+   * "reset" - resets the enumeration to the start
+   * @param s method name
+   * @param args arguments to the function
+   * @param r return value
+   * @param ctxt context object to receive errors
+   * @exception a Symbian - a leaving function
+   * @exception skParseException - if a syntax error is encountered while the script is running
+   * @exception skRuntimeException - if an error occurs while the script is running
+   */
+  virtual bool method(const skString& s,skRValueArray& args,skRValue& r,skExecutableContext& ctxt);
   /**
    * This method implements the method in skExecutableIterator
+   * @exception a Symbian - a leaving function
    */
-  bool next(skRValue&);
+  virtual bool next(skRValue&);
  private:
   void findNextNode();
 
@@ -57,5 +70,6 @@ class CLASSEXPORT skTreeNodeObjectEnumerator : public skExecutable, public skExe
   skTreeNodeListIterator m_Iter;
   skTreeNode * m_CurrentNode;
   skString m_Location;
+  skTreeNodeObject * m_Object;
 };
 #endif

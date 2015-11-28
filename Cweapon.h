@@ -245,6 +245,12 @@ public:
   {return CurrentWeapon;}
   void SetCurrent(int value)
   { CurrentWeapon = value;}
+  
+  //start pickles Jul 04
+  geActor	*GetVActor();
+  geActor	*GetPActor();
+  //end pickles Jul 04
+
   geVec3d GetCrossPoint()
   { return CrossPoint; }
 // changed RF064

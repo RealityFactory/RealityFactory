@@ -14,6 +14,9 @@ CStaticEntity.cpp:		Static Entity Handling Class
 #include "RabidFramework.h"
 
 extern geSound_Def *SPool_Sound(char *SName);
+// changed QD 06/26/04
+extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+// end change
 
 //	Constructor
 //
@@ -79,8 +82,23 @@ CStaticEntity::CStaticEntity()
 			CCD->ActorManager()->SetType(pProxy->Actor, ENTITY_VEHICLE);	// Make a vehicle
 		if(pProxy->SubjectToGravity)
 			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
-		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor);
+// changed QD 07/24/04
+		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor, pProxy->AmbientLightFromFloor);
+// end change
 		CCD->ActorManager()->SetShadow(pProxy->Actor, pProxy->ShadowSize);
+// changed QD 06/26/04
+		if(pProxy->ShadowAlpha > 0.0f)
+			CCD->ActorManager()->SetShadowAlpha(pProxy->Actor, pProxy->ShadowAlpha);
+				
+		if(!EffectC_IsStringNull(pProxy->ShadowBitmap))
+			CCD->ActorManager()->SetShadowBitmap(pProxy->Actor, TPool_Bitmap(pProxy->ShadowBitmap, pProxy->ShadowAlphamap, NULL, NULL));
+		// begin change gekido
+		CCD->ActorManager()->SetProjectedShadows(pProxy->Actor, pProxy->UseProjectedShadows);
+		// end change gekido
+// end change	
+// changed QD Shadows
+		CCD->ActorManager()->SetStencilShadows(pProxy->Actor, pProxy->UseStencilShadows);
+// end change
 		if(pProxy->EnvironmentMapping)
 			SetEnvironmentMapping(pProxy->Actor, true, pProxy->AllMaterial, pProxy->PercentMapping, pProxy->PercentMaterial);
 // changed RF064
@@ -93,6 +111,10 @@ CStaticEntity::CStaticEntity()
 			CCD->ActorManager()->SetBBox(pProxy->Actor, pProxy->BoxSize.X, -(pProxy->BoxSize.Y*2.0f), pProxy->BoxSize.Z);
 		}
 // end change RF064
+// changed QD 07/21/04
+		if(pProxy->NoCollision)
+			CCD->ActorManager()->SetNoCollide(pProxy->Actor);
+// end change
 		pProxy->bInitialized = GE_FALSE;		// Pathfollowing not initialized
 		pProxy->IsHit = false;
 		pProxy->index = -1;
@@ -101,6 +123,13 @@ CStaticEntity::CStaticEntity()
 		pProxy->CallBack = false;
 		pProxy->Time = pProxy->DamageDelay;
 		pProxy->DoingDamage = false;
+// changed QD 05/06/2004
+		pProxy->dying=false;
+		if(pProxy->FadeOutTime<=0.0f)
+			pProxy->FadeOut=false;
+		else
+			pProxy->AlphaRate = (pProxy->InitialAlpha)/pProxy->FadeOutTime;
+// end change
 		if(pProxy->AttributeAmt!=-1)
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
@@ -405,6 +434,27 @@ void CStaticEntity::Tick(geFloat dwTicks)
 	{
 		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
 
+		// changed QD 05/06/2004
+		if(pProxy->dying && pProxy->DeathDissappear)
+		{
+			if(EffectC_IsStringNull(pProxy->szDeathAction) || CCD->ActorManager()->EndAnimation(pProxy->Actor))
+			{
+				if (pProxy->FadeOut && pProxy->InitialAlpha>0.0f)
+				{
+					CCD->ActorManager()->SetNoCollide(pProxy->Actor);
+					pProxy->InitialAlpha -=(pProxy->AlphaRate*(dwTicks*0.001f));
+					CCD->ActorManager()->SetAlpha(pProxy->Actor, pProxy->InitialAlpha);
+				}
+				else
+				{
+					CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
+					pProxy->dying = false;
+				}
+			}
+			
+			continue;
+		}
+		// end change
 		if(pProxy->DoingDamage)
 		{
 			pProxy->Time+=(dwTicks*0.001f);
@@ -429,9 +479,21 @@ void CStaticEntity::Tick(geFloat dwTicks)
 				pProxy->bState = GE_FALSE;
 				pProxy->CallBack = GE_TRUE;
 				pProxy->CallBackCount = 2;
-
-				if(pProxy->DeathDissappear)
+			
+				// changed QD 05/06/2004
+				pProxy->dying = true;
+				
+				if(!EffectC_IsStringNull(pProxy->szDeathAction))
+				{
+					CCD->ActorManager()->SetMotion(pProxy->Actor, pProxy->szDeathAction);
+					CCD->ActorManager()->SetHoldAtEnd(pProxy->Actor, true);
+				}
+				else if(pProxy->DeathDissappear && (pProxy->FadeOut==GE_FALSE))
+				{
 					CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
+					pProxy->dying = false;
+				}
+				// end change
 			}
 		}
 

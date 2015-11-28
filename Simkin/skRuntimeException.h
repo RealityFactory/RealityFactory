@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,31 +16,38 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skRuntimeException.h,v 1.8 2001/11/22 11:13:21 sdw Exp $
+  $Id: skRuntimeException.h,v 1.16 2003/04/14 15:24:57 simkin_cvs Exp $
 */
 #ifndef SKRUNTIMEEXCEPTION_H
 #define SKRUNTIMEEXCEPTION_H
 
+#include "skException.h"
 #include "skString.h"
-
-const int skRuntimeException_Code=3;
 
 /**
  * This exception is thrown when there are execution errors in a Simkin script
  */
-class CLASSEXPORT skRuntimeException {
+class CLASSEXPORT skRuntimeException : public skException
+{
  public:
   /**
    * Constructor - receives information about the exception
    */
   skRuntimeException(const skString& location,int line_num,const skString& msg) 
-      : m_Location(location),m_Msg(msg),m_LineNum(line_num){
+      : m_LineNum(line_num),m_Msg(msg),m_Location(location){
   }
   /**
-   * this method returns a description of the exception
+   * this method returns the description of the exception
+   */
+  skString getMessage() const {
+    return m_Msg;
+  }
+
+  /**
+   * this method returns a verbose description of the exception
    */
   skString toString() const {
-    return m_Location+skSTR(":")+skString::from(m_LineNum)+skSTR("-")+m_Msg;
+    return skString::addStrings(m_Location.ptr(),s_colon,skString::from(m_LineNum).ptr(),s_Dash,m_Msg.ptr());
   }
    /**
    * returns the location of the script

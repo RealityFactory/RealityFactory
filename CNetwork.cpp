@@ -78,7 +78,7 @@ NetPlayerMgr::~NetPlayerMgr()
 	{
 		nlClose(serversock);
 		serverstop = true;
-		CCD->ReportError("Server Stopped", false);
+		CCD->ReportError("NetManager:  Shutting Down Server", false);
 	}
 	if(clientrun)
 	{
@@ -169,14 +169,14 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			if(serversock == NL_INVALID)
 			{
 				serverstop = true;
-				CCD->ReportError("Server Error - Open", false);
+				CCD->ReportError("Server Error - Open Socket Failed", false);
 				return false;
 			}
 			if(!nlListen(serversock))       /* let's listen on this socket */
 			{
 				nlClose(serversock);
 				serverstop = true;
-				CCD->ReportError("Server Error - Listen", false);
+				CCD->ReportError("Server Error - Listen on Socket Failed", false);
 				return false;
 			}
 			// create the servers client group

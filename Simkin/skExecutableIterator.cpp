@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skExecutableIterator.cpp,v 1.2 2001/11/22 11:13:21 sdw Exp $
+* $Id: skExecutableIterator.cpp,v 1.4 2003/01/20 18:48:18 simkin_cvs Exp $
 */
 #include "skExecutableIterator.h"
 

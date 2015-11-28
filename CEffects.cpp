@@ -445,6 +445,13 @@ CPreEffect::CPreEffect()
 					Sp->AmbientColor.b = convert.Z;
 				}
 
+				// changed QD 07/21/04
+				Sp->AmbientLightFromFloor = true;
+				Vector = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+				if(Vector=="false")
+					Sp->AmbientLightFromFloor = false;
+				// end change
+
 				Sp->EnvironmentMapping = false;
 				Vector = AttrFile.GetValue(KeyName, "environmentmapping");
 				if(Vector=="true")

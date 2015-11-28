@@ -6,6 +6,14 @@ CWeapon.cpp:		Weapon class implementation
   
 	This file contains the class declaration for Weapon
 	implementation.
+
+Edit History:
+
+ 07/15/2004 Wendell Buckner
+  BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+  overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+  the bone bounding boxes until the whatever hit the overall bounding box no longer exists. 
+
 */
 
 //	Include the One True Header
@@ -228,8 +236,14 @@ void CWeapon::Tick(float dwTicks)
 			
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
-			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel))
+
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. 
+			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel)) */
+			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel, d ))
+
 			{
 				//
 				// Process hit here
@@ -280,9 +294,14 @@ void CWeapon::Tick(float dwTicks)
 		{
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
+
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. 
 			//if(CCD->Collision()->CheckForCollisionD(&d->ExtBox.Min, &d->ExtBox.Max,
-			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,
-				tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel))
+			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel)) */
+			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel, d ))
 			{
 				//
 				// Handle collision here
@@ -435,6 +454,13 @@ void CWeapon::Tick(float dwTicks)
 				d->prev->next = d->next;
 			if(d->next != NULL)
 				d->next->prev = d->prev;
+
+/* 07/15/2004 Wendell Buckner
+    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the 
+	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
+	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
+			CCD->ActorManager()->RemoveCollideObject ( COLMaxBBox, NULL, (void *) d );
+
 			CCD->ActorManager()->RemoveActor(d->Actor);
 			geActor_Destroy(&d->Actor);
 			delete d;
@@ -750,10 +776,13 @@ void CWeapon::DisplayFirstPerson(int index)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VArm);
 	if(VSequence == VWEPHOLSTER)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VArm);
-	if(VSequence == VWEPIDLE)
-		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
-	if(VSequence == VWEPATTACK)
-		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
+// cell division - moved below walking check
+//	if(VSequence == VWEPIDLE)
+//		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
+//	if(VSequence == VWEPATTACK)
+//		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
+// cell division - moved below walking check
+
 // changed RF064
 	if(VSequence == VWEPRELOAD)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
@@ -786,6 +815,13 @@ void CWeapon::DisplayFirstPerson(int index)
 	}
 	if(VSequence == VWEPWALK)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VWalk);
+
+// cell division - originally above weapon walk
+	if(VSequence == VWEPIDLE)
+		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
+	if(VSequence == VWEPATTACK)
+		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
+// cell division - originally above weapon walk
 	
 	if(!ActorMotion) // no animation so use default
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
@@ -2070,6 +2106,21 @@ int CWeapon::ZoomAmount()
 	return 0;
 }
 
+
+//start pickles Jul 04
+
+geActor* CWeapon::GetVActor()
+{
+	return WeaponD[CurrentWeapon].VActor;
+}
+
+geActor* CWeapon::GetPActor()
+{
+	return WeaponD[CurrentWeapon].PActor;
+}
+//End Pickles Jul 04
+
+
 void CWeapon::LoadDefaults()
 {
 	int i;
@@ -2342,6 +2393,9 @@ void CWeapon::LoadDefaults()
 						geXForm3d	XfT;
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
+						// changed QD 07/21/04
+						geBoolean AmbientLightFromFloor = GE_TRUE;
+						// end change
 						geVec3d NewFillNormal;
 						geActor_GetBoneTransform(WeaponD[weapptr].VActor, RootBoneName(WeaponD[weapptr].VActor), &Xf );
 						geXForm3d_GetTranspose( &Xf, &XfT );
@@ -2359,10 +2413,16 @@ void CWeapon::LoadDefaults()
 							AmbientColor = Extract(szName);
 						}
 
-						geActor_SetStaticLightingOptions(WeaponD[weapptr].VActor, GE_TRUE, GE_TRUE, 3);
+						// changed QD 07/21/04
+						Vector = AttrFile.GetValue(KeyName, "viewambientlightfromfloor");
+						if(Vector=="false")
+							AmbientLightFromFloor = GE_FALSE;
+						
+						geActor_SetStaticLightingOptions(WeaponD[weapptr].VActor, AmbientLightFromFloor, GE_TRUE, 3);
 
 						geActor_SetLightingOptions(WeaponD[weapptr].VActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
-						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, GE_TRUE, 6, NULL, GE_FALSE);
+						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
+						// end change
 
 						Vector = AttrFile.GetValue(KeyName, "environmentmapping");
 						if(Vector=="true")
@@ -2520,6 +2580,9 @@ void CWeapon::LoadDefaults()
 						geXForm3d	XfT;
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
+						// changed QD 07/21/04
+						geBoolean AmbientLightFromFloor = GE_TRUE;
+						// end change
 						geVec3d NewFillNormal;
 						geActor_GetBoneTransform(WeaponD[weapptr].PActor, RootBoneName(WeaponD[weapptr].PActor), &Xf );
 						geXForm3d_GetTranspose( &Xf, &XfT );
@@ -2537,10 +2600,17 @@ void CWeapon::LoadDefaults()
 							AmbientColor = Extract(szName);
 						}
 
-						geActor_SetStaticLightingOptions(WeaponD[weapptr].PActor, GE_TRUE, GE_TRUE, 3);
+						// changed QD 07/21/04
+						Vector = AttrFile.GetValue(KeyName, "playerambientlightfromfloor");
+						if(Vector=="false")
+							AmbientLightFromFloor = GE_FALSE;
 
+						geActor_SetStaticLightingOptions(WeaponD[weapptr].PActor, AmbientLightFromFloor, GE_TRUE, 3);
+						
 						geActor_SetLightingOptions(WeaponD[weapptr].PActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
-						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, GE_TRUE, 6, NULL, GE_FALSE);
+						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
+						// end change
+
 						Vector = AttrFile.GetValue(KeyName, "playerenvironmentmapping");
 						if(Vector=="true")
 						{

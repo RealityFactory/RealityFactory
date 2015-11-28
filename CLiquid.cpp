@@ -224,14 +224,17 @@ void COverlay::Tick(float dwTicks)
 		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{
 			if(!GetTriggerState(pItem->TriggerName))
+			{
+				pItem->Alpha=pItem->Transparency;//cell division - reset alpha when trigger is off
 				continue;
+			}
 		}
 		if(pItem->Animated)
 		{
 			pItem->Time += dwTicks;
 			if(pItem->AlphaRate!=0.0f)
 			{
-				pItem->Alpha -= (pItem->AlphaRate*(dwTicks/1000.0f));
+				pItem->Alpha += (pItem->AlphaRate*(dwTicks/1000.0f));//cell division
 				if(pItem->Alpha<0)
 					pItem->Alpha = 0;
 				if(pItem->Alpha>255.0f)

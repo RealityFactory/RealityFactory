@@ -1,54 +1,32 @@
 /*
-  Copyright 1996-2002
+  Copyright 1996-2003
   Simon Whiteside
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skRValue.cpp,v 1.12 2001/11/22 11:13:21 sdw Exp $
+  $Id: skRValue.cpp,v 1.22 2003/04/14 15:24:57 simkin_cvs Exp $
 */
+#ifdef STREAMS_ENABLED
 #include <ostream.h>
+#endif
 #include "skRValue.h"
 #include "skExecutable.h"
-#include <stdio.h>
 
 //------------------------------------------
-skRValue::skRValue(skiExecutable * o,bool created)
-  //------------------------------------------
-  : m_Type(T_Object)
-{
-  m_Value.m_ObjectRef=new skObjectRef;
-  m_Value.m_ObjectRef->m_Object=o;
-  m_Value.m_ObjectRef->m_Created=created;
-  m_Value.m_ObjectRef->m_RefCount=1;
-}
+EXPORT_C skRValue::skRValue(const skRValue& v)
 //------------------------------------------
-skRValue::~skRValue()
-//------------------------------------------
-{
-  if (m_Type==T_Object){
-    m_Value.m_ObjectRef->m_RefCount--;
-    if (m_Value.m_ObjectRef->m_RefCount==0){
-      if (m_Value.m_ObjectRef->m_Created)
-	delete m_Value.m_ObjectRef->m_Object;
-      delete m_Value.m_ObjectRef;	
-    }	
-  }	
-}
-//------------------------------------------
-skRValue::skRValue(const skRValue& v)
-  //------------------------------------------
   : m_Type(v.m_Type),m_String(v.m_String)
 {
   switch (m_Type){
@@ -65,24 +43,77 @@ skRValue::skRValue(const skRValue& v)
   case T_Bool:
     m_Value.m_Bool=v.m_Value.m_Bool;
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     m_Value.m_Float=v.m_Value.m_Float;
     break;
+#endif
   }
 }
 //------------------------------------------
-skRValue& skRValue::operator=(const skRValue& v)
-  //------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(bool value)
+//------------------------------------------
+{
+  if (m_Type==T_Object){
+    deRef();
+  }
+  m_Type=T_Bool;
+  m_Value.m_Bool=value;
+  return *this;
+}
+//------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(int value)
+//------------------------------------------
+{
+  if (m_Type==T_Object){
+    deRef();
+  }
+  m_Type=T_Int;
+  m_Value.m_Int=value;
+  return *this;
+}
+#ifdef USE_FLOATING_POINT
+//------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(float value)
+//------------------------------------------
+{
+  if (m_Type==T_Object){
+    deRef();
+  }
+  m_Type=T_Float;
+  m_Value.m_Float=value;
+  return *this;
+}
+#endif
+//------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(Char value)
+//------------------------------------------
+{
+  if (m_Type==T_Object){
+    deRef();
+  }
+  m_Type=T_Char;
+  m_Value.m_Char=value;
+  return *this;
+}
+//------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(const skString&  value)
+//------------------------------------------
+{
+  if (m_Type==T_Object){
+    deRef();
+  }
+  m_Type=T_String;
+  m_String=value;
+  return *this;
+}
+//------------------------------------------
+EXPORT_C skRValue& skRValue::operator=(const skRValue& v)
+//------------------------------------------
 {
   if (&v!=this){
     if (m_Type==T_Object){
-      m_Value.m_ObjectRef->m_RefCount--;
-      if (m_Value.m_ObjectRef->m_RefCount==0){
-	if (m_Value.m_ObjectRef->m_Created)
-	  delete m_Value.m_ObjectRef->m_Object;
-	delete m_Value.m_ObjectRef;	
-	m_Value.m_ObjectRef=0;
-      }	
+      deRef();
     }
     m_Type=v.m_Type;
     switch (m_Type){
@@ -98,9 +129,11 @@ skRValue& skRValue::operator=(const skRValue& v)
     case T_Int:
       m_Value.m_Int=v.m_Value.m_Int;
       break;
+#ifdef USE_FLOATING_POINT
     case T_Float:
       m_Value.m_Float=v.m_Value.m_Float;
       break;
+#endif
     case T_Object:
       m_Value.m_ObjectRef=v.m_Value.m_ObjectRef;
       m_Value.m_ObjectRef->m_RefCount++;
@@ -110,8 +143,8 @@ skRValue& skRValue::operator=(const skRValue& v)
   return *this;
 }
 //------------------------------------------
- Char skRValue::charValue() const
-  //------------------------------------------
+EXPORT_C Char skRValue::charValue() const
+//------------------------------------------
 {
   Char r=0;
   switch(m_Type){
@@ -130,9 +163,11 @@ skRValue& skRValue::operator=(const skRValue& v)
   case T_Char:
     r=m_Value.m_Char;
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     r=(Char)m_Value.m_Float;
     break;
+#endif
   case T_Object:
     r=m_Value.m_ObjectRef->m_Object->charValue();
     break;
@@ -140,8 +175,8 @@ skRValue& skRValue::operator=(const skRValue& v)
   return r;	
 }
 //------------------------------------------
- int skRValue::intValue() const
-  //------------------------------------------
+EXPORT_C int skRValue::intValue() const
+//------------------------------------------
 {
   int r=0;
   switch(m_Type){
@@ -157,18 +192,21 @@ skRValue& skRValue::operator=(const skRValue& v)
   case T_Char:
     r=(int)(m_Value.m_Int);
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     r=(int)m_Value.m_Float;
     break;
+#endif
   case T_Object:
     r=m_Value.m_ObjectRef->m_Object->intValue();
     break;
   }
   return r;	
 }
+#ifdef USE_FLOATING_POINT
 //------------------------------------------
- float skRValue::floatValue() const
-  //------------------------------------------
+EXPORT_C float skRValue::floatValue() const
+//------------------------------------------
 {
   float r=0;
   switch(m_Type){
@@ -193,9 +231,10 @@ skRValue& skRValue::operator=(const skRValue& v)
   }
   return r;	
 }
+#endif
 //------------------------------------------
- bool skRValue::boolValue() const
-  //------------------------------------------
+EXPORT_C bool skRValue::boolValue() const
+//------------------------------------------
 {
   bool bRet=false;
   switch(m_Type){
@@ -207,17 +246,19 @@ skRValue& skRValue::operator=(const skRValue& v)
       bRet=true;
     break;
   case T_String:
-    if (m_String==skSTR("1") || m_String==s_true)
+    if (m_String== s_one || m_String==s_true)
       bRet=true;
     break;
   case T_Int:
     if (m_Value.m_Int)
       bRet=true;
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     if (m_Value.m_Float)
       bRet=true;
     break;
+#endif
   case T_Object:
     bRet=m_Value.m_ObjectRef->m_Object->boolValue();
     break;
@@ -225,8 +266,8 @@ skRValue& skRValue::operator=(const skRValue& v)
   return bRet;	
 }
 //------------------------------------------
- skString skRValue::str() const
-  //------------------------------------------
+EXPORT_C skString skRValue::str() const
+//------------------------------------------
 {
   skString s;
   switch(m_Type){
@@ -237,7 +278,7 @@ skRValue& skRValue::operator=(const skRValue& v)
     s=skString::from(m_Value.m_Int);
     break;
   case T_Char:
-    s=skString((Char)(m_Value.m_Char),1);
+    s=m_Value.m_Char;
     break;
   case T_Bool:
     if (m_Value.m_Bool)
@@ -245,9 +286,11 @@ skRValue& skRValue::operator=(const skRValue& v)
     else
       s=s_false;
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     s=skString::from(m_Value.m_Float);
     break;
+#endif
   case T_Object:
     s=m_Value.m_ObjectRef->m_Object->strValue();
     break;
@@ -255,8 +298,8 @@ skRValue& skRValue::operator=(const skRValue& v)
   return s;	
 }
 //------------------------------------------
-bool skRValue::operator==(const skRValue& v)
-  //------------------------------------------   
+EXPORT_C bool skRValue::operator==(const skRValue& v)
+//------------------------------------------   
 {
   bool r=false;
   switch(m_Type){
@@ -272,9 +315,11 @@ bool skRValue::operator==(const skRValue& v)
   case T_Bool:
     r=(m_Value.m_Bool==v.boolValue());
     break;
+#ifdef USE_FLOATING_POINT
   case T_Float:
     r=(m_Value.m_Float==v.floatValue());
     break;
+#endif
   case T_Object:
     switch (v.m_Type){
     case T_Char:
@@ -289,9 +334,11 @@ bool skRValue::operator==(const skRValue& v)
     case T_Int:
       r=(m_Value.m_ObjectRef->m_Object->intValue()==v.m_Value.m_Int);
       break;
+#ifdef USE_FLOATING_POINT
     case T_Float:
       r=(m_Value.m_ObjectRef->m_Object->floatValue()==v.m_Value.m_Float);
       break;
+#endif
     case T_String:
       r=(m_Value.m_ObjectRef->m_Object->strValue()==v.m_String);
       break;

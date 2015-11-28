@@ -1,3 +1,10 @@
+/*
+Edit History:
+ 08/11/2004 Wendell Buckner
+  Added High level Debug Pawn command 
+
+*/
+
 #include "RabidFramework.h"
 
 extern geSound_Def *SPool_Sound(char *SName);
@@ -160,7 +167,7 @@ char *ActionText[] =
 };
 
 // calls a method in this object
-bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue)
+bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)
 {
 	char param0[128], param7[128], param8[128];
 	float param1, param3, param4, param5, param6;
@@ -973,9 +980,42 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			returnValue = (int)EffectC_Frand(param3, param1);
 		return true;
 	}
+/* 08/11/2004 Wendell Buckner
+    Added High level Debug Pawn command */
+	else if (IS_METHOD(methodName, "debug"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		if(console)
+		{
+			int index = -1;
+			int i;
+			for(i=0;i<DEBUGLINES;i++)
+			{
+				if(EffectC_IsStringNull(ConsoleDebug[i]))
+				{
+					index = i;
+					break;
+				}
+			}
+			if(index!=-1)
+			{
+				strcpy(ConsoleDebug[index], param0);
+			}
+			else
+			{
+				for(i=1;i<DEBUGLINES;i++)
+				{
+					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
+				}
+				strcpy(ConsoleDebug[DEBUGLINES-1], param0); 
+			}
+		}
+		return true;
+	}
 	else
 	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue);
+		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt); // change simkin
 	}
 	
 }
@@ -2023,7 +2063,7 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 
 void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 {
-	skRValueArray args(1);
+	skRValueArray args; // change simkin
 	skRValue ret;
 	int yoffset = 0;
 	TriggerStack *tpool, *ttemp;
@@ -2437,7 +2477,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				bool methoderror = false;
 				try
 				{
-					Object->method(skString(Object->Order), args, ret);
+					Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
 				}
 				catch(skRuntimeException e)
 				{
@@ -3576,7 +3616,9 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									}
 									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName, 
 										Object->Location, WeaponCache[i].Rotation, "", "", NULL);
-									CCD->ActorManager()->SetActorDynamicLighting(Object->WeaponActor, WeaponCache[i].FillColor, WeaponCache[i].AmbientColor);
+									// changed QD 07/21/04
+									CCD->ActorManager()->SetActorDynamicLighting(Object->WeaponActor, WeaponCache[i].FillColor, WeaponCache[i].AmbientColor, WeaponCache[i].AmbientLightFromFloor);
+									// end change
 									Object->WRotation = WeaponCache[i].Rotation;
 									Object->WScale = WeaponCache[i].Scale;
 									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale);

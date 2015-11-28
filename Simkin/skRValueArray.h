@@ -1,7 +1,7 @@
 /*
-Copyright 1996-2001 Simon Whiteside
+Copyright 1996-2002 Simon Whiteside
 
-* $Id: skRValueArray.h,v 1.8 2001/11/22 11:13:21 sdw Exp $
+* $Id: skRValueArray.h,v 1.12 2003/04/11 18:05:39 simkin_cvs Exp $
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,9 @@ Copyright 1996-2001 Simon Whiteside
 #include "skRValue.h"
 #include "skValist.h"
 
+#ifdef INSTANTIATE_TEMPLATES
 EXTERN_TEMPLATE template class CLASSEXPORT skTVAList<skRValue>;
-
+#endif
 /**
  * This class provides an array of RValues
  */
@@ -35,12 +36,11 @@ class CLASSEXPORT skRValueArray	: public skTVAList<skRValue>
   /**
    * Default Constructor: creates an array of zero size
    */
-  skRValueArray() {}
-  /**
-   * Constructor: creates an array of the given size
-   */
-  skRValueArray(unsigned short size)
-    : skTVAList<skRValue>(size,size) {}
+  inline skRValueArray() 
+    {
+    }
+  virtual ~skRValueArray(){
+  }
 };
 #endif
 

@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skExecutableIterator.h,v 1.4 2001/11/22 11:13:21 sdw Exp $
+* $Id: skExecutableIterator.h,v 1.8 2003/04/10 16:20:15 simkin_cvs Exp $
 */
 
 #ifndef skEXECUTABLEITERATOR_H
@@ -30,10 +30,11 @@ class CLASSEXPORT skRValue;
 /**
  * This class is used to iterate over a set of values whilst in the foreach statement
  */
-class CLASSEXPORT skExecutableIterator {
+class CLASSEXPORT skExecutableIterator 
+{
  public:
   /** Destructor */
-  virtual ~skExecutableIterator();
+  virtual ~skExecutableIterator()=0;
   /** This method returns the next value in the enumeration. It is implemented in the actual base class
    * @param value - a value to receive the next item in the iteration (if present)
    * @return true if the iteration can continue, otherwise false to indicate it is finished and the value variable is underined.

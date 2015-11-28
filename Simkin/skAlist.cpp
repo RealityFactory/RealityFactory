@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,148 +16,167 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skAlist.cpp,v 1.10 2001/11/22 11:13:21 sdw Exp $
+  $Id: skAlist.cpp,v 1.24 2003/04/24 10:19:43 simkin_cvs Exp $
 */
 #include "skAlist.h"
 
 
-const USize	skAList::DEFAULT_SIZE=0;				// so nothing is allocated until needed
-const USize	skAList::DEFAULT_GROWTH_INCREMENT=4;	// value of 0 means 'double in size'
 
 //-----------------------------------------------------------------
-void skAList::clearAndDestroy()
+EXPORT_C void skAList::clearAndDestroy()
 //-----------------------------------------------------------------
 {
-    for (USize x=0;x<m_Entries;x++){
-	deleteItem(m_Array[x]);
-	m_Array[x]=0;
-    }
-    m_Entries=0;
+  for (USize x=0;x<m_Entries;x++){
+    deleteItem(m_Array[x]);
+    m_Array[x]=0;
+  }
+  m_Entries=0;
 }
 //-----------------------------------------------------------------
-void skAList::clear()
+EXPORT_C void skAList::clear()
 //-----------------------------------------------------------------
 {
-    for (USize x=0;x<m_Entries;x++)
-	m_Array[x]=0;
-    m_Entries=0;
+  for (USize x=0;x<m_Entries;x++)
+    m_Array[x]=0;
+  m_Entries=0;
 }
 //-----------------------------------------------------------------
 void skAList::insert(void * p,USize index)
 //-----------------------------------------------------------------
 {
-    assert(p);
-    assert(index<=m_Entries);
-    assert(contains(p)==false);
-    if (index>m_Entries)
-	THROW( skBoundsException(skSTR("Invalid index to insert"),__FILE__,__LINE__),skBoundsException_Code);
-
-    if (m_ArraySize==m_Entries)
-	grow();
-    if (index<m_Entries)
-	for (USize x=m_Entries;x>index;x--)
-	    m_Array[x]=m_Array[x-1];		
-    m_Array[index]=p;
-    m_Entries++;
+  assert(p);
+  assert(index<=m_Entries);
+  assert(contains(p)==false);
+  if (index>m_Entries){
+#ifdef EXCEPTIONS_DEFINED
+    throw skBoundsException(skSTR("Invalid index to insert"),__FILE__,__LINE__);
+#else
+    ExitSystem( );
+#endif
+  }
+  if (m_Array==0)
+    createArray();
+  if (m_ArraySize==m_Entries)
+    grow();
+  if (index<m_Entries)
+    for (USize x=m_Entries;x>index;x--)
+      m_Array[x]=m_Array[x-1];          
+  m_Array[index]=p;
+  m_Entries++;
 }
 //-----------------------------------------------------------------
 void skAList::prepend(void * i)
 //-----------------------------------------------------------------
 {
-    assert(i);
-    assert(contains(i)==false);
-    if (m_ArraySize==m_Entries)
-	grow();
-    for (USize x=m_Entries;x>=1;x--)
-	m_Array[x]=m_Array[x-1];
-    m_Entries++;
-    m_Array[0]=i;
+  assert(i);
+  assert(contains(i)==false);
+  if (m_Array==0)
+    createArray();
+  if (m_ArraySize==m_Entries)
+    grow();
+  for (USize x=m_Entries;x>=1;x--)
+    m_Array[x]=m_Array[x-1];
+  m_Entries++;
+  m_Array[0]=i;
 }
 //-----------------------------------------------------------------
 void skAList::remove(void * i)
 //-----------------------------------------------------------------
-{   
-    assert(i);
-    int index = findElt(i);
-    assert(index>=0 && "AList does not contain item"!=0);
-    for (USize x=(USize)index;x<m_Entries-1;x++)
-	m_Array[x]=m_Array[x+1];
-    m_Entries--;
+{  
+  assert(i);
+  int index = findElt(i);
+  assert(index>=0 && "AList does not contain item"!=0);
+  for (USize x=(USize)index;x<m_Entries-1;x++)
+    m_Array[x]=m_Array[x+1];
+  m_Entries--;
 }
 //-----------------------------------------------------------------
 void skAList::removeAndDestroy(void * i)
 //-----------------------------------------------------------------
 {   
-    assert(i);
-    int index = findElt(i);
-    assert(index>=0 && "AList does not contain item"!=0);
-
+  assert(i);
+  int index = findElt(i);
+  assert(index>=0 && "AList does not contain item"!=0);
+  
+  if (m_Array){
     deleteItem(m_Array[index]);
     for (USize x=index;x<m_Entries-1;x++)
-	m_Array[x]=m_Array[x+1];
-
+      m_Array[x]=m_Array[x+1];
     m_Entries--;
+  }
 }
 //-----------------------------------------------------------------
-void skAList::deleteElt(USize index)
+EXPORT_C void skAList::deleteElt(USize index)
 //-----------------------------------------------------------------
 {
-    assert(index<m_Entries);
-    if (index>=m_Entries)
-	THROW( skBoundsException(skSTR("Invalid index to deleteElt"),__FILE__,__LINE__),skBoundsException_Code);
-    deleteItem(m_Array[index]);
-    for (USize x=index;x<m_Entries-1;x++)
-	m_Array[x]=m_Array[x+1];
-    m_Entries--;
-}
-//-----------------------------------------------------------------
-void skAList::growTo(USize new_size)
-//-----------------------------------------------------------------
-{
-    if (new_size>m_ArraySize){
-	m_ArraySize = new_size;
-
-	void ** new_array=new void *[m_ArraySize];
-	if(m_Array){
-	    for (USize x=0;x<m_Entries;x++){
-		new_array[x]=m_Array[x];
-		m_Array[x]=0;
-	    }
-	    delete [] m_Array;
-	}
-	m_Array=new_array;
+  assert(index<m_Entries);
+  if (index>=m_Entries){
+#ifdef EXCEPTIONS_DEFINED
+    throw skBoundsException(skSTR("Invalid index to deleteElt"),__FILE__,__LINE__);
+#else
+    ExitSystem( );
+#endif
+  }else{
+    if (m_Array){
+      deleteItem(m_Array[index]);
+      for (USize x=index;x<m_Entries-1;x++)
+        m_Array[x]=m_Array[x+1];
+      m_Entries--;
     }
+  }
 }
 //-----------------------------------------------------------------
-void skAList::grow()
+EXPORT_C void skAList::createArray()
 //-----------------------------------------------------------------
 {
-    if(m_GrowthIncrement != 0)
-	m_ArraySize += m_GrowthIncrement;	// constant increase in size
-    else{
-	if(m_ArraySize==0)
-	    m_ArraySize = 1;
-	else
-	    m_ArraySize *= 2;			// double size
-    }
-
-    void ** new_array=new void *[m_ArraySize];
+  if (m_ArraySize==0)
+    m_ArraySize=1;
+  if(m_ArraySize != 0)
+    m_Array=skARRAY_NEW(void *,m_ArraySize);
+}
+//-----------------------------------------------------------------
+EXPORT_C void skAList::growTo(USize new_size)
+//-----------------------------------------------------------------
+{
+  if (new_size>m_ArraySize){
+    m_ArraySize = new_size;
     if(m_Array){
-	for (USize x=0;x<m_Entries;x++){
-	    new_array[x]=m_Array[x];
-	    m_Array[x]=0;
-	}
-	delete [] m_Array;
+      void ** new_array=skARRAY_NEW(void *,m_ArraySize);
+      for (USize x=0;x<m_Entries;x++){
+        new_array[x]=m_Array[x];
+        m_Array[x]=0;
+      }
+      delete [] m_Array;
+      m_Array=new_array;
+    }else{
+      m_Array=skARRAY_NEW(void *,m_ArraySize);
     }
-    m_Array=new_array;
+  }
 }
 //-----------------------------------------------------------------
-void skAList::test() const
+EXPORT_C void skAList::grow()
+//-----------------------------------------------------------------
+{
+  m_ArraySize *= 2;     // constant increase in size
+  if(m_Array){
+    void ** new_array=skARRAY_NEW(void *,m_ArraySize);
+    for (USize x=0;x<m_Entries;x++){
+      new_array[x]=m_Array[x];
+      m_Array[x]=0;
+    }
+    delete [] m_Array;
+    m_Array=new_array;
+  }else{
+    m_Array=skARRAY_NEW(void *,m_ArraySize);
+  }
+}
+//-----------------------------------------------------------------
+EXPORT_C void skAList::test() const
 //-----------------------------------------------------------------
 {   
 #ifdef MICROSOFT_C
-    _heapchk();
+  _heapchk();
 #endif
-    assert(m_Entries<=m_ArraySize);
-    assert(!(m_Array==0 && m_ArraySize > 0));
+  assert(m_Entries<=m_ArraySize);
+  assert(!(m_Array==0 && m_ArraySize > 0));
 }

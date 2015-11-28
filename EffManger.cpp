@@ -28,7 +28,10 @@ extern void 	ActorParticle_SystemFrame(ActorParticle_System *ps, geFloat DeltaTi
 extern void 	ActorParticle_SystemAddParticle(ActorParticle_System *ps,
 							char *ActorName, geVec3d Position,
 							geVec3d	BaseRotation, geVec3d RotationSpeed,
-							GE_RGBA	FillColor, GE_RGBA	AmbientColor,
+							GE_RGBA	FillColor, GE_RGBA	AmbientColor, 
+							// changed QD 07/21/04
+							geBoolean AmbientLightFromFloor,
+							// end change
 							float Alpha, float AlphaRate, geFloat Time, const geVec3d *Velocity,
 							geFloat	Scale, bool Gravity, geBoolean Bounce, geBoolean Solid,
 							bool EnvironmentMapping, bool AllMaterial, float PercentMapping, float PercentMaterial);
@@ -2052,6 +2055,9 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 						Speed,
 						Data->FillColor, 
 						Data->AmbientColor,
+						// changed QD 07/21/04
+						Data->AmbientLightFromFloor,
+						// end change
 						Data->Alpha,
 						Data->AlphaRate,
 						UnitLife,

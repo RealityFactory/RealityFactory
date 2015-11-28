@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,23 +16,40 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skGeneral.h,v 1.16 2001/11/22 11:13:21 sdw Exp $
+  $Id: skGeneral.h,v 1.35 2003/11/20 16:24:22 sdw Exp $
 */
 #ifndef skGENERAL_H
 #define skGENERAL_H
 
-// Look out for Windows CE - which doesn't support streams or exceptions or assert!
-
-#ifndef _WIN32_WCE
- #define STREAMS_ENABLED
- #define EXCEPTIONS_DEFINED
- #include <assert.h>
-#else
- #define assert(exp) ((void)0)
- #define UNICODE_STRINGS
+#if defined(_MSC_VER)
+#if (_MSC_VER<=1300)
+//#define USE_DEBUG_NEW
+#endif
 #endif
 
+#ifndef __SYMBIAN32__
+#if defined(USE_DEBUG_NEW)
+   #ifdef _DEBUG
+      #define MYDEBUG_NEW   new( _NORMAL_BLOCK, __FILE__, __LINE__)
+       // Replace _NORMAL_BLOCK with _CLIENT_BLOCK if you want the
+       //allocations to be of _CLIENT_BLOCK type
+   #else
+      #define MYDEBUG_NEW
+   #endif // _DEBUG
+#endif
+#endif
+
+
+#ifdef __SYMBIAN32__
+#include <E32BASE.H>
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include "skSymbian.h"
+#include <eikenv.h>
+#else
+#include <stdlib.h>
+#endif
 
 typedef unsigned int USize;
 
@@ -75,22 +92,98 @@ typedef unsigned int USize;
   #define EXTERN_TEMPLATE extern
  #endif 
 #else
+#ifdef __SYMBIAN32__
+#define CLASSEXPORT     
+#else
 // TODO: Dynamic linking declarations for other platforms?
  #define LIBIMPORT       
  #define LIBEXPORT       
  #define CLASSEXPORT
- #define EXTERN_TEMPLATE
+ #define EXTERN_TEMPLATE 
+#endif
+#endif
+
+#ifndef __SYMBIAN32__
+// adds code to instantiate various templates- not necessary on MetroWerks CodeWarrior?
+#define INSTANTIATE_TEMPLATES
+#define IMPORT_C
+#define EXPORT_C
+#endif
+
+// define this to enable floating point support
+#define USE_FLOATING_POINT 1
+
+// define this to enable execution scripts via the parse tree, rather than the new smaller representation
+#define EXECUTE_PARSENODES 1
+
+
+#if defined(USE_DEBUG_NEW)
+#ifndef __SYMBIAN32__
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#define _INC_MALLOC
+#include <crtdbg.h>
+#endif
+#endif
 #endif
 
 
-#ifdef EXCEPTIONS_DEFINED
-#  ifdef __AFX_H__  // this is intended to resolve clashes with MFC's THROW()
-#  undef THROW
-#  endif
-#define THROW(x,c) throw x;
+#ifndef __SYMBIAN32__
+#if defined(USE_DEBUG_NEW)
+   #ifdef _DEBUG
+   #undef new
+   #define new MYDEBUG_NEW
+   #endif
+#endif
+#endif
+
+#ifdef __SYMBIAN32__
+// Symbian does not support exceptions or streams, but does use unicode
+#include <assert.h>
+#if defined(_UNICODE)
+#define UNICODE_STRINGS
+#endif
+/** this method exits the system on a fatal error */
+inline void ExitSystem()
+{
+  User::Leave(KErrGeneral);
+}
+/** a macro wrapping new so that code for Symbian is the same - here call the leaving operator new */
+#define skNEW(a) new (ELeave) a
+#define skARRAY_NEW(type,size) new (ELeave) type[size]
+// puts a pointer into the cleanup stack
+#define SAVE_POINTER(p) CleanupDeletePushL((p))
+#define SAVE_VARIABLE(p) CleanupStack::PushL((p))
+// removes the pointer, but doesn't delete it - it is assumed the method does this if it exits normally
+#define RELEASE_POINTER(p) CleanupStack::Pop(p)
+// removes the variable - don't call destroy as the destructor is called if the method exits normally
+#define RELEASE_VARIABLE(p) CleanupStack::Pop(&p)
 #else
+/** a macro wrapping new so that code for Symbian is the same */
+#define skNEW(a) new a
+#define skARRAY_NEW(type,size) new type[size]
+#define SAVE_POINTER(p) 
+#define RELEASE_POINTER(p) 
+#define SAVE_VARIABLE(p)
+#define RELEASE_VARIABLE(p) 
+// Look out for Windows CE - which doesn't support streams or exceptions or assert!
+#ifdef _WIN32_WCE
 #include <windows.h>
-#define THROW(x,c) RaiseException(c,0,0,0)
+#include <dbgapi.h>
+#define assert ASSERT
+#define UNICODE_STRINGS
+/** this method exits the system on a fatal error */
+inline void ExitSystem()
+{
+  exit(EXIT_FAILURE);
+}
+#else
+#define STREAMS_ENABLED
+#if (_MSC_VER>1300)
+#define STL_STREAMS 1
 #endif
-
+#define EXCEPTIONS_DEFINED
+#include <assert.h>
+#endif
+#endif
 #endif

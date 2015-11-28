@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skHashTable.h,v 1.14 2001/11/22 11:13:21 sdw Exp $
+  $Id: skHashTable.h,v 1.23 2003/04/25 18:04:14 simkin_cvs Exp $
 */
 #ifndef skHASHTBL_H
 #define skHASHTBL_H
@@ -51,36 +51,53 @@ typedef skTAList<skHashEntry> skHashEntryList;
 typedef skTAListIterator<skHashEntry> skHashEntryListIterator;
 
 /**
-   HashTable Class with template sub-class for type-safety
+ * This class maps object pointer keys to object pointer values.
+ * Concrete classes are created by instantiating the template sub-class skSTHashTable
 */
 
 class   CLASSEXPORT skHashTable 
+#ifdef __SYMBIAN32__
+: public CBase
+#endif
 {
  public:
   /**
    * this clears the entries from the table, but does *not* delete them
    */
-  void clear();
+  IMPORT_C void clear();
   /**
    * this clears the list and deletes the keys
    */
-  void clearAndDestroyKeys();
+  IMPORT_C void clearAndDestroyKeys();
   /**
    * this clears the list and deletes the values
    */
-  void clearAndDestroyValues();
+  IMPORT_C void clearAndDestroyValues();
   /**
    * this clears the list and deletes both the values and the keys
    */
-  void clearAndDestroy();
+  IMPORT_C void clearAndDestroy();
   /**
    * this returns the number of entries in the table
    */
-  USize entries() const;
+  inline USize entries() const;
   /**
    * destructor
    */
-  virtual ~skHashTable();
+  inline virtual ~skHashTable();
+#ifdef __SYMBIAN32__
+  /**
+   * Conversion operator to Symbian TCleanupItem. This is provided to allow this object to be pushed by value onto the 
+   * Symbian Cleanup Stack
+   * \remarks only available in Symbian version
+   */
+  operator TCleanupItem();
+  /**
+   * Called via Symbian CleanupStack in the event of a leave. This calls the clearAndDestroy method in the table
+   * \remarks only available in Symbian version
+   */
+  static void Cleanup(TAny * s);
+#endif
  protected:
   /**
    * Constructor - makes the table an initial size
@@ -88,8 +105,9 @@ class   CLASSEXPORT skHashTable
   skHashTable(USize  size);
   /**
    * puts a new key and value into the table. If the key already exists, it is first deleted
+   * @exception Symbian - a leaving function
    */
-  void insertKeyAndValue(void * key, void * value);
+  IMPORT_C void insertKeyAndValue(void * key, void * value);
   /**
    * returns the value associated with the given key
    */
@@ -144,6 +162,11 @@ class   CLASSEXPORT skHashTable
    */
   skHashEntry * findEntry(const void * key) const;
   /**
+   * creates the underlying slots
+   * @exception Symbian - a leaving function
+   */
+  void createSlots();
+  /**
    * an array of HashEntry lists
    */
   skHashEntryList * m_Slots;
@@ -161,6 +184,9 @@ class   CLASSEXPORT skHashTable
  * this class provides an iterator for the hashtable
  */
 class  CLASSEXPORT skHashTableIterator
+#ifdef __SYMBIAN32__
+: public CBase
+#endif
 {
  public:
   /**
@@ -169,6 +195,7 @@ class  CLASSEXPORT skHashTableIterator
   virtual ~skHashTableIterator();
   /**
    * this function returns 1 if a value and key are available
+   * @exception Symbian - a leaving function
    */
   int operator()();
  protected:
@@ -233,6 +260,7 @@ template <class TKey,class TValue>  class  CLASSEXPORT skTHashTable: public skHa
   ~skTHashTable();
   /**
    * this method adds the given key and value to the table. If the key is already in the table, the existing version is first deleted
+   * @exception Symbian - a leaving function
    */
   void insertKeyAndValue(TKey * key, TValue * value);
   /**

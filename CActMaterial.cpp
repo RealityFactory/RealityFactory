@@ -190,7 +190,10 @@ void CActMaterial::Tick(float dwTicks)
 			{
 				pool->FillColor = pMaterial->FillColor;
 				pool->AmbientColor = pMaterial->AmbientColor;
-				CCD->ActorManager()->SetActorDynamicLighting(pMaterial->Actor, pMaterial->FillColor, pMaterial->AmbientColor);
+				// changed QD 07/21/04
+				pool->AmbientLightFromFloor = pMaterial->AmbientLightFromFloor;
+				CCD->ActorManager()->SetActorDynamicLighting(pMaterial->Actor, pMaterial->FillColor, pMaterial->AmbientColor, pMaterial->AmbientLightFromFloor);
+				// end change
 			}
 		}
 	}
@@ -231,6 +234,9 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 			WRITEDATA(&pool->ChangeLighting, sizeof(bool), 1, SaveFD);
 			WRITEDATA(&pool->AmbientColor, sizeof(GE_RGBA), 1, SaveFD);
 			WRITEDATA(&pool->FillColor, sizeof(GE_RGBA), 1, SaveFD);
+			// changed QD 07/21/04
+			WRITEDATA(&pool->AmbientLightFromFloor, sizeof(bool), 1, SaveFD);
+			// end change
 			pool = temp;
 		}
 	}
@@ -270,10 +276,15 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 			READDATA(&pool->ChangeLighting, sizeof(bool), 1, RestoreFD);
 			READDATA(&pool->AmbientColor, sizeof(GE_RGBA), 1, RestoreFD);
 			READDATA(&pool->FillColor, sizeof(GE_RGBA), 1, RestoreFD);
+			// changed QD 07/21/04
+			READDATA(&pool->AmbientLightFromFloor, sizeof(bool), 1, RestoreFD);
+			// end change
 			geActor *Actor = GetEntityActor(pool->Entity);
 			CCD->ActorManager()->ChangeMaterial(Actor, pool->Material);
 			if(pool->ChangeLighting)
-				CCD->ActorManager()->SetActorDynamicLighting(Actor, pool->FillColor, pool->AmbientColor);
+				// changed QD 07/21/04
+				CCD->ActorManager()->SetActorDynamicLighting(Actor, pool->FillColor, pool->AmbientColor, pool->AmbientLightFromFloor);
+				// end change	
 		}
 	}
 

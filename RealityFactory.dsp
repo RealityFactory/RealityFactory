@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /G5 /MD /W3 /GX /Op /Ob2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
+# ADD CPP /nologo /G5 /MD /W3 /GX /Zi /Op /Ob2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -54,8 +54,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 genesis.lib strmbase.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib vorbisfile.lib vorbis.lib ogg.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 genesis.lib strmbase.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\RealityFactory.exe"
+# SUBTRACT LINK32 /pdb:none /incremental:yes /debug /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
 
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /G5 /MDd /W3 /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
+# ADD CPP /nologo /G5 /MDd /W3 /GX /ZI /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -81,8 +81,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 genesisd.lib strmbasd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
-# SUBTRACT LINK32 /pdb:none /incremental:no /nodefaultlib
+# ADD LINK32 genesisd.lib strmbasd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\Debug\RealityFactory.exe" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none /incremental:no
 
 !ENDIF 
 
@@ -114,11 +114,31 @@ SOURCE=.\Simkin\skBoundsException.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skConstants.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skConstants.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skException.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skExecutable.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\Simkin\skExecutable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutableContext.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skExecutableContext.h
 # End Source File
 # Begin Source File
 
@@ -150,6 +170,14 @@ SOURCE=.\Simkin\skiExecutable.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skInputSource.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skInputSource.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skInterpreter.cpp
 # End Source File
 # Begin Source File
@@ -158,11 +186,19 @@ SOURCE=.\Simkin\skInterpreter.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skInterpreterByte.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skInterpreterNode.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skInterpreterp.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Simkin\skLang_tab.cpp
+SOURCE=.\Simkin\skKeywords.inl
 # End Source File
 # Begin Source File
 
@@ -178,11 +214,27 @@ SOURCE=.\Simkin\skNull.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skOutputDestination.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skOutputDestination.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skParseException.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skParseNode.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skParseNode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skParseNode.inl
 # End Source File
 # Begin Source File
 
@@ -226,6 +278,30 @@ SOURCE=.\Simkin\skScriptedExecutable.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Simkin\skScriptError.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skSHashTable.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skSHashTable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skSHashTable.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStackFrame.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStackFrame.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Simkin\skStatementStepper.h
 # End Source File
 # Begin Source File
@@ -239,6 +315,14 @@ SOURCE=.\Simkin\skString.h
 # Begin Source File
 
 SOURCE=.\Simkin\skString.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStringBuffer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skStringBuffer.h
 # End Source File
 # Begin Source File
 
@@ -545,40 +629,20 @@ SOURCE=.\Qx\QxUser.cpp
 SOURCE=.\Qx\QxUser.h
 # End Source File
 # End Group
-# Begin Group "ActiveCurve"
+# Begin Group "HashTable"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\CurvedSurface.cpp
+SOURCE=.\hashtable\hash_fun.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\CurvedSurface.h
+SOURCE=.\hashtable\hash_table.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Spline.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\Spline.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SplinePatch.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\SplinePatch.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\XForm.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\XForm.h
+SOURCE=.\hashtable\Stl.h
 # End Source File
 # End Group
 # Begin Source File
@@ -600,6 +664,10 @@ SOURCE=.\CActorManager.cpp
 # Begin Source File
 
 SOURCE=.\CAnimGif.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CAreaChecker.cpp
 # End Source File
 # Begin Source File
 
@@ -707,7 +775,15 @@ SOURCE=.\CFlipBook.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CFlipTree.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CFloating.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFoliage.cpp
 # End Source File
 # Begin Source File
 
@@ -823,6 +899,10 @@ SOURCE=.\CPlayer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPolyShadow.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CProcedural.cpp
 # End Source File
 # Begin Source File
@@ -852,6 +932,10 @@ SOURCE=.\CSpout.cpp
 # Begin Source File
 
 SOURCE=.\CStaticEntity.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CStaticMesh.cpp
 # End Source File
 # Begin Source File
 
@@ -943,6 +1027,10 @@ SOURCE=.\ProcWater.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\PWXImageManager.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\RabidFrameworkMain.cpp
 # End Source File
 # Begin Source File
@@ -988,6 +1076,10 @@ SOURCE=.\CActorManager.h
 # Begin Source File
 
 SOURCE=.\CAnimGif.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CAreaChecker.h
 # End Source File
 # Begin Source File
 
@@ -1095,7 +1187,15 @@ SOURCE=.\CFlipBook.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CFlipTree.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CFloating.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CFoliage.h
 # End Source File
 # Begin Source File
 
@@ -1199,6 +1299,10 @@ SOURCE=.\Cplayer.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPolyShadow.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CProcedural.h
 # End Source File
 # Begin Source File
@@ -1228,6 +1332,10 @@ SOURCE=.\CSpout.h
 # Begin Source File
 
 SOURCE=.\CStaticEntity.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CStaticMesh.h
 # End Source File
 # Begin Source File
 
@@ -1287,6 +1395,10 @@ SOURCE=.\ProcUtil.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PWXImageManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\RabidFramework.h
 # End Source File
 # Begin Source File
@@ -1320,6 +1432,10 @@ SOURCE=.\Utilities.h
 # Begin Source File
 
 SOURCE=.\mainfram.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\mjbeesticklesRF.ico
 # End Source File
 # Begin Source File
 

@@ -294,7 +294,7 @@ void Electric_BoltEffectAnimate(
 	}
 }
 
-#define	LIGHTNINGALPHA	160.0f
+#define	LIGHTNINGALPHA	255.0f //cell division
 
 void Electric_BoltEffectRender(
 	Electric_BoltEffect *	be,
@@ -368,11 +368,13 @@ void Electric_BoltEffectRender(
 		verts[3].b = be->beCurrentColors[2];
 		verts[3].a = LIGHTNINGALPHA;
 
-	long nLeafID;
-	geWorld_GetLeaf(CCD->World(), &temp, &nLeafID);
+	//cell division
+	//long nLeafID;
+	//geWorld_GetLeaf(CCD->World(), &temp, &nLeafID);
 	// If the BSP leaf the entity is in might be visible,
 	// ..go ahead and add it.
-	if(geWorld_MightSeeLeaf(CCD->World(), nLeafID) == GE_TRUE)
+	//if(geWorld_MightSeeLeaf(CCD->World(), nLeafID) == GE_TRUE)
+	// cell division
 		geWorld_AddPolyOnce(CCD->World(),
 							verts,
 							4,
@@ -398,8 +400,8 @@ CElectric::CElectric()
 	if(pSet == NULL)
 		return;
 
-	SPool_Sound("loopbzzt.wav");
-	SPool_Sound("onebzzt.wav");
+//	SPool_Sound("loopbzzt.wav"); //cell division
+//	SPool_Sound("onebzzt.wav"); //cell division
 
 //	Ok, we have electric bolts somewhere.  Dig through 'em all.
 
@@ -494,6 +496,8 @@ CElectric::CElectric()
 int CElectric::Create(geVec3d Origin, ElectricBolt *pBolt)
 {
 	int effect = -1;
+	//cell division - removes audio from bolts
+	/*
 	Snd Sound;
 	memset( &Sound, 0, sizeof( Sound ) );
     geVec3d_Copy( &(Origin), &( Sound.Pos ) );
@@ -516,6 +520,8 @@ int CElectric::Create(geVec3d Origin, ElectricBolt *pBolt)
 	}
 	if(Sound.SoundDef!=NULL)
         	effect = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+	*/ 
+	// end cell division
 	return effect;
 }
 

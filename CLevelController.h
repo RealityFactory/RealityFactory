@@ -23,7 +23,7 @@ public:
 	~ControllerObject();
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
    bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
-   bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue);
+   bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext& ctxt);
 
 	char	Order[64];
    char  ThinkOrder[64];

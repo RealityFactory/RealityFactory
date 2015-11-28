@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,12 +16,13 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skBoundsException.h,v 1.8 2001/11/22 11:13:21 sdw Exp $
+  $Id: skBoundsException.h,v 1.16 2003/04/14 15:24:57 simkin_cvs Exp $
 */
 #ifndef SKBOUNDSEXCEPTION_H
 #define SKBOUNDSEXCEPTION_H
 
 #include "skString.h"
+#include "skConstants.h"
 
 const int skBoundsException_Code=1;
 
@@ -38,14 +39,17 @@ class CLASSEXPORT skBoundsException {
   }
   /**
    * produces a string describing the exception
+   * @exception Symbian - a leaving function
    */
   skString toString() const{
-	  return skString::literal(m_File)+skSTR(":")+skString::from(m_LineNum)+m_Msg;
+     skString file;
+     file=m_File;
+	  return skString::addStrings(file.ptr(),s_colon,skString::from(m_LineNum).ptr(),m_Msg.ptr());
   }
  private:
-  skString m_Msg;
-  const Char * m_File;
-  int m_LineNum;
+  skString      m_Msg;
+  const Char *  m_File;
+  int           m_LineNum;
 
 };
 #endif

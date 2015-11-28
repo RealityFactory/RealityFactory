@@ -17,6 +17,9 @@ bool GetTriggerState(char *TriggerName);
 bool GetCallBackState(char *CallBackName);
 geBoolean EffectC_IsStringNull(char *String );
 geBoolean EffectC_IsPointVisible(geWorld *World, geCamera *Camera, geVec3d *Target, int32 Leaf,	uint32 ClipStyle );
+// changed QuestOfDreams 01/2004
+geBoolean EffectC_IsBoxVisible(geWorld *World, geCamera *Camera, geExtBox* TestBox);
+// end change
 float EffectC_Frand(float Low, float High );
 void EffectC_XFormFromVector(geVec3d *Source, geVec3d *Target, geXForm3d *Out );
 geBitmap *CreateFromFileAndAlphaNames(char * BmName,char *AlphaName);
@@ -51,8 +54,14 @@ geVec3d Extract(char *Vector);
 #define RESET_BITARR(bitarr, bitnum) (bitarr[(bitnum)>>3] &= ~(1<<((bitnum)&7)))
 #define TEST_BITARR(bitarr, bitnum) (bitarr[(bitnum)>>3] & (1<<((bitnum)&7)))
 
-#define M_PI (3.14159f)
+// begin change - gekido
+// modified 02.16.2004 - gekido
+// commented out during ODE integration, it uses a more 'precise' definition of M_PI, so we'll use that instead 
+//#define M_PI (3.14159f)
+// end change - gekido
+
 #define PI_2 (M_PI*2.0f)
+
 #define M_PI2 (PI_2)
 
 void Ang2Vec(float ang, geVec3d *vec);

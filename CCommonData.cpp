@@ -9,6 +9,10 @@ CCommonData.cpp:		Global Data Pool class
 	performed via this class, and all components MUST be registered
 	via this class as well.  This provides a central point of access and
 	eases debugging later in the RGF development cycle.
+
+Edit History:
+    08/13/2004 Wendell Buckner
+     I really need the mouse look working in debug mode... 
 */
 
 #include "RabidFramework.h"
@@ -19,7 +23,7 @@ extern void CloseFile();
 // end change RF063
 
 // changed RF064
-#include "Simkin\\skInterpreter.h"
+#include "Simkin\\skInterpreter.h" // change simkin
 // end change RF064
 
 // start multiplayer
@@ -30,6 +34,8 @@ extern void CloseFile();
 //
 //	Initialize all common data pointers, store a pointer to the
 //	..Genesis engine object.
+
+skInterpreter interpreter;
 
 CCommonData::CCommonData()
 {
@@ -47,7 +53,10 @@ CCommonData::CCommonData()
 	theMIDIPlayer = NULL;				// MIDI Audio player class
 	the3DAudio = NULL;					// 3D Audio Source class
 	theParticles = NULL;				// Particle systems handler class
-	theProps = NULL;						// Static entity handler class
+	theProps = NULL;					// Static entity handler class
+	// changed QD 01/2004
+	theMeshes = NULL;
+	// end change
 	theSTToggles = NULL;				// Soundtrack toggle handler class
 	theStreams = NULL;					// Streaming audio handler
 	theVidText = NULL;					// Video texture handler
@@ -79,13 +88,18 @@ CCommonData::CCommonData()
 	theActorManager = NULL;			// Actor Manager subsystem
 	theModelManager = NULL;			// Model Manager subsystem
 	theAudioManager = NULL;			// Audio Manager subsystem
-	theCameraManager = NULL;		// Camera Manaer subsystem
+	theCameraManager = NULL;		// Camera Manager subsystem
 	theTriggers = NULL;					// Ralph Deane's Generic Triggers
 	theLogic = NULL;						// Ralph Deane's Trigger Logic
 	theMessage = NULL;
 	theWeapon = NULL;
 	theFirePoint = NULL;
 	theFlipBook = NULL;
+	theFoliage = NULL; // Pickles Jul 04
+	theFlipTree = NULL; // PWX
+	thePWXImage = NULL; //PWX
+	thePolyShadow = NULL; //PWX
+	theAreaCheck = NULL; //PWX
 	theDecal = NULL;
 	theWallDecal = NULL;
    //Start Aug2003DCS
@@ -114,11 +128,14 @@ CCommonData::CCommonData()
 
 // changed RF064
 	theOverlay = NULL;
-	skInterpreter::setInterpreter(new skInterpreter);
+
+	//	skInterpreter::setInterpreter(new skInterpreter);//change simkin
 	srand((unsigned)time(NULL));
 // end change RF064
 
 	FreeImage_Initialise();
+
+	FillHashCommands_LowLevel();//change scripting
 
 	//	Initialize game state data
 	
@@ -182,6 +199,13 @@ CCommonData::CCommonData()
 		network = true;
 	multiplayer = false;
 // end multiplayer
+
+// begin change gekido 02.17.2004
+// begin console vars
+	ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS] = 0;
+	nCurrentRow = 0;	// what row of the console we're on
+// end console vars
+// end change gekido 02.17.2004
 	m_Language = 0;
 	Logging = false;
 
@@ -221,8 +245,12 @@ CCommonData::~CCommonData()
 // end change RF063
 
 // changed RF064
-	delete skInterpreter::getInterpreter();
-	skInterpreter::setInterpreter(0);
+
+	//start change simkin
+	//	delete skInterpreter::getInterpreter();
+//	skInterpreter::setInterpreter(0);
+	//end change simkin
+
 // end change RF064
 
 	FreeImage_DeInitialise();
@@ -249,8 +277,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	bool bFullScreen = false;				// Default to windowed
 	bool bSoftware = false;					// Default to hardware acceleration
 	char chTheDriver = '(';					// Default to Direct3D
-	int nHeight = 480;							// Default to 640 high
-	int nWidth = 640;								// Default to 480 wide
+	int nHeight = 800;							// Default to 800 high - begin change gekido - upped the default to 800x600
+	int nWidth = 600;								// Default to 600 wide - end change gekido
 	FILE *fd;												// Used for prefs file
 	char szTitle[80];								// Game title
 	geFloat fGamma = 1.5f;
@@ -262,6 +290,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	
 	CmdLine = CommandLine;
 
+	// begin change gekido
+	CCD->ConsoleInit(30); // setup our console so we can use it for debugging output
+	// end change gekido
+
+	CCD->InitJoysticks(); // pickles Jul 04
+
 	//	Ok, let's see if we have an initialization file, and if so,
 	//	..read it in and parse it.
 
@@ -271,6 +305,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		char szInputLine[132];
 		char *szAtom, *szArg;
 		int nTemp;
+
 		while(fgets(szInputLine, 132, fd) != NULL)
 		{
 			if(szInputLine[0] == ';') 
@@ -500,8 +535,9 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				{
 					if(!stricmp(szArg,"windowed"))
 						chTheDriver = 'S';				// Not used, only fullscreen counts
-					else if(!stricmp(szArg,"glide"))
-						chTheDriver = 'G';				// Use GLIDE in fullscreen
+				// begin change gekido - removed glide support, we don't provide the driver anymore, no point in supporting the renderer as an option
+				//	else if(!stricmp(szArg,"glide"))
+				//		chTheDriver = 'G';				// Use GLIDE in fullscreen
 					else if(!stricmp(szArg,"d3d"))
 						chTheDriver = '(';	
 					else if(!stricmp(szArg,"d3d16"))
@@ -527,7 +563,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					//End Dee
 					//////////////////////////////
 					else
-						OutputDebugString("Bad driver selection in RealityFactory.ini\n");
+						ReportError("Bad driver selection in RealityFactory.ini\n", false);
 				}
 			}
 			else if(!stricmp(szAtom,"startlevel") && !CommandLine)
@@ -548,7 +584,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				}
 			} 
 			else
-				OutputDebugString("Unknown command in RealityFactory.ini\n");
+				ReportError("Unknown command in RealityFactory.ini\n", false);
 			}
 			fclose(fd);
 		}
@@ -595,21 +631,33 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				VFS = PassWord(m_VirtualFile, false);
 		}
 
-		//	First, initialize the Genesis3D game engine
-		
 		theGameEngine = new CGenesisEngine(bFullScreen, nWidth, nHeight, 
 			szTitle, hInstance, chTheDriver, bSoftware, UseDialog, szStartLevel);
 		if(theGameEngine == NULL)
 		{
-			OutputDebugString("Can't create game engine!\n");
+			theGameEngine->ReportError("Can't create Genesis3d Graphics engine!\n", true);
 			return -1;
 		}
 		
 		if(m_DebugLevel != kNoDebugOutput)
 			theGameEngine->SetDebugging(true);			// Activate engine debugging
 		
+		// 08.05.2004 - begin change gekido
+		// need to update with each version
+		// FIXME - have this autogenerate the version from the visual studio project file? 
+		ReportError("\nInitializing Game Shell...", false);
+		ReportError("--------------------------------------", false); 
+		ReportError("--- Reality Factory 080 test build ---", false);
+		ReportError("--- For more Information, visit:   ---", false);
+		ReportError("---     www.realityfactory.ca      ---", false);
+		ReportError("--------------------------------------\n\n", false);
+		ReportError("\nParsed RealityFactory.ini file\n", false);
+		//	First, initialize the Genesis3D game engine
+		ReportError("\nGenesis 3d Initialized", false);
+		// 08.05.2004 - end change gekido
+
 		//	Fire up a camera for us to see through
-		
+		ReportError("\nInitializing Camera Manager...", false);
 		theCameraManager = new CCameraManager();
 		if(theCameraManager == NULL)
 		{
@@ -621,16 +669,16 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		geEngine_SetGamma(theGameEngine->Engine(), 1.0f);
 
 		//	We have a 3D engine, now initialize the user input subsystem
-		
+		ReportError("Initializing User Input Subsystem...", false);
 		theUserInput = new CInput();
 		if(theUserInput == NULL)
 		{
-			theGameEngine->ReportError("Can't create input subsystem", false);
+			ReportError("Can't create input subsystem", false);
 			return -2;
 		}
 	
 		//	The Audio Manager needs to be prepared...
-	
+		ReportError("Initializing Audio Manager Subsystem...", false);
 		theAudioManager = new CAudioManager();
 		if(theAudioManager == NULL)
 		{
@@ -641,7 +689,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		//	Get the CD Audio player working.  Note that it's not a fatal error to
 		//	..not have a CD Player device, as this system may be using the General
 		//	..MIDI soundtrack instead.
-
+		ReportError("Initializing CD Audio Manager Subsystem...", false);
 		theCDPlayer = new CCDAudio();
 		if(theCDPlayer == NULL)
 			theGameEngine->ReportError("CD Player failed to instantiate", false);
@@ -649,11 +697,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		//	Fire up the MIDI playback system.  Again, as with the CD Player, failure
 		//	..to instantiate is not grounds for aborting game play, although I'd
 		//	..personally consider the game unplayable without MY soundtrack (heh).
-		
+		ReportError("Initializing Midi Audio Manager Subsystem...", false);
 		theMIDIPlayer = new CMIDIAudio();
 		if(theMIDIPlayer == NULL)
 			theGameEngine->ReportError("MIDI Player failed to instantiate", false);
 
+		ReportError("Initializing RF Menu Manager Subsystem...", false);
 		theMenu = new CRFMenu();
 		if(theMenu == NULL)
 		{
@@ -661,6 +710,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			return -2;
 		}
 		
+		ReportError("Initializing Collision Manager Subsystem...", false);
 		theCollider = new Collider();
 		if(theCollider == NULL)
 		{
@@ -668,6 +718,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			return -100;
 		}
 // start multiplayer		
+		ReportError("Initializing Network Manager Subsystem...", false);
 		theNetPlayerMgr = new NetPlayerMgr();
 		if(theNetPlayerMgr == NULL)
 		{
@@ -678,7 +729,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		//	Finally, initialize the AVIFile library.  This is done independent of
 		//	..any AVI-specific classes so that we can guarantee only ONE instance
 		//	..of the library is loaded.
-		
+		ReportError("Initializing AVIFile Video Subsystem...", false);
 		AVIFileInit();
 
 		//	Common subsystems initialized, back to caller!
@@ -712,58 +763,133 @@ bool CCommonData::GetMultiPlayer()
 }
 // end multiplayer
 
+// begin change gekido
+// new console commands
+void CCommonData::ConsoleInit (int nMaxRows)
+{
+	// initialize console
+}
+
+bool CCommonData::ConsoleRender()
+{
+	// renders the current buffer to screen
+	return false;
+}
+bool CCommonData::ConsolePrint(char *szMsg, bool *bBox)
+{
+	// print to console
+	return false;
+}
+
+bool CCommonData::ShowConsole (bool bConsoleFlag, int nTransition)
+{
+	// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out transition when showing the console
+	return false;
+}
+
+// still not sure on the parameters for this, may change
+bool CCommonData::ConsoleExec(char *szMsg, bool *bBox)
+{
+	// execute console command
+	return false;
+}
+
+//change simkin start
+skExecutableContext CCommonData::GetskContext()
+{
+	skExecutableContext ctxt(&interpreter);
+	return ctxt;
+}
+
+void CCommonData::AddScriptedObject(char *objectName, skRValue Object)
+{
+	interpreter.addGlobalVariable(objectName,Object);
+}
+
+void CCommonData::RemoveScriptedObject(char *objectName)
+{
+	interpreter.removeGlobalVariable(objectName);
+}
+//change simkin end
+
+
+// sample console command, 'clear'
+bool CCommonData::ConsoleClear()
+{
+	// clears console
+	return false;
+}
+// end change gekido
+
+
 //	ShutdownCommon
 //
 //	Shut down all the common classes, like the game engine and such,
 //	..in preparation for exiting the game.
 
+// 03.04.2004 - begin change gekido
+//	- added extensive logging to the startup and shutdown functions
+//    to help debugging
+
 void CCommonData::ShutdownCommon()
 {
 	//	Shut down the AVI system
-	
+	ReportError("Shutting Down AVIFile Video Subsystem...", false);
 	AVIFileExit();
 	
 	//	Clean up all the various subsystems before exiting.  Note that you
 	//	..must delete all the components BEFORE you delete the engine, as
 	//	..the engine is used to free sounds, etc. in many of the components.
 // start multiplayer
+	ReportError("Shutting Down Network Manager Subsystem...", false);
 	if(theNetPlayerMgr != NULL)
 		delete theNetPlayerMgr;
 	theNetPlayerMgr = NULL;
 // end multiplayer
+	ReportError("Shutting Down Collision Manager Subsystem...", false);
 	if(theCollider != NULL)
 		delete theCollider;
 	theCollider = NULL;
 	
+	ReportError("Shutting Down RF Menu Manager Subsystem...", false);
 	if(theMenu != NULL)
 		delete theMenu;
 	theMenu = NULL;
 
+	ReportError("Shutting Down CD Audio Manager Subsystem...", false);
 	if(theCDPlayer != NULL)
 		delete theCDPlayer;
 	theCDPlayer = NULL;
 	
+	ReportError("Shutting Down Midi Audio Manager Subsystem...", false);
 	if(theMIDIPlayer != NULL)
 		delete theMIDIPlayer;
 	theMIDIPlayer = NULL;
 
+	ReportError("Shutting Down Audio Manager Subsystem...", false);
 	if(theAudioManager != NULL)
 		delete theAudioManager;
 	theAudioManager = NULL;
 
+	ReportError("Shutting Down User Input Manager Subsystem...", false);
 	if(theUserInput != NULL)
 		delete theUserInput;
 	theUserInput = NULL;
 	
+	ReportError("Shutting Down Camera Manager Subsystem...", false);
 	if(theCameraManager != NULL)
 		delete theCameraManager;
 	theCameraManager = NULL;
 	
+	ReportError("Shutting Down Graphics Subsystem...", false);
 	if(theGameEngine != NULL)
 		delete theGameEngine;
 	theGameEngine = NULL;
 	
+	ReportError("Restoring Mouse Cursor...", false);
 	ShowCursor(TRUE);
+
+	CloseJoysticks(); // pwx
 	
 	return;
 }
@@ -778,6 +904,11 @@ int CCommonData::InitializeLevel(char *szLevelName)
 {
 	kAudibleRadius = 360.0f;
 
+	char szTemp[256];
+	sprintf(szTemp, "Initializing Level: %s", szLevelName);
+	ReportError(szTemp, false);
+
+	ReportError("\nConfiguring Camera Defaults...", false);
 	theCameraManager->Defaults();
 	
 	if(theGameEngine->LoadLevel(szLevelName) == FALSE)
@@ -791,7 +922,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	//	Ok, we have to initialize the entity registry, so that all the
 	//	..other components can register the entities they are responsible
 	//	..for
-	
+	ReportError("Initializing Entity Registry...", false);
 	theRegistry = new CEntityRegistry();
 	if(theRegistry == NULL)
 	{
@@ -800,7 +931,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 
 // changed RF064
-	
+	ReportError("Initializing Terrain Manager...", false);
 	theTerrainMgr = new qxTerrainMgr(); 
 	if(theTerrainMgr == NULL)
 	{
@@ -808,7 +939,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -26;
 	}
 // end change RF064
-
+	ReportError("Initializing Effects Manager...", false);
 	theEffect = new EffManager(); 
 	if(theEffect == NULL)
 	{
@@ -817,7 +948,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 		
 	//	The Actor Manager is up next
-	
+	ReportError("Initializing Actor Manager...", false);
 	theActorManager = new CActorManager();
 	if(theActorManager == NULL)
 	{
@@ -829,6 +960,8 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		LODdistance[k] = 0;
 
 	LODAnimation = false;
+
+	ReportError("Parsing Environment Setup Entity...", false);
 
 	geEntity_EntitySet* lEntitySet;
 	geEntity* lEntity;
@@ -851,7 +984,8 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 
 	//	Then the Model Manager comes into exitence
-	
+	ReportError("Initializing Model Manager...", false);
+
 	theModelManager = new CModelManager();
 	if(theModelManager == NULL)
 	{
@@ -860,7 +994,8 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Create the player avatar and load it.
-	
+	ReportError("Creating Player Avatar...", false);
+
 	thePlayer = new CPlayer();
 	if(thePlayer == NULL)
 	{
@@ -868,6 +1003,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -4;
 	}
 	
+	ReportError("Loading Player Avatar...", false);
 	if(thePlayer->LoadAvatar(m_PlayerAvatar) != RGF_SUCCESS)
 	{
 		theGameEngine->ReportError("Can't load player avatar actor!", false);
@@ -876,7 +1012,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	
 // changed RF064
 	//	Set up the heads-up display (HUD) for the game
-		
+	ReportError("Initializing HUD...", false);
 	theHUD = new CHeadsUpDisplay();
 	if(theHUD == NULL)
 	{
@@ -885,6 +1021,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 // end change RF064
 
+	ReportError("Initializing Damage Subsystem...", false);
 	theDamage = new CDamage();
 	if(theDamage == NULL)
 	{
@@ -893,7 +1030,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 		
 	//	Now various other level-specific items
-	
+	ReportError("Initializing FixedCamera Manager Subsystem...", false);
 	theFixedCamera = new CFixedCamera();
 	if(theFixedCamera == NULL)
 	{
@@ -901,11 +1038,11 @@ int CCommonData::InitializeLevel(char *szLevelName)
 			false);
 		return -11;
 	}
-	
+	ReportError("Loading Player Configuration...", false);
 	thePlayer->LoadConfiguration();
 	
 	//	Set up automatic door handling
-	
+	ReportError("Initializing Automatic Door Manager Subsystem...", false);
 	theAutoDoors = new CAutoDoors();
 	if(theAutoDoors == NULL)
 	{
@@ -915,7 +1052,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Start up the moving platform class
-	
+	ReportError("Initializing Moving Platform Manager Subsystem...", false);
 	thePlatforms = new CMovingPlatforms();
 	if(thePlatforms == NULL)
 	{
@@ -925,7 +1062,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Activate teleports
-	
+	ReportError("Initializing Teleport Manager Subsystem...", false);
 	theTeleports = new CTeleporter();
 	if(theTeleports == NULL)
 	{
@@ -935,7 +1072,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Load up the morphing field effects
-	
+	ReportError("Initializing MorphingField Effects Manager Subsystem...", false);
 	theFields = new CMorphingFields();
 	if(theFields == NULL)
 	{
@@ -945,7 +1082,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Load and start up all 3D audio sources
-	
+	ReportError("Initializing 3d AudioSource Manager Subsystem...", false);
 	the3DAudio = new C3DAudioSource();
 	if(the3DAudio == NULL)
 	{
@@ -955,7 +1092,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Fire up particle system handling
-	
+	ReportError("Initializing Particle Effects Manager Subsystem...", false);
 	theParticles = new CParticleSystem();
 	if(theParticles == NULL)
 	{
@@ -965,16 +1102,29 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Load up all the static entities (props) for the level.
-	
+	ReportError("Initializing Static Entity Props Subsystem...", false);
 	theProps = new CStaticEntity();
 	if(theProps == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create static entity handler", false);
 		return -14;
 	}
+
+	
+	// changed QD 01/2004
+	//	Load up all the static meshes for the level.
+	// begin change gekido
+	ReportError("Initializing Static Mesh Subsystem...", false);
+	// end change gekido
+	theMeshes = new CStaticMesh();
+	if(theMeshes == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create static mesh handler", false);
+		return -14;
+	}	
 	
 	//	Set up soundtrack toggles for the level
-	
+	ReportError("Initializing Soundtrack Toggle Subsystem...", false);
 	theSTToggles = new CSoundtrackToggle();
 	if(theSTToggles == NULL)
 	{
@@ -983,7 +1133,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Fire up the streaming audio handler
-	
+	ReportError("Initializing Streaming Audio Manager Subsystem...", false);
 	theStreams = new CAudioStream();
 	if(theStreams == NULL)
 	{
@@ -992,35 +1142,35 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	and the video texture handler component
-	
+	ReportError("Initializing Video Texture Manager Subsystem...", false);
 	theVidText = new CVideoTexture();
 	if(theVidText == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create video texture handler", false);
 		return -17;
 	}
-
+	ReportError("Initializing Corona Manager Subsystem...", false);
 	theCorona = new CCorona();
 	if(theCorona == NULL) 
     {
 		theGameEngine->ReportError("Couldn't create Corona handler", false);
 		return -20;
     }
-	
+	ReportError("Initializing Dynamic Light Manager Subsystem...", false);
 	theDynalite = new CDynalite();
 	if(theDynalite == NULL) 
     {
 		theGameEngine->ReportError("Couldn't create Dynalite handler", false);
 		return -21;
     }
-	
+	ReportError("Initializing ElectricBolt Manager Subsystem...", false);
 	theElectric = new CElectric();
 	if(theElectric == NULL) 
     {
 		theGameEngine->ReportError("Couldn't create Electric handler", false);
 		return -22;
     }
-	
+	ReportError("Initializing Procedural Texture Manager Subsystem...", false);
 	theProcTexture = new CProcedural();
 	if(theProcTexture == NULL)
 	{
@@ -1029,7 +1179,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Create the in-memory path database for this level.
-	
+	ReportError("Initializing Path Database...", false);
 	thePathDatabase = new CPathDatabase();
 	if(thePathDatabase == NULL)
 	{
@@ -1038,7 +1188,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Set up path followers to bind entities to motion paths
-	
+	ReportError("Initializing Path Followers...", false);
 	theFollower = new CPathFollower();
 	if(theFollower == NULL)
 	{
@@ -1048,14 +1198,14 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	
 	//	Initialize Ralph Deane's Effects Manager and the various effects
 	//	..that it handles.  Thanks for the great conribution, Ralph!
-	
+	ReportError("Initializing Rain Effects Manager...", false);
 	theRain = new CRain();
 	if(theRain == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create Rain handler", false);
 		return -27;
 	}
-	
+	ReportError("Initializing Spout Effects Manager...", false);
 	theSpout = new CSpout();
 	if(theSpout == NULL)
 	{
@@ -1063,7 +1213,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -28;
 	}
 // changed RF064
-		
+	ReportError("Initializing ActorSpout Effects Manager...", false);
 	theActorSpout = new CActorSpout();
 	if(theActorSpout == NULL)
 	{
@@ -1071,20 +1221,21 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -28;
 	}
 // end change RF064
+	ReportError("Initializing Floating Particle Effects Manager...", false);
 	theFloat = new CFloat();
 	if(theFloat == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create Float handler", false);
 		return -29;
 	}
-	
+	ReportError("Initializing eChaos Effects Manager...", false);
 	theChaos = new Chaos();
 	if(theChaos == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create Chaos handler", false);
 		return -30;
 	}
-	
+	ReportError("Initializing Flame Effects Manager...", false);
 	theFlame = new CFlame();
 	if(theFlame == NULL)
     {
@@ -1093,6 +1244,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
     }
 
 // changed RF064
+	ReportError("Initializing ScriptPoint Manager Subsystem...", false);
 	theScriptPoints = new CScriptPoint();
 	if(theScriptPoints == NULL)
 	{
@@ -1100,6 +1252,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -40;
 	}
 
+	ReportError("Initializing Pawn Manager Subsystem...", false);
 	thePawn = new CPawn();
 	if(thePawn == NULL)
 	{
@@ -1107,13 +1260,14 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -40;
 	}
 	
+	ReportError("Initializing ChangeAttribute Manager Subsystem...", false);
 	theChangeAttribute = new CChangeAttribute();
 	if(theChangeAttribute == NULL)
 	{
 		theGameEngine->ReportError("Couldn't create ChangeAttribute handler", false);
 		return -40;
 	}
-	
+	ReportError("Initializing Countdown Manager Subsystem...", false);
 	theCountDownTimer = new CCountDown();
 	if(theCountDownTimer == NULL)
 	{
@@ -1123,7 +1277,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 // end change RF064
 	
 	//	Set up triggers
-	
+	ReportError("Initializing Trigger Manager Subsystem...", false);
 	theTriggers = new CTriggers();
 	if(theTriggers == NULL)
 	{
@@ -1133,7 +1287,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
 	//	Set up logic gates
-	
+	ReportError("Initializing LogicHandler Subsystem...", false);
 	theLogic = new CLogic();
 	if(theLogic == NULL)
 	{
@@ -1142,6 +1296,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -42;
 	}
 	// Message
+	ReportError("Initializing Message Manager Subsystem...", false);
 	theMessage = new CMessage();
 	if(theMessage == NULL)
 	{
@@ -1149,7 +1304,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 			false);
 		return -7;
 	}
-	
+	ReportError("Initializing Effect Manager Subsystem...", false);
 	thePreEffect = new CPreEffect();
 	if(thePreEffect == NULL)
 	{
@@ -1158,6 +1313,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 
 	// Weapon
+	ReportError("Initializing Weapon Manager Subsystem...", false);
 	theWeapon = new CWeapon();
 	if(theWeapon == NULL)
 	{
@@ -1165,6 +1321,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 			false);
 		return -7;
 	}
+	ReportError("Initializing FirePoint Manager Subsystem...", false);
 	theFirePoint = new CFirePoint();
 	if(theFirePoint == NULL)
 	{
@@ -1172,7 +1329,8 @@ int CCommonData::InitializeLevel(char *szLevelName)
 			false);
 		return -7;
 	}
-	
+
+	ReportError("Initializing Flipbook Manager Subsystem...", false);
 	theFlipBook = new CFlipBook();
 	if(theFlipBook == NULL)
 	{
@@ -1180,8 +1338,63 @@ int CCommonData::InitializeLevel(char *szLevelName)
 			false);
 		return -7;
 	}
+
+	//pwx
+	ReportError("Initializing AreaCheck Manager Subsystem...", false);
+	theAreaCheck = new CAreaChecker();
+	if(theAreaCheck == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create AreaCheck handling class",
+			false);
+		return -7;
+	}
+	//pwx
+
+	//Start Pickles Jul 04
+	ReportError("Initializing Foliage Manager Subsystem...", false);
+	theFoliage = new CFoliage();
+	if(theFoliage == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Foliage handling class",
+			false);
+		return -7;
+	}
+
+	ReportError("Initializing Tree Manager Subsystem...", false);
+	theFlipTree = new CFlipTree();
+	if(theFlipTree == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Tree handling class",
+			false);
+		return -7;
+	}
+
+	//End Pickles Jul 04
 	
+	//Start PWX
+	ReportError("Initializing PWXImage Manager Subsystem...", false);
+	thePWXImage = new PWXImageManager();
+	if(thePWXImage == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create PWX image handling class",
+			false);
+		return -7;
+	}
+	//End PWX
+
+	//Start PWX
+	ReportError("Initializing Shadow Manager Subsystem...", false);
+	thePolyShadow = new CPolyShadow();
+	if(thePolyShadow == NULL)
+	{
+		theGameEngine->ReportError("Couldn't create Poly Shadow handling class",
+			false);
+		return -7;
+	}
+	//End PWX
+
 	// Decal
+	ReportError("Initializing Decal Manager Subsystem...", false);
 	theDecal = new CDecal();
 	if(theDecal == NULL)
 	{
@@ -1190,6 +1403,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7;
 	}
 	
+	ReportError("Initializing WallDecal Manager Subsystem...", false);
 	theWallDecal = new CWallDecal();
 	if(theWallDecal == NULL)
 	{
@@ -1199,6 +1413,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 	
    //Start Aug2003DCS
+	ReportError("Initializing LevelController Manager Subsystem...", false);
 	theLevelController = new CLevelController();
 	if(theLevelController == NULL)
 	{
@@ -1209,6 +1424,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	//End Aug2003DCS
 
 	// Attribute
+	ReportError("Initializing Attribute Manager Subsystem...", false);
 	theAttribute = new CAttribute();
 	if(theAttribute == NULL)
 	{
@@ -1217,6 +1433,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7;
 	}
 
+	ReportError("Initializing Explosion Manager Subsystem...", false);
 	theExplosion = new CExplosionInit();
 	if(theExplosion == NULL)
 	{
@@ -1224,6 +1441,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -100;
 	}
 
+	ReportError("Initializing Explosion Subsystem...", false);
 	theCExplosion = new CExplosion();
 	if(theCExplosion == NULL)
 	{
@@ -1231,6 +1449,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -100;
 	}
 
+	ReportError("Initializing ChangeLevel Manager Subsystem...", false);
 	theChangeLevel = new CChangeLevel();
 	if(theChangeLevel == NULL)
 	{
@@ -1239,6 +1458,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7;
 	}
 
+	ReportError("Initializing ScreenShake Subsystem...", false);
 	theShake = new CShake();
 	if(theShake == NULL)
 	{
@@ -1247,6 +1467,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 
 // changed RF063
+	ReportError("Initializing ViewSwitch Subsystem...", false);
 	theViewSwitch = new CViewSwitch();
 	if(theViewSwitch == NULL)
 	{
@@ -1254,6 +1475,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -40;
 	}
 
+	ReportError("Initializing Inventory Subsystem...", false);
 	theInventory = new CInventory();
 	if(theInventory == NULL)
 	{
@@ -1261,6 +1483,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -40;
 	}
 	
+	ReportError("Initializing Liquid Subsystem...", false);
 	theLiquid = new CLiquid();
 	if(theLiquid == NULL)
 	{
@@ -1270,6 +1493,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 // end change RF063	
 // changed RF064
 		
+	ReportError("Initializing Overlay Subsystem...", false);
 	theOverlay = new COverlay();
 	if(theOverlay == NULL)
 	{
@@ -1277,6 +1501,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -40;
 	}
 
+	ReportError("Initializing TextureMorph Subsystem...", false);
 	theMorph = new CMorph();
 	if(theMorph == NULL)
 	{
@@ -1284,6 +1509,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	ReportError("Initializing CutScene Subsystem...", false);
 	theCutScene = new CCutScene();
 	if(theCutScene == NULL)
 	{
@@ -1291,6 +1517,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	ReportError("Initializing ActorMaterial Subsystem...", false);
 	theActMaterial = new CActMaterial();
 	if(theActMaterial == NULL)
 	{
@@ -1298,6 +1525,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	ReportError("Initializing Armour Subsystem...", false);
 	theArmour = new CArmour();
 	if(theArmour == NULL)
 	{
@@ -1305,6 +1533,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	ReportError("Initializing LiftBelt Manager...", false);
 	theLiftBelt = new CLiftBelt();
 	if(theLiftBelt == NULL)
 	{
@@ -1312,6 +1541,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -7; //or something else
 	}
 
+	ReportError("Initializing CDSpotlight Manager...", false);
 	theCDSpot = new CDSpotLight();
 	if(theCDSpot == NULL)
 	{
@@ -1320,6 +1550,8 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	}
 
 	theMenu->LoadWBitmap();
+
+	ReportError("Preparing to Launch Game...", false);
 
 // end change RF064
 	//	All level classes up! Let's **PLAY**
@@ -1428,6 +1660,35 @@ void CCommonData::ShutdownLevel()
 		delete theFlipBook;
 	theFlipBook = NULL;
 	
+	//Start pickles Jul 04
+	if(theFoliage != NULL)
+		delete theFoliage;
+	theFoliage = NULL;
+
+	if(theFlipTree != NULL)
+		delete theFlipTree;
+	theFlipTree = NULL;
+	//end Pickles Jul 04
+
+
+	//Start PWX
+	if(thePWXImage != NULL)
+		delete thePWXImage;
+	thePWXImage = NULL;
+	//end PWX
+	
+	//Start PWX
+	if(thePolyShadow != NULL)
+		delete thePolyShadow;
+	thePolyShadow = NULL;
+	//end PWX
+
+	//Start PWX
+	if(theAreaCheck != NULL)
+		delete theAreaCheck;
+	theAreaCheck = NULL;
+	//end PWX
+
 	// Weapon	
 	if(theFirePoint != NULL)
 		delete theFirePoint;
@@ -1540,6 +1801,12 @@ void CCommonData::ShutdownLevel()
 		delete theProps;
 	theProps = NULL;
 	
+	// changed QD 01/2004
+	if(theMeshes != NULL)
+		delete theMeshes;
+	theMeshes = NULL;
+	// end change
+
 	if(theParticles != NULL)
 		delete theParticles;
 	theParticles = NULL;
@@ -1920,6 +2187,9 @@ bool CCommonData::HandleGameInput()
 					theAutoDoors->SaveTo(outFD, false);
 					thePlatforms->SaveTo(outFD, false);
 					theProps->SaveTo(outFD, false);
+					// changed QD 01/2004
+					theMeshes->SaveTo(outFD, false);
+					// end change
 					theTeleports->SaveTo(outFD, false);
 					theFields->SaveTo(outFD);
 					theMIDIPlayer->SaveTo(outFD);					
@@ -1995,6 +2265,9 @@ bool CCommonData::HandleGameInput()
 					theAutoDoors->RestoreFrom(inFD, false);
 					thePlatforms->RestoreFrom(inFD, false);
 					theProps->RestoreFrom(inFD, false);
+					// changed QD 01/2004
+					theMeshes->RestoreFrom(inFD, false);
+					// end change
 					theTeleports->RestoreFrom(inFD, false);
 					theFields->RestoreFrom(inFD);
 					theMIDIPlayer->RestoreFrom(inFD);
@@ -2068,13 +2341,19 @@ bool CCommonData::HandleGameInput()
 		bPlayerMoved = thePlayer->DoMovements();	//Manage player "wanted" movements
 		
 		thePlayer->CheckKeyLook(keyrotate); // update #2
+
+/* 08/13/2004 Wendell Buckner
+     I really need the mouse look working in debug mode... 
 //Start Aug2003DCS
 #ifdef _DEBUG
-//		thePlayer->CheckMouseLook();
+	   thePlayer->CheckMouseLook();
 #else
 	   thePlayer->CheckMouseLook();
 #endif
-//End Aug2003DCS
+//End Aug2003DCS */
+
+        thePlayer->CheckMouseLook();
+
 		thePlayer->ProcessMove(bPlayerMoved);
 		
 		return bKeepPlaying;
@@ -2209,6 +2488,9 @@ int CCommonData::DispatchTick()
 	theFields->Tick(dwTicksGoneBy);				// Animate morphing fields
 	theParticles->Tick(dwTicksGoneBy);		// Animate particle systems
 	theProps->Tick(dwTicksGoneBy);				// Animate static models
+	// changed QD 01/2004
+	theMeshes->Tick(dwTicksGoneBy);
+	// end change
 	theStreams->Tick(dwTicksGoneBy);			// Deal with streaming audio proxies
 	theSTToggles->Tick(dwTicksGoneBy);		// Soundtrack toggles dealt with
 	theVidText->Tick(dwTicksGoneBy);			// Video textures dealt with
@@ -2216,8 +2498,8 @@ int CCommonData::DispatchTick()
 	theDynalite->Tick(dwTicksGoneBy);			// Update dynamic lights
 	theElectric->Tick(dwTicksGoneBy);			// Update electrical effects
 	theProcTexture->Tick(dwTicksGoneBy);	// Update procedural textures
-	//theExplosion->Tick(dwTicksGoneBy);
-	//theEffect->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Effects Manager
+	theExplosion->Tick(dwTicksGoneBy);
+	theEffect->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Effects Manager
 	theRain->Tick(dwTicksGoneBy);					// Time to Ralph Deane's Rain Effect
 	theSpout->Tick(dwTicksGoneBy);				// Time to Ralph Deane's Spout Effect
 // changed RF064
@@ -2240,6 +2522,9 @@ int CCommonData::DispatchTick()
 	theWeapon->Tick(dwTicksGoneBy);
 	theFirePoint->Tick(dwTicksGoneBy);
 	theFlipBook->Tick(dwTicksGoneBy);
+	theFoliage->Tick(dwTicksGoneBy); // Pickles Jul 04
+	theFlipTree->Tick(dwTicksGoneBy); // Pickles Jul 04
+	theAreaCheck->Tick(dwTicksGoneBy); // Pickles pwx
 	theAttribute->Tick(dwTicksGoneBy);
 	theDamage->Tick(dwTicksGoneBy);
 	theCExplosion->Tick(dwTicksGoneBy);
@@ -2539,6 +2824,240 @@ void CCommonData::RenderComponents()
 	
 	return;
 }
+
+// start change scripting
+long CCommonData::GetHashCommand(std::string key)
+{
+	long *value = CommandHash.GetMember(key);
+	if(value)
+		return *value;
+	return 0;
+}
+
+bool CCommonData::AddHashCommand(std::string key,long value)
+{
+	bool add;
+	long *vlong = new long;
+	*vlong = value;
+	add = CommandHash.AddKey(key,vlong);
+	return add;
+}
+void CCommonData::FillHashCommands_LowLevel()
+{
+	AddHashCommand("HighLevel", 1);// HighLevel
+	AddHashCommand("Animate",  2);// Animate
+	AddHashCommand("Gravity",  3);// Gravity 
+	AddHashCommand("PlaySound",  4);// PlaySound
+	AddHashCommand("EnemyExist",  5);// EnemyExist
+	AddHashCommand("GetEventState",  6);// GetEventState
+	AddHashCommand("Integer",  7);// Integer
+	AddHashCommand("GetAttribute",  8);// GetAttribute
+	AddHashCommand("GetCurFlipBook",  9);// GetCurFlipBook
+	AddHashCommand("ModifyAttribute",  10);// ModifyAttribute
+	AddHashCommand("SetAttribute",  11);// SetAttribute
+	AddHashCommand("SetPlayerWeapon",  12);// SetPlayerWeapon
+	AddHashCommand("SetUseItem",  13);// SetUseItem
+	AddHashCommand("ClearUseItem",  14);// ClearUseItem
+	AddHashCommand("StringCopy",  15);// StringCopy
+	AddHashCommand("LeftCopy",  16);// LeftCopy
+	AddHashCommand("IsEntityVsible",  17);// IsEntityVisible
+	AddHashCommand("DamageEntity",  18);// DamageEntity
+	AddHashCommand("AnimateEntity",  19);// AnimateEntity
+	AddHashCommand("AnimateHold",  20);// AnimateHold
+	AddHashCommand("AnimateTarget",  21);// AnimateTarget
+	AddHashCommand("GetEntityX",  22);// GetEntityX
+	AddHashCommand("GetEntityY",  23);// GetEntityY
+	AddHashCommand("GetEntityZ",  24);// GetEntityZ
+	AddHashCommand("IsKeyDown",  25);// IsKeyDown
+	AddHashCommand("GetEntityYaw",  26);// GetEntityYaw
+	AddHashCommand("MatchEntityAngles",  27);// MatchEntityAngles
+	AddHashCommand("FacePoint",  28);// FacePoint
+	AddHashCommand("NewPoint",  29);// NewPoint
+	AddHashCommand("GetPointYaw",  30);// GetPointYaw
+	AddHashCommand("NextPoint",  31);// NextPoint
+	AddHashCommand("SetTarget",  32);// SetTarget
+	AddHashCommand("GetDistanceTo", 33);// GetDistanceTo
+	AddHashCommand("TeleportEntity",  34);// TeleportEntity
+	AddHashCommand("SaveAttributes",  35);// SaveAttributes
+	AddHashCommand("TraceToActor",  36);// TraceToActor
+	AddHashCommand("AnimateBlend",  37);// AnimateBlend
+	AddHashCommand("AnimationSpeed",  38); //AnimationSpeed
+	AddHashCommand("SetCollision",  39);// SetCollision
+	AddHashCommand("SetNoCollision",  40);// SetNoCollision
+	AddHashCommand("DamageArea",  41);// DamageArea
+	AddHashCommand("PlayerMatchAngles",  42);// PlayerMatchAngles
+	AddHashCommand("ConvertDegrees",  43);// ConvertDegrees
+	AddHashCommand("AttachCamera",  44);// AttachCamera
+	AddHashCommand("AttachCameraToBone",  45);// AttachCameraToBone
+	AddHashCommand("AttachCameraToEntity",  46);// AttachCameraToEntity
+	AddHashCommand("DetachCamera",  47);// DetachCamera
+	AddHashCommand("TiltCamera",  48);// TiltCamera
+	AddHashCommand("PositionToPlatform",  49);// PositionToPlatform
+	AddHashCommand("ActivateTrigger",  50);// ActivateTrigger
+	AddHashCommand("UpdateEnemyVis",  51);// UpdateEnemyVis
+	AddHashCommand("TargetPlayer",  52);// TargetPlayer
+	AddHashCommand("FireProjectileBlind",  53);// FireProjectileBlind
+	AddHashCommand("SetTargetPoint",  54);// SetTargetPoint
+	AddHashCommand("GetBoneX",  55);// GetBoneX
+	AddHashCommand("GetBoneY",  56);// GetBoneY
+	AddHashCommand("GetBoneZ",  57);// GetBoneZ
+	AddHashCommand("GetBoneYaw",  58);// GetBoneYaw
+	AddHashCommand("SetPosition",  59);// SetPosition
+	AddHashCommand("IsButtonDown",  60);// IsButtonDown
+	AddHashCommand("GetJoyAxisX",  61);// GetJoystickAxisX
+	AddHashCommand("GetJoyAxisY",  62);// GetJoystickAxisY
+	AddHashCommand("GetJoyAxisZ",  63);// GetJoystickAxisZ
+	AddHashCommand("GetNumJoysticks",  64);// GetNumJoysticks
+	AddHashCommand("SetBoundingBox",  65);// SetBoundingBox
+	AddHashCommand("GetBoneToBone",  66);// GetBoneToBone
+	AddHashCommand("SwitchView",  67);// SwitchView
+	AddHashCommand("ForceEntityUp",  68);// ForceEntityUp
+	AddHashCommand("ForceEntityDown",  69);// ForceEntityDown
+	AddHashCommand("ForceEntityRight",  70);// ForceEntityLeft
+	AddHashCommand("ForceEntityLeft",  71);// ForceEntityRight
+	AddHashCommand("ForceEntityForward", 72 );// ForceEntityBackward
+	AddHashCommand("ForceEntityBackward",  73);// ForceEntityForward
+	AddHashCommand("GetGroundTexture",  74);// GetGroundTexture
+	AddHashCommand("GetPlayerGroundTexture",  75);// GetPlayerGroundTexture
+	AddHashCommand("PositionToBone",  76);// PositionToBone
+	AddHashCommand("SetWeaponMatFromFlip",  77);// SetWeaponMatFromFlip
+	AddHashCommand("SetShadowFromFlip",  78);// SetShadowFromFlip
+	AddHashCommand("GetCollideDistance",  79);// GetCollideDistance
+	AddHashCommand("ResetAnimate",  80);// ResetAnimate
+	AddHashCommand("WhereIsPlayer",  81);// WhereIsPlayer
+	AddHashCommand("WhereIsEntity",  82);// WhereIsEntity
+	AddHashCommand("InsertEvent",  83);// InsertEvent
+	AddHashCommand("CheckForEvent",  84);// CheckForEvent
+	AddHashCommand("PlayEventSound",  85);// PlayEventSound
+	AddHashCommand("LoadAnimation",  86);// LoadAnimation
+	AddHashCommand("StartSoundTrack",  87);// StartSoundTrack
+	AddHashCommand("StopAllAudioStreams",  88);// StopAllAudioStreams
+	AddHashCommand("ChangeYaw",  89);// ChangeYaw
+	AddHashCommand("ChangePitch",  90);// ChangePitch
+	AddHashCommand("random",  91);// random
+	AddHashCommand("walkmove",  92);// walkmove
+	AddHashCommand("flymove",  93);// flymove
+	AddHashCommand("Damage",  94);// Damage
+	AddHashCommand("DamagePlayer",  95);// DamagePlayer
+	AddHashCommand("PositionToPlayer",  96);// PositionToPlayer
+	AddHashCommand("PlayerToPosition",  97);// PlayerToPosition
+	AddHashCommand("PositionToPawn",  98);// PositionToPawn
+	AddHashCommand("SetKeyPause",  99);// SetKeyPause
+	AddHashCommand("PlayerRender",  100);// PlayerRender
+	AddHashCommand("PawnRender",  101);// PawnRender
+	AddHashCommand("ChangeMaterial",  102);// ChangeMaterial *
+	AddHashCommand("SetHoldAtEnd",  103);// SetHoldAtEnd
+	AddHashCommand("ForceUp",  104);// ForceUp
+	AddHashCommand("ForceDown",  105);// ForceDown
+	AddHashCommand("ForceRight",  106);// ForceLeft
+	AddHashCommand("ForceLeft",  107);// ForceRight
+	AddHashCommand("ForceForward",  108);// ForceBackward
+	AddHashCommand("ForceBackward",  109);// ForceForward
+	AddHashCommand("UpdateTarget",  110);// UpdateTarget
+	AddHashCommand("FireProjectile",  111);// FireProjectile
+	AddHashCommand("AddExplosion",  112);// AddExplosion
+	AddHashCommand("GetLastBoneHit",  113);// GetLastBoneHit
+	AddHashCommand("debug",  114);//debug
+	AddHashCommand("SetEventState",  115);//SetEventState
+	AddHashCommand("GetStringLength",  116);//GetStringLength
+	AddHashCommand("DrawText",  117);//DrawText
+	AddHashCommand("DrawFlipBookImage",  118);//DrawFlipBookImage
+	AddHashCommand("DrawPolyShadow",  119);//DrawPolyShadow
+	AddHashCommand("MatchPlayerAngles",  120);//MatchPlayerAngles
+	AddHashCommand("DamageAtBone",  121);//DamageAtBone
+	AddHashCommand("SaveActor",  122);//SaveActor
+	AddHashCommand("LookAtPawn",  123);//LookAtPawn
+	AddHashCommand("AutoWalk",  124);//AutoWalk
+	AddHashCommand("FastDistance",  125);//FastDistance
+	AddHashCommand("StepHeight",  126);//StepHeight
+	AddHashCommand("DrawVPoly",  127);//DrawVPoly
+	AddHashCommand("DrawHPoly",  128);//DrawHPoly
+	AddHashCommand("GetPitchToPoint",  129);//GetPitchToPoint
+	AddHashCommand("GetYawToPoint",  130);//GetYawToPoint
+	AddHashCommand("FastPointCheck",  131);//FastPointCheck
+
+
+}
+//end change scripting
+
+
+// start pickles Jul 04
+void CCommonData::InitJoysticks()
+{
+
+	int i;
+    int numJoysticks = Joystick::deviceCount();
+    
+	// Initialize all of the joysticks on the system.
+	if(numJoysticks < 1)
+		return;
+
+    for (i = 0; i < numJoysticks; i++) {
+        joysticks[i] = new Joystick(i);
+        joysticks[i]->open();
+
+    }
+	
+	return;
+}
+
+int CCommonData::PollJoystickAxis(int jn, int a)
+{
+	int ax;
+    DIJOYSTATE2 js;
+    joysticks[jn]->poll(&js);
+
+	if(a == 0)
+	{
+		ax = js.lX; 
+		return ax;
+	}
+	if(a == 1)
+	{
+		ax = js.lY; 
+		return ax;
+	}
+	if(a == 2)
+	{
+		ax = js.lZ; 
+		return ax;
+	}
+	return -1;//return error
+}
+
+int CCommonData::GetNumJoys()
+{
+	int jc;
+	jc = Joystick::deviceCount();
+	return jc;
+}
+
+bool CCommonData::CheckJoystickButton(int jn, int bn)
+{
+	DIJOYSTATE2 js;
+	joysticks[jn]->poll(&js);
+
+	if (js.rgbButtons[bn] & 0x80)
+	{
+		return true;
+    }
+
+	return false;
+}
+
+void CCommonData::CloseJoysticks()
+{
+	unsigned int i;
+    unsigned int numJoysticks = Joystick::deviceCount();
+    
+    // Close the joysticks.
+    for (i = 0; i < numJoysticks; i++) {
+        joysticks[i]->close();
+    }	
+	return;
+}
+// end pickles Jul 04
+
 
 //	PlayOpeningCutScene
 //

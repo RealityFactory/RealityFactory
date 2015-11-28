@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,66 +16,53 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skStringTokenizer.cpp,v 1.3 2001/11/22 11:13:21 sdw Exp $
+  $Id: skStringTokenizer.cpp,v 1.10 2003/04/27 16:32:02 simkin_cvs Exp $
 */
 #include "skStringTokenizer.h"
 
+#ifndef __SYMBIAN32__
 //------------------------------------------
-void skStringTokenizer::setMaxDelimChar() 
+skStringTokenizer::skStringTokenizer(const skString& s, const skString& delim, bool returnDelims) 
 //------------------------------------------
 {
-  if (delimiters.length() == 0) {
-    maxDelimChar = 0;
-    return;
-  }
-  
-  char m = 0;
-  for (unsigned int i = 0; i < delimiters.length(); i++) {
-    char c = delimiters.at(i);
-    if (m < c)
-      m = c;
-  }
-  maxDelimChar = m;
+  init(s, delim, returnDelims);
 }
 //------------------------------------------
-skStringTokenizer::skStringTokenizer(skString str, skString delim, bool returnDelims) 
+skStringTokenizer::skStringTokenizer(const skString& s, const skString& delim) 
 //------------------------------------------
 {
-  init(str, delim, returnDelims);
+  init(s, delim, false);
 }
 //------------------------------------------
-void skStringTokenizer::init(skString str, skString delim, bool returnDelims)
+skStringTokenizer::skStringTokenizer(const skString& str) 
 //------------------------------------------
 {
-  currentPosition = 0;
-  newPosition = -1;
-  delimsChanged = false;
-  this->str = str;
-  maxPosition = str.length();
-  delimiters = delim;
-  retDelims = returnDelims;
-  setMaxDelimChar();
-}
-//------------------------------------------
-skStringTokenizer::skStringTokenizer(skString str, skString delim) 
-//------------------------------------------
-{
+  skString delim;
+  delim=skSTR(" \t\n\r\f");
   init(str, delim, false);
 }
+#endif
 //------------------------------------------
-skStringTokenizer::skStringTokenizer(skString str) 
+EXPORT_C void skStringTokenizer::init(const skString& s, const skString& delim, bool returnDelims)
 //------------------------------------------
 {
-  init(str, " \t\n\r\f", false);
+  m_CurrentPosition = 0;
+  m_NewPosition = -1;
+  m_DelimsChanged = false;
+  m_Str = s;
+  m_MaxPosition = m_Str.length();
+  m_Delimiters = delim;
+  m_RetDelims = returnDelims;
+  setMaxDelimChar();
 }
 //------------------------------------------
 int skStringTokenizer::skipDelimiters(int startPos) 
 //------------------------------------------
 {
   int position = startPos;
-  while (!retDelims && position < maxPosition) {
-    char c = str.at(position);
-    if ((c > maxDelimChar) || (delimiters.indexOf(c) < 0))
+  while (!m_RetDelims && position < m_MaxPosition) {
+    Char c = m_Str.at(position);
+    if ((c > m_MaxDelimChar) || (m_Delimiters.indexOf(c) < 0))
       break;
     position++;
   }
@@ -86,76 +73,93 @@ int skStringTokenizer::scanToken(int startPos)
 //------------------------------------------
 {
   int position = startPos;
-  while (position < maxPosition) {
-    char c = str.at(position);
-    if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
+  while (position < m_MaxPosition) {
+    Char c = m_Str.at(position);
+    if ((c <= m_MaxDelimChar) && (m_Delimiters.indexOf(c) >= 0))
       break;
     position++;
   }
-  if (retDelims && (startPos == position)) {
-    char c = str.at(position);
-    if ((c <= maxDelimChar) && (delimiters.indexOf(c) >= 0))
+  if (m_RetDelims && (startPos == position)) {
+    Char c = m_Str.at(position);
+    if ((c <= m_MaxDelimChar) && (m_Delimiters.indexOf(c) >= 0))
       position++;
   }
   return position;
 }
 //------------------------------------------
-bool skStringTokenizer::hasMoreTokens() 
+EXPORT_C bool skStringTokenizer::hasMoreTokens() 
 //------------------------------------------
 {
   /*
    * Temporary store this position and use it in the following
-   * nextToken() method only if the delimiters have'nt been changed in
+   * nextToken() method only if the m_Delimiters have'nt been changed in
    * that nextToken() invocation.
    */
-  newPosition = skipDelimiters(currentPosition);
-  return (newPosition < maxPosition);
+  m_NewPosition = skipDelimiters(m_CurrentPosition);
+  return (m_NewPosition < m_MaxPosition);
 }
 //------------------------------------------
-skString skStringTokenizer::nextToken() 
+EXPORT_C skString skStringTokenizer::nextToken() 
   //------------------------------------------
 {
   /* 
    * If next position already computed in hasMoreElements() and
-   * delimiters have changed between the computation and this invocation,
+   * m_Delimiters have changed between the computation and this invocation,
    * then use the computed value.
    */
   
-  currentPosition = (newPosition >= 0 && !delimsChanged) ?  
-    newPosition : skipDelimiters(currentPosition);
+  m_CurrentPosition = (m_NewPosition >= 0 && !m_DelimsChanged) ?  
+    m_NewPosition : skipDelimiters(m_CurrentPosition);
   
   /* Reset these anyway */
-  delimsChanged = false;
-  newPosition = -1;
+  m_DelimsChanged = false;
+  m_NewPosition = -1;
   
-  int start = currentPosition;
-  currentPosition = scanToken(currentPosition);
-  return str.substr(start, currentPosition-start);
+  int start = m_CurrentPosition;
+  m_CurrentPosition = scanToken(m_CurrentPosition);
+  return m_Str.substr(start, m_CurrentPosition-start);
 }
 //------------------------------------------
-skString skStringTokenizer::nextToken(skString delim) 
+EXPORT_C skString skStringTokenizer::nextToken(const skString& delim) 
   //------------------------------------------
 {
-  delimiters = delim;
+  m_Delimiters = delim;
   
   /* delimiter string specified, so set the appropriate flag. */
-  delimsChanged = true;
+  m_DelimsChanged = true;
   
   setMaxDelimChar();
   return nextToken();
 }
 //------------------------------------------
-int skStringTokenizer::countTokens() 
+EXPORT_C int skStringTokenizer::countTokens() 
   //------------------------------------------
 {
   int count = 0;
-  int currpos = currentPosition;
-  while (currpos < maxPosition) {
+  int currpos = m_CurrentPosition;
+  while (currpos < m_MaxPosition) {
     currpos = skipDelimiters(currpos);
-    if (currpos >= maxPosition)
+    if (currpos >= m_MaxPosition)
       break;
     currpos = scanToken(currpos);
     count++;
   }
   return count;
+}
+//------------------------------------------
+void skStringTokenizer::setMaxDelimChar() 
+//------------------------------------------
+{
+  if (m_Delimiters.length() == 0) {
+    m_MaxDelimChar = 0;
+    return;
+  }
+  
+  Char m = 0;
+  for (unsigned int i = 0; i < m_Delimiters.length(); i++) {
+    Char c = m_Delimiters.at(i);
+    if (m < c)
+      m = c;
+  }
+  m_MaxDelimChar = m;
 }

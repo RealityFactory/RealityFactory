@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skStringTokenizer.h,v 1.5 2001/11/22 11:13:21 sdw Exp $
+  $Id: skStringTokenizer.h,v 1.14 2003/05/14 22:00:10 simkin_cvs Exp $
 */
 #ifndef skSTRINGTOKENIZER_H
 #define skSTRINGTOKENIZER_H
@@ -28,32 +28,35 @@
  * The string tokenizer class allows an application to break a 
  * string into tokens. 
  */
-class CLASSEXPORT skStringTokenizer {
+class CLASSEXPORT skStringTokenizer 
+#ifdef __SYMBIAN32__
+: public CBase
+#endif
+{
 
 
  public:
+#ifndef __SYMBIAN32__
   /**
    * Constructs a string tokenizer for the specified string. All  
    * characters in the delim argument are the delimiters 
    * for separating tokens. 
+   * \remarks not available in Symbian version 
    *
-   * @param   str            a string to be parsed.
-   * @param   delim          the delimiters.
-   * @param   returnDelims   flag indicating whether to return the delimiters
-   *                         as tokens.
    */
-  skStringTokenizer(skString str, skString delim, bool returnDelims);
+  skStringTokenizer(const skString& str, const skString& delim, bool returnDelims);
   
   /**
    * Constructs a string tokenizer for the specified string. The 
    * characters in the delim argument are the delimiters 
    * for separating tokens. Delimiter characters themselves will not 
    * be treated as tokens.
+   * \remarks not available in Symbian version 
    *
    * @param   str     a string to be parsed.
    * @param   delim   the delimiters.
    */
-  skStringTokenizer(skString str, skString delim);
+  skStringTokenizer(const skString& str, const skString& delim);
   /**
    * Constructs a string tokenizer for the specified string. The 
    * tokenizer uses the default delimiter set, which is 
@@ -61,11 +64,42 @@ class CLASSEXPORT skStringTokenizer {
    * the tab character, the newline character, the carriage-return character,
    * and the form-feed character. Delimiter characters themselves will 
    * not be treated as tokens.
+   * \remarks not available in Symbian version 
    *
    * @param   str   a string to be parsed.
    */
-  skStringTokenizer(skString str);
+  skStringTokenizer(const skString& str);
+#endif
+  /**
+   * Constructor
+   */
+  inline skStringTokenizer();
+  /**
+   * Desstructor
+   */
+  virtual inline ~skStringTokenizer();
 
+  /**
+   * Initialize the tokenizer
+   * @param   str            a string to be parsed.
+   * @param   delim          the delimiters.
+   * @param   returnDelims   flag indicating whether to return the delimiters
+   *                         as tokens.
+   * @exception Symbian - a leaving function
+   */
+  IMPORT_C void init(const skString& str, const skString& delim, bool returnDelims);
+#ifdef __SYMBIAN32__
+  /**
+   * Initialize the tokenizer
+   * \remarks only available in Symbian version
+   * @param   str            a string to be parsed.
+   * @param   delim          the delimiters.
+   * @param   returnDelims   flag indicating whether to return the delimiters
+   *                         as tokens.
+   * @exception Symbian - a leaving function
+   */
+  inline void init(const skString& str, const TDesC& delim, bool returnDelims);
+#endif
   /**
    * Tests if there are more tokens available from this tokenizer's string. 
    * If this method returns true, then a subsequent call to 
@@ -75,14 +109,15 @@ class CLASSEXPORT skStringTokenizer {
    *          in the string after the current position; false 
    *          otherwise.
    */
-  bool hasMoreTokens();
+  IMPORT_C bool hasMoreTokens();
 
   /**
    * Returns the next token from this string tokenizer.
    *
    * @return     the next token from this string tokenizer.
+   * @exception Symbian - a leaving function
    */
-  skString nextToken();
+  IMPORT_C skString nextToken();
   /**
    * Returns the next token in this string tokenizer's string. First, 
    * the set of characters considered to be delimiters by this 
@@ -94,8 +129,9 @@ class CLASSEXPORT skStringTokenizer {
    *
    * @param      delim   the new delimiters.
    * @return     the next token, after switching to the new delimiter set.
+   * @exception Symbian - a leaving function
    */
-  skString nextToken(skString delim);
+  IMPORT_C skString nextToken(const skString& delim);
   /**
    * Calculates the number of times that this tokenizer's 
    * nextToken method can be called. The current position is not advanced.
@@ -103,31 +139,27 @@ class CLASSEXPORT skStringTokenizer {
    * @return  the number of tokens remaining in the string using the current
    *          delimiter set.
    */
-  int countTokens();
+  IMPORT_C int countTokens();
  private:
-  int currentPosition;
-  int newPosition;
-  int maxPosition;
-  skString str;
-  skString delimiters;
-  bool retDelims;
-  bool delimsChanged;
+  int m_CurrentPosition;
+  int m_NewPosition;
+  int m_MaxPosition;
+  skString m_Str;
+  skString m_Delimiters;
+  bool m_RetDelims;
+  bool m_DelimsChanged;
 
   /**
    * maxDelimChar stores the value of the delimiter character with the
    * highest value. It is used to optimize the detection of delimiter
    * characters.
    */
-  char maxDelimChar;
+  Char m_MaxDelimChar;
   
   /**
    * Set maxDelimChar to the highest char in the delimiter set.
    */
   void setMaxDelimChar();
-  /**
-   * Initialize the tokenizer
-   */
-  void init(skString str, skString delim, bool returnDelims);
   /**
    * Skips delimiters starting from the specified position. If retDelims
    * is false, returns the index of the first non-delimiter character at or
@@ -140,4 +172,25 @@ class CLASSEXPORT skStringTokenizer {
    */
   int scanToken(int startPos);
 };
+//------------------------------------------
+inline skStringTokenizer::skStringTokenizer()
+//------------------------------------------
+  :  m_CurrentPosition(0),m_NewPosition(-1),m_MaxPosition(0),m_DelimsChanged(false)
+{
+}
+#ifdef __SYMBIAN32__
+//------------------------------------------
+inline void skStringTokenizer::init(const skString& str, const TDesC& delim, bool returnDelims)
+//------------------------------------------
+{
+  skString s_delim;
+  s_delim=delim;
+  init(str,s_delim,returnDelims);
+}
+#endif
+//------------------------------------------
+inline skStringTokenizer::~skStringTokenizer() 
+//------------------------------------------
+{
+}
 #endif

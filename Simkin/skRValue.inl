@@ -16,13 +16,10 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skRValue.inl,v 1.5 2001/11/22 11:13:21 sdw Exp $
+* $Id: skRValue.inl,v 1.13 2003/04/14 15:24:57 simkin_cvs Exp $
 */
 #include "skiExecutable.h"
-#include <stdio.h>
-
-xskLITERAL(true);
-xskLITERAL(false);
+#include "skConstants.h"
 
 /**
 * This class is used to hold a pointer to an object, along with a reference cound
@@ -39,9 +36,9 @@ public:
 }; 					
 #undef inline
 //------------------------------------------
-inline skRValue::skRValue(skString s)
+inline skRValue::skRValue(const skString& s)
   //------------------------------------------
-  : m_String(s),m_Type(T_String)
+  : m_Type(T_String),m_String(s)
 {
   m_Value.m_ObjectRef=0;
 }
@@ -66,6 +63,7 @@ inline skRValue::skRValue(unsigned int n)
 { 
   m_Value.m_Int=n;
 }
+#ifdef USE_FLOATING_POINT
 //------------------------------------------
 inline skRValue::skRValue(float f)
   //------------------------------------------
@@ -73,6 +71,7 @@ inline skRValue::skRValue(float f)
 { 
   m_Value.m_Float=f;
 }
+#endif
 //------------------------------------------
 inline skRValue::skRValue()
   //------------------------------------------
@@ -80,6 +79,7 @@ inline skRValue::skRValue()
 {
   m_Value.m_ObjectRef=0;
 }
+#ifndef __SYMBIAN32__
 //------------------------------------------
 inline skRValue::skRValue(bool b)
   //------------------------------------------
@@ -87,6 +87,7 @@ inline skRValue::skRValue(bool b)
 {
   m_Value.m_Bool=b;
 }
+#endif
 //------------------------------------------
 inline skRValue::RType skRValue::type() const
   //------------------------------------------
@@ -102,6 +103,68 @@ inline skiExecutable *  skRValue::obj() const
     obj=m_Value.m_ObjectRef->m_Object;
   return obj;
 }
+#ifndef __SYMBIAN32__
+// this function is not available in Symbian, as a leaving memory allocation
+// is made within the constructor
+//------------------------------------------
+inline skRValue::skRValue(skiExecutable * o,bool created)
+  //------------------------------------------
+  : m_Type(T_Object)
+{
+  m_Value.m_ObjectRef=skNEW(skObjectRef);
+  m_Value.m_ObjectRef->m_Object=o;
+  m_Value.m_ObjectRef->m_Created=created;
+  m_Value.m_ObjectRef->m_RefCount=1;
+}
+#endif
+//------------------------------------------
+inline void skRValue::assignObject(skiExecutable * o,bool created)
+  //------------------------------------------
+{
+  deRef();
+  m_Type=T_Object;
+  m_Value.m_ObjectRef=skNEW(skObjectRef);
+  m_Value.m_ObjectRef->m_Object=o;
+  m_Value.m_ObjectRef->m_Created=created;
+  m_Value.m_ObjectRef->m_RefCount=1;
+}
+//------------------------------------------
+inline skRValue::~skRValue()
+  //------------------------------------------
+{
+  deRef();
+}
+//------------------------------------------
+inline void skRValue::deRef()
+  //------------------------------------------
+{
+  if (m_Type==T_Object){
+    m_Value.m_ObjectRef->m_RefCount--;
+    if (m_Value.m_ObjectRef->m_RefCount==0){
+      if (m_Value.m_ObjectRef->m_Created)
+	delete m_Value.m_ObjectRef->m_Object;
+      delete m_Value.m_ObjectRef;	
+      m_Value.m_ObjectRef=0;
+    }	
+  }	
+}
+#ifdef __SYMBIAN32__
+//-------------------------------------------------------------------------
+inline skRValue::operator TCleanupItem()
+  //-------------------------------------------------------------------------
+  // used for leave support of local variable RValues
+{
+  return TCleanupItem(Cleanup,this);
+}
+//-------------------------------------------------------------------------
+inline void skRValue::Cleanup(TAny * s)
+  //-------------------------------------------------------------------------
+  // called in case there is a leave, it makes sure that any associated
+  // object is deleted, if the reference count reaches zero
+{
+  ((skRValue *)s)->deRef();
+}
+#endif
 
 
 

@@ -1,3 +1,8 @@
+/* Chaos.cpp
+/* 
+/* Edit History:
+/* 04/23/2004 Wendell Buckner
+/*	 EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap */
 
 
 //	Include the One True Header
@@ -272,6 +277,11 @@ void Chaos::Tick(geFloat dwTicksIn)
       geBitmap_Blit( pTex->WorkBmp, 0, YPos, pTex->CAttachBmp, XPos, YPos, AttachInfo.Width - XPos, pTex->SegmentSize );
       geBitmap_Blit( pTex->WorkBmp, AttachInfo.Width - XPos, YPos, pTex->CAttachBmp, 0, YPos, XPos, pTex->SegmentSize );
     }
+
+/* 04/23/2004 Wendell Buckner
+	 EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap */
+	geBitmap_UpdateBumpMapAlt ( pTex->CAttachBmp );
+
   }
 
   // all done

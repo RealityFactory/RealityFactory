@@ -12,6 +12,9 @@ typedef struct MaterialList
 	bool ChangeLighting;
 	GE_RGBA FillColor;
 	GE_RGBA AmbientColor;
+// changed QD 07/21/04
+	geBoolean AmbientLightFromFloor;
+// end change
 } MaterialList;
 
 class CActMaterial : public CRGFComponent  

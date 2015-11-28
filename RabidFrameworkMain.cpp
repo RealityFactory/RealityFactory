@@ -17,6 +17,7 @@ functionality.
 #define _THE_MASTER_MODULE_
 
 //	You only need one include file.
+//
 
 #include "RabidFramework.h"
 #include <process.h>
@@ -31,9 +32,15 @@ functionality.
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
 	int nResult;
-	bool CommandLine;
+	bool MultiplayerLaunch; // directly launching a multiplayer game, bypasses menu
+	bool CommandLine;// debug launch
 	DWORD nLoopTimer = 0;
   char szFirstLevel[256];
+  // begin change gekido - new server command line flags
+  // to directly launch a multiplayer game
+  char szServerIP[256];
+  char szServerPort[256];
+  // end change gekido
 // changed RF064
   char m_currentdir[512];
   _getcwd(m_currentdir, 512);
@@ -45,6 +52,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 //  _CrtSetBreakAlloc(24312);
 
 //	Initialize the Common Data class that handles components
+
 
   CCD = NULL;
   CCD = new CCommonData();
@@ -62,13 +70,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 //	..circumstances.
 
 	szFirstLevel[0] = 0;
+	szServerIP[0] = 0;
+	szServerPort[0] = 0;
 	CommandLine = false;
+	MultiplayerLaunch = false;
+
+
 
 	FILE *fd;
 	bool vidsetup = false;
 	fd = fopen("D3D24.ini","r");
 	if(!fd)
+	{
 		vidsetup = true;
+	}
+	
 
 	ShowCursor(FALSE);						// Turn off the mouse cursor
 
@@ -77,7 +93,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		char *szFoo = strtok(lpszCmdParam," ");
 		if(!stricmp("-map", szFoo))
 		{
-			szFoo = strtok(NULL, "\n\000");
+			szFoo = strtok(NULL, "\n\000"); // remove any null/ugly chars
 			strcpy(szFirstLevel, szFoo);
 			szFirstLevel[strlen(szFirstLevel)] = 0;
 			strcat(szFirstLevel,".bsp");
@@ -87,17 +103,50 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		{
 			vidsetup = true;
 		}
+		// begin change gekido
+		// 02.16.2004 - can pass +port & +connect to the rf client 
+		//            to directly launch into a multiplayer game
+		// should also provide a +dedicated TRUE flag as well to launch a server directly
 		// 10.21.2003 - gekido
 		// add launch multiplayer from command line
+
+		// do we have a server port? NOTE only useful if we have a serverIP as well
+		if(!stricmp("+port", szFoo))
+		{
+			szFoo = strtok(NULL, "\n\000");	// remove any null/ugly chars
+			strcpy(szServerPort, ":");
+			strcpy(szServerPort, szFoo);
+			szServerPort[strlen(szServerPort)] = 0;
+  		    CCD->ReportError("Caching Server Port...", false);
+		}
+		// do we have a server ip, launch directly into the server?
 		else if (!stricmp("+connect", szFoo))
 		{
 			// connect to 'szFoo' IP address:Port
 			// TODO: Set our server ip:port to connect to automatically, bypass menu
+			szFoo = strtok(NULL, "\n\000"); // remove any null/ugly chars
+			strcpy(szServerIP, szFoo);
+			szServerIP[strlen(szServerIP)] = 0;
+			if(!EffectC_IsStringNull(szServerPort))
+			{
+				strcat(szServerPort, szServerIP);		// check to see if we have a port set
+			}
+			else
+			{
+				strcat(szServerIP,":1972");		// tag our default port on instead
+			}
+			MultiplayerLaunch = true; // launch directly into game
+			CCD->ReportError("Caching Server IP...Launching Multiplayer Game directly", false);
 		}
+		// end change gekido
 	}
 
 	if(vidsetup)
 	{
+		// 08.05.2004 - begin change gekido
+		CCD->ReportError("No Renderer Config (d3d24.ini), running videosetup", false);
+		// 08.05.2004 - end change gekido
+
 		char *args[2];
 		args[0] = "video";
 		args[1] = NULL;
@@ -116,8 +165,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		CCD = NULL;
 	  exit(nResult);							// Failure to initialize RGF
 		}
-
-  CCD->ReportError("Game started", false);
+	// begin change gekido
+    CCD->ReportError("Launching Reality Factory Game Shell...", false);
 
 	if(!CommandLine)
 	{
@@ -153,6 +202,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 
 	if(CommandLine)
 	{
+		// begin change gekido
+		CCD->ReportError("Launching Preview from Editor, bypassing G3d Logo for DEBUG purposes ONLY...", false);
 		if(!EffectC_IsStringNull(CCD->SplashScreen()))
 		{
 			if(!EffectC_IsStringNull(CCD->SplashAudio()))
@@ -189,9 +240,55 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 		}
 // changed RF063
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
+		CCD->ReportError("Previewing Level as SinglePlayer Client...", false);
 		CCD->MenuManager()->DoGame(true);
 // end change RF063
 	}
+	// begin change gekido
+	// 02.16.2003
+	// added direct multiplayer launch from command line
+	// todo:  update the server IP & Port and launch the multiplayer game instead 
+	// todo:  provide for dedicated server launching as well as remote client launching
+	else if(MultiplayerLaunch)
+	{
+		// show logos
+		if(!EffectC_IsStringNull(CCD->SplashScreen()))
+		{
+			if(!EffectC_IsStringNull(CCD->SplashAudio()))
+			{
+				CCD->Engine()->DisplaySplash(CCD->SplashScreen(),CCD->SplashAudio());
+				CCD->Spin(3000);
+			}
+		}
+		else
+		{
+			if(!EffectC_IsStringNull(CCD->CutScene()))
+			{
+				CCD->Play(CCD->CutScene(), 160, 120, true);
+			}
+		}
+		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
+		{
+			if(!EffectC_IsStringNull(CCD->SplashAudio1()))
+			{
+				CCD->Engine()->DisplaySplash(CCD->SplashScreen1(),CCD->SplashAudio1());
+				CCD->Spin(3000);
+			}
+		}
+		else
+		{
+			if(!EffectC_IsStringNull(CCD->CutScene1()))
+			{
+				CCD->Play(CCD->CutScene1(), 160, 120, true);
+			}
+		}
+		// launch our network game
+		// todo:  first have to set the serverip & port from our command line variables
+		CCD->MenuManager()->SetLevelName(szFirstLevel);
+		CCD->ReportError("Launching Game as Multiplayer Client...", false);
+		CCD->MenuManager()->DoGame(true);
+	}
+	// end change gekido
 	else
 	{	
 		if(!EffectC_IsStringNull(CCD->SplashScreen()))
@@ -231,7 +328,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	}
 
 	CCD->MenuManager()->DoMenu(szFirstLevel);
-	CCD->ReportError("Game exiting", false);
+	CCD->ReportError("Shutting down Reality Factory Game Shell...", false);
 	CCD->ShutdownLevel();					// Kill off level-specific entities
 	delete CCD;				// Kill off the engine and such
 

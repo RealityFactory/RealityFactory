@@ -1,5 +1,5 @@
 /*
-  Copyright 1996-2001
+  Copyright 1996-2003
   Simon Whiteside
 
     This library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skTreeNodeObject.h,v 1.20 2001/11/22 11:13:21 sdw Exp $
+* $Id: skTreeNodeObject.h,v 1.36 2003/04/19 13:22:24 simkin_cvs Exp $
 */
 
 
@@ -45,102 +45,154 @@ class CLASSEXPORT skTreeNodeObject : public skExecutable
   /**
    * Default Constructor
    */
-  skTreeNodeObject();
+  IMPORT_C skTreeNodeObject();
   /**
    * Constructor providing a treenode
    * @param location - the location of this treenode (e.g. file or database), this is used in error messages
    * @param node - the node itself
    * @param created - set this to true to allow the TreeNodeObject to delete the node when it is deleted
    */
-  skTreeNodeObject(const skString& location,skTreeNode * node,bool created);
+  IMPORT_C skTreeNodeObject(const skString& location,skTreeNode * node,bool created);
   /**
    * Destructor - will delete the associated node if the created flag is set
    */
-  ~skTreeNodeObject();
+  virtual IMPORT_C ~skTreeNodeObject();
   /**
    * returns the value TREENODE_TYPE to identify this as a TreeNodeObject
    */
-  int executableType() const;			
+  virtual IMPORT_C int executableType() const;			
   /**
    * Returns the data field of the node as an integer
    */
-  int intValue() const;
+  virtual IMPORT_C int intValue() const;
+#ifdef USE_FLOATING_POINT
   /**
    * Returns the data field of the node as a float
    */
-  float floatValue() const;
+  virtual IMPORT_C float floatValue() const;
+#endif
   /**
    * Returns the data field of the node as a boolean
    */
-  bool boolValue() const;
+  virtual IMPORT_C bool boolValue() const;
   /**
    * Returns the first character of the data field of the node
    */
-  Char charValue() const;
+  virtual IMPORT_C Char charValue() const;
   /**
    * Returns the data field of the node as a string
    */
-  skString strValue() const;
+  virtual IMPORT_C skString strValue() const;
   /**
    * Sets a value within the node. The field name is matched to a child of the treenode with the same label.
    * If a match is found, the child's data is changed. 
+   * If the m_AddIfNotPresent flag is true, a new item will be added if one is not already present
    * @param name - the name of the field
    * @param attribute - the attribute name is ignored
    * @param value - the value to be assigned to the child. If this is a TREENODE_TYPE object, the full treenode is copied
+   * @exception a Symbian - a leaving function
    */
-  bool setValue(const skString& name,const skString& attribute,const skRValue& value);
+  virtual IMPORT_C bool setValue(const skString& name,const skString& attribute,const skRValue& value);
   /**
    * Sets a value within the nth node of the tree node. 
+   * If the m_AddIfNotPresent flag is true, a new item will be added if one is not already present.
    * @param array_index - the identifier of the item - this might be a string, integer or any other legal value
    * @param attribute - the attribute name to set (may be blank)
    * @param value - the value to be set
    * @return true if the field was changed, false if the field could not be set or found
+   * @exception a Symbian - a leaving function
    */
-  bool setValueAt(const skRValue& array_index,const skString& attribute,const skRValue& value); 
+  virtual IMPORT_C bool setValueAt(const skRValue& array_index,const skString& attribute,const skRValue& value); 
   /**
    * Retrieves a value from within the node. The field name is matched to a child of the treenode with the same label.
    * If a match is found, a new TreeNodeObject encapsulating the child is returned. 
+   * If the m_AddIfNotPresent flag is true, a new item will be added if one is not already present
+   * @exception a Symbian - a leaving function
    */
-  bool getValue(const skString& name,const skString& attribute,skRValue& v);
+  virtual IMPORT_C bool getValue(const skString& name,const skString& attribute,skRValue& v);
   /**
    * Retrieves the nth value from within the node. If the array index falls within the range of the number of children of this node, 
    * a new TreeNodeObject encapsulating the child is returned. 
+   * If the m_AddIfNotPresent flag is true, a new item will be added if one is not already present.
+   * @exception a Symbian - a leaving function
    */
-  bool getValueAt(const skRValue& array_index,const skString& attribute,skRValue& value);
+  virtual IMPORT_C bool getValueAt(const skRValue& array_index,const skString& attribute,skRValue& value);
   /**
    * This function attempts to call a method defined within the TreeNode. It searches for a child whose label matches the method name, and tries to execute its data as a Simkin script
    * @param name - the name of the method
    * @param args - the arguments to pass to the method
    * @param ret - the RValue to receive the results of the method call
+   * @param ctxt context object to receive errors
    * @return true if the method was found, otherwise false
+   * @exception a Symbian - a leaving function
+   * @exception skParseException - if a syntax error is encountered while the script is running
+   * @exception skRuntimeException - if an error occurs while the script is running
    */
-  bool method(const skString& name,skRValueArray& args,skRValue& ret);
+  virtual IMPORT_C bool method(const skString& name,skRValueArray& args,skRValue& ret,skExecutableContext& ctxt);
   /**
    * This function returns the treenode wrapped by this object
    */
-  skTreeNode * getNode();
+  IMPORT_C skTreeNode * getNode();
   /**
    * This function changes the node associated with this object
    */
-  void setNode(skTreeNode * node);
+  IMPORT_C void setNode(const skString& location,skTreeNode * node,bool created);
+#ifdef __SYMBIAN32__
+  /**
+   * This function changes the node associated with this object
+   * \remarks only available in Symbian version
+   * @exception a Symbian - a leaving function
+   */
+  IMPORT_C void setNode(const TDesC& location,skTreeNode * node,bool created);
+#endif
   /**
    * This function tests if this object is equal to the other object. It does this by checking the string values are equal
    */
-  //  bool equals(skExecutable * o) const;
+  virtual IMPORT_C bool equals(const skiExecutable * o) const;
   /**
    * This function returns the location associated with this object (typically a file name)
    */
-  skString getLocation() const;
+  IMPORT_C skString getLocation() const;
   /**
    * This function returns an skExecutableIterator object which is used in the for each statement. It will iterate over nodes with the given node label.
    * @param qualifier node label - only nodes with this label will appear in the iteration
+   * @exception a Symbian - a leaving function
    */
-  skExecutableIterator * createIterator(const skString& qualifier);
+  virtual IMPORT_C skExecutableIterator * createIterator(const skString& qualifier);
   /**
    * This function returns an skExecutableIterator object which is used in the for each statement. It will iterate over *all* children of this node
+   * @exception a Symbian - a leaving function
    */
-  skExecutableIterator * createIterator();
+  virtual IMPORT_C skExecutableIterator * createIterator();
+  /**
+  * Returns the source code for the given method
+  * @exception a Symbian - a leaving function
+  */
+  virtual IMPORT_C skString getSource(const skString& location);
+  /**
+  * This method returns the instance variables for this object
+  * @param table a table to filled with references to the instance variables
+   * @exception a Symbian - a leaving function
+  */
+  virtual IMPORT_C void getInstanceVariables(skRValueTable& table);
+  /** sets the flag controlling whether new nodes are created as they are accessed
+   * @param enable enables this feature (which by default is disabled)
+   */
+  IMPORT_C void setAddIfNotPresent(bool enable);
+  /** this returns the value of the flag controlling whether new nodes are created as they are accessed 
+   * @return true if the feature is enabled, otherwise false (the default)
+   */
+  IMPORT_C bool getAddIfNotPresent();
  protected:
+   friend class skTreeNodeObjectEnumerator;
+  /**
+   * This method creates a new  TreeNode object to wrap a node. Override this for special behaviour in derived classes. In this method, the newly created object inherits this object's m_AddIfNotPresent flag
+   * @param location the location of this element
+   * @param node the TreeNode to associate with the object
+   * @param created indicates if the node should be deleted in the new objects' destructor. Set to true if this should happen.
+   * @exception a Symbian - a leaving function
+   */
+  virtual IMPORT_C skTreeNodeObject * createTreeNodeObject(const skString& location,skTreeNode * node,bool created);
   /**
    * the location the node came from
    */
@@ -158,6 +210,11 @@ class CLASSEXPORT skTreeNodeObject : public skExecutable
    * this cache is used to hold parse trees for methods already executed
    */
   skMethodTable * m_MethodCache;
+   /**
+   * this variable controls whether new items are added to this node if they are not found, by default it is false,
+   * but can be modified using the setAddIfNotPresent() method
+  */
+  bool m_AddIfNotPresent;
   /**
    * Executables can't be copied
    */

@@ -25,6 +25,7 @@ static char THIS_FILE[]=__FILE__;
 // Not needed except for protection against absurd values.
 #define MAX_ANIMATION_BMPS	256 
 
+#define M_PI 3.14159
 
 //////////////////////////////////////////////////////////////////////
 // Constructor for those entities not coming from editor
@@ -439,8 +440,8 @@ int qxEffectParticleChamber::Frame()
 				// but it is used so briefly in this app I didn't
 				if( AnglesRandom )
 				{
-					float RandomYaw = RANDOM_ONE_TO_ZERO * AnglesRandomYaw * M_PI * 2.0f;
-					float RandomPitch = RANDOM_ONE_TO_ZERO *  AnglesRandomPitch * M_PI / 180.0f ;
+					float RandomYaw = (geFloat)(RANDOM_ONE_TO_ZERO * AnglesRandomYaw * M_PI * 2.0f);
+					float RandomPitch = (geFloat)(RANDOM_ONE_TO_ZERO *  AnglesRandomPitch * M_PI / 180.0f);
 
 					// this uses spherical coordinates to randomize the velocity vector 
 					// ( or the direction ) of the particle
