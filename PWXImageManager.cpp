@@ -1,26 +1,42 @@
+/****************************************************************************************/
+/*																						*/
+/*	PWXImageManager.cpp																	*/
+/*																						*/
+/****************************************************************************************/
+
 #include "RabidFramework.h"
 
 PWXImage Image[PWX_IMAGES];
 int IMC;
 
+/* ------------------------------------------------------------------------------------ */
+//	Constructor
+/* ------------------------------------------------------------------------------------ */
 PWXImageManager::PWXImageManager()
 {
-IMC = 0;
-
-return;
+	IMC = 0;
+	return;
 }
 
-
+/* ------------------------------------------------------------------------------------ */
+//	Destructor
+/* ------------------------------------------------------------------------------------ */
 PWXImageManager::~PWXImageManager()
 {
-
-
-return;
+	return;
 }
 
-geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm, int Xp, int Yp, float Alph, int R, int G, int B,int tFont,float ZDepth)
+/* ------------------------------------------------------------------------------------ */
+//	AddImage
+/* ------------------------------------------------------------------------------------ */
+geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm,
+									int Xp, int Yp,
+									float Alph, int R, int G, int B,
+									int tFont, float ZDepth)
 {
-	if(IMC > PWX_IMAGES)
+// changed QD 12/15/05
+	//if(IMC > PWX_IMAGES)
+	if(IMC >= PWX_IMAGES)
 		return GE_FALSE;
 
 	Image[IMC].Xpos = Xp;
@@ -31,7 +47,6 @@ geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm, int Xp, int Yp, flo
 
 	if(Txt != NULL)
 	{
-
 		strcpy(Image[IMC].PWX_Text,Txt);
 		Image[IMC].TXTactive = true;
 	}
@@ -45,26 +60,32 @@ geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm, int Xp, int Yp, flo
 	return GE_TRUE;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Display
+/* ------------------------------------------------------------------------------------ */
 void PWXImageManager::Display()
 {
 	int i;
 
-	for(i=0;i<IMC;i++)
+	for(i=0; i<IMC; i++)
 	{
 		if(Image[i].IMactive)
 		{
-			CCD->Engine()->DrawBitmap(Image[i].PWX_Pic,NULL,Image[i].Xpos,Image[i].Ypos,Image[i].ZDpth);
+			CCD->Engine()->DrawBitmap(Image[i].PWX_Pic, NULL, Image[i].Xpos, Image[i].Ypos, Image[i].ZDpth);
 			Image[i].IMactive = false;
 		}
 		else if(Image[i].TXTactive)
 		{
 			Image[i].TXTactive = false;
-			CCD->MenuManager()->WorldFontRect(Image[i].PWX_Text,Image[i].Fnt,Image[i].Xpos,Image[i].Ypos,Image[i].Alpha);
+			CCD->MenuManager()->WorldFontRect(Image[i].PWX_Text, Image[i].Fnt, Image[i].Xpos, Image[i].Ypos, Image[i].Alpha);
 		}
 		else
 			break;
-		
+
 	}
+
 	IMC = 0;
 }
 
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

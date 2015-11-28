@@ -1,45 +1,48 @@
-/*
-	RGFStatus.h:		Reality Factory defines file
+/****************************************************************************************/
+/*																						*/
+/*	RGFStatus.h:		Reality Factory defines file									*/
+/*																						*/
+/*	(C) 2001 Ralph Deane  All rights reserved.											*/
+/*																						*/
+/*	This file contains all the various status, error, key, and							*/
+/*	result code defines used throughout the RGF system.									*/
+/*																						*/
+/****************************************************************************************/
 
-	(C) 2001 Ralph Deane  All rights reserved.
-
-	This file contains all the various status, error, key, and
-result code defines used throughout the RGF system.
-*/
 
 #ifndef __RGF_RGFSTATUS_H__
 #define __RGF_RGFSTATUS_H__
 
 //	Various status codes
 
-#define	RGF_SUCCESS							1				// Successful result
-#define RGF_FAILURE							0				// Failure
-#define RGF_UNIMPLEMENTED				-1			// Not implemented
-#define RGF_FATAL_ABORT					-2			// FATAL, caller should ABORT program
-#define RGF_NO_INPUT						0				// No user input to process
-#define RGF_HIT_CHANGELEVEL			-3			// Player avatar hit a change-level entity
-#define RGF_NOT_FOUND						-4			// Something not located
-#define RGF_NO_NEXT							-5			// No next something
-#define RGF_NO_PREVIOUS					-6			// No previous something
-#define RGF_NO_FREE_SPACE				-7			// No free space for action
-#define RGF_EMPTY						-8
-#define RGF_RECHECK						-9
+#define	RGF_SUCCESS				1		// Successful result
+#define RGF_FAILURE				0		// Failure
+#define RGF_UNIMPLEMENTED		-1		// Not implemented
+#define RGF_FATAL_ABORT			-2		// FATAL, caller should ABORT program
+#define RGF_NO_INPUT			0		// No user input to process
+#define RGF_HIT_CHANGELEVEL		-3		// Player avatar hit a change-level entity
+#define RGF_NOT_FOUND			-4		// Something not located
+#define RGF_NO_NEXT				-5		// No next something
+#define RGF_NO_PREVIOUS			-6		// No previous something
+#define RGF_NO_FREE_SPACE		-7		// No free space for action
+#define RGF_EMPTY				-8
+#define RGF_RECHECK				-9
 
 //	RGF collision codes
 
-#define RGF_NO_COLLISION			0x0000 		// No collision
-#define RGF_COLLIDE_AABB			0x0001 		// Bounding box collision
-#define RGF_COLLIDE_ACTOR			0x0002 		// Actor collision
-#define RGF_COLLIDE_MODEL			0x0004 		// Model collision
-#define RGF_COLLIDE_MESH			0x0008 		// Mesh collision
-#define RGF_COLLIDE_CONTENTS	0x000e		// Collide w/ contents
+#define RGF_NO_COLLISION		0x0000 	// No collision
+#define RGF_COLLIDE_AABB		0x0001 	// Bounding box collision
+#define RGF_COLLIDE_ACTOR		0x0002 	// Actor collision
+#define RGF_COLLIDE_MODEL		0x0004 	// Model collision
+#define RGF_COLLIDE_MESH		0x0008 	// Mesh collision
+#define RGF_COLLIDE_CONTENTS	0x000e	// Collide w/ contents
 
-#define RGF_COLLISIONLEVEL_1	0x0001		// AABB, total actor only
-#define RGF_COLLISIONLEVEL_2	0x0002		// AABB, at the bone level
+#define RGF_COLLISIONLEVEL_1	0x0001	// AABB, total actor only
+#define RGF_COLLISIONLEVEL_2	0x0002	// AABB, at the bone level
 
 //	RGF key codes
 
-typedef enum 
+typedef enum
 {
 	RGF_K_FORWARD = 1,
 	RGF_K_BACKWARD,
@@ -184,7 +187,7 @@ typedef enum
 	KEY_COMMA,
 	KEY_APOSTROPHE,
 // start Multiplayer
-	KEY_NUMPAD0 , 
+	KEY_NUMPAD0 ,
 	KEY_NUMPAD1 ,
 	KEY_NUMPAD2 ,
 	KEY_NUMPAD3 ,
@@ -202,24 +205,24 @@ typedef enum
 
 //	RGF model types
 
-#define RGF_NOT_A_MODEL		0x0000		// Model unknown to us
-#define RGF_MODEL_DOOR		 0x0001		// Model is a door
-#define RGF_MODEL_PLATFORM	  0x0002		// Model is a platform
-#define RGF_MODEL_DOORTRIGGER 0x0003		// Model is a door trigger
-#define RGF_MODEL_TELEPORTER  0x0004		// Model is a teleporter
-#define RGF_MODEL_TPTARGET    0x0005		// Model is a teleport target
-#define RGF_MODEL_PTTRIGGER   0x0006		// Model is a platform trigger
-#define RGF_MODEL_ACT_STATIC  0x0007		// Model is a static actor
-#define RGF_MODEL_ACT_MOVING  0x0008		// Model is a moving actor
-#define RGF_MODEL_NPC         0x0009		// Model is a non-player character
+#define RGF_NOT_A_MODEL			0x0000		// Model unknown to us
+#define RGF_MODEL_DOOR			0x0001		// Model is a door
+#define RGF_MODEL_PLATFORM		0x0002		// Model is a platform
+#define RGF_MODEL_DOORTRIGGER	0x0003		// Model is a door trigger
+#define RGF_MODEL_TELEPORTER	0x0004		// Model is a teleporter
+#define RGF_MODEL_TPTARGET		0x0005		// Model is a teleport target
+#define RGF_MODEL_PTTRIGGER		0x0006		// Model is a platform trigger
+#define RGF_MODEL_ACT_STATIC	0x0007		// Model is a static actor
+#define RGF_MODEL_ACT_MOVING	0x0008		// Model is a moving actor
+#define RGF_MODEL_NPC			0x0009		// Model is a non-player character
 
 //	RGF attribute compare values
 
-#define	RGF_ATTR_EQUAL				0x0001		// Equal to
-#define	RGF_ATTR_LESS					0x0002		// Less than
-#define RGF_ATTR_GREATER			0x0003		// Greater than
-#define	RGF_ATTR_NOTEQUAL			0x0004		// Not equal
-#define RGF_ATTR_LESSEQ				0x0005		// Less than or equal to
+#define	RGF_ATTR_EQUAL			0x0001		// Equal to
+#define	RGF_ATTR_LESS			0x0002		// Less than
+#define RGF_ATTR_GREATER		0x0003		// Greater than
+#define	RGF_ATTR_NOTEQUAL		0x0004		// Not equal
+#define RGF_ATTR_LESSEQ			0x0005		// Less than or equal to
 #define	RGF_ATTR_GREATEREQ		0x0006		// Greater than or equal to
 
 //	RGF pathpoint types
@@ -229,3 +232,5 @@ typedef enum
 #define RGF_POINT_TYPE_RANGED	0x0002		// Ranged point
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

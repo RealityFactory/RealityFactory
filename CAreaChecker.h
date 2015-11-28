@@ -1,3 +1,9 @@
+/****************************************************************************************/
+/*																						*/
+/*	CAreaChecker.h																		*/
+/*																						*/
+/****************************************************************************************/
+
 #ifndef __RGF_CAREACHECK_H_
 #define __RGF_CAREACHECK_H_
 
@@ -8,10 +14,15 @@
 class CAreaChecker : public CRGFComponent
 {
 public:
-  CAreaChecker();
-  ~CAreaChecker();
-  bool IsCloseEnough(geVec3d Pos1, geVec3d Pos2,float diameter);
-  void Tick(float dwTicks);
+	CAreaChecker();
+	~CAreaChecker();
+
+	void Tick(float dwTicks);
+
+private:
+	bool IsCloseEnough(const geVec3d &Pos1, const geVec3d &pPos2, float diameter);
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

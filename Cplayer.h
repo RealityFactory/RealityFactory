@@ -1,16 +1,20 @@
-/*
-CPlayer.h:		Player character encapsulation class
+/****************************************************************************************/
+/*																						*/
+/*	CPlayer.h:		Player character encapsulation class								*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declaration for the player								*/
+/*	character (avatar) in an RGF-based game.											*/
+/*																						*/
+/****************************************************************************************/
 
-  (c) 2001 Ralph Deane
-  
-	This file contains the class declaration for the player
-	character (avatar) in an RGF-based game.
-*/
 
 #ifndef __RGF_CPLAYER_H__
 #define __RGF_CPLAYER_H__
 
-enum {
+enum
+{
 	IDLE = 0,
 	WALK,
 	RUN,
@@ -110,7 +114,8 @@ enum {
 };
 
 // changed RF064
-enum {
+enum
+{
 	I2WALKTIME = 0,
 	I2RUNTIME,
 	W2IDLETIME,
@@ -138,6 +143,7 @@ enum {
 	TRANSMAX
 };
 // end change RF064
+
 
 #define ANIMIDLE				CCD->Weapons()->PlayerAnim(IDLE)
 #define ANIMWALK				CCD->Weapons()->PlayerAnim(WALK)
@@ -276,288 +282,286 @@ class CPlayer
 public:
 	CPlayer();
 	~CPlayer();
-	int LoadAvatar(char *szFile);	// Load player character avatar
+
+// changed QD 12/15/05
+	//int LoadAvatar(char *szFile);			// Load player character avatar
+	int LoadAvatar(char *szFile,char *Name);// Load player character avatar
+// end change
 	int LoadConfiguration();
 	// Load player configuration from PlayerSetup entity
-	int LoadEnvironmentalAudio();	// Load sounds for player movement
-	int MoveToStart();	// Move player to start
-	void CheckMouseLook();				// Process mouse-look
-	void CheckKeyLook(int keyrotate);	// Process key-look update #2
+	int LoadEnvironmentalAudio();			// Load sounds for player movement
+	int MoveToStart();						// Move player to start
+
+	void CheckMouseLook();					// Process mouse-look
+	void CheckKeyLook(int keyrotate);		// Process key-look update #2
+
 	int ProcessMove(bool bPlayerMoved);		// Move player character
 	int Move(int nHow, geFloat fSpeed);
-	void StartJump();							// Initiate a jump
-	void SwitchCamera(int mode);
+	void StartJump();						// Initiate a jump
+
 	void Tick(geFloat dwTicks);
-	geXForm3d ViewPoint();				// Return players viewpoint
-	void GetExtBoxWS(geExtBox *theBox);	// Get ExtBox in worldspace
-	void GetIn(geVec3d *In);			// Get actors heading
+
+	geXForm3d ViewPoint();					// Return players viewpoint
+	void GetExtBoxWS(geExtBox *theBox);		// Get ExtBox in worldspace
+	void GetIn(geVec3d *In);				// Get actors heading
 	void GetLeft(geVec3d *Left);
-	int SaveTo(FILE *SaveFD);	// Save player
+
+	int SaveTo(FILE *SaveFD);				// Save player
 	int SaveAttributesAscii(char *szSaveFile);
-	int RestoreFrom(FILE *RestoreFD);	// Load player
-	void LookMode(bool bLookOn);	// Set/unset third-person lookmode
-	void SwitchToFirstPerson();	// First-person mode
-	void SwitchToThirdPerson();	// Third-person mode
-	int SaveAttributes(char *szSaveFile);			// Save inventory and attributes
-	int LoadAttributes(char *szSaveFile);			// Load inventory and attributes
-	void Backtrack();										// Force player to previous position in
-	// ..position history
+	int RestoreFrom(FILE *RestoreFD);		// Load player
+
+	void SwitchCamera(int mode);
+	void LookMode(bool bLookOn);			// Set/unset third-person lookmode
+	void SwitchToFirstPerson();				// First-person mode
+	void SwitchToThirdPerson();				// Third-person mode
+
+	int SaveAttributes(char *szSaveFile);	// Save inventory and attributes
+	int LoadAttributes(char *szSaveFile);	// Load inventory and attributes
+
+	void Backtrack();						// Force player to previous position in position history
+
 	void ShowFog();							// Activate fog, if used
-	void DisableFog();					// Unconditionally disable fog
-	void ActivateClipPlane();		// Activate clip plane, if used
-	void DisableClipPlane();		// Unconditionally disable clip plane
+	void DisableFog();						// Unconditionally disable fog
+
+	void ActivateClipPlane();				// Activate clip plane, if used
+	void DisableClipPlane();				// Unconditionally disable clip plane
+
 	bool DoMovements(void);
 	void UseItem();
 	char *GetDieAnim();
 	char *GetInjuryAnim();
-	
+
 	void SetCrouch(bool value);
-	bool GetCrouch()
-	{ return m_crouch; }
-	void FlipCrouch()
-	{ m_crouch = !m_crouch; }
-	void Moving(int nValue)
-	{ m_Moving = nValue; }
-	int GetSlideWalk()
-	{ return m_SlideWalk; }
-	void SetSlideWalk(int value)
-	{ m_SlideWalk = value; }
-	int GetMoving()
-	{ return m_Moving; }  
-	geFloat Speed()
-	{ return m_CurrentSpeed;}					// Get player speed
-	geVec3d Position(); 
-	geFloat LastMovementSpeed()
-	{ return m_LastMovementSpeed;}
-	bool InFirstPerson()
-	{ return m_FirstPersonView;}
-	bool FirstPersonView()
-	{ return m_FirstPersonView;}
+	bool GetCrouch()					{ return m_crouch;				}
+	void FlipCrouch()					{ m_crouch = !m_crouch;			}
+	void Moving(int nValue)				{ m_Moving = nValue;			}
+	int GetSlideWalk()					{ return m_SlideWalk;			}
+	void SetSlideWalk(int value)		{ m_SlideWalk = value;			}
+	int GetMoving()						{ return m_Moving;				}
+	geFloat Speed()						{ return m_CurrentSpeed;		}	// Get player speed
+	geVec3d Position();
+	geFloat LastMovementSpeed()			{ return m_LastMovementSpeed;	}
+	bool InFirstPerson()				{ return m_FirstPersonView;		}
+	bool FirstPersonView()				{ return m_FirstPersonView;		}
 	// Weapon
-	geActor	*GetActor()
-	{ return Actor; }
-	geFloat GetGravity()
-	{ return m_Gravity;}
-	int GetViewPoint() 
-	{ return m_PlayerViewPoint; }
-	EnvironmentSetup *GetEnvSetup()
-	{ return EnvSetup; }
-	int LastDirection()
-	{ return m_lastdirection; }
-	bool GetAlive()
-	{ return Alive; }
-	void SetAlive(bool flag)
-	{ Alive = flag; }
-	void SetRunning(geBoolean Running)
-	{ m_Running = Running; }
-	void FlipRunning()
-	{ m_Running = !m_Running; }
-	void SetJumping(geBoolean Jumping)
-	{ m_Jumping = Jumping; }
-	char *GetAnimations(int index)
-	{ return Animations[index]; }
-	bool GetDying()
-	{ return Dying; }
-	void FlipLight()
-	{ lighton = !lighton; }
+	geActor	*GetActor()					{ return Actor;					}
+	geFloat GetGravity()				{ return m_Gravity;				}
+	int GetViewPoint()					{ return m_PlayerViewPoint;		}
+	EnvironmentSetup *GetEnvSetup()		{ return EnvSetup;				}
+	int LastDirection()					{ return m_lastdirection;		}
+	bool GetAlive()						{ return Alive;					}
+	void SetAlive(bool flag)			{ Alive = flag;					}
+	void SetRunning(geBoolean Running)	{ m_Running = Running;			}
+	void FlipRunning()					{ m_Running = !m_Running;		}
+	void SetJumping(geBoolean Jumping)	{ m_Jumping = Jumping;			}
+	char *GetAnimations(int index)		{ return Animations[index];		}
+	bool GetDying()						{ return Dying;					}
+	void FlipLight()					{ lighton = !lighton;			}
 // changed RF063
 // changed RF064
 	bool GetUseAttribute(char *Attr);
 	bool SetUseAttribute(char *Attr);
 	bool DelUseAttribute(char *Attr);
-	bool GetMonitorState()
-	{ return monitorstate; }
-	bool GetMonitorMode()
-	{ return monitormode; }
-	bool GetDeathSpace()
-	{ return deathspace; }
-	int GetMirror()
-	{ return mirror; }
-	bool GetAlterKey()
-	{ return alterkey; }
-	bool GetRestoreOxy()
-	{ return restoreoxy; }
-	void SetRestoreOxy(bool flag)
-	{ restoreoxy = flag; }
-	int GetHeadBobbing()
-	{ return HeadBobbing; }
-	bool GetContinue()
-	{ return ContinueAfterDeath; }
+
+	bool GetMonitorState()			{ return monitorstate;			}
+	bool GetMonitorMode()			{ return monitormode;			}
+	bool GetDeathSpace()			{ return deathspace;			}
+	int GetMirror()					{ return mirror;				}
+	bool GetAlterKey()				{ return alterkey;				}
+	bool GetRestoreOxy()			{ return restoreoxy;			}
+	void SetRestoreOxy(bool flag)	{ restoreoxy = flag;			}
+	int GetHeadBobbing()			{ return HeadBobbing;			}
+	bool GetContinue()				{ return ContinueAfterDeath;	}
 // end change RF064
-	int LightValue()
-	{ return (int)CurrentLiteLife; }
-	int LightLife()
-	{ return (int)LiteLife; }
+	int LightValue()				{ return (int)CurrentLiteLife;	}
+	int LightLife()					{ return (int)LiteLife;			}
 	void ModifyLight(int amount);
-	float GetScale()
-	{ return m_Scale; }
-	float GetHeight()
-	{ return m_CurrentHeight; }
-	int PlayerViewPoint()
-	{ return m_PlayerViewPoint;}
-	float GetSlideSlope()
-	{ return slideslope; }
-	float GetSlideSpeed()
-	{ return slidespeed; }
+	float GetScale()				{ return m_Scale;				}
+	float GetHeight()				{ return m_CurrentHeight;		}
+	int PlayerViewPoint()			{ return m_PlayerViewPoint;		}
+	float GetSlideSlope()			{ return slideslope;			}
+	float GetSlideSpeed()			{ return slidespeed;			}
 // end change RF063
+// changed QD 12/15/05
 // start multiplayer
-	char *GetPlayerName()
-	{ return PlayerName; }
+	char *GetActorName()			{ return ActorName;				}
 // end multiplayer
-void AddPosition();						// Add current position to position history
+	void SetPlayerName(const char *Name);
+	char *GetPlayerName()			{ return m_PlayerName;			}
+// end change
+	void AddPosition();				// Add current position to position history
+
 private:
 	geSound_Def *LoadAudioClip(char *szFilename);		// Load audio clip
 	void SetJump();
-	
-	int m_PlayerViewPoint;				// 0=first-person, 1=third-person
-	bool m_JumpActive;						// Player is jumping
-	bool m_FirstPersonView;				// Player in first-person view
-	bool m_LookMode;							// TRUE if in third-person "look mode"
-	int m_Moving;									// Non-zero if in third-person and moving
-	geBoolean	m_Running;			//Demande de course
-	geBoolean	m_Jumping;			//Demande de saut
-	geFloat m_JumpSpeed;						// Speed of jump
-	geFloat m_CurrentHeight;				// Player current height (mod if crouching)
-	geFloat m_CurrentSpeed;					// Player current speed
-	geFloat m_CoeffSpeed;
-	geFloat m_Speed;								// Player normal speed
-	geFloat m_StepHeight;						// Max. step-up height
-	geVec3d m_Translation;				// Actor translation
-	geActor	*Actor;								// Genesis actor for player
-	geFloat m_Gravity;						// Current gravity level
-	geFloat m_LastMovementSpeed;		// Velocity of our last motion
-	CPersistentAttributes *m_Attr;	// Player attributes
-	geVec3d m_PositionHistory[50];	// Last 50 places the player was
-	int m_PositionHistoryPtr;			// Pointer into position history array
-	geSound_Def *DefaultMotion[3];			// Default motion sound
-	geSound *DefaultMotionHandle;		// Default motion sound handle
-	geSound_Def *Contents[16][3];			// Sounds for each 'environment type'
-	geSound *ContentsHandles[16];		// Sound handles for each 'environment type'
-	geFloat m_Scale;									// Actor scale factor
-	bool m_FogActive;								// This player gets fog
-	bool m_ClipActive;							// This player gets far-plane clipping
 
-	int m_SlideWalk;
-	bool m_crouch;
-	bool m_oldcrouch;
-	bool m_run;
-	float m_HeadBobSpeed;			// eaa3 12/18/2000 Speed of head bob
-	float m_HeadBobLimit;			// eaa3 12/18/2000 Max. amount of head bob
-	
-	int LookFlags;
-	geVec3d LookRotation;
-	geVec3d LookPosition;
+private:
+	int			m_PlayerViewPoint;		// 0=first-person, 1=third-person
+	bool		m_JumpActive;			// Player is jumping
+	bool		m_FirstPersonView;		// Player in first-person view
+	bool		m_LookMode;				// TRUE if in third-person "look mode"
+	int			m_Moving;				// Non-zero if in third-person and moving
+	geBoolean	m_Running;				// Demande de course
+	geBoolean	m_Jumping;				// Demande de saut
+	geFloat		m_JumpSpeed;			// Speed of jump
+	geFloat		m_CurrentHeight;		// Player current height (mod if crouching)
+	geFloat		m_CurrentSpeed;			// Player current speed
+	geFloat		m_CoeffSpeed;
+	geFloat		m_Speed;				// Player normal speed
+	geFloat		m_StepHeight;			// Max. step-up height
+	geVec3d		m_Translation;			// Actor translation
+	geActor		*Actor;					// Genesis actor for player
+	geFloat		m_Gravity;				// Current gravity level
+	geFloat		m_LastMovementSpeed;	// Velocity of our last motion
+	CPersistentAttributes *m_Attr;		// Player attributes
+	geVec3d		m_PositionHistory[50];	// Last 50 places the player was
+	int			m_PositionHistoryPtr;	// Pointer into position history array
+	geSound_Def *DefaultMotion[3];		// Default motion sound
+	geSound		*DefaultMotionHandle;	// Default motion sound handle
+	geSound_Def *Contents[16][3];		// Sounds for each 'environment type'
+	geSound		*ContentsHandles[16];	// Sound handles for each 'environment type'
+	geFloat		m_Scale;				// Actor scale factor
+	bool		m_FogActive;			// This player gets fog
+	bool		m_ClipActive;			// This player gets far-plane clipping
+
+	int			m_SlideWalk;
+	bool		m_crouch;
+	bool		m_oldcrouch;
+	bool		m_run;
+
+	float		m_HeadBobSpeed;			// eaa3 12/18/2000 Speed of head bob
+	float		m_HeadBobLimit;			// eaa3 12/18/2000 Max. amount of head bob
+
+	int			LookFlags;
+	geVec3d		LookRotation;
+	geVec3d		LookPosition;
 	EnvironmentSetup *EnvSetup;
-	int m_lastdirection;
-	bool Alive;
-	bool RealJumping;
-	bool lightactive;
-	bool lighton;
-	int lighteffect;
-// changed QuestOfDreams
-	bool	LiteSpot;
-	geFloat LiteArc;
-	geVec3d LiteOffset;
-	int LiteStyle;
-// end change QuestOfDreams
-	geFloat LiteRadiusMin;
-	geFloat LiteRadiusMax;
-	GE_RGBA LiteColorMin;
-	GE_RGBA LiteColorMax;
-	geFloat LiteIntensity;
-	geFloat LiteLife;
-	geFloat CurrentLiteLife;
-	bool DecayLite;
-	geFloat LiteDecay;
-	geFloat CurrentLiteDecay;
-	geFloat LiteTime;
-	geFloat LiteDecayTime;
-	char LiteBone[64];
-	char StaminaName[64];
-	geFloat StaminaDelay;
-	geFloat StaminaTime;
+	int			m_lastdirection;
+	bool		Alive;
+	bool		RealJumping;
+
+	bool		lightactive;
+	bool		lighton;
+	int			lighteffect;
+// changed QD
+	bool		LiteSpot;
+	geFloat		LiteArc;
+	geVec3d		LiteOffset;
+	int			LiteStyle;
+// end change QD
+	geFloat		LiteRadiusMin;
+	geFloat		LiteRadiusMax;
+	GE_RGBA		LiteColorMin;
+	GE_RGBA		LiteColorMax;
+	geFloat		LiteIntensity;
+	geFloat		LiteLife;
+	geFloat		CurrentLiteLife;
+	bool		DecayLite;
+	geFloat		LiteDecay;
+	geFloat		CurrentLiteDecay;
+	geFloat		LiteTime;
+	geFloat		LiteDecayTime;
+	char		LiteBone[64];
+
+	char		StaminaName[64];
+	geFloat		StaminaDelay;
+	geFloat		StaminaTime;
 // changed RF064
-	char StaminaName1[20][64];
-	geFloat StaminaDelay1[20];
-	geFloat StaminaTime1[20];
+	char		StaminaName1[20][64];
+	geFloat		StaminaDelay1[20];
+	geFloat		StaminaTime1[20];
 // end change RF064
+
 	bool Allow3rdLook;
 	char Animations[ANIMMAX][64];
-	int LastHealth;
-	bool Injured;
-	bool Dying;
-	char DieAnim[5][64];
-	int DieAnimAmt;
-	char InjuryAnim[5][64];
-	int InjuryAnimAmt;
-	char LastMotion[64];
+
+	int			LastHealth;
+	bool		Injured;
+	bool		Dying;
+	char		DieAnim[5][64];
+	int			DieAnimAmt;
+	char		InjuryAnim[5][64];
+	int			InjuryAnimAmt;
+	char		LastMotion[64];
+
 	geSound_Def *DieSound[5];
-	int DieSoundAmt;
+	int			DieSoundAmt;
+
 	geSound_Def *InjurySound[5];
-	int InjurySoundAmt;
+	int			InjurySoundAmt;
+
 	geSound_Def *LandSound[5];
-	int LandSoundAmt;
-	bool Falling;
-	bool OldFalling;
-	bool FallInjure;
-	geVec3d FallStart;
-	float MinFallDist;
-	float MaxFallDist;
-	float FallDamage;
-	GE_RGBA	FillColor;
-	GE_RGBA	AmbientColor;
+	int			LandSoundAmt;
+
+	bool		Falling;
+	bool		OldFalling;
+	bool		FallInjure;
+	geVec3d		FallStart;
+	float		MinFallDist;
+	float		MaxFallDist;
+	float		FallDamage;
+
+	GE_RGBA		FillColor;
+	GE_RGBA		AmbientColor;
 // changed QD 07/21/04
-	geBoolean AmbientLightFromFloor;
+	geBoolean	AmbientLightFromFloor;
 // end change
-	geBoolean EnvironmentMapping;
-	geBoolean AllMaterial;
-	geFloat PercentMapping;
-	geFloat PercentMaterial;
+	geBoolean	EnvironmentMapping;
+	geBoolean	AllMaterial;
+	geFloat		PercentMapping;
+	geFloat		PercentMaterial;
 // changed RF063
-	float UseRange;
+	float		UseRange;
 // changed RF064
-	char UseAttribute[10][64];
+	char		UseAttribute[10][64];
 // end change RF064
-	float BoxWidth;
-	float LiquidTime;
-	int InLiquid;
-	int SwimSound;
-	int SurfaceSound;
-	int InLiquidSound;
-// changed QuestOfDreams 01/2004
-	bool OnLadder;
+	float		BoxWidth;
+	float		LiquidTime;
+	int			InLiquid;
+	int			SwimSound;
+	int			SurfaceSound;
+	int			InLiquidSound;
+// changed QD 01/2004
+	bool		OnLadder;
 // end change
 // end change RF063
+// changed QD 12/15/05
 // start multiplayer
-	char PlayerName[50];
+	char		ActorName[50];
 // end multiplayer
+	char		m_PlayerName[64];
+// end change
 // changed RF064
-	char FallDamageAttr[64];
-	float TranTime[TRANSMAX];
-	bool alwaysrun;
-	bool nocrouchjump;
-	int mirror;
-	float MinJumpOnDist;
-	float MaxJumpOnDist;
-	float JumpOnDamage;
-	char JumpOnDamageAttr[64];
-	bool LockView;
-	bool monitorstate;
-	bool monitormode;
-	bool alterkey;
-	bool restoreoxy;
-	char ChangeMaterial[64];
-	bool HeadBobbing;
-	bool ContinueAfterDeath;
-	bool deathspace;
-	float slideslope;
-	float slidespeed;
-	bool firstframe;
-	char szCDTrack[64];
-	char szMIDIFile[64];
-	char szStreamingAudio[64];
-	bool bSoundtrackLoops;
+	char		FallDamageAttr[64];
+	float		TranTime[TRANSMAX];
+	bool		alwaysrun;
+	bool		nocrouchjump;
+	int			mirror;
+
+	float		MinJumpOnDist;
+	float		MaxJumpOnDist;
+	float		JumpOnDamage;
+	char		JumpOnDamageAttr[64];
+
+	bool		LockView;
+	bool		monitorstate;
+	bool		monitormode;
+	bool		alterkey;
+	bool		restoreoxy;
+	char		ChangeMaterial[64];
+	bool		HeadBobbing;
+	bool		ContinueAfterDeath;
+	bool		deathspace;
+	float		slideslope;
+	float		slidespeed;
+	bool		firstframe;
+	char		szCDTrack[64];
+	char		szMIDIFile[64];
+	char		szStreamingAudio[64];
+	bool		bSoundtrackLoops;
 // end change RF064
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

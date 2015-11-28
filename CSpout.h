@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CSpout.h:			CSpout & CActorSpout class										*/
+/*																						*/
+/****************************************************************************************/
 
 
 #ifndef __RGF_CSPOUT_H_
@@ -11,12 +16,13 @@
 class CSpout : public CRGFComponent
 {
 public:
-  CSpout();
-  ~CSpout();	
-  int Create(Spout *S);
-  void Tick(float dwTicks);
-  int LocateEntity(char *szName, void **pEntityData);
-  int ReSynchronize();
+	CSpout();
+	~CSpout();
+
+	int Create(Spout *S);
+	void Tick(float dwTicks);
+	int LocateEntity(char *szName, void **pEntityData);
+	int ReSynchronize();
 private:
 };
 
@@ -25,14 +31,16 @@ private:
 class CActorSpout : public CRGFComponent
 {
 public:
-  CActorSpout();
-  ~CActorSpout();	
-  int Create(ActorSpout *S);
-  void Tick(float dwTicks);
-  int LocateEntity(char *szName, void **pEntityData);
-  int ReSynchronize();
+	CActorSpout();
+	~CActorSpout();
+
+	int Create(ActorSpout *S);
+	void Tick(float dwTicks);
+	int LocateEntity(char *szName, void **pEntityData);
+	int ReSynchronize();
 private:
 };
 
 #endif
 
+/* ----------------------------------- END OF FILE ------------------------------------ */

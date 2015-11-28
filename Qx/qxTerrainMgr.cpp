@@ -34,7 +34,7 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 
-TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //change simkin
+TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName, CCD->GetskContext()) //change simkin
 {
 	Order[0] = '\0';
 	ElapseTime = 0.0f;
@@ -417,14 +417,14 @@ bool qxTerrainMgr::Init()
 {
 	geEntity_EntitySet* lEntitySet;
 	geEntity* lEntity;
-	
+
 	lEntitySet = geWorld_GetEntitySet(CCD->World(), "SkyDome");
-	
+
 	if(lEntitySet != NULL)
 	{
 		lEntity = geEntity_EntitySetGetNextEntity(lEntitySet, NULL);
 		if(lEntity)
-		{	
+		{
 			SkyDome *pSource = (SkyDome*)geEntity_GetUserData(lEntity);
 
 			if(!pSource->Enable)
@@ -480,7 +480,7 @@ bool qxTerrainMgr::Init()
 					sprintf(szBug, "Script Error for SkyDome script");
 					CCD->ReportError(szBug, false);
 					return false;
-				} 
+				}
 				if(!EffectC_IsStringNull(pSource->InitOrder))
 				{
 					skRValueArray args;//change simkin
@@ -532,59 +532,59 @@ bool qxTerrainMgr::Init()
 
 			Def.m_nFarPlane = 9999999;
 
-			m_pSkyDome = new qxSkyDome(	Def, (int)fSkyLengthHeight, (float)SkyMaxHeight, 
+			m_pSkyDome = new qxSkyDome(	Def, (int)fSkyLengthHeight, (float)SkyMaxHeight,
 				fScaleXZ);
-			
+
 			if( !m_pSkyDome->Init() )
 			{
 				char szError[256];
-				sprintf(szError,"Can't initialize SkyDome");
+				sprintf(szError, "Failed to initialize SkyDome");
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
 				CCD = NULL;
-				MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+				MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 				exit(-333);
 			}
-			
+
 			if(AllowSun)
 			{
 				m_pSun = new qxSun;
 				if( !m_pSun->Init())
 				{
 					char szError[256];
-					sprintf(szError,"Can't initialize Sun");
+					sprintf(szError, "Failed to initialize Sun");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
-				
+
 				m_pMoon = new qxMoon;
 				if( !m_pMoon->Init())
 				{
 					char szError[256];
-					sprintf(szError,"Can't initialize Moon");
+					sprintf(szError, "Failed to initialize Moon");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
-				
+
 				m_pStarField = new qxStarField;
 				if( !m_pStarField->Init())
 				{
 					char szError[256];
-					sprintf(szError,"Can't initialize Stars");
+					sprintf(szError, "Failed to initialize Stars");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 			}
@@ -595,12 +595,12 @@ bool qxTerrainMgr::Init()
 				if( !m_pCloudMachine->Init())
 				{
 					char szError[256];
-					sprintf(szError,"Can't initialize Clouds");
+					sprintf(szError, "Failed to initialize Clouds");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError,"Terrain Manager", MB_OK);
+					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 				m_pCloudMachine->DoWhiteFluffy();
@@ -639,7 +639,7 @@ void qxTerrainMgr::Shutdown()
 	}
 
 	m_pMaps.RemoveAll();
-	
+
 
 	delete m_pqxPolyPool;
 	delete m_pqxVertPool;
@@ -811,7 +811,7 @@ bool qxTerrainMgr::Frame()
 
 	if( m_pMoon )
 		m_pMoon->Frame();
-		
+
 	if( m_pStarField )
 		m_pStarField->Frame();
 
@@ -845,7 +845,7 @@ bool qxTerrainMgr::Render()
 
 	if( m_bRenderLandscape)
 	{
-		
+
 		if(!m_bRenderWireframe)
 		{
 			for( int i = 0; i < m_pMaps.GetSize(); i++)
@@ -855,7 +855,7 @@ bool qxTerrainMgr::Render()
 			}
 		}
 
-		else 
+		else
 		{
 			for( int i = 0; i < m_pMaps.GetSize(); i++)
 			{
@@ -863,8 +863,8 @@ bool qxTerrainMgr::Render()
 				p->RenderWireframe();
 			}
 		}
-		
-		
+
+
 	}
 
 	return true;
@@ -905,15 +905,15 @@ void qxTerrainMgr::PolyCountRaise()
 
 void qxTerrainMgr::PolyCountLower()
 {
-	
+
 	m_nDesiredTriangles -= m_nPolyIncrement;
-	
+
 	if(m_nDesiredTriangles < 0)
 		m_nDesiredTriangles = m_nPolyIncrement;
 }
 void qxTerrainMgr::DistanceDetailLower()
 {
-	
+
 	if(m_nDistanceDetail > 1)
 		m_nDistanceDetail--;
 }
@@ -922,13 +922,13 @@ void qxTerrainMgr::DistanceDetailRaise()
 {
 	if( m_nDistanceDetail == MAX_DISTANCE_DETAIL)
 		return;
-	
+
 	m_nDistanceDetail++;
 }
 
 void qxTerrainMgr::ToggleRenderWireframe()
 {
-	m_bRenderWireframe = !m_bRenderWireframe; 
+	m_bRenderWireframe = !m_bRenderWireframe;
 }
 
 
@@ -941,7 +941,7 @@ qxTerrainMapBase* qxTerrainMgr::GetEastNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX, OffsetZ+1);
 
 }
@@ -950,7 +950,7 @@ qxTerrainMapBase* qxTerrainMgr::GetWestNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX, OffsetZ-1);
 
 }
@@ -958,7 +958,7 @@ qxTerrainMapBase* qxTerrainMgr::GetNorthNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX+1, OffsetZ);
 
 }
@@ -966,7 +966,7 @@ qxTerrainMapBase* qxTerrainMgr::GetSouthNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX-1, OffsetZ);
 
 }
@@ -974,7 +974,7 @@ qxTerrainMapBase* qxTerrainMgr::GetNorthWestNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX+1, OffsetZ-1);
 
 }
@@ -982,7 +982,7 @@ qxTerrainMapBase* qxTerrainMgr::GetNorthEastNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX+1, OffsetZ+1);
 
 }
@@ -990,7 +990,7 @@ qxTerrainMapBase* qxTerrainMgr::GetSouthEastNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX-1, OffsetZ+1);
 
 }
@@ -998,7 +998,7 @@ qxTerrainMapBase* qxTerrainMgr::GetSouthWestNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
-	
+
 	return GetMap(OffsetX-1, OffsetZ-1);
 
 }
@@ -1007,7 +1007,7 @@ void qxTerrainMgr::SetEarthAxis(  )
 {
 	int nSeconds = (int)TerrainTime;
 	float RotateY = RADIANS( .0041667f * nSeconds );
-	
+
 	geXForm3d_SetIdentity(&m_matEarthRotation);
 
 	float RotateX  = m_fPlayerLatitudeRotation;
@@ -1067,11 +1067,11 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = CCD->TerrainMgr()->GetFarPlane();
 
 	qxTerrainMapBase* pMap = 0;
-	
+
 	switch( TerrainDef.m_eType )
 	{
 	case TT_LAND:
-		pMap	= (qxTerrainMapBase*) new qxTerrainMap(	TerrainDef );  
+		pMap	= (qxTerrainMapBase*) new qxTerrainMap(	TerrainDef );
 		break;
 
 	default:
@@ -1080,7 +1080,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	}
 
 	QXASSERT( pMap );
-	
+
 	if( !pMap->Init())
 		return false;
 
@@ -1131,9 +1131,9 @@ void qxTerrainMgr::UpdateFog()
 }
 
 float qxTerrainMgr::GetSunPercentToZenith()
-{  
+{
 	if(m_pSun)
-		return m_pSun->GetPercentToZenith(); 
+		return m_pSun->GetPercentToZenith();
 	else
 		return 1.0f;
 }
@@ -1143,14 +1143,14 @@ void qxTerrainMgr::UpdateTwilightPercent()
 	// -1.0 midnight, 1.0 noon
 	float fSunPercentToZenith = GetSunPercentToZenith();
 
-	// distance above and below horizon 
+	// distance above and below horizon
 	float fTwilightDist = GetTwilightDistanceFromHorizon();
 
 	// Twilight distance is 0.0 to 1.0
 	m_fTwilightPercent = (fSunPercentToZenith+fTwilightDist)/ (fTwilightDist*2.0f) ;
 	m_fTwilightPercent = GE_CLAMP(m_fTwilightPercent, 0.0f, 1.0f);
 
-	
+
 }
 
 //

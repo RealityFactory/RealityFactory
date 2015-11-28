@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	ProcUtil.h		utility fanctions for procedurals									*/
+/*																						*/
+/****************************************************************************************/
 
 #include "genesis.h"
 #include <ram.h>
@@ -15,10 +20,13 @@
 #ifndef __RGF_PROCUTIL_H_
 #define __RGF_PROCUTIL_H_
 
-geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo,void *FmBits,void *ToBits,int radius,geBoolean wrap);
-geBoolean geBitmapUtil_SetColor(geBitmap *Bmp,int R,int G,int B,int A);
-geBoolean ProcUtil_SetPaletteFromString(geBitmap * Bitmap,char ** pParams);
-void ProcUtil_Randomize( void );
-uint32 ProcUtil_Rand( uint32 max );
+geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo,void *FmBits,
+								  void *ToBits, int radius, geBoolean wrap);
+geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A);
+geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap,char **pParams);
+void ProcUtil_Randomize(void);
+uint32 ProcUtil_Rand(uint32 max);
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

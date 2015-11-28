@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CFlame.h:		CFlame class implementation											*/
+/*																						*/
+/****************************************************************************************/
 
 
 #ifndef __RGF_CFLAME_H_
@@ -11,16 +16,19 @@
 class CFlame : public CRGFComponent
 {
 public:
-  CFlame();
-  ~CFlame();	
-  void Tick(float dwTicks);
-  int LocateEntity(char *szName, void **pEntityData);
-  int ReSynchronize();
+	CFlame();
+	~CFlame();
+
+	void Tick(float dwTicks);
+	int LocateEntity(char *szName, void **pEntityData);
+	int ReSynchronize();
+
 private:
-  int CreateS(Flame *S);
-  int CreateG(Flame *S);
+	int CreateS(Flame *S);
+	int CreateG(Flame *S);
 };
 
 
 #endif
 
+/* ----------------------------------- END OF FILE ------------------------------------ */

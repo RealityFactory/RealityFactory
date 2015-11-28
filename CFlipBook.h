@@ -1,4 +1,8 @@
-
+/****************************************************************************************/
+/*																						*/
+/*	CFlipBook.h:	CFlipBook class implementation										*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CFLIP_H_
 #define __RGF_CFLIP_H_
@@ -11,15 +15,18 @@
 class CFlipBook : public CRGFComponent
 {
 public:
-  CFlipBook();
-  ~CFlipBook();	
-  void Tick(float dwTicks);
-  int LocateEntity(char *szName, void **pEntityData);
-  int ReSynchronize();
+	CFlipBook();
+	~CFlipBook();
+
+	void Tick(float dwTicks);
+	int LocateEntity(char *szName, void **pEntityData);
+	int ReSynchronize();
+
 private:
-  int CreateS(FlipBook *S);
+	int CreateS(FlipBook *S);
 };
 
 
 #endif
 
+/* ----------------------------------- END OF FILE ------------------------------------ */

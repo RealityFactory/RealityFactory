@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CArmour.h		CArmour and CLiftBelt class											*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CARMOUR_H_
 #define __RGF_CARMOUR_H_
@@ -7,20 +12,24 @@
 
 typedef struct ArmourType
 {
-	char *Name;
-	char *Attribute;
-	char *DamageBy[MAXDAMAGEBY];
-	int Protection[MAXDAMAGEBY];
-	int DamageTo[MAXDAMAGEBY];
+	char	*Name;
+	char	*Attribute;
+	char	*DamageBy[MAXDAMAGEBY];
+	int		Protection[MAXDAMAGEBY];
+	int		DamageTo[MAXDAMAGEBY];
+
 } ArmourType;
+
 
 class CArmour : public CRGFComponent
 {
 public:
-  CArmour();
-  ~CArmour();
-  void DisableHud(char *Attr);
-  int AdjustDamage(int Amount, char *name, char *Attr);
+	CArmour();
+	~CArmour();
+
+	void DisableHud(char *Attr);
+	int AdjustDamage(int Amount, char *name, char *Attr);
+
 private:
 	ArmourType List[MAXARMOUR];
 	int ListPtr;
@@ -31,15 +40,19 @@ private:
 class CLiftBelt : public CRGFComponent
 {
 public:
-  CLiftBelt();
-  ~CLiftBelt();
-  void Tick(float dwTicks);
-  void ChangeLift(bool increase);
-  void DisableHud(char *Attr);
-  int LocateEntity(char *szName, void **pEntityData);
+	CLiftBelt();
+	~CLiftBelt();
+
+	void Tick(float dwTicks);
+	void ChangeLift(bool increase);
+	void DisableHud(char *Attr);
+	int	LocateEntity(char *szName, void **pEntityData);
+
 private:
-  bool Change;
-  bool Increase;
+	bool Change;
+	bool Increase;
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

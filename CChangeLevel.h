@@ -1,12 +1,14 @@
-/*
-	CChangeLevel.h:		Changelevel class handler
+/****************************************************************************************/
+/*																						*/
+/*	CChangeLevel.h:		Changelevel class handler										*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*	All Rights Reserved																	*/
+/*																						*/
+/*	This file contains the class declaration for ChangeLevel handling.					*/
+/*																						*/
+/****************************************************************************************/
 
-	(c) 2001 Ralph Deane
-	All Rights Reserved
-
-	This file contains the class declaration for ChangeLevel
-handling.
-*/
 
 #ifndef __RGF_CCHANGELEVEL_H_
 #define __RGF_CCHANGELEVEL_H_
@@ -14,15 +16,18 @@ handling.
 class CChangeLevel : public CRGFComponent
 {
 public:
-  CChangeLevel();
-  ~CChangeLevel();
-  void Tick(float dwTicks);
-  bool CheckChangeLevel(geWorld_Model *theModel, bool UseKey);
-  int LocateEntity(char *szName, void **pEntityData);
-  int SaveTo(FILE *SaveFD, bool type);
-  int RestoreFrom(FILE *RestoreFD, bool type);
+	CChangeLevel();
+	~CChangeLevel();
+
+	void Tick(float dwTicks);
+	bool CheckChangeLevel(geWorld_Model *theModel, bool UseKey);
+
+	int LocateEntity(char *szName, void **pEntityData);
+
+	int SaveTo(FILE *SaveFD, bool type);
+	int RestoreFrom(FILE *RestoreFD, bool type);
 };
 
 #endif
 
-// --------------------------------------------------------------------------
+/* ----------------------------------- END OF FILE ------------------------------------ */

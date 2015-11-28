@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CFoliage.h:		CFoliage class implementation										*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CFOLIAGE_H_
 #define __RGF_CFOLIAGE_H_
@@ -10,9 +15,12 @@
 class CFoliage : public CRGFComponent
 {
 public:
-  CFoliage();
-  ~CFoliage();	
-  void Tick(float dwTicks);
+	CFoliage();
+	~CFoliage();
+
+	void Tick(float dwTicks);
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

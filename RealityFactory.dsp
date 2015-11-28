@@ -43,18 +43,19 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /G5 /MD /W3 /GX /Zi /Op /Ob2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
+# ADD CPP /nologo /G5 /MD /W3 /GX /Zi /O2 /Op /Ob2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# SUBTRACT RSC /x
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 genesis.lib strmbase.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\RealityFactory.exe"
+# ADD LINK32 genesis.lib strmbase.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\RealityFactory.exe"
 # SUBTRACT LINK32 /pdb:none /incremental:yes /debug /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
@@ -81,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 genesisd.lib strmbasd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\Debug\RealityFactory.exe" /pdbtype:sept
+# ADD LINK32 genesisd.lib strmbasd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"C:\RealityFactory\RealityFactory.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none /incremental:no
 
 !ENDIF 
@@ -1431,15 +1432,7 @@ SOURCE=.\Utilities.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\mainfram.ico
-# End Source File
-# Begin Source File
-
 SOURCE=.\mjbeesticklesRF.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\rficon.ico
 # End Source File
 # End Group
 # End Target

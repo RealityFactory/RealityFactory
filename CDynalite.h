@@ -1,12 +1,15 @@
-/*
-	CDynalite.h:		Dynamic Light handler
+/****************************************************************************************/
+/*																						*/
+/*	CDynalite.h:		Dynamic Light handler											*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declarations for the CDynalite							*/
+/*	class that encapsulates all dynamic light effects for								*/
+/*	RGF-based games.																	*/
+/*																						*/
+/****************************************************************************************/
 
-	(c) 2001 Ralph Deane
-
-	This file contains the class declarations for the CDynalite
-class that encapsulates all dynamic light effects for
-RGF-based games.
-*/
 
 #ifndef __RGF_CDYNALITE_H_
 #define __RGF_CDYNALITE_H_
@@ -15,9 +18,10 @@ RGF-based games.
 class CDynalite : public CRGFComponent
 {
 public:
-  CDynalite();	// Default constructor
-  ~CDynalite();	
-  geBoolean Tick(float dwTicks);
+	CDynalite();	// Default constructor
+	~CDynalite();
+
+	geBoolean Tick(float dwTicks);
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
 private:
@@ -27,4 +31,4 @@ private:
 
 #endif
 
-// --------------------------------------------------------------------------
+/* ----------------------------------- END OF FILE ------------------------------------ */

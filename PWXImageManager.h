@@ -1,3 +1,9 @@
+/****************************************************************************************/
+/*																						*/
+/*	PWXImageManager.h:		PWXImageManager class										*/
+/*																						*/
+/****************************************************************************************/
+
 #ifndef __RGF_CRFPWXIM_H_
 #define __RGF_CRFPWXIM_H_
 
@@ -25,10 +31,15 @@ float Alpha;
 class PWXImageManager : public CRGFComponent
 {
 public:
-  PWXImageManager();
-  ~PWXImageManager();
-  geBoolean AddImage(char* Tx, geBitmap*, int Xp, int Yp, float Alph, int R, int G, int B,int tFont,float ZDepth);
-  void Display();
+	PWXImageManager();
+	~PWXImageManager();
+
+	geBoolean AddImage(char *Tx, geBitmap*, int Xp, int Yp,
+						float Alph, int R, int G, int B,
+						int tFont, float ZDepth);
+	void Display();
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

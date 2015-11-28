@@ -1,9 +1,20 @@
-/*
-Edit History:
- 08/11/2004 Wendell Buckner
-  Added High level Debug Pawn command 
-
-*/
+/****************************************************************************************/
+/*																						*/
+/*	CPawnHigh.cpp:		Pawn High Manager												*/
+/*																						*/
+/*	(c) Ralph Deane																		*/
+/*																						*/
+/*	This file contains the class implementation of the Pawn High Manager				*/
+/*	system for Reality Factory.															*/
+/*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
+/*					- Added commands SetAttributeValueLimits, sin, cos, tan				*/
+/*					- BUG FIX: X-Rotation in CPawn::Rotate								*/
+/*	08/11/04 Wendell Buckner:	- Added High level Debug Pawn command					*/
+/*																						*/
+/****************************************************************************************/
 
 #include "RabidFramework.h"
 
@@ -15,83 +26,100 @@ extern geSound_Def *SPool_Sound(char *SName);
 #include "Simkin\\skRuntimeException.h"
 #include "Simkin\\skParseException.h"
 
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[]=__FILE__;
+#define new DEBUG_NEW
+#endif
+
 typedef enum
 {
 	MOVETOPOINT = 0,
-		MOVEFORWARD,
-		MOVEBACKWARD,
-		MOVELEFT,
-		MOVERIGHT,
-		MOVE,
-		PLAYANIMATION,
-		BLENDTOANIMATION,
-		LOOPANIMATION,
-		ROTATE,
-		ROTATETOPOINT,
-		ROTATETOALIGN,
-		ROTATEMOVETOPOINT,
-		ROTATEMOVE,
-		NEWORDER,
-		NEXTORDER,
-		NEXTPOINT,
-		NEWPOINT,
-		NEWPATH,
-		RESTARTORDER,
-		AVOIDORDER,
-		RETURN,
-		JUMPCMD,
-		ADDTRIGGERORDER,
-		DELTRIGGERORDER,
-		SETEVENTSTATE,
-		FACEPLAYER,
-		ROTATETOPLAYER,
-		TELEPORTTOPOINT,
-		ANIMATIONSPEED,
-		SETFLAG,
-		STOPANIMATION,
-		ATTRIBUTEORDER,
-		REMOVE,
-		SETNOCOLLISION,
-		ALLOWUSE,
-		CONVERSATION,
-		FADEIN,
-		FADEOUT,
-		FIELDOFVIEW,
-		SETGROUP,
-		HOSTILEPLAYER,
-		HOSTILEDIFF,
-		HOSTILESAME,
-		MOVETOTARGET,
-		ROTATETOTARGET,
-		ROTATEMOVETOTARGET,
-		LOWLEVEL,
-		BOXWIDTH,
-		SCALE,
-		GRAVITY,
-		FIREPROJECTILE,
-		ADDEFFECT,
-		TARGETGROUP,
-		TESTDAMAGEORDER,
-		CHANGEMATERIAL,
-		ATTACHTOACTOR,
-		DETACHFROMACTOR,
-		SETWEAPON,
-		REMOVEWEAPON,
-		ISPUSHABLE,
-		HIDEFROMRADAR,
-		STEPHEIGHT,
-		ISVEHICLE,
-		ALIGN,
-		SETKEYPAUSE,
-		SETHUDDRAW,
-		SOUNDLOOP,
-		ROTATEAROUNDPOINT,
-		SETLODDISTANCE,
-		DELAY
+	MOVEFORWARD,
+	MOVEBACKWARD,
+	MOVELEFT,
+	MOVERIGHT,
+	MOVE,
+	PLAYANIMATION,
+	BLENDTOANIMATION,
+	LOOPANIMATION,
+	ROTATE,
+	ROTATETOPOINT,
+	ROTATETOALIGN,
+	ROTATEMOVETOPOINT,
+	ROTATEMOVE,
+	NEWORDER,
+	NEXTORDER,
+	NEXTPOINT,
+	NEWPOINT,
+	NEWPATH,
+	RESTARTORDER,
+	AVOIDORDER,
+	RETURN,
+	JUMPCMD,
+	ADDTRIGGERORDER,
+	DELTRIGGERORDER,
+	SETEVENTSTATE,
+	FACEPLAYER,
+	ROTATETOPLAYER,
+	TELEPORTTOPOINT,
+	ANIMATIONSPEED,
+	SETFLAG,
+	STOPANIMATION,
+	ATTRIBUTEORDER,
+	REMOVE,
+	SETNOCOLLISION,
+	ALLOWUSE,
+	CONVERSATION,
+	FADEIN,
+	FADEOUT,
+	FIELDOFVIEW,
+	SETGROUP,
+	HOSTILEPLAYER,
+	HOSTILEDIFF,
+	HOSTILESAME,
+	MOVETOTARGET,
+	ROTATETOTARGET,
+	ROTATEMOVETOTARGET,
+	LOWLEVEL,
+	BOXWIDTH,
+	SCALE,
+	GRAVITY,
+	FIREPROJECTILE,
+	ADDEFFECT,
+	TARGETGROUP,
+	TESTDAMAGEORDER,
+	CHANGEMATERIAL,
+	ATTACHTOACTOR,
+	DETACHFROMACTOR,
+	SETWEAPON,
+	REMOVEWEAPON,
+	ISPUSHABLE,
+	HIDEFROMRADAR,
+	STEPHEIGHT,
+	ISVEHICLE,
+	ALIGN,
+	SETKEYPAUSE,
+	SETHUDDRAW,
+	SOUNDLOOP,
+	ROTATEAROUNDPOINT,
+	SETLODDISTANCE,
+	DELAY,
+// change Nout 12/15/05
+	SHOWTEXTDELAY,
+	SHOWTEXT,
+	REMOVETEXT,
+	CONCAT,
+	GETFLAG,
+	GETEVENTSTATE,
+	SETSCALE,
+	BOXHEIGHT
+// end change
 };
 
 
-char *ActionText[] = 
+char *ActionText[] =
 {
 	"MoveToPoint",
 	"MoveForward",
@@ -163,21 +191,34 @@ char *ActionText[] =
 	"SoundLoop",
 	"RotateAroundPoint",
 	"SetLODDistance",
-	"Delay"
+	"Delay",
+// change Nout 12/15/05
+	"ShowTextDelay",
+	"ShowText",
+	"RemoveText",
+	"Concat",
+	"GetFlag",
+	"GetEventState",
+	"SetScale",
+	"BoxHeight"
+// end change
 };
 
-// calls a method in this object
-bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)
+/* ------------------------------------------------------------------------------------ */
+//	calls a method in this object
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& arguments,
+								skRValue& returnValue,skExecutableContext &ctxt)
 {
 	char param0[128], param7[128], param8[128];
 	float param1, param3, param4, param5, param6;
 	bool param2;
-	
+
 	param0[0] = '\0';
 	param7[0] = '\0';
 	param8[0] = '\0';
-	
-	if (IS_METHOD(methodName, "MoveToPoint"))
+
+	if(IS_METHOD(methodName, "MoveToPoint"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -186,7 +227,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVETOPOINT, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateToPoint"))
+	else if(IS_METHOD(methodName, "RotateToPoint"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -196,19 +237,19 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATETOPOINT, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "NewOrder"))
+	else if(IS_METHOD(methodName, "NewOrder"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "NextOrder"))
+	else if(IS_METHOD(methodName, "NextOrder"))
 	{
 		AddAction(NEXTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateToAlign"))
+	else if(IS_METHOD(methodName, "RotateToAlign"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -218,12 +259,12 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATETOALIGN, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "NextPoint"))
+	else if(IS_METHOD(methodName, "NextPoint"))
 	{
 		AddAction(NEXTPOINT, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Delay"))
+	else if(IS_METHOD(methodName, "Delay"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -232,7 +273,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELAY, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "PlayAnimation"))
+	else if(IS_METHOD(methodName, "PlayAnimation"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -241,7 +282,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(PLAYANIMATION, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "BlendToAnimation"))
+	else if(IS_METHOD(methodName, "BlendToAnimation"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -251,7 +292,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(BLENDTOANIMATION, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "LoopAnimation"))
+	else if(IS_METHOD(methodName, "LoopAnimation"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -260,7 +301,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(LOOPANIMATION, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Rotate"))
+	else if(IS_METHOD(methodName, "Rotate"))
 	{
 		PARMCHECK(6);
 		strcpy(param0, arguments[0].str());
@@ -272,7 +313,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATE, param0, param1, false, param3, param4, param5, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateMoveToPoint"))
+	else if(IS_METHOD(methodName, "RotateMoveToPoint"))
 	{
 		PARMCHECK(5);
 		strcpy(param0, arguments[0].str());
@@ -283,7 +324,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATEMOVETOPOINT, param0, param1, param2, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateMove"))
+	else if(IS_METHOD(methodName, "RotateMove"))
 	{
 		PARMCHECK(7);
 		strcpy(param0, arguments[0].str());
@@ -296,44 +337,48 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATEMOVE, param0, param1, false, param3, param4, param5, param6, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "NewPath"))
+	else if(IS_METHOD(methodName, "NewPath"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWPATH, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RestartOrder"))
+	else if(IS_METHOD(methodName, "RestartOrder"))
 	{
 		AddAction(RESTARTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "PlayerDistOrder"))
+	else if(IS_METHOD(methodName, "PlayerDistOrder"))
 	{
 		PARMCHECK(2);
 		MinDistance = arguments[0].floatValue();
-		if(MinDistance!=0.0f)
+
+		if(MinDistance != 0.0f)
 		{
 			DistActive = true;
 			strcpy(DistOrder, arguments[1].str());
 		}
 		else
 			DistActive = false;
+
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Console"))
+	else if(IS_METHOD(methodName, "Console"))
 	{
 		PARMCHECK(1);
 		console = arguments[0].boolValue();
+
 		if(console)
 		{
 			ConsoleHeader = (char *)malloc(128);
 			*ConsoleHeader = '\0';
 			ConsoleError = (char *)malloc(128);
 			*ConsoleError = '\0';
+
 			for(int i=0; i<DEBUGLINES; i++)
 			{
-				ConsoleDebug[i] = (char *)malloc(64);
+				ConsoleDebug[i] = (char*)malloc(64);
 				*ConsoleDebug[i] = '\0';
 			}
 		}
@@ -341,23 +386,26 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		{
 			if(ConsoleHeader)
 				free(ConsoleHeader);
+
 			if(ConsoleError)
 				free(ConsoleError);
+
 			for(int i=0; i<DEBUGLINES; i++)
 			{
 				if(ConsoleDebug[i])
 					free(ConsoleDebug[i]);
 			}
 		}
+
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AudibleRadius"))
+	else if(IS_METHOD(methodName, "AudibleRadius"))
 	{
 		PARMCHECK(1);
 		AudibleRadius = arguments[0].floatValue();
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddPainOrder"))
+	else if(IS_METHOD(methodName, "AddPainOrder"))
 	{
 		PARMCHECK(2);
 		PainActive = true;
@@ -367,11 +415,12 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		OldAttributeAmount = theInv->Value(Attribute);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "FindTargetOrder"))
+	else if(IS_METHOD(methodName, "FindTargetOrder"))
 	{
 		PARMCHECK(3);
 		TargetDistance = arguments[0].floatValue();
-		if(TargetDistance!=0.0f)
+
+		if(TargetDistance != 0.0f)
 		{
 			TargetDisable = false;
 			TargetFind = true;
@@ -380,26 +429,30 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 		else
 			TargetFind = false;
+
 		return true;
 	}
-	// added questofdreams 
-	else if (IS_METHOD(methodName, "FindPointOrder"))
+// added QD
+	else if(IS_METHOD(methodName, "FindPointOrder"))
 	{
-	PARMCHECK(1);
-	PointFind = true;
-	strcpy(PointOrder, arguments[0].str());
-	if(PointOrder == "")
-		PointFind = false;
-	return true;
+		PARMCHECK(1);
+		PointFind = true;
+		strcpy(PointOrder, arguments[0].str());
+
+		if(PointOrder == "")
+			PointFind = false;
+
+		return true;
 	}
-	else if (IS_METHOD(methodName, "NewPoint"))
+// end QD
+	else if(IS_METHOD(methodName, "NewPoint"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(NEWPOINT, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "MoveForward"))
+	else if(IS_METHOD(methodName, "MoveForward"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -409,7 +462,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVEFORWARD, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "MoveBackward"))
+	else if(IS_METHOD(methodName, "MoveBackward"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -419,7 +472,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVEBACKWARD, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "MoveLeft"))
+	else if(IS_METHOD(methodName, "MoveLeft"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -429,7 +482,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVELEFT, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "MoveRight"))
+	else if(IS_METHOD(methodName, "MoveRight"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -439,7 +492,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVERIGHT, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Move"))
+	else if(IS_METHOD(methodName, "Move"))
 	{
 		PARMCHECK(7);
 		strcpy(param0, arguments[0].str());
@@ -452,24 +505,24 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVE, param0, param1, false, param3, param4, param5, param6, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AvoidOrder"))
+	else if(IS_METHOD(methodName, "AvoidOrder"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(AVOIDORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Return"))
+	else if(IS_METHOD(methodName, "Return"))
 	{
 		AddAction(RETURN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Align"))
+	else if(IS_METHOD(methodName, "Align"))
 	{
 		AddAction(ALIGN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Jump"))
+	else if(IS_METHOD(methodName, "Jump"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -479,7 +532,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(JUMPCMD, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddTriggerOrder"))
+	else if(IS_METHOD(methodName, "AddTriggerOrder"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -488,14 +541,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDTRIGGERORDER, param0, param1, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelTriggerOrder"))
+	else if(IS_METHOD(methodName, "DelTriggerOrder"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(DELTRIGGERORDER, NULL, 0.0f, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param0);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetEventState"))
+	else if(IS_METHOD(methodName, "SetEventState"))
 	{
 		PARMCHECK(2);
 		strcpy(param0, arguments[0].str());
@@ -503,18 +556,20 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(SETEVENTSTATE, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "FacePlayer"))
+	else if(IS_METHOD(methodName, "FacePlayer"))
 	{
 		PARMCHECK(2);
 		param2 = arguments[0].boolValue();
 		bool para = arguments[1].boolValue();
 		param1 = 0.0f;
+
 		if(para)
 			param1 = 1.0f;
+
 		AddAction(FACEPLAYER, NULL, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateToPlayer"))
+	else if(IS_METHOD(methodName, "RotateToPlayer"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -524,7 +579,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATETOPLAYER, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateAroundPointLeft"))
+	else if(IS_METHOD(methodName, "RotateAroundPointLeft"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -534,7 +589,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 0.0f, param, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateAroundPointRight"))
+	else if(IS_METHOD(methodName, "RotateAroundPointRight"))
 	{
 		PARMCHECK(4);
 		strcpy(param0, arguments[0].str());
@@ -544,50 +599,69 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 1.0f, param, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "TeleportToPoint"))
+	else if(IS_METHOD(methodName, "TeleportToPoint"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
-		float Offx = 0;
-		float Offy = 0;
-		float Offz = 0;
-		if (arguments.entries()==4)
+		float Offx = 0.0f;
+		float Offy = 0.0f;
+		float Offz = 0.0f;
+		param2 = false;
+		param8[0] = 0;
+
+// changed Nout/QD 12/15/05
+		// - use scriptpoint angles as actor orientation after teleporting
+		// - specify actor to teleport
+		if(arguments.entries() > 3)
 		{
 			Offx = arguments[1].floatValue();
 			Offy = arguments[2].floatValue();
 			Offz = arguments[3].floatValue();
 		}
-		AddAction(TELEPORTTOPOINT, param0, 0.0f, false, Offx, Offy, Offz, 0.0f, NULL, NULL);
+
+		if(arguments.entries() > 4)
+			param2 = arguments[4].boolValue();
+
+		if(arguments.entries() > 5)
+			strcpy(param8, arguments[5].str());
+
+		AddAction(TELEPORTTOPOINT, param0, 0.0f, param2, Offx, Offy, Offz, 0.0f, NULL, param8);
+// end change
+
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AnimationSpeed"))
+	else if(IS_METHOD(methodName, "AnimationSpeed"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(ANIMATIONSPEED, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetFlag"))
+	else if(IS_METHOD(methodName, "SetFlag"))
 	{
 		PARMCHECK(2);
 		param1 = (float)arguments[0].intValue();
 		param2 = arguments[1].boolValue();
-		if(param1>=0.0f && param1<MAXFLAGS)
+
+		if(param1 >= 0.0f && param1 < MAXFLAGS)
 			AddAction(SETFLAG, NULL, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddFlagOrder"))
+	else if(IS_METHOD(methodName, "AddFlagOrder"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
 		param1 = (float)arguments[0].intValue();
 		param2 = arguments[1].boolValue();
 		sprintf(param7,"PawnFlag%d", (int)param1);
-		if(param1>=0.0f && param1<MAXFLAGS)
+
+		if(param1 >= 0.0f && param1 < MAXFLAGS)
 			AddAction(ADDTRIGGERORDER, param0, 0.0f, param2, PFLAG, param1, 0.0f, 0.0f, NULL, param7);
+
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelFlagOrder"))
+	else if(IS_METHOD(methodName, "DelFlagOrder"))
 	{
 		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
@@ -595,14 +669,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "ChangeMaterial"))
+	else if(IS_METHOD(methodName, "ChangeMaterial"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(CHANGEMATERIAL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddTimerOrder"))
+	else if(IS_METHOD(methodName, "AddTimerOrder"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
@@ -612,7 +686,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PTIMER, param1, param3, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelTimerOrder"))
+	else if(IS_METHOD(methodName, "DelTimerOrder"))
 	{
 		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
@@ -620,7 +694,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddRandomSound"))
+	else if(IS_METHOD(methodName, "AddRandomSound"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[3].str());
@@ -631,7 +705,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PSOUND, param1, param3, param4, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelRandomSound"))
+	else if(IS_METHOD(methodName, "DelRandomSound"))
 	{
 		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
@@ -639,7 +713,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PSOUND, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddDistanceOrder"))
+	else if(IS_METHOD(methodName, "AddDistanceOrder"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[2].str());
@@ -649,7 +723,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PDIST, param1, param3, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelDistanceOrder"))
+	else if(IS_METHOD(methodName, "DelDistanceOrder"))
 	{
 		PARMCHECK(1);
 		param1 = (float)arguments[0].intValue();
@@ -657,7 +731,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddCollisionOrder"))
+	else if(IS_METHOD(methodName, "AddCollisionOrder"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
@@ -665,13 +739,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PCOLLIDE, 1.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DelCollisionOrder"))
+	else if(IS_METHOD(methodName, "DelCollisionOrder"))
 	{
 		sprintf(param7,"PlayerColl%d", 1);
 		AddAction(DELTRIGGERORDER, NULL, 1.0f, false, PCOLLIDE, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AnimateStop"))
+	else if(IS_METHOD(methodName, "AnimateStop"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -680,7 +754,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(STOPANIMATION, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AttributeOrder"))
+	else if(IS_METHOD(methodName, "AttributeOrder"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -689,57 +763,65 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ATTRIBUTEORDER, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, param8);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Remove"))
+	else if(IS_METHOD(methodName, "Remove"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(REMOVE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetKeyPause"))
+	else if(IS_METHOD(methodName, "SetKeyPause"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(SETKEYPAUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetNoCollision"))
+	else if(IS_METHOD(methodName, "SetNoCollision"))
 	{
 		AddAction(SETNOCOLLISION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetCollision"))
+	else if(IS_METHOD(methodName, "SetCollision"))
 	{
 		AddAction(SETNOCOLLISION, NULL, 0.0f, true, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AllowUseKey"))
+	else if(IS_METHOD(methodName, "AllowUseKey"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ALLOWUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetHudDraw"))
+	else if(IS_METHOD(methodName, "SetHudDraw"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(SETHUDDRAW, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "HideFromRadar"))
+	else if(IS_METHOD(methodName, "HideFromRadar"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HIDEFROMRADAR, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Conversation"))
+	else if(IS_METHOD(methodName, "Conversation"))
 	{
+// changed Nout 12/15/05
+		// Conversation();
+		// Conversation(OrderName);
+		// Allows to define a different start-order to be used for this conversation
+		if(arguments.entries() > 0)
+			strcpy(Converse->Order, arguments[0].str());
+		CCD->Pawns()->SetConvFlag(false);
+// end change
 		AddAction(CONVERSATION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "FadeIn"))
+	else if(IS_METHOD(methodName, "FadeIn"))
 	{
 		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
@@ -747,7 +829,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(FADEIN, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "FadeOut"))
+	else if(IS_METHOD(methodName, "FadeOut"))
 	{
 		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
@@ -755,79 +837,81 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(FADEOUT, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetFOV"))
+	else if(IS_METHOD(methodName, "SetFOV"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		if (arguments.entries()==2)
+
+		if(arguments.entries() == 2)
 			strcpy(param0, arguments[1].str());
+
 		AddAction(FIELDOFVIEW, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "StepHeight"))
+	else if(IS_METHOD(methodName, "StepHeight"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(STEPHEIGHT, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetGroup"))
+	else if(IS_METHOD(methodName, "SetGroup"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(SETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "HostilePlayer"))
+	else if(IS_METHOD(methodName, "HostilePlayer"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILEPLAYER, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "HostileDifferent"))
+	else if(IS_METHOD(methodName, "HostileDifferent"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILEDIFF, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "HostileSame"))
+	else if(IS_METHOD(methodName, "HostileSame"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(HOSTILESAME, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Gravity"))
+	else if(IS_METHOD(methodName, "Gravity"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(GRAVITY, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SoundLoop"))
+	else if(IS_METHOD(methodName, "SoundLoop"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(SOUNDLOOP, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "IsPushable"))
+	else if(IS_METHOD(methodName, "IsPushable"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ISPUSHABLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "IsVehicle"))
+	else if(IS_METHOD(methodName, "IsVehicle"))
 	{
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ISVEHICLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "MoveToTarget"))
+	else if(IS_METHOD(methodName, "MoveToTarget"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -836,7 +920,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(MOVETOTARGET, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateToTarget"))
+	else if(IS_METHOD(methodName, "RotateToTarget"))
 	{
 		PARMCHECK(3);
 		strcpy(param0, arguments[0].str());
@@ -846,7 +930,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATETOTARGET, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RotateMoveToTarget"))
+	else if(IS_METHOD(methodName, "RotateMoveToTarget"))
 	{
 		PARMCHECK(5);
 		strcpy(param0, arguments[0].str());
@@ -857,28 +941,65 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATEMOVETOTARGET, param0, param1, param2, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "LowLevel"))
+	else if(IS_METHOD(methodName, "LowLevel"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(LOWLEVEL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "BoxWidth"))
+	else if(IS_METHOD(methodName, "BoxWidth"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
 		AddAction(BOXWIDTH, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "Scale"))
+// changed QD 12/15/05
+	else if(IS_METHOD(methodName, "BoxHeight"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		AddAction(SCALE, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		AddAction(BOXHEIGHT, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "FireProjectile"))
+// end change
+	else if(IS_METHOD(methodName, "Scale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+// changed QD 12/15/05
+		if(arguments.entries() > 2)
+		{
+			param3 = arguments[1].floatValue();
+			param4 = arguments[2].floatValue();
+		}
+		else
+			param3 = param4 = param1;
+
+		//AddAction(SCALE, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		AddAction(SCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+// end change
+		return true;
+	}
+// changed QD 12/15/05
+	else if(IS_METHOD(methodName, "SetScale"))
+	{
+		PARMCHECK(1);
+		param1 = arguments[0].floatValue();
+		if(arguments.entries() > 2)
+		{
+			param3 = arguments[1].floatValue();
+			param4 = arguments[2].floatValue();
+		}
+		else
+			param3 = param4 = param1;
+
+		AddAction(SETSCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+// end change
+	else if(IS_METHOD(methodName, "FireProjectile"))
 	{
 		PARMCHECK(7);
 		strcpy(param0, arguments[0].str());
@@ -892,7 +1013,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(FIREPROJECTILE, param0, param1, false, param3, param4, param5, 0.0f, param8, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AddExplosion"))
+	else if(IS_METHOD(methodName, "AddExplosion"))
 	{
 		PARMCHECK(5);
 		strcpy(param0, arguments[0].str());
@@ -903,14 +1024,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ADDEFFECT, param0, 0.0f, false, param3, param4, param5, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "TargetGroup"))
+	else if(IS_METHOD(methodName, "TargetGroup"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(TARGETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "TestDamageOrder"))
+	else if(IS_METHOD(methodName, "TestDamageOrder"))
 	{
 		PARMCHECK(2);
 		strcpy(param0, arguments[1].str());
@@ -918,14 +1039,14 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(TESTDAMAGEORDER, param0, param3, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "DetachFromActor"))
+	else if(IS_METHOD(methodName, "DetachFromActor"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(DETACHFROMACTOR, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetLODDistance"))
+	else if(IS_METHOD(methodName, "SetLODDistance"))
 	{
 		PARMCHECK(5);
 		float lod1 = arguments[0].floatValue();
@@ -936,7 +1057,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(SETLODDISTANCE, NULL, lod1, false, lod2, lod3, lod4, lod5, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "AttachToActor"))
+	else if(IS_METHOD(methodName, "AttachToActor"))
 	{
 		float x0,y0,z0,x1,y1,z1;
 		PARMCHECK(9);
@@ -957,40 +1078,43 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "SetWeapon"))
+	else if(IS_METHOD(methodName, "SetWeapon"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
 		AddAction(SETWEAPON, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "RemoveWeapon"))
+	else if(IS_METHOD(methodName, "RemoveWeapon"))
 	{
 		AddAction(REMOVEWEAPON, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
-	else if (IS_METHOD(methodName, "random"))
+	else if(IS_METHOD(methodName, "random"))
 	{
 		PARMCHECK(2);
 		param1 = arguments[0].floatValue();
 		param3 = arguments[1].floatValue();
-		if(param1<=param3)
+
+		if(param1 <= param3)
 			returnValue = (int)EffectC_Frand(param1, param3);
 		else
 			returnValue = (int)EffectC_Frand(param3, param1);
+
 		return true;
 	}
-/* 08/11/2004 Wendell Buckner
-    Added High level Debug Pawn command */
-	else if (IS_METHOD(methodName, "debug"))
+// 08/11/2004 Wendell Buckner - Added High level Debug Pawn command
+	else if(IS_METHOD(methodName, "debug"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
+
 		if(console)
 		{
 			int index = -1;
 			int i;
-			for(i=0;i<DEBUGLINES;i++)
+
+			for(i=0; i<DEBUGLINES; i++)
 			{
 				if(EffectC_IsStringNull(ConsoleDebug[i]))
 				{
@@ -998,90 +1122,398 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 					break;
 				}
 			}
-			if(index!=-1)
+
+			if(index != -1)
 			{
 				strcpy(ConsoleDebug[index], param0);
 			}
 			else
 			{
-				for(i=1;i<DEBUGLINES;i++)
+				for(i=1; i<DEBUGLINES; i++)
 				{
 					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
 				}
-				strcpy(ConsoleDebug[DEBUGLINES-1], param0); 
+
+				strcpy(ConsoleDebug[DEBUGLINES-1], param0);
 			}
 		}
+
 		return true;
 	}
+// changed Nout 12/15/05
+	// ShowTextDelay(Nr, EntityName, Animation, TextString, FontNr, Time,
+	//				 TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha)
+	// If EntityName is empty, use fixed screen-coordinates, If EntityName="Player", use the player as Entity
+	// Align can be Left, Right or Center and defines the alignment relative to the origin
+	else if(IS_METHOD(methodName, "ShowTextDelay"))
+	{
+		int Nr = arguments[0].intValue();
+
+		if(Nr < 0 || Nr >= MAXTEXT)
+			return true;
+
+		if(arguments.entries() > 1)
+		{
+			strcpy(param0, arguments[2].str());
+			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
+			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
+			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
+			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
+			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+
+			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
+			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[6].str());
+			CCD->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[7].intValue();
+			CCD->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[8].intValue();
+			strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[9].str(), 1);
+			CCD->Pawns()->TextMessage[Nr].Alpha = arguments[10].floatValue();
+			param1 = arguments[5].floatValue();
+			strcpy(param8, arguments[6].str());
+
+			AddAction(SHOWTEXTDELAY, param0, param1, true, float(Nr), 0.0f, 0.0f, 0.0f, param8, NULL);
+		}
+		else
+			AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+
+		return true;
+	}
+	// ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha)
+	// If EntityName is empty, use fixed screen-coordinates, If EntityName="Player", use the player as Entity
+	// Align can be Left, Right or Center and defines the alignment relative to the origin
+	else if(IS_METHOD(methodName, "ShowText"))
+	{
+		int Nr = arguments[0].intValue();
+
+		if(Nr < 0 || Nr >= MAXTEXT)
+			return true;
+
+		if(arguments.entries() > 1)
+		{
+			strcpy(param0, arguments[2].str());
+			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
+			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
+			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
+			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
+			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+
+			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
+			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[5].str());
+			CCD->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[6].intValue();
+			CCD->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[7].intValue();
+			strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
+			CCD->Pawns()->TextMessage[Nr].Alpha = arguments[9].floatValue();
+			strcpy(param8, arguments[5].str());
+			AddAction(SHOWTEXT, param0, 0.0f, true, float(Nr), 0.0f, 0.0f, 0.0f, param8, NULL);
+		}
+		else
+			AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "RemoveText"))
+	{
+		int Nr = arguments[0].intValue();
+
+		if(Nr < 0 || Nr >= MAXTEXT)
+			return true;
+
+		AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+
+		return true;
+	}
+	// GetConvReplyNr: returns the number of the last reply message choosen from a conversation
+	else if(IS_METHOD(methodName, "GetConvReplyNr"))
+	{
+		returnValue = Converse->LastReplyNr;
+		return true;
+	}
+	// Concatenate string elements to 1 new string
+	else if(IS_METHOD(methodName, "Concat"))
+	{
+		strcpy(param0, arguments[0].str());
+		strcat(param0, arguments[1].str());
+
+		if(arguments.entries() > 2)
+			for(int i=2; i<int(arguments.entries()); i++)
+				strcat(param0, arguments[i].str());
+
+		returnValue = skString(param0);
+		return true;
+	}
+	// GetAttribute
+	else if(IS_METHOD(methodName, "GetAttribute"))
+	{
+		PARMCHECK(1);
+
+		strcpy(param0, arguments[0].str());
+// changed QD 12/15/05
+		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		CPersistentAttributes *theInv;
+
+		if(arguments.entries() > 1)
+		{
+			strcpy(param7, arguments[1].str());
+
+			if(!stricmp(param7, "Player"))
+				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			else
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+		}
+		else
+			theInv = CCD->ActorManager()->Inventory(Actor);
+// end change QD
+		returnValue = (int)theInv->Value(param0);
+		return true;
+	}
+	// ModifyAttribute
+	else if(IS_METHOD(methodName, "ModifyAttribute"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+// changed QD 12/15/05
+		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		CPersistentAttributes *theInv;
+
+		if(arguments.entries() > 2)
+		{
+			strcpy(param7, arguments[2].str());
+
+			if(!stricmp(param7, "Player"))
+				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			else
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+		}
+		else
+			theInv = CCD->ActorManager()->Inventory(Actor);
+// end change QD
+		returnValue = (int)theInv->Modify(param0, arguments[1].intValue());
+		return true;
+	}
+	// SetAttribute
+	else if(IS_METHOD(methodName, "SetAttribute"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+// changed QD 12/15/05
+		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		CPersistentAttributes *theInv;
+
+		if(arguments.entries() > 2)
+		{
+			strcpy(param7, arguments[2].str());
+
+			if(!stricmp(param7, "Player"))
+				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			else
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+		}
+		else
+			theInv = CCD->ActorManager()->Inventory(Actor);
+// end change QD
+		returnValue = (int)theInv->Set(param0, arguments[1].intValue());
+		return true;
+	}
+// changed QD 12/15/05
+	// AddAttribute
+	else if(IS_METHOD(methodName, "AddAttribute"))
+	{
+		// USAGE:	AddAttribute(char *Attribute)
+		//			AddAttribute(char *Attribute, EntityName)
+
+		// changed QD 07/15/06 - add optional arguments
+		//			AddAttribute(char *Attribute, int LowValue, int HighValue)
+		//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+
+		CPersistentAttributes *theInv;
+
+		if(arguments.entries() == 2 || arguments.entries() == 4)
+		{
+			strcpy(param7, arguments[arguments.entries()-1].str());
+
+			if(!stricmp(param7, "Player"))
+				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			else
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+		}
+		else
+			theInv = CCD->ActorManager()->Inventory(Actor);
+
+		returnValue = (int)theInv->Add(param0);
+
+		if(arguments.entries() > 2)
+		{
+			theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+		}
+		// end change QD 07/15/06
+
+		return true;
+	}
+// end change QD
+// changed QD 07/15/06
+	else if(IS_METHOD(methodName, "SetAttributeValueLimits"))
+	{
+		// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
+		//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
+
+		PARMCHECK(3);
+		strcpy(param0, arguments[0].str());
+
+		CPersistentAttributes *theInv;
+
+		if(arguments.entries() > 3)
+		{
+			strcpy(param7, arguments[3].str());
+
+			if(!stricmp(param7, "Player"))
+				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			else
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+		}
+		else
+			theInv = CCD->ActorManager()->Inventory(Actor);
+
+		theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "sin"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)sin((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "cos"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)cos((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "tan"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)tan((double)arguments[0].floatValue());
+
+		return true;
+	}
+// end change QD 07/15/06
+	// GetFlag
+	else if(IS_METHOD(methodName, "GetFlag"))
+	{
+		int temp = arguments[0].intValue();
+
+		if(temp >= 0 && temp < MAXFLAGS)
+			returnValue = CCD->Pawns()->GetPawnFlag(temp);
+
+		return true;
+	}
+	// MouseControlledPlayer(true/false)
+	else if(IS_METHOD(methodName, "MouseControlledPlayer"))
+	{
+		CCD->SetMouseControl(arguments[0].boolValue());
+		return true;
+	}
+	// GetEventState
+	else if (IS_METHOD(methodName, "GetEventState"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		returnValue = GetTriggerState(param0);
+		return true;
+	}
+// end change Nout
 	else
 	{
 		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt); // change simkin
 	}
-	
+
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Push
+/* ------------------------------------------------------------------------------------ */
 void ScriptedObject::Push()
 {
 	ActionStack	*pool;
-	
+
 	pool = GE_RAM_ALLOCATE_STRUCT(ActionStack);
 	memset(pool, 0x0, sizeof(ActionStack));
 	pool->next = Stack;
 	Stack = pool;
+
 	if(pool->next)
 		pool->next->prev = pool;
-	pool->Top = Top;
-	pool->Bottom = Bottom;
-	pool->Index = Index;
-	memcpy(pool->Order, Order, 64);
-	memcpy(pool->Point, Point, 64);
-	memcpy(pool->NextOrder, NextOrder, 64);
-	memcpy(pool->DistOrder, DistOrder, 64);
-	pool->CurrentPoint = CurrentPoint;
-	pool->ActionActive = ActionActive;
-	pool->ValidPoint = ValidPoint;
-	pool->Vec2Point = Vec2Point;
-	pool->DistActive = DistActive;
-	pool->MinDistance = MinDistance;
-	Top = NULL;
-	Bottom = NULL;
-	Index = NULL;
+
+	pool->Top		= Top;
+	pool->Bottom	= Bottom;
+	pool->Index		= Index;
+
+	memcpy(pool->Order,		Order,		64);
+	memcpy(pool->Point,		Point,		64);
+	memcpy(pool->NextOrder, NextOrder,	64);
+	memcpy(pool->DistOrder, DistOrder,	64);
+
+	pool->CurrentPoint	= CurrentPoint;
+	pool->ActionActive	= ActionActive;
+	pool->ValidPoint	= ValidPoint;
+	pool->Vec2Point		= Vec2Point;
+	pool->DistActive	= DistActive;
+	pool->MinDistance	= MinDistance;
+
+	Top		= NULL;
+	Bottom	= NULL;
+	Index	= NULL;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Pop
+/* ------------------------------------------------------------------------------------ */
 void ScriptedObject::Pop()
 {
 	if(Stack)
 	{
 		ActionList *pool, *temp;
 		pool = Bottom;
-		while	(pool!= NULL)
+
+		while(pool != NULL)
 		{
 			temp = pool->next;
 			geRam_Free(pool);
 			pool = temp;
 		}
-		Bottom = Stack->Bottom;
-		Top = Stack->Top;
-		Index = Stack->Index;
-		memcpy(Order, Stack->Order, 64);
-		memcpy(Point, Stack->Point, 64);
-		memcpy(NextOrder, Stack->NextOrder, 64);
-		memcpy(DistOrder, Stack->DistOrder, 64);
-		CurrentPoint = Stack->CurrentPoint;
-		ActionActive = Stack->ActionActive;
-		ValidPoint = Stack->ValidPoint;
-		Vec2Point = Stack->Vec2Point;
-		DistActive = Stack->DistActive;
-		MinDistance = Stack->MinDistance;
+
+		Bottom	= Stack->Bottom;
+		Top		= Stack->Top;
+		Index	= Stack->Index;
+
+		memcpy(Order,		Stack->Order,		64);
+		memcpy(Point,		Stack->Point,		64);
+		memcpy(NextOrder,	Stack->NextOrder,	64);
+		memcpy(DistOrder,	Stack->DistOrder,	64);
+
+		CurrentPoint	= Stack->CurrentPoint;
+		ActionActive	= Stack->ActionActive;
+		ValidPoint		= Stack->ValidPoint;
+		Vec2Point		= Stack->Vec2Point;
+		DistActive		= Stack->DistActive;
+		MinDistance		= Stack->MinDistance;
+
 		ActionStack *stemp;
 		stemp = Stack->next;
 		geRam_Free(Stack);
 		Stack = stemp;
+
 		if(Stack)
 			Stack->prev = NULL;
 	}
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	RemoveTriggerStack
+/* ------------------------------------------------------------------------------------ */
 void ScriptedObject::RemoveTriggerStack(TriggerStack *tpool)
 {
 	if(tpool->prev)
@@ -1089,37 +1521,52 @@ void ScriptedObject::RemoveTriggerStack(TriggerStack *tpool)
 	else
 	{
 		Trigger = tpool->next;
+
 		if(Trigger)
 			tpool->next->prev = NULL;
 	}
+
 	geRam_Free(tpool);
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	AddAction
+/* ------------------------------------------------------------------------------------ */
 void ScriptedObject::AddAction(int Action, char *AnimName, float Speed, bool Flag,
-							   float Value1, float Value2, float Value3, float Value4, char *Sound, char *Trigger)
+							   float Value1, float Value2, float Value3, float Value4,
+							   char *Sound, char *Trigger)
 {
 	ActionList	*pool;
-	
+
 	pool = GE_RAM_ALLOCATE_STRUCT(ActionList);
 	memset(pool, 0x0, sizeof(ActionList));
 	pool->next = Bottom;
 	Bottom = pool;
+
 	if(pool->next)
 		pool->next->prev = pool;
+
 	if(!Top)
 		Top = pool;
+
 	pool->Action = Action;
 	pool->AnimName[0] = '\0';
+
 	if(!EffectC_IsStringNull(AnimName))
 		strcpy(pool->AnimName, AnimName);
+
 	pool->SoundName[0] = '\0';
+
 	if(!EffectC_IsStringNull(Sound))
 	{
 		strcpy(pool->SoundName, Sound);
 	}
+
 	pool->TriggerName[0] = '\0';
+
 	if(!EffectC_IsStringNull(Trigger))
 		strcpy(pool->TriggerName, Trigger);
+
 	pool->Speed = Speed;
 	pool->Flag = Flag;
 	pool->Value1 = Value1;
@@ -1128,74 +1575,99 @@ void ScriptedObject::AddAction(int Action, char *AnimName, float Speed, bool Fla
 	pool->Value4 = Value4;
 }
 
-
+/* ------------------------------------------------------------------------------------ */
+//	AddEvent
+/* ------------------------------------------------------------------------------------ */
 void CPawn::AddEvent(char *Event, bool State)
 {
 	EventStack *pool, *temp;
 	pool = Events;
+
 	while(pool!= NULL)
 	{
 		temp = pool->next;
+
 		if(!strcmp(pool->EventName, Event))
 		{
 			pool->State = State;
 			return;
 		}
+
 		pool = temp;
 	}
+
 	pool = GE_RAM_ALLOCATE_STRUCT(EventStack);
 	memset(pool, 0x0, sizeof(EventStack));
 	pool->next = Events;
 	Events = pool;
+
 	if(pool->next)
 		pool->next->prev = pool;
+
 	strcpy(pool->EventName, Event);
 	pool->State = State;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	GetEventState
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::GetEventState(char *Event)
 {
 	EventStack *pool, *temp;
 	pool = Events;
-	while(pool!= NULL)
+
+	while(pool != NULL)
 	{
 		temp = pool->next;
+
 		if(!strcmp(pool->EventName, Event))
 			return pool->State;
+
 		pool = temp;
 	}
+
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	CanSee
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone)
 {
 	geVec3d Pos, TgtPos, temp, In;
 	float dotProduct;
-	
+
 	CCD->ActorManager()->GetPosition(Actor, &Pos);
 	CCD->ActorManager()->InVector(Actor, &In);
+
 	if(!EffectC_IsStringNull(Bone))
 	{
 		geXForm3d Xf;
-		if(geActor_GetBoneTransform(Actor, Bone, &Xf)==GE_TRUE)
+
+		if(geActor_GetBoneTransform(Actor, Bone, &Xf) == GE_TRUE)
 		{
 			geVec3d_Copy(&(Xf.Translation), &Pos);
 			geXForm3d_GetIn(&Xf, &In);
 		}
 	}
+
 	CCD->ActorManager()->GetPosition(TargetActor, &TgtPos);
-	geVec3d_Subtract(&TgtPos,&Pos,&temp);
+	geVec3d_Subtract(&TgtPos, &Pos, &temp);
 	geVec3d_Normalize(&temp);
-	dotProduct = geVec3d_DotProduct(&temp,&In);
+	dotProduct = geVec3d_DotProduct(&temp, &In);
 
 	if(dotProduct > FOV)
 	{
 		if(CanSeeActorToActor(Actor, TargetActor))
 			return true;
 	}
+
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	CanSeePoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *Bone)
 {
 	geVec3d Pos, temp, In;
@@ -1203,163 +1675,324 @@ bool CPawn::CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *B
 
 	CCD->ActorManager()->GetPosition(Actor, &Pos);
 	CCD->ActorManager()->InVector(Actor, &In);
+
 	if(!EffectC_IsStringNull(Bone))
 	{
-	geXForm3d Xf;
-		if(geActor_GetBoneTransform(Actor, Bone, &Xf)==GE_TRUE)
+		geXForm3d Xf;
+
+		if(geActor_GetBoneTransform(Actor, Bone, &Xf) == GE_TRUE)
 		{
-		geVec3d_Copy(&(Xf.Translation), &Pos);
-		geXForm3d_GetIn(&Xf, &In);
+			geVec3d_Copy(&(Xf.Translation), &Pos);
+			geXForm3d_GetIn(&Xf, &In);
 		}
 	}
-	geVec3d_Subtract(TargetPoint,&Pos,&temp);
+
+	geVec3d_Subtract(TargetPoint, &Pos, &temp);
 	geVec3d_Normalize(&temp);
-	dotProduct = geVec3d_DotProduct(&temp,&In);
+	dotProduct = geVec3d_DotProduct(&temp, &In);
 
 	if(dotProduct > FOV)
 	{
 		if(CanSeeActorToPoint(Actor, TargetPoint))
-		return true;
+			return true;
 	}
+
 	return false;
 }
 
-
-bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d DeadPos, char *Bone)
+/* ------------------------------------------------------------------------------------ */
+//	PlayerDistance
+/* ------------------------------------------------------------------------------------ */
+bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor,
+						   const geVec3d &DeadPos, char *Bone)
 {
 	bool flg = false;
 	bool fov = true;
-	if(FOV>-2.0f && Actor)
+
+	if(FOV > -2.0f && Actor)
 		fov = CanSee(FOV, Actor, CCD->Player()->GetActor(), Bone);
-	
+
 	if(fov)
 	{
-		if(distance>=0.0f)
+		if(distance >= 0.0f)
 		{
 			if(Actor)
-				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor())<distance;
+				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor()) < distance;
 			else
-				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor())<distance;
+				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor()) < distance;
 		}
 		else
 		{
 			if(Actor)
-				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor())>fabs(distance);
+				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor()) > fabs(distance);
 			else
-				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor())>fabs(distance);
+				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor()) > fabs(distance);
 		}
 	}
+
 	return flg;
 }
 
+// added by Nout May 2005
+/* ------------------------------------------------------------------------------------ */
+//	AreaOrder
+//
+//	detects if Entity1 is within:
+//	if DistanceMode=true: 2 distances defined and within 2 screen widths (from entity2)
+//	if DistanceMode=false: 2 screen heights and within 2 screen widths (from entity2)
+/* ------------------------------------------------------------------------------------ */
+bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
+				 float MinScr, float MaxScr, float MinDist, float MaxDist,
+				 bool IgnoreX, bool IgnoreY, bool IgnoreZ)
+{
+	geVec3d Pos, ToPos, ScreenPos;
+	RECT client;
+	POINT RectPos;
+	POINT MousePos;
+	bool flg = false;
+	float Distance;
+	int ScreenX, ScreenY;
 
+	if(!stricmp(FromActorName, "Mouse"))
+	{
+		if(!CCD->Engine()->FullScreen())
+		{
+			GetClientRect(CCD->Engine()->WindowHandle(),&client);
+			RectPos.x = client.left;
+			RectPos.y = client.top;
+			ClientToScreen(CCD->Engine()->WindowHandle(),&RectPos);
+		}
+		else
+		{
+			RectPos.x = 0;
+			RectPos.y = 0;
+		}
+
+		GetCursorPos(&MousePos);
+		ShowCursor(TRUE);
+		ScreenX = (int)MousePos.x - RectPos.x;
+		ScreenY = (int)MousePos.y - RectPos.y;
+		Pos.X = (float)ScreenX;
+		Pos.Y = (float)ScreenY;
+		Pos.Z = 0.0f;
+	}
+	else
+	{
+		if(!stricmp(FromActorName, "Player"))
+			Pos = CCD->Player()->Position();
+		else if(!stricmp(FromActorName, "Camera"))
+			CCD->CameraManager()->GetPosition(&Pos);
+		else
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(FromActorName),&Pos);
+
+		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+
+		if(ScreenPos.Z != 0.0f)
+		{
+			ScreenX = int(((CCD->Engine()->Width()/2) - 1) * (1.0f - (ScreenPos.X / ScreenPos.Z)));
+			ScreenY = int(((CCD->Engine()->Height()/2) - 1) * (1.0f + (ScreenPos.Y / ScreenPos.Z)));
+		}
+		else
+		{
+			ScreenX = 0;
+			ScreenY = 0;
+		}
+	}
+
+	if(!strcmp(ToActorName, ""))
+		DistanceMode = false;
+	else if(!stricmp(ToActorName, "Player"))
+		ToPos = CCD->Player()->Position();
+	else
+		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(ToActorName), &ToPos);
+
+	if(!stricmp(FromActorName, "Mouse")) //convert it to screen coordinates
+	{
+		geCamera_Transform(CCD->CameraManager()->Camera(), &ToPos, &ScreenPos);
+		ToPos.X= (float) int(((CCD->Engine()->Width()/2) - 1) * (1.0f - (ScreenPos.X / ScreenPos.Z)));
+		ToPos.Y = (float) int(((CCD->Engine()->Height()/2) - 1) * (1.0f + (ScreenPos.Y / ScreenPos.Z)));
+		ToPos.Z = 0.0f;
+	}
+
+	if(IgnoreX)
+		Pos.X = ToPos.X;
+	if(IgnoreY)
+		Pos.Y = ToPos.Y;
+	if(IgnoreZ)
+		Pos.Z = ToPos.Z;
+
+	Distance = geVec3d_DistanceBetween(&Pos, &ToPos);
+
+	if(DistanceMode)
+		flg = ((Distance >= MinDist) && (Distance <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
+	else
+		flg = ((ScreenY >= MinDist) && (ScreenY <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
+
+	if(flg)
+	{
+		ShowCursor(FALSE);
+		return true;
+	}
+	else
+		return false;
+}
+// end change
+
+/* ------------------------------------------------------------------------------------ */
+//	RotateToPoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateToPoint(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 	}
+
 	geVec3d Pos, Orient;
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
 	geVec3d_Subtract(&Object->CurrentPoint, &Pos, &Orient);
+
 	float l = geVec3d_Length(&Orient);
 	float RotateAmt = 0.0f;
 	float TiltAmt = 0.0f;
-	if(l > 0.0f) 
+
+	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		Orient.X = (float)( GE_PI*0.5 ) - 
-			(float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x , Orient.Z ) + GE_PI;
+		// changed QD 12/15/05
+		// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
+		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
+		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+	}
+	// changed QD 12/15/05
+	{
 		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
-		while(Pos.Y<0.0f)
+
+		while(Pos.Y < 0.0f)
 		{
-			Pos.Y+=(GE_PI*2);
+			// changed QD 12/15/05
+			Pos.Y += GE_2PI;
 		}
-		while(Pos.Y>=(GE_PI*2))
+
+		// changed QD 12/15/05
+		while(Pos.Y >= GE_2PI)
 		{
-			Pos.Y-=(GE_PI*2);
+			// changed QD 12/15/05
+			Pos.Y -= GE_2PI;
 		}
+
 		bool RotateLeft = false;
 		RotateAmt = Pos.Y - Orient.Y;
-		if(RotateAmt<0.0f)
+
+		if(RotateAmt < 0.0f)
 		{
 			RotateAmt = -RotateAmt;
 			RotateLeft = true;
 		}
-		if(RotateAmt>0.0f)
+
+		if(RotateAmt > 0.0f)
 		{
-			if(RotateAmt>GE_PI)
+			if(RotateAmt > GE_PI)
 			{
-				RotateAmt-=GE_PI;
+				// changed QD 12/15/05
+				RotateAmt = GE_2PI - RotateAmt; //-= GE_PI;
+
 				if(RotateLeft)
-					RotateLeft=false;
+					RotateLeft = false;
 				else
-					RotateLeft=true;
+					RotateLeft = true;
 			}
-			RotateAmt /= 0.0174532925199433f;
-			float amount = Object->Index->Speed * (dwTicks/1000.0f);
+
+			// changed QD 12/15/05
+			RotateAmt *= GE_180OVERPI;// /= 0.0174532925199433f;
+			float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+
 			if(amount>RotateAmt)
 			{
 				amount = RotateAmt;
 			}
+
 			RotateAmt -= amount;
+
 			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
 			else
-				CCD->ActorManager()->TurnLeft(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
 		}
+
 		if(Object->Index->Flag)
 		{
-			while(Pos.X<-(GE_PI*2))
+			// changed QD 12/15/05
+			while(Pos.X < 0.0f)//-GE_2PI)
 			{
-				Pos.X+=(GE_PI*2);
+				// changed QD 12/15/05
+				Pos.X += GE_2PI;
 			}
-			while(Pos.X>=(GE_PI*2))
+
+			// changed QD 12/15/05
+			while(Pos.X >= GE_2PI)
 			{
-				Pos.X-=(GE_PI*2);
+				// changed QD 12/15/05
+				Pos.X -= GE_2PI;
 			}
+
 			bool TiltUp = false;
 			TiltAmt = Pos.X - Orient.X;
-			if(TiltAmt<0.0f)
+
+			if(TiltAmt < 0.0f)
 			{
 				TiltAmt = -TiltAmt;
 				TiltUp = true;
 			}
-			if(TiltAmt>0.0f)
+
+			if(TiltAmt > 0.0f)
 			{
-				if(TiltAmt>GE_PI)
+				if(TiltAmt > GE_PI)
 				{
-					TiltAmt-=GE_PI;
+					// changed QD 12/15/05
+					TiltAmt = GE_2PI - TiltAmt; //-= GE_PI;
+
 					if(TiltUp)
-						TiltUp=false;
+						TiltUp = false;
 					else
-						TiltUp=true;
+						TiltUp = true;
 				}
-				TiltAmt /= 0.0174532925199433f;
-				float amount = Object->Index->Speed * (dwTicks/1000.0f);
-				if(amount>TiltAmt)
+
+				// changed QD 12/15/05
+				TiltAmt *= GE_180OVERPI;// /= 0.0174532925199433f;
+				float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
+				if(amount > TiltAmt)
 				{
 					amount = TiltAmt;
 				}
+
 				TiltAmt -= amount;
+
 				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
 				else
-					CCD->ActorManager()->TiltDown(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
 			}
 		}
-		if(RotateAmt<=0.0f && TiltAmt<=0.0f)
+
+		if(RotateAmt <= 0.0f && TiltAmt <= 0.0f)
 			return true;
+
 		return false;
 	}
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	RotateAroundPoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateAroundPoint(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
@@ -1368,6 +2001,7 @@ bool CPawn::RotateAroundPoint(void *Data, float dwTicks)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 		Object->Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
 	}
@@ -1378,51 +2012,69 @@ bool CPawn::RotateAroundPoint(void *Data, float dwTicks)
 	geFloat x,l;
 	geVec3d_Subtract(&Object->CurrentPoint, &Pos1, &LookRotation);
 	l = geVec3d_Length(&LookRotation);
+
 	// protect from Div by Zero
-	if(l > 0.0f) 
+	if(l > 0.0f)
 	{
 		x = LookRotation.X;
-		LookRotation.X = -((float)( GE_PI*0.5f) - (float)acos(LookRotation.Y / l));
-		LookRotation.Y = (float)atan2( x , LookRotation.Z ) + GE_PI;
-		// roll is zero - always!!?
-		LookRotation.Z = 0.0;	
-		//if(!Object->Index->Flag)						
+		// changed QD 12/15/05
+		// LookRotation.X = -((float)(GE_PI*0.5f) - (float)acos(LookRotation.Y / l));
+		LookRotation.X = -(GE_PIOVER2 - (float)acos(LookRotation.Y / l));
+		LookRotation.Y = (float)atan2(x, LookRotation.Z) + GE_PI;
+		LookRotation.Z = 0.0;	// roll is zero - always!!?
+
+
+		//if(!Object->Index->Flag)
 		LookRotation.X = 0.0f;
 		CCD->ActorManager()->Rotate(Object->Actor, LookRotation);
 	}
-	Object->Index->Value2 -= (dwTicks/1000.0f);
 
-	if(Object->Index->Value2<=0.0f)
+	// changed QD 12/15/05
+	Object->Index->Value2 -= (dwTicks*0.001f);// /1000.0f);
+
+	if(Object->Index->Value2 <= 0.0f)
 		return true;
-	float distance = Object->Index->Speed * (dwTicks/1000.0f);
-	if(Object->Index->Value1!=0.0f)
+
+	// changed QD 12/15/05
+	float distance = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
+	if(Object->Index->Value1 != 0.0f)
 		distance = -distance;
-	if(CCD->ActorManager()->MoveLeft(Object->Actor, distance)!=RGF_SUCCESS)
+
+	if(CCD->ActorManager()->MoveLeft(Object->Actor, distance) != RGF_SUCCESS)
 		return true;
+
 	float Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
-	if(Circle!=Object->Circle)
+
+	if(Circle != Object->Circle)
 	{
 		geVec3d In;
 		CCD->ActorManager()->InVector(Object->Actor, &In);
 		float Amount = Circle - Object->Circle;
-		if(CCD->ActorManager()->MoveForward(Object->Actor, Amount)!=RGF_SUCCESS)
+
+		if(CCD->ActorManager()->MoveForward(Object->Actor, Amount) != RGF_SUCCESS)
 			return true;
 	}
 
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	MoveToPoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::MoveToPoint(void *Data, float dwTicks)
 {
 	geVec3d Pos, Orient, NewPos;
 	geXForm3d Xf;
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	Object->AvoidMode = false;
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 		CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
 		geVec3d_Subtract(&Object->CurrentPoint, &Pos, &Object->Vec2Point);
@@ -1430,174 +2082,237 @@ bool CPawn::MoveToPoint(void *Data, float dwTicks)
 		Object->Vec2Point.Y = 0.0f;
 		geVec3d_Normalize(&Object->Vec2Point);
 		float l = geVec3d_Length(&Orient);
-		if(l > 0.0f) 
+
+		if(l > 0.0f)
 		{
 			float x = Orient.X;
-			Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
-			Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
-			// roll is zero - always!!?
-			Orient.Z = 0.0;
-			
-			geXForm3d_SetIdentity(&Xf);
-			geXForm3d_RotateZ(&Xf, Orient.Z);
-			geXForm3d_RotateX(&Xf, Orient.X);
+			// changed QD 12/15/05
+			// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
+			Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
+			Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+			Orient.Z = 0.0f;	// roll is zero - always!!?
+
+			// changed QD 12/15/05
+			//geXForm3d_SetIdentity(&Xf);
+			//geXForm3d_RotateZ(&Xf, Orient.Z);
+			//geXForm3d_RotateX(&Xf, Orient.X);
+			geXForm3d_SetXRotation(&Xf, Orient.X);
 			geXForm3d_RotateY(&Xf, Orient.Y);
-			geVec3d_Set(&Xf.Translation, Pos.X,Pos.Y,Pos.Z);
-			geXForm3d_GetIn(&Xf, &Object->TempPoint);
+			// translation doesn't influence the orientation
+			//geVec3d_Set(&(Xf.Translation), Pos.X, Pos.Y, Pos.Z);
+			// end change
+			geXForm3d_GetIn(&Xf, &(Object->TempPoint));
 			//return false;
 		}
 		else
 			return true;
 	}
-	
+
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Speed * (dwTicks/1000.0f);
-	if(fabs(Pos.X-Object->CurrentPoint.X)<distance && fabs(Pos.Z-Object->CurrentPoint.Z)<distance)
+	// changed QD 12/15/05
+	float distance = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
+	if(fabs(Pos.X-Object->CurrentPoint.X) < distance && fabs(Pos.Z-Object->CurrentPoint.Z) < distance)
 		return true;
-	geVec3d_AddScaled (&Pos, &Object->TempPoint, distance, &NewPos);
-	
+
+	geVec3d_AddScaled(&Pos, &(Object->TempPoint), distance, &NewPos);
+
 	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
+
 	if(!result)
 		Object->AvoidMode = true;
+
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	RotateToAlign
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateToAlign(void *Data, float dwTicks)
 {
 	geVec3d Pos, Orient;
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+	ScriptedObject *Object = (ScriptedObject*)Data;
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 		char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+
 		if(EntityType)
 		{
 			if(!stricmp(EntityType, "ScriptPoint"))
 			{
 				ScriptPoint *pProxy;
 				CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
+
 				Orient.Z = 0.0174532925199433f*(pProxy->Angle.Z);
 				Orient.X = 0.0174532925199433f*(pProxy->Angle.X);
 				Orient.Y = 0.0174532925199433f*(pProxy->Angle.Y-90.0f);
+
 				CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
+
 				geXForm3d Xf;
-				geXForm3d_SetIdentity(&Xf);
-				geXForm3d_RotateZ(&Xf, Orient.Z);
+				// changed QD 12/15/05
+				//geXForm3d_SetIdentity(&Xf);
+				//geXForm3d_RotateZ(&Xf, Orient.Z);
+				geXForm3d_SetZRotation(&Xf, Orient.Z);
 				geXForm3d_RotateX(&Xf, Orient.X);
 				geXForm3d_RotateY(&Xf, Orient.Y);
-				geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+				//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+
 				geXForm3d_GetIn(&Xf, &Orient);
-				geVec3d_AddScaled (&Pos, &Orient, 1.0f, &Object->TempPoint);
+				// geVec3d_AddScaled(&Pos, &Orient, 1.0f, &(Object->TempPoint));
+				geVec3d_Add(&Pos, &Orient, &(Object->TempPoint));
+				// end change
 			}
 		}
 		//return false;
 	}
-	
+
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
 	geVec3d_Subtract(&Object->TempPoint, &Pos, &Orient);
 	float l = geVec3d_Length(&Orient);
 	float RotateAmt = 0.0f;
 	float TiltAmt = 0.0f;
-	if(l > 0.0f) 
+
+	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		Orient.X = (float)( GE_PI*0.5 ) - 
-			(float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x , Orient.Z ) + GE_PI;
+		// changed QD 12/15/05
+		// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
+		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
+		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
 		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
-		while(Pos.Y<0.0f)
+
+		while(Pos.Y < 0.0f)
 		{
-			Pos.Y+=(GE_PI*2);
+			// changed QD 12/15/05
+			Pos.Y += GE_2PI;
 		}
-		while(Pos.Y>=(GE_PI*2))
+
+		// changed QD 12/15/05
+		while(Pos.Y >= GE_2PI)
 		{
-			Pos.Y-=(GE_PI*2);
+			// changed QD 12/15/05
+			Pos.Y -= GE_2PI;
 		}
+
 		bool RotateLeft = false;
 		RotateAmt = Pos.Y - Orient.Y;
-		if(RotateAmt<0.0f)
+
+		if(RotateAmt < 0.0f)
 		{
 			RotateAmt = -RotateAmt;
 			RotateLeft = true;
 		}
-		if(RotateAmt>-(GE_PI*2))
+
+		// changed QD 12/15/05
+		if(RotateAmt > 0.f) //-2.f*GE_PI)
 		{
-			if(RotateAmt>GE_PI)
+			if(RotateAmt > GE_PI)
 			{
-				RotateAmt-=GE_PI;
+				// changed QD 12/15/05
+				RotateAmt = GE_2PI - RotateAmt; //-= GE_PI;
+
 				if(RotateLeft)
-					RotateLeft=false;
+					RotateLeft = false;
 				else
-					RotateLeft=true;
+					RotateLeft = true;
 			}
-			RotateAmt /= 0.0174532925199433f;
-			float amount = Object->Index->Speed * (dwTicks/1000.0f);
+
+			// changed QD 12/15/05
+			RotateAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
+			float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
 			if(amount>RotateAmt)
 			{
 				amount = RotateAmt;
 			}
+
 			RotateAmt -= amount;
+
 			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
 			else
-				CCD->ActorManager()->TurnLeft(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
 		}
+
 		if(Object->Index->Flag)
 		{
-			while(Pos.X<0.0f)
+			while(Pos.X < 0.0f)
 			{
-				Pos.X+=(GE_PI*2);
+				// changed QD 12/15/05
+				Pos.X += GE_2PI;
 			}
-			while(Pos.X>=(GE_PI*2))
+
+			// changed QD 12/15/05
+			while(Pos.X >= GE_2PI)
 			{
-				Pos.X-=(GE_PI*2);
+				// changed QD 12/15/05
+				Pos.X -= GE_2PI;
 			}
+
 			bool TiltUp = false;
 			TiltAmt = Pos.X - Orient.X;
-			if(TiltAmt<0.0f)
+
+			if(TiltAmt < 0.0f)
 			{
 				TiltAmt = -TiltAmt;
 				TiltUp = true;
 			}
-			if(TiltAmt>0.0f)
+
+			if(TiltAmt > 0.0f)
 			{
-				if(TiltAmt>GE_PI)
+				if(TiltAmt > GE_PI)
 				{
-					TiltAmt-=GE_PI;
+					// changed QD 12/15/05
+					TiltAmt = GE_2PI - TiltAmt;//-= GE_PI;
+
 					if(TiltUp)
-						TiltUp=false;
+						TiltUp = false;
 					else
-						TiltUp=true;
+						TiltUp = true;
 				}
-				TiltAmt /= 0.0174532925199433f;
-				float amount = Object->Index->Speed * (dwTicks/1000.0f);
-				if(amount>TiltAmt)
+
+				// changed QD 12/15/05
+				TiltAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
+				float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+
+				if(amount > TiltAmt)
 				{
 					amount = TiltAmt;
 				}
+
 				TiltAmt -= amount;
+
 				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
 				else
-					CCD->ActorManager()->TiltDown(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
 			}
 		}
-		if(RotateAmt<=0.0f && TiltAmt<=0.0f)
+
+		if(RotateAmt <= 0.0f && TiltAmt <= 0.0f)
 			return true;
+
 		return false;
 	}
-				
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	NextPoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::NextPoint(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+
 	if(EntityType)
 	{
 		if(!stricmp(EntityType, "ScriptPoint"))
@@ -1605,15 +2320,19 @@ bool CPawn::NextPoint(void *Data, float dwTicks)
 			ScriptPoint *pProxy;
 			CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
 			Object->ValidPoint = false;
+
 			if(!EffectC_IsStringNull(pProxy->NextPoint))
 			{
 				strcpy(Object->Point, pProxy->NextPoint);
 				Object->NextOrder[0] = '\0';
+
 				if(!EffectC_IsStringNull(pProxy->NextOrder))
 					strcpy(Object->NextOrder, pProxy->NextOrder);
+
 				if(!EffectC_IsStringNull(Object->Point))
 				{
 					char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+
 					if(EntityType)
 					{
 						if(!stricmp(EntityType, "ScriptPoint"))
@@ -1628,130 +2347,166 @@ bool CPawn::NextPoint(void *Data, float dwTicks)
 			}
 		}
 	}
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	NextOrder
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::NextOrder(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	if(!EffectC_IsStringNull(Object->NextOrder))
 	{
 		strcpy(Object->Order, Object->NextOrder);
 		Object->RunOrder = true;
 		ActionList *pool, *temp;
 		pool = Object->Bottom;
-		while	(pool!= NULL)
+
+		while(pool != NULL)
 		{
 			temp = pool->next;
 			geRam_Free(pool);
 			pool = temp;
 		}
+
 		Object->Top = NULL;
 		Object->Bottom = NULL;
 		Object->Index = NULL;
 	}
-	
+
 	return true;
 }
 
-
+/* ------------------------------------------------------------------------------------ */
+//	Rotate
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::Rotate(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 	bool flag = true;
-	
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 	}
+
 	CCD->ActorManager()->GetRotate(Object->Actor, &Object->TempPoint);
-	float baseamount = Object->Index->Speed * (dwTicks/1000.0f);
-	if(Object->Index->Value1>0.0f)
+	// changed QD 12/15/05
+	float baseamount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
+	// changed QD 07/15/06 - BUGFIX
+	//if(Object->Index->Value1 > 0.0f)
+	if(Object->Index->Value1 != 0.0f)
 	{
 		float amount = baseamount;
-		if(Object->Index->Value1!=0.0f)
+
+		// changed QD 07/15/06 - BUGFIX
+		//if(Object->Index->Value1 != 0.0f)
+		if(Object->Index->Value1 < 0.0f)
 		{
 			amount = -amount;
-			if(amount<Object->Index->Value1)
+
+			if(amount < Object->Index->Value1)
 				amount = Object->Index->Value1;
 		}
 		else
 		{
-			if(amount>Object->Index->Value1)
+			if(amount > Object->Index->Value1)
 				amount = Object->Index->Value1;
 		}
+
 		Object->Index->Value1 -= amount;
 		amount *= 0.0174532925199433f;
 		Object->TempPoint.X += amount;
 		flag = false;
 	}
-	if(Object->Index->Value2!=0.0f)
+
+	if(Object->Index->Value2 != 0.0f)
 	{
 		float amount = baseamount;
-		if(Object->Index->Value2<0.0f)
+
+		if(Object->Index->Value2 < 0.0f)
 		{
 			amount = -amount;
-			if(amount<Object->Index->Value2)
+
+			if(amount < Object->Index->Value2)
 				amount = Object->Index->Value2;
 		}
 		else
 		{
-			if(amount>Object->Index->Value2)
+			if(amount > Object->Index->Value2)
 				amount = Object->Index->Value2;
 		}
+
 		Object->Index->Value2 -= amount;
 		amount *= 0.0174532925199433f;
 		Object->TempPoint.Y += amount;
 		flag = false;
 	}
-	if(Object->Index->Value3!=0.0f)
+
+	if(Object->Index->Value3 != 0.0f)
 	{
 		float amount = baseamount;
-		if(Object->Index->Value3<0.0f)
+
+		if(Object->Index->Value3 < 0.0f)
 		{
 			amount = -amount;
-			if(amount<Object->Index->Value3)
+
+			if(amount < Object->Index->Value3)
 				amount = Object->Index->Value3;
 		}
 		else
 		{
-			if(amount>Object->Index->Value3)
+			if(amount > Object->Index->Value3)
 				amount = Object->Index->Value3;
 		}
+
 		Object->Index->Value3 -= amount;
 		amount *= 0.0174532925199433f;
 		Object->TempPoint.Z += amount;
 		flag = false;
 	}
+
 	CCD->ActorManager()->Rotate(Object->Actor, Object->TempPoint);
-	
+
 	return flag;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	RotateMoveToPoint
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateMoveToPoint(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 	geVec3d Pos, NewPos, In;
-	
+
 	if(RotateToPoint(Data, dwTicks))
 		return true;
+
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Value1 * (dwTicks/1000.0f);
+	float distance = Object->Index->Value1 * (dwTicks*0.001f); // /1000.0f);
 	CCD->ActorManager()->InVector(Object->Actor, &In);
-	geVec3d_AddScaled (&Pos, &In, distance, &NewPos);
-	
+	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
+
 	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	NextPath
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::NextPath(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+
 	if(EntityType)
 	{
 		if(!stricmp(EntityType, "ScriptPoint"))
@@ -1760,138 +2515,175 @@ bool CPawn::NextPath(void *Data, float dwTicks)
 			CCD->ScriptPoints()->LocateEntity(Object->Index->AnimName, (void**)&pProxy);
 			Object->Order[0] = '\0';
 			strcpy(Object->Point, Object->Index->AnimName);
+
 			if(!EffectC_IsStringNull(pProxy->NextOrder))
 			{
 				strcpy(Object->Order, pProxy->NextOrder);
 				Object->RunOrder = true;
 				ActionList *pool, *temp;
 				pool = Object->Bottom;
-				while	(pool!= NULL)
+
+				while(pool != NULL)
 				{
 					temp = pool->next;
 					geRam_Free(pool);
 					pool = temp;
 				}
+
 				Object->Top = NULL;
 				Object->Bottom = NULL;
 				Object->Index = NULL;
 			}
-			
+
 			Object->CurrentPoint = pProxy->origin;
 			Object->ValidPoint = true;
 		}
 	}
+
 	return true;
 }
 
-
+/* ------------------------------------------------------------------------------------ */
+//	RotateMove
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateMove(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 	geVec3d Pos, NewPos, In;
-	
+
 	if(Rotate(Data, dwTicks))
 		return true;
+
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Value4 * (dwTicks/1000.0f);
+	// changed QD 12/15/05
+	float distance = Object->Index->Value4 * (dwTicks*0.001f);// /1000.0f);
 	CCD->ActorManager()->InVector(Object->Actor, &In);
-	geVec3d_AddScaled (&Pos, &In, distance, &NewPos);
-	
+	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
+
 	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
 	return false;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Move
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::Move(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 	geVec3d Pos, NewPos;
 	bool retflg = false;
-	
+
 	if(!Object->Actor)
 		return false;
-	
+
 	if(Object->StartAction)
 	{
 		Object->TotalDist = 0.0f;
+
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 		CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-		if(Object->Direction==RGF_K_BACKWARD || Object->Direction==RGF_K_FORWARD)
+
+		if(Object->Direction == RGF_K_BACKWARD || Object->Direction == RGF_K_FORWARD)
 			CCD->ActorManager()->InVector(Object->Actor, &Object->Vec2Point);
 		else
 		{
-			if(Object->Direction!=0)
+			if(Object->Direction != 0)
 				CCD->ActorManager()->LeftVector(Object->Actor, &Object->Vec2Point);
 			else
 			{
 				geXForm3d thePosition;
 				geVec3d Rotate;
 				CCD->ActorManager()->GetRotate(Object->Actor, &Rotate);
-				geXForm3d_SetIdentity(&thePosition);
-				geXForm3d_RotateZ(&thePosition, Rotate.Z+Object->Index->Value4*0.0174532925199433f);
-				geXForm3d_RotateX(&thePosition, Rotate.X+Object->Index->Value2*0.0174532925199433f);
-				geXForm3d_RotateY(&thePosition, Rotate.Y+Object->Index->Value3*0.0174532925199433f);
-				geXForm3d_Translate(&thePosition, Pos.X, Pos.Y, Pos.Z);
-				geXForm3d_GetIn(&thePosition, &Object->Vec2Point);
+
+				// changed QD 12/15/05
+				//geXForm3d_SetIdentity(&thePosition);
+				//geXForm3d_RotateZ(&thePosition, Rotate.Z+Object->Index->Value4*0.0174532925199433f);
+				geXForm3d_SetZRotation(&thePosition,Rotate.Z+Object->Index->Value4*0.0174532925199433f);
+				geXForm3d_RotateX(&thePosition,		Rotate.X+Object->Index->Value2*0.0174532925199433f);
+				geXForm3d_RotateY(&thePosition,		Rotate.Y+Object->Index->Value3*0.0174532925199433f);
+				//geXForm3d_Translate(&thePosition, Pos.X, Pos.Y, Pos.Z);
+				// end change
+				geXForm3d_GetIn(&thePosition, &(Object->Vec2Point));
 			}
 		}
 	}
-	
+
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Speed * (dwTicks/1000.0f);
-	if((distance+Object->TotalDist)>=Object->Index->Value1)
+	// changed QD 12/15/05
+	float distance = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+
+	if((distance+Object->TotalDist) >= Object->Index->Value1)
 	{
 		distance = Object->Index->Value1 - Object->TotalDist;
 		retflg = true;
 	}
+
 	Object->TotalDist += distance;
-	
-	if(Object->Direction==RGF_K_BACKWARD || Object->Direction==RGF_K_RIGHT)
+
+	if(Object->Direction == RGF_K_BACKWARD || Object->Direction == RGF_K_RIGHT)
 		distance = -distance;
-	
-	geVec3d_AddScaled (&Pos, &Object->Vec2Point, distance, &NewPos);
-	
+
+	geVec3d_AddScaled(&Pos, &Object->Vec2Point, distance, &NewPos);
+
 	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
-	
+
 	if(!result)
 		return true;
+
 	return retflg;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Jump
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::Jump(void *Data, float dwTicks)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+	ScriptedObject *Object = (ScriptedObject*)Data;
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 		geVec3d theUp;
+
 		CCD->ActorManager()->UpVector(Object->Actor, &theUp);
 		CCD->ActorManager()->SetForce(Object->Actor, 0, theUp, Object->Index->Speed, Object->Index->Speed);
+
 		if(Object->Index->Flag)
 			return true;
+
 		return false;
 	}
+
 	if(CCD->ActorManager()->Falling(Object->Actor) == GE_TRUE)
 		return false;
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	AddTriggerOrder
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
+
 	if(!EffectC_IsStringNull(Object->Index->AnimName))
 	{
 		if(!EffectC_IsStringNull(Object->Index->TriggerName))
 		{
 			TriggerStack *tpool, *ttemp;
 			tpool = Object->Trigger;
-			while	(tpool!= NULL)
+
+			while(tpool != NULL)
 			{
 				ttemp = tpool->next;
+
 				if(!strcmp(Object->Index->TriggerName, tpool->TriggerName))
 				{
 					strcpy(tpool->OrderName, Object->Index->AnimName);
@@ -1904,17 +2696,22 @@ bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 					tpool->Time = Object->Index->Value3;
 					return true;
 				}
+
 				tpool = ttemp;
 			}
+
 			tpool = GE_RAM_ALLOCATE_STRUCT(TriggerStack);
 			memset(tpool, 0x0, sizeof(TriggerStack));
 			tpool->next = Object->Trigger;
 			tpool->prev = NULL;
 			Object->Trigger = tpool;
+
 			if(tpool->next)
 				tpool->next->prev = tpool;
+
 			strcpy(tpool->OrderName, Object->Index->AnimName);
 			strcpy(tpool->TriggerName, Object->Index->TriggerName);
+
 			tpool->Delay = Object->Index->Speed;
 			tpool->Flag = Object->Index->Flag;
 			tpool->Type = (int)Object->Index->Value1;
@@ -1924,43 +2721,54 @@ bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 			tpool->High = Object->Index->Value4;
 		}
 	}
-	
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	DelTriggerOrder
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::DelTriggerOrder(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	if(!EffectC_IsStringNull(Object->Index->TriggerName))
 	{
 		TriggerStack *tpool, *ttemp;
 		tpool = Object->Trigger;
-		while	(tpool!= NULL)
+
+		while(tpool != NULL)
 		{
 			ttemp = tpool->next;
+
 			if(!strcmp(Object->Index->TriggerName, tpool->TriggerName))
 			{
 				Object->RemoveTriggerStack(tpool);
 				return true;
 			}
+
 			tpool = ttemp;
 		}
 	}
-	
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	RotateToPlayer
+/* ------------------------------------------------------------------------------------ */
 bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
-	
+
 	if(Object->StartAction)
 	{
 		if(!EffectC_IsStringNull(Object->Index->AnimName))
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 		Object->StartAction = false;
 	}
+
 	geVec3d Pos, Orient, Play;
 	Play = CCD->Player()->Position();
 	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
@@ -1968,99 +2776,137 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 	float l = geVec3d_Length(&Orient);
 	float RotateAmt = 0.0f;
 	float TiltAmt = 0.0f;
-	if(l > 0.0f) 
+
+	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		Orient.X = (float)( GE_PI*0.5 ) - 
-			(float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x , Orient.Z ) + GE_PI;
+		// changed QD 12/15/05
+		// Orient.X = (float)(GE_P*0.5f) - (float)acos(Orient.Y / l);
+		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
+		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
 		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
-		while(Pos.Y<0.0f)
+
+		while(Pos.Y < 0.0f)
 		{
-			Pos.Y+=(GE_PI*2);
+			// changed QD 12/15/05
+			Pos.Y += GE_2PI;
 		}
-		while(Pos.Y>=(GE_PI*2))
+
+		// changed QD 12/15/05
+		while(Pos.Y >= GE_2PI)
 		{
-			Pos.Y-=(GE_PI*2);
-		} 
+			// changed QD 12/15/05
+			Pos.Y -= GE_2PI;
+		}
+
 		bool RotateLeft = false;
 		RotateAmt = Pos.Y - Orient.Y;
-		
-		if(RotateAmt<0.0f)
+
+		if(RotateAmt < 0.0f)
 		{
 			RotateAmt = -RotateAmt;
 			RotateLeft = true;
 		}
-		if(RotateAmt!=0.0f)
+
+		// changed QD 12/15/05
+		if(RotateAmt > 0.0f) // != 0.0f)
 		{
-			if(RotateAmt>GE_PI)
+			if(RotateAmt > GE_PI)
 			{
-				RotateAmt-=GE_PI;
+				// changed QD 12/15/05
+				RotateAmt = GE_2PI - RotateAmt; //-= GE_PI;
+
 				if(RotateLeft)
-					RotateLeft=false;
+					RotateLeft = false;
 				else
-					RotateLeft=true;
+					RotateLeft = true;
 			}
-			RotateAmt /= 0.0174532925199433f;
-			
-			float amount = Object->Index->Speed * (dwTicks/1000.0f);
-			if(amount>RotateAmt)
+
+			// changed QD 12/15/05
+			RotateAmt *= GE_180OVERPI;// /= 0.0174532925199433f;
+
+			float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+
+			if(amount > RotateAmt)
 			{
 				amount = RotateAmt;
 			}
+
 			RotateAmt -= amount;
+
 			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
 			else
-				CCD->ActorManager()->TurnLeft(Object->Actor,0.0174532925199433f*amount);
+				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
 		}
+
 		if(Object->Index->Flag)
 		{
-			while(Pos.X<-(GE_PI*2))
+			// changed QD 12/15/05
+			while(Pos.X < 0.0f) //-(GE_PI*2.0f))
 			{
-				Pos.X+=(GE_PI*2);
+				Pos.X += GE_2PI;
 			}
-			while(Pos.X>=(GE_PI*2))
+
+			// changed QD 12/15/05
+			while(Pos.X >= GE_2PI)
 			{
-				Pos.X-=(GE_PI*2);
+				// changed QD 12/15/05
+				Pos.X -= GE_2PI;
 			}
+
 			bool TiltUp = false;
 			TiltAmt = Pos.X - Orient.X;
-			if(TiltAmt<0.0f)
+
+			if(TiltAmt < 0.0f)
 			{
 				TiltAmt = -TiltAmt;
 				TiltUp = true;
 			}
-			if(TiltAmt>0.0f)
+
+			if(TiltAmt > 0.0f)
 			{
-				if(TiltAmt>GE_PI)
+				if(TiltAmt > GE_PI)
 				{
-					TiltAmt-=GE_PI;
+					// changed QD 12/15/05
+					TiltAmt = GE_2PI - TiltAmt; //-= GE_PI;
+
 					if(TiltUp)
-						TiltUp=false;
+						TiltUp = false;
 					else
-						TiltUp=true;
+						TiltUp = true;
 				}
-				TiltAmt /= 0.0174532925199433f;
-				float amount = Object->Index->Speed * (dwTicks/1000.0f);
-				if(amount>TiltAmt)
+
+				// changed QD 12/15/05
+				TiltAmt *= GE_180OVERPI;// /= 0.0174532925199433f;
+				float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+
+				if(amount > TiltAmt)
 				{
 					amount = TiltAmt;
 				}
+
 				TiltAmt -= amount;
+
 				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
 				else
-					CCD->ActorManager()->TiltDown(Object->Actor,0.0174532925199433f*amount);
+					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
 			}
 		}
-		if(RotateAmt==0.0f && TiltAmt==0.0f)
+
+		if(RotateAmt == 0.0f && TiltAmt == 0.0f)
 			return true;
+
 		return false;
 	}
+
 	return true;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	TickHigh
+/* ------------------------------------------------------------------------------------ */
 void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 {
 	skRValueArray args; // change simkin
@@ -2068,24 +2914,30 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 	int yoffset = 0;
 	TriggerStack *tpool, *ttemp;
 	tpool = Object->Trigger;
-	while	(tpool!= NULL)
+
+	while(tpool!= NULL)
 	{
 		ttemp = tpool->next;
-		if(tpool->Type==PTIMER || tpool->Type==PSOUND)
+
+		if(tpool->Type == PTIMER || tpool->Type == PSOUND)
 		{
-			tpool->Time -= (dwTicks/1000.0f);
-			if(tpool->Time<0.0f)
+			// changed QD 12/15/05
+			tpool->Time -= (dwTicks*0.001f);// /1000.0f);
+
+			if(tpool->Time < 0.0f)
 				tpool->Time = 0.0f;
 		}
+
 		tpool = ttemp;
 	}
-				
+
 	if(!EffectC_IsStringNull(Object->DeadOrder))
 	{
 		if(!EffectC_IsStringNull(Object->Attribute))
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
-			if(theInv->Value(Object->Attribute)<=0)
+
+			if(theInv->Value(Object->Attribute) <= 0)
 			{
 				strcpy(Object->Order, Object->DeadOrder);
 				Object->DeadOrder[0] = '\0';
@@ -2093,28 +2945,35 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				Object->ActionActive = false;
 				ActionList *pool, *temp;
 				pool = Object->Bottom;
-				while	(pool!= NULL)
+
+				while(pool != NULL)
 				{
 					temp = pool->next;
 					geRam_Free(pool);
 					pool = temp;
 				}
+
 				Object->Top = NULL;
 				Object->Bottom = NULL;
 				Object->Index = NULL;
 			}
 		}
 	}
+
 	if(Object->active)
 	{
 		bool runflag = false;
+
 		do
 		{
 			runflag = false;
+
 			if(Object->TriggerWait)
 			{
-				Object->TriggerTime -= (dwTicks/1000.0f);
-				if(Object->TriggerTime<=0.0f && !Object->TargetDisable)
+				// changed QD 12/15/05
+				Object->TriggerTime -= (dwTicks*0.001f);// /1000.0f);
+
+				if(Object->TriggerTime <= 0.0f && !Object->TargetDisable)
 				{
 					Object->TriggerWait = false;
 					strcpy(Object->Order, Object->TriggerOrder);
@@ -2122,12 +2981,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->ActionActive = false;
 					ActionList *pool, *temp;
 					pool = Object->Bottom;
-					while	(pool!= NULL)
+
+					while(pool != NULL)
 					{
 						temp = pool->next;
 						geRam_Free(pool);
 						pool = temp;
 					}
+
 					Object->Top = NULL;
 					Object->Bottom = NULL;
 					Object->Index = NULL;
@@ -2138,12 +2999,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				if(Object->Trigger && !Object->TargetDisable)
 				{
 					TriggerStack *tpool, *ttemp;
-					
+
 					bool flag;
 					tpool = Object->Trigger;
-					while	(tpool!= NULL)
+
+					while(tpool != NULL)
 					{
 						ttemp = tpool->next;
+
 						switch(tpool->Type)
 						{
 						case PTRIGGER:
@@ -2163,11 +3026,11 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							break;
 						case PSOUND:
 							flag = false;
-							if(tpool->Time==0.0f)
+							if(tpool->Time == 0.0f)
 							{
 								tpool->Time=EffectC_Frand(tpool->Low, tpool->High);
 								Snd Sound;
-								
+
 								memset( &Sound, 0, sizeof( Sound ) );
 								//if(!CCD->Player()->GetMonitorMode())
 								{
@@ -2183,16 +3046,16 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									Sound.Pos.Y = pSource->origin.Y;
 									Sound.Pos.Z = pSource->origin.Z;
 								} */
-								Sound.Min=Object->AudibleRadius;
-								Sound.Loop=false;
+								Sound.Min = Object->AudibleRadius;
+								Sound.Loop = GE_FALSE;
 								Sound.SoundDef = SPool_Sound(tpool->OrderName);
-								CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+								CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
 							}
 							break;
 						}
 						if(flag)
 						{
-							if(tpool->Delay>0.0f)
+							if(tpool->Delay > 0.0f)
 							{
 								Object->TriggerWait = true;
 								Object->TriggerTime = tpool->Delay;
@@ -2206,12 +3069,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								Object->ActionActive = false;
 								ActionList *pool, *temp;
 								pool = Object->Bottom;
-								while	(pool!= NULL)
+
+								while(pool != NULL)
 								{
 									temp = pool->next;
 									geRam_Free(pool);
 									pool = temp;
 								}
+
 								Object->Top = NULL;
 								Object->Bottom = NULL;
 								Object->Index = NULL;
@@ -2219,90 +3084,95 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							}
 							break;
 						}
+
 						tpool = ttemp;
 					}
 				}
 			}
-
-// added quest of dreams - FindPointOrder code
-	if(Object->PointFind)
-	{
-		if(Object->FOV>-2.0f && Object->Actor) 
-		{
-		float dist = 9000000.0f;// only ScripPoints within 3000 texels
-		bool done = false;
-
-		geEntity_EntitySet *pSet;
-		geEntity *pEntity;
-
-		// Ok, check to see if there are ScriptPoints in this world
-
-		pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
-
-			if(pSet) 
-			{ 
-			// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
-				for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-				pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+// added QD - FindPointOrder code
+			if(Object->PointFind)
+			{
+				if(Object->FOV > -2.0f && Object->Actor)
 				{
-				ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
-				// search for nearest visible ScripPoint
-					if(CanSeePoint(Object->FOV, Object->Actor, &(pSource->origin), Object->FOVBone))
-					{
-					float newdist;
-					geVec3d Pos, Dist;
+					float dist = 9000000.0f;// only ScripPoints within 3000 texels
+					bool done = false;
 
-					//calc newdist
-					CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-					geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
-					newdist = geVec3d_LengthSquared(&Dist);
-						if(newdist< dist)
+					geEntity_EntitySet *pSet;
+					geEntity *pEntity;
+
+					// Ok, check to see if there are ScriptPoints in this world
+					pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+
+					if(pSet)
+					{
+						// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
+						for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+							pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 						{
-						dist = newdist;
-						strcpy(Object->Point, pSource->szEntityName);
-						Object->CurrentPoint= pSource->origin;
-						Object->ValidPoint = true;
-						done = true;
-						} 
+							ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+
+							// search for nearest visible ScripPoint
+							if(CanSeePoint(Object->FOV, Object->Actor, &(pSource->origin), Object->FOVBone))
+							{
+								float newdist;
+								geVec3d Pos, Dist;
+
+								//calc newdist
+								CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
+								geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
+								newdist = geVec3d_LengthSquared(&Dist);
+
+								if(newdist < dist)
+								{
+									dist = newdist;
+									strcpy(Object->Point, pSource->szEntityName);
+									Object->CurrentPoint= pSource->origin;
+									Object->ValidPoint = true;
+									done = true;
+								}
+							}
+						}
+					}
+
+					if(done)
+					{
+						strcpy(Object->Order, Object->PointOrder);
+						Object->RunOrder = true;
+						Object->ActionActive = false;
+						ActionList *pool, *temp;
+						pool = Object->Bottom;
+
+						while(pool != NULL)
+						{
+							temp = pool->next;
+							geRam_Free(pool);
+							pool = temp;
+						}
+
+						Object->Top = NULL;
+						Object->Bottom = NULL;
+						Object->Index = NULL;
+						Object->PointFind = false;
 					}
 				}
-			} 
-
-			if(done)
-			{
-			strcpy(Object->Order, Object->PointOrder);
-			Object->RunOrder = true;
-			Object->ActionActive = false;
-			ActionList *pool, *temp;
-			pool = Object->Bottom;
-				while (pool!= NULL)
-				{
-				temp = pool->next;
-				geRam_Free(pool);
-				pool = temp;
-				}
-			Object->Top = NULL;
-			Object->Bottom = NULL;
-			Object->Index = NULL;
-			Object->PointFind = false;
 			}
-		}
-	}
-// end FIndPointOrder code - QuestOfDreams
+// end QD - FindPointOrder code
 
 			if(Object->TargetFind && !Object->TargetDisable)
 			{
 				//Object->TargetActor = NULL;
-				if(Object->FOV>-2.0f && Object->Actor) 
+				if(Object->FOV > -2.0f && Object->Actor)
 				{
-					float distance = Object->TargetDistance+100;
+					float distance = Object->TargetDistance+100.f;
 					bool done = false;
+
 					if(Object->HostilePlayer)
 					{
 						if(CanSee(Object->FOV, Object->Actor, CCD->Player()->GetActor(), Object->FOVBone))
 						{
 							float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, CCD->Player()->GetActor());
-							if(dist<Object->TargetDistance)
+
+							if(dist < Object->TargetDistance)
 							{
 								Object->TargetActor = CCD->Player()->GetActor();
 								done = true;
@@ -2310,27 +3180,31 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							}
 						}
 					}
-					
+
 					geActor *ActorsInRange[512];
 					geVec3d Pos;
-					
+
 					CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-					int nActorCount = CCD->ActorManager()->GetActorsInRange(Pos, 
-						Object->TargetDistance, 512, &ActorsInRange[0]);
-					
+					int nActorCount = CCD->ActorManager()->GetActorsInRange(Pos, Object->TargetDistance,
+																			512, &ActorsInRange[0]);
+
 					if(nActorCount != 0)
 					{
 						if(Object->HostileDiff)
 						{
-							for(int nTemp = 0; nTemp < nActorCount; nTemp++)
+							for(int nTemp=0; nTemp<nActorCount; nTemp++)
 							{
-								if(ActorsInRange[nTemp]==Object->Actor)
+								if(ActorsInRange[nTemp] == Object->Actor)
 									continue;
+
 								int nType;
 								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-								if((nType==ENTITY_NPC || nType==ENTITY_VEHICLE) && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+
+								if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE)
+									&& CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
 								{
 									bool TG = false;
+
 									if(!EffectC_IsStringNull(Object->TargetGroup))
 									{
 										if(!strcmp(Object->TargetGroup, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
@@ -2338,23 +3212,27 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									}
 									else
 									{
-										if(strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))!=0)
+										if(strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])) != 0)
 											TG = true;
 									}
+
 									if(TG)
 									{
 										CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
+
 										if(theInv->Has(Object->TargetAttr))
 										{
-											if(theInv->Value(Object->TargetAttr)>0)
+											if(theInv->Value(Object->TargetAttr) > 0)
 											{
 												if(CanSee(Object->FOV, Object->Actor, ActorsInRange[nTemp], Object->FOVBone))
 												{
 													float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, ActorsInRange[nTemp]);
-													if(dist<Object->TargetDistance)
+
+													if(dist < Object->TargetDistance)
 													{
 														done = true;
-														if(distance>dist)
+
+														if(distance > dist)
 														{
 															distance = dist;
 															Object->TargetActor = ActorsInRange[nTemp];
@@ -2367,30 +3245,37 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								}
 							}
 						}
+
 						if(Object->HostileSame)
 						{
-							for(int nTemp = 0; nTemp < nActorCount; nTemp++)
+							for(int nTemp=0; nTemp<nActorCount; nTemp++)
 							{
 								if(ActorsInRange[nTemp]==Object->Actor)
 									continue;
+
 								int nType;
 								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-								if((nType==ENTITY_NPC || nType==ENTITY_VEHICLE) && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+
+								if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE)
+									&& CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
 								{
 									if(!strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
 									{
 										CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
+
 										if(theInv->Has(Object->TargetAttr))
 										{
-											if(theInv->Value(Object->TargetAttr)>0)
+											if(theInv->Value(Object->TargetAttr) > 0)
 											{
 												if(CanSee(Object->FOV, Object->Actor, ActorsInRange[nTemp], Object->FOVBone))
 												{
 													float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, ActorsInRange[nTemp]);
-													if(dist<Object->TargetDistance)
+
+													if(dist < Object->TargetDistance)
 													{
 														done = true;
-														if(distance>dist)
+
+														if(distance > dist)
 														{
 															distance = dist;
 															Object->TargetActor = ActorsInRange[nTemp];
@@ -2404,6 +3289,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							}
 						}
 					}
+
 					if(done)
 					{
 						strcpy(Object->Order, Object->TargetOrder);
@@ -2411,12 +3297,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						Object->ActionActive = false;
 						ActionList *pool, *temp;
 						pool = Object->Bottom;
-						while	(pool!= NULL)
+
+						while(pool != NULL)
 						{
 							temp = pool->next;
 							geRam_Free(pool);
 							pool = temp;
 						}
+
 						Object->Top = NULL;
 						Object->Bottom = NULL;
 						Object->Index = NULL;
@@ -2425,9 +3313,12 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					}
 				}
 			}
+
 			if(Object->DistActive && !Object->TargetDisable)
 			{
-				bool flg = PlayerDistance(Object->FOV, Object->MinDistance, Object->Actor, Object->DeadPos, Object->FOVBone);
+				bool flg = PlayerDistance(Object->FOV, Object->MinDistance, Object->Actor,
+											Object->DeadPos, Object->FOVBone);
+
 				if(flg)
 				{
 					strcpy(Object->Order, Object->DistOrder);
@@ -2435,25 +3326,29 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->ActionActive = false;
 					ActionList *pool, *temp;
 					pool = Object->Bottom;
-					while	(pool!= NULL)
+
+					while(pool != NULL)
 					{
 						temp = pool->next;
 						geRam_Free(pool);
 						pool = temp;
 					}
+
 					Object->Top = NULL;
 					Object->Bottom = NULL;
 					Object->Index = NULL;
 					Object->DistActive = false;
 				}
 			}
+
 			if(Object->PainActive && !Object->TargetDisable)
 			{
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
 				int current = theInv->Value(Object->Attribute);
-				if(current>0)
+
+				if(current > 0)
 				{
-					if(current<Object->OldAttributeAmount)
+					if(current < Object->OldAttributeAmount)
 					{
 						if((int)EffectC_Frand(1.0f, 10.0f) <= (Object->PainPercent/10))
 						{
@@ -2469,12 +3364,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						}
 					}
 				}
+
 				Object->OldAttributeAmount = current;
 			}
-			
+
 			if(Object->RunOrder)
 			{
 				bool methoderror = false;
+
 				try
 				{
 					Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
@@ -2485,6 +3382,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						strcpy(Object->Indicate, " ");
 					else
 						strcpy(Object->Indicate, "+");
+
 					if(Object->console)
 						strcpy(Object->ConsoleError, e.toString());
       			}
@@ -2494,6 +3392,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						strcpy(Object->Indicate, " ");
 					else
 						strcpy(Object->Indicate, "+");
+
 					if(Object->console)
 						strcpy(Object->ConsoleError, e.toString());
 				}
@@ -2502,43 +3401,51 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					char szBug[256];
 					sprintf(szBug, "Script Error for %s in Order %s", Object->szName, Object->Order);
 					CCD->ReportError(szBug, false);
+
 					if(Object->console)
 						strcpy(Object->ConsoleError, szBug);
+
 					methoderror = true;
 				}
+
 				Object->RunOrder = false;
 				Object->Index = NULL;
+
 				if(!methoderror)
 					Object->ActionActive = false;
 				else
 					break;
 			}
-			
+
 			if(!Object->ActionActive)
 			{
 				if(!Object->Index)
 					Object->Index = Object->Top;
 				else
 					Object->Index = Object->Index->prev;
+
 				Object->ActionActive = true;
 				Object->StartAction = true;
-				if(Object->SoundIndex!=-1 && !Object->SoundLoop)
+
+				if(Object->SoundIndex != -1 && !Object->SoundLoop)
 				{
 					CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 					Object->SoundIndex = -1;
 				}
+
 				if(Object->Index)
 				{
 					if(!EffectC_IsStringNull(Object->Index->SoundName))
 					{
-						if(Object->SoundIndex!=-1)
+						if(Object->SoundIndex != -1)
 						{
 							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 							Object->SoundIndex = -1;
 						}
+
 						Snd Sound;
-						
-						memset( &Sound, 0, sizeof( Sound ) );
+
+						memset(&Sound, 0, sizeof(Sound));
 						//if(!CCD->Player()->GetMonitorMode())
 						{
 							if(Object->Actor)
@@ -2553,12 +3460,15 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Sound.Pos.Y = pSource->origin.Y;
 							Sound.Pos.Z = pSource->origin.Z;
 						} */
-						Sound.Min=Object->AudibleRadius;
-						Sound.Loop=true;
-						if(Object->Index->Action==STOPANIMATION)
-							Sound.Loop=false;
+
+						Sound.Min = Object->AudibleRadius;
+						Sound.Loop = GE_TRUE;
+
+						if(Object->Index->Action == STOPANIMATION)
+							Sound.Loop = GE_FALSE;
+
 						Sound.SoundDef = SPool_Sound(Object->Index->SoundName);
-						Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+						Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
 					}
 				}
 			}
@@ -2572,36 +3482,43 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						Object->ActionActive = true;
 						Object->TargetDisable = false;
 						Object->StartAction = true;
-						if(Object->SoundIndex!=-1 && !Object->SoundLoop)
+
+						if(Object->SoundIndex != -1 && !Object->SoundLoop)
 						{
 							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 							Object->SoundIndex = -1;
 						}
+
 						if(!EffectC_IsStringNull(Object->Index->SoundName))
 						{
-							if(Object->SoundIndex!=-1)
+							if(Object->SoundIndex != -1)
 							{
 								CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 								Object->SoundIndex = -1;
 							}
+
 							Snd Sound;
-							
+
 							memset( &Sound, 0, sizeof( Sound ) );
+
 							if(Object->Actor)
 								CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
 							else
 								Sound.Pos = Object->DeadPos;
-							Sound.Min=Object->AudibleRadius;
-							Sound.Loop=true;
-							if(Object->Index->Action==STOPANIMATION)
-								Sound.Loop=false;
+
+							Sound.Min = Object->AudibleRadius;
+							Sound.Loop = GE_TRUE;
+
+							if(Object->Index->Action == STOPANIMATION)
+								Sound.Loop = GE_FALSE;
+
 							Sound.SoundDef = SPool_Sound(Object->Index->SoundName);
-							Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+							Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
 						}
 					}
 				}
 			}
-			
+
 			if(Object->Index)
 			{
 				if(Object->console)
@@ -2610,6 +3527,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					sprintf(szBug, "%s %s %s %s",Object->szName, Object->Order, ActionText[Object->Index->Action], Object->Point);
 					strcpy(Object->ConsoleHeader, szBug);
 				}
+
 				if(Object->FacePlayer && Object->Actor)
 				{
 					geVec3d Pos = CCD->Player()->Position();
@@ -2619,28 +3537,33 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					geFloat x,l;
 					geVec3d_Subtract(&Pos, &Pos1, &LookRotation);
 					l = geVec3d_Length(&LookRotation);
+
 					// protect from Div by Zero
-					if(l > 0.0f) 
+					if(l > 0.0f)
 					{
 						x = LookRotation.X;
-						LookRotation.X = -((float)( GE_PI*0.5f) - (float)acos(LookRotation.Y / l));
-						LookRotation.Y = (float)atan2( x , LookRotation.Z ) + GE_PI;
-						// roll is zero - always!!?
-						LookRotation.Z = 0.0;									
+						// changed QD 12/15/05
+						// LookRotation.X = -((float)(GE_PI*0.5f) - (float)acos(LookRotation.Y / l));
+						LookRotation.X = -(GE_PIOVER2 - (float)acos(LookRotation.Y / l));
+						LookRotation.Y = (float)atan2(x, LookRotation.Z) + GE_PI;
+						LookRotation.Z = 0.0f;	// roll is zero - always!!?
+
 						if(!Object->FaceAxis)
 							LookRotation.X = 0.0f;
+
 						CCD->ActorManager()->Rotate(Object->Actor, LookRotation);
 					}
-				} 
-				
+				}
+
 				ActionList *pool, *temp;
 				float Gravity = 0.0f;
+
 				switch(Object->Index->Action)
 				{
 				case ROTATETOPOINT:
 					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
 					{
-						if(RotateToPoint((void *)Object, dwTicks))
+						if(RotateToPoint((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2649,7 +3572,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case MOVETOPOINT:
 					if(Object->ValidPoint && Object->Actor)
 					{
-						if(MoveToPoint((void *)Object, dwTicks))
+						if(MoveToPoint((void*)Object, dwTicks))
 						{
 							Object->ActionActive = false;
 						}
@@ -2674,7 +3597,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->RunOrder = true;
 					Object->ActionActive = false;
 					pool = Object->Bottom;
-					while	(pool!= NULL)
+					while(pool != NULL)
 					{
 						temp = pool->next;
 						geRam_Free(pool);
@@ -2688,7 +3611,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case NEXTORDER:
 					if(Object->ValidPoint)
 					{
-						if(NextOrder((void *)Object, dwTicks))
+						if(NextOrder((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2698,7 +3621,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case ROTATETOALIGN:
 					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
 					{
-						if(RotateToAlign((void *)Object, dwTicks))
+						if(RotateToAlign((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2716,7 +3639,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case NEXTPOINT:
 					if(Object->ValidPoint)
 					{
-						if(NextPoint((void *)Object, dwTicks))
+						if(NextPoint((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2728,15 +3651,64 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					{
 						if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
 							CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 						Object->StartAction = false;
 					}
-					Object->Time += (dwTicks/1000.0f);
-					if(Object->Time>=Object->Index->Speed)
+					// changed QD 12/15/05
+					Object->Time += (dwTicks*0.001f);// /1000.0f);
+					if(Object->Time >= Object->Index->Speed)
 					{
 						Object->Time = 0.0f;
 						Object->ActionActive = false;
 					}
 					break;
+// changed Nout 12/15/05
+				case SHOWTEXTDELAY:
+					if(Object->StartAction)
+					{
+						Object->StartAction = false;
+
+						if(Object->Index->Flag)
+						{
+							if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
+								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
+							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = true;
+							//Object->StartAction = false;
+						}
+						else
+						{
+							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
+							Object->ActionActive = false;
+							break;
+						}
+					}
+					Object->Time += (dwTicks*0.001f);
+					if((Object->Time>=Object->Index->Speed) || !(Object->Index->Flag))
+					{
+						Object->Time = 0.0f;
+						CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
+						Object->ActionActive = false;
+					}
+					break;
+				case SHOWTEXT:
+					if(Object->StartAction)
+					{
+						if(Object->Index->Flag)
+						{
+							if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
+								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
+							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = true;
+						}
+						else
+							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
+
+						Object->StartAction = false;
+						Object->ActionActive = false;
+					}
+					break;
+// end change
 				case PLAYANIMATION:
 					if(Object->Actor)
 					{
@@ -2744,12 +3716,15 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						{
 							if(!EffectC_IsStringNull(Object->Index->AnimName))
 								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 							Object->StartAction = false;
+
 							if(Object->Index->Flag)
 								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
 							else
 								Object->ActionActive = false;
 						}
+
 						if(Object->Index->Flag)
 						{
 							if(CCD->ActorManager()->EndAnimation(Object->Actor))
@@ -2771,14 +3746,16 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						{
 							if(!EffectC_IsStringNull(Object->Index->AnimName))
 							{
-								if(Object->Index->Speed>0.0f)
+								if(Object->Index->Speed > 0.0f)
 								{
 									CCD->ActorManager()->SetTransitionMotion(Object->Actor, Object->Index->AnimName, Object->Index->Speed, NULL);
 									CCD->ActorManager()->SetNextMotion(Object->Actor, Object->Index->AnimName);
 								}
 								else
 									CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 								Object->StartAction = false;
+
 								if(Object->Index->Flag)
 									CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
 								else
@@ -2786,6 +3763,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							}
 
 						}
+
 						if(Object->Index->Flag)
 						{
 							if(CCD->ActorManager()->EndAnimation(Object->Actor))
@@ -2809,8 +3787,9 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
 							Object->StartAction = false;
 						}
-						Object->Time += (dwTicks/1000.0f);
-						if(Object->Time>=Object->Index->Speed)
+						// changed QD 12/15/05
+						Object->Time += (dwTicks*0.001f);// /1000.0f);
+						if(Object->Time >= Object->Index->Speed)
 						{
 							Object->Time = 0.0f;
 							Object->ActionActive = false;
@@ -2823,14 +3802,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case ROTATEMOVETOPOINT:
 					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
 					{
-						if(RotateMoveToPoint((void *)Object, dwTicks))
+						if(RotateMoveToPoint((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
 						Object->ActionActive = false;
 					break;
 				case NEWPATH:
-					if(NextPath((void *)Object, dwTicks))
+					if(NextPath((void*)Object, dwTicks))
 					{
 						Object->ActionActive = false;
 						runflag = true;
@@ -2840,7 +3819,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->RunOrder = true;
 					Object->ActionActive = false;
 					pool = Object->Bottom;
-					while	(pool!= NULL)
+					while(pool != NULL)
 					{
 						temp = pool->next;
 						geRam_Free(pool);
@@ -2853,7 +3832,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case ROTATEMOVE:
 					if(!Object->FacePlayer && Object->Actor)
 					{
-						if(RotateMove((void *)Object, dwTicks))
+						if(RotateMove((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2873,6 +3852,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								Object->CurrentPoint = pProxy->origin;
 								Object->ValidPoint = true;
 								Object->NextOrder[0] = '\0';
+
 								if(!EffectC_IsStringNull(pProxy->NextOrder))
 									strcpy(Object->NextOrder, pProxy->NextOrder);
 							}
@@ -2883,27 +3863,27 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					break;
 				case MOVEFORWARD:
 					Object->Direction = RGF_K_FORWARD;
-					if(Move((void *)Object, dwTicks))
+					if(Move((void*)Object, dwTicks))
 						Object->ActionActive = false;
 					break;
 				case MOVEBACKWARD:
 					Object->Direction = RGF_K_BACKWARD;
-					if(Move((void *)Object, dwTicks))
+					if(Move((void*)Object, dwTicks))
 						Object->ActionActive = false;
 					break;
 				case MOVELEFT:
 					Object->Direction = RGF_K_LEFT;
-					if(Move((void *)Object, dwTicks))
+					if(Move((void*)Object, dwTicks))
 						Object->ActionActive = false;
 					break;
 				case MOVERIGHT:
 					Object->Direction = RGF_K_RIGHT;
-					if(Move((void *)Object, dwTicks))
+					if(Move((void*)Object, dwTicks))
 						Object->ActionActive = false;
 					break;
 				case MOVE:
 					Object->Direction = 0;
-					if(Move((void *)Object, dwTicks))
+					if(Move((void*)Object, dwTicks))
 						Object->ActionActive = false;
 					break;
 				case AVOIDORDER:
@@ -2925,19 +3905,19 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case JUMPCMD:
 					if(Object->Actor)
 					{
-						if(Jump((void *)Object, dwTicks))
+						if(Jump((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
 						Object->ActionActive = false;
 					break;
 				case ADDTRIGGERORDER:
-					AddTriggerOrder((void *)Object, dwTicks);
+					AddTriggerOrder((void*)Object, dwTicks);
 					Object->ActionActive = false;
 					runflag = true;
 					break;
 				case DELTRIGGERORDER:
-					DelTriggerOrder((void *)Object, dwTicks);
+					DelTriggerOrder((void*)Object, dwTicks);
 					Object->ActionActive = false;
 					runflag = true;
 					break;
@@ -2949,14 +3929,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case FACEPLAYER:
 					Object->FacePlayer = Object->Index->Flag;
 					Object->FaceAxis = true;
-					if(Object->Index->Speed<1.0f)
+					if(Object->Index->Speed < 1.0f)
 						Object->FaceAxis = false;
 					Object->ActionActive = false;
 					break;
 				case ROTATETOPLAYER:
 					if(!Object->FacePlayer && Object->Actor)
 					{
-						if(RotateToPlayer((void *)Object, dwTicks))
+						if(RotateToPlayer((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2965,7 +3945,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case ROTATEAROUNDPOINT:
 					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
 					{
-						if(RotateAroundPoint((void *)Object, dwTicks))
+						if(RotateAroundPoint((void*)Object, dwTicks))
 							Object->ActionActive = false;
 					}
 					else
@@ -2975,17 +3955,51 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
 					{
 						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+
 						if(EntityType)
 						{
 							if(!stricmp(EntityType, "ScriptPoint"))
 							{
 								ScriptPoint *pProxy;
 								CCD->ScriptPoints()->LocateEntity(Object->Index->AnimName, (void**)&pProxy);
+
+								// changed Nout 12/15/05
+								geActor *tActor;
+								if(!EffectC_IsStringNull(Object->Index->TriggerName))
+								{
+									if(!stricmp(Object->Index->TriggerName, "Player")) // Teleport Player
+										tActor = CCD->Player()->GetActor();
+									else  // Teleport Pawn
+										tActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
+								}
+								else
+									tActor = Object->Actor; // Teleport Script-pawn
+								// end change
+
 								geVec3d Pos = pProxy->origin;
 								Pos.X += Object->Index->Value1;
 								Pos.Y += Object->Index->Value2;
 								Pos.Z += Object->Index->Value3;
-								CCD->ActorManager()->Position(Object->Actor, Pos);
+								// changed Nout/QD 12/15/05
+								// CCD->ActorManager()->Position(Object->Actor, Pos);
+								CCD->ActorManager()->Position(tActor, Pos);
+
+								// rotate to match scriptpoint angle
+								if(Object->Index->Flag)
+								{
+									geVec3d RealAngle;
+									geVec3d_Scale(&(pProxy->Angle), 0.0174532925199433f, &RealAngle);
+									RealAngle.Y -= GE_PIOVER2;
+
+									CCD->ActorManager()->Rotate(tActor, RealAngle);
+
+									if(CCD->Player()->GetActor() == tActor
+										&& CCD->Player()->GetViewPoint() == FIRSTPERSON)
+									{
+										CCD->CameraManager()->Rotate(RealAngle);
+									}
+								}
+								// end change
 							}
 						}
 					}
@@ -3010,14 +4024,16 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						{
 							if(!EffectC_IsStringNull(Object->Index->AnimName))
 								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+
 							Object->StartAction = false;
 							CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
-							if(Object->Index->Speed<0.0f)
+
+							if(Object->Index->Speed < 0.0f)
 								Object->ActionActive = false;
 						}
 						else
 						{
-							if(Object->Index->Speed<=0.0f)
+							if(Object->Index->Speed <= 0.0f)
 							{
 								//CCD->ActorManager()->SetHoldAtEnd(Object->Actor, false);
 								Object->ActionActive = false;
@@ -3054,6 +4070,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						CCD->ActorManager()->RemoveActorCheck(Object->Actor);
 						geActor_Destroy(&Object->Actor);
 						Object->Actor = NULL;
+
 						if(Object->WeaponActor)
 						{
 							CCD->ActorManager()->RemoveActorCheck(Object->WeaponActor);
@@ -3090,26 +4107,31 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(Object->Actor)
 					{
 						geFloat fAlpha;
+
 						if(Object->StartAction)
 						{
 							CCD->ActorManager()->GetAlpha(Object->Actor, &fAlpha);
 							Object->Index->Value2 = fAlpha;
+
 							if(Object->Index->Value1>Object->Index->Value2)
 							{
 								Object->Index->Value3 = (Object->Index->Value1-Object->Index->Value2)/Object->Index->Speed;
 							}
 							else
 								Object->ActionActive = false;
+
 							Object->StartAction = false;
 						}
 						else
 						{
 							Object->Index->Value2 += (Object->Index->Value3*(dwTicks*0.001f));
-							if(Object->Index->Value2>=Object->Index->Value1)
+
+							if(Object->Index->Value2 >= Object->Index->Value1)
 							{
 								Object->Index->Value2 = Object->Index->Value1;
 								Object->ActionActive = false;
 							}
+
 							CCD->ActorManager()->SetAlpha(Object->Actor, Object->Index->Value2);
 						}
 					}
@@ -3120,26 +4142,31 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(Object->Actor)
 					{
 						geFloat fAlpha;
+
 						if(Object->StartAction)
 						{
 							CCD->ActorManager()->GetAlpha(Object->Actor, &fAlpha);
 							Object->Index->Value2 = fAlpha;
-							if(Object->Index->Value1<Object->Index->Value2)
+
+							if(Object->Index->Value1 < Object->Index->Value2)
 							{
 								Object->Index->Value3 = (Object->Index->Value2-Object->Index->Value1)/Object->Index->Speed;
 							}
 							else
 								Object->ActionActive = false;
+
 							Object->StartAction = false;
 						}
 						else
 						{
 							Object->Index->Value2 -= (Object->Index->Value3*(dwTicks*0.001f));
-							if(Object->Index->Value2<=Object->Index->Value1)
+
+							if(Object->Index->Value2 <= Object->Index->Value1)
 							{
 								Object->Index->Value2 = Object->Index->Value1;
 								Object->ActionActive = false;
 							}
+
 							CCD->ActorManager()->SetAlpha(Object->Actor, Object->Index->Value2);
 						}
 					}
@@ -3147,7 +4174,8 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						Object->ActionActive = false;
 					break;
 				case FIELDOFVIEW:
-					Object->FOV = Object->Index->Speed/2.0f;
+					// changed QD 12/15/05
+					Object->FOV = Object->Index->Speed*0.5f; // /2.0f;
 					Object->FOV = (90.0f-Object->FOV)/90.0f;
 					Object->FOVBone[0] = '\0';
 					if(!EffectC_IsStringNull(Object->Index->AnimName))
@@ -3158,7 +4186,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case STEPHEIGHT:
 					if(Object->Actor)
 					{
-						if(Object->Index->Speed<=0.0f)
+						if(Object->Index->Speed <= 0.0f)
 							CCD->ActorManager()->SetAutoStepUp(Object->Actor, false);
 						else
 						{
@@ -3206,7 +4234,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Object->SavePoint = Object->CurrentPoint;
 							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
 						}
-						if(RotateToPoint((void *)Object, dwTicks))
+						if(RotateToPoint((void*)Object, dwTicks))
 						{
 							Object->ActionActive = false;
 							Object->CurrentPoint = Object->SavePoint;
@@ -3223,7 +4251,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Object->SavePoint = Object->CurrentPoint;
 							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
 						}
-						if(MoveToPoint((void *)Object, dwTicks))
+						if(MoveToPoint((void*)Object, dwTicks))
 						{
 							Object->ActionActive = false;
 							Object->CurrentPoint = Object->SavePoint;
@@ -3252,7 +4280,8 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Object->SavePoint = Object->CurrentPoint;
 							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
 						}
-						if(RotateMoveToPoint((void *)Object, dwTicks))
+
+						if(RotateMoveToPoint((void*)Object, dwTicks))
 						{
 							Object->ActionActive = false;
 							Object->CurrentPoint = Object->SavePoint;
@@ -3264,13 +4293,13 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case LOWLEVEL:
 					Object->highlevel = false;
 					Object->ActionActive = false;
-					Object->lowTime = 0.0f;;
+					Object->lowTime = 0.0f;
 					Object->ThinkTime = 0.0f;
 					Object->ElapseTime = 0.0f;
 					strcpy(Object->Order, Object->Index->AnimName);
 					Object->RunOrder = false;
 					pool = Object->Bottom;
-					while	(pool!= NULL)
+					while(pool != NULL)
 					{
 						temp = pool->next;
 						geRam_Free(pool);
@@ -3283,36 +4312,126 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case BOXWIDTH:
 					if(Object->Actor)
 					{
-						geExtBox theBox;
-						CCD->ActorManager()->GetBoundingBox(Object->Actor, &theBox);
-						float m_CurrentHeight = theBox.Max.Y;
-						if(Object->Index->Speed>0.0f)
-							CCD->ActorManager()->SetBBox(Object->Actor, Object->Index->Speed, -m_CurrentHeight*2.0f, Object->Index->Speed);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SCALE:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed>0.0f)
+						if(Object->Index->Speed > 0.0f)
 						{
-							float scale;
-							CCD->ActorManager()->GetScale(Object->Actor, &scale);
-							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed*scale);
-							if(Object->WeaponActor)
-								CCD->ActorManager()->SetScale(Object->WeaponActor, Object->Index->Speed*Object->WScale);
+							geExtBox theBox;
+							CCD->ActorManager()->GetBoundingBox(Object->Actor, &theBox);
+							CCD->ActorManager()->SetBBox(Object->Actor, Object->Index->Speed, -theBox.Max.Y*2.0f, Object->Index->Speed);
 						}
 					}
 					Object->ActionActive = false;
 					runflag = true;
 					break;
+// changed QD 12/15/05
+				case BOXHEIGHT:
+					if(Object->Actor)
+					{
+						if(Object->Index->Speed > 0.0f)
+						{
+							geExtBox theBox;
+							CCD->ActorManager()->GetBoundingBox(Object->Actor, &theBox);
+							CCD->ActorManager()->SetBBox(Object->Actor, theBox.Max.X*2.0f, -(Object->Index->Speed)*2.0f, theBox.Max.Z*2.0f);
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+// end change
+				case SCALE:
+					if(Object->Actor)
+					{
+						//if(Object->Index->Speed > 0.0f)
+						//{
+// changed QD 12/15/05
+						if(Object->Index->Speed != Object->Index->Value1
+							|| Object->Index->Speed != Object->Index->Value2
+							|| Object->Index->Value1 != Object->Index->Value2)
+						{
+							geVec3d Scale;
+
+							CCD->ActorManager()->GetScaleXYZ(Object->Actor, &Scale);
+
+							Scale.X *= Object->Index->Speed;
+							Scale.Y *= Object->Index->Value1;
+							Scale.Z *= Object->Index->Value2;
+
+							CCD->ActorManager()->SetScaleXYZ(Object->Actor, Scale);
+
+							if(Object->WeaponActor)
+							{
+								Scale.X = Object->Index->Speed*Object->WScale.X;
+								Scale.Y = Object->Index->Value1*Object->WScale.Y;
+								Scale.Z = Object->Index->Value2*Object->WScale.Z;
+
+								CCD->ActorManager()->SetScaleXYZ(Object->WeaponActor, Scale);
+							}
+						}
+						else
+						{
+							float scale;
+							CCD->ActorManager()->GetScale(Object->Actor, &scale);
+							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed*scale);
+
+							if(Object->WeaponActor)
+								CCD->ActorManager()->SetScale(Object->WeaponActor, Object->Index->Speed*Object->WScale.X);
+						}
+// end change
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+// changed QD 12/15/05
+				case SETSCALE:
+					if(Object->Actor)
+					{
+						if(Object->Index->Speed != Object->Index->Value1
+							|| Object->Index->Speed != Object->Index->Value2
+							|| Object->Index->Value1 != Object->Index->Value2)
+						{
+							geVec3d Scale;
+
+							if(Object->WeaponActor)
+							{
+								CCD->ActorManager()->GetScaleXYZ(Object->Actor, &Scale);
+
+								Scale.X = Object->Index->Speed*(Object->WScale.X/Scale.X);
+								Scale.Y = Object->Index->Value1*(Object->WScale.Y/Scale.Y);
+								Scale.Z = Object->Index->Value2*(Object->WScale.Z/Scale.Z);
+
+								CCD->ActorManager()->SetScaleXYZ(Object->WeaponActor, Scale);
+							}
+
+							Scale.X = Object->Index->Speed;
+							Scale.Y = Object->Index->Value1;
+							Scale.Z = Object->Index->Value2;
+
+							CCD->ActorManager()->SetScaleXYZ(Object->Actor, Scale);
+						}
+						else
+						{
+							if(Object->WeaponActor)
+							{
+								float scale;
+								CCD->ActorManager()->GetScale(Object->Actor, &scale);
+								scale = Object->Index->Speed*(Object->WScale.X/scale);
+								CCD->ActorManager()->SetScale(Object->WeaponActor, scale);
+							}
+
+							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed);
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+// end change
 				case GRAVITY:
 					if(Object->Actor)
 					{
 						Gravity = 0.0f;
+
 						if(Object->Index->Flag)
 							Gravity = CCD->Player()->GetGravity();
+
 						CCD->ActorManager()->SetGravity(Object->Actor, Gravity);
 					}
 					Object->ActionActive = false;
@@ -3360,75 +4479,109 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							Proj[(int)Object->Index->Speed] = '\0';
 							Strn = Strn + (int)Object->Index->Speed;
 							bool bone;
+
 							if(Object->WeaponActor)
 								bone = geActor_GetBoneTransform(Object->WeaponActor, Object->Index->TriggerName, &Xf);
 							else
 								bone = geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf);
+
 							if(bone)
 							{
 								geVec3d_Copy(&(Xf.Translation), &Pos);
 								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
-								geXForm3d_SetIdentity(&Xf);
-								geXForm3d_RotateZ(&Xf, theRotation.Z);
+
+								// changed QD 12/15/05
+								//geXForm3d_SetIdentity(&Xf);
+								//geXForm3d_RotateZ(&Xf, theRotation.Z);
+								geXForm3d_SetZRotation(&Xf, theRotation.Z);
 								geXForm3d_RotateX(&Xf, theRotation.X);
 								geXForm3d_RotateY(&Xf, theRotation.Y);
-								geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								// end change
+
 								geXForm3d_GetIn(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, 1000.0f, &TargetPoint);
+								geVec3d_AddScaled(&Pos, &Direction, 1000.0f, &TargetPoint);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value3, &Pos);
+
 								geXForm3d_GetUp(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value2, &Pos);
+
 								geXForm3d_GetLeft(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
-								geXForm3d_GetIn(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value1, &Pos);
+
+								//geXForm3d_GetIn(&Xf, &Direction);
+								//geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value3, &Pos);
+
 								geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
 								float l = geVec3d_Length(&Orient);
-								if(l > 0.0f) 
+
+								if(l > 0.0f)
 								{
 									float x = Orient.X;
-									Orient.X = (float)( GE_PI*0.5 ) - (float)acos(Orient.Y / l);
-									Orient.Y = (float)atan2( x , Orient.Z ) + GE_PI;
-									// roll is zero - always!!?
-									Orient.Z = 0.0;
+									Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
+									Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+									Orient.Z = 0.0f;	// roll is zero - always!!?
+
 									CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, Proj, Strn, Strn);
 								}
 							}
 						}
 
-					Object->ActionActive = false;
-					runflag = true;
+						Object->ActionActive = false;
+						runflag = true;
 					}
 					break;
 				case ADDEFFECT:
 					{
 						if(Object->Actor)
 						{
+							geVec3d Pos;
+							/* changed QD 12/15/05
 							geXForm3d Xf;
 							geVec3d theRotation, Pos, Direction;
+
 							if(geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf))
 							{
 								geVec3d_Copy(&(Xf.Translation), &Pos);
 								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
-								geXForm3d_SetIdentity(&Xf);
-								geXForm3d_RotateZ(&Xf, theRotation.Z);
+
+								// changed QD 12/15/05
+								//geXForm3d_SetIdentity(&Xf);
+								//geXForm3d_RotateZ(&Xf, theRotation.Z);
+								geXForm3d_SetZRotation(&Xf, theRotation.Z);
 								geXForm3d_RotateX(&Xf, theRotation.X);
 								geXForm3d_RotateY(&Xf, theRotation.Y);
-								geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+								// end change
+
 								geXForm3d_GetUp(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value2, &Pos);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value2, &Pos);
+
 								geXForm3d_GetLeft(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value1, &Pos);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value1, &Pos);
+
 								geXForm3d_GetIn(&Xf, &Direction);
-								geVec3d_AddScaled (&Pos, &Direction, Object->Index->Value3, &Pos);
+								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value3, &Pos);
+
 								Pos.X = Object->Index->Value1;
 								Pos.Y = Object->Index->Value2;
 								Pos.Z = Object->Index->Value3;
+
+								CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
+							}*/
+							if(geActor_DefHasBoneNamed(geActor_GetActorDef(Object->Actor), Object->Index->TriggerName))
+							{
+								Pos.X = Object->Index->Value1;
+								Pos.Y = Object->Index->Value2;
+								Pos.Z = Object->Index->Value3;
+
 								CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
 							}
+							// end change
 						}
 
-					Object->ActionActive = false;
-					runflag = true;
+						Object->ActionActive = false;
+						runflag = true;
 					}
 					break;
 				case TARGETGROUP:
@@ -3451,12 +4604,14 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									strcpy(Object->Order, Object->Index->AnimName);
 									Object->RunOrder = true;
 									pool = Object->Bottom;
-									while	(pool!= NULL)
+
+									while(pool != NULL)
 									{
 										temp = pool->next;
 										geRam_Free(pool);
 										pool = temp;
 									}
+
 									Object->Top = NULL;
 									Object->Bottom = NULL;
 									Object->Index = NULL;
@@ -3483,41 +4638,52 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						char numeric[128];
 						char *szAtom;
 						geVec3d Position, Rotation;
-						geXForm3d thePosition;
+						// geXForm3d thePosition;
 						geActor *MasterActor;
+
 						strncpy(master, Object->Index->AnimName, (int)Object->Index->Speed);
 						master[(int)Object->Index->Speed] = '\0';
+
 						strncpy(masterbone, (Object->Index->AnimName+(int)Object->Index->Speed), (int)Object->Index->Value1);
 						masterbone[(int)Object->Index->Value1] = '\0';
+
 						strcpy(slavebone, (Object->Index->AnimName+(int)Object->Index->Speed+(int)Object->Index->Value1));
 						strcpy(numeric, Object->Index->TriggerName);
+
 						szAtom = strtok(numeric," ");
 						Position.X = (float)atof(szAtom);
 						szAtom = strtok(NULL," \n");
 						Position.Y = (float)atof(szAtom);
 						szAtom = strtok(NULL," \n");
 						Position.Z = (float)atof(szAtom);
+
 						szAtom = strtok(NULL," \n");
 						Rotation.X = (float)atof(szAtom)*0.0174532925199433f;
 						szAtom = strtok(NULL," \n");
 						Rotation.Y = (float)atof(szAtom)*0.0174532925199433f;
 						szAtom = strtok(NULL," \n");
 						Rotation.Z = (float)atof(szAtom)*0.0174532925199433f;
-						geXForm3d_SetIdentity(&thePosition);		// Initialize
+
+						// changed QD 12/15/05 -  not used
+						/*geXForm3d_SetIdentity(&thePosition);		// Initialize
 						geXForm3d_RotateZ(&thePosition, Rotation.Z);
 						geXForm3d_RotateX(&thePosition, Rotation.X);
 						geXForm3d_RotateY(&thePosition, Rotation.Y);
-						geXForm3d_Translate(&thePosition, Position.X, 
-							Position.Y, Position.Z);
-	
+						geXForm3d_Translate(&thePosition, Position.X, Position.Y, Position.Z);
+						*/
+						// end change
+
+
 						MasterActor = CCD->ActorManager()->GetByEntityName(master);
+
 						if(!MasterActor)
 							break;
+
 						CCD->ActorManager()->ActorAttach(MasterActor,  masterbone,
-							Object->Actor, slavebone, Position, Rotation); 
+														Object->Actor, slavebone,
+														Position, Rotation);
 						Object->ActionActive = false;
 						runflag = true;
-
 					}
 					else
 					{
@@ -3530,8 +4696,10 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					{
 						geActor *Actor;
 						Actor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+
 						if(!Actor)
 							break;
+
 						CCD->ActorManager()->DetachFromActor(Object->Actor, Actor);
 					}
 					Object->ActionActive = false;
@@ -3541,6 +4709,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(Object->Actor)
 					{
 						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+
 						if(EntityType)
 						{
 							if(!stricmp(EntityType, "ScriptPoint"))
@@ -3593,7 +4762,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					if(Object->Actor)
 					{
 						CCD->ActorManager()->SetLODdistance(Object->Actor, Object->Index->Speed,
-							Object->Index->Value1, Object->Index->Value2, Object->Index->Value3, 
+							Object->Index->Value1, Object->Index->Value2, Object->Index->Value3,
 							Object->Index->Value4);
 					}
 					Object->ActionActive = false;
@@ -3605,7 +4774,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						int keynum = WeaponCache.GetSize();
 						if(keynum>0)
 						{
-							for(int i=0;i<keynum;i++)
+							for(int i=0; i<keynum; i++)
 							{
 								if(!strcmp(WeaponCache[i].Name, Object->Index->AnimName))
 								{
@@ -3614,14 +4783,18 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 										CCD->ActorManager()->RemoveActor(Object->WeaponActor);
 										geActor_Destroy(&Object->WeaponActor);
 									}
-									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName, 
+
+									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName,
 										Object->Location, WeaponCache[i].Rotation, "", "", NULL);
-									// changed QD 07/21/04
+// changed QD 07/21/04
 									CCD->ActorManager()->SetActorDynamicLighting(Object->WeaponActor, WeaponCache[i].FillColor, WeaponCache[i].AmbientColor, WeaponCache[i].AmbientLightFromFloor);
-									// end change
+// end change
 									Object->WRotation = WeaponCache[i].Rotation;
-									Object->WScale = WeaponCache[i].Scale;
-									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale);
+// changed QD 12/15/05
+									//Object->WScale = WeaponCache[i].Scale;
+									Object->WScale.X = Object->WScale.Y = Object->WScale.Z = WeaponCache[i].Scale;
+									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale.X);
+// end change
 									CCD->ActorManager()->SetNoCollide(Object->WeaponActor);
 									if(WeaponCache[i].EnvironmentMapping)
 										SetEnvironmentMapping(Object->WeaponActor, true, WeaponCache[i].AllMaterial, WeaponCache[i].PercentMapping, WeaponCache[i].PercentMaterial);
@@ -3630,11 +4803,16 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							}
 						}
 					}
+
 					Object->ActionActive = false;
 					runflag = true;
 					break;
 				}
 			}
+
 		} while(runflag);
 	}
 }
+
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

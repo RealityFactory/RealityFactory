@@ -1,9 +1,12 @@
-// IniFile.h: interface for the CIniFile class.
-// Written by: Adam Clauss
-// Email: pandcc3@comwerx.net
-// You may use this class/code as you wish in your programs.  Feel free to distribute it, and
-// email suggested changes to me.
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************/
+/*																						*/
+/*	IniFile.h: interface for the CIniFile class.										*/
+/*	Written by: Adam Clauss																*/
+/*	Email: pandcc3@comwerx.net															*/
+/*	You may use this class/code as you wish in your programs.Feel free to distribute it,*/
+/*	and email suggested changes to me.													*/
+/*																						*/
+/****************************************************************************************/
 
 #if !defined(AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_)
 #define AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_
@@ -14,7 +17,7 @@
 
 #include <afxtempl.h>
 #include <iostream.h>
-class CIniFile  
+class CIniFile
 {
 	//all private variables
 private:
@@ -26,24 +29,24 @@ private:
 	int entrykey;
 	int keyindex;
 // end change RF064
-	
+
 	//all keys are of this time
 	struct key
 	{
 		//list of values in key
-		CArray<CString, CString> values; 
+		CArray<CString, CString> values;
 
 		//corresponding list of value names
 		CArray<CString, CString> names;
 	};
 
 	//list of keys in ini
-	CArray<key, key> keys; 
+	CArray<key, key> keys;
 
 	//corresponding list of keynames
-	CArray<CString, CString> names; 
-	
-	
+	CArray<CString, CString> names;
+
+
 	//all private functions
 private:
 	//overloaded to take CString
@@ -83,7 +86,7 @@ public:
 	bool ReadFile();
 
 	//writes data stored in class to ini file
-	void WriteFile(); 
+	void WriteFile();
 
 	//deletes all stored ini data
 	void Reset();
@@ -94,11 +97,11 @@ public:
 	//returns number of values stored for specified key
 	int GetNumValues(CString keyname);
 
-	//gets value of [keyname] valuename = 
+	//gets value of [keyname] valuename =
 	//overloaded to return CString, int, and double,
 	//returns "", or 0 if key/value not found.  Sets error member to show problem
-	CString GetValue(CString keyname, CString valuename); 
-	int GetValueI(CString keyname, CString valuename); 
+	CString GetValue(CString keyname, CString valuename);
+	int GetValueI(CString keyname, CString valuename);
 	double GetValueF(CString keyname, CString valuename);
 
 	//sets value of [keyname] valuename =.
@@ -128,3 +131,5 @@ public:
 };
 
 #endif // !defined(AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_)
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

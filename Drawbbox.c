@@ -1,16 +1,22 @@
+/****************************************************************************************/
+/*																						*/
+/*	This file is provided as a debugging aid.  It contains code for drawing an axial	*/
+/*	aligned bounding box.  You can use this code as you see fit.						*/
+/*																						*/
+/****************************************************************************************/
+
 #include "genesis.h"
 
-/*
-	This file is provided as a debugging aid.  It contains code for drawing an axial
-	aligned bounding box.  You can use this code as you see fit.
-*/
 
-static	void	DrawFace(geWorld *World, const geVec3d **Verts)
+/* ------------------------------------------------------------------------------------ */
+//	DrawFace
+/* ------------------------------------------------------------------------------------ */
+static void DrawFace(geWorld *World, const geVec3d **Verts)
 {
 	GE_LVertex	LVerts[4];
-	int			i;
+	int	i;
 
-	for	(i = 0; i < 4; i++)
+	for(i=0; i<4; i++)
 	{
 		LVerts[i].r = 40.0f;
 		LVerts[i].g = 40.0f;
@@ -24,24 +30,28 @@ static	void	DrawFace(geWorld *World, const geVec3d **Verts)
 	geWorld_AddPolyOnce(World, &LVerts[0], 4, NULL, GE_GOURAUD_POLY, 0, 1.0f);
 }
 
-void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max)
+/* ------------------------------------------------------------------------------------ */
+//	DrawBoundBox
+/* ------------------------------------------------------------------------------------ */
+void DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max)
 {
 	geFloat	dx;
 	geFloat	dy;
 	geFloat	dz;
-static	geVec3d		Verts[8];
-static	geVec3d *	Faces[6][4] =
-{
-	{ &Verts[0], &Verts[1], &Verts[2], &Verts[3] },	//Top
-	{ &Verts[4], &Verts[5], &Verts[6], &Verts[7] },	//Bottom
-	{ &Verts[3], &Verts[2], &Verts[6], &Verts[7] }, //Side
-	{ &Verts[1], &Verts[0], &Verts[4], &Verts[5] }, //Side
-	{ &Verts[0], &Verts[3], &Verts[7], &Verts[4] }, //Front
-	{ &Verts[2], &Verts[1], &Verts[5], &Verts[6] }, //Back
-};
-	int			i;
+	static	geVec3d		Verts[8];
+	static	geVec3d *	Faces[6][4] =
+	{
+		{&Verts[0], &Verts[1], &Verts[2], &Verts[3]},	//Top
+		{&Verts[4], &Verts[5], &Verts[6], &Verts[7]},	//Bottom
+		{&Verts[3], &Verts[2], &Verts[6], &Verts[7]},	//Side
+		{&Verts[1], &Verts[0], &Verts[4], &Verts[5]},	//Side
+		{&Verts[0], &Verts[3], &Verts[7], &Verts[4]},	//Front
+		{&Verts[2], &Verts[1], &Verts[5], &Verts[6]},	//Back
+	};
 
-	for	(i = 0; i < 8; i++)
+	int	i;
+
+	for(i=0; i<8; i++)
 		geVec3d_Add(Pos, Min, &Verts[i]);
 
 	dx = Max->X - Min->X;
@@ -63,7 +73,9 @@ static	geVec3d *	Faces[6][4] =
 	Verts[2].Y += dy;
 	Verts[2].Z += dz;
 
-	for	(i = 0; i < 6; i++)
+	for(i=0; i<6; i++)
 		DrawFace(World, &Faces[i][0]);
 }
 
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	TPool.cpp	Texture pool															*/
+/*																						*/
+/****************************************************************************************/
 
 #include <memory.h>
 //#include <malloc.h>
@@ -7,105 +12,137 @@
 
 typedef struct	TPool
 {
-  TPool    *next;
-  TPool    *prev;
-  geBitmap *Bitmap;
-  char     *BmpName;
-  char     *AlphaName;
+	TPool    *next;
+	TPool    *prev;
+	geBitmap *Bitmap;
+	char     *BmpName;
+	char     *AlphaName;
+
 } TPool;
 
 TPool *Bottom;
 
 
+/* ------------------------------------------------------------------------------------ */
+//	TPool_Initalize
+/* ------------------------------------------------------------------------------------ */
 void TPool_Initalize()
 {
-  Bottom=(TPool *)NULL;
+	Bottom = (TPool*)NULL;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	TPool_Bitmap
+/* ------------------------------------------------------------------------------------ */
 geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName)
 {
-  TPool *pool;
-  char *TBName, *TAName;
+	TPool *pool;
+	char *TBName, *TAName;
 
-  if(EffectC_IsStringNull(BName ) == GE_TRUE)
-  {
-	  TBName=DefaultBmp;
-	  if(EffectC_IsStringNull(DefaultAlpha))
-		  TAName=DefaultBmp;
-	  else
-		  TAName=DefaultAlpha;
-  }
-  else
-  {
-	   if(EffectC_IsStringNull(AName ) == GE_TRUE)
-	   {
-	     TBName=BName;
-		 TAName=BName;
-	   }
-	   else
-	   {
-	     TBName=BName;
-		 TAName=AName;
-	   }
-  }
+	if(EffectC_IsStringNull(BName) == GE_TRUE)
+	{
+		TBName = DefaultBmp;
 
-  pool=Bottom;
-  while ( pool != NULL )
-  {
-    if((!stricmp(TBName, pool->BmpName)) && (!stricmp(TAName, pool->AlphaName)))
-      return pool->Bitmap;
-    pool = pool->next;
-  } 
+		if(EffectC_IsStringNull(DefaultAlpha))
+			TAName = DefaultBmp;
+		else
+			TAName = DefaultAlpha;
+	}
+	else
+	{
+		if(EffectC_IsStringNull(AName ) == GE_TRUE)
+		{
+			TBName = BName;
+			TAName = BName;
+		}
+		else
+		{
+			TBName = BName;
+			TAName = AName;
+		}
+	}
 
-  pool = GE_RAM_ALLOCATE_STRUCT(TPool);
-  memset(pool, 0, sizeof(TPool));
-  pool->next = Bottom;
-  Bottom = pool;
-  if(pool->next)
-    pool->next->prev = pool;
-  pool->BmpName=strdup(TBName);
-  pool->AlphaName=strdup(TAName);
-  pool->Bitmap = CreateFromFileAndAlphaNames(TBName, TAName);
+	pool = Bottom;
 
-  if(!pool->Bitmap)
-  {
-	char szError[256];
-	sprintf(szError,"Error in Bitmap %s or Alphamap '%s'", TBName, TAName);
-	CCD->ReportError(szError, false);
-	CCD->ShutdownLevel();
-	delete CCD;
-	CCD = NULL;
-	MessageBox(NULL, szError,"Bitmap Manager", MB_OK);
-	exit(-333);
-  }
+	while(pool != NULL)
+	{
+		if((!stricmp(TBName, pool->BmpName)) && (!stricmp(TAName, pool->AlphaName)))
+			return pool->Bitmap;
 
-  if (!geWorld_AddBitmap(CCD->World(), pool->Bitmap))
-  {
-    geBitmap_Destroy(&pool->Bitmap);
-    return (geBitmap *)NULL;
-  }
+		pool = pool->next;
+	}
 
-  return pool->Bitmap;
+	pool = GE_RAM_ALLOCATE_STRUCT(TPool);
+	memset(pool, 0, sizeof(TPool));
+
+// changed QD 07/15/06
+	pool->BmpName = strdup(TBName);
+	pool->AlphaName = strdup(TAName);
+	pool->Bitmap = CreateFromFileAndAlphaNames(TBName, TAName);
+
+	if(!pool->Bitmap)
+	{
+		char szError[256];
+		sprintf(szError, "*WARNING* File %s - Line %d: Error in Bitmap %s or Alphamap '%s'\n",
+				__FILE__, __LINE__, TBName, TAName);
+		CCD->ReportError(szError, false);
+		free(pool->BmpName);
+		free(pool->AlphaName);
+		geRam_Free(pool);
+		return (geBitmap*)NULL;
+		/*
+		CCD->ShutdownLevel();
+		delete CCD;
+		CCD = NULL;
+		MessageBox(NULL, szError, "Bitmap Manager", MB_OK);
+		exit(-333);
+		*/
+	}
+
+	if(!geWorld_AddBitmap(CCD->World(), pool->Bitmap))
+	{
+		geBitmap_Destroy(&pool->Bitmap);
+		free(pool->BmpName);
+		free(pool->AlphaName);
+		geRam_Free(pool);
+		return (geBitmap*)NULL;
+	}
+
+	pool->next = Bottom;
+	Bottom = pool;
+
+	if(pool->next)
+		pool->next->prev = pool;
+// end change
+
+	return pool->Bitmap;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	TPool_Delete
+/* ------------------------------------------------------------------------------------ */
 void TPool_Delete()
 {
-  TPool *pool, *temp;
+	TPool *pool, *temp;
 
-  pool = Bottom;
-  while	(pool!= NULL)
-  {
-	temp = pool->next;
+	pool = Bottom;
 
-	if(pool->Bitmap)
+	while(pool!= NULL)
 	{
-		geWorld_RemoveBitmap(CCD->World(), pool->Bitmap);
-		geBitmap_Destroy(&pool->Bitmap);
-	}
-	free(pool->BmpName);
-	free(pool->AlphaName);
-  geRam_Free(pool);
+		temp = pool->next;
 
-	pool = temp;
-  }
+		if(pool->Bitmap)
+		{
+			geWorld_RemoveBitmap(CCD->World(), pool->Bitmap);
+			geBitmap_Destroy(&pool->Bitmap);
+		}
+
+		free(pool->BmpName);
+		free(pool->AlphaName);
+		geRam_Free(pool);
+
+		pool = temp;
+	}
 }
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

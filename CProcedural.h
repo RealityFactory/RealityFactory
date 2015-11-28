@@ -1,11 +1,14 @@
-/*
-	CProcedural.h:		Procedural handler
+/****************************************************************************************/
+/*																						*/
+/*	CProcedural.h:		Procedural handler												*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declaration for the CProcedural						*/
+/*	class that encapsulates Procedural handling in the RGF.								*/
+/*																						*/
+/****************************************************************************************/
 
-	(c) 2001 Ralph Deane
-
-	This file contains the class declaration for the CProcedural
-class that encapsulates Procedural handling in the RGF.
-*/
 
 #include "RabidFramework.h"
 
@@ -16,12 +19,14 @@ class that encapsulates Procedural handling in the RGF.
 class CProcedural : public CRGFComponent
 {
 public:
-  CProcedural();  // Constructor
-  ~CProcedural();																// Destructor
-  void Tick(geFloat dwTicks);
-																// Update video textures
+	CProcedural();				// Constructor
+	~CProcedural();				// Destructor
+
+	void Tick(geFloat dwTicks);	// Update video textures
 	int ReSynchronize();
 private:
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

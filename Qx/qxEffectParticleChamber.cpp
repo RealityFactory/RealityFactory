@@ -23,7 +23,7 @@ static char THIS_FILE[]=__FILE__;
 //////////////////////////////////////////////////////////////////////
 
 // Not needed except for protection against absurd values.
-#define MAX_ANIMATION_BMPS	256 
+#define MAX_ANIMATION_BMPS	256
 
 #define M_PI 3.14159
 
@@ -44,7 +44,7 @@ qxEffectBase(strName)
 
 
 //QX VARIABLES
-,AnglesRandom(false)	
+,AnglesRandom(false)
 ,ParticlesPerSec(25.0)
 ,SpeedMin(0.0f)
 ,SpeedMax(0.0f)
@@ -86,7 +86,7 @@ qxEffectBase(strName)
 	ColorInit(&ColorStart);
 	ColorInit(&ColorEnd);
 
-}		
+}
 
 
 
@@ -97,7 +97,7 @@ qxEffectParticleChamber::~qxEffectParticleChamber()
 	{
 		delete m_pParticles[i];
 	}
-	
+
 }
 
 
@@ -120,13 +120,13 @@ bool qxEffectParticleChamber::Init()
 	QXASSERT(RandomGravityMin.Y <= RandomGravityMax.Y);
 	QXASSERT(RandomGravityMin.Z <= RandomGravityMax.Z);
 
-	
+
 
 
 	if( !EffectC_IsStringNull( AnimateBmpPrefix) )
 	{
 		QXASSERT( AnimateFPS > 0 );
-		
+
 		LoadAnimation();
 
 		QXASSERT( MAX_ANIMATION_BMPS > m_BmpArray.GetSize() );
@@ -138,7 +138,7 @@ bool qxEffectParticleChamber::Init()
 	}
 
 	QXASSERT(m_pBmp);
-	
+
 
 	m_pParticles.SetSize(ParticlesMax);
 
@@ -148,16 +148,16 @@ bool qxEffectParticleChamber::Init()
 
 		if( !Quad )
 			p = new qxParticleBase;
-		else 
+		else
 			p = (qxParticleBase*) new qxParticleQuad;
 
 		p->m_pParent  = this;
 		m_pParticles.SetAt(i, p);
 	}
-	
+
 
 	// setup orientation
-	
+
 	SetAngles( &Angles );
 
 
@@ -170,53 +170,53 @@ bool qxEffectParticleChamber::Init()
 	if(Quad)
 	{
 		InitQuad();
-	
+
 	}
 
 	m_bUseGravity = !geVec3d_IsZero(&Gravity);
 	m_bUseVelocity = (SpeedMax > 0.0f);
 
-	
-	
+
+
 
 	m_fAlphaTempEnd = AlphaEnd;
 
 	if( AlphaFadeInFadeOut )
 	{
 		QXASSERT(AlphaEnd > AlphaStart);
-		m_fAlphaTempEnd = AlphaEnd*2;
+		m_fAlphaTempEnd = AlphaEnd*2.0f;
 	}
-	
+
 
 	return true;
 }
 
-bool qxEffectParticleChamber::SetAngles( geVec3d* pAngles )
+bool qxEffectParticleChamber::SetAngles(geVec3d* pAngles)
 {
 	Angles = *pAngles;
 
 	geXForm3d_SetIdentity( &m_matXForm );
-	geXForm3d_RotateX( &m_matXForm, RADIANS(pAngles->X));  
-	geXForm3d_RotateY( &m_matXForm, RADIANS( pAngles->Y));  
+	geXForm3d_RotateX( &m_matXForm, RADIANS(pAngles->X));
+	geXForm3d_RotateY( &m_matXForm, RADIANS( pAngles->Y));
 	geXForm3d_RotateZ( &m_matXForm, RADIANS(pAngles->Z));
-	
+
 	if(m_pActor)
 	{
 		if(!geActor_GetBoneTransform( m_pActor, BoneName, &m_matXForm ))
-			return false;	
-		
+			return false;
+
 		geVec3d_Copy( &m_matXForm.Translation, &Origin);
 	}
-	else 
+	else
 	{
-		
+
 		geVec3d		In;
-		
+
 		// setup dest position
 		geXForm3d_GetIn( &m_matXForm, &In );
 		geVec3d_AddScaled( &Origin, &In, 50.0f, &m_vDest );
 	}
-	
+
 	// save the transform
 	EffectC_XFormFromVector( &Origin, &m_vDest, &m_matXForm );
 
@@ -252,17 +252,17 @@ int qxEffectParticleChamber::Frame()
 		return 0;
 
 	float fTimeElapsed = (CCD->LastElapsedTime_F()*0.001f);
-	
+
 	// clear our counter variable before counting how many particles are alive
 	m_nParticlesAlive = 0;
-	
+
 	// update all particles that we own
 	for ( int i=0; i<ParticlesMax; i++ )
 	{
 		if ( m_pParticles[i]->m_fAge >= 0.0f )
 		{
 			// Note that the update function returns FALSE if the particle died
-			if ( m_pParticles[i]->Frame( fTimeElapsed ) ) 
+			if ( m_pParticles[i]->Frame( fTimeElapsed ) )
 			{
 				m_pParticles[i]->UpdatePoly();
 				m_nParticlesAlive++;
@@ -277,7 +277,7 @@ int qxEffectParticleChamber::Frame()
 		return ret; // else, 0 == kill effect, 1 == continue effect
 	}
 
-	
+
 
 
 
@@ -286,17 +286,17 @@ int qxEffectParticleChamber::Frame()
 	{
 		// locals
 		geVec3d		In;
-	
+
 		// get bone location
 		if(!geActor_GetBoneTransform( m_pActor, BoneName, &m_matXForm ))
-			return 0;	
+			return 0;
 
 		geVec3d_Copy( &m_matXForm.Translation, &Origin);
 		geXForm3d_GetIn( &m_matXForm, &In );
 		geVec3d_Inverse( &In );
 		geVec3d_AddScaled( &Origin, &In, 50.0f, &m_vDest );
 
-		
+
 		EffectC_XFormFromVector( &Origin, &m_vDest, &m_matXForm );
 		if(!geWorld_GetLeaf(CCD->Engine()->World(), &Origin, &m_nLeaf ))
 			return 0;
@@ -322,27 +322,27 @@ int qxEffectParticleChamber::Frame()
 		if(fDistance < 0.0f)
 			return 1;
 
-	
+
 		// determine polygon adjustment amount
 		if ( fDistance > DistanceMin )
 		{
 
 			// Distance min determines the minimum needed for full intensity
-			// .67 = ( 1.0f - ( (1000-100)/(3000-100) ) 
+			// .67 = ( 1.0f - ( (1000-100)/(3000-100) )
 			fDistanceAdjustment = ( 1.0f - ( ( fDistance - DistanceMin ) / ( DistanceMax - DistanceMin ) ) );
-			
+
 		}
 	}
 
 
 
 
-	// calculate how many particles we should create from ParticlesPerSec and 
-	// time elapsed taking the 
+	// calculate how many particles we should create from ParticlesPerSec and
+	// time elapsed taking the
 	// previous frame's EmissionResidue into account.
 	float fParticlesNeeded = (ParticlesPerSec * fTimeElapsed * fDistanceAdjustment)+ m_fEmissionResidue;
-	
-	// cast the float fparticlesNeeded to an INT to see 
+
+	// cast the float fparticlesNeeded to an INT to see
 	// how many particles we really need to create.
 	int ParticlesCreated = (unsigned int)fParticlesNeeded;
 
@@ -355,43 +355,43 @@ int qxEffectParticleChamber::Frame()
 		// loop through all the particles to see if any are available
 		for ( i=0; i<ParticlesMax; i++ )
 		{
-			// if we have created enough particles, 
+			// if we have created enough particles,
 			// this value will be 0 and we can skip the rest
 			// alternatively you could mantain a list of free particles and used particles
 			if ( !ParticlesCreated )
 				break;
 
 			// if the age is -1.0f then this particle is not in use
-			if ( m_pParticles[i]->m_fAge < 0.0f ) 
+			if ( m_pParticles[i]->m_fAge < 0.0f )
 			{
-				// New particle so its age is 0.0f 
+				// New particle so its age is 0.0f
 				m_pParticles[i]->m_fAge = 0.0f;
 				m_pParticles[i]->m_fLifetime = Frand( UnitLifeMin, UnitLifeMax );
 
-				// our start color is going to be the System's StartColor 
+				// our start color is going to be the System's StartColor
 				// + the System's color variation
 				m_pParticles[i]->m_vVertex.r = ColorStart.r;
 				m_pParticles[i]->m_vVertex.g = ColorStart.g;
 				m_pParticles[i]->m_vVertex.b = ColorStart.b;
 				m_pParticles[i]->m_vVertex.a = AlphaStart;
 
-				
+
 				if( AlphaFadeInFadeOut )
 				{
 					m_pParticles[i]->m_fAlphaEnd = AlphaEnd;
 					m_pParticles[i]->m_nFlags |= QX_PARTICLE_ALPHA_FADEIN_FADEOUT;
 				}
 
-				// calculate a delta so that by the time the particle dies, 
+				// calculate a delta so that by the time the particle dies,
 				// it will have reached its "ColorEnd"
 				m_pParticles[i]->m_ColorDelta.r = (ColorEnd.r - m_pParticles[i]->m_vVertex.r ) / m_pParticles[i]->m_fLifetime;
 				m_pParticles[i]->m_ColorDelta.g = (ColorEnd.g - m_pParticles[i]->m_vVertex.g) / m_pParticles[i]->m_fLifetime;
 				m_pParticles[i]->m_ColorDelta.b = (ColorEnd.b - m_pParticles[i]->m_vVertex.b) / m_pParticles[i]->m_fLifetime;
 				m_pParticles[i]->m_ColorDelta.a = (m_fAlphaTempEnd - m_pParticles[i]->m_vVertex.a) / m_pParticles[i]->m_fLifetime;
-								
+
 				m_pParticles[i]->m_fSize = SizeStart + RandFloat() * SizeVariation;
 				m_pParticles[i]->m_fSizeDelta = (SizeEnd - m_pParticles[i]->m_fSize) / m_pParticles[i]->m_fLifetime;
-				
+
 				if(RandomGravity)
 				{
 					m_pParticles[i]->m_vGravity.X = Frand( RandomGravityMin.X, RandomGravityMax.X );
@@ -406,7 +406,7 @@ int qxEffectParticleChamber::Frame()
 					m_pParticles[i]->m_nFlags |= QX_PARTICLE_HAS_GRAVITY;
 				}
 
-			
+
 				geVec3d Source;
 
 				// pick a source point
@@ -422,7 +422,7 @@ int qxEffectParticleChamber::Frame()
 				}
 				else
 				{
-					// Use GetOrigin(). Some classes may not want to 
+					// Use GetOrigin(). Some classes may not want to
 					// use the original origin
 					geVec3d_Copy( GetOrigin(), &Source );
 				}
@@ -432,9 +432,9 @@ int qxEffectParticleChamber::Frame()
 				m_pParticles[i]->m_vVertex.Z = Source.Z;
 
 				// The emitter has a Direction.  This code adds some randomness to that direction so
-				// that we don't emit a Line of particles.  
-				// For the demo I always assume a randomess of 
-				// 360 degrees in the Yaw direction.  In your code, you really should allow 
+				// that we don't emit a Line of particles.
+				// For the demo I always assume a randomess of
+				// 360 degrees in the Yaw direction.  In your code, you really should allow
 				// this to be modified
 				// separately from the Pitch.  Normally I would define PI 3.14159 and have a DEG_2_RAD macro
 				// but it is used so briefly in this app I didn't
@@ -443,12 +443,12 @@ int qxEffectParticleChamber::Frame()
 					float RandomYaw = (geFloat)(RANDOM_ONE_TO_ZERO * AnglesRandomYaw * M_PI * 2.0f);
 					float RandomPitch = (geFloat)(RANDOM_ONE_TO_ZERO *  AnglesRandomPitch * M_PI / 180.0f);
 
-					// this uses spherical coordinates to randomize the velocity vector 
+					// this uses spherical coordinates to randomize the velocity vector
 					// ( or the direction ) of the particle
 					m_pParticles[i]->m_vVelocity.Y = cosf( RandomPitch );
 					m_pParticles[i]->m_vVelocity.X = sinf(RandomPitch) * cosf(RandomYaw);
 					m_pParticles[i]->m_vVelocity.Z = sinf(RandomPitch) * sinf(RandomYaw);
-					
+
 				}
 				// Not using random angles. Use the object matrix.
 				else
@@ -459,7 +459,7 @@ int qxEffectParticleChamber::Frame()
 					if ( VarianceDest > 0 )
 					{
 						geVec3d			Left, Up;
-						
+
 						geXForm3d_GetLeft( &m_matXForm, &Left );
 						geXForm3d_GetUp( &m_matXForm, &Up );
 						geVec3d_Scale( &Left, (float)VarianceDest * Frand( -1.0f, 1.0f ), &Left );
@@ -500,7 +500,7 @@ int qxEffectParticleChamber::Frame()
 					pQuad->m_vRotateRads.Y = Frand( m_vQuadRotateRadsMin.Y, m_vQuadRotateRadsMax.Y );
 					pQuad->m_vRotateRads.Z = Frand( m_vQuadRotateRadsMin.Z, m_vQuadRotateRadsMax.Z );
 
-					
+
 					for ( int i = 0; i < 4; i++ )
 					{
 						pQuad->m_vQuadVerts[i].r = pQuad->m_vVertex.r;
@@ -513,39 +513,39 @@ int qxEffectParticleChamber::Frame()
 					CCD->CameraManager()->GetPosition(&vOrientation);
 					//Make it 2D
 					vOrientation.Y = pQuad->m_vVertex.Y;
-					
+
 					// Get the local mat from the current position and the player's view.
 					EffectC_XFormFromVector((geVec3d *)&(pQuad->m_vVertex.X), &vOrientation, &pQuad->m_matLocal );
 					// Move it to local origin (zero)
-					geXForm3d_Translate(&pQuad->m_matLocal, -pQuad->m_vVertex.X, 
+					geXForm3d_Translate(&pQuad->m_matLocal, -pQuad->m_vVertex.X,
 						-pQuad->m_vVertex.Y, -pQuad->m_vVertex.Z);
-					
+
 					//If there's an *initial* rotation
 					if( m_bQuadRandomInitialRotate )
 					{
 						m_vQuadInitialRotateRads.X = Frand( m_vQuadInitialRotateRadsMin.X, m_vQuadInitialRotateRadsMax.X );
 						m_vQuadInitialRotateRads.Y = Frand( m_vQuadInitialRotateRadsMin.Y, m_vQuadInitialRotateRadsMax.Y );
 						m_vQuadInitialRotateRads.Z = Frand( m_vQuadInitialRotateRadsMin.Z, m_vQuadInitialRotateRadsMax.Z );
-						
+
 						//STRVECTOR(m_vQuadInitialRotateRads);
-						
+
 						geXForm3d matRotate;
 						geXForm3d_SetIdentity(&matRotate);
-						
+
 						if( fabs(m_vQuadInitialRotateRads.X) > 0.0f)
 							geXForm3d_RotateX( &matRotate, m_vQuadInitialRotateRads.X );
 						if( fabs(m_vQuadInitialRotateRads.Y) > 0.0f)
 							geXForm3d_RotateY(&matRotate, m_vQuadInitialRotateRads.Y );
 						if( fabs(m_vQuadInitialRotateRads.Z) > 0.0f)
 							geXForm3d_RotateZ(&matRotate, m_vQuadInitialRotateRads.Z );
-						
+
 						geXForm3d_Multiply(&pQuad->m_matLocal, &matRotate, &pQuad->m_matLocal);
-						
+
 					}
-					
-					pQuad->m_pPoly = geWorld_AddPoly(CCD->Engine()->World(), 
-														&pQuad->m_vQuadVerts[0], 
-														4, 
+
+					pQuad->m_pPoly = geWorld_AddPoly(CCD->Engine()->World(),
+														&pQuad->m_vQuadVerts[0],
+														4,
 														m_pBmp,
 														GE_TEXTURED_POLY,
 														m_nRenderStyle,
@@ -555,8 +555,8 @@ int qxEffectParticleChamber::Frame()
 					pQuad->Frame(0.0001f);
 					pQuad->UpdatePoly();
 					// Due to bug somewhere...
-				
-					
+
+
 				}
 				//
 				//QUAD
@@ -580,7 +580,7 @@ int qxEffectParticleChamber::Frame()
 		}
 	}
 
-	
+
 
 
 
@@ -600,16 +600,16 @@ void qxEffectParticleChamber::AddBmp(const char* pBmp, const char* pAlpha)
 	geBitmap* p = TPool_Bitmap(Bmp, Alpha, NULL, NULL);
 	QXASSERT(p);
 	m_BmpArray.Add(p);
-	
+
 }
 
 
 
-// This can only be called once. 
+// This can only be called once.
 // Not necessary if coming from the editor
 void qxEffectParticleChamber::SetAnimationMode()
 {
-	
+
 	if( m_bAnimationMode )
 		return;
 
@@ -670,19 +670,19 @@ bool qxEffectParticleChamber::ReInit()
 
 		if( !Quad )
 			p = new qxParticleBase;
-		else 
+		else
 			p = (qxParticleBase*) new qxParticleQuad;
 
 		p->m_pParent  = this;
 		m_pParticles.SetAt(i, p);
 	}
-	
+
 
 	// setup orientation
-	
+
 	SetAngles( &Angles );
 
-	
+
 	if(Quad)
 	{
 		InitQuad();
@@ -696,7 +696,7 @@ bool qxEffectParticleChamber::ReInit()
 	if( AlphaFadeInFadeOut )
 	{
 		QXASSERT(AlphaEnd > AlphaStart);
-		m_fAlphaTempEnd = AlphaEnd*2;
+		m_fAlphaTempEnd = AlphaEnd*2.0f;
 	}
 
 	return true;
@@ -705,7 +705,7 @@ bool qxEffectParticleChamber::ReInit()
 
 void qxEffectParticleChamber::KillAllParticles( )
 {
-	
+
 	for ( int i=0; i < ParticlesMax; i++ )
 	{
 		m_pParticles[i]->Die();
@@ -720,8 +720,8 @@ void qxEffectParticleChamber::TranslateAllParticles(geVec3d* pV )
 	{
 		if ( m_pParticles[i]->m_fAge < 0.0f )
 			continue;
-	
-		geVec3d_Add(	(geVec3d *)&( m_pParticles[i]->m_vVertex.X ), 
+
+		geVec3d_Add(	(geVec3d *)&( m_pParticles[i]->m_vVertex.X ),
 						pV, (geVec3d *)&( m_pParticles[i]->m_vVertex.X ) );
 	}
 }
@@ -729,7 +729,7 @@ void qxEffectParticleChamber::TranslateAllParticles(geVec3d* pV )
 
 void qxEffectParticleChamber::KillAgedParticles( float fAge )
 {
-	
+
 	m_nParticlesAlive = 0;
 
 	// update all particles that we own
@@ -738,12 +738,12 @@ void qxEffectParticleChamber::KillAgedParticles( float fAge )
 		if ( m_pParticles[i]->m_fAge < 0.0f )
 			continue;
 
-		if ( m_pParticles[i]->m_fLifetime - m_pParticles[i]->m_fAge < fAge  ) 
+		if ( m_pParticles[i]->m_fLifetime - m_pParticles[i]->m_fAge < fAge  )
 		{
 			m_pParticles[i]->Die();
 			continue;
 		}
-		
+
 		m_nParticlesAlive++;
 	}
 }
@@ -768,17 +768,17 @@ void qxEffectParticleChamber::KillInvisibleParticles( float fDistThreshold )
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
 		float fDist = geVec3d_DistanceBetween( p, &thePosition);
-			
+
 		float fDistance = FastScreenDistance( p );
 		fDistance = (float)fabs(fDistance);
 
-		if ( fDist >  fDistThreshold ) 
+		if ( fDist >  fDistThreshold )
 		{
 			m_pParticles[i]->Die();
 			//QXSTR("DIE");
 			continue;
 		}
-		
+
 		m_nParticlesAlive++;
 	}
 }
@@ -798,22 +798,22 @@ void qxEffectParticleChamber::InitQuad()
 	m_vQuadRotateRadsMax.X = RADIANS(QuadRotateDegreesMax.X);
 	m_vQuadRotateRadsMax.Y = RADIANS(QuadRotateDegreesMax.Y);
 	m_vQuadRotateRadsMax.Z = RADIANS(QuadRotateDegreesMax.Z);
-	
-	if( !geVec3d_IsZero(&QuadRandInitialRotateDegreesMax ) || 
+
+	if( !geVec3d_IsZero(&QuadRandInitialRotateDegreesMax ) ||
 		!geVec3d_IsZero(&QuadRandInitialRotateDegreesMin ) )
 	{
 		m_bQuadRandomInitialRotate = true;
-		
+
 		m_vQuadInitialRotateRadsMax.X = RADIANS(QuadRandInitialRotateDegreesMax.X);
 		m_vQuadInitialRotateRadsMax.Y = RADIANS(QuadRandInitialRotateDegreesMax.Y);
 		m_vQuadInitialRotateRadsMax.Z = RADIANS(QuadRandInitialRotateDegreesMax.Z);
 		m_vQuadInitialRotateRadsMin.X = RADIANS(QuadRandInitialRotateDegreesMin.X);
 		m_vQuadInitialRotateRadsMin.Y = RADIANS(QuadRandInitialRotateDegreesMin.Y);
 		m_vQuadInitialRotateRadsMin.Z = RADIANS(QuadRandInitialRotateDegreesMin.Z);
-		
+
 		QXASSERT(m_vQuadInitialRotateRadsMin.X <= m_vQuadInitialRotateRadsMax.X);
 		QXASSERT(m_vQuadInitialRotateRadsMin.Y <= m_vQuadInitialRotateRadsMax.Y);
 		QXASSERT(m_vQuadInitialRotateRadsMin.Z <= m_vQuadInitialRotateRadsMax.Z);
-		
+
 	}
 }

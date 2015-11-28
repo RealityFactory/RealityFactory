@@ -1,12 +1,14 @@
-/*
-	CElectric.h:		Electric Bolt handler
-
-	(c) 1999 Ralph Deane
-
-	This file contains the class declarations for the CCorona
-class that encapsulates all corona special effects for
-RGF-based games.
-*/
+/****************************************************************************************/
+/*																						*/
+/*	CElectric.h:		Electric Bolt handler											*/
+/*																						*/
+/*	(c) 1999 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declarations for the CCorona							*/
+/*	class that encapsulates all corona special effects for								*/
+/*	RGF-based games.																	*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CELECTRIC_H_
 #define __RGF_CELECTRIC_H_
@@ -29,8 +31,8 @@ typedef struct	Electric_BoltEffect
 	geVec3d		beEnd;
 
 	/* For generating the geometry */
-	geVec3d	*	beCenterPoints;
-	geVec3d *	beCurrentPoint;
+	geVec3d		*beCenterPoints;
+	geVec3d		*beCurrentPoint;
 
 	geFloat		beBaseColors[3];
 	geFloat		beCurrentColors[3];
@@ -42,28 +44,29 @@ typedef struct	Electric_BoltEffect
 
 	geBitmap	*beBitmap;
 
-}	Electric_BoltEffect;
+} Electric_BoltEffect;
 
 // class declaration for CElectric
 class CElectric : public CRGFComponent
 {
 public:
-  CElectric();	// Default constructor
-  ~CElectric();	
-  int Create(geVec3d Origin, ElectricBolt *pBolt);
-  geBoolean Tick(float dwTicks);
-  void CheckCollision(ElectricBolt *Bolt);
+	CElectric();	// Default constructor
+	~CElectric();
+
+	int Create(const geVec3d &Origin, ElectricBolt *pBolt);
+	geBoolean Tick(float dwTicks);
+	void CheckCollision(ElectricBolt *Bolt);
 	int LocateEntity(char *szName, void **pEntityData);
 	int ReSynchronize();
 // start multiplayer
 	int SaveTo(FILE *SaveFD, bool type);
-  int RestoreFrom(FILE *RestoreFD, bool type);
+	int RestoreFrom(FILE *RestoreFD, bool type);
 // end multiplayer
+
 private:
 
 };
 
-
 #endif
 
-// --------------------------------------------------------------------------
+/* ----------------------------------- END OF FILE ------------------------------------ */

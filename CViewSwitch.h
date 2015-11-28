@@ -1,12 +1,14 @@
-/*
-	CViewSwitch.h:		ViewSwitch class handler
+/****************************************************************************************/
+/*																						*/
+/*	CViewSwitch.h:		ViewSwitch class handler										*/
+/*																						*/
+/*	(c) 2000 Ralph Deane																*/
+/*	All Rights Reserved																	*/
+/*																						*/
+/*	This file contains the class declaration for ViewSwitch handling.					*/
+/*																						*/
+/****************************************************************************************/
 
-	(c) 2000 Ralph Deane
-	All Rights Reserved
-
-	This file contains the class declaration for ViewSwitch
-handling.
-*/
 
 #ifndef __RGF_CVIEWSWITCH_H_
 #define __RGF_CVIEWSWITCH_H_
@@ -14,14 +16,17 @@ handling.
 class CViewSwitch : public CRGFComponent
 {
 public:
-  CViewSwitch();
-  ~CViewSwitch();
-  void Tick();
+	CViewSwitch();
+	~CViewSwitch();
+
+	void Tick();
 
 private:
-  int OldView;
-  bool ViewActive;
-  ViewSwitch *pViewSwitch;
+	int OldView;
+	bool ViewActive;
+	ViewSwitch *pViewSwitch;
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

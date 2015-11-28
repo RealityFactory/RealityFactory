@@ -1,8 +1,21 @@
+/****************************************************************************************/
+/*																						*/
+/*	CActMaterial.h				CActMaterial handler									*/
+/*																						*/
+/*	(c) 2002 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class implementation for the									*/
+/*	CActMaterial enitity  for RGF-based games.											*/
+/*																						*/
+/*	Programming provided by QD															*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_ACTMATERIAL_H_
 #define __RGF_ACTMATERIAL_H_
 
-
+// changed QD 12/15/05
+/*
 typedef struct MaterialList
 {
 	MaterialList *next;
@@ -16,18 +29,28 @@ typedef struct MaterialList
 	geBoolean AmbientLightFromFloor;
 // end change
 } MaterialList;
+*/
+// end change
 
-class CActMaterial : public CRGFComponent  
+class CActMaterial : public CRGFComponent
 {
 public:
 	CActMaterial();
 	~CActMaterial();
+
 	void Tick(float dwTicks);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
+
+// changed QD 12/15/05
+/*
 private:
 	MaterialList *Bottom;
 	MaterialList *Top;
+*/
+// end change
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

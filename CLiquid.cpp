@@ -1,77 +1,88 @@
-/*
-	CLiquid.cpp:		Liquid class implementation
-
-	(c) 2001 Ralph Deane
-	All Rights Reserved
-
-	This file contains the class implementation for CLiquid
-handling.
-*/
+/****************************************************************************************/
+/*																						*/
+/*	CLiquid.cpp:		Liquid and Overlay class implementation							*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*	All Rights Reserved																	*/
+/*																						*/
+/*	This file contains the class implementation for CLiquid								*/
+/*	handling.																			*/
+/*																						*/
+/****************************************************************************************/
 
 //	Include the One True Header
-
 #include "RabidFramework.h"
 
 extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
 extern geSound_Def *SPool_Sound(char *SName);
 
+/* ------------------------------------------------------------------------------------ */
+//	Constructor
+/* ------------------------------------------------------------------------------------ */
 CLiquid::CLiquid()
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Liquid entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
-	
-	if(!pSet) 
-		return;	
+
+	if(!pSet)
+		return;
 
 	//	Look through all of our Liquids
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Liquid *pItem = (Liquid*)geEntity_GetUserData(pEntity);
+
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
 			char szName[128];
 			geEntity_GetName(pEntity, szName, 128);
 			pItem->szEntityName = szName;
 		}
+
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pItem->szEntityName, "Liquid");
 		CCD->ModelManager()->AddModel(pItem->Model, ENTITY_LIQUID);
 		pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, NULL, NULL);
+
 		if(!EffectC_IsStringNull(pItem->SurfaceSound))
 			SPool_Sound(pItem->SurfaceSound);
+
 		if(!EffectC_IsStringNull(pItem->SwimSound))
 			SPool_Sound(pItem->SwimSound);
+
 		if(!EffectC_IsStringNull(pItem->InLiquidSound))
 			SPool_Sound(pItem->InLiquidSound);
 	}
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Destructor
+/* ------------------------------------------------------------------------------------ */
 CLiquid::~CLiquid()
 {
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	IsLiquid
+/* ------------------------------------------------------------------------------------ */
 Liquid *CLiquid::IsLiquid(geWorld_Model *theModel)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Liquid entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
-	
-	if(!pSet) 
-		return NULL;	
-	
+
+	if(!pSet)
+		return NULL;
+
 	//	Look through all of our Liquids
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Liquid *pItem = (Liquid*)geEntity_GetUserData(pEntity);
 
@@ -80,52 +91,67 @@ Liquid *CLiquid::IsLiquid(geWorld_Model *theModel)
 			return pItem;
 		}
 	}
+
 	return NULL;
 }
 
-// Overlay
+/****************************************************************************************/
+//										Overlay
+/****************************************************************************************/
 
+
+/* ------------------------------------------------------------------------------------ */
+//	Constructor
+/* ------------------------------------------------------------------------------------ */
 COverlay::COverlay()
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Overlay entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
-	
-	if(!pSet) 
-		return;	
+
+	if(!pSet)
+		return;
 
 	//	Look through all of our Overlays
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
 			char szName[128];
 			geEntity_GetName(pEntity, szName, 128);
 			pItem->szEntityName = szName;
 		}
+
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pItem->szEntityName, "Overlay");
+
 		if(pItem->Model)
 			CCD->ModelManager()->AddModel(pItem->Model, ENTITY_OVERLAY);
+
 		pItem->FBitmap = NULL;
 		pItem->Texture = NULL;
+
 		if(!pItem->Animated)
+		{
 			pItem->Texture = TPool_Bitmap(pItem->Bitmap, pItem->Alphamap, NULL, NULL);
+		}
 		else
 		{
-			pItem->FBitmap = (geBitmap **)geRam_AllocateClear( sizeof( *(pItem->FBitmap ) ) * pItem->BitmapCount );
-			for (int i = 0; i < pItem->BitmapCount; i++ )
+			pItem->FBitmap = (geBitmap **)geRam_AllocateClear(sizeof(*(pItem->FBitmap))*pItem->BitmapCount);
+
+			for(int i=0; i<pItem->BitmapCount; i++)
 			{
 				char BmpName[256];
 				char AlphaName[256];
+
 				// build bmp and alpha names
-				sprintf( BmpName, "%s%d%s", pItem->Bitmap, i, ".bmp" );
+				sprintf(BmpName, "%s%d%s", pItem->Bitmap, i, ".bmp");
+
 				if(!EffectC_IsStringNull(pItem->Alphamap))
 				{
 					sprintf( AlphaName, "%s%d%s", pItem->Alphamap, i, ".bmp" );
@@ -136,54 +162,58 @@ COverlay::COverlay()
 					pItem->FBitmap[i] = TPool_Bitmap(BmpName, BmpName, NULL, NULL);
 				}
 			}
-			pItem->CurTex = 0;
-			pItem->Time = 0.0f;
+
+			pItem->CurTex	= 0;
+			pItem->Time		= 0.0f;
 			pItem->CycleDir = 1;
-			pItem->Texture = pItem->FBitmap[pItem->CurTex];
-			pItem->Alpha = pItem->Transparency;
+			pItem->Texture	= pItem->FBitmap[pItem->CurTex];
+			pItem->Alpha	= pItem->Transparency;
 		}
 	}
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Destructor
+/* ------------------------------------------------------------------------------------ */
 COverlay::~COverlay()
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Overlay entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
-	
-	if(!pSet) 
-		return;	
-	
+
+	if(!pSet)
+		return;
+
 	//	Look through all of our Overlays
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+
 		if(pItem->FBitmap)
 			geRam_Free(pItem->FBitmap);
 	}
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	IsOverlay
+/* ------------------------------------------------------------------------------------ */
 Overlay *COverlay::IsOverlay(geWorld_Model *theModel)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Overlay entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
-	
-	if(!pSet) 
-		return NULL;	
-	
+
+	if(!pSet)
+		return NULL;
+
 	//	Look through all of our Overlays
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
 
@@ -192,6 +222,7 @@ Overlay *COverlay::IsOverlay(geWorld_Model *theModel)
 			if(!GetTriggerState(pItem->TriggerName))
 				continue;
 		}
+
 		if(pItem->Model)
 		{
 			if(pItem->Model == theModel)
@@ -200,27 +231,30 @@ Overlay *COverlay::IsOverlay(geWorld_Model *theModel)
 			}
 		}
 	}
+
 	return NULL;
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Tick
+/* ------------------------------------------------------------------------------------ */
 void COverlay::Tick(float dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Overlay entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
-	
-	if(!pSet) 
-		return;	
-	
+
+	if(!pSet)
+		return;
+
 	//	Look through all of our Overlays
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+
 		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{
 			if(!GetTriggerState(pItem->TriggerName))
@@ -229,18 +263,22 @@ void COverlay::Tick(float dwTicks)
 				continue;
 			}
 		}
+
 		if(pItem->Animated)
 		{
 			pItem->Time += dwTicks;
-			if(pItem->AlphaRate!=0.0f)
+
+			if(pItem->AlphaRate != 0.0f)
 			{
-				pItem->Alpha += (pItem->AlphaRate*(dwTicks/1000.0f));//cell division
-				if(pItem->Alpha<0)
+				pItem->Alpha += (pItem->AlphaRate*(dwTicks*0.001f));//cell division
+
+				if(pItem->Alpha < 0)
 					pItem->Alpha = 0;
-				if(pItem->Alpha>255.0f)
+				else if(pItem->Alpha > 255.0f)
 					pItem->Alpha = 255.0f;
 			}
-			if(pItem->Time>=(1000.0f*(1.0f/pItem->Speed)))
+
+			if(pItem->Time >= (1000.0f/pItem->Speed))
 			{
 				pItem->Time = 0.0f;
 				switch(pItem->Style)
@@ -249,48 +287,50 @@ void COverlay::Tick(float dwTicks)
 						break;
 					case 2:
 						pItem->CurTex += pItem->CycleDir;
-						if(pItem->CurTex>=pItem->BitmapCount || pItem->CurTex<0)
+						if(pItem->CurTex >= pItem->BitmapCount || pItem->CurTex < 0)
 						{
 							pItem->CycleDir = -pItem->CycleDir;
 							pItem->CurTex += pItem->CycleDir;
 						}
 						break;
 					case 3:
-						pItem->CurTex = ( rand() % pItem->BitmapCount );
+						pItem->CurTex = (rand() % pItem->BitmapCount);
 						break;
 					case 4:
-						pItem->CurTex +=1;
-						if(pItem->CurTex>=pItem->BitmapCount)
-							pItem->CurTex = pItem->BitmapCount-1;
+						pItem->CurTex += 1;
+						if(pItem->CurTex >= pItem->BitmapCount)
+							pItem->CurTex = pItem->BitmapCount - 1;
 						break;
 					default:
-						pItem->CurTex +=1;
-						if(pItem->CurTex>=pItem->BitmapCount)
+						pItem->CurTex += 1;
+						if(pItem->CurTex >= pItem->BitmapCount)
 							pItem->CurTex = 0;
 						break;
 				}
 			}
+
 			pItem->Texture = pItem->FBitmap[pItem->CurTex];
 		}
 	}
 }
 
+/* ------------------------------------------------------------------------------------ */
+//	Render
+/* ------------------------------------------------------------------------------------ */
 void COverlay::Render()
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+
 	//	Ok, see if we have any Overlay entities at all
-	
 	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
-	
-	if(!pSet) 
-		return;	
-	
+
+	if(!pSet)
+		return;
+
 	//	Look through all of our Overlays
-	
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
 
@@ -299,31 +339,35 @@ void COverlay::Render()
 			if(!GetTriggerState(pItem->TriggerName))
 				continue;
 		}
+
 		if(!pItem->Model)
 		{
 			geVec3d Direction, Pos;
 			GE_LVertex	Vertex;
 			geXForm3d theViewPoint = CCD->CameraManager()->ViewPoint();
 			geXForm3d_GetIn(&theViewPoint, &Direction);
-			geVec3d_AddScaled (&theViewPoint.Translation, &Direction, CCD->CameraManager()->GetOverlayDist(), &Pos);
-			
-			Vertex.r = pItem->TintColor.r; 
+
+			geVec3d_AddScaled(&(theViewPoint.Translation), &Direction, CCD->CameraManager()->GetOverlayDist(), &Pos);
+
+			Vertex.r = pItem->TintColor.r;
 			Vertex.g = pItem->TintColor.g;
 			Vertex.b = pItem->TintColor.b;
 			Vertex.a = pItem->Alpha;
-			
+
 			Vertex.u = 0.0f;
 			Vertex.v = 0.0f;
-			
+
 			Vertex.X = Pos.X;
 			Vertex.Y = Pos.Y;
 			Vertex.Z = Pos.Z;
-			
-			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, 
-				pItem->Texture, 
-				GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
-			
+
+			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, pItem->Texture,
+				GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f);
 		}
 	}
+
 	return;
 }
+
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

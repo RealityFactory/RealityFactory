@@ -1,36 +1,40 @@
-/*
-CGenesisEngine.h:		Genesis3D engine encapsulation
-
-  (c) 2001 Ralph Deane
-  
-	This file contains the class declaration for the Genesis3D
-	engine wrapper.  This wrapper hides many of the gory details
-	necessary to use the Genesis3D 1.0 engine.
-*/
+/****************************************************************************************/
+/*																						*/
+/*	CGenesisEngine.h:		Genesis3D engine encapsulation								*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declaration for the Genesis3D							*/
+/*	engine wrapper.  This wrapper hides many of the gory details						*/
+/*	necessary to use the Genesis3D 1.0 engine.											*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CGENESISENGINE_H_
 #define __RGF_CGENESISENGINE_H_
 
-struct IncompleteTexture 
-{ 
-	geBitmap * Bitmap; 
-	int Width;	// really 256 wide, use this value in DrawAlphaBitmapRect 
-	int Height;	// really 256 high, use this value in DrawAlphaBitmapRect 
+struct IncompleteTexture
+{
+	geBitmap	*Bitmap;
+	int			Width;	// really 256 wide, use this value in DrawAlphaBitmapRect
+	int			Height;	// really 256 high, use this value in DrawAlphaBitmapRect
 };
 
-struct CompleteTexture 
-{ 
-	IncompleteTexture * TextureArray; 
-	int TexturesWide; 
-	int TexturesHigh; 
-	int TotalWidth; 
-	int TotalHeight; 
-	//	enum {LeftRight, TopDown} FirstRowPattern; 
+
+struct CompleteTexture
+{
+	IncompleteTexture *TextureArray;
+	int TexturesWide;
+	int TexturesHigh;
+	int TotalWidth;
+	int TotalHeight;
+	//	enum {LeftRight, TopDown} FirstRowPattern;
 };
-//BitmapBuffer is a reference to an array of bitmap pointers... 
-//[0] [1] [2] [3] 
-//[4] [5] [6] [7] 
-//[8] [9] [10][11] 
+
+//BitmapBuffer is a reference to an array of bitmap pointers...
+//[0] [1] [2] [3]
+//[4] [5] [6] [7]
+//[8] [9] [10][11]
 
 // Render Flags for ALL render functions
 #define DRV_RENDER_ALPHA		(1<<0)	// Render function should expect alpha set in vertices
@@ -39,133 +43,125 @@ struct CompleteTexture
 #define DRV_RENDER_NO_ZWRITE	(1<<3)	// No z writing will be performed
 #define DRV_RENDER_CLAMP_UV		(1<<4)	// Clamp UV in both directions
 
+
 class CGenesisEngine : public CRGFComponent
 {
 public:
-	CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
-		char *szName, HINSTANCE theInstance, char chDriverID,
-		bool bUseSoftwareRenderer, bool UseDialog, char *szStartLevel);
+	CGenesisEngine(bool fFullScreen, int nWidth, int nHeight, char *szName,
+					HINSTANCE theInstance, char chDriverID,	bool bUseSoftwareRenderer,
+					bool UseDialog, char *szStartLevel);
 	~CGenesisEngine();						// Default destructor
-	bool DrawAlphaBitmap(geBitmap * pBitmap, 
-		geVec3d * VertUVArray, geCamera * ClipCamera,	FloatRect * PixelRect,
-		FloatRect * PercentRect, geFloat   Alpha, 
-		GE_RGBA* RGBA_Array, float zdepth);
-	bool DrawAlphaBitmapRect(geBitmap * pBitmap,
-		geRect * BitmapRect, geCamera * ClipCamera, FloatRect * PixelRect,
-		FloatRect * PercentRect, geFloat Alpha, 
-		GE_RGBA* RGBA_Array, float zdepth);
-	bool BreakUpBigBitmap(geBitmap * pBitmap, 
-		IncompleteTexture*& BitmapBuffer, int & NumWide, int & NumHigh);
-	CompleteTexture BuildCompleteTexture(IncompleteTexture* 
-		BitmapBuffer, int NumWide, int NumHigh);
-	bool AddCompleteTextureToWorld(CompleteTexture cp);
-	bool DrawCompleteTexture(CompleteTexture cp, geCamera * ClipCamera, 
-		FloatRect * ScreenRect, FloatRect * PercentRect, 
-		geFloat Alpha, GE_RGBA* RGBA_Array = NULL);
-// changed RF064
+
+	bool DrawAlphaBitmap(geBitmap *pBitmap, geVec3d *VertUVArray, geCamera *ClipCamera,
+						FloatRect *PixelRect, FloatRect *PercentRect, geFloat Alpha,
+						GE_RGBA *RGBA_Array, float zdepth);
+
+	bool DrawAlphaBitmapRect(geBitmap *pBitmap, geRect *BitmapRect, geCamera *ClipCamera,
+							FloatRect *PixelRect, FloatRect *PercentRect, geFloat Alpha,
+							GE_RGBA *RGBA_Array, float zdepth);
+
+	bool BreakUpBigBitmap(geBitmap *pBitmap, IncompleteTexture *&BitmapBuffer,
+							int &NumWide, int &NumHigh);
+
+	CompleteTexture BuildCompleteTexture(IncompleteTexture *BitmapBuffer,
+											int NumWide, int NumHigh);
+
+	bool AddCompleteTextureToWorld(const CompleteTexture &cp);
+
+	bool DrawCompleteTexture(const CompleteTexture &cp, geCamera *ClipCamera,
+							FloatRect *ScreenRect, FloatRect *PercentRect,
+							geFloat Alpha, GE_RGBA *RGBA_Array = NULL);
+
+	// changed RF064
 	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float zdepth);
 	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha, float zdepth);
-	CompleteTexture BitmapToComplete(geBitmap * pBitmap);
+	CompleteTexture BitmapToComplete(geBitmap *pBitmap);
 	void DeleteCompleteTexture(CompleteTexture cp);
-	void DrawComplete(CompleteTexture cp, int x, int y);
-// end change RF064
-	void ShowFrameRate(bool bHow);		// Guess what this does?
-	bool LoadLevel(char *szLevelFilename);		// Load level into engine
-	int BeginFrame();							// Start rendering frame
-	int EndFrame();								// End rendering frame
-	int RenderWorld();						// Render the G3D world
+	void DrawComplete(const CompleteTexture &cp, int x, int y);
+	// end change RF064
+
+	void ShowFrameRate(bool bHow);					// Guess what this does?
+	bool LoadLevel(char *szLevelFilename);			// Load level into engine
+
+	int BeginFrame();								// Start rendering frame
+	int EndFrame();									// End rendering frame
+
+	int RenderWorld();								// Render the G3D world
 	int SetWorldSpaceXForm(geXForm3d *theXForm);	// Set worldspace transform
-	int DisplaySplash(char *szSplashBMP, char *szAudioFile);
+
 	// Display splash screen, with sound file
-	int SetFogParameters(GE_RGBA FogColor, geFloat fFogStart, geFloat fFogEnd);
+	int DisplaySplash(char *szSplashBMP, char *szAudioFile);
+
 	// Set up fogging parameters
-	void EnableFog(geBoolean FogOn);	// Enable/disable fog
-// changed QD Shadows
-//	void EnableStencilShadows(geBoolean ShadowOn, GE_RGBA ShadowColor, int MaxLightsToUse);	// Enable/disable shadows
-// end change
-	bool ReportError(char *szError, bool bMessageBoxIt);
+	int SetFogParameters(GE_RGBA FogColor, geFloat fFogStart, geFloat fFogEnd);
+	void EnableFog(geBoolean FogOn);				// Enable/disable fog
+
 	// Report error to error log file
-	int SaveTo(FILE *SaveFD);			// Save engine data to file
-	int RestoreFrom(FILE *RestoreFD);	// Restore engine data from file
+	bool ReportError(char *szError, bool bMessageBoxIt);
+
+	int SaveTo(FILE *SaveFD);						// Save engine data to file
+	int RestoreFrom(FILE *RestoreFD);				// Restore engine data from file
 	void ResetSystem();
+
 	//	Accessor functions
-	geEngine *Engine()
-	{ return m_theEngine;}			// Get G3D engine pointer
-	bool FullScreen()
-	{ return m_fFullScreen;}		// Get fullscreen/windowed status
-	geWorld *World()
-	{ return m_World;}					// Get G3D World
-	HWND WindowHandle()
-	{ return m_wndMain;}				// Get main window handle
-	int Width()
-	{ return m_nWidth;}					// Window width
-	int Height()
-	{ return m_nHeight;}				// Window height
-	geSound_System *AudioSystem()
-	{ return m_Audio;}					// Audio system pointer
-	char *LevelName()
-	{ return m_CurrentLevel;}		// Current level name
-	void SetDebugging(bool fOn)
-	{ m_DebugEnabled = fOn;}		// Activate/deactivate debug output
+	geEngine *Engine()				{ return m_theEngine;	}	// Get G3D engine pointer
+	bool FullScreen()				{ return m_fFullScreen;	}	// Get fullscreen/windowed status
+	geWorld *World()				{ return m_World;		}	// Get G3D World
+	HWND WindowHandle()				{ return m_wndMain;		}	// Get main window handle
+	int Width()						{ return m_nWidth;		}	// Window width
+	int Height()					{ return m_nHeight;		}	// Window height
+	geSound_System *AudioSystem()	{ return m_Audio;		}	// Audio system pointer
+	char *LevelName()				{ return m_CurrentLevel;}	// Current level name
+	void SetDebugging(bool fOn)		{ m_DebugEnabled = fOn;	}	// Activate/deactivate debug output
 // changed RF064
-	float GetFogEnd()
-	{ return fFogEnd; }
-	float GetFogStart()
-	{ return fFogStart; }
+	float GetFogEnd()				{ return fFogEnd;		}
+	float GetFogStart()				{ return fFogStart;		}
 // end change RF064
+
 private:
 	//	Private member functions
-	bool CreateEngine(char *szName);	// Create G3D engine
+	bool CreateEngine(char *szName);		// Create G3D engine
 	bool FindDriver();						// Locate appropriate G3D driver
-	/////////////////////////////////////////////////////////////////
 	// Dee  07/07/00
 	// Added to select any available driver and use it's first mode
-	/////////////////////////////////////////////////////////////////
 	bool AutoDriver();
-	/////////////////////////////////////////////////////////////////
 	//End Dee
-	/////////////////////////////////////////////////////////////////
-	
-	/////////////////////////////////////////////////////////////////
+
 	// Dee  12/07/00
 	// Added to pop up a pick list of available drivers
-	/////////////////////////////////////////////////////////////////
 	bool PickDriver();
-	/////////////////////////////////////////////////////////////////
 	//End Dee
-	/////////////////////////////////////////////////////////////////
-	
+
+private:
 	//	Private member variables
-	int m_nWidth, m_nHeight;			// Window dimensions
-	bool m_fFullScreen;						// Fullscreen/windowed flag
-	bool m_bUseSoftware;					// Software rendering
-	char m_SelectedDriverID;			// Driver selection ID, Genesis style
-	RECT m_ScreenRect;						// Screen size rectangle
-	HWND m_wndMain;								// Main window handle
-	/////////////////////////////////////////////////////////////////
+	int			m_nWidth, m_nHeight;		// Window dimensions
+	bool		m_fFullScreen;				// Fullscreen/windowed flag
+	bool		m_bUseSoftware;				// Software rendering
+	char		m_SelectedDriverID;			// Driver selection ID, Genesis style
+	RECT		m_ScreenRect;				// Screen size rectangle
+	HWND		m_wndMain;					// Main window handle
 	//Dee
 	//Added to support pop up driver window
-	/////////////////////////////////////////////////////////////////
-	HINSTANCE m_Instance;
-	/////////////////////////////////////////////////////////////////
+	HINSTANCE	m_Instance;
 	//end Dee
-	/////////////////////////////////////////////////////////////////
-	geDriver_System	*m_DrvSys;		// G3D driver system pointer
-	geDriver *m_Driver;						// G3D driver selected
-	geDriver_Mode *m_Mode;				// G3D driver mode selected
-	geWorld	*m_World;							// Current G3D world
-	geEngine *m_theEngine;				// G3D engine pointer
-	geVFile *m_Level;							// G3D level file handle
-	geSound_System *m_Audio;			// G3D sound system
-	geSound_Def *m_SplashAudio;		// Splash screen audio effect
-	int m_MasterVolume;						// Master volume level
-	int m_bInFramePass;						// TRUE if between BeginFrame()/EndFrame()
-	char m_CurrentLevel[256];			// Current level name, if any
-	bool m_DebugEnabled;					// Debug output enabled flag
-	GE_RGBA FogColor;							// Color for distance fog
-	geFloat fFogStart, fFogEnd;			// Fog start, end distances
-	geFloat FarClipPlaneDistance;		// Distance to far clip plane
+	geDriver_System	*m_DrvSys;				// G3D driver system pointer
+	geDriver		*m_Driver;				// G3D driver selected
+	geDriver_Mode	*m_Mode;				// G3D driver mode selected
+	geWorld			*m_World;				// Current G3D world
+	geEngine		*m_theEngine;			// G3D engine pointer
+	geVFile			*m_Level;				// G3D level file handle
+	geSound_System	*m_Audio;				// G3D sound system
+	geSound_Def		*m_SplashAudio;			// Splash screen audio effect
+	int				m_MasterVolume;			// Master volume level
+	int				m_bInFramePass;			// TRUE if between BeginFrame()/EndFrame()
+	char			m_CurrentLevel[256];	// Current level name, if any
+	bool			m_DebugEnabled;			// Debug output enabled flag
+	GE_RGBA			FogColor;				// Color for distance fog
+	geFloat			fFogStart, fFogEnd;		// Fog start, end distances
+	geFloat			FarClipPlaneDistance;	// Distance to far clip plane
 // changed RF063
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

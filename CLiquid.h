@@ -1,11 +1,14 @@
-/*
-	CLiquid.h	:	Liquid
+/****************************************************************************************/
+/*																						*/
+/*	CLiquid.h	:	Liquid																*/
+/*																						*/
+/*	(c) 2001 Ralph Deane																*/
+/*																						*/
+/*	This file contains the class declaration for the CLiquid							*/
+/*	class.  This class implements Liquid												*/
+/*																						*/
+/****************************************************************************************/
 
-	(c) 2001 Ralph Deane
-
-	This file contains the class declaration for the CLiquid
-class.  This class implements Liquid
-*/
 
 #include "RabidFramework.h"
 
@@ -15,9 +18,10 @@ class.  This class implements Liquid
 class CLiquid : public CRGFComponent
 {
 public:
-  CLiquid();
-  ~CLiquid();
-  Liquid *IsLiquid(geWorld_Model *theModel);
+	CLiquid();
+	~CLiquid();
+
+	Liquid *IsLiquid(geWorld_Model *theModel);
 
 private:
 
@@ -27,14 +31,17 @@ private:
 class COverlay : public CRGFComponent
 {
 public:
-  COverlay();
-  ~COverlay();
-  void Tick(float dwTicks);
-  Overlay *IsOverlay(geWorld_Model *theModel);
-  void Render();
+	COverlay();
+	~COverlay();
+
+	void Tick(float dwTicks);
+	Overlay *IsOverlay(geWorld_Model *theModel);
+	void Render();
 
 private:
 
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CFlipTree.h:	CFlipTree class implementation										*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CFLIPTREE_H_
 #define __RGF_CFLIPTREE_H_
@@ -10,9 +15,12 @@
 class CFlipTree : public CRGFComponent
 {
 public:
-  CFlipTree();
-  ~CFlipTree();	
-  void Tick(float dwTicks);
+	CFlipTree();
+	~CFlipTree();
+
+	void Tick(float dwTicks);
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

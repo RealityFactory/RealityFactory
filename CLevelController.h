@@ -1,11 +1,13 @@
-/*
-	CLevelController.h:		Level Controller
-
-	(c) 2002 David C. Swope
-
-	This file contains the class declaration for the CLevelController
-   class that encapsulates level control logic handling in the RGF.
-*/
+/****************************************************************************************/
+/*																						*/
+/*	CLevelController.h:		Level Controller											*/
+/*																						*/
+/*	(c) 2002 David C. Swope																*/
+/*																						*/
+/*	This file contains the class declaration for the CLevelController					*/
+/*	class that encapsulates level control logic handling in the RGF.					*/
+/*																						*/
+/****************************************************************************************/
 
 #include "RabidFramework.h"
 
@@ -16,19 +18,21 @@
 
 #define DEBUGLINES	8
 
+
 class ControllerObject : public skScriptedExecutable
 {
 public:
 	ControllerObject(char *fileName);
 	~ControllerObject();
-	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
-   bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
-   bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext& ctxt);
+
+	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
+	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
+	bool method (const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
 	char	Order[64];
-   char  ThinkOrder[64];
+	char	ThinkOrder[64];
 	float	ElapseTime;
-   float ThinkTime;
+	float	ThinkTime;
 	char	szName[64];
 	bool	console;
 	char	*ConsoleHeader;
@@ -39,13 +43,16 @@ public:
 class CLevelController : public CRGFComponent
 {
 public:
-   CLevelController();	                  // Constructor
-  ~CLevelController();	                  // Destructor
-	void Tick(geFloat dwTicks);			   // Increment animation time
-   int SaveTo(FILE *SaveFD);				   // Save LevelController status to a file
-	int RestoreFrom(FILE *RestoreFD);	   // Restore LevelController status from a file
+	CLevelController();					// Constructor
+	~CLevelController();				// Destructor
+
+	void Tick(geFloat dwTicks);			// Increment animation time
+	int SaveTo(FILE *SaveFD);			// Save LevelController status to a file
+	int RestoreFrom(FILE *RestoreFD);	// Restore LevelController status from a file
 private:
-   int ConsoleBlock;
+	int ConsoleBlock;
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */

@@ -1,3 +1,8 @@
+/****************************************************************************************/
+/*																						*/
+/*	CNetwork.h:		CNetwork class														*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef __RGF_CNETWORK_H_
 #define __RGF_CNETWORK_H_
@@ -10,10 +15,11 @@
 
 #define CONNECTIONPACKETS  4 // # of packets sent during connection handshake
 
-#define WRITEDATA(a, b, c, d) CCD->NetPlayerManager()->WriteData(type, (void *)a, b, c, d)
-#define READDATA(a, b, c, d) CCD->NetPlayerManager()->ReadData(type, (void *)a, b, c, d)
+#define WRITEDATA(a, b, c, d) CCD->NetPlayerManager()->WriteData(type, (void*)a, b, c, d)
+#define READDATA(a, b, c, d) CCD->NetPlayerManager()->ReadData(type, (void*)a, b, c, d)
 
 #define MAXPLAYERS 10
+
 
 typedef enum
 {
@@ -46,35 +52,34 @@ typedef enum
 	PLAYERSETUP,
 	OTHERPLAYERS,
 	FINISHED
-} ;
+};
+
 
 class NetPlayer
 {
 public:
 	NetPlayer();
 	~NetPlayer();
-	void Create(char *actorname);
-	int GetId()
-	{ return Id; }
-	void SetId(int id)
-	{ Id = id; }
-	void SetBaseRotation(geVec3d Rotation)
-	{ BaseRotation = Rotation; }
-	void SetlocalRotation(geVec3d Rotation)
-	{ localRotation = Rotation; }
-	void SetlocalTranslation(geVec3d Translation)
-	{ localTranslation = Translation; }
 
+	void Create(char *actorname);
+	int GetId()											{ return Id;						}
+	void SetId(int id)									{ Id = id;							}
+	void SetBaseRotation(const geVec3d &Rotation)		{ BaseRotation = Rotation;			}
+	void SetlocalRotation(const geVec3d &Rotation)		{ localRotation = Rotation;			}
+	void SetlocalTranslation(const geVec3d &Translation){ localTranslation = Translation;	}
+
+public:
 	geActor *Actor;
 	char ActorName[128];
 	char Animation[128];
 	float AnimTime;
 	int Id;
 	geVec3d localTranslation;
-	geVec3d localRotation;	
+	geVec3d localRotation;
 	geVec3d oldTranslation;
-	geVec3d oldRotation;	
+	geVec3d oldRotation;
 	geVec3d BaseRotation;
+
 private:
 
 };
@@ -84,6 +89,7 @@ class NetPlayerMgr
 public:
 	NetPlayerMgr();
 	~NetPlayerMgr();
+
 	bool Initialize(bool server, char *serverip);
 	void Tick(float dwTicks);
 	void ServerClientCycle();
@@ -104,25 +110,30 @@ private:
 	int GetIndexFromId(int Id);
 	int ReadBuffer(NetBuffer *Buff, NLsocket socket);
 
-	NetPlayer *Player[MAXPLAYERS];
-	int PlayerId;
-	NLsocket sock;
-	NetBuffer *Buffer;
-	bool isServer;
-	char ServerIP[64];
-	int clientstage;
-	int connectstate;
+private:
+	NetPlayer	*Player[MAXPLAYERS];
+	int			PlayerId;
+	NLsocket	sock;
+	NetBuffer	*Buffer;
+	bool		isServer;
+	char		ServerIP[64];
+	int			clientstage;
+	int			connectstate;
 // Server
-	NLsocket serversock;
-	NLint group;
-	NLsocket s[MAXPLAYERS];
-	int clientnum;
-	NetBuffer *inbuffer;
-	NetBuffer *outbuffer;
-	NetBuffer *updatebuffer;
-	bool clientrun;
-	bool serverstop;
-	bool clientready;
+	NLsocket	serversock;
+	NLint		group;
+	NLsocket	s[MAXPLAYERS];
+	int			clientnum;
+
+	NetBuffer	*inbuffer;
+	NetBuffer	*outbuffer;
+	NetBuffer	*updatebuffer;
+
+	bool		clientrun;
+	bool		serverstop;
+	bool		clientready;
 };
 
 #endif
+
+/* ----------------------------------- END OF FILE ------------------------------------ */
