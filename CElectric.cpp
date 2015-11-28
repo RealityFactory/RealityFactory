@@ -892,10 +892,10 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 	{
 		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pSource->active,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->bState,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->DTime,			sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&pSource->DoingDamage,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->active,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->bState,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->DTime,		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &pSource->DoingDamage,	sizeof(geBoolean),	1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -923,10 +923,10 @@ int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pSource->active,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->bState,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->DTime,		sizeof(geFloat),	1, RestoreFD);
-		READDATA(&pSource->DoingDamage, sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->active,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->bState,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->DTime,			sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &pSource->DoingDamage,	sizeof(geBoolean),	1, RestoreFD);
     }
 
 	return RGF_SUCCESS;

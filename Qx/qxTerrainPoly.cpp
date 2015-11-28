@@ -26,7 +26,7 @@ static char THIS_FILE[]=__FILE__;
 
 
 qxTerrainPoly::qxTerrainPoly()
-:m_bActive( true ) 
+:m_bActive( true )
 ,m_pSubVert(0)
 ,m_pTerrainMap(0)
 ,m_pParent(0)
@@ -45,18 +45,18 @@ qxTerrainPoly::qxTerrainPoly()
 ,m_nTreeID(0)
 ,m_pNext(0)
 {
-	// NOTE: left, right, and top verts must be assigned manually if 
+	// NOTE: left, right, and top verts must be assigned manually if
 	// this default constructor is called
 }
 
 qxTerrainPoly::qxTerrainPoly(qxTerrainMapBase* pTerrainMap,
-							qxTerrainVert *lv, 
-							qxTerrainVert *rv, 
+							qxTerrainVert *lv,
+							qxTerrainVert *rv,
 							qxTerrainVert *tv,
 							qxBinTriTree* pTree,
 							int nTreeID
 							)
-:m_bActive( true ) 
+:m_bActive( true )
 ,m_pSubVert(0)
 ,m_pTerrainMap(pTerrainMap)
 ,m_pOwnerTree(pTree)
@@ -118,12 +118,12 @@ void qxTerrainPoly::Render( )
 	if(VF_Overall == VF_OUT)
 	{
 		return;
-	} 
+	}
 
 	if(m_bActive)
 	{
 
-	/*	TEST: 2d backface removal method.  
+	/*	TEST: 2d backface removal method.
 	might as well use 2d, because its faster and verts are already in screenspace anyway
 	this actually calculates the z-component of the 3d cross-product of 2 edges of a triangle.
 
@@ -148,7 +148,6 @@ void qxTerrainPoly::Render( )
 			if( fBackface <= 0)	// is < faster or slower than <= ???, or is there a quicker negative test?
 				return;
 		}
-
 		else if(fBackface > 0)
 			return;
 
@@ -165,13 +164,14 @@ void qxTerrainPoly::Render( )
 		memcpy((void*) &verts[1].u, (void*) &m_pRightVert->CurrentVert.u, sizeof(float) * 6);
 		memcpy((void*) &verts[2].u, (void*) &m_pTopVert->CurrentVert.u, sizeof(float) * 6);
 
-		// if the triangle is completely onscreen, then 
+		// if the triangle is completely onscreen, then
 		//its not necessary to do complete clipping on it
-		if(VF_Overall == VF_ALL_IN)		
+		if(VF_Overall == VF_ALL_IN)
 		{
 			geTClip_UnclippedTriangle(verts);
 			return;
 		}
+
 /*
 		verts[0].r = 255.0f; verts[0].b = 255.0f; verts[0].g = 255.0f;
 		verts[1].r = 255.0f; verts[1].b = 255.0f; verts[1].g = 255.0f;
@@ -189,11 +189,13 @@ void qxTerrainPoly::Render( )
 
 	// light the sub vertex, T&P sub vert, render children
 
-	m_pTerrainMap->LightVertex(m_pSubVert); 
+	m_pTerrainMap->LightVertex(m_pSubVert);
 
-	geCamera_TransformAndProject(CCD->CameraManager()->Camera(), 
-								(geVec3d *)&(m_pSubVert->CurrentVert), 
+	geCamera_TransformAndProject(CCD->CameraManager()->Camera(),
+								(geVec3d *)&(m_pSubVert->CurrentVert),
 								(geVec3d *)&(m_pSubVert->ProjectedVert));
+
+	// end change
 	m_pLeftChild->Render();
 	m_pRightChild->Render();
 
@@ -207,7 +209,7 @@ void qxTerrainPoly::RenderWireframe(void)
 	// if this poly is outside the view frustrum, dont render it
 	if(VF_Overall == VF_OUT)
 		return;
-	
+
 	if(m_bActive)
 	{
 
@@ -271,10 +273,10 @@ void qxTerrainPoly::RenderWireframe(void)
 
 
 	// T&P sub vert, render children
-	geCamera_TransformAndProject(CCD->CameraManager()->Camera(), 
-								(geVec3d *)&(m_pSubVert->CurrentVert), 
+	geCamera_TransformAndProject(CCD->CameraManager()->Camera(),
+								(geVec3d *)&(m_pSubVert->CurrentVert),
 								&(m_pSubVert->ProjectedVert));
-	
+
 	m_pLeftChild->RenderWireframe();
 	m_pRightChild->RenderWireframe();
 
@@ -293,9 +295,9 @@ void qxTerrainPoly::UpdateWedgeBounds()
 {
 	int variance;
 
-/*	if the variance for this tri isn't stored, then make as small 
+/*	if the variance for this tri isn't stored, then make as small
 	an acceptable box as possible
-	NOTE: try experimenting with diff forced variance values here, 
+	NOTE: try experimenting with diff forced variance values here,
 	so stuff close to camera won't be clipped out prematurely.  100 seems ok.
 	very small values (like 1), should also work.  TEST this.
 */
@@ -307,7 +309,7 @@ void qxTerrainPoly::UpdateWedgeBounds()
 	else
 	{
 		// else, lookup the variance for a proper box
-		variance = m_pOwnerTree->LookupVariance( m_nTreeID );	
+		variance = m_pOwnerTree->LookupVariance( m_nTreeID );
 	}
 
 	// create bounding wedge for this triangle.  contains all possible children as well (cause Y is +-variance)
@@ -341,8 +343,8 @@ void qxTerrainPoly::UpdateWedgeBounds()
 
 void qxTerrainPoly::UpdateViewFlags(void)
 {
-	// new set of flags.  after calc'ing current VF pos, 
-	// compare these vs. whats already set.  
+	// new set of flags.  after calc'ing current VF pos,
+	// compare these vs. whats already set.
 	// only recurse to children if theyr not already set correctly.
 
 	bool	New_All_In = true;
@@ -366,7 +368,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		//
 		// test Left
 		//
-		if(!TestHalfspace(&m_pTerrainMap->FrustrumLeft, 
+		if(!TestHalfspace(&m_pTerrainMap->FrustrumLeft,
 								&m_pTerrainMap->NormalLeft,
 								VF_IN_LEFT, New_All_In))
 			return;
@@ -380,14 +382,14 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		if(!TestHalfspace(&m_pTerrainMap->FrustrumRight, &m_pTerrainMap->NormalRight,
 			VF_IN_RIGHT, New_All_In ))
 			return;
-							
+
 
 		//
 		// test Top
 		//
 		if(! TestHalfspace(&m_pTerrainMap->FrustrumTop, &m_pTerrainMap->NormalTop,
 							VF_IN_TOP, New_All_In))
-							
+
 			return;
 
 		//
@@ -395,10 +397,10 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		//
 		if( !TestHalfspace(&m_pTerrainMap->FrustrumBottom, &m_pTerrainMap->NormalBottom,
 							VF_IN_BOTTOM, New_All_In))
-							
+
 							return;
 
-						
+
 
 		//
 		// test Far
@@ -414,14 +416,14 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		//
 		if( New_All_In )
 		{
-			if(VF_Overall & VF_ALL_IN == GE_TRUE)	// NOTE: does this ever happen?
+			if((VF_Overall & VF_ALL_IN) == GE_TRUE)	// NOTE: does this ever happen?
 			{
 				return;		// tree is already properly set
 			}
-			
+
 			// else
 			VF_Overall = VF_ALL_IN;
-			
+
 			// set children
 			if(m_bActive == GE_FALSE)
 			{
@@ -435,30 +437,30 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		// tri isn't all in or all out, so update children
 		//
 		VF_Overall = VF_DONT_KNOW;
-		
+
 		if(!m_bActive)
 		{
 			m_pLeftChild->UpdateViewFlags();
 			m_pRightChild->UpdateViewFlags();
 		}
-		
+
 		return;
 	} //if Parent == NULL
 
 
 	//
-	// else, tri is somewhere in the tree, so inherit parent's 
+	// else, tri is somewhere in the tree, so inherit parent's
 	// _In flags, reevaluate not-In portions, etc.
 	//
 	else
 	{
 
-		// inherit parents flags.  
+		// inherit parents flags.
 		VF_Halfspace_Flags = m_pParent->VF_Halfspace_Flags;
 
-		// all true VF_In_ flags are valid, because this tri is within 
+		// all true VF_In_ flags are valid, because this tri is within
 		// the parents bounding wedge
-		// any false VF_In_ flags should be rechecked, 
+		// any false VF_In_ flags should be rechecked,
 		// and then the overall In, Out or Dont Know updated and children updated
 
 		// test Near
@@ -483,7 +485,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 			if(!TestHalfspace(&m_pTerrainMap->FrustrumRight, &m_pTerrainMap->NormalRight,
 									VF_IN_RIGHT, New_All_In) )
 				return;
-		
+
 		//
 		// test Top
 		//
@@ -500,7 +502,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 					VF_IN_BOTTOM, New_All_In) )
 				return;
 
-		
+
 		//
 		// test Far
 		//
@@ -508,9 +510,9 @@ void qxTerrainPoly::UpdateViewFlags(void)
 			if( !TestHalfspace(&m_pTerrainMap->FrustrumFar, &m_pTerrainMap->NormalFar,
 					VF_IN_FAR, New_All_In) )
 					return;
-		
-	
-		// all halfspace tests are done, tri isnt all-out, 
+
+
+		// all halfspace tests are done, tri isnt all-out,
 		// so if all in, set flags, else, update children
 		if( New_All_In )
 		{
@@ -519,7 +521,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 
 			// else
 			VF_Overall = VF_ALL_IN;
-			
+
 			// set children
 			if(m_bActive == GE_FALSE)
 			{
@@ -531,13 +533,13 @@ void qxTerrainPoly::UpdateViewFlags(void)
 
 		// tri isn't all in or all out, so update children
 		VF_Overall = VF_DONT_KNOW;
-		
+
 		if(m_bActive == GE_FALSE)
 		{
 			m_pLeftChild->UpdateViewFlags();
 			m_pRightChild->UpdateViewFlags();
 		}
-		
+
 		return;
 	}
 
@@ -546,7 +548,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 
 
 // tests wedge bounds, not the rendered triangle
-bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal, 
+bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 								  int Flag, bool& bAllInFlag)
 {
 
@@ -568,7 +570,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 	geVec3d_Subtract(&RD, Point, &V);
@@ -578,7 +580,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 	if(!AllIn && !AllOut)
@@ -591,7 +593,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 	if(!AllIn && !AllOut)
@@ -604,7 +606,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 	if(!AllIn && !AllOut)
@@ -617,7 +619,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 	if(!AllIn && !AllOut)
@@ -630,7 +632,7 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		AnyIn = true;
 		AllOut = false;
 	}
-	else 
+	else
 		AllIn = false;
 
 
@@ -645,13 +647,13 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		}
 
 		VF_Overall = VF_OUT;
-		
+
 		if(!m_bActive)	// if !m_bActive, set all children's flags to AllOut
 		{
 			m_pLeftChild->SetViewFlagsAllOut();
 			m_pRightChild->SetViewFlagsAllOut();
-		}		
-			
+		}
+
 		// else, no children, exit
 		return false;
 	}
@@ -662,13 +664,13 @@ bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 		QXASSERT(AnyIn == true);
 
 		VF_Halfspace_Flags |= Flag;
-		
+
 		return true;
 	}
 
 // not AllIn or AllOut, return 1 (partly inside)
 goto_AnyIn:
-		
+
 		// result == 1, wedge was partially inside this halfspace
 		bAllInFlag = GE_FALSE;
 
@@ -706,7 +708,7 @@ int qxTerrainPoly::CalcPriority(int nNearestIsHighest)
 	int priority;
 
 	// if tri is outside view frustrum, priority = 0
-	if(VF_Overall & VF_OUT)	
+	if(VF_Overall & VF_OUT)
 		return 0;
 
 	// if this tri is at the bottom of the tree, and thus unsplittable, pri=0
@@ -723,8 +725,8 @@ int qxTerrainPoly::CalcPriority(int nNearestIsHighest)
 	const geXForm3d* pCXF = geCamera_GetCameraSpaceXForm(CCD->CameraManager()->Camera());
 
 	float distance =
-						(Position.X * pCXF->CX) 
-					+	(Position.Y * pCXF->CY) 
+						(Position.X * pCXF->CX)
+					+	(Position.Y * pCXF->CY)
 					+	(Position.Z * pCXF->CZ)
 					+	pCXF->Translation.Z;
 
@@ -742,17 +744,17 @@ int qxTerrainPoly::CalcPriority(int nNearestIsHighest)
 
 	priority = m_pOwnerTree->LookupVariance(m_nTreeID);
 
-	// int_dist is shifted-right Distance_Detail bits, 
+	// int_dist is shifted-right Distance_Detail bits,
 	// and this is subtracted from priority.
 	priority = 256 + priority;//125 + priority;
 
 	if(priority > (int_dist >> m_pTerrainMap->m_nDistanceDetail))
 		priority = priority - (int_dist >> m_pTerrainMap->m_nDistanceDetail);
-	else 
+	else
 		priority = 0;
 
 	// else the index into the priority table will be out of bounds
-	QXASSERT(priority < PRIORITIES);	
+	QXASSERT(priority < PRIORITIES);
 
 
 	// onscreen tri's get a priority of at least 1, so theyr higher than offscreen tris

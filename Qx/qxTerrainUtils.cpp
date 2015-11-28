@@ -223,12 +223,14 @@ void qxSplitQueue::UpdatePriorities(int nNearestIsHighest)
 
 	qxSplitQueueNode* pNode;
 
-	// make a new list to copy into, cuz we cant go thru the old list sequentially, 
+	// make a new list to copy into, cuz we cant go thru the old list sequentially,
 	// as priorities get swapped around. must work into new list.
 	qxSplitQueueNode** pNewPriorityList = new qxSplitQueueNode*[PRIORITIES];
 
+	int i;
+
 	// new list must be all NULL to start
-	for(int i = 0; i < PRIORITIES; i++)
+	for(i = 0; i < PRIORITIES; i++)
 	{
 		pNewPriorityList[i] = 0;
 	}
@@ -261,7 +263,7 @@ void qxSplitQueue::UpdatePriorities(int nNearestIsHighest)
 
 	// get new highest priority
 	m_nHighestPriority = 0;
-	
+
 	for(i = PRIORITIES - 1; i != 0; i--)
 	{
 		if(m_pPriorityList[i] != NULL)
@@ -374,7 +376,7 @@ void qxMergeQueue::ClearPool(void)
 		delete m_pPoolListHead;
 		m_pPoolListHead = pNode;
 	}
-	
+
 }
 
 void qxMergeQueue::InsertDiamond(qxTerrainPoly* poly)
@@ -386,7 +388,7 @@ void qxMergeQueue::InsertDiamond(qxTerrainPoly* poly)
 	NewNode->m_pPoly2 = poly->m_pBottomNeighbor;	// 2nd half of diamond
 	//double link between poly and this node
 	poly->m_pMergeQueueNode = NewNode;
-	
+
 	if(NewNode->m_pPoly2 != NULL)
 		NewNode->m_pPoly2->m_pMergeQueueNode = NewNode;
 
@@ -423,13 +425,14 @@ void qxMergeQueue::UpdatePriorities(int nNearestIsHighest)
 {
 	qxMergeQueueNode* pNode;
 
-	// make a new list to copy into, cuz we cant go thru the old list sequentially, 
+	// make a new list to copy into, cuz we cant go thru the old list sequentially,
 	// as priorities get swapped around. must work into new list.
 	qxMergeQueueNode** NewPriorityList = new qxMergeQueueNode*[PRIORITIES];
 
-	
+	int i;
+
 	// new list must be all NULL to start
-	for(int i = 0; i < PRIORITIES; i++)
+	for(i = 0; i < PRIORITIES; i++)
 	{
 		NewPriorityList[i] = 0;
 	}
@@ -464,7 +467,7 @@ void qxMergeQueue::UpdatePriorities(int nNearestIsHighest)
 
 	// get new lowest priority
 	m_nLowestPriority = 0;
-	
+
 	for(i = 0; i < PRIORITIES; i++)
 	{
 		if(m_pPriorityList[i] != NULL)
@@ -517,7 +520,7 @@ void qxMergeQueue::PoolNode(qxMergeQueueNode* Node)
 	QXASSERT(Node != NULL);
 
 	Node->m_pPoly1->m_pMergeQueueNode = 0;
-	
+
 	if(Node->m_pPoly2)
 		Node->m_pPoly2->m_pMergeQueueNode = 0;
 
@@ -535,18 +538,18 @@ inline void qxSplitQueueNode::UpdatePriority(int nNearestIsHighest)
 void qxMergeQueueNode::UpdatePriority(int nNearestIsHighest)
 {
 
-	
+
 	if(m_pPoly2)
 	{
-		int var1 = m_pPoly1->CalcPriority(nNearestIsHighest); 
-		int var2 = m_pPoly2->CalcPriority(nNearestIsHighest); 
-		
+		int var1 = m_pPoly1->CalcPriority(nNearestIsHighest);
+		int var2 = m_pPoly2->CalcPriority(nNearestIsHighest);
+
 		// priority is whichever is greater.
 		m_nPriority = (var1 > var2)? var1 : var2;
 	}
 	else
 	{
-		m_nPriority = m_pPoly1->CalcPriority(nNearestIsHighest); 
+		m_nPriority = m_pPoly1->CalcPriority(nNearestIsHighest);
 	}
 
 }

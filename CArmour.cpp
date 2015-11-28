@@ -23,8 +23,8 @@ CArmour::CArmour()
 	if(!AttrFile.ReadFile())
 		return;
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type, Value;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type, Value;
 	geVec3d Vector;
 	char szName[64];
 
@@ -38,7 +38,7 @@ CArmour::CArmour()
 			break;
 		}
 
-		List[ListPtr].Name = strdup(KeyName);
+		List[ListPtr].Name = strdup(KeyName.c_str());
 
 		for(int i=0; i<MAXDAMAGEBY; i++)
 			List[ListPtr].DamageBy[i] = NULL;
@@ -56,14 +56,14 @@ CArmour::CArmour()
 
 			if(Type == "attribute")
 			{
-				List[ListPtr].Attribute = strdup(Value);
+				List[ListPtr].Attribute = strdup(Value.c_str());
 			}
 			else
 			{
-				List[ListPtr].DamageBy[j] = strdup(Type);
+				List[ListPtr].DamageBy[j] = strdup(Type.c_str());
 // changed QD 07/15/06
 				//strcpy(szName, Value);
-				strncpy(szName, Value, 63);
+				strncpy(szName, Value.c_str(), 63);
 				szName[63] = 0;
 // end change QD 07/15/06
 				Vector = Extract(szName);

@@ -52,11 +52,11 @@ CVideoTexture::CVideoTexture()
 		// ..we're going to initialize it and get the first frame
 		// ..loaded.  This prevents a short (but noticable!) delay from
 		// ..happening if we need to initialize the texture later.
-		CString File = pTex->szVideoName;
-		File.MakeLower();
-		int i = File.Find(".gif");
+		string File = pTex->szVideoName;
+		MakeLower(File);
+		int i = File.find(".gif");
 
-		if(i>=0 && i<File.GetLength())
+		if(i>=0 && i<(int)File.length())
 		{
 			pTex->Gif = GE_TRUE;
 

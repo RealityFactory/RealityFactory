@@ -1159,7 +1159,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
 			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
 			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
 
 			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
 			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[6].str());
@@ -1194,7 +1194,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
 			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
 			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
 
 			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
 			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[5].str());
@@ -1400,6 +1400,29 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		return true;
 	}
 // end change QD 07/15/06
+// changed QD 02/01/07
+	else if(IS_METHOD(methodName, "asin"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)asin((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "acos"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)acos((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "atan"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)atan((double)arguments[0].floatValue());
+
+		return true;
+	}
+// end change
 	// GetFlag
 	else if(IS_METHOD(methodName, "GetFlag"))
 	{
@@ -4771,12 +4794,12 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case SETWEAPON:
 					if(Object->Actor)
 					{
-						int keynum = WeaponCache.GetSize();
+						unsigned int keynum = WeaponCache.size();
 						if(keynum>0)
 						{
-							for(int i=0; i<keynum; i++)
+							for(unsigned int i=0; i<keynum; i++)
 							{
-								if(!strcmp(WeaponCache[i].Name, Object->Index->AnimName))
+								if(!strcmp(WeaponCache[i].Name.c_str(), Object->Index->AnimName))
 								{
 									if(Object->WeaponActor)
 									{

@@ -93,7 +93,7 @@ qxEffectBase(strName)
 qxEffectParticleChamber::~qxEffectParticleChamber()
 {
 
-	for( int i = 0; i < m_pParticles.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pParticles.size(); i++)
 	{
 		delete m_pParticles[i];
 	}
@@ -129,7 +129,7 @@ bool qxEffectParticleChamber::Init()
 
 		LoadAnimation();
 
-		QXASSERT( MAX_ANIMATION_BMPS > m_BmpArray.GetSize() );
+		QXASSERT( MAX_ANIMATION_BMPS > m_BmpArray.size() );
 	}
 	// else, normal mode
 	else
@@ -140,7 +140,7 @@ bool qxEffectParticleChamber::Init()
 	QXASSERT(m_pBmp);
 
 
-	m_pParticles.SetSize(ParticlesMax);
+	m_pParticles.resize(ParticlesMax);
 
 	for( int i = 0; i < ParticlesMax; i++)
 	{
@@ -152,7 +152,7 @@ bool qxEffectParticleChamber::Init()
 			p = (qxParticleBase*) new qxParticleQuad;
 
 		p->m_pParent  = this;
-		m_pParticles.SetAt(i, p);
+		m_pParticles[i] = p;
 	}
 
 
@@ -353,7 +353,7 @@ int qxEffectParticleChamber::Frame()
 	if ( ParticlesCreated > 0 )
 	{
 		// loop through all the particles to see if any are available
-		for ( i=0; i<ParticlesMax; i++ )
+		for (int i=0; i<ParticlesMax; i++ )
 		{
 			// if we have created enough particles,
 			// this value will be 0 and we can skip the rest
@@ -599,8 +599,8 @@ void qxEffectParticleChamber::AddBmp(const char* pBmp, const char* pAlpha)
 	strcpy(Alpha, pAlpha);
 	geBitmap* p = TPool_Bitmap(Bmp, Alpha, NULL, NULL);
 	QXASSERT(p);
-	m_BmpArray.Add(p);
 
+	m_BmpArray.push_back(p);
 }
 
 
@@ -656,15 +656,15 @@ bool qxEffectParticleChamber::ReInit()
 
 	QXASSERT(m_pBmp);
 
-	for( int i = 0; i < m_pParticles.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pParticles.size(); i++)
 	{
 		delete m_pParticles[i];
 	}
 
-	m_pParticles.RemoveAll();
-	m_pParticles.SetSize(ParticlesMax);
+	m_pParticles.erase(m_pParticles.begin(), m_pParticles.end());
+	m_pParticles.resize(ParticlesMax);
 
-	for( i = 0; i < ParticlesMax; i++)
+	for(int j = 0; j < ParticlesMax; j++)
 	{
 		qxParticleBase* p = 0;
 
@@ -674,7 +674,7 @@ bool qxEffectParticleChamber::ReInit()
 			p = (qxParticleBase*) new qxParticleQuad;
 
 		p->m_pParent  = this;
-		m_pParticles.SetAt(i, p);
+		m_pParticles[j] = p;
 	}
 
 

@@ -9,6 +9,7 @@
 /*																						*/
 /*	Edit History:																		*/
 /*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
 /*	07/15/06 QD:	- Added flipindicator option to vertical/horizontal HUD elements	*/
 /*																						*/
 /****************************************************************************************/
@@ -130,9 +131,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
+	string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
-	CString Tname, Talpha;
+	string Tname, Talpha;
 // changed RF063
 	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
 	bool valid, active, modify, flipindicator; // changed QD 07/15/06
@@ -151,9 +152,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 	{
 // changed RF063
 		if(KeyName[0] == '~')
-			strcpy(szType, KeyName.Mid(1));
+			strcpy(szType, KeyName.substr(1).c_str());
 		else
-			strcpy(szType, KeyName);
+			strcpy(szType, KeyName.c_str());
 // end change RF063
 
 		valid = false;
@@ -191,14 +192,14 @@ int CHeadsUpDisplay::LoadConfiguration()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName, Tname);
-				strcpy(szAlpha, Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 			}
 			else
 			{
 				Tname = AttrFile.GetValue(KeyName, "giffile");
-				strcpy(szName, Tname);
+				strcpy(szName, Tname.c_str());
 				GifAnim = new CAnimGif(szName, kVideoFile);
 			}
 		}
@@ -217,8 +218,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName, Tname);
-				strcpy(szAlpha, Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 // changed RF064
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 // end change RF064
@@ -239,8 +240,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 // changed RF064
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 // end change RF064
@@ -255,8 +256,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 // changed RF064
 				TempBmp3 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 // end change RF064
@@ -282,20 +283,20 @@ int CHeadsUpDisplay::LoadConfiguration()
 				width = 4;
 
 			char buf[17];
-			itoa(width,buf,10);
+			itoa(width, buf, 10);
 
-			strcpy(format,"%");
-			strcat(format,buf);
-			strcat(format,".0f %");
-			strcat(format,buf);
-			strcat(format,".0f %");
-			strcat(format,buf);
-			strcat(format,".0f");
+			strcpy(format, "%");
+			strcat(format, buf);
+			strcat(format, ".0f %");
+			strcat(format, buf);
+			strcat(format, ".0f %");
+			strcat(format, buf);
+			strcat(format, ".0f");
 		}
 		else
 		{
 // changed RF063
-			strcpy(szAttr,szType);
+			strcpy(szAttr, szType);
 // end change RF063
 			Tname = AttrFile.GetValue(KeyName, "type");
 
@@ -324,7 +325,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 						width = 3;
 
 					char buf[17];
-					itoa(width,buf,10);
+					itoa(width, buf, 10);
 
 					strcpy(format, "%");
 					strcat(format, buf);
@@ -354,8 +355,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 							if(Talpha == "")
 								Talpha = Tname;
 
-							strcpy(szName,Tname);
-							strcpy(szAlpha,Talpha);
+							strcpy(szName, Tname.c_str());
+							strcpy(szAlpha, Talpha.c_str());
 // changed RF064
 							TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 // end change RF064
@@ -374,6 +375,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 		if(valid)
 		{
+			int nItem;
+
 			Tname = AttrFile.GetValue(KeyName, "frame");
 
 			if(Tname != "")
@@ -383,8 +386,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName, Tname);
-				strcpy(szAlpha, Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 
 // changed RF064
 				TempBmp1 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
@@ -442,7 +445,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 			if(AttrFile.GetValue(KeyName, "modifydirection") == "both")
 				direction = 2;
 
-			for(int nItem=0; nItem<MAXHUD; nItem++)
+			for(nItem=0; nItem<MAXHUD; nItem++)
 			{
 				if(!m_theHUD[nItem].active)
 					break;
@@ -716,10 +719,11 @@ int CHeadsUpDisplay::Render()
 {
 	geRect theRect;
 	int nValue, nLow, nHigh;
+	int nItem;
 
 // changed Nout 12/15/05
 	// changed Nout 12/15/05
-	for(int nItem = 0; nItem < MAXHUD; nItem++)
+	for(nItem = 0; nItem < MAXHUD; nItem++)
 	{
 		if(!m_theHUD[nItem].active)
 			continue;								// No item in slot

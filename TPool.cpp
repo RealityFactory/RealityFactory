@@ -4,9 +4,8 @@
 /*																						*/
 /****************************************************************************************/
 
-#include <memory.h>
 //#include <malloc.h>
-#include <string.h>
+#include <memory>
 #include "RabidFramework.h"
 #include <Ram.h>
 

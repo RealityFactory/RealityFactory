@@ -215,8 +215,8 @@ int CChangeLevel::SaveTo(FILE *SaveFD, bool type)
 	{
 		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pItem->CallBack,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pItem->CallBackCount,sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pItem->CallBack,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pItem->CallBackCount,	sizeof(int),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -244,8 +244,8 @@ int CChangeLevel::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pItem->CallBack,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pItem->CallBackCount, sizeof(int),		1, RestoreFD);
+		READDATA(type, &pItem->CallBack,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pItem->CallBackCount,	sizeof(int),		1, RestoreFD);
     }
 
 	return RGF_SUCCESS;

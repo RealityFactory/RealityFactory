@@ -21,10 +21,8 @@
 /****************************************************************************************/
 
 #include "RabidFramework.h"
-
-#include <memory.h>
+#include <memory>
 //#include <malloc.h>
-#include "genesis.h"
 #include <Ram.h>
 
 #define	POLYQ

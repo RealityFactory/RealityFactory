@@ -2560,8 +2560,8 @@ void CWeapon::LoadDefaults()
 		return;
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type, Vector;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type, Vector;
 	geVFile *ActorFile;
 	char szName[64], szAlpha[64];
 	int projptr = 0;
@@ -2576,14 +2576,14 @@ void CWeapon::LoadDefaults()
 		// -------------------------------------------------------------------------------
 		if(Type == "projectile")
 		{
-			strcpy(ProjD[projptr].Name,KeyName);
+			strcpy(ProjD[projptr].Name, KeyName.c_str());
 			Type = AttrFile.GetValue(KeyName, "actor");
-			strcpy(ProjD[projptr].Actorfile,Type);
+			strcpy(ProjD[projptr].Actorfile, Type.c_str());
 			Vector = AttrFile.GetValue(KeyName, "rotation");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName,Vector.c_str());
 				ProjD[projptr].Rotation = Extract(szName);
 				ProjD[projptr].Rotation.X *= GE_PIOVER180;
 				ProjD[projptr].Rotation.Y *= GE_PIOVER180;
@@ -2599,7 +2599,7 @@ void CWeapon::LoadDefaults()
 
 			Type = AttrFile.GetValue(KeyName, "animation");
 			if(Type != "")
-				strcpy(ProjD[projptr].ActorAnimation,Type);
+				strcpy(ProjD[projptr].ActorAnimation, Type.c_str());
 			else
 				ProjD[projptr].ActorAnimation[0] = '\0';
 
@@ -2617,10 +2617,10 @@ void CWeapon::LoadDefaults()
 			ProjD[projptr].LifeTime = (float)AttrFile.GetValueF(KeyName, "lifetime");
 
 			Type = AttrFile.GetValue(KeyName, "explosion");
-			strcpy(ProjD[projptr].Explosion,Type);
+			strcpy(ProjD[projptr].Explosion, Type.c_str());
 
 			Type = AttrFile.GetValue(KeyName, "actorexplosion");
-			strcpy(ProjD[projptr].ActorExplosion,Type);
+			strcpy(ProjD[projptr].ActorExplosion, Type.c_str());
 
 // changed RF064
 			ProjD[projptr].ShowBoth = false;
@@ -2651,63 +2651,63 @@ void CWeapon::LoadDefaults()
 			ProjD[projptr].Decal = AttrFile.GetValueI(KeyName, "decal");
 
 			Type = AttrFile.GetValue(KeyName, "movesound");
-			strcpy(ProjD[projptr].MoveSound, Type);
+			strcpy(ProjD[projptr].MoveSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(ProjD[projptr].MoveSound);
 
 			Type = AttrFile.GetValue(KeyName, "impactsound");
-			strcpy(ProjD[projptr].ImpactSound, Type);
+			strcpy(ProjD[projptr].ImpactSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(ProjD[projptr].ImpactSound);
 
 			Type = AttrFile.GetValue(KeyName, "bouncesound");
-			strcpy(ProjD[projptr].BounceSound, Type);
+			strcpy(ProjD[projptr].BounceSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(ProjD[projptr].BounceSound);
 
 			Type = AttrFile.GetValue(KeyName, "effect0");
 			if(Type != "")
 			{
-				strcpy(ProjD[projptr].Effect[0], Type);
+				strcpy(ProjD[projptr].Effect[0], Type.c_str());
 				Vector = AttrFile.GetValue(KeyName, "effectbone0");
 				if(Vector != "")
-					strcpy(ProjD[projptr].EffectBone[0], Vector);
+					strcpy(ProjD[projptr].EffectBone[0], Vector.c_str());
 			}
 
 			Type = AttrFile.GetValue(KeyName, "effect1");
 			if(Type != "")
 			{
 				Vector = AttrFile.GetValue(KeyName, "effectbone1");
-				strcpy(ProjD[projptr].Effect[1],Type);
+				strcpy(ProjD[projptr].Effect[1], Type.c_str());
 				if(Vector != "")
-					strcpy(ProjD[projptr].EffectBone[1], Vector);
+					strcpy(ProjD[projptr].EffectBone[1], Vector.c_str());
 			}
 
 			Type = AttrFile.GetValue(KeyName, "effect2");
 			if(Type != "")
 			{
 				Vector = AttrFile.GetValue(KeyName, "effectbone2");
-				strcpy(ProjD[projptr].Effect[2], Type);
+				strcpy(ProjD[projptr].Effect[2], Type.c_str());
 				if(Vector != "")
-					strcpy(ProjD[projptr].EffectBone[2], Vector);
+					strcpy(ProjD[projptr].EffectBone[2], Vector.c_str());
 			}
 
 			Type = AttrFile.GetValue(KeyName, "effect3");
 			if(Type != "")
 			{
-				strcpy(ProjD[projptr].Effect[3], Type);
+				strcpy(ProjD[projptr].Effect[3], Type.c_str());
 				Vector = AttrFile.GetValue(KeyName, "effectbone3");
 				if(Vector != "")
-					strcpy(ProjD[projptr].EffectBone[3], Vector);
+					strcpy(ProjD[projptr].EffectBone[3], Vector.c_str());
 			}
 
 			Type = AttrFile.GetValue(KeyName, "effect4");
 			if(Type != "")
 			{
-				strcpy(ProjD[projptr].Effect[4], Type);
+				strcpy(ProjD[projptr].Effect[4], Type.c_str());
 				Vector = AttrFile.GetValue(KeyName, "effectbone4");
 				if(Vector != "")
-					strcpy(ProjD[projptr].EffectBone[4], Vector);
+					strcpy(ProjD[projptr].EffectBone[4], Vector.c_str());
 			}
 
 			ProjD[projptr].active = true;
@@ -2724,7 +2724,7 @@ void CWeapon::LoadDefaults()
 			for(int k=0; k<ANIMMAX; k++)
 				WeaponD[weapptr].Animations[k][0] = '\0';
 
-			strcpy(WeaponD[weapptr].Name, KeyName);
+			strcpy(WeaponD[weapptr].Name, KeyName.c_str());
 			Type = AttrFile.GetValue(KeyName, "slot");
 			if(Type == "default")
 				WeaponD[weapptr].Slot = MAX_WEAPONS-1;
@@ -2749,12 +2749,12 @@ void CWeapon::LoadDefaults()
 				WeaponD[weapptr].MeleeAltDamage = (float)AttrFile.GetValueF(KeyName, "altdamage");
 // end change RF063
 				Type = AttrFile.GetValue(KeyName, "hitsound");
-				strcpy(WeaponD[weapptr].HitSound, Type);
+				strcpy(WeaponD[weapptr].HitSound, Type.c_str());
 				if(Type != "")
 					SPool_Sound(WeaponD[weapptr].HitSound);
 
 				Type = AttrFile.GetValue(KeyName, "meleexplosion");
-				strcpy(WeaponD[weapptr].MeleeExplosion, Type);
+				strcpy(WeaponD[weapptr].MeleeExplosion, Type.c_str());
 				WeaponD[weapptr].MeleeAmmo = false;
 
 				Type = AttrFile.GetValue(KeyName, "meleeammoactivate");
@@ -2763,14 +2763,14 @@ void CWeapon::LoadDefaults()
 				break;
 			case PROJECTILE:
 				Vector = AttrFile.GetValue(KeyName, "projectile");
-				strcpy(WeaponD[weapptr].Projectile, Vector);
+				strcpy(WeaponD[weapptr].Projectile, Vector.c_str());
 
 				Vector = AttrFile.GetValue(KeyName, "muzzleflash");
-				strcpy(WeaponD[weapptr].MuzzleFlash, Vector);
+				strcpy(WeaponD[weapptr].MuzzleFlash, Vector.c_str());
 // changed RF064
 				Vector = AttrFile.GetValue(KeyName, "muzzleflash3rd");
 				if(Vector != "")
-					strcpy(WeaponD[weapptr].MuzzleFlash3rd, Vector);
+					strcpy(WeaponD[weapptr].MuzzleFlash3rd, Vector.c_str());
 				else
 					strcpy(WeaponD[weapptr].MuzzleFlash3rd, WeaponD[weapptr].MuzzleFlash);
 // end change RF064
@@ -2808,35 +2808,35 @@ void CWeapon::LoadDefaults()
 			// ---------------------------------------------------------------------------
 
 			Type = AttrFile.GetValue(KeyName, "attacksound");
-			strcpy(WeaponD[weapptr].AttackSound, Type);
+			strcpy(WeaponD[weapptr].AttackSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(WeaponD[weapptr].AttackSound);
 
 			Type = AttrFile.GetValue(KeyName, "emptysound");
-			strcpy(WeaponD[weapptr].EmptySound, Type);
+			strcpy(WeaponD[weapptr].EmptySound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(WeaponD[weapptr].EmptySound);
 
 			Type = AttrFile.GetValue(KeyName, "usesound");
-			strcpy(WeaponD[weapptr].UseSound, Type);
+			strcpy(WeaponD[weapptr].UseSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(WeaponD[weapptr].UseSound);
 
 			Type = AttrFile.GetValue(KeyName, "attribute");
-			strcpy(WeaponD[weapptr].Attribute, Type);
+			strcpy(WeaponD[weapptr].Attribute, Type.c_str());
 // changed RF064
 			Type = AttrFile.GetValue(KeyName, "reloadsound");
-			strcpy(WeaponD[weapptr].ReloadSound, Type);
+			strcpy(WeaponD[weapptr].ReloadSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(WeaponD[weapptr].ReloadSound);
 // end change RF064
 
 // changed RF063
 			Type = AttrFile.GetValue(KeyName, "altattribute");
-			strcpy(WeaponD[weapptr].AltAttribute, Type);
+			strcpy(WeaponD[weapptr].AltAttribute, Type.c_str());
 // end change RF063
 			Type = AttrFile.GetValue(KeyName, "ammunition");
-			strcpy(WeaponD[weapptr].Ammunition, Type);
+			strcpy(WeaponD[weapptr].Ammunition, Type.c_str());
 			WeaponD[weapptr].AmmoPerShot = AttrFile.GetValueI(KeyName, "ammopershot");
 			WeaponD[weapptr].FireRate = (float)AttrFile.GetValueF(KeyName, "firerate");
 
@@ -2849,7 +2849,7 @@ void CWeapon::LoadDefaults()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				CCD->OpenRFFile(&ActorFile, kActorFile, szName, GE_VFILE_OPEN_READONLY);
 
 				if(ActorFile)
@@ -2878,14 +2878,14 @@ void CWeapon::LoadDefaults()
 						Vector = AttrFile.GetValue(KeyName, "viewfillcolor");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							FillColor = Extract(szName);
 						}
 
 						Vector = AttrFile.GetValue(KeyName, "viewambientcolor");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							AmbientColor = Extract(szName);
 						}
 
@@ -2917,7 +2917,7 @@ void CWeapon::LoadDefaults()
 						Vector = AttrFile.GetValue(KeyName, "viewrotation");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].VActorRotation = Extract(szName);
 							// changed QD 07/15/06 - VActorRotation converted to radians at load time
 							geVec3d_Scale(&(WeaponD[weapptr].VActorRotation), GE_PIOVER180, &(WeaponD[weapptr].VActorRotation));
@@ -2927,7 +2927,7 @@ void CWeapon::LoadDefaults()
 						Vector = AttrFile.GetValue(KeyName, "viewoffset");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].VActorOffset = Extract(szName);
 						}
 
@@ -2938,14 +2938,14 @@ void CWeapon::LoadDefaults()
 							WeaponD[weapptr].VAnimSpeed = tspeed;
 
 						Vector = AttrFile.GetValue(KeyName, "viewarmanim");
-						strcpy(WeaponD[weapptr].VArm,Vector);
+						strcpy(WeaponD[weapptr].VArm, Vector.c_str());
 						Vector = AttrFile.GetValue(KeyName, "viewidleanim");
-						strcpy(WeaponD[weapptr].VIdle,Vector);
+						strcpy(WeaponD[weapptr].VIdle, Vector.c_str());
 						WeaponD[weapptr].VAttack[0] = '\0';
 						Vector = AttrFile.GetValue(KeyName, "viewattackanim");
-						strcpy(WeaponD[weapptr].VAttack,Vector);
+						strcpy(WeaponD[weapptr].VAttack, Vector.c_str());
 						Vector = AttrFile.GetValue(KeyName, "viewwalkanim");
-						strcpy(WeaponD[weapptr].VWalk,Vector);
+						strcpy(WeaponD[weapptr].VWalk, Vector.c_str());
 
 						geVec3d LitColor = {255.0f, 255.0f, 255.0f};
 
@@ -2953,35 +2953,35 @@ void CWeapon::LoadDefaults()
 						{
 						case MELEE:
 							Vector = AttrFile.GetValue(KeyName, "viewaltattackanim");
-							strcpy(WeaponD[weapptr].VAltAttack,Vector);
+							strcpy(WeaponD[weapptr].VAltAttack, Vector.c_str());
 							Vector = AttrFile.GetValue(KeyName, "viewhitanim");
-							strcpy(WeaponD[weapptr].VHit,Vector);
+							strcpy(WeaponD[weapptr].VHit, Vector.c_str());
 							Vector = AttrFile.GetValue(KeyName, "viewalthitanim");
-							strcpy(WeaponD[weapptr].VAltHit,Vector);
+							strcpy(WeaponD[weapptr].VAltHit, Vector.c_str());
 							WeaponD[weapptr].VUse[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewuseanim");
-							strcpy(WeaponD[weapptr].VUse,Vector);
+							strcpy(WeaponD[weapptr].VUse, Vector.c_str());
 							break;
 						case PROJECTILE:
 							Vector = AttrFile.GetValue(KeyName, "viewlaunchoffset");
 							if(Vector != "")
 							{
-								strcpy(szName,Vector);
+								strcpy(szName, Vector.c_str());
 								WeaponD[weapptr].VOffset = Extract(szName);
 							}
 // changed RF064
 							WeaponD[weapptr].VReload[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewreloadanim");
-							strcpy(WeaponD[weapptr].VReload,Vector);
+							strcpy(WeaponD[weapptr].VReload, Vector.c_str());
 							WeaponD[weapptr].ShotperMag = AttrFile.GetValueI(KeyName, "shotpermagazine");
 							WeaponD[weapptr].ShotFired = 0;
 							WeaponD[weapptr].MagAmt = -1;
 							WeaponD[weapptr].VKeyReload[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewkeyreloadanim");
-							strcpy(WeaponD[weapptr].VKeyReload,Vector);
+							strcpy(WeaponD[weapptr].VKeyReload, Vector.c_str());
 							WeaponD[weapptr].VAttackEmpty[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewattackemptyanim");
-							strcpy(WeaponD[weapptr].VAttackEmpty,Vector);
+							strcpy(WeaponD[weapptr].VAttackEmpty, Vector.c_str());
 							WeaponD[weapptr].LooseMag = false;
 							Vector = AttrFile.GetValue(KeyName, "loosemag");
 							if(Vector == "true")
@@ -2989,7 +2989,7 @@ void CWeapon::LoadDefaults()
 // end change RF064
 							Vector = AttrFile.GetValue(KeyName, "viewlaunchbone");
 							if(Vector != "")
-								strcpy(WeaponD[weapptr].VBone,Vector);
+								strcpy(WeaponD[weapptr].VBone, Vector.c_str());
 							WeaponD[weapptr].CrossHairFixed = false;
 							Vector = AttrFile.GetValue(KeyName, "crosshairfixed");
 							if(Vector == "true")
@@ -2998,12 +2998,12 @@ void CWeapon::LoadDefaults()
 							Vector = AttrFile.GetValue(KeyName, "crosshair");
 							if(Vector != "")
 							{
-								strcpy(szName,Vector);
-								strcpy(szAlpha,Vector);
+								strcpy(szName, Vector.c_str());
+								strcpy(szAlpha, Vector.c_str());
 								Vector = AttrFile.GetValue(KeyName, "crosshairalpha");
 
 								if(Vector != "")
-									strcpy(szAlpha,Vector);
+									strcpy(szAlpha, Vector.c_str());
 
 								WeaponD[weapptr].CrossHair = CreateFromFileAndAlphaNames(szName, szAlpha);
 
@@ -3015,7 +3015,7 @@ void CWeapon::LoadDefaults()
 							Vector = AttrFile.GetValue(KeyName, "crosshairlitcolor");
 							if(Vector != "")
 							{
-								strcpy(szName,Vector);
+								strcpy(szName, Vector.c_str());
 								LitColor = Extract(szName);
 							}
 							WeaponD[weapptr].LitColor = LitColor;
@@ -3028,12 +3028,12 @@ void CWeapon::LoadDefaults()
 							Vector = AttrFile.GetValue(KeyName, "zoomoverlay");
 							if(Vector != "")
 							{
-								strcpy(szName,Vector);
-								strcpy(szAlpha,Vector);
+								strcpy(szName, Vector.c_str());
+								strcpy(szAlpha, Vector.c_str());
 								Vector = AttrFile.GetValue(KeyName, "zoomoverlayalpha");
 
 								if(Vector != "")
-									strcpy(szAlpha,Vector);
+									strcpy(szAlpha, Vector.c_str());
 
 								WeaponD[weapptr].ZoomOverlay = CreateFromFileAndAlphaNames(szName, szAlpha);
 								geWorld_AddBitmap(CCD->World(), WeaponD[weapptr].ZoomOverlay);
@@ -3063,7 +3063,7 @@ void CWeapon::LoadDefaults()
 
 			if(Vector != "")
 			{
-				strcpy(szName, Vector);
+				strcpy(szName, Vector.c_str());
 				CCD->OpenRFFile(&ActorFile, kActorFile, szName, GE_VFILE_OPEN_READONLY);
 
 				if(ActorFile)
@@ -3086,21 +3086,21 @@ void CWeapon::LoadDefaults()
 						geBoolean AmbientLightFromFloor = GE_TRUE;
 // end change
 						geVec3d NewFillNormal;
-						geActor_GetBoneTransform(WeaponD[weapptr].PActor, RootBoneName(WeaponD[weapptr].PActor), &Xf );
+						geActor_GetBoneTransform(WeaponD[weapptr].PActor, RootBoneName(WeaponD[weapptr].PActor), &Xf);
 						geXForm3d_GetTranspose(&Xf, &XfT);
 						geXForm3d_Rotate(&XfT, &Fill, &NewFillNormal);
 
 						Vector = AttrFile.GetValue(KeyName, "playerfillcolor");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							FillColor = Extract(szName);
 						}
 
 						Vector = AttrFile.GetValue(KeyName, "playerambientcolor");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							AmbientColor = Extract(szName);
 						}
 // changed QD 07/21/04
@@ -3111,7 +3111,7 @@ void CWeapon::LoadDefaults()
 						geActor_SetStaticLightingOptions(WeaponD[weapptr].PActor, AmbientLightFromFloor, GE_TRUE, 3);
 
 						geActor_SetLightingOptions(WeaponD[weapptr].PActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
-						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
+							AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
 // end change
 
 						Vector = AttrFile.GetValue(KeyName, "playerenvironmentmapping");
@@ -3131,7 +3131,7 @@ void CWeapon::LoadDefaults()
 						Vector = AttrFile.GetValue(KeyName, "playerrotation");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].PActorRotation = Extract(szName);
 							// changed QD 07/15/06 - PActorRotation converted to radians at load time
 							geVec3d_Scale(&(WeaponD[weapptr].PActorRotation), GE_PIOVER180, &(WeaponD[weapptr].PActorRotation));
@@ -3144,193 +3144,193 @@ void CWeapon::LoadDefaults()
 
 						Vector = AttrFile.GetValue(KeyName, "playerbone");
 						if(Vector != "")
-							strcpy(WeaponD[weapptr].PBone,Vector);
+							strcpy(WeaponD[weapptr].PBone, Vector.c_str());
 
 						Vector = AttrFile.GetValue(KeyName, "playerlaunchoffset");
 						if(Vector != "")
 						{
-							strcpy(szName,Vector);
+							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].POffset = Extract(szName);
 						}
 
 						Type = AttrFile.GetValue(KeyName, "idle");
-						strcpy(WeaponD[weapptr].Animations[IDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[IDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walk");
-						strcpy(WeaponD[weapptr].Animations[WALK],Type);
+						strcpy(WeaponD[weapptr].Animations[WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "run");
-						strcpy(WeaponD[weapptr].Animations[RUN],Type);
+						strcpy(WeaponD[weapptr].Animations[RUN], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "jump");
-						strcpy(WeaponD[weapptr].Animations[JUMP],Type);
+						strcpy(WeaponD[weapptr].Animations[JUMP], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "starttojump");
-						strcpy(WeaponD[weapptr].Animations[STARTJUMP],Type);
+						strcpy(WeaponD[weapptr].Animations[STARTJUMP], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "fall");
-						strcpy(WeaponD[weapptr].Animations[FALL],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "land");
-						strcpy(WeaponD[weapptr].Animations[LAND],Type);
+						strcpy(WeaponD[weapptr].Animations[LAND], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetoleft");
-						strcpy(WeaponD[weapptr].Animations[SLIDELEFT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDELEFT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntoleft");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFT],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetoright");
-						strcpy(WeaponD[weapptr].Animations[SLIDERIGHT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDERIGHT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntoright");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHT],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawl");
-						strcpy(WeaponD[weapptr].Animations[CRAWL],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchidle");
-						strcpy(WeaponD[weapptr].Animations[CIDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[CIDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchstarttojump");
-						strcpy(WeaponD[weapptr].Animations[CSTARTJUMP],Type);
+						strcpy(WeaponD[weapptr].Animations[CSTARTJUMP], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchland");
-						strcpy(WeaponD[weapptr].Animations[CLAND],Type);
+						strcpy(WeaponD[weapptr].Animations[CLAND], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoleft");
-						strcpy(WeaponD[weapptr].Animations[SLIDECLEFT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECLEFT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoright");
-						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHT], Type.c_str());
 // changed RF064
 
 // end change RF064
 						Type = AttrFile.GetValue(KeyName, "shootup");
-						strcpy(WeaponD[weapptr].Animations[SHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[SHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "shootdwn");
-						strcpy(WeaponD[weapptr].Animations[SHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[SHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "aimup");
-						strcpy(WeaponD[weapptr].Animations[AIM1],Type);
+						strcpy(WeaponD[weapptr].Animations[AIM1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "aimdwn");
-						strcpy(WeaponD[weapptr].Animations[AIM],Type);
+						strcpy(WeaponD[weapptr].Animations[AIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walkshootup");
-						strcpy(WeaponD[weapptr].Animations[WALKSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walkshootdwn");
-						strcpy(WeaponD[weapptr].Animations[WALKSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "runshootup");
-						strcpy(WeaponD[weapptr].Animations[RUNSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "runshootdwn");
-						strcpy(WeaponD[weapptr].Animations[RUNSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetoleftshootup");
-						strcpy(WeaponD[weapptr].Animations[SLIDELEFTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDELEFTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetoleftshootdwn");
-						strcpy(WeaponD[weapptr].Animations[SLIDELEFTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDELEFTSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntoleftshootup");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntoleftshootdwn");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDELEFTSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetorightshootup");
-						strcpy(WeaponD[weapptr].Animations[SLIDERIGHTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDERIGHTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slidetorightshootdwn");
-						strcpy(WeaponD[weapptr].Animations[SLIDERIGHTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDERIGHTSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntorightshootup");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "slideruntorightshootdwn");
-						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSLIDERIGHTSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "jumpshootup");
-						strcpy(WeaponD[weapptr].Animations[JUMPSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[JUMPSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "jumpshootdwn");
-						strcpy(WeaponD[weapptr].Animations[JUMPSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[JUMPSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "fallshootup");
-						strcpy(WeaponD[weapptr].Animations[FALLSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[FALLSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "fallshootdwn");
-						strcpy(WeaponD[weapptr].Animations[FALLSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[FALLSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchaimup");
-						strcpy(WeaponD[weapptr].Animations[CAIM1],Type);
+						strcpy(WeaponD[weapptr].Animations[CAIM1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchaimdwn");
-						strcpy(WeaponD[weapptr].Animations[CAIM],Type);
+						strcpy(WeaponD[weapptr].Animations[CAIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchshootup");
-						strcpy(WeaponD[weapptr].Animations[CSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[CSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchshootdwn");
-						strcpy(WeaponD[weapptr].Animations[CSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[CSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlshootup");
-						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlshootdwn");
-						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoleftshootup");
-						strcpy(WeaponD[weapptr].Animations[SLIDECLEFTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECLEFTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoleftshootdwn");
-						strcpy(WeaponD[weapptr].Animations[SLIDECLEFTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECLEFTSHOOT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootup");
-						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT1],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootdwn");
-						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT],Type);
+						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT], Type.c_str());
 // changed RF063
 						Type = AttrFile.GetValue(KeyName, "swim");
-						strcpy(WeaponD[weapptr].Animations[SWIM],Type);
+						strcpy(WeaponD[weapptr].Animations[SWIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "treadwater");
-						strcpy(WeaponD[weapptr].Animations[TREADWATER],Type);
+						strcpy(WeaponD[weapptr].Animations[TREADWATER], Type.c_str());
 // changed RF064
 						Type = AttrFile.GetValue(KeyName, "idletowalk");
-						strcpy(WeaponD[weapptr].Animations[I2WALK],Type);
+						strcpy(WeaponD[weapptr].Animations[I2WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "idletorun");
-						strcpy(WeaponD[weapptr].Animations[I2RUN],Type);
+						strcpy(WeaponD[weapptr].Animations[I2RUN], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walktoidle");
-						strcpy(WeaponD[weapptr].Animations[W2IDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[W2IDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawltoidle");
-						strcpy(WeaponD[weapptr].Animations[C2IDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[C2IDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchtoidle");
-						strcpy(WeaponD[weapptr].Animations[CROUCH2IDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[CROUCH2IDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "idletocrouch");
-						strcpy(WeaponD[weapptr].Animations[IDLE2CROUCH],Type);
+						strcpy(WeaponD[weapptr].Animations[IDLE2CROUCH], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "swimtotread");
-						strcpy(WeaponD[weapptr].Animations[SWIM2TREAD],Type);
+						strcpy(WeaponD[weapptr].Animations[SWIM2TREAD], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "treadtoswim");
-						strcpy(WeaponD[weapptr].Animations[TREAD2SWIM],Type);
+						strcpy(WeaponD[weapptr].Animations[TREAD2SWIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "idletotread");
-						strcpy(WeaponD[weapptr].Animations[IDLE2TREAD],Type);
+						strcpy(WeaponD[weapptr].Animations[IDLE2TREAD], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "swimtowalk");
-						strcpy(WeaponD[weapptr].Animations[SWIM2WALK],Type);
+						strcpy(WeaponD[weapptr].Animations[SWIM2WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walktoswim");
-						strcpy(WeaponD[weapptr].Animations[WALK2SWIM],Type);
+						strcpy(WeaponD[weapptr].Animations[WALK2SWIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "treadtoidle");
-						strcpy(WeaponD[weapptr].Animations[TREAD2IDLE],Type);
+						strcpy(WeaponD[weapptr].Animations[TREAD2IDLE], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "jumptofall");
-						strcpy(WeaponD[weapptr].Animations[JUMP2FALL],Type);
+						strcpy(WeaponD[weapptr].Animations[JUMP2FALL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "jumptotread");
-						strcpy(WeaponD[weapptr].Animations[JUMP2TREAD],Type);
+						strcpy(WeaponD[weapptr].Animations[JUMP2TREAD], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "falltotread");
-						strcpy(WeaponD[weapptr].Animations[FALL2TREAD],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL2TREAD], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "falltocrawl");
-						strcpy(WeaponD[weapptr].Animations[FALL2CRAWL],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL2CRAWL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "falltowalk");
-						strcpy(WeaponD[weapptr].Animations[FALL2WALK],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL2WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "falltojump");
-						strcpy(WeaponD[weapptr].Animations[FALL2JUMP],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL2JUMP], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walktojump");
-						strcpy(WeaponD[weapptr].Animations[WALK2JUMP],Type);
+						strcpy(WeaponD[weapptr].Animations[WALK2JUMP], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walktocrawl");
-						strcpy(WeaponD[weapptr].Animations[WALK2CRAWL],Type);
+						strcpy(WeaponD[weapptr].Animations[WALK2CRAWL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawltowalk");
-						strcpy(WeaponD[weapptr].Animations[CRAWL2WALK],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWL2WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "idletocrawl");
-						strcpy(WeaponD[weapptr].Animations[IDLE2CRAWL],Type);
+						strcpy(WeaponD[weapptr].Animations[IDLE2CRAWL], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "aimtocrouch");
-						strcpy(WeaponD[weapptr].Animations[AIM2CROUCH],Type);
+						strcpy(WeaponD[weapptr].Animations[AIM2CROUCH], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crouchtoaim");
-						strcpy(WeaponD[weapptr].Animations[CROUCH2AIM],Type);
+						strcpy(WeaponD[weapptr].Animations[CROUCH2AIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walktotread");
-						strcpy(WeaponD[weapptr].Animations[W2TREAD],Type);
+						strcpy(WeaponD[weapptr].Animations[W2TREAD], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "falltorun");
-						strcpy(WeaponD[weapptr].Animations[FALL2RUN],Type);
+						strcpy(WeaponD[weapptr].Animations[FALL2RUN], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawltorun");
-						strcpy(WeaponD[weapptr].Animations[CRAWL2RUN],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWL2RUN], Type.c_str());
 
 						Type = AttrFile.GetValue(KeyName, "walkback");
-						strcpy(WeaponD[weapptr].Animations[WALKBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[WALKBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "runback");
-						strcpy(WeaponD[weapptr].Animations[RUNBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlback");
-						strcpy(WeaponD[weapptr].Animations[CRAWLBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWLBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walkshootupback");
-						strcpy(WeaponD[weapptr].Animations[WALKSHOOT1BACK],Type);
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOT1BACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "walkshootdwnback");
-						strcpy(WeaponD[weapptr].Animations[WALKSHOOTBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOTBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "runshootupback");
-						strcpy(WeaponD[weapptr].Animations[RUNSHOOT1BACK],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOT1BACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "runshootdwnback");
-						strcpy(WeaponD[weapptr].Animations[RUNSHOOTBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOTBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlshootupback");
-						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT1BACK],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT1BACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlshootdwnback");
-						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOTBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOTBACK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "swimback");
-						strcpy(WeaponD[weapptr].Animations[SWIMBACK],Type);
+						strcpy(WeaponD[weapptr].Animations[SWIMBACK], Type.c_str());
 						// end change RF064
 
 						// die animations
@@ -3340,12 +3340,12 @@ void CWeapon::LoadDefaults()
 						WeaponD[weapptr].DieAnimAmt = 0;
 						if(Type != "")
 						{
-							strcpy(strip,Type);
-							temp = strtok(strip," \n");
+							strcpy(strip, Type.c_str());
+							temp = strtok(strip, " \n");
 
 							while(temp)
 							{
-								strcpy(WeaponD[weapptr].DieAnim[i],temp);
+								strcpy(WeaponD[weapptr].DieAnim[i], temp);
 								i += 1;
 								WeaponD[weapptr].DieAnimAmt = i;
 								if(i == 5)
@@ -3360,16 +3360,16 @@ void CWeapon::LoadDefaults()
 						WeaponD[weapptr].InjuryAnimAmt = 0;
 						if(Type != "")
 						{
-							strcpy(strip,Type);
-							temp = strtok(strip," \n");
+							strcpy(strip, Type.c_str());
+							temp = strtok(strip, " \n");
 							while(temp)
 							{
-								strcpy(WeaponD[weapptr].InjuryAnim[i],temp);
+								strcpy(WeaponD[weapptr].InjuryAnim[i], temp);
 								i += 1;
 								WeaponD[weapptr].InjuryAnimAmt = i;
 								if(i == 5)
 									break;
-								temp = strtok(NULL," \n");
+								temp = strtok(NULL, " \n");
 							}
 						}
 // end change RF063

@@ -732,16 +732,16 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD, bool type)
 	{
 		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pPlatform->bInAnimation,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->bTrigger,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->bActorOnMe,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->bInCollision,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->bActive,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->LastIncrement,	sizeof(int),		1, SaveFD);
-		WRITEDATA(&pPlatform->bForward,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->tPlatform,		sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&pPlatform->CallBack,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pPlatform->CallBackCount,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pPlatform->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->bTrigger,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->bActorOnMe,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->bInCollision,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->bActive,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->LastIncrement,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pPlatform->bForward,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->tPlatform,		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->CallBack,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pPlatform->CallBackCount,	sizeof(int),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -768,16 +768,16 @@ int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pPlatform->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->bActorOnMe,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->bInCollision,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->bActive,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->LastIncrement, sizeof(int),		1, RestoreFD);
-		READDATA(&pPlatform->bForward,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->tPlatform,		sizeof(geFloat),	1, RestoreFD);
-		READDATA(&pPlatform->CallBack,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pPlatform->CallBackCount, sizeof(int),		1, RestoreFD);
+		READDATA(type, &pPlatform->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->bActorOnMe,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->bInCollision,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->bActive,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->LastIncrement,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pPlatform->bForward,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->tPlatform,		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &pPlatform->CallBack,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pPlatform->CallBackCount,	sizeof(int),		1, RestoreFD);
 
 		if(pPlatform->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pPlatform->Model, GE_TRUE);

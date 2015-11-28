@@ -1,4 +1,4 @@
-// qxTerrainMapBase.h: 
+// qxTerrainMapBase.h:
 //
 // Original code: GenScape (c) 1999, Lucas Ackerman
 //
@@ -56,7 +56,7 @@ public:
 	virtual void	OffsetAllVerts();
 
 	virtual bool Init();
-				
+
 
 
 	virtual		geBitmap*	GetTexture()		{ return m_pTexture; }
@@ -72,16 +72,16 @@ public:
 
 
 	void PutPoly(qxTerrainPoly** p) { m_pPolyPool->PutPoly(p); }
-	void PutVert(qxTerrainVert** p) { m_pVertPool->PutVert(p); } 
-	
+	void PutVert(qxTerrainVert** p) { m_pVertPool->PutVert(p); }
+
 	void SetCurrentVertColor(GE_RGBA* pRGBA) { m_CurrentVertColor = *pRGBA; }
-	
+
 	void SetCurrentVertColor(float r, float g, float b, float a)
 	{
 		m_CurrentVertColor.r = r; m_CurrentVertColor.g = g;
 		m_CurrentVertColor.b = b; m_CurrentVertColor.a = a;
 	}
-	
+
 	void GetCurrentVertColor(float& r, float& g, float&b, float& a)
 	{
 		r = m_CurrentVertColor.r; g = m_CurrentVertColor.g;
@@ -89,14 +89,14 @@ public:
 	}
 
 	int			GetMaxVarianceLookupId() { return m_nMaxVarianceLookupId; }
-	
+
 	virtual int16	GetElementHeight( int x, int z ) = 0;
 	virtual bool	SetCurrentVertHeight( qxTerrainVert* pVert);
 	virtual int16	GetElementHeightUnscaled(int x, int z){ return GetElementHeight(x, z); }
-	
-	
+
+
 	int			SetDistanceDetail(int newDetail);
-	
+
 	int			GetPolyCount() { return m_nPolyCount; }
 
 
@@ -144,18 +144,18 @@ protected:
 	int					m_nPolyCount;
 	int					m_nDesiredPolyCount;
 	int					m_nMinPolyCount;
-	CString				m_strTextureFile;
-	CString				m_strAlphaFile;
+	string				m_strTextureFile;
+	string				m_strAlphaFile;
 
 
 	bool				m_bUpdate;
-	
+
 	bool				m_bRenderBackFace;
 
 	bool				m_SunLight;
 
 	GE_RGBA				m_CurrentVertColor;
-	
+
 	//
 	// these are points which lie on the view frustrum halfspace planes
 	//
@@ -165,7 +165,7 @@ protected:
 	geVec3d FrustrumBottom;
 	geVec3d FrustrumNear;
 	geVec3d FrustrumFar;
-	
+
 	//
 	// normal for each halfspace plane
 	//
@@ -184,14 +184,14 @@ protected:
 
 	/////////////////////////////////////////////////////////////////////////////////
 
-	qxTerrainTile**		m_ppBaseTiles;		// pointer to array of base tiles 
+	qxTerrainTile**		m_ppBaseTiles;		// pointer to array of base tiles
 	qxTerrainVert*		m_pVertList;		// base array of active verts.  rest are Sub_Vert's in TerrainPoly's
 
 	//
-	// Level of Detail 
+	// Level of Detail
 	// Dynamic recalculation of polygons depending on distance form camera
-	// 
-	
+	//
+
 	// The nearest poly distance to camera
 	float				m_fNearestDistanceToCamera;
 	// this is the normal distance (100% polys)
@@ -207,7 +207,7 @@ protected:
 	//
 	// max id# in the variance lookup tables
 	//
-	int					m_nMaxVarianceLookupId;	
+	int					m_nMaxVarianceLookupId;
 
 
 	int					m_nDistanceDetail;
@@ -219,7 +219,7 @@ protected:
 	qxMergeQueue*		m_pMergeQueue;
 
 	// after a Split(qxTerrainPoly), this will point to a list of split qxTerrainPoly's.
-	qxTerrainPoly*		m_pSplitList;	
+	qxTerrainPoly*		m_pSplitList;
 
 
 
@@ -248,10 +248,10 @@ protected:
 inline void qxTerrainMapBase::LightAllVerts(float alpha)
 {
 	qxTerrainVert* pVert = m_pVertList;
-	
+
 	while( pVert != NULL)
 	{
-		
+
 		pVert->CurrentVert.a = alpha;
 		pVert = pVert->m_pNext;
 	}
@@ -260,9 +260,9 @@ inline void qxTerrainMapBase::LightAllVerts(float alpha)
 
 inline void qxTerrainMapBase::LightAllVerts(GE_RGBA* pColor)
 {
-	
+
 	qxTerrainVert* pVert = m_pVertList;
-	
+
 	if( pColor )
 	{
 		while( pVert != NULL)

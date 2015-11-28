@@ -35,7 +35,7 @@ using namespace std;
 #endif
 
 #endif
-#include <string.h>
+#include <string>
 
 #ifdef UNICODE_STRINGS
 typedef wchar_t Char;

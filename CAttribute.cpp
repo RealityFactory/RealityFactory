@@ -564,12 +564,12 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 	{
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&(pSource->alive),			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pSource->active),			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pSource->Tick),				sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&(pSource->CallBack),			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pSource->CallBackCount),	sizeof(int),		1, SaveFD);
-		WRITEDATA(&(pSource->bState),			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->alive),			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->active),			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->Tick),			sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pSource->CallBack),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->CallBackCount),	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &(pSource->bState),			sizeof(geBoolean),	1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -597,12 +597,12 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
 
-		READDATA(&(pSource->alive),			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pSource->Tick),			sizeof(geFloat),	1, RestoreFD);
-		READDATA(&(pSource->CallBack),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pSource->CallBackCount), sizeof(int),		1, RestoreFD);
-		READDATA(&(pSource->bState),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->alive),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->Tick),		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pSource->CallBack),	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->CallBackCount), sizeof(int),		1, RestoreFD);
+		READDATA(type, &(pSource->bState),		sizeof(geBoolean),	1, RestoreFD);
 
 // changed RF064
 		if(pSource->active == GE_TRUE)

@@ -253,7 +253,7 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 	if(Bottom)
 		Any = true;
 
-	WRITEDATA(&Any, sizeof(bool), 1, SaveFD);
+	WRITEDATA(type, &Any, sizeof(bool), 1, SaveFD);
 
 	if(Any)
 	{
@@ -269,19 +269,19 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 			pool = temp;
 		}
 
-		WRITEDATA(&count, sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &count, sizeof(int), 1, SaveFD);
 		pool = Bottom;
 
 		while(pool!= NULL)
 		{
 			temp = pool->next;
-			WRITEDATA(pool->Entity,					sizeof(char),	64, SaveFD);
-			WRITEDATA(pool->Material,				sizeof(char),	64, SaveFD);
-			WRITEDATA(&pool->ChangeLighting,		sizeof(bool),	1,	SaveFD);
-			WRITEDATA(&pool->AmbientColor,			sizeof(GE_RGBA),1,	SaveFD);
-			WRITEDATA(&pool->FillColor,				sizeof(GE_RGBA),1,	SaveFD);
+			WRITEDATA(type, pool->Entity,					sizeof(char),	64, SaveFD);
+			WRITEDATA(type, pool->Material,				sizeof(char),	64, SaveFD);
+			WRITEDATA(type, &pool->ChangeLighting,		sizeof(bool),	1,	SaveFD);
+			WRITEDATA(type, &pool->AmbientColor,			sizeof(GE_RGBA),1,	SaveFD);
+			WRITEDATA(type, &pool->FillColor,				sizeof(GE_RGBA),1,	SaveFD);
 // changed QD 07/21/04
-			WRITEDATA(&pool->AmbientLightFromFloor, sizeof(bool),	1,	SaveFD);
+			WRITEDATA(type, &pool->AmbientLightFromFloor, sizeof(bool),	1,	SaveFD);
 // end change
 			pool = temp;
 		}
@@ -302,9 +302,9 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 	{
 		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&(pMaterial->active),		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pMaterial->CurMat),		sizeof(int),		1, SaveFD);
-		WRITEDATA(&(pMaterial->CycleDir),	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &(pMaterial->active),	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &(pMaterial->CycleDir),	sizeof(int),		1, SaveFD);
 	}
 // end change
 
@@ -325,11 +325,11 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 
 	Bottom = Top = NULL;
 
-	READDATA(&Any, sizeof(bool), 1, RestoreFD);
+	READDATA(type, &Any, sizeof(bool), 1, RestoreFD);
 
 	if(Any)
 	{
-		READDATA(&count, sizeof(int), 1, RestoreFD);
+		READDATA(type, &count, sizeof(int), 1, RestoreFD);
 
 		for(int i=0; i<count; i++)
 		{
@@ -346,13 +346,13 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 			if(pool->prev)
 				pool->prev->next = pool;
 
-			READDATA(pool->Entity,					sizeof(char),	64, RestoreFD);
-			READDATA(pool->Material,				sizeof(char),	64, RestoreFD);
-			READDATA(&pool->ChangeLighting,			sizeof(bool),	1,	RestoreFD);
-			READDATA(&pool->AmbientColor,			sizeof(GE_RGBA),1,	RestoreFD);
-			READDATA(&pool->FillColor,				sizeof(GE_RGBA),1,	RestoreFD);
+			READDATA(type, pool->Entity,					sizeof(char),	64, RestoreFD);
+			READDATA(type, pool->Material,				sizeof(char),	64, RestoreFD);
+			READDATA(type, &pool->ChangeLighting,			sizeof(bool),	1,	RestoreFD);
+			READDATA(type, &pool->AmbientColor,			sizeof(GE_RGBA),1,	RestoreFD);
+			READDATA(type, &pool->FillColor,				sizeof(GE_RGBA),1,	RestoreFD);
 // changed QD 07/21/04
-			READDATA(&pool->AmbientLightFromFloor, sizeof(bool),	1,	RestoreFD);
+			READDATA(type, &pool->AmbientLightFromFloor, sizeof(bool),	1,	RestoreFD);
 // end change
 			geActor *Actor = GetEntityActor(pool->Entity);
 			CCD->ActorManager()->ChangeMaterial(Actor, pool->Material);
@@ -379,9 +379,9 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
 
-		READDATA(&(pMaterial->active),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pMaterial->CurMat),		sizeof(int),		1, RestoreFD);
-		READDATA(&(pMaterial->CycleDir),	sizeof(int),		1, RestoreFD);
+		READDATA(type, &(pMaterial->active),	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, RestoreFD);
+		READDATA(type, &(pMaterial->CycleDir),	sizeof(int),		1, RestoreFD);
 	}
 // end change
 

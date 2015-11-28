@@ -1,13 +1,17 @@
 //Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
+#include "windows.h"
+#ifndef IDC_STATIC
+#define IDC_STATIC	(-1)
+#endif
+
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -20,6 +24,7 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -34,7 +39,10 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+	"#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\r\n"
     "\0"
 END
 
@@ -45,7 +53,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -89,8 +96,8 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-
 #ifndef _MAC
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -118,7 +125,7 @@ BEGIN
             VALUE "FileDescription", "RealityFactory\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "RealityFactory\0"
-            VALUE "LegalCopyright", "Copyright © 2003\0"
+            VALUE "LegalCopyright", "Copyright © 2007\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RealityFactory.exe\0"
             VALUE "PrivateBuild", "\0"

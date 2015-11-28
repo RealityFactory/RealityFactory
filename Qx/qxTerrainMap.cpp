@@ -84,10 +84,10 @@ bool qxTerrainMap::Init()
 	//
 	// Load Main Texture
 	//
-	QXASSERT( m_strTextureFile );
+	QXASSERT( m_strTextureFile.empty()==false );
 
 	char TextureFile[64];
-	strcpy(TextureFile, m_strTextureFile);
+	strcpy(TextureFile, m_strTextureFile.c_str());
 
 	m_pTexture = CreateFromFileName(TextureFile);
 	geBitmap_SetPreferredFormat(m_pTexture,GE_PIXELFORMAT_24BIT_RGB);
@@ -109,8 +109,8 @@ bool qxTerrainMap::Init()
 	QXASSERT(m_nTileSize == m_nLandscapeSize / m_nTilesCountZ);
 
 
-	int MaxSplitDepth = (int)(2 * log10( (m_nHeightMapWidth-1) / m_nTilesCountX) / (log10(2)));
-	m_nMaxVarianceLookupId = (int)pow(2, MaxSplitDepth) - 1;	//(2 ^ Max_Split_Depth) - 1;
+	int MaxSplitDepth = (int)(2.0 * log10((double)((m_nHeightMapWidth-1) / m_nTilesCountX)) / (log10(2.0)));
+	m_nMaxVarianceLookupId = (1<<MaxSplitDepth) - 1;	//(2 ^ Max_Split_Depth) - 1;
 
 	// hmap-coord tile size
 	m_nHeightElementsPerTile = (m_nHeightMapWidth-1) / m_nTilesCountX;
@@ -323,7 +323,7 @@ bool qxTerrainMap::LoadHeightMap()
 	else if( m_eHeightFieldSourceType == HEIGHTFIELD_GREY_BMP )
 	{
 		char HeightMap[64];
-		strcpy(HeightMap, m_strHeightMap);
+		strcpy(HeightMap, m_strHeightMap.c_str());
 
 		pHeightBMP = CreateFromFileName(HeightMap);
 
@@ -763,7 +763,7 @@ bool qxTerrainMap::FractalGenerate()
 	to effectively reduce the randum number range.
 	*/
 
-	ratio = (float) pow (2.,-m_fFractalHeight);
+	ratio = (float) pow (2.,(double)-m_fFractalHeight);
 	scale = m_nFractalScale * ratio;
 
 	/* Seed the first four values. For example, in a 4x4 array, we

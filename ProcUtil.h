@@ -6,12 +6,15 @@
 
 #include "genesis.h"
 #include <ram.h>
-#include <memory.h>
+// changed QD 2007
+#include <memory>
+#include <string>
+// end change
 #include <malloc.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <time.h>
+#include <ctype.h>
 
 #define min(a, b)  (((a) < (b)) ? (a) : (b))
 #define max(a, b)  (((a) > (b)) ? (a) : (b))

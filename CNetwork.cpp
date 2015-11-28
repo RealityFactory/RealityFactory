@@ -21,6 +21,10 @@ NetPlayer::NetPlayer()
 	Actor = NULL;
 	ActorName[0] = '\0';
 	Animation[0] = '\0';
+// changed QD 02/01/07
+	PlayerName[0] = '\0';
+	Scale = 1.0f;
+// end change
 	AnimTime = 0.0f;
 
 	BaseRotation.X = BaseRotation.Y = BaseRotation.Z = 0.0f;
@@ -52,6 +56,9 @@ void NetPlayer::Create(char *actorname)
 	CCD->ActorManager()->Position(Actor, localTranslation);
 	CCD->ActorManager()->Rotate(Actor, localRotation);
 	CCD->ActorManager()->SetAnimationTime(Actor, AnimTime);
+// changed QD 02/01/07
+	CCD->ActorManager()->SetScale(Actor, Scale);
+// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -529,6 +536,10 @@ void NetPlayerMgr::ServerClientCycle()
 			// strcpy(Player[index]->ActorName, CCD->Player()->GetPlayerName());
 			strcpy(Player[index]->ActorName, CCD->Player()->GetActorName());
 			// end change
+			// changed QD 02/01/07
+			strcpy(Player[index]->PlayerName, CCD->Player()->GetPlayerName());
+			CCD->ActorManager()->GetScale(CCD->Player()->GetActor(), &Player[index]->Scale);
+			// end change
 
 			CCD->ActorManager()->GetAligningRotation(CCD->Player()->GetActor(), &Player[index]->BaseRotation);
 			CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &Player[index]->localRotation);
@@ -667,6 +678,10 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 	int index = GetIndexFromId(NewId);
 
 	char *name = Buff->GetString();
+// changed QD 02/01/07
+	char *playername = Buff->GetString();
+	float scale = Buff->GetFloat();
+// end change
 	geVec3d BaseRotation = Buff->GetVec3d();
 	geVec3d localRotation = Buff->GetVec3d();
 	geVec3d localTranslation = Buff->GetVec3d();
@@ -677,6 +692,10 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 	if(flag)
 	{
 		strcpy(Player[index]->ActorName, name);
+// changed QD 02/01/07
+		strcpy(Player[index]->PlayerName, playername);
+		Player[index]->Scale = scale;
+// end change
 		Player[index]->BaseRotation = BaseRotation;
 		Player[index]->localRotation = localRotation;
 		Player[index]->localTranslation = localTranslation;
@@ -768,6 +787,10 @@ void NetPlayerMgr::BuildPlayer(NetBuffer *Buff, int index, int Id)
 {
 	Buff->Add(Id);
 	Buff->AddString(Player[index]->ActorName, strlen(Player[index]->ActorName));
+// changed QD 02/01/07
+	Buff->AddString(Player[index]->PlayerName, strlen(Player[index]->PlayerName));
+	Buff->Add(Player[index]->Scale);
+// end change
 	Buff->Add(Player[index]->BaseRotation);
 	Buff->Add(Player[index]->localRotation);
 	Buff->Add(Player[index]->localTranslation);

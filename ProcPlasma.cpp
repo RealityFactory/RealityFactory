@@ -4,6 +4,9 @@
 /*																						*/
 /****************************************************************************************/
 
+// Disable unsafe warning
+#pragma warning (disable : 4996)
+
 #include "ProcUtil.h"
 
 #define	PI			(3.14159f)

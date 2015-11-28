@@ -6,6 +6,7 @@
 /*																						*/
 /*	Edit History:																		*/
 /*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
 /*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
 /*					- Added command SetAttributeValueLimits								*/
 /*																						*/
@@ -199,10 +200,13 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		if(param1 > 9 || param1 < 1)
 			return true;
 
-		Reply[param1-1].Format("%d : ", param1);
+		ostringstream oss;
+		oss << param1 << " : ";
+		Reply[param1-1] = oss.str();
 		Reply[param1-1] += CCD->Pawns()->GetText(param0);
-		Reply[param1-1].TrimRight();
-		Reply[param1-1].TrimLeft();
+		TrimRight(Reply[param1-1]);
+		TrimLeft(Reply[param1-1]);
+
 		replyflg[param1-1] = true;
 		return true;
 	}
@@ -229,14 +233,18 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		if(param1 > 9 || param1 < 1)
 			return true;
 
-		Reply[param1-1].Format("%d : ", param1);
+		ostringstream oss;
+		oss << param1 << " : ";
+		Reply[param1-1] = oss.str();
 		Reply[param1-1] += CCD->Pawns()->GetText(param0);
-		Reply[param1-1].TrimRight();
-		Reply[param1-1].TrimLeft();
-		ReplySoundFileName[param1-1].Format("%s", param3);
-		ReplySoundFileName[param1-1].TrimRight();
-		ReplySoundFileName[param1-1].TrimLeft();
-        replyflg[param1-1] = true;
+		TrimRight(Reply[param1-1]);
+		TrimLeft(Reply[param1-1]);
+
+		ReplySoundFileName[param1-1] = param3;
+		TrimRight(ReplySoundFileName[param1-1]);
+		TrimLeft(ReplySoundFileName[param1-1]);
+
+		replyflg[param1-1] = true;
 
 // changed Nout 12/15/05
 		ShowSelectedReply = true;
@@ -289,13 +297,14 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		else
 		{
 			Reply[param1] = CCD->Pawns()->GetText(param0);
-			Reply[param1].TrimRight();
-			Reply[param1].TrimLeft();
+			TrimRight(Reply[param1]);
+			TrimLeft(Reply[param1]);
 		}
 
-		ReplySoundFileName[param1].Format("%s", param3);
-		ReplySoundFileName[param1].TrimRight();
-		ReplySoundFileName[param1].TrimLeft();
+	    ReplySoundFileName[param1] = param3;
+		TrimRight(ReplySoundFileName[param1]);
+		TrimLeft(ReplySoundFileName[param1]);
+
 	    replyflg[param1] = true;
 		MouseReply = true;
 		ShowSelectedReply = false;
@@ -991,20 +1000,20 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 int ScriptedConverse::DoConversation(int charpersec)
 {
 	int choice;
-	char *temp = new char[Text.GetLength()+1];
+	char *temp = new char[Text.length()+1];
 	char *temp1 = NULL;
 	DWORD OldTime = CCD->FreeRunningCounter();
-	int counter = 1;
+	unsigned int counter = 1;
 
 	if(charpersec == 0)
-		counter = Text.GetLength();
+		counter = Text.length();
 
 	DWORD ElapsedTime;
 	int startline = 1;
 	int replyline = 1;
-	strcpy(temp, Text.Left(counter));
+	strcpy(temp, Text.substr(0, counter).c_str());
 
-	CString Reply1 = "";
+	string Reply1 = "";
 
 	for(int j=0; j<9; j++)
 	{
@@ -1013,7 +1022,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 			if(Reply1 != "")
 			{
 				Reply1 += " ";
-				Reply1.SetAt(Reply1.GetLength()-1, (char)1);
+				Reply1[Reply1.length()-1] = (char)1;
 			}
 
 			Reply1 += Reply[j];
@@ -1022,8 +1031,8 @@ int ScriptedConverse::DoConversation(int charpersec)
 
 	if(Reply1 != "")
 	{
-		temp1 = new char[Reply1.GetLength()+1];
-		strcpy(temp1, Reply1);
+		temp1 = new char[Reply1.length()+1];
+		strcpy(temp1, Reply1.c_str());
 	}
 
 	// display scrolling text
@@ -1042,7 +1051,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 
 	if(charpersec != 0)
 	{
-		while(counter < Text.GetLength())
+		while(counter < Text.length())
 		{
 			MSG msg;
 
@@ -1069,7 +1078,7 @@ int ScriptedConverse::DoConversation(int charpersec)
 				{
 					OldTime = CCD->FreeRunningCounter();
 					counter++;
-					strcpy(temp, Text.Left(counter));
+					strcpy(temp, Text.substr(0, counter).c_str());
 				}
 
 				TextDisplay(temp, SpeachWidth, SpeachFont);
@@ -1324,6 +1333,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 		RectPos.y = 0;
 	}
 
+
 	POINT MousePos;
 	bool SoundWasPlayed = false;
 // end change
@@ -1335,13 +1345,13 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 	DWORD ElapsedTime;
 	int startline = 1;
 	int replyline = 1;
-	int counter = 1;
+	unsigned int counter = 1;
 
 	if(charpersec == 0)
-		counter = Text.GetLength();
+		counter = Text.length();
 
-	strcpy(temp, Text.Left(counter));
-	CString Reply1 = "";
+	strcpy(temp, Text.substr(0, counter).c_str());
+	string Reply1 = "";
 
 	for(int j=0; j<9; j++)
 	{
@@ -1350,16 +1360,16 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 			if(Reply1 != "")
 			{
 				Reply1 += " ";
-				Reply1.SetAt(Reply1.GetLength()-1, (char)1);
+				Reply1[Reply1.length()-1] = (char)1;
 			}
 
 			Reply1 += Reply[j];
 // changed Nout 12/15/05
-			temp1 = new char[Reply[j].GetLength()+1];
-			strcpy(temp1, Reply[j]);
+			temp1 = new char[Reply[j].length()+1];
+			strcpy(temp1, Reply[j].c_str());
 
 			if(CCD->MenuManager()->FontWidth(ReplyMenuFont, temp1) > ReplyWidth)
-				ReplyWidth = CCD->MenuManager()->FontWidth(ReplyMenuFont,temp1)+2;
+				ReplyWidth = CCD->MenuManager()->FontWidth(ReplyMenuFont, temp1)+2;
 
 			delete(temp1);
 
@@ -1370,8 +1380,8 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 
 	if(Reply1 != "")
 	{
-		temp1 = new char[Reply1.GetLength()+1];
-		strcpy(temp1, Reply1);
+		temp1 = new char[Reply1.length()+1];
+		strcpy(temp1, Reply1.c_str());
 	}
 
 	if(m_Streams)
@@ -1402,7 +1412,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 
 	if(charpersec != 0)
 	{
-		while(counter < Text.GetLength())
+		while(counter < Text.length())
 		{
 			MSG msg;
 
@@ -1446,7 +1456,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 				{
 					OldTime = CCD->FreeRunningCounter();
 					counter += 1+int(charpersec/20); //print more characters to make a faster speed
-					strcpy(temp,Text.Left(counter));
+					strcpy(temp, Text.substr(0, counter).c_str());
 				}
 
 				TextDisplay(temp, SpeachWidth, SpeachFont);
@@ -1462,10 +1472,10 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
                 // force fast displaying
 				key = CCD->Input()->GetKeyboardInputNoWait();
 
-				if(key == KEY_SPACE && counter < Text.GetLength()-1)
+				if(key == KEY_SPACE && counter < Text.length()-1)
 				{
 					while(CCD->Input()->GetKeyboardInputNoWait() != -1);
-					counter = Text.GetLength() - 1;
+					counter = Text.length() - 1;
 				}
 			}
 		}
@@ -1841,7 +1851,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 
 		strcpy(music, CCD->GetDirectory(kAudioStreamFile));
 		strcat(music, "\\");
-		strcat(music, ReplySoundFileName[choice-1]);
+		strcat(music, ReplySoundFileName[choice-1].c_str());
 		m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
 		m_Streams_reply = new StreamingAudio(m_dsPtr);
 
@@ -1872,7 +1882,10 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 	if(choice > 0)
 	{
 		Text = Reply[choice-1];
-   		Text = Text.Right(Text.GetLength()-4);
+		if(Text.length() > 4)
+			Text = Text.substr(4);
+		else
+			Text = " ";
 	}
 	else
 		Text = " ";
@@ -1880,16 +1893,16 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 	counter = 1;
 
 	if(charpersec == 0)
-		counter = Text.GetLength();
+		counter = Text.length();
 
-	strcpy(temp, Text.Left(counter));
+	strcpy(temp, Text.substr(0, counter).c_str());
 	startline = 1;
 
 // changed Nout 12/15/05
 	//if(charpersec != 0)
-	if(charpersec != 0 && Text.GetLength() > 0 && ShowSelectedReply)
+	if(charpersec != 0 && Text.length() > 0 && ShowSelectedReply)
 	{
-		while(counter < Text.GetLength())
+		while(counter < Text.length())
 		{
 			MSG msg;
 
@@ -1935,7 +1948,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 					{
 						OldTime = CCD->FreeRunningCounter();
 						counter += 1+int(charpersec/20); //print more characters to make a faster speed
-						strcpy(temp, Text.Left(counter));
+						strcpy(temp, Text.substr(0, counter).c_str());
 					}
 
 					TextDisplay(temp, SpeachWidth, SpeachFont);
@@ -1962,7 +1975,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 					{
 						OldTime = CCD->FreeRunningCounter();
 						counter += 1+int(charpersec/20); //print more characters to make a faster speed
-						strcpy(temp, Text.Left(counter));
+						strcpy(temp, Text.substr(0, counter).c_str());
 					}
 
 // changed Nout 12/15/05
@@ -1986,10 +1999,10 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 				// force fast displaying when SPACE pressed
 				key = CCD->Input()->GetKeyboardInputNoWait();
 
-				if(key == KEY_SPACE && counter < Text.GetLength()-1)
+				if(key == KEY_SPACE && counter < Text.length()-1)
 				{
     				while(CCD->Input()->GetKeyboardInputNoWait() != -1);
-					counter = Text.GetLength() - 1;
+					counter = Text.length() - 1;
 				}
 			}
 		}
@@ -1999,7 +2012,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 
 // changed Nout 12/15/05
 	OldTime = CCD->FreeRunningCounter();
-	if(ShowSelectedReply && Text.GetLength() > 0 && replyflg[1])
+	if(ShowSelectedReply && Text.length() > 0 && replyflg[1])
 	{
 // end change
 		for(;;)
@@ -2029,7 +2042,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 				CCD->Weapons()->Display();
 				CCD->Engine()->RenderWorld();
 				// changed QD 07/15/06
-					CCD->Meshes()->Tick(0.f);
+				CCD->Meshes()->Tick(0.f);
 
 				if(RenderHUD)
 					CCD->HUD()->Render();
@@ -2187,25 +2200,25 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 /* ------------------------------------------------------------------------------------ */
 void ScriptedConverse::TextDisplay(char *Text, int Width, int Font)
 {
-	CString WText = Text;
-	CString Line, Line1;
+	string WText = Text;
+	string Line, Line1;
 	int i, width, width1;
 	char *temp = new char[strlen(Text)+1];
 	int Index = 0;
 
-	TextLines.RemoveAll();
+	TextLines.resize(0);
 
 	while(1)
 	{
-		Line = WText.Mid(Index);
-		strcpy(temp, Line);
+		Line = WText.substr(Index);
+		strcpy(temp, Line.c_str());
 		width = CCD->MenuManager()->FontWidth(Font, temp);
 
 		if(width <= Width)
 		{
-			if(Line.Find((char)1) == -1)
+			if(Line.find((char)1) == -1)
 			{
-				TextLines.Add(Line);
+				TextLines.push_back(Line);
 				break;
 			}
 		}
@@ -2214,13 +2227,13 @@ void ScriptedConverse::TextDisplay(char *Text, int Width, int Font)
 
 		while(1)
 		{
-			Line1 = Line.Left(i);
-			strcpy(temp, Line1);
+			Line1 = Line.substr(0, i);
+			strcpy(temp, Line1.c_str());
 
-			if(Line1[Line1.GetLength()-1] == 1)
+			if(Line1[Line1.length()-1] == 1)
 			{
-				Line1 = Line.Left(i-1);
-				TextLines.Add(Line1);
+				Line1 = Line.substr(0, i-1);
+				TextLines.push_back(Line1);
 				Index += i;
 				break;
 			}
@@ -2229,27 +2242,27 @@ void ScriptedConverse::TextDisplay(char *Text, int Width, int Font)
 
 			if(width1 > Width)
 			{
-				if(Line1.Right(1) == " ")
+				if(Line1[Line1.length()-1] == ' ')
 				{
-					Line1 = Line.Left(i-1);
-					TextLines.Add(Line1);
+					Line1 = Line.substr(0, i-1);
+					TextLines.push_back(Line1);
 					Index += i;
 					break;
 				}
 
-				Line1 = Line.Left(i-1);
-				int space = Line1.ReverseFind(' ');
+				Line1 = Line.substr(0, i-1);
+				int space = Line1.rfind(' ');
 
 				if(space == -1)
 				{
-					Line1 = Line.Left(i-1);
-					TextLines.Add(Line1);
+					Line1 = Line.substr(0, i-1);
+					TextLines.push_back(Line1);
 					Index += i;
 					break;
 				}
 
-				Line1 = Line.Left(space);
-				TextLines.Add(Line1);
+				Line1 = Line.substr(0, space);
+				TextLines.push_back(Line1);
 				Index += (space+1);
 				break;
 			}
@@ -2268,7 +2281,7 @@ int ScriptedConverse::TextOut(int startline, int Height, int Font, int X, int Y)
 {
 	int sline = -1, eline;
 	int THeight;
-	int size = TextLines.GetSize();
+	int size = TextLines.size();
 
 	if(size > 0)
 	{
@@ -2317,9 +2330,9 @@ int ScriptedConverse::TextOut(int startline, int Height, int Font, int X, int Y)
 
 		for(int i=sline; i<eline; i++)
 		{
-			CString Text = TextLines.GetAt(i);
-			char *temp = new char[Text.GetLength()+1];
-			strcpy(temp, Text);
+			string Text = TextLines[i];
+			char *temp = new char[Text.length()+1];
+			strcpy(temp, Text.c_str());
 // changed Nout 12/15/05
 			//CCD->MenuManager()->FontRect(temp, Font, BackgroundX+X, BackgroundY+YOffset);
 			CCD->MenuManager()->FontRect(temp, Font, X, YOffset);
@@ -2339,7 +2352,7 @@ int ScriptedConverse::TextOut(int startline, int Height, int Font, int X, int Y)
 int ScriptedConverse::TextOutLine(int startline, int Font, int X, int Y)
 {
 	int THeight;
-	int size = TextLines.GetSize();
+	int size = TextLines.size();
 
 	if(startline > -1 && size > startline) //size > 0
 	{
@@ -2347,9 +2360,9 @@ int ScriptedConverse::TextOutLine(int startline, int Font, int X, int Y)
 		int YOffset = Y + (startline * (CCD->MenuManager()->FontHeight(ReplyFont)+2));
 
 		{
-			CString Text = TextLines.GetAt(startline);//(i);
-			char *temp = new char[Text.GetLength()+1];
-			strcpy(temp, Text);
+			string Text = TextLines[startline];//(i);
+			char *temp = new char[Text.length()+1];
+			strcpy(temp, Text.c_str());
 			CCD->MenuManager()->FontRect(temp, Font, X, YOffset);
 			YOffset += (CCD->MenuManager()->FontHeight(ReplyFont)+2);
 			delete temp;
@@ -2374,7 +2387,7 @@ void CPawn::PreLoadC(char *filename)
 	geVFile *fdInput = NULL;
 // end change
 	char szInputString[1024] = {""};
-	CString str;
+	string str;
 	int i, j;
 	char file[256];
 // changed Nout 12/15/05
@@ -2399,8 +2412,8 @@ void CPawn::PreLoadC(char *filename)
 			continue;
 
 		str = szInputString;
-		str.TrimRight();
-		str.MakeLower();
+		TrimRight(str);
+		MakeLower(str);
 
 // changed Nout 12/15/05
 /*
@@ -2453,39 +2466,39 @@ void CPawn::PreLoadC(char *filename)
 */
 		i = 0;
 
-		bmp = str.Find(".bmp");
+		bmp = str.find(".bmp");
 		if(bmp > 0)
 			i = bmp;
 
-		tga = str.Find(".tga");
+		tga = str.find(".tga");
 		if(tga > 0 && (tga < i || i == 0))
 			i = tga;
 
-		jpg = str.Find(".jpg");
+		jpg = str.find(".jpg");
 		if(jpg > 0 && (jpg < i || i == 0))
 			i = jpg;
 
-		gif = str.Find(".gif");
+		gif = str.find(".gif");
 		if(gif > 0 && (gif < i || i == 0))
 			i = gif;
 
-		while(i > 0 && i < str.GetLength())
+		while(i > 0 && i < (int)str.length())
 		{
 			j = i-1;
 
-			while(!(str.GetAt(j) == '"' || str.GetAt(j)=='[') && j >= 0)
+			while(!(str[j] == '"' || str[j] == '[') && j >= 0)
 				j--;
 
 			if(j >= 0)
 			{
 				strcpy(file, "conversation\\");
-				strcat(file, str.Mid(j+1, i-j+3));
+				strcat(file, str.substr(j+1, i-j+3).c_str());
 
-				Cache.SetSize(Cache.GetSize()+1);
+				Cache.resize(Cache.size()+1);
 
-				int keynum = Cache.GetSize()-1;
+				int keynum = Cache.size()-1;
 
-				Cache[keynum].Name = str.Mid(j+1, i-j+3);
+				Cache[keynum].Name = str.substr(j+1, i-j+3);
 				Cache[keynum].Bitmap = CreateFromFileName(file);
 				// changed QD 07/15/06
 				if(Cache[keynum].Bitmap == (geBitmap *)NULL)
@@ -2501,23 +2514,24 @@ void CPawn::PreLoadC(char *filename)
 				// end change
 			}
 
-			str = str.Mid(i+6);
+			if((int)str.size() > i+6) str = str.substr(i+6);
+			else break;
 
 			i = 0;
 
-			bmp = str.Find(".bmp");
+			bmp = str.find(".bmp");
 			if(bmp > 0)
 				i = bmp;
 
-			tga = str.Find(".tga");
+			tga = str.find(".tga");
 			if(tga > 0 && (tga < i || i == 0))
 				i = tga;
 
-			jpg = str.Find(".jpg");
+			jpg = str.find(".jpg");
 			if(jpg > 0 && (jpg < i || i == 0))
 				i = jpg;
 
-			gif = str.Find(".gif");
+			gif = str.find(".gif");
 			if(gif > 0 && (gif < i || i == 0))
 				i = gif;
 		}
@@ -2537,9 +2551,9 @@ void CPawn::LoadConv(char *convtxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
-	CString readinfo, keyname, text;
+	string readinfo, keyname, text;
 
-	Text.SetSize(0);
+	Text.resize(0);
 
 // changed QD Language Menu
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, convtxt, GE_VFILE_OPEN_READONLY))
@@ -2557,29 +2571,29 @@ void CPawn::LoadConv(char *convtxt)
 
 		if(readinfo != "" && readinfo[0] != ';')
 		{
-			readinfo.TrimRight();
+			TrimRight(readinfo);
 
 // changed QD 07/15/06 - if trim operation results in empty string...
-			if(readinfo.GetLength()<=1)
+			if(readinfo.length()<=1)
 				continue;
 // end change QD 07/15/06
 
-			if(readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']')
+			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
 				if(keyname != "" && text != "")
 				{
-					Text.SetSize(Text.GetSize()+1);
-					int keynum = Text.GetSize()-1;
+					Text.resize(Text.size()+1);
+					int keynum = Text.size()-1;
 					Text[keynum].Name = keyname;
 					Text[keynum].Text = text;
 // changed QD 12/15/05
-					Text[keynum].Text.Replace("<Player>", CCD->Player()->GetPlayerName());
+					Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
 // end change
 				}
 
 				keyname = readinfo;
-				keyname.TrimLeft('[');
-				keyname.TrimRight(']');
+				TrimLeft(keyname, "[");
+				TrimRight(keyname, "]");
 				text = "";
 			}
 			else
@@ -2587,11 +2601,11 @@ void CPawn::LoadConv(char *convtxt)
 				if(readinfo == "<CR>")
 				{
 					text += " ";
-					text.SetAt(text.GetLength()-1, (char)1);
+					text[text.length()-1] = (char)1;
 				}
 				else
 				{
-					if(text != "" && text[text.GetLength()-1] != 1)
+					if(text != "" && text[text.length()-1] != 1)
 						text += " ";
 
 					text += readinfo;
@@ -2602,12 +2616,12 @@ void CPawn::LoadConv(char *convtxt)
 
 	if(keyname != "" && text != "")
 	{
-		Text.SetSize(Text.GetSize()+1);
-		int keynum = Text.GetSize()-1;
+		Text.resize(Text.size()+1);
+		int keynum = Text.size()-1;
 		Text[keynum].Name = keyname;
 		Text[keynum].Text = text;
 // changed QD 12/15/05
-		Text[keynum].Text.Replace("<Player>", CCD->Player()->GetPlayerName());
+		Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
 // end change
 	}
 
@@ -2617,9 +2631,9 @@ void CPawn::LoadConv(char *convtxt)
 /* ------------------------------------------------------------------------------------ */
 //	GetText
 /* ------------------------------------------------------------------------------------ */
-CString CPawn::GetText(char *Name)
+string CPawn::GetText(char *Name)
 {
-	int size = Text.GetSize();
+	int size = Text.size();
 
 	if(size < 1)
 		return "";

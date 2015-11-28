@@ -253,7 +253,7 @@ int StreamingAudio::Play(bool bLooping)
 		ScaledVolume = 0;
 	else
 		//ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
-		ScaledVolume = (LONG)(log10(nVolume)*2500 - 10000);
+		ScaledVolume = (LONG)(log10((double)nVolume)*2500 - 10000);
 	nVolume = ScaledVolume;
 
 	if(ogg)
@@ -476,7 +476,7 @@ bool StreamingAudio::IsPlaying()
 		if(!Ogg)
 			return false;
 
-		return Ogg->IsPlaying;
+		return Ogg->IsPlaying();
 	}
 
 	// Check for stream availability
@@ -514,7 +514,7 @@ int StreamingAudio::SetVolume(LONG nVolume)
 		ScaledVolume = 0;
 	else
 		//ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
-		ScaledVolume = (LONG)(log10(nVolume)*2500 - 10000);
+		ScaledVolume = (LONG)(log10((double)nVolume)*2500 - 10000);
 
 
 	nVolume = ScaledVolume;

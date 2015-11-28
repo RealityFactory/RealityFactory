@@ -1319,19 +1319,19 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 		}
 
 		MaxSelect = CurrentSelect = 0;
-		CString KeyName = AttrFile.FindFirstKey();
-		CString Type, Vector;
+		string KeyName = AttrFile.FindFirstKey();
+		string Type, Vector;
 		char szName[64];
 
 		while(KeyName != "")
 		{
-			strcpy(CharSelect[MaxSelect].Name, KeyName);
+			strcpy(CharSelect[MaxSelect].Name, KeyName.c_str());
 			CharSelect[MaxSelect].Bitmap = NULL;
 			Type = AttrFile.GetValue(KeyName, "image");
 
 			if(Type != "")
 			{
-				strcpy(szName,Type);
+				strcpy(szName, Type.c_str());
 				CharSelect[MaxSelect].Bitmap = CreateFromFileName(szName);
 
 				if(!CharSelect[MaxSelect].Bitmap)
@@ -1361,12 +1361,12 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 					exit(-100);
 				}
 
-				strcpy(CharSelect[MaxSelect].ActorName, Type);
+				strcpy(CharSelect[MaxSelect].ActorName, Type.c_str());
 
 				Vector = AttrFile.GetValue(KeyName, "actorrotation");
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					CharSelect[MaxSelect].Rotation = Extract(szName);
 					CharSelect[MaxSelect].Rotation.X *= GE_PIOVER180;
 					CharSelect[MaxSelect].Rotation.Y *= GE_PIOVER180;
@@ -1396,12 +1396,12 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				CharSelect[MaxSelect].ShadowBitmap[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "shadowbitmap");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].ShadowBitmap, Type);
+					strcpy(CharSelect[MaxSelect].ShadowBitmap, Type.c_str());
 
 				CharSelect[MaxSelect].ShadowAlphamap[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "shadowalphamap");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].ShadowAlphamap, Type);
+					strcpy(CharSelect[MaxSelect].ShadowAlphamap, Type.c_str());
 
 				CharSelect[MaxSelect].UseProjectedShadows = GE_FALSE;
 				Type = AttrFile.GetValue(KeyName, "projectedshadows");
@@ -1417,12 +1417,12 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				strcpy(CharSelect[MaxSelect].StartLevel, szStartLevel);
 				Type = AttrFile.GetValue(KeyName, "startlevel");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].StartLevel, Type);
+					strcpy(CharSelect[MaxSelect].StartLevel, Type.c_str());
 
 				strcpy(CharSelect[MaxSelect].Weapon, "weapon.ini");
 				Type = AttrFile.GetValue(KeyName, "weaponfile");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Weapon, Type);
+					strcpy(CharSelect[MaxSelect].Weapon, Type.c_str());
 // end change
 				geVec3d FillColor	 = {255.0f, 255.0f, 255.0f};
 				geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
@@ -1430,14 +1430,14 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				Vector = AttrFile.GetValue(KeyName, "fillcolor");
 				if(Vector != "")
 				{
-					strcpy(szName, Vector);
+					strcpy(szName, Vector.c_str());
 					FillColor = Extract(szName);
 				}
 
 				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
 				if(Vector != "")
 				{
-					strcpy(szName, Vector);
+					strcpy(szName, Vector.c_str());
 					AmbientColor = Extract(szName);
 				}
 
@@ -1462,27 +1462,27 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				CharSelect[MaxSelect].Attribute[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "attributefile");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Attribute, Type);
+					strcpy(CharSelect[MaxSelect].Attribute, Type.c_str());
 
 				CharSelect[MaxSelect].pSetup[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "playersetupfile");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].pSetup, Type);
+					strcpy(CharSelect[MaxSelect].pSetup, Type.c_str());
 
 				CharSelect[MaxSelect].Environment[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "environmentfile");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Environment, Type);
+					strcpy(CharSelect[MaxSelect].Environment, Type.c_str());
 
 				CharSelect[MaxSelect].PlayerStart[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "playerstartname");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].PlayerStart, Type);
+					strcpy(CharSelect[MaxSelect].PlayerStart, Type.c_str());
 
 				CharSelect[MaxSelect].Hud[0] = '\0';
 				Type = AttrFile.GetValue(KeyName, "hudfile");
 				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Hud, Type);
+					strcpy(CharSelect[MaxSelect].Hud, Type.c_str());
 
 				Type = AttrFile.GetValue(KeyName, "speed");
 				CharSelect[MaxSelect].Speed = -1.0f;
@@ -3777,7 +3777,6 @@ int CRFMenu::DoMenu(char *levelname)
 {
 // 08.05.2004 - begin change gekido
 	CCD->ReportError("Entering CRFMenu::DoMenu()", false);
-	CCD->ReportError("Creating Camera", false);
 // 08.05.2004 - end change gekido
 
 	M_CameraRect.Left	= 0;
@@ -4103,9 +4102,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								geBitmap *theBmp = Animation[data->AnimationOver]->NextFrame(true);
 								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 							}
-
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								click = i;
+// changed QD 02/01/07
+							if(GetSystemMetrics(SM_SWAPBUTTON))
+							{
+								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+									click = i;
+							}
+							else
+							{
+								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+									click = i;
+							}
+// end change
 						}
 					}
 					else
@@ -4189,8 +4197,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+data->Height))
 						&& (slide_click == -1))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-							slide_click = i;
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
+						{
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+								slide_click = i;
+						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+								slide_click = i;
+						}
+// end change
 
 						if(slide_x == -1)
 							slide_x = temppos.x;
@@ -4225,8 +4243,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 						}
 
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-							box_click = i;
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
+						{
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+								box_click = i;
+						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+								box_click = i;
+						}
+// end change
 					}
 					else
 					{
@@ -4236,8 +4264,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							&& (temppos.y <= (Menu[i].Y+y+bdata->Height))
 							&& (slide_click == -1))
 						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								box_click = i;
+// changed QD 02/01/07
+							if(GetSystemMetrics(SM_SWAPBUTTON))
+							{
+								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+									box_click = i;
+							}
+							else
+							{
+								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+									box_click = i;
+							}
+// end change
 						}
 
 						if(bdata->Current == 0)
@@ -4308,8 +4346,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 						}
 
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-							radio_click = i;
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
+						{
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+								radio_click = i;
+						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+								radio_click = i;
+						}
+// end change
 					}
 					else
 					{
@@ -4319,8 +4367,18 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							&& (temppos.y <= (Menu[i].Y+y+radiodata->Height))
 							&& (slide_click == -1))
 						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								radio_click = i;
+// changed QD 02/01/07
+							if(GetSystemMetrics(SM_SWAPBUTTON))
+							{
+								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+									radio_click = i;
+							}
+							else
+							{
+								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+									radio_click = i;
+							}
+// end change
 						}
 
 						if(radiodata->Current == 0)
@@ -4394,13 +4452,28 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y >= Menu[i].Y+y)
 						&& (temppos.y <= Menu[i].Y+y+30))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && textedit_click == -1)
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
-							strcpy(tedata->text, "_");
-							geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-							textedit_click = i;
-							focus = -1;
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && textedit_click == -1)
+							{
+								strcpy(tedata->text, "_");
+								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
+								textedit_click = i;
+								focus = -1;
+							}
 						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && textedit_click == -1)
+							{
+								strcpy(tedata->text, "_");
+								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
+								textedit_click = i;
+								focus = -1;
+							}
+						}
+// end change
 					}
 
 					if((GetAsyncKeyState(VK_RETURN) & 0x8000) != 0 && textedit_click == i)
@@ -4600,11 +4673,24 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+rdata->Corner_Y+(rdata->Max_Show*rdata->Step)))
 						&& (slide_click == -1))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
-							remap_click = i;
-							remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+							{
+								remap_click = i;
+								remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
+							}
 						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+							{
+								remap_click = i;
+								remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
+							}
+						}
+// end change
 					}
 
 					break;
@@ -4652,7 +4738,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+scdata->Up_Y+scdata->Up_Height))
 						&& (slide_click == -1))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+// changed QD 02/01/07
+						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
+							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
+// end change
 						{
 							if(scdata->AnimationUpPush < 0 || Animation[scdata->AnimationUpPush] == NULL)
 							{
@@ -4708,7 +4797,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+scdata->Dwn_Y+scdata->Dwn_Height))
 						&& (slide_click == -1))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+// changed QD 02/01/07
+						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
+							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
+// end change
 						{
 							if(scdata->AnimationDwnPush<0 || Animation[scdata->AnimationDwnPush]==NULL)
 							{
@@ -4815,11 +4907,24 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+lrdata->Corner_Y+(lrdata->Max_Show*lrdata->Step)))
 						&& (slide_click == -1))
 					{
-						if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+// changed QD 02/01/07
+						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
-							lsbox_click = i;
-							lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
+							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
+							{
+								lsbox_click = i;
+								lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
+							}
 						}
+						else
+						{
+							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
+							{
+								lsbox_click = i;
+								lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
+							}
+						}
+// end change
 					}
 
 // begin add Nout - Show save game image
@@ -4937,7 +5042,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			//--------------------------------------
 			// if clicked on Clickable or Exit Menu
 			//--------------------------------------
-			if(click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(click !=-1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				if(LoopOnce == 0)
 					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
@@ -5017,7 +5125,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on slider
 			//--------------------------
 
-			if(slide_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				temp = temppos.x-slide_x;
 				sdata = (Slider*)Menu[slide_click].data;
@@ -5041,7 +5152,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			if(slide_click == -1)
 				slide_x = -1;
 
-			if(slide_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)
+// changed QD 02/01/07
+			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)))
+// end change
 			{
 				if(slide_x != temppos.x)
 				{
@@ -5068,7 +5182,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on box
 			//--------------------------
 
-			if(box_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(box_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				bdata = (Box*)Menu[box_click].data;
@@ -5085,7 +5202,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on radio box
 			//--------------------------
 
-			if(radio_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(radio_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				radiodata = (Radio*)Menu[radio_click].data;
@@ -5112,7 +5232,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on remap
 			//--------------------------
 
-			if(remap_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(remap_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				rdata = (Remap*)Menu[remap_click].data;
@@ -5124,7 +5247,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on scrollbar
 			//--------------------------
 
-			if(scroll_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(scroll_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				scdata = (ScrollBar*)Menu[scroll_click].data;
@@ -5149,7 +5275,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on lsbox
 			//--------------------------
 
-			if(lsbox_click != -1 && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)
+// changed QD 02/01/07
+			if(lsbox_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
+								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
+// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				lrdata = (LSBox*)Menu[lsbox_click].data;
@@ -5498,6 +5627,26 @@ void CRFMenu::GameLevel()
 
 	framecount = 0;
 
+	// changed QD 02/01/07
+// center mouse on window befor returning to game
+	POINT pos;
+	if(CCD->Engine()->FullScreen())
+	{
+		pos.x = CCD->Engine()->Width()/2;			// calculate the center of the screen
+		pos.y = CCD->Engine()->Height()/2;			// calculate the center of the screen
+		SetCursorPos(pos.x, pos.y);					// set the cursor in the center of the screen
+	}
+	else
+	{
+		RECT client;
+		GetClientRect(CCD->Engine()->WindowHandle(),&client);	// get the client area of the window
+		pos.x = client.right/2;									// calculate the center of the client area
+		pos.y = client.bottom/2;								// calculate the center of the client area
+		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);		// convert to SCREEN coordinates
+		SetCursorPos(pos.x,pos.y);								// put the cursor in the middle of the window
+	}
+// end change
+
 	for(;;)
 	{
 		// If Winblows has something to say, take it in and pass it on in the
@@ -5642,8 +5791,8 @@ void CRFMenu::GameLevel()
 
 // changed Nout 12/15/05
 			// Displays a text on the screen that tracks position with an Entity
-			for(i=0; i<MAXTEXT; i++)
-				CCD->Pawns()->ShowText(i);
+			for(int ii=0; ii<MAXTEXT; ii++)
+				CCD->Pawns()->ShowText(ii);
 // end change
 
 // changed QD 12/15/05
@@ -6284,8 +6433,8 @@ void CRFMenu::MenuInitalize()
 
 	if(AttrFile.ReadFile())
 	{
-		CString KeyName = AttrFile.FindFirstKey();
-		CString Type;
+		string KeyName = AttrFile.FindFirstKey();
+		string Type;
 
 		while(KeyName != "")
 		{
@@ -7471,7 +7620,7 @@ void CRFMenu::DoGame(bool editor)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ChangeCurrent
+//	ChangeCurrent - change selected character
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ChangeCurrent(bool direction)
 {
@@ -7529,7 +7678,7 @@ static void AcceptChar()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetName
+//	SetName - set Player Name
 /* ------------------------------------------------------------------------------------ */
 static void SetName()
 {
@@ -7537,7 +7686,7 @@ static void SetName()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ResetName
+//	ResetName - reset Player Name
 /* ------------------------------------------------------------------------------------ */
 static void ResetName()
 {
@@ -7728,6 +7877,9 @@ static void SetSlot()
 			CCD->Doors()->SaveTo(outFD, false);
 			CCD->Platforms()->SaveTo(outFD, false);
 			CCD->Props()->SaveTo(outFD, false);
+			// changed QD 02/01/07
+			CCD->Meshes()->SaveTo(outFD, false);
+			// end change
 			CCD->Teleporters()->SaveTo(outFD, false);
 			CCD->MorphingFields()->SaveTo(outFD);
 			CCD->MIDIPlayer()->SaveTo(outFD);
@@ -7831,6 +7983,9 @@ static void GetSlot()
 			CCD->Doors()->RestoreFrom(inFD, false);
 			CCD->Platforms()->RestoreFrom(inFD, false);
 			CCD->Props()->RestoreFrom(inFD, false);
+			// changed QD 02/01/07
+			CCD->Meshes()->RestoreFrom(inFD, false);
+			// end change
 			CCD->Teleporters()->RestoreFrom(inFD, false);
 			CCD->MorphingFields()->RestoreFrom(inFD);
 			CCD->MIDIPlayer()->RestoreFrom(inFD);
@@ -8194,10 +8349,10 @@ void CRFMenu::MusicSet()
 int CRFMenu::SaveTo(FILE *SaveFD, bool type)
 {
 
-	WRITEDATA(&useselect, sizeof(bool), 1, SaveFD);
-	WRITEDATA(&CurrentSelect, sizeof(int), 1, SaveFD);
+	WRITEDATA(type, &useselect,		sizeof(bool),	1, SaveFD);
+	WRITEDATA(type, &CurrentSelect, sizeof(int),	1, SaveFD);
 // changed QD 12/15/05
-	WRITEDATA(&usenameselect, sizeof(bool), 1, SaveFD);
+	WRITEDATA(type, &usenameselect, sizeof(bool),	1, SaveFD);
 // end change
 
 	return RGF_SUCCESS;
@@ -8210,10 +8365,10 @@ int CRFMenu::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	READDATA(&useselect, sizeof(bool), 1, RestoreFD);
-	READDATA(&CurrentSelect, sizeof(int), 1, RestoreFD);
+	READDATA(type, &useselect,		sizeof(bool),	1, RestoreFD);
+	READDATA(type, &CurrentSelect,	sizeof(int),	1, RestoreFD);
 // changed QD 12/15/05
-	READDATA(&usenameselect, sizeof(bool), 1, RestoreFD);
+	READDATA(type, &usenameselect,	sizeof(bool),	1, RestoreFD);
 // end change
 
 	return RGF_SUCCESS;

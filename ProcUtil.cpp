@@ -4,6 +4,9 @@
 /*																						*/
 /****************************************************************************************/
 
+// Disable unsafe warning
+#pragma warning (disable : 4996)
+
 #include "ProcUtil.h"
 
 #define TWO_PI (6.28318530718f)

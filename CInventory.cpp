@@ -27,8 +27,8 @@ CInventory::CInventory()
 		for(int nTemp2=0; nTemp2<MAXENTRIES; nTemp2++)
 			SubInv[nTemp1][nTemp2] = NULL;
 
-	for(nTemp1=0; nTemp1<4; nTemp1++)
-		Main[nTemp1] = NULL;
+	for(int nTemp2=0; nTemp2<4; nTemp2++)
+		Main[nTemp2] = NULL;
 
 	background	= NULL;
 	highlight	= NULL;
@@ -56,9 +56,9 @@ CInventory::CInventory()
 	if(!AttrFile.ReadFile())
 		return;
 
-	CString KeyName = AttrFile.FindFirstKey();
+	string KeyName = AttrFile.FindFirstKey();
 	char szName[128], szAlpha[128];
-	CString Tname, Talpha;
+	string Tname, Talpha;
 	geBitmap_Info	BmpInfo;
 	bool flag = false;
 
@@ -76,8 +76,8 @@ CInventory::CInventory()
 
 				Tname = "inventory\\"+Tname;
 				Talpha = "inventory\\"+Talpha;
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				background = CreateFromFileAndAlphaNames(szName, szAlpha);
 
 				if(background)
@@ -100,8 +100,8 @@ CInventory::CInventory()
 
 				Tname = "inventory\\"+Tname;
 				Talpha = "inventory\\"+Talpha;
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				highlight = CreateFromFileAndAlphaNames(szName, szAlpha);
 
 // changed QD
@@ -122,8 +122,8 @@ CInventory::CInventory()
 
 				Tname = "inventory\\"+Tname;
 				Talpha = "inventory\\"+Talpha;
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				arrowr = CreateFromFileAndAlphaNames(szName, szAlpha);
 
 				if(!arrowr)
@@ -143,8 +143,8 @@ CInventory::CInventory()
 
 				Tname = "inventory\\"+Tname;
 				Talpha = "inventory\\"+Talpha;
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				arrowl = CreateFromFileAndAlphaNames(szName, szAlpha);
 
 				if(!arrowl)
@@ -192,7 +192,7 @@ CInventory::CInventory()
 
 			if(Tname != "")
 			{
-				strcpy(szName,Tname);
+				strcpy(szName, Tname.c_str());
 				keyclick=SPool_Sound(szName);
 			}
 
@@ -206,7 +206,7 @@ CInventory::CInventory()
 		else
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-			strcpy(szName, KeyName);
+			strcpy(szName, KeyName.c_str());
 			int catg = -1;
 			Tname = AttrFile.GetValue(KeyName, "catagory");
 
@@ -258,7 +258,7 @@ CInventory::CInventory()
 
 					Main[MaxMain] = new InvItem;
 					Main[MaxMain]->catagory = catg;
-					strcpy(Main[MaxMain]->Attribute, KeyName);
+					strcpy(Main[MaxMain]->Attribute, KeyName.c_str());
 
 					if(catg == INVLOAD)
 						Main[MaxMain]->index = 5;
@@ -283,8 +283,8 @@ CInventory::CInventory()
 
 						Tname = "inventory\\"+Tname;
 						Talpha = "inventory\\"+Talpha;
-						strcpy(szName,Tname);
-						strcpy(szAlpha,Talpha);
+						strcpy(szName, Tname.c_str());
+						strcpy(szAlpha, Talpha.c_str());
 						Main[MaxMain]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
 					}
 
@@ -302,7 +302,7 @@ CInventory::CInventory()
 						Tname = AttrFile.GetValue(KeyName, "text");
 
 						if(Tname != "")
-							strcpy(Main[MaxMain]->text,Tname);
+							strcpy(Main[MaxMain]->text, Tname.c_str());
 
 						geEngine_AddBitmap(CCD->Engine()->Engine(), Main[MaxMain]->Image);
 					}
@@ -321,7 +321,7 @@ CInventory::CInventory()
 					SubInv[WEAPONINV][MaxWeapons] = new InvItem;
 					SubInv[WEAPONINV][MaxWeapons]->Graphic = NULL;
 					SubInv[WEAPONINV][MaxWeapons]->catagory = catg;
-					strcpy(SubInv[WEAPONINV][MaxWeapons]->Attribute, KeyName);
+					strcpy(SubInv[WEAPONINV][MaxWeapons]->Attribute, KeyName.c_str());
 					SubInv[WEAPONINV][MaxWeapons]->index = MaxWeapons;
 					SubInv[WEAPONINV][MaxWeapons]->Image = NULL;
 
@@ -336,8 +336,8 @@ CInventory::CInventory()
 
 						Tname = "inventory\\"+Tname;
 						Talpha = "inventory\\"+Talpha;
-						strcpy(szName,Tname);
-						strcpy(szAlpha,Talpha);
+						strcpy(szName, Tname.c_str());
+						strcpy(szAlpha, Talpha.c_str());
 						SubInv[WEAPONINV][MaxWeapons]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
 					}
 
@@ -355,7 +355,7 @@ CInventory::CInventory()
 						Tname = AttrFile.GetValue(KeyName, "text");
 
 						if(Tname != "")
-							strcpy(SubInv[WEAPONINV][MaxWeapons]->text,Tname);
+							strcpy(SubInv[WEAPONINV][MaxWeapons]->text, Tname.c_str());
 
 						geEngine_AddBitmap(CCD->Engine()->Engine(), SubInv[WEAPONINV][MaxWeapons]->Image);
 					}
@@ -370,7 +370,7 @@ CInventory::CInventory()
 					SubInv[ITEMINV][MaxItems] = new InvItem;
 					SubInv[ITEMINV][MaxItems]->Graphic = NULL;
 					SubInv[ITEMINV][MaxItems]->catagory = catg;
-					strcpy(SubInv[ITEMINV][MaxItems]->Attribute, KeyName);
+					strcpy(SubInv[ITEMINV][MaxItems]->Attribute, KeyName.c_str());
 					SubInv[ITEMINV][MaxItems]->index = MaxItems;
 
 					if(SubInv[ITEMINV][MaxItems]->catagory == INVMODIFY)
@@ -380,7 +380,7 @@ CInventory::CInventory()
 
 						if(Tname != "")
 						{
-							strcpy(SubInv[ITEMINV][MaxItems]->Modify, Tname);
+							strcpy(SubInv[ITEMINV][MaxItems]->Modify, Tname.c_str());
 							SubInv[ITEMINV][MaxItems]->Amount = AttrFile.GetValueI(KeyName, "modifiedamount");
 						}
 					}
@@ -406,8 +406,8 @@ CInventory::CInventory()
 
 							Tname = "inventory\\"+Tname;
 							Talpha = "inventory\\"+Talpha;
-							strcpy(szName,Tname);
-							strcpy(szAlpha,Talpha);
+							strcpy(szName, Tname.c_str());
+							strcpy(szAlpha, Talpha.c_str());
 							SubInv[ITEMINV][MaxItems]->Graphic = CreateFromFileAndAlphaNames(szName, szAlpha);
 						}
 					}
@@ -424,8 +424,8 @@ CInventory::CInventory()
 
 						Tname = "inventory\\"+Tname;
 						Talpha = "inventory\\"+Talpha;
-						strcpy(szName,Tname);
-						strcpy(szAlpha,Talpha);
+						strcpy(szName, Tname.c_str());
+						strcpy(szAlpha, Talpha.c_str());
 						SubInv[ITEMINV][MaxItems]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
 					}
 
@@ -443,7 +443,7 @@ CInventory::CInventory()
 						Tname = AttrFile.GetValue(KeyName, "text");
 
 						if(Tname != "")
-							strcpy(SubInv[ITEMINV][MaxItems]->text,Tname);
+							strcpy(SubInv[ITEMINV][MaxItems]->text, Tname.c_str());
 
 						geEngine_AddBitmap(CCD->Engine()->Engine(), SubInv[ITEMINV][MaxItems]->Image);
 
@@ -500,22 +500,22 @@ CInventory::~CInventory()
 		arrowl = NULL;
 	}
 
-	for(int index1=0; index1<4; index1++)
+	for(int index0=0; index0<4; index0++)
 	{
-		if(Main[index1] != NULL)
+		if(Main[index0] != NULL)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Main[index1]->Image);
-			geBitmap_Destroy(&(Main[index1]->Image));
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Main[index0]->Image);
+			geBitmap_Destroy(&(Main[index0]->Image));
 
-			if(Main[index1]->Graphic)
-				geBitmap_Destroy(&Main[index1]->Graphic);
+			if(Main[index0]->Graphic)
+				geBitmap_Destroy(&Main[index0]->Graphic);
 		}
 
-		delete Main[index1];
-		Main[index1] = NULL;
+		delete Main[index0];
+		Main[index0] = NULL;
 	}
 
-	for(index1=0; index1<NUMOFSUB; index1++)
+	for(int index1=0; index1<NUMOFSUB; index1++)
 	{
 		for(int index2=0; index2<MAXENTRIES; index2++)
 		{

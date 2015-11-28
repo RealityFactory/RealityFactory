@@ -335,8 +335,14 @@ int CMIDIAudio::SaveTo(FILE *SaveFD)
 	fwrite(&m_bActive,		sizeof(bool),	1, SaveFD);
 	fwrite(&m_ListCount,	sizeof(int),	1, SaveFD);
 
+	// changed QD 02/01/07
 	for(int nTemp = 0; nTemp < m_ListCount; nTemp++)
-		fwrite(m_szList[nTemp], 1, strlen(m_szList[nTemp])+1, SaveFD);
+	{
+		int len = strlen(m_szList[nTemp])+1;
+		fwrite(&len, sizeof(int), 1, SaveFD);
+		fwrite(m_szList[nTemp], 1, len, SaveFD);
+	}
+	// end change
 
 	fwrite(&m_Position, sizeof(int), 1, SaveFD);
 	fwrite(&m_MIDIFile, 1, 256, SaveFD);
@@ -351,12 +357,19 @@ int CMIDIAudio::SaveTo(FILE *SaveFD)
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::RestoreFrom(FILE *RestoreFD)
 {
+	int nTemp;
 	Stop();						// Shut it all down.
 
-	for(int nTemp=0; nTemp<m_ListCount; nTemp++)
+	// changed QD 02/01/07
+	for(nTemp=0; nTemp<m_ListCount; nTemp++)
+	{
 		delete m_szList[nTemp];
+		m_szList[nTemp] = NULL;
+	}
 
 	delete m_szList;
+	m_szList = NULL;
+	// end change
 
 	fread(&m_bLooping,	sizeof(bool),	1, RestoreFD);
 	fread(&m_bActive,	sizeof(bool),	1, RestoreFD);
@@ -369,8 +382,11 @@ int CMIDIAudio::RestoreFrom(FILE *RestoreFD)
 
 	for(nTemp=0; nTemp<m_ListCount; nTemp++)
 	{
-		m_szList[nTemp] = new char[256];
-		fread(m_szList[nTemp], 1, strlen(m_szList[nTemp])+1, RestoreFD);
+		// changed QD 02/01/07
+		int len;
+		fread(&len, sizeof(int), 1, RestoreFD);
+		m_szList[nTemp] = new char[len];
+		fread(m_szList[nTemp], 1, len, RestoreFD);
 	}
 
 	fread(&m_Position, sizeof(int), 1, RestoreFD);

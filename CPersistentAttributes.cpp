@@ -536,19 +536,19 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 	{
 		nLen = strlen(pAttr->Name) + 1;
 
-		WRITEDATA(&nLen,					sizeof(int), 1, SaveFD);
-		WRITEDATA(pAttr->Name,				1,		  nLen, SaveFD);
-		WRITEDATA(&(pAttr->Count),			sizeof(int), 1, SaveFD);
-		WRITEDATA(&(pAttr->Value),			sizeof(int), 1, SaveFD);
-		WRITEDATA(&(pAttr->ValueLowLimit),	sizeof(int), 1, SaveFD);
-		WRITEDATA(&(pAttr->ValueHighLimit),	sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &nLen,						sizeof(int), 1, SaveFD);
+		WRITEDATA(type, pAttr->Name,				1,		  nLen, SaveFD);
+		WRITEDATA(type, &(pAttr->Count),			sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &(pAttr->Value),			sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &(pAttr->ValueLowLimit),	sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &(pAttr->ValueHighLimit),	sizeof(int), 1, SaveFD);
 // changed QD 12/15/05
-		WRITEDATA(&(pAttr->PowerUpLevel),		sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &(pAttr->PowerUpLevel),		sizeof(int), 1, SaveFD);
 // end change
-		WRITEDATA(&(pAttr->UserDataSize),		sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &(pAttr->UserDataSize),		sizeof(int), 1, SaveFD);
 
 		if(pAttr->UserDataSize != 0)
-			WRITEDATA(&(pAttr->UserData), 1, pAttr->UserDataSize, SaveFD);
+			WRITEDATA(type, &(pAttr->UserData), 1, pAttr->UserDataSize, SaveFD);
 
 		pAttr = pAttr->pNext;				// Next item
 	}
@@ -605,21 +605,21 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 
 	for(int nTemp = 0; nTemp < nInFile; nTemp++)
 	{
-		READDATA(&nLen,				sizeof(int), 1, RestoreFD);		// Tag size
-		READDATA(&szTempTag,		1,		  nLen, RestoreFD);
-		READDATA(&nCount,			sizeof(int), 1, RestoreFD);
-		READDATA(&nValue,			sizeof(int), 1, RestoreFD);
-		READDATA(&Low,				sizeof(int), 1, RestoreFD);
-		READDATA(&High,				sizeof(int), 1, RestoreFD);
+		READDATA(type, &nLen,			sizeof(int), 1, RestoreFD);		// Tag size
+		READDATA(type, &szTempTag,		1,		  nLen, RestoreFD);
+		READDATA(type, &nCount,			sizeof(int), 1, RestoreFD);
+		READDATA(type, &nValue,			sizeof(int), 1, RestoreFD);
+		READDATA(type, &Low,			sizeof(int), 1, RestoreFD);
+		READDATA(type, &High,			sizeof(int), 1, RestoreFD);
 // changed QD 12/15/05
-		READDATA(&PowerUpLevel,		sizeof(int), 1, RestoreFD);
+		READDATA(type, &PowerUpLevel,	sizeof(int), 1, RestoreFD);
 // end change
-		READDATA(&nUserDataSize,	sizeof(int), 1, RestoreFD);
+		READDATA(type, &nUserDataSize,	sizeof(int), 1, RestoreFD);
 
 		if(nUserDataSize != 0)
 		{
 			theUserData = new unsigned char[nUserDataSize];
-			READDATA(&theUserData, 1, nUserDataSize, RestoreFD);
+			READDATA(type, &theUserData, 1, nUserDataSize, RestoreFD);
 		}
 		else
 			theUserData = NULL;

@@ -732,18 +732,18 @@ int CModelManager::SaveTo(FILE *SaveFD, bool type)
 	{
 		if(MainList[nEntry] != NULL)
 		{
-			WRITEDATA(&MainList[nEntry]->ModelTime,			sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->OldModelTime,		sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->Translation,		sizeof(geVec3d),	1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->Rotation,			sizeof(geVec3d),	1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->bForward,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->bMoving,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->bLooping,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->bOneShot,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->bHasMoved,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->TLIndex,			sizeof(int),		1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->AnimStartTime,		sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(&MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->OldModelTime,	sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->Translation,		sizeof(geVec3d),	1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->Rotation,		sizeof(geVec3d),	1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->bForward,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->bMoving,			sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->bLooping,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->bOneShot,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->bHasMoved,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->TLIndex,			sizeof(int),		1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, SaveFD);
 		}
 	}
 
@@ -759,18 +759,18 @@ int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		if(MainList[nEntry] != NULL)
 		{
-			READDATA(&MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, RestoreFD);
-			READDATA(&MainList[nEntry]->OldModelTime,	sizeof(geFloat),	1, RestoreFD);
-			READDATA(&MainList[nEntry]->Translation,	sizeof(geVec3d),	1, RestoreFD);
-			READDATA(&MainList[nEntry]->Rotation,		sizeof(geVec3d),	1, RestoreFD);
-			READDATA(&MainList[nEntry]->bForward,		sizeof(bool),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->bMoving,		sizeof(bool),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->bLooping,		sizeof(bool),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->bOneShot,		sizeof(bool),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->bHasMoved,		sizeof(bool),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->TLIndex,		sizeof(int),		1, RestoreFD);
-			READDATA(&MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, RestoreFD);
-			READDATA(&MainList[nEntry]->ListWrapAround, sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->OldModelTime,		sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->Translation,		sizeof(geVec3d),	1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->Rotation,			sizeof(geVec3d),	1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->bForward,			sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->bMoving,			sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->bLooping,			sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->bOneShot,			sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->bHasMoved,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->TLIndex,			sizeof(int),		1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, RestoreFD);
 		}
 	}
 

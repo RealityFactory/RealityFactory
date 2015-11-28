@@ -43,7 +43,7 @@ qxEffectBase::qxEffectBase(char* strName)
 ,SoundMinDistance(0.0f)
 //QXVARIABLES
 {
-		
+
 	geVec3d_Clear(&Origin);
 
 }
@@ -102,7 +102,7 @@ bool qxEffectBase::TestTrigger()
 }
 
 //
-// Common frame functions. 
+// Common frame functions.
 // Returns: 0 to kill effect immediately
 //			1 to return from derived class function
 //			-1 to continue in derived class function
@@ -138,7 +138,7 @@ int qxEffectBase::Frame()
 	if(m_bPaused)
 		return 1;
 
-	return -1; 
+	return -1;
 }
 
 
@@ -156,15 +156,15 @@ void  qxEffectBase::SetOriginAndDest(geVec3d* pOrig, geVec3d* pDest)
 
 bool qxEffectBase::ActorFrame( )
 {
-	
+
 	// adjust position if it's hooked to an actor
 	if ( m_pActor )
 	{
 		geXForm3d	XForm;
-			
+
 		// get bone location
 		if(!geActor_GetBoneTransform( m_pActor, BoneName, &XForm ))
-			return 0; //Error	
+			return 0; //Error
 
 		geVec3d_Copy( &XForm.Translation, &Origin);
 
@@ -181,7 +181,7 @@ void qxEffectBase::SoundFrame()
 {
 
 }
-	
+
 //Return visible distance between camera and origin, or -1.0f if not visible
 float qxEffectBase::CheckVisibleDistance()
 {
@@ -217,9 +217,9 @@ bool qxEffectBase::AttachWorldBmp(char* pBmpName)
 	QXASSERT(!EffectC_IsStringNull(pBmpName));
 
 	//Genesis doesn't want extension
-	CString s(pBmpName);
-	s.Replace(".bmp", "");
-	m_pBmp = geWorld_GetBitmapByName(CCD->Engine()->World(), s );
+	string s = pBmpName;
+	if(s.find(".bmp") != -1) s.erase(s.find(".bmp"));
+	m_pBmp = geWorld_GetBitmapByName(CCD->Engine()->World(), s.c_str());
 	QXASSERT(m_pBmp);
 
 	return true;
@@ -250,7 +250,7 @@ bool qxEffectBase::AttachActorBmp(char* pBmpName)
 		int			i;
 		const char	*MaterialName;
 		float		R, G, B;
-	
+
 		// get actor material count
 		ActorDef = geActor_GetActorDef(m_pActor);
 		QXASSERT(ActorDef);
@@ -265,7 +265,7 @@ bool qxEffectBase::AttachActorBmp(char* pBmpName)
 		{
 			if ( !geBody_GetMaterial( Body, i, &MaterialName, &m_pBmp, &R, &G, &B ))
 				continue;
-			
+
 			if ( !strnicmp( pBmpName, MaterialName, strlen( pBmpName ) ))
 				break;
 		}

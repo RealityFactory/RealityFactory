@@ -629,12 +629,12 @@ int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
 	if(pEntry == NULL || !ValidAttr)
 		return RGF_NOT_FOUND;
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type, Value;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type, Value;
 
 	while(KeyName != "")
 	{
-		if(!strcmp(KeyName, Change))
+		if(!strcmp(KeyName.c_str(), Change))
 		{
 			Body = geActor_GetBody(pEntry->theDef);
 			MaterialCount = geActor_GetMaterialCount(pEntry->Actor);
@@ -650,7 +650,7 @@ int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
 				{
 					geBody_GetMaterial( Body, Material, &MaterialName, &Bitmap, &R, &G, &B );
 
-					if(!strcmp(Type, MaterialName))
+					if(!strcmp(Type.c_str(), MaterialName))
 					{
 						found = true;
 						break;
@@ -667,7 +667,7 @@ int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
 				{
 					geBody_GetMaterial( Body, Material, &MaterialName, &Bitmap, &R, &G, &B );
 
-					if(!strcmp(Value, MaterialName))
+					if(!strcmp(Value.c_str(), MaterialName))
 					{
 						found = true;
 						break;
@@ -1577,10 +1577,10 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor,
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
 	geActor_SetStaticLightingOptions(theActor, AmbientLightFromFloor, GE_TRUE, 6);
 
-	for(i=0; i<3; i++)
+	for(int j=0; j<3; j++)
 	{
-		if(pEntry->LODActor[i])
-			geActor_SetStaticLightingOptions(pEntry->LODActor[i], AmbientLightFromFloor, GE_TRUE, 6);
+		if(pEntry->LODActor[j])
+			geActor_SetStaticLightingOptions(pEntry->LODActor[j], AmbientLightFromFloor, GE_TRUE, 6);
 	}
 // end change
 
@@ -1651,10 +1651,10 @@ int CActorManager::ResetActorDynamicLighting(geActor *theActor)
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
 	geActor_SetStaticLightingOptions(theActor, pEntry->AmbientLightFromFloor, GE_TRUE, 6);
 
-	for(i=0; i<3; i++)
+	for(int j=0; j<3; j++)
 	{
-		if(pEntry->LODActor[i])
-			geActor_SetStaticLightingOptions(pEntry->LODActor[i], pEntry->AmbientLightFromFloor, GE_TRUE, 6);
+		if(pEntry->LODActor[j])
+			geActor_SetStaticLightingOptions(pEntry->LODActor[j], pEntry->AmbientLightFromFloor, GE_TRUE, 6);
 	}
 // end change
 
@@ -3230,6 +3230,7 @@ void CActorManager::ActorAttach(geActor *Slave,  char *SlaveBoneName,
 								geActor *Master, char *MasterBoneName,
 								const geVec3d &AttachOffset, const geVec3d &Angle)
 {
+	int Att;
 	ActorInstanceList *pEntry = LocateInstance(Slave);
 
 	if(pEntry == NULL)
@@ -3240,7 +3241,7 @@ void CActorManager::ActorAttach(geActor *Slave,  char *SlaveBoneName,
 	if(mEntry == NULL)
 		return;
 
-	for(int Att=0; Att<ATTACHACTORS; Att++)
+	for(Att=0; Att<ATTACHACTORS; Att++)
 	{
 		if(mEntry->AttachedActors[Att].AttachedActor == NULL)
 			break;
@@ -3407,9 +3408,10 @@ CPersistentAttributes *CActorManager::Inventory(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 void CActorManager::Tick(geFloat dwTicks)
 {
+	int nTemp;
 	//	Move vehicles first so that we translate all the actors
 	//	..that are passengers FIRST...
-	for(int nTemp=0; nTemp<ACTOR_LIST_SIZE; nTemp++)
+	for(nTemp=0; nTemp<ACTOR_LIST_SIZE; nTemp++)
 	{
 		// Ok, something in this entry?
 		if(MainList[nTemp] != NULL)
@@ -5455,13 +5457,14 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 	GE_Collision Collision;
 	geBoolean fMoveOK = GE_TRUE;
 	bool Result, fStepUp;
+	int Att;
 
 	CCD->Collision()->IgnoreContents(false);
 	CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1); // RGF_COLLISIONLEVEL_2
 
 	//	Start off with the infamous Collision Check.
 
-	for(int Att=0; Att<ATTACHACTORS; Att++)
+	for(Att=0; Att<ATTACHACTORS; Att++)
 	{
 		if(pEntry->AttachedActors[Att].AttachedActor != NULL)
 		{

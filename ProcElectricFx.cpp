@@ -4,6 +4,9 @@
 /*																						*/
 /****************************************************************************************/
 
+// Disable unsafe warning
+#pragma warning (disable : 4996)
+
 #include "ProcUtil.h"
 
 #define SMOOTH_WRAP GE_TRUE
@@ -225,13 +228,14 @@ static int sgn (long a)
 /* ------------------------------------------------------------------------------------ */
 // round() - This function is used by Line() to round a long to the        //
 /* ------------------------------------------------------------------------------------ */
-static int round (long a)
+static int round (geFloat a)
 {
 	if((a - (int)a) < 0.5f)
 		return (int)floor(a);
 	else
 		return (int)ceil(a);
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
@@ -268,7 +272,7 @@ static void ElectricFx_ZLine(Procedural *Fx, int a, int b, int c, int d, int32 Z
 	s = (int)(m>>1);						// s is the m distance (either x or y) divided by 2
 
 	// repeat this loop until it is = to m (y or x distance)
-	for(i=round(m); i>0; i--)
+	for(i=m; i>0; i--)
 	{
 		ElectricFx_PutZ(Fx, a, b, ZVal, ZAge);// plot a pixel at the original x1, y1
 
@@ -352,7 +356,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(x=x1; x<x2+1; x++)
 			{
-				y = round((int)(yslope*x));
+				y = round(yslope*x);
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -360,7 +364,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(x=x2; x<x1+1; x++)
 			{
-				y = round((int)(yslope*x));
+				y = round(yslope*x);
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -371,7 +375,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(y=x1; y<x2+1; y++)
 			{
-				x = round((int)(xslope*y));
+				x = round(xslope*y);
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -379,7 +383,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(y=x2; y<x1+1; y++)
 			{
-				x = round((int)(xslope*y));
+				x = round(xslope*y);
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -466,7 +470,7 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 
 		Result = Val;// - *(ZBuffer-1);
 
-		Bits[i] = min(Result + Bits[i], 255);
+		Bits[i] = (uint8)min(Result + Bits[i], 255);
 
 		if(Val > ZBuffer[1])
 			Bits[i+1] = max(Bits[i+1]-3, 0);

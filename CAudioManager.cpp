@@ -19,7 +19,9 @@
 /* ------------------------------------------------------------------------------------ */
 CAudioManager::CAudioManager()
 {
-	for(int nTemp=0; nTemp<512; nTemp++)
+	int nTemp;
+
+	for(nTemp=0; nTemp<512; nTemp++)
 		MainList[nTemp] = NULL;
 
 	m_InstanceCount = 0;

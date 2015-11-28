@@ -3,6 +3,8 @@
 /*	ProcSmoke.cpp																		*/
 /*																						*/
 /****************************************************************************************/
+// Disable unsafe warning
+#pragma warning (disable : 4996)
 
 #include "ProcUtil.h"
 
@@ -315,7 +317,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 		// Age the smoke particle
 		Result *= (int32)*ZAge;
 
-		Bits[i] = min(Result + Bits[i], 255);
+		Bits[i] = (uint8)min(Result + Bits[i], 255);
 
 		if(Val > ZBuffer[1])
 			Bits[i+1] = max(Bits[i+1]-3,0);

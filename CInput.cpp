@@ -8,6 +8,10 @@
 /*	class that encapsulates all mouse and keyboard input for							*/
 /*	RGF-based games.																	*/
 /*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- take system metrics into account (swapped mouse buttons)			*/
+/*																						*/
 /****************************************************************************************/
 
 //	You only need the one, master include file.
@@ -119,8 +123,18 @@ void CInput::Default()
 	m_WindowKeys[KEY_F11] = VK_F11;
 	m_WindowKeys[KEY_F12] = VK_F12;				m_RGFKeys[KEY_F12] = RGF_K_HELP;
 	m_WindowKeys[KEY_SYSRQ] = VK_SNAPSHOT;
-	m_WindowKeys[KEY_LBUTTON] = VK_LBUTTON;		m_RGFKeys[KEY_LBUTTON] = RGF_K_ALTFIRE;
-	m_WindowKeys[KEY_RBUTTON] = VK_RBUTTON;		m_RGFKeys[KEY_RBUTTON] = RGF_K_FIRE;
+// changed QD 02/01/07
+	if(GetSystemMetrics(SM_SWAPBUTTON))
+	{
+		m_WindowKeys[KEY_LBUTTON] = VK_RBUTTON;		m_RGFKeys[KEY_LBUTTON] = RGF_K_ALTFIRE;
+		m_WindowKeys[KEY_RBUTTON] = VK_LBUTTON;		m_RGFKeys[KEY_RBUTTON] = RGF_K_FIRE;
+	}
+	else
+	{
+		m_WindowKeys[KEY_LBUTTON] = VK_LBUTTON;		m_RGFKeys[KEY_LBUTTON] = RGF_K_ALTFIRE;
+		m_WindowKeys[KEY_RBUTTON] = VK_RBUTTON;		m_RGFKeys[KEY_RBUTTON] = RGF_K_FIRE;
+	}
+// end change
 	m_WindowKeys[KEY_MBUTTON] = 0x04; // update #2
 	m_WindowKeys[KEY_LBRACKET] = 0xdb;
 	m_WindowKeys[KEY_RBRACKET] = 0xdd;
@@ -316,6 +330,7 @@ int CInput::SaveKeymap(char *szFilename)
 		return RGF_FAILURE;										// Fatal error
 	}
 
+	// QD: why are we saving m_WindowKeys? They do not change...
 	for(int nTemp=0; nTemp<100; nTemp++)
 	{
 		fwrite(&m_WindowKeys[nTemp],	sizeof(int), 1, fd);	// Window key out
@@ -346,6 +361,19 @@ int CInput::LoadKeymap(char *szFilename)
 	}
 
 	fclose(fd);
+
+// changed QD 02/01/07
+	if(GetSystemMetrics(SM_SWAPBUTTON))
+	{
+		m_WindowKeys[KEY_LBUTTON] = VK_RBUTTON;
+		m_WindowKeys[KEY_RBUTTON] = VK_LBUTTON;
+	}
+	else
+	{
+		m_WindowKeys[KEY_LBUTTON] = VK_LBUTTON;
+		m_WindowKeys[KEY_RBUTTON] = VK_RBUTTON;
+	}
+// end change
 
 	return RGF_SUCCESS;
 }

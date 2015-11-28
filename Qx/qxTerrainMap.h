@@ -1,4 +1,4 @@
-// qxTerrainMap.h: 
+// qxTerrainMap.h:
 //
 // Original code: GenScape (c) 1999, Lucas Ackerman
 //
@@ -38,7 +38,7 @@ public:
 	virtual bool	RenderWireframe();
 	virtual int		Frame();
 
-	geBitmap*	GetTexture(int i) {  return m_pTileTextures[i]; } 
+	geBitmap*	GetTexture(int i) {  return m_pTileTextures[i]; }
 
 	inline int16	GetElementHeight( int x, int Z );
 	int16			GetElementHeightUnscaled(int x, int z );
@@ -46,7 +46,7 @@ public:
 
 	virtual	void	ShadeTexture();
 
-	
+
 	void		SetFractal(	int	nFractalMapSize,
 							int	nFractalScale,
 							int	nFractalSeed,
@@ -67,20 +67,20 @@ protected:
 	void			ShadeLambert();
 	void			ShadeGouraud();
 
-	CString			m_strHeightMap;
+	string			m_strHeightMap;
 	virtual	bool	LoadHeightMap();
 	bool			BuildTextures();
 
 
 	// data array, holds heightmap data.
 	int16*		m_pHeightMapData;	// = (Length * Width) x2 bytes per height element.
-	
+
 	void		Scale( float fScale );
 
 	int			m_nTileTextureSize;
 	int			m_nTEXTURESIZE;
 
-	
+
 	geBitmap** m_pTileTextures;
 
 	//
@@ -95,7 +95,7 @@ protected:
 	int		m_nFractalSeed;
 	float	m_fFractalHeight;
 	int		m_nFractalDefaultHeight;
-	
+
 	eHeightFieldSourceType	m_eHeightFieldSourceType;
 
 
@@ -108,7 +108,7 @@ inline void qxTerrainMap::SetElementHeight(int X, int Z, int16 Y)
 	QXASSERT(m_pHeightMapData);
 
 	m_pHeightMapData[(m_nHeightMapLength * Z) + X] =  Y;
-	
+
 }
 
 

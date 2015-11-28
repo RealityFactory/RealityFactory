@@ -93,8 +93,8 @@ void CCameraManager::Defaults()
 		exit(-1);
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type;
 
 	while(KeyName != "")
 	{

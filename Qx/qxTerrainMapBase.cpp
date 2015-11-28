@@ -55,7 +55,7 @@ qxTerrainMapBase::qxTerrainMapBase( qxTerrainDefinition& TerrainDef )
 	m_nDistanceDetail	=	CCD->TerrainMgr()->GetDistanceDetail();
 	m_pPolyPool			= 	CCD->TerrainMgr()->GetPolyPoolQX();
 	m_pVertPool			=	CCD->TerrainMgr()->GetVertPoolQX();
-	m_nLandscapeSize	= 	CCD->TerrainMgr()->GetLandscapeSize();	
+	m_nLandscapeSize	= 	CCD->TerrainMgr()->GetLandscapeSize();
 	m_nFarPlane			=	TerrainDef.m_nFarPlane;
 	m_nMapOffsetX		=	m_nMapOffsetIndexX * m_nLandscapeSize;
 	m_nMapOffsetZ		=	m_nMapOffsetIndexZ * m_nLandscapeSize;
@@ -135,7 +135,7 @@ int qxTerrainMapBase::SetDesiredPolyCount(int newCount)
 
 	if(m_nDesiredPolyCount < m_nMinPolyCount)
 		m_nDesiredPolyCount = m_nMinPolyCount;
-	
+
 	m_bUpdate = true;
 
 	return m_nDesiredPolyCount;
@@ -204,7 +204,7 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 		pVert->CurrentVert.a = SkyColor.rgba.a;
 		return;
 	}
-	
+
 	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent();
 	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
 	float fTwilightDist = CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
@@ -221,21 +221,21 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 	else
 	{
 		m_CurrentSunColor.SetRGBA(0, 0, 14.0, 255.0);
-		
+
 		// Percentage of twilight color dominance
 		// twilight -> horizon = .80
 		// horizon  -> twilight = .20
 		float fPreHorizonPercent = (fSunPercentToZenith+fTwilightDist)/ fTwilightDist;
 		fPreHorizonPercent = fPreHorizonPercent*.8f;
 		fPreHorizonPercent = GE_CLAMP(fPreHorizonPercent, 0.0f, .8f);
-		
+
 		// horizon to twilight
 		float fPostHorizonPercent = fSunPercentToZenith/ fTwilightDist;
 		fPostHorizonPercent = fPostHorizonPercent * .2f;
 		fPostHorizonPercent = GE_CLAMP(fPostHorizonPercent, 0.0f, .2f);
-		
+
 		m_fSunIntensity = fPreHorizonPercent;
-		
+
 		if( fTwilightPercent > .50f )
 		{
 			m_fSunIntensity += fPostHorizonPercent;
@@ -250,7 +250,7 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 		m_CurrentSunColor.SetS(s);
 	}
 
-	float fDist = geVec3d_DistanceBetween(	&pSun->Origin, 
+	float fDist = geVec3d_DistanceBetween(	&pSun->Origin,
 		((geVec3d*)&(pVert->CurrentVert.X)));
 
 	if( fDist != 0.0f )
@@ -260,7 +260,7 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 		fDistClamped = GE_CLAMP(fDistClamped, 0.0f, 1.0f);
 
 		qxColor SkyColor(m_CurrentVertColor);
-		
+
 		// Increase the saturation farther away
 
 		float s = SkyColor.GetS();
@@ -280,35 +280,35 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 			pVert->CurrentVert.b = SkyColor.rgba.b;
 			pVert->CurrentVert.a = SkyColor.rgba.a;
 		}
-	
+
 		// Add in the sunlight glare
 		// Weakening influence the closer to the end of twilight
 		else
 		{
-			
+
 			pVert->CurrentVert.r = SkyColor.rgba.r*m_fSunIntensity;
 			pVert->CurrentVert.g = SkyColor.rgba.g*m_fSunIntensity;
 			pVert->CurrentVert.b = SkyColor.rgba.b * m_fSunIntensity;
 			pVert->CurrentVert.a = SkyColor.rgba.a;
-						
+
 			float fIntensity = ( fDist*( 1.0f-m_fSunIntensity) );
 
 			pVert->CurrentVert.r = GE_CLAMP8(pVert->CurrentVert.r +
 				(m_fSunIntensity*
 				(m_CurrentSunColor.rgba.r * fIntensity )
 				) );
-			
+
 			pVert->CurrentVert.g = GE_CLAMP8( pVert->CurrentVert.g +
 				(m_fSunIntensity*
 				(m_CurrentSunColor.rgba.g * fIntensity )
 				) );
-			
+
 			pVert->CurrentVert.b = GE_CLAMP8( pVert->CurrentVert.b +
 				(m_fSunIntensity*
 				(m_CurrentSunColor.rgba.b * fIntensity )
 				));
-		  } 
-	} 
+		  }
+	}
 }
 
 void qxTerrainMapBase::LightVertex(qxTerrainVert* pVert)
@@ -341,7 +341,7 @@ int qxTerrainMapBase::SetDistanceDetail(int newDetail)
 		m_nDistanceDetail = MAX_DISTANCE_DETAIL;
 
 	m_bUpdate = true;
-	
+
 	return m_nDistanceDetail;
 }
 
@@ -366,34 +366,34 @@ int	qxTerrainMapBase::Frame()
 
 
 	//
-	//	if we want to re-triangulate from scratch 
+	//	if we want to re-triangulate from scratch
 	//	instead of split/merge progressively
 	//
 	if( m_bUpdate )
 	{
 		m_bUpdate = false;
-		
+
 		//
 		// reset mesh to base triangulation
 		//
 
 		// Clear Split Queue (Qs)
 		m_pSplitQueue->Clear();
-		
+
 		// Clear Merge Queue (Qm)
 		m_pMergeQueue->Clear();
-		
+
 		// fill Split & Merge Queues, and recompute all queue node priorities
-		// do this stuff 
+		// do this stuff
 		// force all bintritree's into the base-triangulation with some recursive fn
 		// then add all base tri's to Qs
 
-		// fix up all base grid neighbor pointers, 
+		// fix up all base grid neighbor pointers,
 		// after trees are cleared, and put tri's back in Qs
 		ResetBaseTiles();
 
 		UpdateViewFrustrum();
-		
+
 		m_pSplitQueue->UpdatePriorities( m_nNearestIsHighest );
 	}
 
@@ -406,7 +406,7 @@ int	qxTerrainMapBase::Frame()
 
 	// Optimization: Adjust desired poly count for distance from camera JT
 	int nDesiredPolyCount = m_nDesiredPolyCount;
-	
+
 	if(	m_fNearestDistanceToCamera > m_fNormalDistanceToCamera )
 	{
 		float fPercent = m_fNormalDistanceToCamera / m_fNearestDistanceToCamera;
@@ -417,7 +417,7 @@ int	qxTerrainMapBase::Frame()
 	}
 
 
-	
+
 	qxTerrainPoly* pTerrainPoly;
 
 	int MergePriority = 0;
@@ -444,20 +444,20 @@ int	qxTerrainMapBase::Frame()
 	// loop until mesh is optimal
 	// max split priority is > min merge priority, and mesh is at desired density
 	int i = 0;
-	
+
 	while(	(  (SplitPriority > MergePriority )
 			|| (m_nPolyCount < nDesiredPolyCount) )
 			&& i < 1000 )
 	{	// we must keep updating the mesh
 
-		// put a max limit on updates per frame.  
+		// put a max limit on updates per frame.
 		// lest we hit a degenerate case where it loops forever - this CAN happen.
 		i++;
 
 		/////////////////////////////////////////////////////////////////
 		// too many polys - mesh is too dense, or has reached max poly count
 		/////////////////////////////////////////////////////////////////
-		if(m_nPolyCount > nDesiredPolyCount)  
+		if(m_nPolyCount > nDesiredPolyCount)
 		{
 			// find lowest priority node (can be diamond or a single edge tri) in Qm
 
@@ -480,15 +480,15 @@ int	qxTerrainMapBase::Frame()
 
 			// add newly mergable diamonds to MergeQueue
 
-			// need parent pointer, check if all children of each parent 
+			// need parent pointer, check if all children of each parent
 			// and parent->BN of the tri's
-			// (pTerrainPoly, and pTerrainPoly->m_pBottomNeighbor, if it exists) 
+			// (pTerrainPoly, and pTerrainPoly->m_pBottomNeighbor, if it exists)
 			// are active, if so, put em in MergeQueue
 
-			// each parent of pTerrainPoly and pTerrainPoly->BN needs 
+			// each parent of pTerrainPoly and pTerrainPoly->BN needs
 			// to be tested with its children and BN to see if its a mergable diamond
 
-			// pTerrainPoly is only a child of a mergable diamond if it's 
+			// pTerrainPoly is only a child of a mergable diamond if it's
 			// got a parent (ie, isn't the root tri)
 			if(pTerrainPoly->m_pParent != NULL)
 			{
@@ -497,35 +497,35 @@ int	qxTerrainMapBase::Frame()
 				// if the pTerrainPoly's parent is only half of a diamond
 				if(pTerrainPoly->m_pParent->m_pBottomNeighbor == NULL)
 				{
-					if(		(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive) 	
+					if(		(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive)
 						&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive) )
 						m_pMergeQueue->InsertDiamond(pTerrainPoly->m_pParent);
 				}
 				// else, make sure the whole diamond is mergable
-		
+
 				else	// pTerrainPoly->m_pParent->m_pBottomNeighbor != NULL
 				{
 							// tri's parent and parent's BN must be each other's BN
 					if(		(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pBottomNeighbor == pTerrainPoly->m_pParent)
-						&&	(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive) 	
-						&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive) 
-						&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pLeftChild->m_bActive) 	
+						&&	(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive)
+						&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive)
+						&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pLeftChild->m_bActive)
 						&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pRightChild->m_bActive) )
-						
+
 							m_pMergeQueue->InsertDiamond(pTerrainPoly->m_pParent);
 				}
-			
+
 
 				// then check same for pTerrainPoly->bn
 				// BN->BN is always == pTerrainPoly, cause BN was just merged
-				if(pTerrainPoly->m_pBottomNeighbor != NULL)	
+				if(pTerrainPoly->m_pBottomNeighbor != NULL)
 				{
 					pTerrainPoly = pTerrainPoly->m_pBottomNeighbor;
 
 					// rest is same as above for this bn tri (which was just merged).
 					if(pTerrainPoly->m_pParent->m_pBottomNeighbor == NULL)
 					{
-						if(		(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive) 	
+						if(		(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive)
 							&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive) )
 							m_pMergeQueue->InsertDiamond(pTerrainPoly->m_pParent);
 					}
@@ -534,15 +534,15 @@ int	qxTerrainMapBase::Frame()
 					{
 						// tri's parent and parent's BN must be each other's BN
 						if(		(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pBottomNeighbor == pTerrainPoly->m_pParent)
-							&&	(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive ) 	
-							&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive ) 
-							&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pLeftChild->m_bActive) 	
+							&&	(pTerrainPoly->m_pParent->m_pLeftChild->m_bActive )
+							&&	(pTerrainPoly->m_pParent->m_pRightChild->m_bActive )
+							&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pLeftChild->m_bActive)
 							&&	(pTerrainPoly->m_pParent->m_pBottomNeighbor->m_pRightChild->m_bActive) )
 							m_pMergeQueue->InsertDiamond(pTerrainPoly->m_pParent);
 					}
-				}//if(pTerrainPoly->m_pBottomNeighbor != NULL)	
+				}//if(pTerrainPoly->m_pBottomNeighbor != NULL)
 			}//	if(pTerrainPoly->Parent != NULL)
-		}//if(m_nPolyCount > nDesiredPolyCount)  
+		}//if(m_nPolyCount > nDesiredPolyCount)
 
 		/////////////////////////////////////////////////////////////////
 		// need more triangles, split some
@@ -555,7 +555,7 @@ int	qxTerrainMapBase::Frame()
 			QXASSERT(pTerrainPoly->m_bActive);
 
 			// don't split 0-priority pTerrainPoly's!
-			// if we hit 0 here, then we're at the max triangulation 
+			// if we hit 0 here, then we're at the max triangulation
 			// possible for the current view
 			if(pSplitQueueNode->m_nPriority == 0)
 				break;
@@ -563,10 +563,10 @@ int	qxTerrainMapBase::Frame()
 			// split the tri
 			// m_pSplitList keeps track of newly split tris.  see Split2().
 			// there should be NOTHING in the split list before a split
-			QXASSERT(m_pSplitList == NULL);		
+			QXASSERT(m_pSplitList == NULL);
 			Split( pTerrainPoly );
 			// now Split_List is a list of all tris that were force split
-			QXASSERT(m_pSplitList != NULL);		
+			QXASSERT(m_pSplitList != NULL);
 
 			//
 			// update queues
@@ -593,7 +593,7 @@ int	qxTerrainMapBase::Frame()
 			// add newly mergable diamonds to Qm
 			m_pMergeQueue->InsertDiamond(pTerrainPoly);
 			// note: any that were force-split as a result of Split(tri), aren't mergable
-		
+
 		} // split some
 
 		// get newest high & low nodes
@@ -620,12 +620,12 @@ bool qxTerrainMapBase::Render()
 
 	geTClip_Push();
 
-	geTClip_SetupEdges(CCD->Engine()->Engine(), 
-						(float)Rect.Left, 
-						(float)Rect.Right, 
-						(float)Rect.Top, 
-						(float)Rect.Bottom, 
-						1.0f); 
+	geTClip_SetupEdges(CCD->Engine()->Engine(),
+						(float)Rect.Left,
+						(float)Rect.Right,
+						(float)Rect.Top,
+						(float)Rect.Bottom,
+						1.0f);
 
 	//
 	// transform & project all base verts
@@ -636,8 +636,8 @@ bool qxTerrainMapBase::Render()
 
 	while( pVert != NULL)
 	{
-		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), 
-									(geVec3d *)&(pVert->CurrentVert), 
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(),
+									(geVec3d *)&(pVert->CurrentVert),
 									(geVec3d *) &(pVert->ProjectedVert));
 
 		pVert = pVert->m_pNext;
@@ -645,41 +645,46 @@ bool qxTerrainMapBase::Render()
 
 
 	geTClip_SetRenderFlags( m_nRenderFlags );
+
 	CCD->TerrainMgr()->SetRender( m_nRenderFlags );
-											
+
 	//
 	// render all polys
 	//
 	for(int i = 0; i < m_nTilesCountTotal; i++)
 	{
 		//
-		//	if either base-tri in the tile is !VF_Out, 
+		//	if either base-tri in the tile is !VF_Out,
 		//	then switch textures & render tri's.
-		//	else, skip em, so we dont do _SetTexture() 
+		//	else, skip em, so we dont do _SetTexture()
 		//	when nothing with the texture is rendered
 		//
-		
+
 		if( 	!( (m_ppBaseTiles[i])->IsLBRootOut() ) ||
 				!( (m_ppBaseTiles[i])->IsRTRootOut() ) )
 		{
 
 			CCD->TerrainMgr()->SetTexture(GetTexture(i));
 
+
 			geTClip_SetTexture( GetTexture(i) );
+
 			m_ppBaseTiles[i]->LBRender();
 			m_ppBaseTiles[i]->RTRender();
 		}
 	}
 
+
 	geTClip_Pop();
 
+	// end change
 	return true;
 }
 
 
 
 bool qxTerrainMapBase::RenderWireframe()
-{	
+{
 
 	qxTerrainVert* pVert = m_pVertList;
 
@@ -688,19 +693,19 @@ bool qxTerrainMapBase::RenderWireframe()
 
 	geTClip_Push();
 
-	geTClip_SetupEdges(CCD->Engine()->Engine(), 
-						(float)Rect.Left, 
-						(float)Rect.Right, 
-						(float)Rect.Top, 
-						(float)Rect.Bottom, 
+	geTClip_SetupEdges(CCD->Engine()->Engine(),
+						(float)Rect.Left,
+						(float)Rect.Right,
+						(float)Rect.Top,
+						(float)Rect.Bottom,
 						1.0);
 
 
 	while(pVert != NULL)
 	{
 		LightVertexWireFrame(pVert);
-		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), 
-										(geVec3d *)&(pVert->CurrentVert), 
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(),
+										(geVec3d *)&(pVert->CurrentVert),
 										(geVec3d *)&(pVert->ProjectedVert));
 		pVert = pVert->m_pNext;
 	}
@@ -717,7 +722,7 @@ bool qxTerrainMapBase::RenderWireframe()
 		if( 	!( (m_ppBaseTiles[i])->IsLBRootOut() )  ||
 				!( (m_ppBaseTiles[i])->IsRTRootOut() )  )
 		{
-			
+
 			geTClip_SetTexture( NULL );
 			(m_ppBaseTiles[i])->LBRenderWireFrame();
 			(m_ppBaseTiles[i])->RTRenderWireFrame();
@@ -736,7 +741,7 @@ void qxTerrainMapBase::UpdateViewFrustrum()
 {
 	geVec3d thePosition;
 	CCD->CameraManager()->GetPosition(&thePosition);
-	const geVec3d* pCameraPosition = &thePosition; 
+	const geVec3d* pCameraPosition = &thePosition;
 
 	geRect Rect;				// screenspace clipping rect
 	geVec3d TL, TR, BL, BR;		// top/bottom, left/right screen corner vects, in world space
@@ -746,7 +751,7 @@ void qxTerrainMapBase::UpdateViewFrustrum()
 
 	geCamera_GetClippingRect(CCD->CameraManager()->Camera(), &Rect);
 
-	// project verts from corners of viewing rect, 
+	// project verts from corners of viewing rect,
 	// use these to get a point & normal (plane) for each halfspace
 
 	// top left
@@ -774,10 +779,10 @@ void qxTerrainMapBase::UpdateViewFrustrum()
 
 	// 6 points on the 6 halfspace planes
 
-	FrustrumLeft = TL;		
-	FrustrumRight = TR;		
-	FrustrumTop = TR;		
-	FrustrumBottom = BR;	
+	FrustrumLeft = TL;
+	FrustrumRight = TR;
+	FrustrumTop = TR;
+	FrustrumBottom = BR;
 	FrustrumNear = TL;
 	FrustrumFar = TLF;
 
@@ -859,10 +864,10 @@ inline qxTerrainPoly* qxTerrainMapBase::AllocatePoly()
 
 void qxTerrainMapBase::ResetBaseTiles()
 {
-
+	int i;
 	m_nPolyCount = m_nMinPolyCount;
 
-	for(int i = 0; i < m_nTilesCountTotal; i++)
+	for(i = 0; i < m_nTilesCountTotal; i++)
 	{
 		// clear grid-tile sub trees (also sets Root_pPoly->m_bActive = GE_TRUE)
 		m_ppBaseTiles[i]->Reset();
@@ -871,9 +876,9 @@ void qxTerrainMapBase::ResetBaseTiles()
 		m_pSplitQueue->InsertTerrainPoly( m_ppBaseTiles[i]->LBGetTerrainPoly() );
 		m_pSplitQueue->InsertTerrainPoly( m_ppBaseTiles[i]->RTGetTerrainPoly() );
 	}
-	
+
 	// relink grid-tiles
-	for( i = 0; i < m_nTilesCountX; i++)	// horiz
+	for(i = 0; i < m_nTilesCountX; i++)	// horiz
 	{
 		for(int j = 0; j < m_nTilesCountZ; j++)	// vert
 		{
@@ -893,13 +898,13 @@ void qxTerrainMapBase::ResetBaseTiles()
 
 void qxTerrainMapBase::Split(qxTerrainPoly* pPoly)
 {
-	// these QXASSERTs make SURE that we are splitting 
+	// these QXASSERTs make SURE that we are splitting
 	// a tri that isnt already split
 	QXASSERT( pPoly->m_bActive );
 	QXASSERT( !pPoly->m_pLeftChild);
 	QXASSERT( !pPoly->m_pRightChild);
 
-	if (pPoly->m_pBottomNeighbor) 
+	if (pPoly->m_pBottomNeighbor)
 	{
 
 		if (pPoly->m_pBottomNeighbor->m_pBottomNeighbor != pPoly)
@@ -912,7 +917,7 @@ void qxTerrainMapBase::Split(qxTerrainPoly* pPoly)
 		QXASSERT(pPoly->m_pBottomNeighbor->m_pBottomNeighbor == pPoly);
 
 		Split2(pPoly, false);
-		
+
 		// use 3 instead of 2.  does less work, uses ->BN info already calc'd in split2
 		Split2(pPoly->m_pBottomNeighbor, true);
 
@@ -947,12 +952,12 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 
 	// create sub vert
 	pPoly->m_pSubVert = AllocateVert();
-	
+
 	if( bCopy )
 	{
 		// copy vert from bottom neighbor, instead of calc'ing all the stuff
 		*(pPoly->m_pSubVert) = *(pPoly->m_pBottomNeighbor->m_pSubVert);
-		
+
 		// texture coords can't be copied, because ->BN may reside on another texture
 		pPoly->m_pSubVert->CurrentVert.u = (pPoly->m_pLeftVert->CurrentVert.u + pPoly->m_pRightVert->CurrentVert.u) / 2;
 		pPoly->m_pSubVert->CurrentVert.v = (pPoly->m_pLeftVert->CurrentVert.v + pPoly->m_pRightVert->CurrentVert.v) / 2;
@@ -960,22 +965,22 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 	}
 	else
 	{
-		pPoly->m_pSubVert->CurrentVert.X = 
+		pPoly->m_pSubVert->CurrentVert.X =
 			(pPoly->m_pLeftVert->CurrentVert.X + pPoly->m_pRightVert->CurrentVert.X) / 2;
-		pPoly->m_pSubVert->CurrentVert.Z = 
+		pPoly->m_pSubVert->CurrentVert.Z =
 			(pPoly->m_pLeftVert->CurrentVert.Z + pPoly->m_pRightVert->CurrentVert.Z) / 2;
-		
+
 		// texture coords
-		pPoly->m_pSubVert->CurrentVert.u = 
+		pPoly->m_pSubVert->CurrentVert.u =
 			(pPoly->m_pLeftVert->CurrentVert.u + pPoly->m_pRightVert->CurrentVert.u) / 2;
-		pPoly->m_pSubVert->CurrentVert.v = 
+		pPoly->m_pSubVert->CurrentVert.v =
 			(pPoly->m_pLeftVert->CurrentVert.v + pPoly->m_pRightVert->CurrentVert.v) / 2;
-		
+
 		// heightmap coords
 		pPoly->m_pSubVert->hX = (pPoly->m_pLeftVert->hX + pPoly->m_pRightVert->hX) / 2;
 		pPoly->m_pSubVert->hZ = (pPoly->m_pLeftVert->hZ + pPoly->m_pRightVert->hZ) / 2;
-		
-		//pPoly->m_pSubVert->CurrentVert.Y = 
+
+		//pPoly->m_pSubVert->CurrentVert.Y =
 			//GetElementHeight(pPoly->m_pSubVert->hX, pPoly->m_pSubVert->hZ);
 		if(!SetCurrentVertHeight(pPoly->m_pSubVert))
 			pPoly->m_pSubVert->CurrentVert.Y = (pPoly->m_pLeftVert->CurrentVert.Y
@@ -983,7 +988,7 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 
 		//JJT
 		//pPoly->Owner_Landscape->CalculateVertexLighting( pPoly->m_pSubVert );
-	
+
 
 	}// no copy
 
@@ -1007,7 +1012,7 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 	pPoly->m_pRightChild->m_pTerrainMap = this;
 
 	// for variance lookup, needs to know owner tree
-	pPoly->m_pLeftChild->m_pOwnerTree = pPoly->m_pOwnerTree;	
+	pPoly->m_pLeftChild->m_pOwnerTree = pPoly->m_pOwnerTree;
 	pPoly->m_pRightChild->m_pOwnerTree = pPoly->m_pOwnerTree;
 
 	// assign verts
@@ -1036,7 +1041,7 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 
 	pPoly->m_pLeftChild->m_pBottomNeighbor = pPoly->m_pLeftNeighbor;
 
-	if(pPoly->m_pLeftNeighbor != NULL) 
+	if(pPoly->m_pLeftNeighbor != NULL)
 	{
 		if(pPoly->m_pLeftNeighbor->m_pBottomNeighbor == pPoly)
 		{
@@ -1076,7 +1081,7 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 		}
 	}
 
- 
+
 	// put children in split queue
 	m_pSplitQueue->InsertTerrainPoly(pPoly->m_pLeftChild);
 	m_pSplitQueue->InsertTerrainPoly(pPoly->m_pRightChild);
@@ -1180,16 +1185,15 @@ bool qxTerrainMapBase::InitBaseVerts()
 			// hmap coords
 			Vert->hX = i * m_nHeightElementsPerTile;
 			Vert->hZ = j * m_nHeightElementsPerTile;
-			
+
 			// world coords
 			Vert->CurrentVert.X = (float)(i * m_nTileSize)	+ m_nMapOffsetX;
 			Vert->CurrentVert.Z = (float)(j * m_nTileSize)	+ m_nMapOffsetZ;
-			Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ); 
-			
+			Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ);
+
 			Vert->CurrentVert.u = (float)i;	// 0 to 1
 			Vert->CurrentVert.v = (float)j;
-			
-			
+
 			// shuffle verts around each time.  after the loop, these will be ordered correctly
 			TL = BL;
 			BL = TR;
@@ -1200,7 +1204,7 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 	// upper-left corner tile
 	m_ppBaseTiles[0] = new qxTerrainTile(this, TL, TR, BL, BR);
-	
+
 	//add these 4 verts to the landscape base-grid vert list
 	m_pVertList = TL;
 	TL->m_pNext = TR;
@@ -1237,7 +1241,7 @@ bool qxTerrainMapBase::InitBaseVerts()
 		Vert = new qxTerrainVert();
 
 		Vert->hX = (i + 1) * m_nHeightElementsPerTile;
-		Vert->hZ = 0; 
+		Vert->hZ = 0;
 
 		Vert->CurrentVert.X = (float)((i + 1) * m_nTileSize)+ m_nMapOffsetX;
 		Vert->CurrentVert.Z = (float)0 + m_nMapOffsetZ;
@@ -1245,7 +1249,6 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 		Vert->CurrentVert.u = 1;	// 0 to 1
 		Vert->CurrentVert.v = 0;
-
 
 		TR = Vert;
 
@@ -1265,14 +1268,13 @@ bool qxTerrainMapBase::InitBaseVerts()
 		Vert->CurrentVert.u = 1;	// 0 to 1
 		Vert->CurrentVert.v = 1;
 
-
 		BR = Vert;
 
 		BR->m_pNext = m_pVertList;
 		m_pVertList = BR;
 
 		m_ppBaseTiles[i] = new qxTerrainTile(this, TL, TR, BL, BR);
-		
+
 		// link left
 		(m_ppBaseTiles[i])->LinkLeft(m_ppBaseTiles[i - 1]);
 	}
@@ -1316,7 +1318,6 @@ bool qxTerrainMapBase::InitBaseVerts()
 		Vert->CurrentVert.u = 0;	// 0 to 1
 		Vert->CurrentVert.v = 1;
 
-
 		BL = Vert;
 
 		BL->m_pNext = m_pVertList;
@@ -1330,11 +1331,10 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 		Vert->CurrentVert.X = (float)((i + 1) * m_nTileSize) + m_nMapOffsetX;
 		Vert->CurrentVert.Z = (float)((j+1) * m_nTileSize) + m_nMapOffsetZ;
-		Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ); 
+		Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ);
 
 		Vert->CurrentVert.u = 1;	// 0 to 1
 		Vert->CurrentVert.v = 1;
-
 
 		BR = Vert;
 
@@ -1343,7 +1343,7 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 
 		m_ppBaseTiles[j * m_nTilesCountX + i] = new qxTerrainTile(this, TL, TR, BL, BR);
-					 
+
 
 		// link top
 		(m_ppBaseTiles[j * m_nTilesCountX + i])->LinkTop(m_ppBaseTiles[(j-1) * m_nTilesCountX + i]);
@@ -1393,11 +1393,10 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 		Vert->CurrentVert.X = (float)((i + 1) * m_nTileSize)+ m_nMapOffsetX;
 		Vert->CurrentVert.Z = (float)((j+1) * m_nTileSize) + m_nMapOffsetZ;
-		Vert->CurrentVert.Y = (float)GetElementHeight(Vert->hX, Vert->hZ); 
+		Vert->CurrentVert.Y = (float)GetElementHeight(Vert->hX, Vert->hZ);
 
 		Vert->CurrentVert.u = 1.0;	// 0 to 1
 		Vert->CurrentVert.v = 1.0;
-
 
 		BR = Vert;
 
@@ -1405,7 +1404,7 @@ bool qxTerrainMapBase::InitBaseVerts()
 		m_pVertList = BR;
 
 		m_ppBaseTiles[j * m_nTilesCountX + i] = new qxTerrainTile(this, TL, TR, BL, BR);
-			
+
 		// link left and link top
 		(m_ppBaseTiles[j * m_nTilesCountX + i])->LinkTop(m_ppBaseTiles[(j-1) * m_nTilesCountX + i]);
 		(m_ppBaseTiles[j * m_nTilesCountX + i])->LinkLeft(m_ppBaseTiles[j * m_nTilesCountX + (i-1)]);
@@ -1423,11 +1422,11 @@ bool qxTerrainMapBase::InitBaseVerts()
 //
 //	calc the surface normal of a heightfield element.
 //	this DOES take into account the worldspace mapping of the heightfield elements,
-//	so if you stretch a heightfield far horizontally, 
+//	so if you stretch a heightfield far horizontally,
 //	the normals will reflect this properly.
 //
 //	X,Z are HEIGHTMAP coords, not world coords.
-//	
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 void qxTerrainMapBase::GetSurfaceNormal(int X, int Z, geVec3d* Normal)
@@ -1451,7 +1450,7 @@ void qxTerrainMapBase::GetSurfaceNormal(int X, int Z, geVec3d* Normal)
 
 	if(Z == m_nHeightMapLength - 1)
 		south = GetElementHeight(X, Z);
-	else 
+	else
 		south = GetElementHeight(X, Z + 1);
 
 	if(X == 0)

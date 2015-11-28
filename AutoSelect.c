@@ -6,6 +6,9 @@
 /*  Description:    Attempts to automatically choose a good video mode                  */
 /*                                                                                      */
 /*  Edit History:                                                                       */
+/*  =============                                                                       */
+/*  02/01/07 QD:    - replaced MFC, VC++ 2005 compatibility                             */
+/*                  - set driver selection window topmost                               */
 /*                                                                                      */
 /*  Copyright (c) 1999 WildTangent, Inc.; All rights reserved.                          */
 /*                                                                                      */
@@ -184,6 +187,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 					DriverType = MODELIST_TYPE_D3D_SECONDARY;
 			}
 		}
+		/*
 		else if(strstr(DriverName, "GLIDE")!=NULL)
 		{
 			DriverType = MODELIST_TYPE_GLIDE;
@@ -192,6 +196,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 		{
 			DriverType = MODELIST_TYPE_SOFTWARE;
 		}
+		*/
 		else
 		{
 			DriverType = MODELIST_TYPE_UNKNOWN;
@@ -237,7 +242,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 				dinfo->Evaluation = MODELIST_EVALUATED_TRIED_FAILED;
 			}
 
-			if((dinfo->Width <= 640) && (dinfo->Height <= 480))
+			if((dinfo->Width <= 1024) && (dinfo->Height <= 768) && (dinfo->Width > 320) && (dinfo->Height > 240))
 			{
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 			}
@@ -430,12 +435,12 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 	{
 	case WM_INITDIALOG:
 		{
-			HWND			DriverListBox;
-			HDC				hDC;
-			int				MaxCX;
-			SIZE			extents;
-			int				DriverNumber;
-			int				i,j;
+			HWND	DriverListBox;
+			HDC		hDC;
+			int		MaxCX;
+			SIZE	extents;
+			int		DriverNumber;
+			int		i,j;
 
 			DriverListBox = GetDlgItem(hwndDlg, IDC_DRIVERLIST);
 			hDC = GetDC(DriverListBox);
@@ -483,6 +488,24 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			ReleaseDC(DriverListBox, hDC);
 
 			DrvList_FillModeList(hwndDlg,0,DL);
+
+			// changed QD 02/01/07
+			// position the dialog in the center of the desktop and set it as topmost window
+			{
+				RECT	ScreenRect, DlgRect;
+				GetWindowRect(GetDesktopWindow(), &ScreenRect);
+				GetWindowRect(hwndDlg, &DlgRect);
+
+				SetWindowPos
+				(
+					hwndDlg, HWND_TOPMOST,
+					(ScreenRect.right+ScreenRect.left)/2 - (DlgRect.right - DlgRect.left)/2,
+					(ScreenRect.bottom+ScreenRect.top)/2 - (DlgRect.bottom - DlgRect.top)/2,
+					1, 1, SWP_NOSIZE
+				);
+				UpdateWindow(hwndDlg);
+			}
+			// end change
 
 			return TRUE;
 		}
@@ -571,7 +594,7 @@ geBoolean DrvList_PickDriver(HANDLE hInstance, HWND hwndParent,
 		return GE_TRUE;
 	}
 
-	return FALSE;
+	return GE_FALSE;
 }
 
 /* ------------------------------------------------------------------------------------ */

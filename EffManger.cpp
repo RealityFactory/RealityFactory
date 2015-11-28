@@ -12,8 +12,6 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
-#include <string.h>
-#include <stdlib.h>
 
 extern Particle_System*  Particle_SystemCreate(geWorld *World);
 extern void Particle_SystemDestroy(Particle_System *ps);

@@ -2,10 +2,8 @@
 #include "qxTerrainDefinitionFile.h"
 
 qxTerrainDefinitionFile::qxTerrainDefinitionFile( const char* pFileName )
-:CStdioFile()
-,m_pTerrainDef(0)
 {
-
+	m_pTerrainDef = 0;
 }
 
 qxTerrainDefinitionFile::~qxTerrainDefinitionFile()

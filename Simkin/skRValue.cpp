@@ -19,7 +19,12 @@
   $Id: skRValue.cpp,v 1.22 2003/04/14 15:24:57 simkin_cvs Exp $
 */
 #ifdef STREAMS_ENABLED
+#ifdef STL_STREAMS
+#include <ostream>
+using namespace std;
+#else
 #include <ostream.h>
+#endif
 #endif
 #include "skRValue.h"
 #include "skExecutable.h"

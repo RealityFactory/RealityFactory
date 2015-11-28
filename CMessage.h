@@ -15,8 +15,8 @@
 
 typedef struct MessageText
 {
-	CString Text;
-	CString Name;
+	string Text;
+	string Name;
 
 } MessageText;
 
@@ -72,10 +72,10 @@ public:
 	void LoadText(char *messagetxt);
 
 private:
-	CString GetText(char *Name);
+	string GetText(char *Name);
 
 private:
-	CArray<MessageText, MessageText> Text;
+	vector<MessageText> Text;
 	CIniFile AttrFile;
 	bool active;
 };

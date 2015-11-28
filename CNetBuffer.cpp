@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include <malloc.h>
-#include <memory.h>
+#include <memory>
 #include <tchar.h>
 #include "genesis.h"
 #include "CNetBuffer.h"

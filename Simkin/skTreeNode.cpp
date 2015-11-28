@@ -19,7 +19,7 @@
   $Id: skTreeNode.cpp,v 1.43 2003/11/20 16:24:22 sdw Exp $
 */
 
-#include <string.h>
+#include <string>
 #include "skTreeNode.h"
 #include <stdlib.h>
 #include <stdio.h>

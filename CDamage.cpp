@@ -374,7 +374,7 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 	{
 		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -401,7 +401,7 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
+		READDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
     }
 
 	return RGF_SUCCESS;

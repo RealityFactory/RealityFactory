@@ -223,10 +223,10 @@ int CCountDown::SaveTo(FILE *SaveFD, bool type)
 	{
 		CountDownTimer *pSource = (CountDownTimer*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pSource->active,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->bState,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->OldState,	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->Time,		sizeof(float),		1, SaveFD);
+		WRITEDATA(type, &pSource->active,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->bState,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->OldState,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->Time,		sizeof(float),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -254,10 +254,10 @@ int CCountDown::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		CountDownTimer *pSource = (CountDownTimer*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pSource->active,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->bState,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->OldState,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->Time,		sizeof(float),		1, RestoreFD);
+		READDATA(type, &pSource->active,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->bState,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->OldState,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->Time,		sizeof(float),		1, RestoreFD);
     }
 
 	return RGF_SUCCESS;

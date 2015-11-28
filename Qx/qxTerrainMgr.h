@@ -1,9 +1,15 @@
-// qxTerrainMgr.h: 
-//
-// Author: Jeff Thelen
-//
-// Copyright 2000 Quixotic, Inc.  All Rights Reserved.
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************/
+/*	qxTerrainMgr.h:																		*/
+/*																						*/
+/*	Author: Jeff Thelen																	*/
+/*																						*/
+/*	Copyright 2000 Quixotic, Inc.  All Rights Reserved.									*/
+/*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- added skxdome Y offset											*/
+/*																						*/
+/****************************************************************************************/
 
 #ifndef QX_TERRAIN_MGR_H
 #define QX_TERRAIN_MGR_H
@@ -81,6 +87,9 @@ public:
 	float GetScaleY()				{ return m_fScaleY; }
 	float GetScaleXZ()				{ return m_fScaleXZ; }
 	int GetOffsetY()				{ return m_OffsetY; }
+	// changed QD 02/01/07
+	int GetSkyDomeOffsetY()			{ return m_SkyDomeOffsetY; }
+	// end change
 	int GetShadingMethod()			{ return m_nShadingMethod; }
 	int GetDistanceDetail()			{ return m_nDistanceDetail; }
 	gePixelFormat GetPixelFormatFinal() { return m_PixelFormatFinal; }
@@ -92,12 +101,15 @@ public:
 	bool GetAllowSkyFog()			{ return skyfog; }
 	void SetAllowSkyFog(bool flag)	{ skyfog = flag; }
 
-	void SetSunScale(float value)		{m_SunScale = value; }
-	void SetScaleY(float value)		{m_fScaleY = value; }
-	void SetScaleXZ(float value)	{m_fScaleXZ = value; }
-	void SetOffsetY(int value)	{m_OffsetY = value; }
-	void SetDesiredTriangles(int value)	{m_nDesiredTriangles = value; }
-	void SetLandscapeSize(int value)	{m_nLandscapeSize = value; }
+	void SetSunScale(float value)	{ m_SunScale = value; }
+	void SetScaleY(float value)		{ m_fScaleY = value; }
+	void SetScaleXZ(float value)	{ m_fScaleXZ = value; }
+	void SetOffsetY(int value)		{ m_OffsetY = value; }
+	// changed QD 02/01/07
+	void SetSkyDomeOffsetY(int value)	{ m_SkyDomeOffsetY = value; }
+	// end change
+	void SetDesiredTriangles(int value)	{ m_nDesiredTriangles = value; }
+	void SetLandscapeSize(int value)	{ m_nLandscapeSize = value; }
 	void SetAmbientLightColor(float r, float g, float b, float a)
 	{ m_AmbientLightColor.r = r;
 	  m_AmbientLightColor.g = g;
@@ -169,7 +181,7 @@ public:
 	qxTerrainMapBase* GetNorthWestNeighbor(qxTerrainMapBase* p);
 	qxTerrainMapBase* GetNorthEastNeighbor(qxTerrainMapBase* p);
 
-	
+
 	qxTerrainMapBase* GetMap( int OffsetX, int OffsetZ );
 
 
@@ -194,7 +206,7 @@ public:
 	void SetTexture(geBitmap *Bitmap) { PolyTex = Bitmap; }
 	void SetRender(int value) { nRenderflag = value; }
 	int GetRender() { return nRenderflag; }
-	
+
 private:
 
 	bool Initialized;
@@ -217,6 +229,9 @@ private:
 	float		m_fScaleXZ;
 	int			m_nFarPlane;
 	int			m_OffsetY;
+	// changed QD 02/01/07
+	int			m_SkyDomeOffsetY;
+	// end change
 	int			m_nDesiredTriangles;
 	int			m_nShadingMethod;
 	float		m_SunScale;
@@ -262,13 +277,13 @@ private:
 
 	//
 	// Terrain definition
-	// 
+	//
 
 	bool LoadTerrainDefinitionFile(char* pStr);
 	qxTerrainDefinitionFile* m_pTerrainDefinitionFile;
 
 
-	CTypedPtrArray<CPtrArray, qxTerrainMapBase*>m_pMaps;
+	vector<qxTerrainMapBase*> m_pMaps;
 	bool LoadMap( int OffsetX, int OffsetZ );
 
 	//
@@ -310,7 +325,7 @@ private:
 
 	void		UpdateFog();
 	qxColor		m_ColorFog;
-	
+
 	float		m_fTwilightPercent;
 	CIniFile AttrFile;
 };

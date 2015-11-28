@@ -179,7 +179,7 @@ inline void ExitSystem()
 }
 #else
 #define STREAMS_ENABLED
-#if (_MSC_VER>1300)
+#if (_MSC_VER>=1200)
 #define STL_STREAMS 1
 #endif
 #define EXCEPTIONS_DEFINED

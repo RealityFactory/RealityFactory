@@ -44,29 +44,29 @@ CExplosionInit::CExplosionInit()
 		return;
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type;
 	int effptr = 0;
 	int expptr = 0;
 
 	while(KeyName != "")
 	{
-		CString Ename, Vector;
+		string Ename, Vector;
 		char szName[64];
 
-		strcpy(Explosions[expptr].Name,KeyName);
+		strcpy(Explosions[expptr].Name, KeyName.c_str());
 		Ename = AttrFile.GetValue(KeyName, "effect0");
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[0], Ename);
+			strcpy(Explosions[expptr].Effect[0], Ename.c_str());
 			Explosions[expptr].Delay[0] = (float)AttrFile.GetValueF(KeyName, "delay0");
 
 			Vector = AttrFile.GetValue(KeyName, "offset0");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[0] = Extract(szName);
 			}
 		}
@@ -75,14 +75,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[1], Ename);
+			strcpy(Explosions[expptr].Effect[1], Ename.c_str());
 			Explosions[expptr].Delay[1] = (float)AttrFile.GetValueF(KeyName, "delay1");
 
 			Vector = AttrFile.GetValue(KeyName, "offset1");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[1] = Extract(szName);
 			}
 		}
@@ -91,14 +91,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[2], Ename);
+			strcpy(Explosions[expptr].Effect[2], Ename.c_str());
 			Explosions[expptr].Delay[2] = (float)AttrFile.GetValueF(KeyName, "delay2");
 
 			Vector = AttrFile.GetValue(KeyName, "offset2");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[2] = Extract(szName);
 			}
 		}
@@ -107,14 +107,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[3], Ename);
+			strcpy(Explosions[expptr].Effect[3], Ename.c_str());
 			Explosions[expptr].Delay[3] = (float)AttrFile.GetValueF(KeyName, "delay3");
 
 			Vector = AttrFile.GetValue(KeyName, "offset3");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[3] = Extract(szName);
 			}
 		}
@@ -123,14 +123,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[4], Ename);
+			strcpy(Explosions[expptr].Effect[4], Ename.c_str());
 			Explosions[expptr].Delay[4] = (float)AttrFile.GetValueF(KeyName, "delay4");
 
 			Vector = AttrFile.GetValue(KeyName, "offset4");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[4] = Extract(szName);
 			}
 		}
@@ -139,14 +139,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[5], Ename);
+			strcpy(Explosions[expptr].Effect[5], Ename.c_str());
 			Explosions[expptr].Delay[5] = (float)AttrFile.GetValueF(KeyName, "delay5");
 
 			Vector = AttrFile.GetValue(KeyName, "offset5");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[5] = Extract(szName);
 			}
 		}
@@ -155,14 +155,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[6], Ename);
+			strcpy(Explosions[expptr].Effect[6], Ename.c_str());
 			Explosions[expptr].Delay[6] = (float)AttrFile.GetValueF(KeyName, "delay6");
 
 			Vector = AttrFile.GetValue(KeyName, "offset6");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[6] = Extract(szName);
 			}
 		}
@@ -171,14 +171,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[7], Ename);
+			strcpy(Explosions[expptr].Effect[7], Ename.c_str());
 			Explosions[expptr].Delay[7] = (float)AttrFile.GetValueF(KeyName, "delay7");
 
 			Vector = AttrFile.GetValue(KeyName, "offset7");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[7] = Extract(szName);
 			}
 		}
@@ -187,14 +187,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[8], Ename);
+			strcpy(Explosions[expptr].Effect[8], Ename.c_str());
 			Explosions[expptr].Delay[8] = (float)AttrFile.GetValueF(KeyName, "delay8");
 
 			Vector = AttrFile.GetValue(KeyName, "offset8");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[8] = Extract(szName);
 			}
 		}
@@ -203,14 +203,14 @@ CExplosionInit::CExplosionInit()
 
 		if(Ename != "")
 		{
-			strcpy(Explosions[expptr].Effect[9], Ename);
+			strcpy(Explosions[expptr].Effect[9], Ename.c_str());
 			Explosions[expptr].Delay[9] = (float)AttrFile.GetValueF(KeyName, "delay9");
 
 			Vector = AttrFile.GetValue(KeyName, "offset9");
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Explosions[expptr].Offset[9] = Extract(szName);
 			}
 		}

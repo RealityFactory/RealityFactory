@@ -643,15 +643,15 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 			CCD->ActorManager()->GetPosition(pProxy->Actor, &pProxy->origin);
 		}
 
-		WRITEDATA(&pProxy->origin,			sizeof(geVec3d),	1, SaveFD);
-		WRITEDATA(&pProxy->CallBack,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pProxy->CallBackCount,	sizeof(int),		1, SaveFD);
-		WRITEDATA(&pProxy->bState,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pProxy->DoingDamage,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pProxy->Time,			sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&pProxy->alive,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pProxy->IsHit,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pProxy->bInitialized,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->origin,		sizeof(geVec3d),	1, SaveFD);
+		WRITEDATA(type, &pProxy->CallBack,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->CallBackCount,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pProxy->bState,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->DoingDamage,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->Time,			sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &pProxy->alive,			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->IsHit,			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pProxy->bInitialized,	sizeof(geBoolean),	1, SaveFD);
 
 		if(pProxy->alive)
 		{
@@ -661,7 +661,7 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 			if(!EffectC_IsStringNull(pProxy->DamageAttribute))
 				health = theInv->Value(pProxy->DamageAttribute);
 
-			WRITEDATA(&health, sizeof(int), 1, SaveFD);
+			WRITEDATA(type, &health, sizeof(int), 1, SaveFD);
 		}
 // end change RF063
 	}
@@ -700,20 +700,20 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 			continue;
 		// end change
 
-		READDATA(&pProxy->origin,			sizeof(geVec3d),	1, RestoreFD);
-		READDATA(&pProxy->CallBack,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pProxy->CallBackCount,	sizeof(int),		1, RestoreFD);
-		READDATA(&pProxy->bState,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pProxy->DoingDamage,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pProxy->Time,				sizeof(geFloat),	1, RestoreFD);
-		READDATA(&pProxy->alive,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pProxy->IsHit,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pProxy->bInitialized,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->origin,			sizeof(geVec3d),	1, RestoreFD);
+		READDATA(type, &pProxy->CallBack,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->CallBackCount,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pProxy->bState,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->DoingDamage,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->Time,			sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &pProxy->alive,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->IsHit,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pProxy->bInitialized,	sizeof(geBoolean),	1, RestoreFD);
 
 		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
 		{
 			int health;
-			READDATA(&health, sizeof(int), 1, RestoreFD);
+			READDATA(type, &health, sizeof(int), 1, RestoreFD);
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
 
 			if(!EffectC_IsStringNull(pProxy->DamageAttribute))

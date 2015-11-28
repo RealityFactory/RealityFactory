@@ -3596,7 +3596,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
 			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
 			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
 
 			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
 
@@ -4160,7 +4160,29 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 		}
 // end change QD 07/15/06
+// changed QD 02/01/07
+	case 185:	// asin
+		{
+			PARMCHECK(1);
+			returnValue = (float)asin((double)arguments[0].floatValue());
 
+			return true;
+		}
+	case 186:	// acos
+		{
+			PARMCHECK(1);
+			returnValue = (float)acos((double)arguments[0].floatValue());
+
+			return true;
+		}
+	case 187:	// atan
+		{
+			PARMCHECK(1);
+			returnValue = (float)atan((double)arguments[0].floatValue());
+
+			return true;
+		}
+// end change
 	} // close switch statement
 
 	return true;

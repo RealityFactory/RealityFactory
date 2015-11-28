@@ -110,8 +110,8 @@ inline bool qxParticleBase::Frame( float fTimeDelta )
 	// Animation
 	if ( m_nFlags & QX_PARTICLE_ANIMATION )
 	{
-		int nBmpSize = m_pParent->m_BmpArray.GetSize();
 
+		int nBmpSize = m_pParent->m_BmpArray.size();
 		int frame = (int)(m_pParent->AnimateFPS * m_fAge);
 
 		if( m_pParent->AnimateFPS > nBmpSize)

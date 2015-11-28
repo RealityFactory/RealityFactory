@@ -582,15 +582,15 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 	{
 		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&(pTeleport->bActive),	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pTeleport->bForward),	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pTeleport->fDelta),		sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&(pTeleport->fDensity),	sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&(pTeleport->origin),		sizeof(geVec3d),	1, SaveFD);
-		WRITEDATA(&(pTeleport->active),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->bActive),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->bForward),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->fDelta),		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->fDensity),		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->origin),		sizeof(geVec3d),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->active),		sizeof(geBoolean),	1, SaveFD);
 // changed QD 12/15/05
-		WRITEDATA(&(pTeleport->CallBack),	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pTeleport->CallBackCount),sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &(pTeleport->CallBack),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pTeleport->CallBackCount),sizeof(int),		1, SaveFD);
 // end change
 	}
 
@@ -604,7 +604,7 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 	{
 		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&(pTarget->origin), sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(type, &(pTarget->origin), sizeof(geVec3d), 1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -634,15 +634,15 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
 
-		READDATA(&(pTeleport->bActive),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pTeleport->bForward),	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pTeleport->fDelta),		sizeof(geFloat),	1, RestoreFD);
-		READDATA(&(pTeleport->fDensity),	sizeof(geFloat),	1, RestoreFD);
-		READDATA(&(pTeleport->origin),		sizeof(geVec3d),	1, RestoreFD);
-		READDATA(&(pTeleport->active),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pTeleport->bActive),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pTeleport->bForward),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pTeleport->fDelta),		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pTeleport->fDensity),		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pTeleport->origin),		sizeof(geVec3d),	1, RestoreFD);
+		READDATA(type, &(pTeleport->active),		sizeof(geBoolean),	1, RestoreFD);
 // changed QD 12/15/05
-		READDATA(&(pTeleport->CallBack),	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pTeleport->CallBackCount),sizeof(int),		1, RestoreFD);
+		READDATA(type, &(pTeleport->CallBack),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pTeleport->CallBackCount),	sizeof(int),		1, RestoreFD);
 // end change
 	}
 
@@ -656,7 +656,7 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
 
-		READDATA(&(pTarget->origin), sizeof(geVec3d), 1, RestoreFD);
+		READDATA(type, &(pTarget->origin), sizeof(geVec3d), 1, RestoreFD);
 	}
 
 	return RGF_SUCCESS;

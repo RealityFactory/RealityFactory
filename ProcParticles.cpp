@@ -4,6 +4,9 @@
 /*																						*/
 /****************************************************************************************/
 
+// Disable unsafe warning
+#pragma warning (disable : 4996)
+
 #include "ProcUtil.h"
 #include "vec3d.h"
 
@@ -834,9 +837,9 @@ static void PixelRGBA_OilColor(Procedural *Proc, int c, int s, int *R, int *G, i
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_FireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	geFloat sfrac;
+	double sfrac;
 
-	sfrac = (geFloat)s / (Proc->NumShades - 1);
+	sfrac = (double)s / (Proc->NumShades - 1);
 
 	*R = (int)(255 * pow(sfrac, 0.3));
 	*G = (int)(255 * pow(sfrac, 0.7));
@@ -852,9 +855,9 @@ static void PixelRGBA_FireColor(Procedural *Proc, int c, int s, int *R, int *G, 
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_OpaqueFireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	geFloat sfrac;
+	double sfrac;
 
-	sfrac = (geFloat)s / (Proc->NumShades - 1);
+	sfrac = (double)s / (Proc->NumShades - 1);
 
 	*R = (int)(255 * pow(sfrac, 0.3));
 	*G = (int)(255 * pow(sfrac, 0.7));
@@ -866,9 +869,9 @@ static void PixelRGBA_OpaqueFireColor(Procedural *Proc, int c, int s, int *R, in
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_SteamColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	geFloat sfrac;
+	double sfrac;
 
-	sfrac = (geFloat)s / (Proc->NumShades - 1);
+	sfrac = (double)s / (Proc->NumShades - 1);
 
 	*A = (int)(255 * pow(sfrac, 0.5));
 	*R = *G = *B = *A;

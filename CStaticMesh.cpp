@@ -913,8 +913,9 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 		for(int iFace=0;iFace<MeshList[pMesh->ListIndex]->NumFaces[LOD];iFace++)
 		{
 			geVec3d Vertex[3];
+			int j;
 
-			for(int j=0;j<3;j++)
+			for(j=0;j<3;j++)
 			{
 				int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][iFace*3+j];
 
@@ -1368,7 +1369,19 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		// get the distance between the entity and the camera
 		geVec3d CamPosition;
 		CCD->CameraManager()->GetPosition(&CamPosition);
-		float dist = (geVec3d_DistanceBetween(&CamPosition, &(pMesh->origin)) / CCD->CameraManager()->AmtZoom());
+// changed QD 02/01/07
+// use center of bounding box for LOD determination instead enity origin ( = root bone position of actor)
+		geVec3d Center;
+		geXForm3d thePosition;
+
+		geXForm3d_SetScaling(&thePosition, pMesh->Scale, pMesh->Scale, pMesh->Scale);
+		geXForm3d_RotateZ(&thePosition, pMesh->Rotation.Z);
+		geXForm3d_RotateX(&thePosition, pMesh->Rotation.X);
+		geXForm3d_RotateY(&thePosition, pMesh->Rotation.Y);
+		geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
+		geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
+		float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
+// end change
 
 		// which LOD do we have to render?
 		if(CCD->GetLODdistance(0) == 0 && CCD->GetLODdistance(1) == 0 && CCD->GetLODdistance(2) == 0
@@ -1466,7 +1479,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 	// check the visibility at an overall bounding box level
 	if(pMesh->VisCheckLevel > 0 && pMesh->VisCheckLevel < 3)
 	{
-		// changed QD 12/15/05
+// changed QD 12/15/05
 		//geXForm3d_SetIdentity(&theRotation);
 		//geXForm3d_RotateZ(&theRotation, pMesh->Rotation.Z);
 		geXForm3d_SetZRotation(&theRotation, pMesh->Rotation.Z);
@@ -1522,8 +1535,9 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 	{
 		GE_LVertex	Vertex[3];
 		geVec3d temp[3];
+		int j;
 
-		for(int j=0; j<3; j++)
+		for(j=0; j<3; j++)
 		{
 			int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 			temp[j].X = MeshList[Index]->Verts[LOD][VertIndex].X;
@@ -1623,13 +1637,15 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 			else if((pMesh->CompSunLight || pMesh->CompLight) && pColor) // changed QD 09/28/2004
 			{
 				// changed QD 02/12/2004
-			/*	if(pMesh->CompLightSmooth)
+				/*
+				if(pMesh->CompLightSmooth)
 				{
 					Vertex[j].r=pColor[VertIndex].r;
 					Vertex[j].g=pColor[VertIndex].g;
 					Vertex[j].b=pColor[VertIndex].b;
 				}
-				else*/
+				else
+				*/
 				{
 					Vertex[j].r = pColor[i*3+j].r;
 					Vertex[j].g = pColor[i*3+j].g;
@@ -1649,11 +1665,15 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		}
 
 		if(MeshList[Index]->Bitmaps[LOD][MeshList[Index]->MaterialI[LOD][i]])
+		{
 			geWorld_AddPolyOnce(CCD->World(), Vertex, 3, MeshList[Index]->Bitmaps[LOD][MeshList[Index]->MaterialI[LOD][i]],
 								GE_TEXTURED_POLY, (uint32)pMesh->RenderFlags, 1.f);
+		}
 		else // material without bitmap
+		{
 			geWorld_AddPolyOnce(CCD->World(), Vertex, 3, NULL, GE_GOURAUD_POLY,
 								(uint32)pMesh->RenderFlags, 1.f);
+		}
 	}
 
 
@@ -1870,7 +1890,19 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			// get the distance between the entity and the camera
 			geVec3d CamPosition;
 			CCD->CameraManager()->GetPosition(&CamPosition);
-			float dist = (geVec3d_DistanceBetween(&CamPosition, &pMesh->origin) / CCD->CameraManager()->AmtZoom());
+// changed QD 02/01/07
+// use center of bounding box for LOD determination instead enity origin ( = root bone position of actor)
+			geVec3d Center;
+			geXForm3d thePosition;
+
+			geXForm3d_SetScaling(&thePosition, pMesh->Scale, pMesh->Scale, pMesh->Scale);
+			geXForm3d_RotateZ(&thePosition, pMesh->Rotation.Z);
+			geXForm3d_RotateX(&thePosition, pMesh->Rotation.X);
+			geXForm3d_RotateY(&thePosition, pMesh->Rotation.Y);
+			geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
+			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
+			float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
+// end change
 
 			if(CCD->GetLODdistance(0) != 0 && dist > CCD->GetLODdistance(0))
 			{
@@ -1922,12 +1954,13 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 		{
 			geVec3d Axis[3], ALength, Center;
 			geXForm3d theRotation;
+			int i;
 
 			geXForm3d_SetZRotation(&theRotation, pMesh->Rotation.Z);
 			geXForm3d_RotateX(&theRotation, pMesh->Rotation.X);
 			geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
-			for(int i=0; i<3; i++)
+			for(i=0; i<3; i++)
 				geXForm3d_Rotate(&theRotation, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Axis[i]), &Axis[i]);
 
 			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Center), &Center);
@@ -2427,8 +2460,8 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 	{
 		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pMesh->origin, sizeof(geVec3d), 1, SaveFD);
-		WRITEDATA(&pMesh->Rotation, sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(type, &pMesh->origin,		sizeof(geVec3d), 1, SaveFD);
+		WRITEDATA(type, &pMesh->Rotation,	sizeof(geVec3d), 1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -2455,8 +2488,8 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
-		READDATA(&pMesh->origin, sizeof(geVec3d), 1, RestoreFD);
-		READDATA(&pMesh->Rotation, sizeof(geVec3d), 1, RestoreFD);
+		READDATA(type, &pMesh->origin,		sizeof(geVec3d), 1, RestoreFD);
+		READDATA(type, &pMesh->Rotation,	sizeof(geVec3d), 1, RestoreFD);
 	}
 
 	return RGF_SUCCESS;

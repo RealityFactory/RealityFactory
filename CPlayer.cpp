@@ -8,7 +8,10 @@
 /*	character (avatar) in an RGF-based game.											*/
 /*																						*/
 /*	Edit History:																		*/
-/*	04/30/2004 Wendell Buckner															*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*					- fixed crashing due to uninitialized data							*/
+/*	04/30/04 Wendell Buckner															*/
 /*	CRASHING - Get rid of crashing due to missing entity or entity parameters			*/
 /*																						*/
 /****************************************************************************************/
@@ -116,18 +119,22 @@ CPlayer::CPlayer()
 	DefaultMotion[0]		= NULL;
 	DefaultMotion[1]		= NULL;
 	DefaultMotion[2]		= NULL;
+// changed QD 02/01/07
+	szCDTrack[0]			= '\0';
+	szMIDIFile[0]			= '\0';
+	szStreamingAudio[0]		= '\0';
+// end change
 
 	for(int nTemp=0; nTemp<16; nTemp++)
 		for(int j=0; j<3; j++)
 			Contents[nTemp][j] = NULL;
 
-	char pSetup[64];
-	strcpy(pSetup, "playersetup.ini");
+	string pSetup = "playersetup.ini";
 
 	if(CCD->MenuManager()->GetUseSelect())
 	{
 		if(!EffectC_IsStringNull(CCD->MenuManager()->GetCurrentpSetup()))
-			strcpy(pSetup, CCD->MenuManager()->GetCurrentpSetup());
+			pSetup = CCD->MenuManager()->GetCurrentpSetup();
 	}
 
 	CIniFile AttrFile(pSetup);
@@ -138,8 +145,8 @@ CPlayer::CPlayer()
 		return;
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type, Vector;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type, Vector;
 	char szName[64];
 
 	while(KeyName != "")
@@ -147,192 +154,192 @@ CPlayer::CPlayer()
 		if(KeyName == "Animations")
 		{
 			Type = AttrFile.GetValue(KeyName, "idle");
-			strcpy(Animations[IDLE],Type);
+			strcpy(Animations[IDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walk");
-			strcpy(Animations[WALK],Type);
+			strcpy(Animations[WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "run");
-			strcpy(Animations[RUN],Type);
+			strcpy(Animations[RUN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "jump");
-			strcpy(Animations[JUMP],Type);
+			strcpy(Animations[JUMP], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "starttojump");
-			strcpy(Animations[STARTJUMP],Type);
+			strcpy(Animations[STARTJUMP], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "fall");
-			strcpy(Animations[FALL],Type);
+			strcpy(Animations[FALL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "land");
-			strcpy(Animations[LAND],Type);
+			strcpy(Animations[LAND], Type.c_str());
 // changed QD 01/15/05
 			Type = AttrFile.GetValue(KeyName, "climbidle");
-			strcpy(Animations[CLIMBIDLE],Type);
+			strcpy(Animations[CLIMBIDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "climbdown");
-			strcpy(Animations[CLIMBDOWN],Type);
+			strcpy(Animations[CLIMBDOWN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "climbup");
-			strcpy(Animations[CLIMBUP],Type);
+			strcpy(Animations[CLIMBUP], Type.c_str());
 // end change
 			Type = AttrFile.GetValue(KeyName, "slidetoleft");
-			strcpy(Animations[SLIDELEFT],Type);
+			strcpy(Animations[SLIDELEFT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntoleft");
-			strcpy(Animations[RUNSLIDELEFT],Type);
+			strcpy(Animations[RUNSLIDELEFT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slidetoright");
-			strcpy(Animations[SLIDERIGHT],Type);
+			strcpy(Animations[SLIDERIGHT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntoright");
-			strcpy(Animations[RUNSLIDERIGHT],Type);
+			strcpy(Animations[RUNSLIDERIGHT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawl");
-			strcpy(Animations[CRAWL],Type);
+			strcpy(Animations[CRAWL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchidle");
-			strcpy(Animations[CIDLE],Type);
+			strcpy(Animations[CIDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchstarttojump");
-			strcpy(Animations[CSTARTJUMP],Type);
+			strcpy(Animations[CSTARTJUMP], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchland");
-			strcpy(Animations[CLAND],Type);
+			strcpy(Animations[CLAND], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetoleft");
-			strcpy(Animations[SLIDECLEFT],Type);
+			strcpy(Animations[SLIDECLEFT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetoright");
-			strcpy(Animations[SLIDECRIGHT],Type);
+			strcpy(Animations[SLIDECRIGHT], Type.c_str());
 // changed RF064
 
 // end change RF064
 			Type = AttrFile.GetValue(KeyName, "shootup");
-			strcpy(Animations[SHOOT1],Type);
+			strcpy(Animations[SHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "shootdwn");
-			strcpy(Animations[SHOOT],Type);
+			strcpy(Animations[SHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "aimup");
-			strcpy(Animations[AIM1],Type);
+			strcpy(Animations[AIM1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "aimdwn");
-			strcpy(Animations[AIM],Type);
+			strcpy(Animations[AIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walkshootup");
-			strcpy(Animations[WALKSHOOT1],Type);
+			strcpy(Animations[WALKSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walkshootdwn");
-			strcpy(Animations[WALKSHOOT],Type);
+			strcpy(Animations[WALKSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runshootup");
-			strcpy(Animations[RUNSHOOT1],Type);
+			strcpy(Animations[RUNSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runshootdwn");
-			strcpy(Animations[RUNSHOOT],Type);
+			strcpy(Animations[RUNSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slidetoleftshootup");
-			strcpy(Animations[SLIDELEFTSHOOT1],Type);
+			strcpy(Animations[SLIDELEFTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slidetoleftshootdwn");
-			strcpy(Animations[SLIDELEFTSHOOT],Type);
+			strcpy(Animations[SLIDELEFTSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntoleftshootup");
-			strcpy(Animations[RUNSLIDELEFTSHOOT1],Type);
+			strcpy(Animations[RUNSLIDELEFTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntoleftshootdwn");
-			strcpy(Animations[RUNSLIDELEFTSHOOT],Type);
+			strcpy(Animations[RUNSLIDELEFTSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slidetorightshootup");
-			strcpy(Animations[SLIDERIGHTSHOOT1],Type);
+			strcpy(Animations[SLIDERIGHTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slidetorightshootdwn");
-			strcpy(Animations[SLIDERIGHTSHOOT],Type);
+			strcpy(Animations[SLIDERIGHTSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntorightshootup");
-			strcpy(Animations[RUNSLIDERIGHTSHOOT1],Type);
+			strcpy(Animations[RUNSLIDERIGHTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntorightshootdwn");
-			strcpy(Animations[RUNSLIDERIGHTSHOOT],Type);
+			strcpy(Animations[RUNSLIDERIGHTSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "jumpshootup");
-			strcpy(Animations[JUMPSHOOT1],Type);
+			strcpy(Animations[JUMPSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "jumpshootdwn");
-			strcpy(Animations[JUMPSHOOT],Type);
+			strcpy(Animations[JUMPSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "fallshootup");
-			strcpy(Animations[FALLSHOOT1],Type);
+			strcpy(Animations[FALLSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "fallshootdwn");
-			strcpy(Animations[FALLSHOOT],Type);
+			strcpy(Animations[FALLSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchaimup");
-			strcpy(Animations[CAIM1],Type);
+			strcpy(Animations[CAIM1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchaimdwn");
-			strcpy(Animations[CAIM],Type);
+			strcpy(Animations[CAIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchshootup");
-			strcpy(Animations[CSHOOT1],Type);
+			strcpy(Animations[CSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchshootdwn");
-			strcpy(Animations[CSHOOT],Type);
+			strcpy(Animations[CSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlshootup");
-			strcpy(Animations[CRAWLSHOOT1],Type);
+			strcpy(Animations[CRAWLSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlshootdwn");
-			strcpy(Animations[CRAWLSHOOT],Type);
+			strcpy(Animations[CRAWLSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetoleftshootup");
-			strcpy(Animations[SLIDECLEFTSHOOT1],Type);
+			strcpy(Animations[SLIDECLEFTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetoleftshootdwn");
-			strcpy(Animations[SLIDECLEFTSHOOT],Type);
+			strcpy(Animations[SLIDECLEFTSHOOT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootup");
-			strcpy(Animations[SLIDECRIGHTSHOOT1],Type);
+			strcpy(Animations[SLIDECRIGHTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootdwn");
-			strcpy(Animations[SLIDECRIGHTSHOOT],Type);
+			strcpy(Animations[SLIDECRIGHTSHOOT], Type.c_str());
 // changed RF063
 			Type = AttrFile.GetValue(KeyName, "swim");
-			strcpy(Animations[SWIM],Type);
+			strcpy(Animations[SWIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "treadwater");
-			strcpy(Animations[TREADWATER],Type);
+			strcpy(Animations[TREADWATER], Type.c_str());
 // end change RF063
 // changed RF064
 			Type = AttrFile.GetValue(KeyName, "idletowalk");
-			strcpy(Animations[I2WALK],Type);
+			strcpy(Animations[I2WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "idletorun");
-			strcpy(Animations[I2RUN],Type);
+			strcpy(Animations[I2RUN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walktoidle");
-			strcpy(Animations[W2IDLE],Type);
+			strcpy(Animations[W2IDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawltoidle");
-			strcpy(Animations[C2IDLE],Type);
+			strcpy(Animations[C2IDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchtoidle");
-			strcpy(Animations[CROUCH2IDLE],Type);
+			strcpy(Animations[CROUCH2IDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "idletocrouch");
-			strcpy(Animations[IDLE2CROUCH],Type);
+			strcpy(Animations[IDLE2CROUCH], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "swimtotread");
-			strcpy(Animations[SWIM2TREAD],Type);
+			strcpy(Animations[SWIM2TREAD], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "treadtoswim");
-			strcpy(Animations[TREAD2SWIM],Type);
+			strcpy(Animations[TREAD2SWIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "idletotread");
-			strcpy(Animations[IDLE2TREAD],Type);
+			strcpy(Animations[IDLE2TREAD], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "swimtowalk");
-			strcpy(Animations[SWIM2WALK],Type);
+			strcpy(Animations[SWIM2WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walktoswim");
-			strcpy(Animations[WALK2SWIM],Type);
+			strcpy(Animations[WALK2SWIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "treadtoidle");
-			strcpy(Animations[TREAD2IDLE],Type);
+			strcpy(Animations[TREAD2IDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "jumptofall");
-			strcpy(Animations[JUMP2FALL],Type);
+			strcpy(Animations[JUMP2FALL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "jumptotread");
-			strcpy(Animations[JUMP2TREAD],Type);
+			strcpy(Animations[JUMP2TREAD], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "falltotread");
-			strcpy(Animations[FALL2TREAD],Type);
+			strcpy(Animations[FALL2TREAD], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "falltocrawl");
-			strcpy(Animations[FALL2CRAWL],Type);
+			strcpy(Animations[FALL2CRAWL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "falltowalk");
-			strcpy(Animations[FALL2WALK],Type);
+			strcpy(Animations[FALL2WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "falltojump");
-			strcpy(Animations[FALL2JUMP],Type);
+			strcpy(Animations[FALL2JUMP], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walktojump");
-			strcpy(Animations[WALK2JUMP],Type);
+			strcpy(Animations[WALK2JUMP], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walktocrawl");
-			strcpy(Animations[WALK2CRAWL],Type);
+			strcpy(Animations[WALK2CRAWL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawltowalk");
-			strcpy(Animations[CRAWL2WALK],Type);
+			strcpy(Animations[CRAWL2WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "idletocrawl");
-			strcpy(Animations[IDLE2CRAWL],Type);
+			strcpy(Animations[IDLE2CRAWL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "aimtocrouch");
-			strcpy(Animations[AIM2CROUCH],Type);
+			strcpy(Animations[AIM2CROUCH], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crouchtoaim");
-			strcpy(Animations[CROUCH2AIM],Type);
+			strcpy(Animations[CROUCH2AIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walktotread");
-			strcpy(Animations[W2TREAD],Type);
+			strcpy(Animations[W2TREAD], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "falltorun");
-			strcpy(Animations[FALL2RUN],Type);
+			strcpy(Animations[FALL2RUN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawltorun");
-			strcpy(Animations[CRAWL2RUN],Type);
+			strcpy(Animations[CRAWL2RUN], Type.c_str());
 // end change RF064
 			Type = AttrFile.GetValue(KeyName, "walkback");
-			strcpy(Animations[WALKBACK],Type);
+			strcpy(Animations[WALKBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runback");
-			strcpy(Animations[RUNBACK],Type);
+			strcpy(Animations[RUNBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlback");
-			strcpy(Animations[CRAWLBACK],Type);
+			strcpy(Animations[CRAWLBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walkshootupback");
-			strcpy(Animations[WALKSHOOT1BACK],Type);
+			strcpy(Animations[WALKSHOOT1BACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "walkshootdwnback");
-			strcpy(Animations[WALKSHOOTBACK],Type);
+			strcpy(Animations[WALKSHOOTBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runshootupback");
-			strcpy(Animations[RUNSHOOT1BACK],Type);
+			strcpy(Animations[RUNSHOOT1BACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runshootdwnback");
-			strcpy(Animations[RUNSHOOTBACK],Type);
+			strcpy(Animations[RUNSHOOTBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlshootupback");
-			strcpy(Animations[CRAWLSHOOT1BACK],Type);
+			strcpy(Animations[CRAWLSHOOT1BACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlshootdwnback");
-			strcpy(Animations[CRAWLSHOOTBACK],Type);
+			strcpy(Animations[CRAWLSHOOTBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "swimback");
-			strcpy(Animations[SWIMBACK],Type);
+			strcpy(Animations[SWIMBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "die");
 			char strip[256], *temp;
 			int i = 0;
@@ -340,7 +347,7 @@ CPlayer::CPlayer()
 // changed RF063
 			if(Type != "")
 			{
-				strcpy(strip,Type);
+				strcpy(strip, Type.c_str());
 				temp = strtok(strip," \n");
 
 				while(temp)
@@ -360,7 +367,7 @@ CPlayer::CPlayer()
 			InjuryAnimAmt = 0;
 			if(Type != "")
 			{
-				strcpy(strip,Type);
+				strcpy(strip, Type.c_str());
 				temp = strtok(strip," \n");
 
 				while(temp)
@@ -415,7 +422,7 @@ CPlayer::CPlayer()
 			char strip[256], *temp;
 			int i = 0;
 			DieSoundAmt = 0;
-			strcpy(strip,Type);
+			strcpy(strip, Type.c_str());
 			temp = strtok(strip," \n");
 			while(temp)
 			{
@@ -429,7 +436,7 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "injury");
 			i = 0;
 			InjurySoundAmt = 0;
-			strcpy(strip,Type);
+			strcpy(strip, Type.c_str());
 			temp = strtok(strip," \n");
 			while(temp)
 			{
@@ -443,7 +450,7 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "land");
 			i = 0;
 			LandSoundAmt = 0;
-			strcpy(strip,Type);
+			strcpy(strip, Type.c_str());
 			temp = strtok(strip," \n");
 			while(temp)
 			{
@@ -467,7 +474,7 @@ CPlayer::CPlayer()
 			Vector = AttrFile.GetValue(KeyName, "minimumcolor");
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				LiteColorMin.r = convert.X;
 				LiteColorMin.g = convert.Y;
@@ -476,7 +483,7 @@ CPlayer::CPlayer()
 			Vector = AttrFile.GetValue(KeyName, "maximumcolor");
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				LiteColorMax.r = convert.X;
 				LiteColorMax.g = convert.Y;
@@ -486,7 +493,7 @@ CPlayer::CPlayer()
 			Vector = AttrFile.GetValue(KeyName, "offsetangles");
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				LiteOffset = Extract(szName);
 			}
 			geVec3d_Scale(&LiteOffset, 0.0174532925199433f, &LiteOffset);
@@ -500,7 +507,7 @@ CPlayer::CPlayer()
 			LiteBone[0] = '\0';
 			Type = AttrFile.GetValue(KeyName, "attachtobone");
 			if(Type != "")
-				strcpy(LiteBone,Type);
+				strcpy(LiteBone, Type.c_str());
 		}
 
 		if(KeyName == "Misc")
@@ -508,7 +515,7 @@ CPlayer::CPlayer()
 			strcpy(StaminaName,"stamina");
 			Type = AttrFile.GetValue(KeyName, "attributename");
 			if(Type != "")
-				strcpy(StaminaName,Type);
+				strcpy(StaminaName, Type.c_str());
 // changed RF064
 			char szSName[64];
 			for(int sn=0; sn<20; sn++)
@@ -517,14 +524,14 @@ CPlayer::CPlayer()
 				sprintf(szSName, "attributename%d",sn+1);
 				Type = AttrFile.GetValue(KeyName, szSName);
 				if(Type != "")
-					strcpy(StaminaName1[sn], Type);
+					strcpy(StaminaName1[sn], Type.c_str());
 				sprintf(szSName, "recoverytime%d", sn+1);
 				StaminaDelay1[sn] = (float)AttrFile.GetValueF(KeyName, szSName);
 			}
 			strcpy(FallDamageAttr,"health");
 			Type = AttrFile.GetValue(KeyName, "falldamageattribute");
 			if(Type != "")
-				strcpy(FallDamageAttr, Type);
+				strcpy(FallDamageAttr, Type.c_str());
 // end change RF064
 			StaminaDelay	= (float)AttrFile.GetValueF(KeyName, "recoverytime");
 			MinFallDist		= (float)AttrFile.GetValueF(KeyName, "minimumfalldistance");
@@ -548,7 +555,7 @@ CPlayer::CPlayer()
 			strcpy(JumpOnDamageAttr,"health");
 			Type = AttrFile.GetValue(KeyName, "jumpondamageattribute");
 			if(Type != "")
-				strcpy(JumpOnDamageAttr,Type);
+				strcpy(JumpOnDamageAttr, Type.c_str());
 			MinJumpOnDist	= (float)AttrFile.GetValueF(KeyName, "minimumjumpondistance");
 			MaxJumpOnDist	= (float)AttrFile.GetValueF(KeyName, "maximumjumpondistance");
 			JumpOnDamage	= (float)AttrFile.GetValueF(KeyName, "jumpondamage");
@@ -563,7 +570,7 @@ CPlayer::CPlayer()
 			ChangeMaterial[0] = '\0';
 			Type = AttrFile.GetValue(KeyName, "changematerial");
 			if(Type != "")
-				strcpy(ChangeMaterial,Type);
+				strcpy(ChangeMaterial, Type.c_str());
 // end change RF064
 // end change RF063
 			geVec3d TFillColor = {0.0f, 0.0f, 0.0f};
@@ -571,13 +578,13 @@ CPlayer::CPlayer()
 			Vector = AttrFile.GetValue(KeyName, "fillcolor");
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				TFillColor = Extract(szName);
 			}
 			Vector = AttrFile.GetValue(KeyName, "ambientcolor");
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				TAmbientColor = Extract(szName);
 			}
 			FillColor.r = TFillColor.X;
@@ -1203,13 +1210,13 @@ int CPlayer::LoadConfiguration()
 	}
 
 	m_Attr = CCD->ActorManager()->Inventory(Actor);
-	CString KeyName = AttrFile.FindFirstKey();
+	string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64];
 	int InitialValue, LowValue, HighValue;
 
 	while(KeyName != "")
 	{
-		strcpy(szAttr,KeyName);
+		strcpy(szAttr, KeyName.c_str());
 		InitialValue = AttrFile.GetValueI(KeyName, "initial");
 		m_Attr->AddAndSet(szAttr, InitialValue);
 		LowValue = AttrFile.GetValueI(KeyName, "low");
@@ -1259,14 +1266,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 	if(AttrFile.ReadFile())
 	{
-		CString KeyName = AttrFile.FindFirstKey();
-		CString Type, Value;
+		string KeyName = AttrFile.FindFirstKey();
+		string Type, Value;
 		char szName[64];
 		int count;
 
 		while(KeyName != "")
 		{
-			if(!strcmp(KeyName, "Default"))
+			if(!strcmp(KeyName.c_str(), "Default"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1274,14 +1281,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName,  Type.c_str());
 					DefaultMotion[count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Water"))
+			else if(!strcmp(KeyName.c_str(), "Water"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1289,14 +1296,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[0][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Lava"))
+			else if(!strcmp(KeyName.c_str(), "Lava"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1304,14 +1311,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[1][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "ToxicGas"))
+			else if(!strcmp(KeyName.c_str(), "ToxicGas"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1319,14 +1326,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[2][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "ZeroG"))
+			else if(!strcmp(KeyName.c_str(), "ZeroG"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1334,14 +1341,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[3][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Frozen"))
+			else if(!strcmp(KeyName.c_str(), "Frozen"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1349,14 +1356,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[4][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Sludge"))
+			else if(!strcmp(KeyName.c_str(), "Sludge"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1364,14 +1371,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[5][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "SlowMotion"))
+			else if(!strcmp(KeyName.c_str(), "SlowMotion"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1379,14 +1386,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[6][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "FastMotion"))
+			else if(!strcmp(KeyName.c_str(), "FastMotion"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1394,14 +1401,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[7][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Ladders"))
+			else if(!strcmp(KeyName.c_str(), "Ladders"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1409,14 +1416,14 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[8][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();
 					Value = AttrFile.FindNextValue();
 				}
 			}
-			else if(!strcmp(KeyName, "Unclimbable"))
+			else if(!strcmp(KeyName.c_str(), "Unclimbable"))
 			{
 				count = 0;
 				Type = AttrFile.FindFirstName(KeyName);
@@ -1424,7 +1431,7 @@ int CPlayer::LoadEnvironmentalAudio()
 
 				while(Type != "" && count < 3)
 				{
-					strcpy(szName, Type);
+					strcpy(szName, Type.c_str());
 					Contents[9][count] = LoadAudioClip(szName);
 					count += 1;
 					Type = AttrFile.FindNextName();

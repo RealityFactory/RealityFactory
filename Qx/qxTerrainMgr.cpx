@@ -39,7 +39,7 @@ qxTerrainMgr::qxTerrainMgr()
 ,m_pSkyDome(0)
 ,m_fTwilightPercent(0.0)
 {
-	
+
 }
 
 qxTerrainMgr::~qxTerrainMgr()
@@ -52,13 +52,13 @@ bool qxTerrainMgr::Init()
 	AttrFile.SetPath("terrain.ini");
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("Can't open Terrain initialization file", false);
+		CCD->ReportError("*ERROR* Failed to open Terrain initialization file", false);
 		return false;
 	}
 	CString KeyName = AttrFile.FindFirstKey();
 	while(KeyName != "")
 	{
-		if(!strcmp(KeyName,"Terrain"))
+		if(!strcmp(KeyName, "Terrain"))
 		{
 			m_fScaleXZ = (float)AttrFile->GetValueF(KeyName, "terrainxzscale");
 			m_nLandscapeSize = AttrFile->GetValueI(KeyName, "landscapesize");
@@ -73,21 +73,21 @@ bool qxTerrainMgr::Init()
 			Def.m_strBmp = AttrFile->GetValue(KeyName, "skybmp");
 			Def.m_strAlpha	= AttrFile->GetValue(KeyName, "skybmpalpha");
 
-			m_pSkyDome = new qxSkyDome(	Def, fSkyLengthHeight, SkyMaxHeight, 
+			m_pSkyDome = new qxSkyDome(	Def, fSkyLengthHeight, SkyMaxHeight,
 				fScaleXZ);
-			
+
 			if( !m_pSkyDome->Init() )
 				return false;
-			
-			
+
+
 			m_pSun = new qxSun;
 			if( !m_pSun->Init())
 				return false;
-			
+
 			m_pMoon = new qxMoon;
 			if( !m_pMoon->Init())
 				return false;
-			
+
 			m_pStarField = new qxStarField;
 			if( !m_pStarField->Init())
 				return false;
@@ -95,17 +95,17 @@ bool qxTerrainMgr::Init()
 			m_pCloudMachine = new qxCloudMachine;
 			if( !m_pCloudMachine->Init())
 				return false;
-			
+
 			m_pCloudMachine->DoWhiteFluffy();
 			return true;
 		}
 		KeyName = AttrFile->FindNextKey();
 	}
-	
-	
-	
+
+
+
 	return false;
-	
+
 }
 
 void qxTerrainMgr::Shutdown()
@@ -142,7 +142,7 @@ bool qxTerrainMgr::Frame()
 
 	if( m_pMoon )
 		m_pMoon->Frame();
-		
+
 	if( m_pStarField )
 		m_pStarField->Frame();
 
@@ -181,20 +181,20 @@ void qxTerrainMgr::Draw()
 
 void qxTerrainMgr::ToggleRenderWireframe()
 {
-	m_bRenderWireframe = !m_bRenderWireframe; 
+	m_bRenderWireframe = !m_bRenderWireframe;
 }
 
 void qxTerrainMgr::SetEarthAxis(  )
 {
 	const qxGameTime* pGameTime = Supervisor()->GetGameTime();
-	
+
 	int nSeconds =		(pGameTime->m_DateTime.GetSecond()
 		+	(pGameTime->m_DateTime.GetMinute()*60)
 		+	(pGameTime->m_DateTime.GetHour()*3600) );
-	
-	
+
+
 	float RotateY = RADIANS( .0041667f * nSeconds );
-	
+
 	geXForm3d_SetIdentity(&m_matEarthRotation);
 
 	float RotateX  = Supervisor()->GetPlayerLatitudeRotation();
@@ -208,7 +208,7 @@ void qxTerrainMgr::SetEarthAxis(  )
 void qxTerrainMgr::UpdateFog()
 {
 	qxSkyDome* pSky = GetSkyDome();
-	
+
 	if( pSky )
 	{
 		float fIntensity = pSky->GetSunIntensity();
@@ -217,19 +217,19 @@ void qxTerrainMgr::UpdateFog()
 		// intensity = 1.0, fogend = landscape*.4 ( fully obscuring )
 		// intensity = 0.0, fogend = landscape*1.0 (not fully obscuring)
 		fIntensity = (1.0-fIntensity); // 1.0 at 0 intensity, 0.0 at full intensity
-		
+
 		float fFogEnd = (m_nLandscapeSize*.5);
 		fFogEnd += (fFogEnd*fIntensity);
-		
+
 		float fFogStart = (fFogEnd*.20);
 		CCD->Engine()->SetFogParameters(*pSky->GetCurrentSkyColor(), fFogStart, fFogEnd);
-	
+
 	}
 }
 
 float qxTerrainMgr::GetSunPercentToZenith()
-{  
-	return m_pSun->GetPercentToZenith(); 
+{
+	return m_pSun->GetPercentToZenith();
 }
 
 void qxTerrainMgr::UpdateTwilightPercent()
@@ -237,12 +237,12 @@ void qxTerrainMgr::UpdateTwilightPercent()
 	// -1.0 midnight, 1.0 noon
 	float fSunPercentToZenith = GetSunPercentToZenith();
 
-	// distance above and below horizon 
+	// distance above and below horizon
 	float fTwilightDist = GetTwilightDistanceFromHorizon();
 
 	// Twilight distance is 0.0 to 1.0
 	m_fTwilightPercent = (fSunPercentToZenith+fTwilightDist)/ (fTwilightDist*2) ;
 	m_fTwilightPercent = GE_CLAMP(m_fTwilightPercent, 0.0f, 1.0f);
 
-	
+
 }

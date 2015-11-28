@@ -153,11 +153,11 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 	{
 		ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&(pSource->active),		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pSource->Count),		sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&(pSource->OldState),		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&(pSource->Increment),	sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&(pSource->Total),		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pSource->active),		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->Count),		sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pSource->OldState),	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &(pSource->Increment),	sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &(pSource->Total),		sizeof(geFloat),	1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -184,11 +184,11 @@ int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
 
-		READDATA(&(pSource->active),	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pSource->Count),		sizeof(geFloat),	1, RestoreFD);
-		READDATA(&(pSource->OldState),	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&(pSource->Increment),	sizeof(geFloat),	1, RestoreFD);
-		READDATA(&(pSource->Total),		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->Count),		sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pSource->OldState),	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->Increment),	sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pSource->Total),		sizeof(geFloat),	1, RestoreFD);
     }
 
 	return RGF_SUCCESS;

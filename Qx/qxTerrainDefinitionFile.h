@@ -14,7 +14,7 @@ enum eTerrainType
 enum eHeightFieldSourceType
 {
 	HEIGHTFIELD_FRACTAL,
-	HEIGHTFIELD_GREY_BMP, 
+	HEIGHTFIELD_GREY_BMP,
 	HEIGHTFIELD_TER_FILE
 
 };
@@ -24,7 +24,7 @@ class qxTerrainDefinition
 {
 
 public:
-	
+
 
 	qxTerrainDefinition()
 	:
@@ -50,11 +50,11 @@ public:
 	float			m_fLatitude;
 	float			m_fLongitude;
 	eTerrainType	m_eType;
-	CString			m_strHeightmap;
-	CString			m_strBmp;
-	CString			m_strAlpha;
+	string			m_strHeightmap;
+	string			m_strBmp;
+	string			m_strAlpha;
 	int				m_nFarPlane;
-	
+
 	eHeightFieldSourceType m_eHeightFieldSourceType;
 
 	// The following apply to TT_OCEAN only
@@ -69,7 +69,7 @@ public:
 };
 
 
-class qxTerrainDefinitionFile : public CStdioFile
+class qxTerrainDefinitionFile// : public CStdioFile
 {
 
 public:
@@ -82,7 +82,7 @@ public:
 	void CheckWorldBounds();
 	qxTerrainDefinition* m_pTerrainDef;
 
-	CString m_strCurrent;
+	string m_strCurrent;
 
 };
 

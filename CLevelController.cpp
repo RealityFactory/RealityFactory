@@ -6,6 +6,7 @@
 /*																						*/
 /*	Edit History:																		*/
 /*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
 /*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
 /*					- Added commands SetAttributeValueLimits, RightCopy, sin, cos, tan	*/
 /*																						*/
@@ -268,7 +269,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
 			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
 			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			CCD->Pawns()->TextMessage[Nr].TextString.Replace("<Player>", CCD->Player()->GetPlayerName());
+			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
 
 			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
 			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[5].str());
@@ -737,6 +738,29 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		return true;
 	}
 // end change QD 07/15/06
+// changed QD 02/01/07
+	else if(IS_METHOD(methodName, "asin"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)asin((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "acos"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)acos((double)arguments[0].floatValue());
+
+		return true;
+	}
+	else if(IS_METHOD(methodName, "atan"))
+	{
+		PARMCHECK(1);
+		returnValue = (float)atan((double)arguments[0].floatValue());
+
+		return true;
+	}
+// end change
 	else if(IS_METHOD(methodName, "SetPlayerWeapon"))
 	{
 		PARMCHECK(1);

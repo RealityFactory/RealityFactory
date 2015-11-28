@@ -24,9 +24,9 @@ class qxEffectParticleChamber  : public qxEffectBase
 {
 
 public:
-	
+
 	qxEffectParticleChamber(char* strName, void*& qxFromEditor);
-	
+
 	virtual ~qxEffectParticleChamber();
 
 	virtual int Frame();
@@ -35,14 +35,14 @@ public:
 	static const char* GetQXTypeName() { return "qxEffectParticleChamber"; }
 
 	virtual void SetOriginAndDest(geVec3d*, geVec3d* );
-	
+
 	// For randomizing bitmaps
 	void AddBmp(const char* pBmp, const char* pAlpha);
-	
+
 	void SetAnimationMode();
 
 	virtual bool		Init();
-	
+
 	// some classes may not want the original origin
 	virtual geVec3d*	GetOrigin() { return &Origin; }
 
@@ -63,8 +63,8 @@ public:
 
 
 	// Array for storing random bitmaps or animation bitmaps
-	CTypedPtrArray<CPtrArray, geBitmap*>m_BmpArray;
-	
+	vector<geBitmap*> m_BmpArray;
+
 protected:
 
 
@@ -77,14 +77,14 @@ protected:
 	geXForm3d	m_matXForm;
 
 	GE_LVertex	m_Vertex;
-			
-	geVec3d		m_vDest;	
-	
+
+	geVec3d		m_vDest;
+
 	float		m_fTimeElapsed;
-	
+
 	// Animation mode allows for the particle's bmp to be animated
 	bool		m_bAnimationMode;
-	
+
 	//For quads, store the rotation radians Min and Max
 	geVec3d		m_vQuadRotateRadsMin;
 	geVec3d		m_vQuadRotateRadsMax;
@@ -100,17 +100,17 @@ protected:
 	int		m_nParticlesAlive;
 
 	// this is a value that allows us to emit very precise amounts of particles.
-	// what if we want 0.5 particles per second ?    
+	// what if we want 0.5 particles per second ?
 	// 0.5 is not a full particle ( we don't round up ) so we can't emit one yet
-	// so we remember what we wanted to emit and add that next time we 
+	// so we remember what we wanted to emit and add that next time we
 	// try to emit some more particles.
-	// Think about a faucet that is leaking very slowly.  The drop slowly gets 
+	// Think about a faucet that is leaking very slowly.  The drop slowly gets
 	// bigger and bigger till there is enough mass to allow
 	// it to break free.
 	float		m_fEmissionResidue;
 
 	// array of particles.
-	CTypedPtrArray<CPtrArray, qxParticleBase*>m_pParticles;
+	vector<qxParticleBase*> m_pParticles;
 
 	bool		m_bUseGravity;
 	bool		m_bUseVelocity;
@@ -119,7 +119,7 @@ protected:
 
 	int			m_nRenderStyle;
 
-public:	
+public:
 
 	geVec3d		Angles;
 	geBoolean	AnglesRandom;
@@ -142,16 +142,16 @@ public:
 	char		*BmpAlphaName;
 	float		AlphaStart;
 	float		AlphaEnd;
-	
+
 	geBoolean	RandomGravity;
 	geVec3d		RandomGravityMin;
 	geVec3d		RandomGravityMax;
-	
+
 	char		*AnimateBmpPrefix;
 	geBoolean	AnimateLoop;
 	geBoolean   AnimateKillNoLoop;
 	int			AnimateFPS;
-	
+
 	geBoolean	Quad;
 	geVec3d		QuadRotateDegreesMin;
 	geVec3d		QuadRotateDegreesMax;

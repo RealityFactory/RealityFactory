@@ -21,9 +21,9 @@ static char THIS_FILE[]=__FILE__;
 qxEffectTextureFlow::qxEffectTextureFlow(char* strName, void*& qxFromEditor)
 :
 qxEffectBase(strName),
-m_pOriginalBmpCopy(0),		
+m_pOriginalBmpCopy(0),
 m_fCurX(0.0f),
-m_fCurY(0.0f),			
+m_fCurY(0.0f),
 m_PixelFormat(GE_PIXELFORMAT_8BIT),
 m_bMipsChecked(false)
 ,OffsetX(10.0f)
@@ -41,7 +41,7 @@ qxEffectTextureFlow::~qxEffectTextureFlow()
 	{
 		geBitmap_Destroy( &m_pOriginalBmpCopy );
 	}
-	
+
 	if ( m_pBmp )
 	{
 		geBitmap_Destroy( &m_pBmp );
@@ -73,13 +73,13 @@ bool qxEffectTextureFlow::Init()
 	}
 
 	geBitmap_SetColorKey( m_pBmp, GE_FALSE, 0, GE_FALSE );
-	
+
 	if(!geBitmap_SetFormatMin( m_pBmp, m_PixelFormat ))
 		return false;
 
 	geBitmap_ClearMips( m_pBmp );
 	geBitmap_CreateRef( m_pBmp );
-	
+
 	// keep a copy of the original one
 	m_pOriginalBmpCopy = geBitmap_Create( DestInfo.Width, DestInfo.Height, 1, m_PixelFormat );
 	if ( !m_pOriginalBmpCopy )
@@ -113,7 +113,7 @@ int qxEffectTextureFlow::Frame()
 	// locals
 	geBitmap		*DestLocked = NULL;
 	geBitmap		*SrcLocked = NULL;
-	
+
 	geBitmap_Info	DestInfo, SrcInfo;
 	uint8			*DestBits_8, *SrcBits_8;
 	uint8			*CurDestBits_8, *CurSrcBits1_8, *CurSrcBits2_8;
@@ -190,7 +190,7 @@ int qxEffectTextureFlow::Frame()
 			{
 				SrcRow -= SrcInfo.Height;
 			}
-			ASSERT( SrcRow < SrcInfo.Height );
+			QXASSERT( SrcRow < SrcInfo.Height );
 			CurSrcBits1_8 = SrcBits_8 + ( SrcInfo.Stride * SrcRow );
 
 			// set source pointer 2
@@ -213,9 +213,9 @@ int qxEffectTextureFlow::Frame()
 				{
 					SrcCol -= SrcInfo.Width;
 				}
-				ASSERT( SrcCol >= 0 );
-				ASSERT( SrcCol < SrcInfo.Width );
-				
+				QXASSERT( SrcCol >= 0 );
+				QXASSERT( SrcCol < SrcInfo.Width );
+
 				// adjust dest pointer
 				CurDestBits_8++;
 			}
@@ -238,7 +238,7 @@ int qxEffectTextureFlow::Frame()
 			{
 				SrcRow -= SrcInfo.Height;
 			}
-			ASSERT( SrcRow < SrcInfo.Height );
+			QXASSERT( SrcRow < SrcInfo.Height );
 			CurSrcBits1_16 = SrcBits_16 + ( SrcInfo.Stride * SrcRow );
 
 			// set source pointer 2
@@ -262,9 +262,9 @@ int qxEffectTextureFlow::Frame()
 				{
 					SrcCol -= SrcInfo.Width;
 				}
-				ASSERT( SrcCol >= 0 );
-				ASSERT( SrcCol < SrcInfo.Width );
-				
+				QXASSERT( SrcCol >= 0 );
+				QXASSERT( SrcCol < SrcInfo.Width );
+
 				// adjust dest pointer
 				CurDestBits_16++;
 			}
@@ -272,7 +272,7 @@ int qxEffectTextureFlow::Frame()
 	}
 
 
-	
+
 	// adjust offsets
 	m_fCurX +=  (CCD->LastElapsedTime_F()*0.001f) * OffsetX ;
 	if ( m_fCurX >= SrcInfo.Width )
@@ -281,7 +281,7 @@ int qxEffectTextureFlow::Frame()
 	}
 
 	m_fCurY +=  (CCD->LastElapsedTime_F()*0.001f) * OffsetY ;
-	
+
 	if ( m_fCurY >= SrcInfo.Height )
 	{
 		m_fCurY = 0.0f;
@@ -291,11 +291,11 @@ int qxEffectTextureFlow::Frame()
 	ALLDONE:
 	if ( SrcLocked )
 	{
-		VERIFY(geBitmap_UnLock( SrcLocked ));
+		geBitmap_UnLock( SrcLocked );
 	}
 	if ( DestLocked )
 	{
-		VERIFY(geBitmap_UnLock( DestLocked ));
+		geBitmap_UnLock( DestLocked );
 	}
 
 	// all done
@@ -303,10 +303,10 @@ int qxEffectTextureFlow::Frame()
 	{
 		geBitmap_RefreshMips( m_pBmp );
 	}
-	
+
 	return bSuccess;
 
-	
+
 }
 
 
@@ -333,15 +333,15 @@ uint8 qxEffectTextureFlow::FindBestColorMatch(
 	uint8	BestMatch = 0;
 
 	// ensure valid data
-	ASSERT( ColorTable != NULL );
-	ASSERT( R >= 0 );
-	ASSERT( R <= 255 );
-	ASSERT( G >= 0 );
-	ASSERT( G <= 255 );
-	ASSERT( B >= 0 );
-	ASSERT( B <= 255 );
-	ASSERT( A >= 0 );
-	ASSERT( A <= 255 );
+	QXASSERT( ColorTable != NULL );
+	QXASSERT( R >= 0 );
+	QXASSERT( R <= 255 );
+	QXASSERT( G >= 0 );
+	QXASSERT( G <= 255 );
+	QXASSERT( B >= 0 );
+	QXASSERT( B <= 255 );
+	QXASSERT( A >= 0 );
+	QXASSERT( A <= 255 );
 
 	// find best match
 	for ( Color = 0; Color < 256; Color++ )
@@ -392,10 +392,10 @@ bool qxEffectTextureFlow::CreateColorTable()
 	// load up all the colors
 	for ( Color1 = 0; Color1 < 256; Color1++ )
 	{
-		if(!geBitmap_Palette_GetEntryColor( Pal, Color1, 
-											&( ColorTable.R[Color1] ), 
-											&( ColorTable.G[Color1] ), 
-											&( ColorTable.B[Color1] ), 
+		if(!geBitmap_Palette_GetEntryColor( Pal, Color1,
+											&( ColorTable.R[Color1] ),
+											&( ColorTable.G[Color1] ),
+											&( ColorTable.B[Color1] ),
 											&( ColorTable.A[Color1] ) ))
 		return false;
 	}
@@ -413,12 +413,12 @@ bool qxEffectTextureFlow::CreateColorTable()
 			NewA = ( ( ColorTable.A[Color1] >> 1 ) + ( ColorTable.A[Color2] >> 1 ) );
 
 			// save best color index in the table
-			m_Table[Color1][Color2] = 
+			m_Table[Color1][Color2] =
 				FindBestColorMatch( &ColorTable, NewR, NewG, NewB, NewA );
 		}
 	}
 
-	
+
 
 	return true;
 }

@@ -7,11 +7,40 @@
 /*																						*/
 /*	This file contains the headers for utility functions								*/
 /*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*																						*/
 /****************************************************************************************/
 
 
 #ifndef __RGF_UTILITY_H_
 #define __RGF_UTILITY_H_
+
+// changed QD 02/01/07
+// utility functions for std::string replacing CString functionality
+inline void Replace(std::string &source, const std::string &strold, const std::string &strnew)
+{
+	if(strold == strnew) return;
+	for(int found = source.find(strold); found != -1; found = source.find(strold, found+strnew.length()))
+		source.replace(found, strold.length(), strnew);
+}
+
+inline void MakeLower(std::string &source)
+{ for(unsigned int i=source.size(); i--!=0; source[i] = tolower(source[i])); }
+
+inline void TrimRight(std::string &source)
+{ source.erase(source.find_last_not_of(" \t\n")+1); }
+
+inline void TrimRight(std::string &source, const std::string &t)
+{ source.erase(source.find_last_not_of(t)+1); }
+
+inline void TrimLeft(std::string &source)
+{ source.erase(0, source.find_first_not_of(" \t\n"));}
+
+inline void TrimLeft(std::string &source, const std::string &t)
+{ source.erase(0, source.find_first_not_of(t)); }
+// end change
 
 bool SetOriginOffset(char *EntityName, char *BoneName, geWorld_Model *Model, geVec3d *OriginOffset);
 bool SetAngle(char *EntityName, char *BoneName, geVec3d *Angle);

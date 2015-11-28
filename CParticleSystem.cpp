@@ -52,14 +52,19 @@ CParticleSystem::CParticleSystem()
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pProxy->szEntityName, "ParticleSystemProxy");
-		pProxy->OriginOffset = pProxy->origin;
 
+		// changed QD 02/01/07
+		/*
 		if(pProxy->Model)
 		{
 			geVec3d ModelOrigin;
 	    	geWorld_GetModelRotationalCenter(CCD->World(), pProxy->Model, &ModelOrigin);
 			geVec3d_Subtract(&pProxy->origin, &ModelOrigin, &pProxy->OriginOffset);
   		}
+		*/
+		SetOriginOffset(pProxy->EntityName, pProxy->BoneName, pProxy->Model, &(pProxy->origin));
+		pProxy->OriginOffset = pProxy->origin;
+		// end change
 
 		// Ok, let's set up the system.
 		pProxy->clrColor.a = 255.0f;		// Maximum alpha to start
@@ -1177,7 +1182,7 @@ theParticle *CParticleSystem::Spawn(int nHandle, const GE_RGBA &theColor,
 
 	if(theNewParticle == NULL)
 	{
-		CCD->ReportError("*WARNING* Particle Spawn: no memory", false);
+		CCD->ReportError("*WARNING* Particle Spawn: out of memory", false);
 	    return NULL;								// Uh-oh, major problem.
 	}
 
@@ -1242,7 +1247,7 @@ theParticle *CParticleSystem::ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 
 	if(theNewParticle == NULL)
 	{
-		CCD->ReportError("*WARNING* Reverse Particle Spawn: no memory", false);
+		CCD->ReportError("*WARNING* Reverse Particle Spawn: out of memory", false);
 		return NULL;								// Uh-oh, major problem.
 	}
 
@@ -1414,7 +1419,8 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		if(nNewCount > (theList[nHandle]->Maximum - theList[nHandle]->Count))
 			nNewCount = (theList[nHandle]->Maximum - theList[nHandle]->Count);
 
-		for(; nNewCount>0; nNewCount--)
+		// changed QD 02/01/07
+		/*for(; nNewCount>0; nNewCount--)
 		{
 			switch(theList[nHandle]->nType)
 			{
@@ -1455,7 +1461,61 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 				AddImplodeSpiralArmParticle(nHandle);
 				break;
 			}
+		}*/
+		switch(theList[nHandle]->nType)
+		{
+		case kPSystem_Shockwave:
+			if(theList[nHandle]->Count==0)
+				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; nNewCount--)
+					AddShockwaveParticle(nHandle);
+			break;
+		case kPSystem_Fountain:
+			for(; nNewCount>0; nNewCount--)
+				AddFountainParticle(nHandle);
+			break;
+		case kPSystem_Rain:
+			for(; nNewCount>0; nNewCount--)
+				AddRainParticle(nHandle);
+			break;
+		case kPSystem_Sphere:
+			for(; nNewCount>0; nNewCount--)
+				AddSphereParticle(nHandle);
+			break;
+		case kPSystem_Column:
+			for(; nNewCount>0; nNewCount--)
+				AddRainParticle(nHandle);
+			break;
+		case kPSystem_ExplosiveArray:
+			for(; nNewCount>0; nNewCount--)
+				AddRainParticle(nHandle);
+			break;
+		case kPSystem_SpiralArm:
+			for(; nNewCount>0; nNewCount--)
+				AddSpiralArmParticle(nHandle);
+			break;
+		case kPSystem_Trail:
+			for(; nNewCount>0; nNewCount--)
+				AddTrailParticle(nHandle);
+			break;
+		case kPSystem_Guardian:
+			for(; nNewCount>0; nNewCount--)
+				AddGuardianParticle(nHandle);
+			break;
+		case kPSystem_ImplodeSphere:
+			for(; nNewCount>0; nNewCount--)
+				AddImplodeSphereParticle(nHandle);
+			break;
+		case kPSystem_ImplodeShockwave:
+			if(theList[nHandle]->Count==0)
+				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; nNewCount--)
+					AddImplodeShockwaveParticle(nHandle);
+			break;
+		case kPSystem_ImplodeSpiralArm:
+			for(; nNewCount>0; nNewCount--)
+				AddImplodeSpiralArmParticle(nHandle);
+			break;
 		}
+		// end change
 	}
 
 	return;
@@ -1557,8 +1617,10 @@ void CParticleSystem::RenderSystem(int nHandle, const geVec3d &PlayerPos)
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupShockwave(int nHandle)
 {
+	// changed QD 02/01/07
 	// 100 particles for a shockwave
-	for(int nFoo=0; nFoo<100; nFoo++)
+	// all particles at once for a shockwave
+	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; nFoo++)
 		AddShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1592,10 +1654,10 @@ void CParticleSystem::AddShockwaveParticle(int nHandle)
 				vRot, -(theList[nHandle]->InitialVelocity));
 	}
 
-	vRot.Y += 0.05f;				// Increment to fan across horizontal plane
+	vRot.Y += GE_2PI/theList[nHandle]->Maximum;	// Increment to fan across horizontal plane
 
-	if(vRot.Y > 6.24f)
-		vRot.Y = 0.0f;				// Wrap around
+	if(vRot.Y > GE_2PI)
+		vRot.Y -= GE_2PI;			// Wrap around
 
 	fToggle = !fToggle;				// Switch to opposite side next call
 
@@ -2014,8 +2076,10 @@ void CParticleSystem::AddImplodeSphereParticle(int nHandle)
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupImplodeShockwave(int nHandle)
 {
+	// changed QD 02/01/07
 	// 100 particles for a shockwave
-	for(int nFoo=0; nFoo<100; nFoo++)
+	// all particles at once for a shockwave
+	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; nFoo++)
 		AddImplodeShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -2049,10 +2113,10 @@ void CParticleSystem::AddImplodeShockwaveParticle(int nHandle)
 						vRot, -(theList[nHandle]->InitialVelocity));
 	}
 
-	vRot.Y += 0.05f;				// Increment to fan across horizontal plane
+	vRot.Y += GE_2PI/theList[nHandle]->Maximum;	// Increment to fan across horizontal plane
 
-	if(vRot.Y > 6.24f)
-		vRot.Y = 0.0f;				// Wrap around
+	if(vRot.Y > GE_2PI)
+		vRot.Y -= GE_2PI;			// Wrap around
 
 	fToggle = !fToggle;				// Switch to opposite side next call
 

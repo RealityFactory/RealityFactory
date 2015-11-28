@@ -7,6 +7,10 @@
 /*	This file includes ALL of the headers necessary to use the							*/
 /*	Reality Factory (RGF) for creating Genesis3D-based games.							*/
 /*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*																						*/
 /****************************************************************************************/
 
 
@@ -15,6 +19,13 @@
 
 //	Disable forcing int to bool 'true' or 'false' warnings
 #pragma warning(disable : 4800)
+
+// Disable unsafe warning
+#pragma warning (disable : 4996)
+
+// Disable warning: 'identifier': identifier was truncated to 'number' characters in the debug information
+#pragma warning (disable : 4786)
+
 
 #ifndef __RGF_RABIDMASTERFRAMEWORK_INCLUDE_
 #define __RGF_RABIDMASTERFRAMEWORK_INCLUDE_
@@ -51,7 +62,7 @@ enum
 
 #define _CRTDBG_MAP_ALLOC
 
-#include "stdafx.h"
+#include <windows.h>
 
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -71,7 +82,7 @@ enum
 #include <assert.h>
 
 #include <commdlg.h>
-#include <string.h>
+#include <string>
 #include <evcode.h>
 #include <objbase.h>
 #include <strmif.h>

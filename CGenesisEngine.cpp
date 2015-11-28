@@ -8,12 +8,12 @@
 /*	engine wrapper.  This wrapper hides many of the gory details						*/
 /*	necessary to use the Genesis3D 1.0 engine.											*/
 /*																						*/
-/*	Edit History																		*/
-/*																						*/
-/*	07/07/00																			*/
-/*	Dee - Added Autoselect Driver														*/
-/*	12/07/00																			*/
-/*	Dee - Added Select Driver Dialog													*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*					- fixed Autoselect Driver											*/
+/*	07/12/00 Dee:	- Added Select Driver Dialog										*/
+/*	07/07/00 Dee:	- Added Autoselect Driver											*/
 /*																						*/
 /****************************************************************************************/
 
@@ -127,25 +127,51 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 
 		_getcwd(m_currentdir, 512);
 		ShowCursor(TRUE);
-		CFileDialog dlg(TRUE, "bsp", NULL, OFN_HIDEREADONLY,
-			"Level BSP Files (*.bsp)|*.bsp|All Files (*.*)|*.*||");
 
-		dlg.m_ofn.lpstrTitle = "Load Level";
+// changed QD 02/01/07
+		OPENFILENAME OpenFileName;
+		TCHAR szFile[_MAX_PATH] = "\0";
+		TCHAR szFileTitle[_MAX_PATH] = "\0";
+
 		TCHAR m_dir[512];
 		strcpy(m_dir, m_currentdir);
 		strcat(m_dir, "\\media\\levels");
-		dlg.m_ofn.lpstrInitialDir = m_dir;
 
-		if(dlg.DoModal() == IDOK)
+		// Fill in the OPENFILENAME structure to support a template and hook.
+		OpenFileName.lStructSize       = sizeof(OPENFILENAME);
+		OpenFileName.hwndOwner         = NULL;
+		OpenFileName.hInstance         = theInstance;
+		OpenFileName.lpstrFilter       = "Level BSP Files\0*.bsp\0All Files\0*.*\0\0";
+		OpenFileName.lpstrCustomFilter = NULL;
+		OpenFileName.nMaxCustFilter    = 0;
+		OpenFileName.nFilterIndex      = 0;
+		OpenFileName.lpstrFile         = szFile;
+		OpenFileName.nMaxFile          = sizeof(szFile);
+		OpenFileName.lpstrFileTitle    = szFileTitle;
+		OpenFileName.nMaxFileTitle     = sizeof(szFileTitle);
+		OpenFileName.lpstrInitialDir   = m_dir;
+		OpenFileName.lpstrTitle        = "Load Level";
+		OpenFileName.nFileOffset       = 0;
+		OpenFileName.nFileExtension    = 0;
+		OpenFileName.lpstrDefExt       = NULL;
+		OpenFileName.lCustData         = 0;
+		OpenFileName.lpfnHook 		   = 0;
+		OpenFileName.lpTemplateName    = 0;
+		OpenFileName.Flags             = OFN_EXPLORER;
+
+		// Call the common dialog function.
+		if(GetOpenFileName(&OpenFileName))
 		{
-			CString FileName = dlg.GetFileName();
-			strcpy(szStartLevel, FileName);
-			CString PathName = dlg.GetPathName();
-			PathName = PathName.Left(PathName.ReverseFind('\\'));
+			string FileName = OpenFileName.lpstrFileTitle;
+			strcpy(szStartLevel, FileName.c_str());
+			string PathName = OpenFileName.lpstrFile;
+			PathName = PathName.substr(0, PathName.rfind('\\'));
 			TCHAR m_lev[512];
-			strcpy(m_lev, PathName);
+			strcpy(m_lev, PathName.c_str());
+
 			CCD->SetLevelDirectory(m_lev);
 		}
+// end change
 
 		chdir(m_currentdir);
 
@@ -266,7 +292,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 	if(!m_theEngine)
 	{
 		ReportError("*ERROR* geEngine_Create failure", false);
-		return FALSE;
+		return false;
 	}
 
 	// Turn off the framerate counter
@@ -278,17 +304,17 @@ bool CGenesisEngine::CreateEngine(char *szName)
 	if(!m_DrvSys)
 	{
 		ReportError("*ERROR* geEngine_GetDriverSystem failure", false);
-		return FALSE;
+		return false;
 	}
 
 // Dee  07/07/00 - Added
 // Find any available driver and use the first mode it has
 	if(m_SelectedDriverID == 'A')
 	{
-		if(AutoDriver() == FALSE)
+		if(AutoDriver() == false)
 		{
 			ReportError("*ERROR* Failed to locate any available Genesis3D driver", false);
-			return FALSE;
+			return false;
 		}
 	}
 // End Dee
@@ -297,21 +323,20 @@ bool CGenesisEngine::CreateEngine(char *szName)
 // Pop a Pick List to choose the mode you'd like (out of what's available)
 	else if(m_SelectedDriverID == 'P')
 	{
-		if(PickDriver() == FALSE)
+		if(PickDriver() == false)
 		{
 			//Probably hit "Pick Something for Me" or ESC...
-			ReportError("*WARNING* Failed to successfully pick a Genesis3D driver", false);
 			//So try to auto select for them
-			ReportError("*INFO* Auto-Detecting", false);
-			if(AutoDriver() == FALSE)
+			ReportError("*INFO* Auto-Detecting Driver", false);
+			if(AutoDriver() == false)
 			{
 				ReportError("*ERROR* Failed to locate any available Genesis3D driver", false);
-				return FALSE;
+				return false;
 			}
 		}
+
 		//Dee 12-07-00
 		//Added to support fullscreen or windowed driver change via pick list
-		else
 		{
 			geEngine_ShutdownDriver(m_theEngine);
 			ResetMainWindow(m_wndMain, m_nWidth, m_nHeight);
@@ -326,7 +351,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 			if(!cline)
 			{
 				ReportError("*ERROR* geEngine_SetDriverAndMode failure", false);
-				return FALSE;
+				return false;
 			}
 		}
 		//End Dee
@@ -340,7 +365,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 		if(FindDriver() == FALSE)
 		{
 			ReportError("*ERROR* Failed to locate good Genesis3D driver", false);
-			return FALSE;
+			return false;
 		}
 
 		// let the genesis engine intialize with our driver
@@ -354,14 +379,14 @@ bool CGenesisEngine::CreateEngine(char *szName)
 		if(!cline)
 		{
 			ReportError("*ERROR* geEngine_SetDriverAndMode failure", false);
-			return FALSE;
+			return false;
 		}
 	}
 // End Dee
 
 
 	//	Holy toledo, it all worked!  Back to the caller, then.
-	return TRUE;
+	return true;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -500,7 +525,6 @@ bool CGenesisEngine::FindDriver()
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::AutoDriver()
 {
-
 	ModeList			   *DriverModeList;
 	int						DriverModeListLength;
 	int						Selection = 0;
@@ -512,20 +536,26 @@ bool CGenesisEngine::AutoDriver()
 	{
 		ReportError("*ERROR* No Driver List", false);
 		ModeList_Destroy(DriverModeList);
-		return FALSE;
+		return false;
 	}
 
 	// Sort the List of Drivers
 	AutoSelect_SortDriverList(DriverModeList, DriverModeListLength);
 
 	//Pick the first Driver from the List
-	if(AutoSelect_PickDriver(m_wndMain, m_theEngine, DriverModeList, DriverModeListLength, &Selection) == FALSE)
+	if(AutoSelect_PickDriver(m_wndMain, m_theEngine, DriverModeList, DriverModeListLength, &Selection) == GE_FALSE)
 	{
 		ModeList_Destroy(DriverModeList);
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+// changed QD 02/01/07
+	m_Driver=DriverModeList[Selection].Driver;
+	m_Mode=DriverModeList[Selection].Mode;
+	m_nWidth=DriverModeList[Selection].Width;
+	m_nHeight=DriverModeList[Selection].Height;
+// end change
+	return true;
 }
 // End Dee
 
@@ -548,16 +578,16 @@ bool CGenesisEngine::PickDriver()
 	{
 		ReportError("*ERROR* No Driver List", false);
 		ModeList_Destroy(DriverModeList);
-		return FALSE;
+		return false;
 	}
 
 	//Pop up a Driver List to pick from
 	ShowCursor(TRUE);						// Turn on the mouse cursor so we can pick with it
 
-	if(DrvList_PickDriver(m_Instance, m_wndMain, DriverModeList, DriverModeListLength, &Selection)==FALSE)
+	if(DrvList_PickDriver(m_Instance, m_wndMain, DriverModeList, DriverModeListLength, &Selection)==GE_FALSE)
 	{
 		ShowCursor(FALSE);						// Turn the mouse cursor back off
-		return FALSE;
+		return false;
 	}
 
 	m_Driver=DriverModeList[Selection].Driver;
@@ -566,7 +596,7 @@ bool CGenesisEngine::PickDriver()
 	m_nHeight=DriverModeList[Selection].Height;
 
 	ShowCursor(FALSE);						// Turn the mouse cursor back off
-    return TRUE;
+    return true;
 }
 // End Dee
 

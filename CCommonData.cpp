@@ -13,6 +13,7 @@
 /*																						*/
 /*	Edit History:																		*/
 /*	=============																		*/
+/*	08/15/06 QD:	- Fixed memory leak (free hash table)								*/
 /*	07/15/06 QD:	- Added new lowlevel pawn commands to hash table					*/
 /*					- Added a flag to disable the use of DirectInput (joystick)			*/
 /*					  On some Win98 systems DInput.dll conflicts with HID.dll			*/
@@ -528,6 +529,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			}
 			else if(!stricmp(szAtom, "renderer"))
 			{
+				// changed QD 02/01/07 - obsolete, always using hardware
+				/*
 				if(szArg != NULL)
 				{
 					if(!stricmp(szArg, "software"))
@@ -535,6 +538,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					else
 						bSoftware = false;
 				}
+				*/
 			}
 			else if(!stricmp(szAtom, "defaultdifficulty"))
 			{
@@ -704,9 +708,9 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	// need to update with each version
 	ReportError("\nInitializing Game Shell...",				false);
 	ReportError("--------------------------------------",	false);
-	ReportError("--- Reality Factory 0.75A          ---",	false);
+	ReportError("--- Reality Factory 0.75C          ---",	false);
 	ReportError("--- For more Information, visit:   ---",	false);
-	ReportError("---    www.realityfactory.info.ms  ---",	false);
+	ReportError("---    www.realityfactory.info     ---",	false);
 	ReportError("--------------------------------------",	false);
 	ReportError("\nParsed RealityFactory.ini file",			false);
 	//	First, initialize the Genesis3D game engine
@@ -821,6 +825,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		return -100;
 	}
 // end multiplayer
+
 	//	Finally, initialize the AVIFile library.  This is done independent of
 	//	..any AVI-specific classes so that we can guarantee only ONE instance
 	//	..of the library is loaded.
@@ -944,7 +949,7 @@ skExecutableContext CCommonData::GetskContext()
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::AddScriptedObject(char *objectName, skRValue Object)
 {
-	interpreter.addGlobalVariable(objectName,Object);
+	interpreter.addGlobalVariable(objectName, Object);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2724,7 +2729,6 @@ int CCommonData::DispatchTick()
 	thePlayer->Tick(dwTicksGoneBy);
 
 	theActorManager->Tick(dwTicksGoneBy);
-
 	theHUD->Tick(dwTicksGoneBy);
 // changed RF064
 	theCutScene->Tick(dwTicksGoneBy);
@@ -2785,22 +2789,22 @@ bool CCommonData::ProcessLevelChange()
 	// Numero uno, display the level-changing splash screen.
 	if(!EffectC_IsStringNull(m_SplashScreen))
 	{
-		CString File = m_SplashScreen;
-		File.MakeLower();
+		string File = m_SplashScreen;
+		MakeLower(File);
 
-		if(File.Find(".bmp") == -1)
+		if(File.find(".bmp") == -1)
 		{
 			CIniFile AttrFile;
 			AttrFile.SetPath("splash.ini");
 
 			if(AttrFile.ReadFile())
 			{
-				CString KeyName = AttrFile.FindFirstKey();
-				CString Type, Value;
+				string KeyName = AttrFile.FindFirstKey();
+				string Type, Value;
 
 				while(KeyName != "")
 				{
-					if(!strcmp(KeyName, m_SplashScreen))
+					if(!strcmp(KeyName.c_str(), m_SplashScreen))
 					{
 						int count = 0;
 						Type = AttrFile.FindFirstName(KeyName);
@@ -2826,7 +2830,7 @@ bool CCommonData::ProcessLevelChange()
 						}
 
 						char name[128];
-						strcpy(name, Type);
+						strcpy(name, Type.c_str());
 						theGameEngine->DisplaySplash(name, m_SplashAudio);
 						break;
 					}
@@ -2994,7 +2998,7 @@ bool CCommonData::ProcessLevelChange()
 		}
 
 		//strcpy(m_SplashScreen, "");
-		m_SplashScreen[9] = '\0';
+		m_SplashScreen[0] = '\0';
 
 		return true;						// Level change successful!
 	}
@@ -3262,6 +3266,11 @@ void CCommonData::FillHashCommands_LowLevel(void)
 	AddHashCommand("NearestPoint",				183);	// NearestPoint
 	AddHashCommand("SetFOV",					184);	// SetFOV
 // end change QD 07/15/06
+// changed QD 02/01/07
+	AddHashCommand("asin",						185);	// sin
+	AddHashCommand("acos",						186);	// cos
+	AddHashCommand("atan",						187);	// tan
+// end change
 //	AddHashCommand("SetSlowMotion",				185);	// SetSlowMotion
 //	AddHashCommand("SetGlobal",					186);	// SetGlobal
 //	AddHashCommand("GetGlobal",					187);	// GetGlobal
@@ -3303,10 +3312,10 @@ void CCommonData::InitJoysticks()
 	else if(numJoysticks > 4)
 		numJoysticks = 4;
 
-	for(i=0; i<numJoysticks; i++)
+	for(unsigned int j=0; j<numJoysticks; j++)
 	{
-        joysticks[i] = new Joystick(i);
-        joysticks[i]->open();
+        joysticks[j] = new Joystick(j);
+        joysticks[j]->open();
     }
 // end change
 
@@ -3458,11 +3467,11 @@ void CCommonData::PlayOpeningCutScene()
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::Play(char *szFile, int XPos, int YPos, bool Center)
 {
-	CString File = szFile;
-	File.MakeLower();
-	int i = File.Find(".gif");
+	string File = szFile;
+	MakeLower(File);
+	int i = File.find(".gif");
 
-	if(i >= 0 && i < File.GetLength())
+	if(i >= 0 && i < (int)File.length())
 	{
 		CAnimGif *SplashAVI = new CAnimGif(szFile, kVideoFile);
 		SplashAVI->Play(XPos, YPos, Center);
@@ -4062,12 +4071,12 @@ void CCommonData::SetLevelData()
 	else
 		strcpy(m_NewLevel, theMenu->GetLevelName());
 
-	strcpy(m_SplashScreen, "");
-	strcpy(m_SplashAudio, "");
-	strcpy(m_CutScene, "");
+	m_SplashScreen[0] = '\0';
+	m_SplashAudio[0] = '\0';
+	m_CutScene[0] = '\0';
 
 	if(EffectC_IsStringNull(pSetup->DeathMessage))
-		strcpy(m_Message, "");
+		m_Message[0] = '\0';
 	else
 		strcpy(m_Message, pSetup->DeathMessage);
 

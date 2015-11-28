@@ -1,11 +1,17 @@
-// qxSkyDome.cpp: implementation of the qxSkyDome class.
-//
-// Original code: GenScape (c) 1999, Lucas Ackerman
-//
-// Author: Jeff Thelen
-//
-// Copyright 2000 Quixotic, Inc.  All Rights Reserved.
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************/
+/*	qxSkyDome.cpp: implementation of the qxSkyDome class.								*/
+/*																						*/
+/*	Original code: GenScape (c) 1999, Lucas Ackerman									*/
+/*																						*/
+/*	Author: Jeff Thelen																	*/
+/*																						*/
+/* Copyright 2000 Quixotic, Inc.  All Rights Reserved.									*/
+/*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- added skydome Y offset											*/
+/*																						*/
+/****************************************************************************************/
 
 #include "..\\RabidFramework.h"
 #include "qxTerrainMapBase.h"
@@ -76,8 +82,8 @@ bool qxSkyDome::Init()
 	//
 	m_nRenderFlags	= 
 		GE_RENDER_CLAMP_UV 
-		| GE_RENDER_DO_NOT_OCCLUDE_OTHERS
-		| GE_RENDER_DEPTH_SORT_BF; // No z writing will be performed
+		| GE_RENDER_DO_NOT_OCCLUDE_OTHERS // No z writing will be performed
+		| GE_RENDER_DEPTH_SORT_BF;
 	
 	geEntity_EntitySet* lEntitySet;
 	geEntity* lEntity;
@@ -262,8 +268,11 @@ bool qxSkyDome::LoadHeightMap()
 			if( ( x == 0 || z == 0 
 				|| z == m_nHeightMapLength-1 
 				|| x == m_nHeightMapWidth-1 ) && height > 0.0f)
-				height = 0;0;
+				height = 0.0f;
 
+			// changed QD 02/01/07
+			height += (float)CCD->TerrainMgr()->GetSkyDomeOffsetY();
+			// end change
 			SetElementHeight( x, z, (int)height);
 		}
 	}	

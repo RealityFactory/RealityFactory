@@ -41,8 +41,8 @@ CPreEffect::CPreEffect()
 		return;
 	}
 
-	CString KeyName = AttrFile.FindFirstKey();
-	CString Type;
+	string KeyName = AttrFile.FindFirstKey();
+	string Type;
 	int effptr = 0;
 
 // changed QD 07/15/06
@@ -53,12 +53,12 @@ CPreEffect::CPreEffect()
 		Type = AttrFile.GetValue(KeyName, "type");
 		// changed QD 07/15/06
 		//strcpy(Effects[effptr].Name, KeyName);
-		strncpy(Effects[effptr].Name, KeyName, 63);
+		strncpy(Effects[effptr].Name, KeyName.c_str(), 63);
 		Effects[effptr].Name[63] = 0;
 		// end change QD 07/15/06
 		if(Type == "spray")
 		{
-			CString Tname, Talpha, Vector;
+			string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			Spray *Sp;
@@ -73,8 +73,8 @@ CPreEffect::CPreEffect()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName, Tname);
-				strcpy(szAlpha, Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 
 				Sp = GE_RAM_ALLOCATE_STRUCT(Spray);
 				memset(Sp, 0, sizeof(Spray));
@@ -86,7 +86,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					Sp->Angle = Extract(szName);
 				}
 
@@ -94,7 +94,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->ColorMax.r = convert.X;
 					Sp->ColorMax.g = convert.Y;
@@ -112,7 +112,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->ColorMin.r = convert.X;
 					Sp->ColorMin.g = convert.Y;
@@ -133,7 +133,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					Sp->Gravity = Extract(szName);
 				}
 
@@ -159,12 +159,12 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "light")
 		{
-			CString Vector;
+			string Vector;
 			char szName[64];
 			geVec3d convert;
 			Glow *Lite;
 
-			strcpy(Effects[effptr].Name,KeyName);
+			strcpy(Effects[effptr].Name, KeyName.c_str());
 			Effects[effptr].Type = EFF_LIGHT;
 			Lite = GE_RAM_ALLOCATE_STRUCT(Glow);
 			memset(Lite, 0, sizeof(Glow));
@@ -174,7 +174,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				Lite->ColorMax.r = convert.X;
 				Lite->ColorMax.g = convert.Y;
@@ -185,7 +185,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				Lite->ColorMin.r = convert.X;
 				Lite->ColorMin.g = convert.Y;
@@ -197,7 +197,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Lite->Direction = Extract(szName);
 			}
 
@@ -225,7 +225,7 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "sprite")
 		{
-			CString Tname, Talpha, Vector;
+			string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			Sprite *Sp;
@@ -240,8 +240,8 @@ CPreEffect::CPreEffect()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				int Count = AttrFile.GetValueI(KeyName, "bitmapcount");
 
 				if(Count > 0)
@@ -265,7 +265,7 @@ CPreEffect::CPreEffect()
 
 					if(Vector != "")
 					{
-						strcpy(szName,Vector);
+						strcpy(szName, Vector.c_str());
 						convert = Extract(szName);
 						Sp->Color.r = convert.X;
 						Sp->Color.g = convert.Y;
@@ -309,10 +309,10 @@ CPreEffect::CPreEffect()
 		else if(Type == "sound")
 		{
 			Snd *Sound;
-			CString Vector;
+			string Vector;
 			char szName[64];
 
-			strcpy(Effects[effptr].Name,KeyName);
+			strcpy(Effects[effptr].Name, KeyName.c_str());
 			Effects[effptr].Type = EFF_SND;
 			Vector = AttrFile.GetValue(KeyName, "name");
 
@@ -320,7 +320,7 @@ CPreEffect::CPreEffect()
 			{
 				Sound = GE_RAM_ALLOCATE_STRUCT(Snd);
 				memset(Sound, 0, sizeof(Snd));
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				Sound->SoundDef = SPool_Sound(szName);
 				Sound->Min = CCD->GetAudibleRadius();
 				Sound->Loop = GE_FALSE;
@@ -332,11 +332,11 @@ CPreEffect::CPreEffect()
 		else if(Type == "corona")
 		{
 			EffCorona *C;
-			CString Vector;
+			string Vector;
 			geVec3d convert;
 			char szName[64];
 
-			strcpy(Effects[effptr].Name,KeyName);
+			strcpy(Effects[effptr].Name, KeyName.c_str());
 			Effects[effptr].Type = EFF_CORONA;
 			C = GE_RAM_ALLOCATE_STRUCT(EffCorona);
 			memset(C, 0, sizeof(EffCorona));
@@ -345,7 +345,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				C->Vertex.r = convert.X;
 				C->Vertex.g = convert.Y;
@@ -366,7 +366,7 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "bolt")
 		{
-			CString Tname, Talpha, Vector;
+			string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			EBolt *Bl;
@@ -384,8 +384,8 @@ CPreEffect::CPreEffect()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				strcpy(szName,Tname);
-				strcpy(szAlpha,Talpha);
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
 				Bl->Bitmap = TPool_Bitmap(szName, szAlpha, NULL, NULL);
 			}
 			else
@@ -395,7 +395,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				Bl->Color.r = convert.X;
 				Bl->Color.g = convert.Y;
@@ -407,7 +407,7 @@ CPreEffect::CPreEffect()
 
 			if(Vector != "")
 			{
-				strcpy(szName,Vector);
+				strcpy(szName, Vector.c_str());
 				convert = Extract(szName);
 				Bl->EndOffset.X = convert.X;
 				Bl->EndOffset.Y = convert.Y;
@@ -436,7 +436,7 @@ CPreEffect::CPreEffect()
 // changed RF064
 		else if(Type == "actorspray")
 		{
-			CString Tname, Vector;
+			string Tname, Vector;
 			char szName[64];
 			geVec3d convert;
 			ActorSpray *Sp;
@@ -448,7 +448,7 @@ CPreEffect::CPreEffect()
 			{
 				Sp = GE_RAM_ALLOCATE_STRUCT(ActorSpray);
 				memset(Sp, 0, sizeof(ActorSpray));
-				strcpy(Sp->BaseName, Tname);
+				strcpy(Sp->BaseName, Tname.c_str());
 				Sp->NumActors = AttrFile.GetValueI(KeyName, "numberactors");
 				Sp->Style = AttrFile.GetValueI(KeyName, "style");
 				Sp->Alpha = (float)AttrFile.GetValueF(KeyName, "alpha");
@@ -458,7 +458,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName, Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 
 					// changed QD 07/15/06
@@ -503,7 +503,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->MinRotationSpeed.X = GE_PIOVER180*convert.X;
 					Sp->MinRotationSpeed.Y = GE_PIOVER180*convert.Y;
@@ -514,7 +514,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->MaxRotationSpeed.X = GE_PIOVER180*convert.X;
 					Sp->MaxRotationSpeed.Y = GE_PIOVER180*convert.Y;
@@ -528,7 +528,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					Sp->Angle = Extract(szName);
 				}
 
@@ -536,7 +536,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->FillColor.r = convert.X;
 					Sp->FillColor.g = convert.Y;
@@ -547,7 +547,7 @@ CPreEffect::CPreEffect()
 
 				if(Vector != "")
 				{
-					strcpy(szName,Vector);
+					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 					Sp->AmbientColor.r = convert.X;
 					Sp->AmbientColor.g = convert.Y;

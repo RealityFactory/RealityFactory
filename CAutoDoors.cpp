@@ -661,15 +661,15 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 	{
 		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pDoor->bInAnimation, sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pDoor->bTrigger,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pDoor->AnimationTime,sizeof(int),		1, SaveFD);
-		WRITEDATA(&pDoor->bInCollision, sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pDoor->bActive,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pDoor->LastIncrement,sizeof(int),		1, SaveFD);
-		WRITEDATA(&pDoor->tDoor,		sizeof(geFloat),	1, SaveFD);
-		WRITEDATA(&pDoor->CallBack,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pDoor->CallBackCount,sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pDoor->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pDoor->bTrigger,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pDoor->AnimationTime,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pDoor->bInCollision,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pDoor->bActive,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pDoor->LastIncrement,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pDoor->tDoor,			sizeof(geFloat),	1, SaveFD);
+		WRITEDATA(type, &pDoor->CallBack,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pDoor->CallBackCount,	sizeof(int),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -697,15 +697,15 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pDoor->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pDoor->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pDoor->AnimationTime, sizeof(int),		1, RestoreFD);
-		READDATA(&pDoor->bInCollision,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pDoor->bActive,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pDoor->LastIncrement, sizeof(int),		1, RestoreFD);
-		READDATA(&pDoor->tDoor,			sizeof(geFloat),	1, RestoreFD);
-		READDATA(&pDoor->CallBack,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pDoor->CallBackCount, sizeof(int),		1, RestoreFD);
+		READDATA(type, &pDoor->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pDoor->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pDoor->AnimationTime,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pDoor->bInCollision,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pDoor->bActive,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pDoor->LastIncrement,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pDoor->tDoor,			sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &pDoor->CallBack,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pDoor->CallBackCount,	sizeof(int),		1, RestoreFD);
 
 		if(pDoor->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pDoor->Model, GE_TRUE);

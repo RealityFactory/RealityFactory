@@ -478,19 +478,19 @@ int CTriggers::SaveTo(FILE *SaveFD, bool type)
 			continue;
 		// end change
 
-		WRITEDATA(&pTrigger->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->bTrigger,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->AnimationTime, sizeof(int),		1, SaveFD);
-		WRITEDATA(&pTrigger->bInCollision,	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->bActive,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->LastIncrement, sizeof(int),		1, SaveFD);
-		WRITEDATA(&pTrigger->tDoor,			sizeof(float),		1, SaveFD);
-		WRITEDATA(&pTrigger->origin,		sizeof(geVec3d),	1, SaveFD);
-		WRITEDATA(&pTrigger->bState,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->time,			sizeof(float),		1, SaveFD);
-		WRITEDATA(&pTrigger->isHit,			sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->CallBack,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pTrigger->CallBackCount, sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pTrigger->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->bTrigger,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->AnimationTime,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pTrigger->bInCollision,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->bActive,			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->LastIncrement,	sizeof(int),		1, SaveFD);
+		WRITEDATA(type, &pTrigger->tDoor,			sizeof(float),		1, SaveFD);
+		WRITEDATA(type, &pTrigger->origin,			sizeof(geVec3d),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->bState,			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->time,			sizeof(float),		1, SaveFD);
+		WRITEDATA(type, &pTrigger->isHit,			sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->CallBack,		sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pTrigger->CallBackCount,	sizeof(int),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -522,19 +522,19 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 			continue;
 		// end change
 
-		READDATA(&pTrigger->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->AnimationTime,	sizeof(int),		1, RestoreFD);
-		READDATA(&pTrigger->bInCollision,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->bActive,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->LastIncrement,	sizeof(int),		1, RestoreFD);
-		READDATA(&pTrigger->tDoor,			sizeof(float),		1, RestoreFD);
-		READDATA(&pTrigger->origin,			sizeof(geVec3d),	1, RestoreFD);
-		READDATA(&pTrigger->bState,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->time,			sizeof(float),		1, RestoreFD);
-		READDATA(&pTrigger->isHit,			sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->CallBack,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pTrigger->CallBackCount,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pTrigger->bInAnimation,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->bTrigger,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->AnimationTime,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pTrigger->bInCollision,		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->bActive,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->LastIncrement,	sizeof(int),		1, RestoreFD);
+		READDATA(type, &pTrigger->tDoor,			sizeof(float),		1, RestoreFD);
+		READDATA(type, &pTrigger->origin,			sizeof(geVec3d),	1, RestoreFD);
+		READDATA(type, &pTrigger->bState,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->time,				sizeof(float),		1, RestoreFD);
+		READDATA(type, &pTrigger->isHit,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->CallBack,			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pTrigger->CallBackCount,	sizeof(int),		1, RestoreFD);
 
 		if(pTrigger->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pTrigger->Model, GE_TRUE);

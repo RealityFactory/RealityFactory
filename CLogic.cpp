@@ -356,11 +356,11 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 	{
 		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
 
-		WRITEDATA(&pSource->active,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->bState,		sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->OldState,	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->inDelay,	sizeof(geBoolean),	1, SaveFD);
-		WRITEDATA(&pSource->time,		sizeof(float),		1, SaveFD);
+		WRITEDATA(type, &pSource->active,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->bState,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->OldState,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->inDelay,	sizeof(geBoolean),	1, SaveFD);
+		WRITEDATA(type, &pSource->time,		sizeof(float),		1, SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -387,11 +387,11 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
 
-		READDATA(&pSource->active,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->bState,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->OldState,	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->inDelay,		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(&pSource->time,		sizeof(float),		1, RestoreFD);
+		READDATA(type, &pSource->active,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->bState,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->OldState,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->inDelay,	sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &pSource->time,		sizeof(float),		1, RestoreFD);
 	}
 
 	return RGF_SUCCESS;

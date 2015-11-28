@@ -3,10 +3,14 @@
 /*	IniFile.cpp: implementation of the CIniFile class.									*/
 /*	Written by: Adam Clauss																*/
 /*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*																						*/
 /****************************************************************************************/
 
 #include "RabidFramework.h"
-#include "fstream.h"
+#include <fstream>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -25,7 +29,7 @@ CIniFile::CIniFile()
 /* ------------------------------------------------------------------------------------ */
 //	constructor, can specify pathname here instead of using SetPath later
 /* ------------------------------------------------------------------------------------ */
-CIniFile::CIniFile(CString inipath)
+CIniFile::CIniFile(string inipath)
 {
 	path = inipath;
 }
@@ -46,7 +50,7 @@ CIniFile::~CIniFile()
 /* ------------------------------------------------------------------------------------ */
 //	sets path of ini file to read and write from
 /* ------------------------------------------------------------------------------------ */
-void CIniFile::SetPath(CString newpath)
+void CIniFile::SetPath(string newpath)
 {
 	path = newpath;
 }
@@ -59,15 +63,15 @@ void CIniFile::SetPath(CString newpath)
 bool CIniFile::ReadFile()
 {
 // changed RF063
-	CString readinfo;
+	string readinfo;
 	int curkey = -1, curval = -1;
-	CString keyname, valuename, value;
-	CString temp;
+	string keyname, valuename, value;
+	string temp;
 	geVFile *MainFS;
 	char szPath[132];
 	char szInputLine[132];
 
-	strcpy(szPath, path);
+	strcpy(szPath, path.c_str());
 
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, szPath, GE_VFILE_OPEN_READONLY))
 		return 0;
@@ -79,36 +83,39 @@ bool CIniFile::ReadFile()
 		else
 			readinfo = szInputLine;
 
-		readinfo.TrimRight();
+		TrimRight(readinfo);
 
 		if(readinfo != "")
 		{
 			//if a section heading
-			if(readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']')
+			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
 				keyname = readinfo;
-				keyname.TrimLeft('[');
-				keyname.TrimRight(']');
+				TrimLeft(keyname, "[");
+				TrimRight(keyname, "]");
 			}
 			else
 			{
 // changed RF064
 				if(readinfo[0] != ';')
 				{
-					if(readinfo.Find("=") != -1)
+					if(readinfo.find("=") != -1)
 					{
-						valuename = readinfo.Left(readinfo.Find("="));
-						value = readinfo.Right(readinfo.GetLength()-valuename.GetLength()-1);
+						valuename = readinfo.substr(0, readinfo.find("="));
+						if(readinfo.size() > readinfo.find("=")+1)
+							value = readinfo.substr(readinfo.find("=")+1);
+						else
+							value = "";
 					}
 					else
 					{
 						valuename = readinfo;
-						value = "=";
+						value = "";
 					}
-					valuename.TrimLeft();
-					valuename.TrimRight();
-					value.TrimLeft();
-					value.TrimRight();
+					TrimLeft(valuename);
+					TrimRight(valuename);
+					TrimLeft(value);
+					TrimRight(value);
 // end change RF064
 					SetValue(keyname,valuename,value);
 				}
@@ -128,25 +135,25 @@ bool CIniFile::ReadFile()
 void CIniFile::WriteFile()
 {
 	ofstream inifile;
-	inifile.open(path);
+	inifile.open(path.c_str());
 
-	for(int keynum=0; keynum<=names.GetUpperBound(); keynum++)
+	for(unsigned int keynum=0; keynum<names.size(); keynum++)
 	{
-		if(keys[keynum].names.GetSize() != 0)
+		if(keys[keynum].names.size() != 0)
 		{
 			inifile << '[' << names[keynum] << ']' << endl;
 
-			for(int valuenum=0; valuenum<=keys[keynum].names.GetUpperBound(); valuenum++)
+			for(unsigned int valuenum=0; valuenum<keys[keynum].names.size(); valuenum++)
 			{
 				inifile << keys[keynum].names[valuenum] << "=" << keys[keynum].values[valuenum];
 
-				if(valuenum != keys[keynum].names.GetUpperBound())
+				if(valuenum != keys[keynum].names.size()-1)
 					inifile << endl;
-				else if(keynum < names.GetSize())
+				else if(keynum < names.size())
 					inifile << endl;
 			}
 
-			if(keynum < names.GetSize())
+			if(keynum < names.size())
 				inifile << endl;
 		}
 	}
@@ -159,8 +166,8 @@ void CIniFile::WriteFile()
 /* ------------------------------------------------------------------------------------ */
 void CIniFile::Reset()
 {
-	keys.SetSize(0);
-	names.SetSize(0);
+	keys.resize(0);
+	names.resize(0);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -168,27 +175,27 @@ void CIniFile::Reset()
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::GetNumKeys()
 {
-	return keys.GetSize();
+	return keys.size();
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	returns number of values stored for specified key, or -1 if key found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::GetNumValues(CString keyname)
+int CIniFile::GetNumValues(string keyname)
 {
 	int keynum = FindKey(keyname);
 
 	if(keynum == -1)
 		return -1;
 	else
-		return keys[keynum].names.GetSize();
+		return keys[keynum].names.size();
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::GetValue(CString keyname, CString valuename)
+string CIniFile::GetValue(string keyname, string valuename)
 {
 	int keynum = FindKey(keyname), valuenum = FindValue(keynum, valuename);
 
@@ -211,18 +218,18 @@ CString CIniFile::GetValue(CString keyname, CString valuename)
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::GetValueI(CString keyname, CString valuename)
+int CIniFile::GetValueI(string keyname, string valuename)
 {
-	return atoi(GetValue(keyname,valuename));
+	return atoi(GetValue(keyname,valuename).c_str());
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-double CIniFile::GetValueF(CString keyname, CString valuename)
+double CIniFile::GetValueF(string keyname, string valuename)
 {
-	return atof(GetValue(keyname, valuename));
+	return atof(GetValue(keyname, valuename).c_str());
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -231,7 +238,7 @@ double CIniFile::GetValueF(CString keyname, CString valuename)
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValue(CString keyname, CString valuename, CString value, bool create)
+bool CIniFile::SetValue(string keyname, string valuename, string value, bool create)
 {
 	int keynum = FindKey(keyname), valuenum = 0;
 
@@ -241,9 +248,9 @@ bool CIniFile::SetValue(CString keyname, CString valuename, CString value, bool 
 		if(!create)		//and user does not want to create it,
 			return 0;	//stop entering this key
 
-		names.SetSize(names.GetSize()+1);
-		keys.SetSize(keys.GetSize()+1);
-		keynum = names.GetSize()-1;
+		names.resize(names.size()+1);
+		keys.resize(keys.size()+1);
+		keynum = names.size()-1;
 		names[keynum] = keyname;
 	}
 
@@ -254,9 +261,9 @@ bool CIniFile::SetValue(CString keyname, CString valuename, CString value, bool 
 		if (!create)
 			return 0;
 
-		keys[keynum].names.SetSize(keys[keynum].names.GetSize()+1);
-		keys[keynum].values.SetSize(keys[keynum].names.GetSize()+1);
-		valuenum = keys[keynum].names.GetSize()-1;
+		keys[keynum].names.resize(keys[keynum].names.size()+1);
+		keys[keynum].values.resize(keys[keynum].names.size()+1);
+		valuenum = keys[keynum].names.size()-1;
 		keys[keynum].names[valuenum] = valuename;
 	}
 
@@ -270,10 +277,13 @@ bool CIniFile::SetValue(CString keyname, CString valuename, CString value, bool 
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValueI(CString keyname, CString valuename, int value, bool create)
+bool CIniFile::SetValueI(string keyname, string valuename, int value, bool create)
 {
-	CString temp;
-	temp.Format("%d", value);
+	string temp;
+	ostringstream oss;
+	oss << value;
+	temp = oss.str();
+
 	return SetValue(keyname, valuename, temp, create);
 }
 
@@ -283,10 +293,13 @@ bool CIniFile::SetValueI(CString keyname, CString valuename, int value, bool cre
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValueF(CString keyname, CString valuename, double value, bool create)
+bool CIniFile::SetValueF(string keyname, string valuename, double value, bool create)
 {
-	CString temp;
-	temp.Format("%e", value);
+	string temp;
+	ostringstream oss;
+	oss << value;
+	temp = oss.str();
+
 	return SetValue(keyname, valuename, temp, create);
 }
 
@@ -294,15 +307,15 @@ bool CIniFile::SetValueF(CString keyname, CString valuename, double value, bool 
 //	deletes specified value
 //	returns true if value existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::DeleteValue(CString keyname, CString valuename)
+bool CIniFile::DeleteValue(string keyname, string valuename)
 {
 	int keynum = FindKey(keyname), valuenum = FindValue(keynum, valuename);
 
 	if(keynum == -1 || valuenum == -1)
 		return 0;
 
-	keys[keynum].names.RemoveAt(valuenum);
-	keys[keynum].values.RemoveAt(valuenum);
+	keys[keynum].names.erase(keys[keynum].names.begin() + valuenum);
+	keys[keynum].values.erase(keys[keynum].values.begin() + valuenum);
 	return 1;
 }
 
@@ -310,25 +323,25 @@ bool CIniFile::DeleteValue(CString keyname, CString valuename)
 //	deletes specified key and all values contained within
 //	returns true if key existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::DeleteKey(CString keyname)
+bool CIniFile::DeleteKey(string keyname)
 {
 	int keynum = FindKey(keyname);
 
 	if(keynum == -1)
 		return 0;
 
-	keys.RemoveAt(keynum);
-	names.RemoveAt(keynum);
+	keys.erase(keys.begin() + keynum);
+	names.erase(names.begin() + keynum);
 	return 1;
 }
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindFirstKey()
+string CIniFile::FindFirstKey()
 {
 	numkey = 0;
 
-	if(numkey < keys.GetSize())
+	if(numkey < keys.size())
 		return names[numkey];
 	else
 		return "";
@@ -336,11 +349,11 @@ CString CIniFile::FindFirstKey()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindNextKey()
+string CIniFile::FindNextKey()
 {
 	numkey +=1;
 
-	if(numkey < keys.GetSize())
+	if(numkey < keys.size())
 		return names[numkey];
 	else
 		return "";
@@ -349,7 +362,7 @@ CString CIniFile::FindNextKey()
 // changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindFirstName(CString keyname)
+string CIniFile::FindFirstName(string keyname)
 {
 	entrykey = 0;
 	keyindex = FindKey(keyname);
@@ -357,7 +370,7 @@ CString CIniFile::FindFirstName(CString keyname)
 	if(keyindex == -1)
 		return "";
 
-	if(entrykey < keys[keyindex].names.GetSize())
+	if(entrykey < keys[keyindex].names.size())
 		return keys[keyindex].names[entrykey];
 
 	return "";
@@ -365,12 +378,12 @@ CString CIniFile::FindFirstName(CString keyname)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindFirstValue()
+string CIniFile::FindFirstValue()
 {
 	if(keyindex == -1)
 		return "";
 
-	if(entrykey < keys[keyindex].values.GetSize())
+	if(entrykey < keys[keyindex].values.size())
 		return keys[keyindex].values[entrykey];
 
 	return "";
@@ -378,14 +391,14 @@ CString CIniFile::FindFirstValue()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindNextName()
+string CIniFile::FindNextName()
 {
 	if(keyindex == -1)
 		return "";
 
 	entrykey += 1;
 
-	if(entrykey < keys[keyindex].names.GetSize())
+	if(entrykey < keys[keyindex].names.size())
 		return keys[keyindex].names[entrykey];
 
 	return "";
@@ -393,12 +406,12 @@ CString CIniFile::FindNextName()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CString CIniFile::FindNextValue()
+string CIniFile::FindNextValue()
 {
 	if(keyindex == -1)
 		return "";
 
-	if(entrykey < keys[keyindex].values.GetSize())
+	if(entrykey < keys[keyindex].values.size())
 		return keys[keyindex].values[entrykey];
 
 	return "";
@@ -414,14 +427,14 @@ CString CIniFile::FindNextValue()
 /* ------------------------------------------------------------------------------------ */
 //	returns index of specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::FindKey(CString keyname)
+int CIniFile::FindKey(string keyname)
 {
-	int keynum = 0;
+	unsigned int keynum = 0;
 
-	while(keynum < keys.GetSize() && names[keynum] != keyname)
+	while(keynum < keys.size() && names[keynum] != keyname)
 		keynum++;
 
-	if(keynum == keys.GetSize())
+	if(keynum == keys.size())
 		return -1;
 
 	return keynum;
@@ -430,17 +443,17 @@ int CIniFile::FindKey(CString keyname)
 /* ------------------------------------------------------------------------------------ */
 //	returns index of specified value, in the specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::FindValue(int keynum, CString valuename)
+int CIniFile::FindValue(int keynum, string valuename)
 {
 	if(keynum == -1)
 		return -1;
 
-	int valuenum = 0;
+	unsigned int valuenum = 0;
 
-	while(valuenum < keys[keynum].names.GetSize() && keys[keynum].names[valuenum] != valuename)
+	while(valuenum < keys[keynum].names.size() && keys[keynum].names[valuenum] != valuename)
 		valuenum++;
 
-	if(valuenum == keys[keynum].names.GetSize())
+	if(valuenum == keys[keynum].names.size())
 		return -1;
 
 	return valuenum;
@@ -449,12 +462,12 @@ int CIniFile::FindValue(int keynum, CString valuename)
 /* ------------------------------------------------------------------------------------ */
 //	overloaded from original getline to take CString
 /* ------------------------------------------------------------------------------------ */
-istream& CIniFile:: getline(istream &is, CString &str)
+/*istream& CIniFile:: getline(istream &is, CString &str)
 {
     char buf[2048];
     is.getline(buf, 2048);
     str = buf;
     return is;
-}
+}*/
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

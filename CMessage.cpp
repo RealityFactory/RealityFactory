@@ -8,6 +8,10 @@
 /*	This file contains the class declaration for Message								*/
 /*	implementation.																		*/
 /*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
+/*																						*/
 /****************************************************************************************/
 
 //	Include the One True Header
@@ -70,13 +74,14 @@ CMessage::CMessage()
 			// end change
 
 			pSource->Data = (void*)Data;
-			CString KeyName = AttrFile.FindFirstKey();
-			CString Type;
+			string KeyName = AttrFile.FindFirstKey();
+			string Type;
+
 			char szName[64], szAlpha[64];
 
 			while(KeyName != "")
 			{
-				if(!strcmp(KeyName, pSource->DisplayType))
+				if(!strcmp(KeyName.c_str(), pSource->DisplayType))
 				{
 					Type = AttrFile.GetValue(KeyName, "type");
 
@@ -152,14 +157,14 @@ CMessage::CMessage()
 							{
 								Type = AttrFile.GetValue(KeyName, "graphic");
 
-								strcpy(szName,Type);
+								strcpy(szName,Type.c_str());
 
 								Type = AttrFile.GetValue(KeyName, "graphicalpha");
 
 								if(Type == "")
 									Type = AttrFile.GetValue(KeyName, "graphic");
 
-								strcpy(szAlpha, Type);
+								strcpy(szAlpha, Type.c_str());
 
 								if(Data->graphicstyle == 0)
 								{
@@ -462,7 +467,7 @@ void CMessage::Display()
 		{
 			if(!EffectC_IsStringNull(pSource->TextName))
 			{
-				CString Textt = GetText(pSource->TextName);
+				string Textt = GetText(pSource->TextName);
 
 				// static type message
 				if(Data->type == 0)
@@ -510,12 +515,12 @@ void CMessage::Display()
 
 					while(1)
 					{
-						int Index = Textt.Find((char)1);
+						int Index = Textt.find((char)1);
 
 						if(Index == -1) // no newline indicator ( <CR> ) found
 						{
-							szText = new char[Textt.GetLength()+1];
-							strcpy(szText, Textt);
+							szText = new char[Textt.length()+1];
+							strcpy(szText, Textt.c_str());
 
 							if(Data->centerx)
 								posx = (CCD->Engine()->Width() - CCD->MenuManager()->FontWidth(Data->font, szText))/2;
@@ -527,8 +532,8 @@ void CMessage::Display()
 						}
 						else
 						{
-							szText = new char[Textt.GetLength()+1];
-							strcpy(szText, Textt.Left(Index));
+							szText = new char[Textt.length()+1];
+							strcpy(szText, Textt.substr(0, Index).c_str());
 
 							if(Data->centerx)
 								posx = (CCD->Engine()->Width() - CCD->MenuManager()->FontWidth(Data->font, szText))/2;
@@ -536,7 +541,7 @@ void CMessage::Display()
 							CCD->MenuManager()->WorldFontRect(szText, Data->font, posx, posy, Data->alpha);
 							delete szText;
 							posy += CCD->MenuManager()->FontHeight(Data->font) + 2;
-							Textt = Textt.Mid(Index+1);
+							Textt = Textt.substr(Index+1);
 						}
 					}
 					// end change
@@ -603,9 +608,9 @@ void CMessage::LoadText(char *messagetxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
-	CString readinfo, keyname, text;
+	string readinfo, keyname, text;
 
-	Text.SetSize(0);
+	Text.resize(0);
 
 // changed QD Language Menu
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, messagetxt, GE_VFILE_OPEN_READONLY))
@@ -623,30 +628,29 @@ void CMessage::LoadText(char *messagetxt)
 
 		if(readinfo != "" && readinfo[0] != ';')
 		{
-			readinfo.TrimRight();
+			TrimRight(readinfo);
 
 // changed QD 07/15/06 - if trim operation results in empty string...
-			if(readinfo.GetLength()<=1)
+			if(readinfo.length()<=1)
 				continue;
 // end change QD 07/15/06
 
-			if(readinfo[0] == '[' && readinfo[readinfo.GetLength()-1] == ']')
+			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
 				if(keyname != "" && text != "")
 				{
-					Text.SetSize(Text.GetSize()+1);
-					int keynum = Text.GetSize()-1;
+					Text.resize(Text.size()+1);
+					int keynum = Text.size()-1;
 					Text[keynum].Name = keyname;
 					Text[keynum].Text = text;
 // changed QD 12/15/05
-					Text[keynum].Text.Replace("<Player>", CCD->Player()->GetPlayerName());
+					Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
 // end change
-
 				}
 
 				keyname = readinfo;
-				keyname.TrimLeft('[');
-				keyname.TrimRight(']');
+				TrimLeft(keyname, "[");
+				TrimRight(keyname, "]");
 				text = "";
 			}
 			else
@@ -654,11 +658,11 @@ void CMessage::LoadText(char *messagetxt)
 				if(readinfo == "<CR>")
 				{
 					text += " ";
-					text.SetAt(text.GetLength()-1, (char)1);
+					text[text.length()-1] = (char)1;
 				}
 				else
 				{
-					if(text != "" && text[text.GetLength()-1] != 1)
+					if(text != "" && text[text.length()-1] != 1)
 						text += " ";
 
 					text += readinfo;
@@ -669,12 +673,12 @@ void CMessage::LoadText(char *messagetxt)
 
 	if(keyname != "" && text != "")
 	{
-		Text.SetSize(Text.GetSize()+1);
-		int keynum = Text.GetSize()-1;
+		Text.resize(Text.size()+1);
+		int keynum = Text.size()-1;
 		Text[keynum].Name = keyname;
 		Text[keynum].Text = text;
 // changed QD 12/15/05
-		Text[keynum].Text.Replace("<Player>", CCD->Player()->GetPlayerName());
+		Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
 // end change
 	}
 
@@ -684,9 +688,9 @@ void CMessage::LoadText(char *messagetxt)
 /* ------------------------------------------------------------------------------------ */
 //	GetText
 /* ------------------------------------------------------------------------------------ */
-CString CMessage::GetText(char *Name)
+string CMessage::GetText(char *Name)
 {
-	int size = Text.GetSize();
+	int size = Text.size();
 
 	if(size < 1)
 		return "";

@@ -1,9 +1,15 @@
-// qxTerrainMgr.cpp: implementation of the qxTerrainMgr class.
-//
-// Author: Jeff Thelen
-//
-// Copyright 2000 Quixotic, Inc.  All Rights Reserved.
-//////////////////////////////////////////////////////////////////////
+/****************************************************************************************/
+/*	qxTerrainMgr.cpp: implementation of the qxTerrainMgr class.							*/
+/*																						*/
+/*	Author: Jeff Thelen																	*/
+/*																						*/
+/*	Copyright 2000 Quixotic, Inc.  All Rights Reserved.									*/
+/*																						*/
+/*	Edit History:																		*/
+/*	=============																		*/
+/*	02/01/07 QD:	- added skydome Y offset											*/
+/*																						*/
+/****************************************************************************************/
 
 #include "..\\RabidFramework.h"
 #include "qxTerrainUtils.h"
@@ -87,6 +93,15 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		CCD->TerrainMgr()->SetOffsetY(param3);
 		return true;
 	}
+	// changed QD 2007
+	else if (IS_METHOD(methodName, "SetSkyDomeHeightOffset"))
+	{
+		PARMCHECK(1);
+		param3 = arguments[0].intValue();
+		CCD->TerrainMgr()->SetSkyDomeOffsetY(param3);
+		return true;
+	}
+	// end change
 	else if (IS_METHOD(methodName, "SetDesiredTriangles"))
 	{
 		PARMCHECK(1);
@@ -343,6 +358,9 @@ qxTerrainMgr::qxTerrainMgr()
 	m_fScaleY = 1.0f;
 	m_fScaleXZ = 4.0f;
 	m_OffsetY = 0;
+	// changed QD 02/01/07
+	m_SkyDomeOffsetY = 0;
+	// end change
 	m_nDesiredTriangles = 500;
 	m_nLandscapeSize = 4096;
 	m_nFarPlane = 9999999;
@@ -632,13 +650,13 @@ void qxTerrainMgr::Shutdown()
 	delete m_pCloudMachine;
 
 
-	for( int i = 0; i < m_pMaps.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
-		qxTerrainMapBase* p = m_pMaps.GetAt(i);
+		qxTerrainMapBase* p = m_pMaps[i];
 		delete p;
 	}
 
-	m_pMaps.RemoveAll();
+	m_pMaps.erase(m_pMaps.begin(), m_pMaps.end());
 
 
 	delete m_pqxPolyPool;
@@ -818,9 +836,9 @@ bool qxTerrainMgr::Frame()
 	UpdateFog();
 
 
-	for( int i = 0; i < m_pMaps.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
-		qxTerrainMapBase* p = m_pMaps.GetAt(i);
+		qxTerrainMapBase* p = m_pMaps[i];
 		p->Frame();
 	}
 
@@ -845,26 +863,22 @@ bool qxTerrainMgr::Render()
 
 	if( m_bRenderLandscape)
 	{
-
 		if(!m_bRenderWireframe)
 		{
-			for( int i = 0; i < m_pMaps.GetSize(); i++)
+			for(unsigned int i = 0; i < m_pMaps.size(); i++)
 			{
-				qxTerrainMapBase* p = m_pMaps.GetAt(i);
+				qxTerrainMapBase* p = m_pMaps[i];
 				p->Render();
 			}
 		}
-
 		else
 		{
-			for( int i = 0; i < m_pMaps.GetSize(); i++)
+			for(unsigned int i = 0; i < m_pMaps.size(); i++)
 			{
-				qxTerrainMapBase* p = m_pMaps.GetAt(i);
+				qxTerrainMapBase* p = m_pMaps[i];
 				p->RenderWireframe();
 			}
 		}
-
-
 	}
 
 	return true;
@@ -879,9 +893,9 @@ void qxTerrainMgr::Draw()
 	if( m_pCloudMachine)
 		m_pCloudMachine->Draw();
 
-	for( int i = 0; i < m_pMaps.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
-		qxTerrainMapBase* p = m_pMaps.GetAt(i);
+		qxTerrainMapBase* p = m_pMaps[i];
 		p->Draw();
 	}
 
@@ -1022,9 +1036,9 @@ qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 	if( OffsetX < 0 || OffsetZ < 0)
 		return NULL;
 
-	for( int i = 0; i < m_pMaps.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
-		qxTerrainMapBase* p = m_pMaps.GetAt(i);
+		qxTerrainMapBase* p = m_pMaps[i];
 
 		if(	p->GetMapOffsetIndexX() == OffsetX
 			&& p->GetMapOffsetIndexZ() == OffsetZ)
@@ -1042,10 +1056,9 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 		return true;
 
 	// See if it's loaded already
-
-	for( int i = 0; i < m_pMaps.GetSize(); i++)
+	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
-		qxTerrainMapBase* p = m_pMaps.GetAt(i);
+		qxTerrainMapBase* p = m_pMaps[i];
 
 		if(	p->GetMapOffsetIndexX() == OffsetX
 			&& p->GetMapOffsetIndexZ() == OffsetZ)
@@ -1086,7 +1099,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 
 	pMap->SetSunLight(true);
 
-	m_pMaps.Add(pMap);
+	m_pMaps.push_back(pMap);
 
 	return true;
 }
@@ -1149,7 +1162,6 @@ void qxTerrainMgr::UpdateTwilightPercent()
 	// Twilight distance is 0.0 to 1.0
 	m_fTwilightPercent = (fSunPercentToZenith+fTwilightDist)/ (fTwilightDist*2.0f) ;
 	m_fTwilightPercent = GE_CLAMP(m_fTwilightPercent, 0.0f, 1.0f);
-
 
 }
 

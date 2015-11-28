@@ -27,7 +27,7 @@ enum TRIGGER_FLAG
 
 
 
-class qxEffectBase 
+class qxEffectBase
 {
 public:
 
@@ -38,22 +38,22 @@ public:
 	virtual void	Draw(){};
 	virtual bool	Init();
 
-	
-	CString&		GetName()				{ return m_strName; };
+
+	string&			GetName()				{ return m_strName; };
 	geBitmap*		GetBitmap() { return m_pBmp; }
 
 	virtual void	SetPause( bool b);
 	virtual void	SetActive( bool b);
 	void			SetTotalTime(float f) { TotalTime = f; m_fTimeLeft = f; }
 	void			SetTimeLeft(float f)	{ m_fTimeLeft = f; }
-	
+
 	// Not all effects have a destination, but all have an origin.
 	virtual void	SetOriginAndDest(geVec3d* pOrig, geVec3d* pDest);
 
 	bool			GetPaused() { return m_bPaused; }
 	void			SetVisibilityFlags( int n ) { m_nVisibilityFlags = n; }
 
-	
+
 
 
 protected:
@@ -69,7 +69,7 @@ protected:
 	void			AttachBmp(char* pBmpName, char* pAlphaName);
 	void			AttachTrigger(char*);
 	bool			TestTrigger();
-	
+
 	virtual bool	TriggerStart(){return true;}
 	virtual bool	TriggerStop();
 	virtual bool	TriggerFrame(){ return m_bTriggered;}
@@ -78,13 +78,13 @@ protected:
 	bool			m_bPaused;
 	bool			m_bSelfDelete;
 
-	CString			m_strName;
+	string			m_strName;
 	bool			m_bTriggered;
 	geBitmap*		m_pBmp;
 
 	int32			m_nLeaf;
 	geActor	*		m_pActor;
-	
+
 	bool			m_bActive;
 
 	float			m_fTimeLeft;
