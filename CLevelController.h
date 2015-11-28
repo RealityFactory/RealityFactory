@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLevelController.h:		Level Controller											*/
-/*																						*/
-/*	(c) 2002 David C. Swope																*/
-/*																						*/
-/*	This file contains the class declaration for the CLevelController					*/
-/*	class that encapsulates level control logic handling in the RGF.					*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CLevelController.h
+ * @brief Level Controller
+ *
+ * This file contains the class declaration for the CLevelController class that
+ * encapsulates level control logic handling in the RGF.
+ * @author David C. Swope
+ *//*
+ * Copyright (c) 2002 David C. Swope; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

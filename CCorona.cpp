@@ -1,14 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCorona.cpp:																		*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Corona								*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CCorona.cpp
+ * @brief This file contains the class implementation for Corona handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

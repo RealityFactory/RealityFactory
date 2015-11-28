@@ -1,12 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CTeleporter.cpp:		Teleporter class handler									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for teleporter handling.				*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CTeleporter.cpp
+ * @brief Teleporter class handler
+ *
+ * This file contains the class implementation for teleporter handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

@@ -1,18 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	Chaos.cpp																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/*	08/30/2002 QD																		*/
-/*	Allow Effect on Actors																*/
-/*																						*/
-/*	04/23/2004 Wendell Buckner															*/
-/*	EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file Chaos.cpp
+ * @brief Chaos handler
+ *
+ * This file contains the class implementation for the Chaos class that
+ * encapsulates chaos based special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

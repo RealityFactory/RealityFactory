@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CViewSwitch.cpp:		ViewSwitch class implementation								*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for ViewSwitch handling.				*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CViewSwitch.cpp
+ * @brief ViewSwitch class implementation
+ *
+ * This file contains the class implementation for ViewSwitch handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

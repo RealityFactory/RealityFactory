@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CInventory.h:		Inventory class handler											*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Inventory handling.					*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CInventory.h
+ * @brief Inventory class handler
+ *
+ * This file contains the class declaration for Inventory handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CINVENTORY_H_
 #define __RGF_CINVENTORY_H_

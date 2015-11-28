@@ -1,15 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPersistentAttributes.h:		Persistent attributes class							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the declaration of the CPersistentAttribute						*/
-/*	class, which holds attribute data that persists for entities across					*/
-/*	level boundaries, and may also be saved and restored to/from a file.				*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CPersistentAttributes.h
+ * @brief Persistent attributes class
+ *
+ * This file contains the declaration of the CPersistentAttribute class,
+ * which holds attribute data that persists for entities across level
+ * boundaries, and may also be saved and restored to/from a file.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CPERSISTENTATTRIBUTES_H__
 #define __RGF_CPERSISTENTATTRIBUTES_H__

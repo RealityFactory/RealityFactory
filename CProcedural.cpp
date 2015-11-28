@@ -1,15 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CProcedural.cpp:		Procedural handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CProcedural						*/
-/*	class that encapsulates Procedural handling in the RGF.								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CProcedural.cpp
+ * @brief Procedural handler
+ *
+ * This file contains the class implementation for the CProcedural class that
+ * encapsulates Procedural handling in the RGF.
+ * @author  Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	You only need the one, master include file.
+// You only need the one, master include file.
 #include "RabidFramework.h"
 
 

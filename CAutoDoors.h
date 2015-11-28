@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAutoDoors.h:		Automatic door handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CAutoDoors							*/
-/*	class that encapsulates automatic-door handling in the RGF.							*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CAutoDoors.h
+ * @brief Automatic door handler
+ *
+ * This file contains the class declaration for the CAutoDoors class that
+ * encapsulates automatic-door handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 #ifndef __RGF_CAUTODOORS_H__
 #define __RGF_CAUTODOORS_H__

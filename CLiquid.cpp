@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLiquid.cpp:		Liquid and Overlay class implementation							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for CLiquid								*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CLiquid.cpp
+ * @brief Liquid class implementation
+ *
+ * This file contains the class implementation for the CLiquid and COverlay class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);

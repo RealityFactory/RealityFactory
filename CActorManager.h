@@ -1,29 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	ActorManager.h:		Actor Manager													*/
-/*																						*/
-/*	This file contains the class declaration of the Actor Manager						*/
-/*	system for the Reality factory.														*/
-/*																						*/
-/*	It's the Actor Manager's job to load, remove, translate,							*/
-/*	rotate, and scale all the actors in the system.  The Actor Manager					*/
-/*	maintains a database of "loaded actors" from which instances can					*/
-/*	be created.																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/2004 Wendell Buckner															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the overall bounding box. So tag the actor as being hit at the bounding box */
-/*	level and after that check ONLY the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/*	begin change gekido - 02.24.2004													*/
-/*	pretty major changes to the animation system, adding animation 'channels'			*/
-/*	so the user can trigger up to 5 different channels of animation at once.			*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CActorManager.h
+ * @brief This file contains the class declaration of the Actor Manager system
+ * for Reality Factory.
+ *
+ * It's the Actor Manager's job to load, remove, translate, rotate, and scale
+ * all the actors in the system. The Actor Manager maintains a database of
+ * "loaded actors" from which instances can be created.
+ ****************************************************************************************/
 
 #ifndef __CACTOR_MANAGER__
 #define __CACTOR_MANAGER__

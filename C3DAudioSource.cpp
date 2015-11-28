@@ -1,17 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	C3DAudioSource.cpp:		3D Audio Source class implementation						*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for 3D audio source handling.			*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file C3DAudioSource.cpp
+ * @brief 3D Audio Source class implementation
+ *
+ * This file contains the class implementation for 3D audio source handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 extern geSound_Def *SPool_Sound(char *SName);

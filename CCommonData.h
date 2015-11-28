@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCommonData.h:		Global Data Pool class											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for the Global Data						*/
-/*	Pool handling class.																*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CCommonData.h
+ * @brief Global Data Pool class
+ *
+ * This file contains the class declaration for the Global Data Pool handling
+ * class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CCOMMONDATA_H_
 #define __RGF_CCOMMONDATA_H_

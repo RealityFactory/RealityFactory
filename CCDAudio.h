@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCDAudio.h:		CD Audio Playback Class												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CCDAudio							*/
-/*	CD Audio playback class.															*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CCDAudio.h
+ * @brief CD Audio Playback Class
+ *
+ * This file contains the class declaration for the CCDAudio CD Audio playback class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CCDAUDIO_H_
 #define __RGF_CCDAUDIO_H_

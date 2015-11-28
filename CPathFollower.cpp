@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPathFollower.cpp:		Entity motion binding component								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the implementation for the CPathFollower component.				*/
-/*	This component causes moveable entities to travel at a specified speed				*/
-/*	between points on a path. Not all entities are moveable!							*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPathFollower.cpp
+ * @brief Entity motion binding component
+ *
+ * This file contains the implementation for the CPathFollower component.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

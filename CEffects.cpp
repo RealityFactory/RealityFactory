@@ -1,17 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CEffects.cpp               predefined effects handler								*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the predefined						*/
-/*	effects for RGF-based games.														*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- ActorSpray: convert BaseRotation from degrees to radians			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CEffects.cpp
+ * @brief Predefined effects handler
+ *
+ * This file contains the class implementation for the predefined effects for
+ * RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CWallDecal.cpp:		Decal class implementation										*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for WallDecal handling.					*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CWallDecal.cpp
+ * @brief WallDecal class implementation
+ *
+ * This file contains the class implementation for WallDecal handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

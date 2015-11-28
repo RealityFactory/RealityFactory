@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAttribute.h:		Attribute class handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Attribute handling.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CAttribute.h
+ * @brief Attribute class handler
+ *
+ * This file contains the class declaration for Attribute handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CATTRIBUTE_H_
 #define __RGF_CATTRIBUTE_H_

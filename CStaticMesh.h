@@ -1,17 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CStaticMesh.h: interface for the CStaticMesh class.									*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CStaticMesh.h
+ * @brief Interface for the CStaticMesh class
+ * @author Daniel Queteschiner
+ *//*
+ * Copyright (c) 2004 Daniel Queteschiner; All rights reserved.
+ ****************************************************************************************/
 
-#if !defined(AFX_CSTATICMESH_H__05862756_3BC3_4A6D_9E13_7615355493E7__INCLUDED_)
-#define AFX_CSTATICMESH_H__05862756_3BC3_4A6D_9E13_7615355493E7__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-#include "CRGFComponent.h"
+#ifndef __RGF_CSTATICMESH_H_
+#define __RGF_CSTATICMESH_H_
 
 #define	MESH_LIST_SIZE		1024
 

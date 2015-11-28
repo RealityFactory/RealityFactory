@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	RabidFrameworkMain.cpp:		RealityFactory Main Program File						*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This is the main execution path for RealityFactory.  This code handles				*/
-/*	level loading and changing, time-tick dispatching, and general user input			*/
-/*	functionality.																		*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file RabidFrameworkMain.cpp
+ * @brief Reality Factory Main Program File
+ *
+ * This is the main execution path for RealityFactory. This code handles level
+ * loading and changing, time-tick dispatching, and general user input functionality.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	This is the MAIN application, so we define the preprocessor
 //	..variable that lets the master include file set up all the

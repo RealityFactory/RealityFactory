@@ -1,18 +1,17 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAudioStream.h:		Steaming audio handler class									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CAudioStream						*/
-/*	class that handles streaming large WAVE files from mass storage						*/
-/*	into the Genesis3D sound system.  Note that this class depends on					*/
-/*	the 11/08/1999 Genesis3D engine mod to the file Sound.c that exposes				*/
-/*	a function call to get the DirectSound object that the Genesis3D					*/
-/*	engine is using.  If you don't have this mod, this won't operate.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CAudioStream.h
+ * @brief Streaming audio handler class
+ *
+ * This file contains the class declaration for the CAudioStream class that
+ * handles streaming large WAVE files from mass storage into the Genesis3D
+ * sound system.
+ * @note This class depends on the 11/08/1999 Genesis3D engine mod to the file
+ * Sound.c that exposes a function call to get the DirectSound object that the
+ * Genesis3D engine is using. If you don't have this mod, this won't operate.
+ * @author Ralph Deane
+ *//*
+ * Copyright(c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CAUDIOSTREAM_H__
 #define __RGF_CAUDIOSTREAM_H__

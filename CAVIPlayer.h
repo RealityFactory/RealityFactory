@@ -1,18 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAVIPlayer.h	:	Play AVI file into G3D engine									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CAVIPlayer							*/
-/*	class.  This class will take an AVI file and play it back into						*/
-/*	the Genesis3D engine window at a specific position, simultaneously					*/
-/*	streaming the audio blocks into DirectSound.										*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CAVIPlayer.h
+ * @brief Play AVI file into Genesis3D engine
+ *
+ * This file contains the class declaration for the CAVIPlayer class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CAVIPLAYER_H__
 #define __RGF_CAVIPLAYER_H__

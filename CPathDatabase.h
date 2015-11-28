@@ -1,16 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPathDatabase.h:		Path and pathpoint in-memory database						*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the declaration of the CPathDatabase in-							*/
-/*	memory path and pathpoint database.  This database is used to drive					*/
-/*	PathFollower entities and to provide a database interface to the					*/
-/*	eventual path-following AI code.													*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CPathDatabase.h
+ * @brief Path and pathpoint in-memory database
+ *
+ * This file contains the declaration of the CPathDatabase in-memory path and
+ * pathpoint database.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CPATHDATABASE_H_
 #define __RGF_CPATHDATABASE_H_

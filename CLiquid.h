@@ -1,16 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLiquid.h	:	Liquid																*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CLiquid							*/
-/*	class.  This class implements Liquid												*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CLiquid.h
+ * @brief Liquid
+ *
+ * This file contains the class declaration for the CLiquid class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CLIQUID_H__
 #define __RGF_CLIQUID_H__

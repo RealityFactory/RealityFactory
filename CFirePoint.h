@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFirePoint.h:		FirePoint handler												*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CFirePoint							*/
-/*	class that encapsulates weapon firing for RGF-based games.							*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CFirePoint.h
+ * @brief FirePoint handler
+ *
+ * This file contains the class declaration for the CFirePoint class that
+ * encapsulates weapon firing for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 #ifndef __RGF_CFIREPOINT_H_
 #define __RGF_CFIREPOINT_H_

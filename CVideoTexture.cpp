@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CVideoTexture.cpp:																	*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CVideoTexture					*/
-/*	class that encapsulates video texture replacement handling in the RGF.				*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CVideoTexture.cpp
+ * @brief Video surface texture handler
+ *
+ * This file contains the class implementation for the CVideoTexture class that
+ * encapsulates video texture replacement handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"

@@ -1,18 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CInput.cpp:		Keyboard and mouse input handler									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CInput							*/
-/*	class that encapsulates all mouse and keyboard input for							*/
-/*	RGF-based games.																	*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- take system metrics into account (swapped mouse buttons)			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CInput.cpp
+ * @author Ralph Deane
+ * @brief Keyboard and mouse input handler
+ *
+ * This file contains the class implementation for the CInput class that
+ * encapsulates all mouse and keyboard input for RGF-based games.
+ *//*
+ ****************************************************************************************/
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"

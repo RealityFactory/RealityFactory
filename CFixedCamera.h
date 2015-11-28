@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFixedCamera.h:		Fixed Camera class handler										*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Fixed Camera handling.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CFixedCamera.h
+ * @brief Fixed Camera class handler
+ *
+ * This file contains the class declaration for Fixed Camera handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CFIXEDCAMERA_H_
 #define __RGF_CFIXEDCAMERA_H_

@@ -1,21 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	Collider.h	:	Collision and Contents Handling Class								*/
-/*																						*/
-/*	This file contains the class declaration for the Collider collision					*/
-/*	and contents checking and handling class.  This is a utility class					*/
-/*	to be used by other RGF classes.													*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/*	07/15/2004 Wendell Buckner															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the	overall bounding box. So tag the actor as being hit at the bounding box */
-/*	level and after that check ONLY	the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Collider.h
+ * @brief Collision and Contents Handling Class
+ *
+ * This file contains the class declaration for the Collider collision and
+ * contents checking and handling class. This is an utility class to be used
+ * by other RGF classes.
+ ****************************************************************************************/
 
 #ifndef __COLLIDER_H_
 #define __COLLIDER_H_

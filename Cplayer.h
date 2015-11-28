@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPlayer.h:		Player character encapsulation class								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the player								*/
-/*	character (avatar) in an RGF-based game.											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPlayer.h
+ * @brief Player character encapsulation class
+ *
+ * This file contains the class declaration for the player character (avatar)
+ * in an RGF-based game.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 
 #ifndef __RGF_CPLAYER_H__

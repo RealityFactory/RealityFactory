@@ -1,26 +1,16 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPersistentAttributes.cpp:		Persistent attributes class							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the implementation of the CPersistentAttribute					*/
-/*	class, which holds attribute data that persists for entities across					*/
-/*	level boundaries, and may also be saved and restored to/from a file.				*/
-/*																						*/
-/*	The concept here is that attribute lists can be associate with						*/
-/*	ANYTHING, and maintained at a higher level than the individual						*/
-/*	object in case things have to persist (like player attributes and					*/
-/*	inventory).																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- BUG FIX															*/
-/*	12/15/05 QD:	- Add PowerUp Level													*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPersistentAttributes.cpp
+ * @brief Persistent attributes class
+ *
+ * This file contains the implementation of the CPersistentAttribute class,
+ * which holds attribute data that persists for entities across level
+ * boundaries, and may also be saved and restored to/from a file.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	The One True Include File
+// The One True Include File
 #include "RabidFramework.h"
 
 #ifdef _DEBUG

@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CGenesisEngine.h:		Genesis3D engine encapsulation								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the Genesis3D							*/
-/*	engine wrapper.  This wrapper hides many of the gory details						*/
-/*	necessary to use the Genesis3D 1.0 engine.											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CGenesisEngine.h
+ * @brief Genesis3D engine encapsulation
+ *
+ * This file contains the class declaration for the Genesis3D engine wrapper.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CGENESISENGINE_H_
 #define __RGF_CGENESISENGINE_H_

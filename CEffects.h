@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CEffects.h				Predefined effects handler									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declarations for the predefined						*/
-/*	effects for RGF-based games.														*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CEffects.h
+ * @brief Predefined effects handler
+ *
+ * This file contains the class declarations for the predefined effects for
+ * RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_PREEFFMANAGER_H_
 #define __RGF_PREEFFMANAGER_H_

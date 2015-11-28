@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCDAudio.cpp:		CD Audio Playback Class											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	  This file contains the class implementation for the CCDAudio						*/
-/*	  CD Audio playback class.															*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CCDAudio.cpp
+ * @brief CD Audio Playback Class
+ *
+ * This file contains the class implementation for the CCDAudio CD Audio playback class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

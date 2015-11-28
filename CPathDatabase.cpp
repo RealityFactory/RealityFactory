@@ -1,17 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPathDatabase.cpp:		Path and pathpoint in-memory database						*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the implementation of the CPathDatabase in-						*/
-/*	memory path and pathpoint database.  This database is used to drive					*/
-/*	PathFollower entities and to provide a database interface to the					*/
-/*	eventual path-following AI code.													*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPathDatabase.cpp
+ * @brief Path and pathpoint in-memory database
+ *
+ * This file contains the implementation of the CPathDatabase in-memory path and
+ * pathpoint database.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

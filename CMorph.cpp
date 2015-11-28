@@ -1,30 +1,25 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMorph.cpp: CMorph Class															*/
-/*	taken from the GDemo Source modified for RF											*/
-/*	original Author: Peter Siamidis														*/
-/*	Description:																		*/
-/*		Morph one texture into another.													*/
-/*																						*/
-/*	The contents of this file are subject to the Genesis3D Public License				*/
-/*	Version 1.01 (the "License"); you may not use this file except in					*/
-/*	compliance with the License. You may obtain a copy of the License at				*/
-/*	http://www.genesis3d.com															*/
-/*																						*/
-/*	Software distributed under the License is distributed on an "AS IS"					*/
-/*	basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See				*/
-/*	the License for the specific language governing rights and limitations				*/
-/*	under the License.																	*/
-/*																						*/
-/*	Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved			*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- Added: Morphing alpha channel	if present							*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CMorph.cpp
+ * @brief CMorph class implementation
+ *
+ * Taken from the GDemo Source modified for RF. Morph one texture into another.
+ * @author Peter Siamidis
+ * @author Daniel Queteschiner
+ *//*
+ * The contents of this file are subject to the Genesis3D Public License
+ * Version 1.01 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.genesis3d.com
+ *
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See
+ * the License for the specific language governing rights and limitations
+ * under the License.
+ *
+ * Copyright (C) 1996-1999 Eclipse Entertainment, L.L.C. All Rights Reserved
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);

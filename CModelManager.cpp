@@ -1,11 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	CModelManager.cpp:		Animated World Model Manager								*/
-/*																						*/
-/*	This file contains the class implementation of the Model Manager					*/
-/*	system for Reality Factory.															*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CModelManager.cpp
+ * @brief Animated World Model Manager
+ *
+ * This file contains the class implementation of the Model Manager system for
+ * Reality Factory.
+ *//*
+ ****************************************************************************************/
 
 #include "RabidFramework.h"		// The One True Include File
 

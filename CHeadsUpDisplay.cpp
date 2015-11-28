@@ -1,20 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CHeadsUpDisplay.cpp:		HUD display handler										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CHeadsUpDisplay					*/
-/*	class that encapsulates player status display functionality.						*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*	07/15/06 QD:	- Added flipindicator option to vertical/horizontal HUD elements	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CHeadsUpDisplay.cpp
+ * @brief HUD display handler
+ *
+ * This file contains the class implementation for the CHeadsUpDisplay class that
+ * encapsulates player status display functionality.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 // changed RF064

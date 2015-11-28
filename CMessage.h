@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMessage.h:		Message class handler												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Message handling.						*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CMessage.h
+ * @brief Message class handler
+ *
+ * This file contains the class declaration for Message handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CMESSAGE_H_
 #define __RGF_CMESSAGE_H_

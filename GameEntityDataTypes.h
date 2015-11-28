@@ -1,12 +1,11 @@
 /****************************************************************************************/
-/*																						*/
-/*	GameEntityDataTypes.h:	Reality Factory Entity Data Types							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains all of the game entity data type declarations,					*/
-/*	suitable for use by GEdit and the game itself.										*/
-/*																						*/
+/// @file GameEntityDataTypes.h
+/// @brief Reality Factory Entity Data Types
+///
+/// This file contains all of the game entity data type declarations,
+/// suitable for use by GEdit and the game itself.
+/// @author Ralph Deane
+//  Copyright (c) 2001 Ralph Deane; All Rights Reserved.
 /****************************************************************************************/
 
 //	Disable unknown pragma warnings (GEdit #pragmas used here)

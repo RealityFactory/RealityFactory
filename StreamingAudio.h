@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	StreamingAudio.h:	Streaming audio encapsulation class								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	* PURPOSE *																			*/
-/*																						*/
-/*	This file contains the class definitions for audio streaming						*/
-/*	functionality, based on the SoundServices functionality.							*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file StreamingAudio.h
+ * @brief Streaming audio encapsulation class
+ *
+ * This file contains the class definitions for audio streaming functionality,
+ * based on the SoundServices functionality.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved
+ ****************************************************************************************/
 
 #ifndef __RGF_STREAMINGAUDIO_H_
 #define __RGF_STREAMINGAUDIO_H_

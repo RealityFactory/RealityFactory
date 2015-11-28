@@ -1,20 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMessage.h:		Message class implementation										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Message								*/
-/*	implementation.																		*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CMessage.cpp
+ * @brief Message class implementation
+ *
+ * This file contains the class implementation for Message handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
 

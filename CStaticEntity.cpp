@@ -1,15 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CStaticEntity.cpp:		Static Entity Handling Class								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the Static Entity					*/
-/*	handling class.  Static entities are Genesis3D actors that do not					*/
-/*	have any animation (this means health packs, weapons, props, things					*/
-/*	that aren't world models but aren't at the level of non-player characters).			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CStaticEntity.cpp
+ * @brief Static Entity Handling Class
+ *
+ * This file contains the class implementation for the Static Entity handling
+ * class. Static entities are Genesis3D actors that do not have any animation
+ * (this means health packs, weapons, props, things	that aren't world models
+ * but aren't at the level of non-player characters).
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

@@ -1,25 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCommonData.cpp:		Global Data Pool class										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for the Global Data						*/
-/*	Pool handling class.  All access to common RGF components MUST be					*/
-/*	performed via this class, and all components MUST be registered						*/
-/*	via this class as well.  This provides a central point of access and				*/
-/*	eases debugging later in the RGF development cycle.									*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	08/15/06 QD:	- Fixed memory leak (free hash table)								*/
-/*	07/15/06 QD:	- Added new lowlevel pawn commands to hash table					*/
-/*					- Added a flag to disable the use of DirectInput (joystick)			*/
-/*					  On some Win98 systems DInput.dll conflicts with HID.dll			*/
-/*	08/13/04 Wendell Buckner:	- I really need the mouse look working in debug mode...	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CCommonData.cpp
+ * @brief Global Data Pool class
+ *
+ * This file contains the class declaration for the Global Data Pool handling
+ * class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

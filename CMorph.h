@@ -1,17 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/* CMorph.h: Schnittstelle für die Klasse CMorph.										*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CMorph.h
+ * @brief CMorph class declaration
+ * @author Peter Siamidis
+ * @author Daniel Queteschiner
+ ****************************************************************************************/
 
-#if !defined(AFX_CMORPH_H__1538EAC0_A2AA_11D6_BEAF_00C0DF084214__INCLUDED_)
-#define AFX_CMORPH_H__1538EAC0_A2AA_11D6_BEAF_00C0DF084214__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
-
+#ifndef __RGF_CMORPH_H_
+#define __RGF_CMORPH_H_
 
 class CMorph : public CRGFComponent
 {

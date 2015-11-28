@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDecal.cpp:		Decal class implementation											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Decal								*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CDecal.cpp
+ * @brief Decal class implementation
+ *
+ * This file contains the class implementation for Decal handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

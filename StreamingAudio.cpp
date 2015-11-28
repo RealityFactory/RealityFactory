@@ -1,17 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	StreamingAudio.cpp:	Streaming audio encapsulation class								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	* PURPOSE *																			*/
-/*																						*/
-/*	This file contains the implementation of audio streaming							*/
-/*	services, based on the SoundServices functionality.									*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file StreamingAudio.cpp
+ * @brief Streaming audio encapsulation class
+ *
+ * This file contains the class implementation of audio streaming services,
+ * based on the SoundServices functionality.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved
+ ****************************************************************************************/
 
-//	As always, we include the One True Header File
+// As always, we include the One True Header File
 #include "RabidFramework.h"
 
 //	************************ BEGIN IMPLEMENTATION ***************************

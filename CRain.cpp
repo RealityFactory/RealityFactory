@@ -1,16 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CRain.cpp:		Rain handler														*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CRain							*/
-/*	class that encapsulates rain based special effects for								*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CRain.cpp
+ * @brief Rain handler
+ *
+ * This file contains the class implementation for the CRain class that
+ * encapsulates rain based special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 #define RAINM_RADIUSTOEFFECTRATIO	50

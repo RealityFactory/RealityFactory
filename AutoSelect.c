@@ -1,23 +1,16 @@
-/****************************************************************************************/
-/*  AutoSelect.c                                                                        */
-/*                                                                                      */
-/*  Author: Mike Sandige                                                                */
-/*  Combine with ModeList and slight mods: Dee                                          */
-/*  Description:    Attempts to automatically choose a good video mode                  */
-/*                                                                                      */
-/*  Edit History:                                                                       */
-/*  =============                                                                       */
-/*  02/01/07 QD:    - replaced MFC, VC++ 2005 compatibility                             */
-/*                  - set driver selection window topmost                               */
-/*                                                                                      */
-/*  Copyright (c) 1999 WildTangent, Inc.; All rights reserved.                          */
-/*                                                                                      */
-/*  See the accompanying file LICENSE.TXT for terms on the use of this library.         */
-/*  This library is distributed in the hope that it will be useful but WITHOUT          */
-/*  ANY WARRANTY OF ANY KIND and without any implied warranty of MERCHANTABILITY        */
-/*  or FITNESS FOR ANY PURPOSE.  Refer to LICENSE.TXT for more details.                 */
-/*                                                                                      */
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file AutoSelect.c
+ * @brief Attempts to automatically choose a good video mode
+ * @author Mike Sandige
+ * @author Dee (Combine with ModeList and slight mods)
+ *//*
+ * Copyright (c) 1999 WildTangent, Inc.; All rights reserved.
+ *
+ * See the accompanying file LICENSE.TXT for terms on the use of this library.
+ * This library is distributed in the hope that it will be useful but WITHOUT
+ * ANY WARRANTY OF ANY KIND and without any implied warranty of MERCHANTABILITY
+ * or FITNESS FOR ANY PURPOSE. Refer to LICENSE.TXT for more details.
+ ****************************************************************************************/
 
 #define MODELIST_MAX_NAME (1000)
 #define MODELIST_ALLOCATION_BLOCK_SIZE (10)

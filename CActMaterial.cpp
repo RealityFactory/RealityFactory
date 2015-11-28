@@ -1,19 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CActMaterial.cpp			CActMaterial handler									*/
-/*																						*/
-/*	(c) 2002 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the									*/
-/*	CActMaterial enitity  for RGF-based games.											*/
-/*																						*/
-/*	Programming provided by QD															*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- make missing actor not a fatal error								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CActMaterial.cpp
+ * @brief CActMaterial handler
+ *
+ * This file contains the class implementation for the CActMaterial enitity
+ * for RGF-based games.
+ * @author Daniel Queteschiner
+ *//*
+ * Copyright (c) 2002 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 // Include the One True Header
 #include "RabidFramework.h"

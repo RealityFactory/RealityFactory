@@ -1,17 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CRGFComponent.h:		RGF component base class									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the interface declaration for the Rabid Game						*/
-/*	Framework (RGF) common base class.  All RGF components will inherit					*/
-/*	from this common base class.  Note that implementations that report					*/
-/*	errors are provided for all base class member functions, this is					*/
-/*	to ease development of new RGF components.											*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CRGFComponent.h
+ * @brief RGF component base class
+ *
+ * This file contains the interface declaration for the Rabid Game Framework
+ * (RGF) common base class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CRGFCOMPONENT_H_
 #define __RGF_CRGFCOMPONENT_H_

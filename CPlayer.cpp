@@ -1,22 +1,16 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPlayer.cpp:		Player character encapsulation class							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the player							*/
-/*	character (avatar) in an RGF-based game.											*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*					- fixed crashing due to uninitialized data							*/
-/*	04/30/04 Wendell Buckner															*/
-/*	CRASHING - Get rid of crashing due to missing entity or entity parameters			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPlayer.cpp
+ * @brief Player character encapsulation class
+ *
+ * This file contains the class implementation for the player character
+ * (avatar) in an RGF-based game.
+ * @author Ralph Deane
+ * @bug Get rid of crashing due to missing entity or entity parameters
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	You only need the one, master include file.
+// You only need the one, master include file.
 #include "RabidFramework.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);

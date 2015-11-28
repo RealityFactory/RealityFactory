@@ -1,21 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CWeapon.cpp:		Weapon class implementation										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Weapon implementation.					*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/*	07/15/2004 Wendell Buckner															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the overall bounding box. So tag the actor as being hit at the bounding box	*/
-/*	level and after that check ONLY the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CWeapon.cpp
+ * @brief Weapon class implementation
+ *
+ * This file contains the class implementation for Weapon handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 // Include the One True Header
 #include "RabidFramework.h"

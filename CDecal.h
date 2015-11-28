@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDecal.h:		Decal class handler													*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Decal handling.						*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CDecal.h
+ * @brief Decal class handler
+ *
+ * This file contains the class declaration for Decal handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CDECAL_H_
 #define __RGF_CDECAL_H_

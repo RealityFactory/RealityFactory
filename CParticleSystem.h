@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CParticleSystem.h:	Particle Systems Handler header file							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration and data types for							*/
-/*	the RGF particle system handler classes.											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CParticleSystem.h
+ * @brief Particle Systems Handler header file
+ *
+ * This file contains the class declaration and data types for the RGF particle
+ * system handler classes.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CPARTICLESYSTEM_H_
 #define __RGF_CPARTICLESYSTEM_H_

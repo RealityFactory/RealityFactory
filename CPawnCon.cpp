@@ -1,16 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPawnCon.cpp:																		*/
-/*																						*/
-/*	(c) Ralph Deane																		*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
-/*					- Added command SetAttributeValueLimits								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPawnCon.cpp
+ * @brief Pawn Conversation
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

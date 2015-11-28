@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CWeapon.h:		Weapon class handler												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Weapon handling.						*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Cweapon.h
+ * @brief Weapon class handler
+ *
+ * This file contains the class declaration for Weapon handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CWEAPON_H_
 #define __RGF_CWEAPON_H_

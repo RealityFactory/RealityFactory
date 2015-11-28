@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	Explosion Manager.cpp               Explosion  Manager handler						*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the Explosion						*/
-/*	Manager that handles Explosions for RGF-based games.								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CExplosion.cpp
+ * @brief Explosion Manager handler
+ *
+ * This file contains the class implementation for the Explosion Manager that
+ * handles Explosions for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright(c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

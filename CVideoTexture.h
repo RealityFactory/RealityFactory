@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CVideoTexture.h:		Video surface texture handler								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CVideoTexture						*/
-/*	class that encapsulates video surface texture handling in the RGF.					*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CVideoTexture.h
+ * @brief Video surface texture handler
+ *
+ * This file contains the class declaration for the CVideoTexture class that
+ * encapsulates video surface texture handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CVideoTexture_H__
 #define __RGF_CVideoTexture_H__

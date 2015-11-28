@@ -1,14 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDSpotLight.cpp: Implementierung der Klasse CDSpotLight.							*/
-/*																						*/
-/*	(c) 2003 Daniel Queteschiner (QD)													*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- Changed rotation with actors										*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CDSpotLight.cpp
+ * @brief Dynamic Spotlight class implementation
+ * @author Daniel Queteschiner
+ *//*
+ * Copyright (c) 2003 Daniel Queteschiner; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

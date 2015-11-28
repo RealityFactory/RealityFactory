@@ -1,18 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	Utilities.h:		Utility functions												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the headers for utility functions								*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Utilities.h
+ * @brief Utility functions
+ *
+ * This file contains the headers for utility functions
+ * @author Ralph Deane
+ *//*
+ ****************************************************************************************/
 
 #ifndef __RGF_UTILITY_H_
 #define __RGF_UTILITY_H_

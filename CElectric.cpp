@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CElectric.cpp:		Electric Bolt handler											*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CElectric						*/
-/*	class that encapsulates all Electric Bolt based special effects for					*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CElectric.cpp
+ * @brief Electric Bolt handler
+ *
+ * This file contains the class implementation for the CElectric class that
+ * encapsulates all Electric bolt special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

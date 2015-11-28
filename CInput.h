@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CInput.h:		Keyboard and mouse input handler									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CInput								*/
-/*	class that encapsulates all mouse and keyboard input for							*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CInput.h
+ * @brief Keyboard and mouse input handler
+ *
+ * This file contains the class declaration for the CInput class that
+ * encapsulates all mouse and keyboard input for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 #ifndef __RGF_CINPUT_H__
 #define __RGF_CINPUT_H__

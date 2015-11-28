@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFirePoint.cpp:		FirePoint handler												*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CFirePoint						*/
-/*	class that encapsulates all weapon firing for RGF-based games.						*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CFirePoint.cpp
+ * @brief FirePoint handler
+ *
+ * This file contains the class implementation for the CFirePoint class that
+ * encapsulates weapon firing for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

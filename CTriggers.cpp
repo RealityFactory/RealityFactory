@@ -1,16 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CTriggers.cpp:		Trigger handler													*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CTriggers						*/
-/*	class that encapsulates trigger handling in the RGF.								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CTriggers.cpp
+ * @brief Trigger handler
+ *
+ * This file contains the class implementation for the CTriggers class that
+ * encapsulates trigger handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-
-//	You only need the one, master include file.
+// You only need the one, master include file.
 #include "RabidFramework.h"
 
 extern geBoolean EffectC_IsStringNull(char *String );

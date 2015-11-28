@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	EffManager.h					Effects Manager handler								*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declarations for the Effects							*/
-/*	Manager that handles special effects for RGF-based games.							*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file EffManager.h
+ * @brief Effects Manager handler
+ *
+ * This file contains the class declarations for the Effects Manager that
+ * handles special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_EFFMANAGER_H_
 #define __RGF_EFFMANAGER_H_

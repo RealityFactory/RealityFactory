@@ -1,16 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAudioManager.cpp:		Audio Manager												*/
-/*																						*/
-/*	This file contains the class implementation of the Audio Manager					*/
-/*	system for Reality Factory.															*/
-/*																						*/
-/*	The Audio Manager handles the playback of ALL audio effects in						*/
-/*	Reality Factory - this means MIDI, CD Audio, WAVE effects,							*/
-/*	MP3, and streaming audio tracks.  The Audio Manager is an encapsulation				*/
-/*	of the FMOD Audio System.															*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CAudioManager.cpp
+ * @brief Audio Manager
+ *
+ * This file contains the class implementation of the Audio Manager system for
+ * Reality Factory.
+ * The Audio Manager handles the playback of ALL audio effects in
+ * Reality Factory - this means MIDI, CD Audio, WAVE effects, MP3
+ * and streaming audio tracks. The Audio Manager is an encapsulation
+ * of the FMOD Audio System.
+ * @remarks unimplemented/unused
+ ****************************************************************************************/
 
 #include "RabidFramework.h"				// The One True Header
 

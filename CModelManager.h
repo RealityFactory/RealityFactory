@@ -1,15 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CModelManager.h:		Animated World Model Manager								*/
-/*																						*/
-/*	This file contains the class declaration of the Model Manager						*/
-/*	system for the Reality Factory.														*/
-/*																						*/
-/*	The Model Manager handles starting, stopping, and moving all of						*/
-/*	the various types of Animated World Models in the level.							*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CModelManager.h
+ * @brief Animated World Model Manager
+ *
+ * This file contains the class declaration of the Model Manager system for
+ * Reality Factory.
+ ****************************************************************************************/
 
 #ifndef __CMODEL_MANAGER__
 #define __CMODEL_MANAGER__

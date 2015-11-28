@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CViewSwitch.h:		ViewSwitch class handler										*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for ViewSwitch handling.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CViewSwitch.h
+ * @brief ViewSwitch class handler
+ *
+ * This file contains the class declaration for ViewSwitch handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CVIEWSWITCH_H_
 #define __RGF_CVIEWSWITCH_H_

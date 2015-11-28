@@ -1,18 +1,17 @@
-/****************************************************************************************/
-/*  AutoSelect.h                                                                        */
-/*                                                                                      */
-/*  Original Author: Mike Sandige                                                       */
-/*  Combine with ModeList and slight mods: Dee                                          */
-/*  Description:    Attempts to automatically choose a good video mode                  */
-/*                                                                                      */
-/*  Copyright (c) 1999 WildTangent, Inc.; All rights reserved.                          */
-/*                                                                                      */
-/*  See the accompanying file LICENSE.TXT for terms on the use of this library.         */
-/*  This library is distributed in the hope that it will be useful but WITHOUT          */
-/*  ANY WARRANTY OF ANY KIND and without any implied warranty of MERCHANTABILITY        */
-/*  or FITNESS FOR ANY PURPOSE.  Refer to LICENSE.TXT for more details.                 */
-/*                                                                                      */
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file AutoSelect.h
+ * @brief Attempts to automatically choose a good video mode
+ * @author Mike Sandige
+ * @author Dee (Combine with ModeList and slight mods)
+ *//*
+ * Copyright (c) 1999 WildTangent, Inc.; All rights reserved.
+ *
+ * See the accompanying file LICENSE.TXT for terms on the use of this library.
+ * This library is distributed in the hope that it will be useful but WITHOUT
+ * ANY WARRANTY OF ANY KIND and without any implied warranty of MERCHANTABILITY
+ * or FITNESS FOR ANY PURPOSE. Refer to LICENSE.TXT for more details.
+ ****************************************************************************************/
+
 #ifndef AUTOSELECT_H
 #define AUTOSELECT_H
 

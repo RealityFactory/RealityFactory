@@ -1,14 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCameraManager.h:		Camera positioning, rotation, and motion manager			*/
-/*																						*/
-/*	This file contains the class declaration for the Camera Manager class.				*/
-/*																						*/
-/*	The Camera Manager is responsible for handling the motion of the					*/
-/*	player viewpoint camera during the game.											*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CCameraManager.h
+ * @brief Camera positioning, rotation, and motion manager
+ *
+ * This file contains the class declaration for the Camera Manager class.
+ * The Camera Manager is responsible for handling the motion of the player
+ * viewpoint camera during the game.
+ ****************************************************************************************/
 
 #ifndef __CCAMERAMANAGER_H_
 #define __CCAMERAMANAGER_H_

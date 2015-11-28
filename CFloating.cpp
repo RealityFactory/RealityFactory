@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFloating.cpp:		Floating Particle handler										*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CFloat							*/
-/*	class that encapsulates floating particle based special effects for					*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CFloating.cpp
+ * @brief Floating Particle handler
+ *
+ * This file contains the class implementation for the CFloat class that
+ * encapsulates floating particle based special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 

@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	RGFStatus.h:		Reality Factory defines file									*/
-/*																						*/
-/*	(C) 2001 Ralph Deane  All rights reserved.											*/
-/*																						*/
-/*	This file contains all the various status, error, key, and							*/
-/*	result code defines used throughout the RGF system.									*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file RGFStatus.h
+ * @brief Reality Factory defines file
+ *
+ * This file contains all the various status, error, key, and result code
+ * defines used throughout the RGF system.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 
 #ifndef __RGF_RGFSTATUS_H__

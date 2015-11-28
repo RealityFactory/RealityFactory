@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CTriggers.h:		Trigger handler													*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CTriggers							*/
-/*	class that encapsulates trigger handling in the RGF.								*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CTriggers.h
+ * @brief Trigger handler
+ *
+ * This file contains the class declaration for the CTriggers class that
+ * encapsulates trigger handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CTRIGGERS_H__
 #define __RGF_CTRIGGERS_H__

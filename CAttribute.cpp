@@ -1,23 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAttribute.cpp:		Attribute class implementation									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Attribute								*/
-/*	implementation.																		*/
-/*																						*/
-/*	Handles Attribute and ModifyAttribute entities										*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	06/26/04 Daniel Queteschiner (QD)													*/
-/*		ADDED -  Shadow Bitmap															*/
-/*	08/14/03 Daniel Queteschiner (QD)													*/
-/*		BUG FIX - Attribute following another entity									*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CAttribute.cpp
+ * @brief Attribute class implementation
+ *
+ * This file contains the class implementation for Attribute handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

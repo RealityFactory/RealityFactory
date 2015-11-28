@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCutScene.cpp				CutScene handler										*/
-/*																						*/
-/*	(c) 2002 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the									*/
-/*	CutScene enitity  for RGF-based games.												*/
-/*																						*/
-/*	Programming provided by QD															*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CutScene.cpp
+ * @brief CutScene handler
+ *
+ * This file contains the class implementation for the CutScene entity for
+ * RGF-based games.
+ * @author Daniel Queteschiner
+ *//*
+ * Copyright (c) 2002 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 // Include the One True Header
 #include "RabidFramework.h"

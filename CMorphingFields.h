@@ -1,16 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMorphingFields.h:		Morphing Fields class handler								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for morphing fields handling.				*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CMorphingFields.h
+ * @brief Morphing Fields class handler
+ *
+ * This file contains the class declaration for morphing fields handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CMORPHINGFIELDS_H_
 #define __RGF_CMORPHINGFIELDS_H_

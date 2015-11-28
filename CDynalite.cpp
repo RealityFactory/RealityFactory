@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDynalite.cpp:		Dynamic Light handler											*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CDynalite						*/
-/*	class that encapsulates all Dynamic Light special effects for						*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CDynalite.cpp
+ * @brief Dynamic Light handler
+ *
+ * This file contains the class implementation for the CDynalite class that
+ * encapsulates all dynamic point light effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

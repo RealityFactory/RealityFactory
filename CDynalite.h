@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDynalite.h:		Dynamic Light handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declarations for the CDynalite							*/
-/*	class that encapsulates all dynamic light effects for								*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CDynalite.h
+ * @brief Dynamic Light handler
+ *
+ * This file contains the class declarations for the CDynalite class that
+ * encapsulates all dynamic point light effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CDYNALITE_H_
 #define __RGF_CDYNALITE_H_

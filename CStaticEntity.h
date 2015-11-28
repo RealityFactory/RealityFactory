@@ -1,16 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CStaticEntity.h:		Static Entity Handling Class								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the Static Entity						*/
-/*	handling class.  Static entities are Genesis3D actors that do not					*/
-/*	have any animation (this means health packs, weapons, props, things					*/
-/*	that aren't world models but aren't at the level of non-player characters).			*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CStaticEntity.h
+ * @brief Static Entity Handling Class
+ *
+ * This file contains the class declaration for the Static Entity handling class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CSTATICENTITY_H_
 #define __RGF_CSTATICENTITY_H_

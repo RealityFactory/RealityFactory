@@ -1,9 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	This file is provided as a debugging aid.  It contains code for drawing an axial	*/
-/*	aligned bounding box.  You can use this code as you see fit.						*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file drawbbox.c
+ * @brief drawing a bounding box
+ *
+ * This file is provided as a debugging aid. It contains code for drawing an axial
+ * aligned bounding box. You can use this code as you see fit.
+ ****************************************************************************************/
 
 #include "genesis.h"
 

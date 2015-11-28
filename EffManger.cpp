@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	EffManager.cpp               Effects Manager handler								*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the Effects							*/
-/*	Manager that handles special effects for RGF-based games.							*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file EffManger.cpp
+ * @brief Effects Manager handler
+ *
+ * This file contains the class implementation for the Effects Manager that
+ * handles special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

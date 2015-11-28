@@ -1,27 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPawnLow.cpp:		Pawn Low Manager												*/
-/*																						*/
-/*	(c) Ralph Deane																		*/
-/*																						*/
-/*	This file contains the class implementation of the Pawn Low Manager					*/
-/*	system for Reality Factory.															*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 AndyCR:- Added variable player_animation									*/
-/*	07/15/06 QD:	- Added variable player_viewpoint									*/
-/*					- Added optional parameter to AddAttribute command					*/
-/*					- Added commands SetAttributeValueLimits, sin, cos, tan				*/
-/*	12/15/05 Nout																		*/
-/*	12/15/05 QD																			*/
-/*	07/15/04 Wendell Buckner:															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the overall bounding box. So tag the actor as being hit at the bounding box */
-/*	level and after that check ONLY the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPawnLow.cpp
+ * @brief Pawn Low Manager
+ *
+ * This file contains the class implementation of the Pawn Low Manager system
+ * for Reality Factory.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 #include "Simkin\\skScriptedExecutable.h"

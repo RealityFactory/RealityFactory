@@ -1,21 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CGenesisEngine.cpp:		Genesis3D engine encapsulation								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the Genesis3D						*/
-/*	engine wrapper.  This wrapper hides many of the gory details						*/
-/*	necessary to use the Genesis3D 1.0 engine.											*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*					- fixed Autoselect Driver											*/
-/*	07/12/00 Dee:	- Added Select Driver Dialog										*/
-/*	07/07/00 Dee:	- Added Autoselect Driver											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CGenesisEngine.cpp
+ * @brief Genesis3D engine encapsulation
+ *
+ * This file contains the class implementation for the Genesis3D engine wrapper.
+ * This wrapper hides many of the gory details necessary to use the Genesis3D.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

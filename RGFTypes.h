@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	RGFTypes.h:		RGF Types, Defines, etc.											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains various types, defines, etc. used througout an RGF-based program.*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file RGFTypes.h
+ * @brief RGF Types, Defines, etc.
+ *
+ * This file contains various types, defines, etc. used througout an RGF-based program.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_TYPES_H_
 #define __RGF_TYPES_H_

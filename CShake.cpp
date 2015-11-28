@@ -1,15 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CShake.cpp               Screen Shake handler										*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the									*/
-/*	Screen Shake enitity  for RGF-based games.											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CShake.cpp
+ * @brief Screen Shake handler
+ *
+ * This file contains the class implementation for the Screen Shake enitity
+ * for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 

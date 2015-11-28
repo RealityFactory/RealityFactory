@@ -1,15 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPathFollower.h:		Entity motion binding component								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the declaration for the CPathFollower component.					*/
-/*	This component causes moveable entities to travel at a specified speed				*/
-/*	between points on a path.  Not all entities are moveable!							*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CPathFollower.h
+ * @brief Entity motion binding component
+ *
+ * This file contains the declaration for the CPathFollower component.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CPATHFOLLOWER_H_
 #define __RGF_CPATHFOLLOWER_H_

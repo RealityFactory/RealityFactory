@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLogic.cpp:		Logic Gate class implementation										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Logic Gate							*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CLogic.cpp
+ * @brief Logic Gate class implementation
+ *
+ * This file contains the class implementation for logic gate handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

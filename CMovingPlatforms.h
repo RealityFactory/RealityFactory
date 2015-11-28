@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMovingPlatforms.h:		Moving Platform Handler										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CMovingPlatforms					*/
-/*	class that encapsulates moving platform handling in the RGF.						*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CMovingPlatforms.h
+ * @brief Moving Platform Handler
+ *
+ * This file contains the class declaration for the CMovingPlatforms class that
+ * encapsulates moving platform handling in the RGF.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CMOVINGPLATFORMS_H__
 #define __RGF_CMOVINGPLATFORMS_H__

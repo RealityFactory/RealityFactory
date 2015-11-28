@@ -1,28 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	Collider.cpp	:	Collision and Contents Checking Class							*/
-/*																						*/
-/*	This file contains the implementation of the Collider collision						*/
-/*	and contents checking class.  Thanks to Ng Khoon Siah for the						*/
-/*	detailed actor collision code and the high level of checking it						*/
-/*	performs.																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/*	07/15/2004 Wendell Buckner															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the	overall bounding box. So tag the actor as being hit at the bounding box */
-/*	level and after that check ONLY	the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/*	01/2004 QD																			*/
-/*	Added Collision with StaticMesh entities											*/
-/*																						*/
-/*	08/13/2003 QD																		*/
-/*	Handle Attributes Collision															*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Collider.cpp
+ * @brief Collision and Contents Checking Class
+ *
+ * This file contains the class implementation for the Collider collision and
+ * contents checking and handling class. This is an utility class to be used
+ * by other RGF classes.
+ *//*
+ * Thanks to Ng Khoon Siah for the detailed actor collision code and the high
+ * level of checking it performs.
+ ****************************************************************************************/
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"

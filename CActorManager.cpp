@@ -1,26 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CActorManager.cpp:		Actor Manager												*/
-/*																						*/
-/*	This file contains the class implementation of the Actor Manager					*/
-/*	system for Reality Factory.															*/
-/*																						*/
-/*	It's the Actor Manager's job to load, remove, translate,							*/
-/*	rotate, and scale all the actors in the system.  The Actor Manager					*/
-/*	maintains a database of "loaded actors" from which instances can					*/
-/*	be created.																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	08/15/06 QD:	- fix linked list / memory leak										*/
-/*	07/15/06 QD:	- fix sliding bug													*/
-/*	07/15/2004 Wendell Buckner															*/
-/*	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after	*/
-/*	hitting the overall bounding box. So tag the actor as being hit at the bounding box	*/
-/*	level and after that check ONLY the bone bounding boxes until the whatever hit the	*/
-/*	overall bounding box no longer exists.												*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CActorManager.cpp
+ * @brief This file contains the class implementation of the Actor Manager system
+ * for Reality Factory.
+ *
+ * It's the Actor Manager's job to load, remove, translate, rotate, and scale
+ * all the actors in the system.  The Actor Manager maintains a database of
+ * "loaded actors" from which instances can be created.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"		//	The One True Include File
 

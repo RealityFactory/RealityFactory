@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	RGFEvents.h:	RGF Component Event and Command Codes								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains all the RGF EVENT and COMMAND codes that are						*/
-/*	used to pass messages between RGF components.										*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file RGFEvents.h
+ * @brief RGF Component Event and Command Codes
+ *
+ * This file contains all the RGF EVENT and COMMAND codes that are used to pass
+ * messages between RGF components.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_EVENTS_H_
 #define __RGF_EVENTS_H_

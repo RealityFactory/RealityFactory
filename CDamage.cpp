@@ -1,18 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDamage.cpp:		Damage class implementation										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Damage								*/
-/*	handling.																			*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- Make missing model not a fatal error								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CDamage.cpp
+ * @brief Damage class implementation
+ *
+ * This file contains the class implementation for Damage handling.
+ * @author Ralph Deane
+ *//*
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

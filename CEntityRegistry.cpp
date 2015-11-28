@@ -1,15 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CEntityRegistry.cpp:		Entity name and type registry							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation of the Entity Registry.					*/
-/*	The Entity Registry is used to maintain a list of entity names and					*/
-/*	types, as well as a system for retrieving and setting information					*/
-/*	common across all RGF entities (like origin and name).								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CEntityRegistry.cpp
+ * @brief Entity name and type registry
+ *
+ * This file contains the class implementation for the Entity Registry.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

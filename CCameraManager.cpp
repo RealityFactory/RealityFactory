@@ -1,14 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCameraManager.cpp:		Camera positioning, rotation, and motion manager			*/
-/*																						*/
-/*	This file contains the class declaration for the Camera Manager						*/
-/*	class.																				*/
-/*																						*/
-/*	The Camera Manager is responsible for handling the motion of the					*/
-/*	player viewpoint camera during the game.											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CCameraManager.cpp
+ * @brief Camera positioning, rotation, and motion manager
+ *
+ * This file contains the class implementation for the Camera Manager class.
+ * The Camera Manager is responsible for handling the motion of the player
+ * viewpoint camera during the game.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"				// The One True Include File
 // changed RF063

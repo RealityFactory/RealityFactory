@@ -1,18 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CInventory.cpp:		Inventory class implementation									*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Inventory							*/
-/*	handling.																			*/
-/*																						*/
-/*  Modified by QD for better layout													*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CInventory.cpp
+ * @brief Inventory class implementation
+ *
+ * This file contains the class implementation for Inventory handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 extern geSound_Def *SPool_Sound(char *SName);

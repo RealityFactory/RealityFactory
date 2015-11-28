@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CHeadsUpDisplay.h:		HUD display handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CHeadsUpDisplay					*/
-/*	class that encapsulates player status display functionality.						*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CHeadsUpDisplay.h
+ * @brief HUD display handler
+ *
+ * This file contains the class declaration for the CHeadsUpDisplay class that
+ * encapsulates player status display functionality.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CHEADSUPDISPLAY_H_
 #define __RGF_CHEADSUPDISPLAY_H_

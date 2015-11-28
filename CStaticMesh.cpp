@@ -1,10 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CStaticMesh.cpp: implementation of the CStaticMesh class.							*/
-/*																						*/
-/*	(c) 2004 Daniel Queteschiner (QD)													*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CStaticMesh.cpp
+ * @brief Implementation of the CStaticMesh class
+ * @author Daniel Queteschiner
+ *//*
+ * Copyright (c) 2004 Daniel Queteschiner; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

@@ -1,14 +1,10 @@
-/****************************************************************************************/
-/*																						*/
-/*	CCorona.h:																			*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for Corona	handling.						*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CCorona.h
+ * @brief This file contains the class declaration for Corona handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CCORONA_H_
 #define __RGF_CCORONA_H_

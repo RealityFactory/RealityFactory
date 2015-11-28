@@ -1,18 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	RabidFramework.h:	Reality factory Header File										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file includes ALL of the headers necessary to use the							*/
-/*	Reality Factory (RGF) for creating Genesis3D-based games.							*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file RabidFramework.h
+ * @brief Reality Factory Header File
+ *
+ * This file includes ALL of the headers necessary to use the
+ * Reality Factory (RGF) for creating Genesis3D-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Disable unknown pragma warnings (GEdit #pragmas used here)
 #pragma warning(disable : 4068)

@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CDamage.h:		Damage class handler												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for damage	handling.						*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CDamage.h
+ * @brief Damage class handler
+ *
+ * This file contains the class declaration for damage handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CDAMAGE_H_
 #define __RGF_CDAMAGE_H_

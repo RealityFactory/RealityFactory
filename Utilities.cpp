@@ -1,13 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	Utilities.cpp:		Utilities code													*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the utilities functions											*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file Utilities.cpp
+ * @brief Utilities code
+ *
+ * This file contains the utilities functions
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

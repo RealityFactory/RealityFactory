@@ -1,18 +1,18 @@
-/****************************************************************************************/
-/*																						*/
-/*	CRGFComponent.cpp:		RGF component base class									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains error-reporting implementations of the common					*/
-/*	base class member functions.  Typically RGF component writers will					*/
-/*	over-ride most of these functions.  Why isn't this class a pure						*/
-/*	virtual class?  Because I'd rather not force component implementors					*/
-/*	to write shell functions for unused common interfaces!								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CRGFComponent.cpp
+ * @brief RGF component base class
+ *
+ * This file contains error-reporting implementations of the common base class
+ * member functions. Typically RGF component writers will over-ride most of
+ * these functions.
+ * Why isn't this class a pure virtual class? Because I'd rather not force
+ * component implementors to write shell functions for unused common interfaces!
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

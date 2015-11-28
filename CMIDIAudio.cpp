@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMIDIAudio.cpp:		MIDI Audio Playback Class										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CMIDIAudio						*/
-/*	MIDI file playback class.															*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CMIDIAudio.cpp
+ * @brief MIDI Audio Playback Class
+ *
+ * This file contains the class implementation for the CMIDIAudio MIDI file
+ * playback class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Use the One True Include File
 #include "RabidFramework.h"

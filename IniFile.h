@@ -1,19 +1,16 @@
-/****************************************************************************************/
-/*																						*/
-/*	IniFile.h: interface for the CIniFile class.										*/
-/*	Written by: Adam Clauss																*/
-/*	Email: pandcc3@comwerx.net															*/
-/*	You may use this class/code as you wish in your programs.Feel free to distribute it,*/
-/*	and email suggested changes to me.													*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file IniFile.h
+ * @brief Interface for the CIniFile class.
+ * @author Adam Clauss
+ *//*
+ * Copyright (c) Adam Clauss
+ * Email: pandcc3@comwerx.net
+ * You may use this class/code as you wish in your programs. Feel free to
+ * distribute it, and email suggested changes to me.
+ ****************************************************************************************/
 
-#if !defined(AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_)
-#define AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_
+#ifndef __RGF_INIFILE_H_
+#define __RGF_INIFILE_H_
 
 #if _MSC_VER > 1000
 #pragma once

@@ -1,18 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLevelController.cpp:	 The Level Controller										*/
-/*																						*/
-/*	This file contains the Level Controller implementation								*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
-/*					- Added commands SetAttributeValueLimits, RightCopy, sin, cos, tan	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CLevelController.cpp
+ * @brief Level Controller
+ *
+ * This file contains the class implementation for the CLevelController that
+ * encapsulates level control logic handling in the RGF.
+ * @author David C. Swope
+ *//*
+ * Copyright (c) 2002 David C. Swope; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 #include "CCommonData.h"
 

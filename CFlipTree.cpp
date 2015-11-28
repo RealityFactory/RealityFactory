@@ -1,16 +1,11 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFlipTree.cpp:		FlipTree class implementation									*/
-/*																						*/
-/*	(c) 2004 Dan Valeo																	*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	08/15/06 QD:	- Fixed destructor													*/
-/*	08/04:			- Added FlipTree class												*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CFlipTree.cpp
+ * @brief CFlipTree class implementation
+ * @author Dan Valeo
+ * @date Aug 2004
+ *//*
+ * Copyright (c) 2004 Dan Valeo; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 // changed QD 12/15/05

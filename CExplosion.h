@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	ExplosionManager.h               Explosion Manager handler							*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declarations for the Explosion							*/
-/*	Manager that handles Explosions for RGF-based games.								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CExplosion.h
+ * @brief Explosion Manager handler
+ *
+ * This file contains the class declarations for the Explosion Manager that
+ * handles Explosions for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright(c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_EXPMANAGER_H_
 #define __RGF_EXPMANAGER_H_

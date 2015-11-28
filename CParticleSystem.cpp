@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CParticleSystem.cpp:	Particle Systems Handler									*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the RGF particle					*/
-/*	system handler.																		*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CParticleSystem.cpp
+ * @brief Particle Systems Handler
+ *
+ * This file contains the class implementation and data types for the RGF particle
+ * system handler classes.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header File
 #include "RabidFramework.h"

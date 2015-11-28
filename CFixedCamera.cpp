@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CFixedCamera.cpp:		Fixed Camera class implementation							*/
-/*																						*/
-/*	(c) 2000 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class implementation for Fixed Camera						*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CFixedCamera.cpp
+ * @brief Fixed Camera class handler
+ *
+ * This file contains the class implementation for Fixed Camera handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2000 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 //	Include the One True Header
 #include "RabidFramework.h"

@@ -1,16 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	Mixer.h: interface for the CMixer class.											*/
-/*																						*/
-/*	CMixer - simple mixer control wrapper												*/
-/*	Copyright (C) Alexander Fedorov 1999												*/
-/*	You may do whatever you want with this code, as long as you include this			*/
-/*	copyright notice in your implementation files.										*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file Mixer.h
+ * @brief Interface for the CMixer class.
+ * @author Alexander Fedorov
+ *//*
+ * Copyright (c) 1999 Alexander Fedorov; All rights reserved.
+ * You may do whatever you want with this code, as long as you include this
+ * copyright notice in your implementation files.
+ ****************************************************************************************/
 
-#if !defined(AFX_ALEXFMIXER_H__4FC2F321_07F3_11D3_9864_CB4A97E7D6CA__INCLUDED_)
-#define AFX_ALEXFMIXER_H__4FC2F321_07F3_11D3_9864_CB4A97E7D6CA__INCLUDED_
+#ifndef __RGF_MIXER_H_
+#define __RGF_MIXER_H_
 
 #if _MSC_VER > 1000
 #pragma once
@@ -44,6 +43,6 @@ public:
 	virtual ~CMixer();
 };
 
-#endif // !defined(AFX_ALEXFMIXER_H__4FC2F321_07F3_11D3_9864_CB4A97E7D6CA__INCLUDED_)
+#endif // !defined(__RGF_MIXER_H_)
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

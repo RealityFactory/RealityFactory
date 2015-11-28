@@ -1,15 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CChange.h:		ChangeAttribute class handler										*/
-/*																						*/
-/*	(c) 2002 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for ChangeAttribute						*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CChange.h
+ * @brief ChangeAttribute class handler
+ *
+ * This file contains the class declaration for ChangeAttribute	handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2002 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 #ifndef __RGF_CCHANGE_H_
 #define __RGF_CCHANGE_H_

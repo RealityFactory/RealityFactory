@@ -1,13 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	IniFile.cpp: implementation of the CIniFile class.									*/
-/*	Written by: Adam Clauss																*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	02/01/07 QD:	- replaced MFC, VC++ 2005 compatibility								*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file IniFile.cpp
+ * @brief Implementation of the CIniFile class.
+ * @author Adam Clauss
+ *//*
+ * Copyright (c) Adam Clauss
+ * Email: pandcc3@comwerx.net
+ * You may use this class/code as you wish in your programs. Feel free to
+ * distribute it, and email suggested changes to me.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 #include <fstream>

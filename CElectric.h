@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CElectric.h:		Electric Bolt handler											*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declarations for the CCorona							*/
-/*	class that encapsulates all corona special effects for								*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CElectric.h
+ * @brief Electric Bolt handler
+ *
+ * This file contains the class declarations for the CElectric class that
+ * encapsulates all Electric bolt special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CELECTRIC_H_
 #define __RGF_CELECTRIC_H_

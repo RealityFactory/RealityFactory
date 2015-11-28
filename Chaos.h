@@ -1,15 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	Chaos.h:		Chaos handler														*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the Chaos								*/
-/*	class that encapsulates chaaos based special effects for							*/
-/*	RGF-based games.																	*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Chaos.h
+ * @brief Chaos handler
+ *
+ * This file contains the class declaration for the Chaos class that
+ * encapsulates chaos based special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CHAOS_H_
 #define __RGF_CHAOS_H_

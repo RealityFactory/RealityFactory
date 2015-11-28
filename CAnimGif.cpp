@@ -1,16 +1,14 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAnimGif.cpp	:	Play AnimGif file into G3D engine								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the CAnimGif						*/
-/*	class.  This class will take an AnimGif file and play it back into					*/
-/*	the Genesis3D engine window at a specific position									*/
-/*																						*/
-/*	Edit History:																		*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CAnimGif.cpp
+ * @brief Play AnimGif file into Genesis3D engine
+ *
+ * This file contains the class implementation for the CAnimGif class. This class
+ * will take an AnimGif file and play it back into the Genesis3D engine window
+ * at a specific position.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

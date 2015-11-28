@@ -1,17 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CAudioManager.h:		Audio Manager												*/
-/*																						*/
-/*	This file contains the class declaration of the Audio Manager						*/
-/*	system for the Reality Factory.														*/
-/*																						*/
-/*	The Audio Manager handles the playback of ALL audio effects in						*/
-/*	the Reality Factory - this means MIDI, CD Audio, WAVE effects,						*/
-/*	MP3, and streaming audio tracks.  The Audio Manager is an encapsulation				*/
-/*	of the FMOD Audio System.															*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CAudioManager.h
+ * @brief Audio Manager
+ *
+ * This file contains the class declaration of the Audio Manager system for
+ * Reality Factory.
+ * The Audio Manager handles the playback of ALL audio effects in
+ * Reality Factory - this means MIDI, CD Audio, WAVE effects, MP3
+ * and streaming audio tracks. The Audio Manager is an encapsulation
+ * of the FMOD Audio System.
+ * @remarks unimplemented/unused
+ ****************************************************************************************/
 
 #ifndef __CAUDIO_MANAGER__
 #define __CAUDIO_MANAGER__

@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CChangeLevel.h:		Changelevel class handler										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for ChangeLevel handling.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CChangeLevel.h
+ * @brief Changelevel class handler
+ *
+ * This file contains the class declaration for ChangeLevel handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CCHANGELEVEL_H_
 #define __RGF_CCHANGELEVEL_H_

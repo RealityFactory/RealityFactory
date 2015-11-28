@@ -1,15 +1,15 @@
-/****************************************************************************************/
-/*																						*/
-/*	CSoundtrackToggle.cpp:		Soundtrack Toggle Entity Class							*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class implementation for the Soundtrack						*/
-/*	Toggle handling class.																*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CSoundtrackToggle.cpp
+ * @brief Soundtrack Toggle Entity Class
+ *
+ * This file contains the class implementation for the Soundtrack Toggle Entity
+ * handling class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
-//	Include the One True Header
+// Include the One True Header
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */

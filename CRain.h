@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CRain.h:		Rain handler														*/
-/*																						*/
-/*	(c) 1999 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CRain								*/
-/*	class that encapsulates rain based special effects for RGF-based games.				*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CRain.h
+ * @brief Rain handler
+ *
+ * This file contains the class declaration for the CRain class that
+ * encapsulates rain based special effects for RGF-based games.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 1999 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CRAIN_H_
 #define __RGF_CRAIN_H_

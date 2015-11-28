@@ -1,14 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CMIDIAudio.h:		MIDI Audio Playback Class										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/*	This file contains the class declaration for the CMIDIAudio							*/
-/*	MIDI file playback class.															*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CMIDIAudio.h
+ * @brief MIDI Audio Playback Class
+ *
+ * This file contains the class declaration for the CMIDIAudio MIDI file
+ * playback class.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CMIDIAUDIO_H_
 #define __RGF_CMIDIAUDIO_H_

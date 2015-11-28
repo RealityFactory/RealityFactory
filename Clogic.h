@@ -1,14 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CLogic.h:		Logic Gate class handler											*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for logic gate handling.					*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file Clogic.h
+ * @brief Logic Gate class handler
+ *
+ * This file contains the class declaration for logic gate handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CLOGIC_H_
 #define __RGF_CLOGIC_H_

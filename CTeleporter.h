@@ -1,16 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CTeleporter.h:		Teleporter class handler										*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for teleporter handling.					*/
-/*																						*/
-/****************************************************************************************/
-
-
 #include "RabidFramework.h"
+/************************************************************************************//**
+ * @file CTeleporter.h
+ * @brief Teleporter class handler
+ *
+ * This file contains the class declaration for teleporter handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_CTELEPORTER_H_
 #define __RGF_CTELEPORTER_H_

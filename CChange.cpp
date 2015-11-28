@@ -1,11 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	CChange.cpp:	CChangeAttribute class												*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file CChange.cpp
+ * @brief ChangeAttribute class
+ *
+ * This file contains the class implementation for ChangeAttribute	handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2002 Ralph Deane; All rights reserved
+ ****************************************************************************************/
 
 //	Include the One True Header
 

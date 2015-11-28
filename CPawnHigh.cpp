@@ -1,20 +1,13 @@
-/****************************************************************************************/
-/*																						*/
-/*	CPawnHigh.cpp:		Pawn High Manager												*/
-/*																						*/
-/*	(c) Ralph Deane																		*/
-/*																						*/
-/*	This file contains the class implementation of the Pawn High Manager				*/
-/*	system for Reality Factory.															*/
-/*																						*/
-/*	Edit History:																		*/
-/*	=============																		*/
-/*	07/15/06 QD:	- Added optional parameter to AddAttribute command					*/
-/*					- Added commands SetAttributeValueLimits, sin, cos, tan				*/
-/*					- BUG FIX: X-Rotation in CPawn::Rotate								*/
-/*	08/11/04 Wendell Buckner:	- Added High level Debug Pawn command					*/
-/*																						*/
-/****************************************************************************************/
+/************************************************************************************//**
+ * @file CPawnHigh.cpp
+ * @brief Pawn High Manager
+ *
+ * This file contains the class implementation of the Pawn High Manager system
+ * for Reality Factory.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #include "RabidFramework.h"
 

@@ -1,15 +1,12 @@
-/****************************************************************************************/
-/*																						*/
-/*	C3DAudioSource.h:		3D Audio Source class handler								*/
-/*																						*/
-/*	(c) 2001 Ralph Deane																*/
-/*	All Rights Reserved																	*/
-/*																						*/
-/*	This file contains the class declaration for 3D audio source						*/
-/*	handling.																			*/
-/*																						*/
-/****************************************************************************************/
-
+/************************************************************************************//**
+ * @file C3DAudioSource.h
+ * @brief 3D Audio Source class handler
+ *
+ * This file contains the class declaration for 3D audio source handling.
+ * @author Ralph Deane
+ *//*
+ * Copyright (c) 2001 Ralph Deane; All rights reserved.
+ ****************************************************************************************/
 
 #ifndef __RGF_C3DAUDIOSOURCE_H_
 #define __RGF_C3DAUDIOSOURCE_H_
