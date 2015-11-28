@@ -43,6 +43,7 @@ CFlipBook::CFlipBook()
 		geVec3d_Subtract(&S->origin, &ModelOrigin, &S->OriginOffset);
   	}
 	S->active=false;
+	S->changed=false;
 	S->Bitmap = NULL;
 	S->EffectList = -1;
 	S->Time = 0.0f;
@@ -77,6 +78,8 @@ CFlipBook::CFlipBook()
 // end change Rf064
 				geBitmap_ClearMips(S->WorldBitmap );
 		}
+		if(S->Style==3)
+			S->CurTex = ( rand() % S->BitmapCount );
 	}
 
     Entity = geEntity_EntitySetGetNextEntity(Set, Entity);
@@ -156,7 +159,8 @@ void CFlipBook::Tick(float dwTicksIn)
     FlipBook *	S;
 
     S = (FlipBook *)geEntity_GetUserData(Entity);
-
+	if(S->changed)
+		continue;
 	if(!EffectC_IsStringNull(S->TriggerName))
 	{
 		if(GetTriggerState(S->TriggerName))
@@ -193,6 +197,9 @@ void CFlipBook::Tick(float dwTicksIn)
 	}
 	if(S->active==GE_TRUE)
 	{
+		if(S->AtLevelStart)
+			S->changed=true;
+
 		if(EffectC_IsStringNull(S->TextureName))
 		{
 			S->origin = S->OriginOffset;

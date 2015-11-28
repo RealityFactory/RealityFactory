@@ -128,6 +128,13 @@ int CMIDIAudio::Play(char *szFile, bool bLoop)
 	// end change RF064
   m_bActive = true;
 
+  if(CCD->GetLogging())
+  {
+	char szDebug[512];
+	sprintf(szDebug,"Loaded %s", szFile);
+	CCD->ReportError(szDebug, false);
+  }
+
 //	File playing, let's BAIL THIS MESS!
 
   return RGF_SUCCESS;

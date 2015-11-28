@@ -84,6 +84,7 @@ public:
 	// Report error to error log file
 	int SaveTo(FILE *SaveFD);			// Save engine data to file
 	int RestoreFrom(FILE *RestoreFD);	// Restore engine data from file
+	void ResetSystem();
 	//	Accessor functions
 	geEngine *Engine()
 	{ return m_theEngine;}			// Get G3D engine pointer

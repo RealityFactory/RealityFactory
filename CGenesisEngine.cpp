@@ -1389,3 +1389,21 @@ int CGenesisEngine::RestoreFrom(FILE *RestoreFD)
 	
 	return RGF_SUCCESS;			// And load the level
 }
+
+void CGenesisEngine::ResetSystem()
+{
+	CCD->ResetClock();
+	BeginFrame();
+	GE_Rect Rect;
+	GE_RGBA	Color;
+	Rect.Left = Rect.Top = 0;
+	Rect.Right = Width() - 1;
+	Rect.Bottom = Height() - 1;
+	Color.r = 0.0f;
+	Color.g = 0.0f;
+	Color.b = 0.0f;
+	Color.a = 255;
+	geEngine_FillRect(Engine(), &Rect, &Color );
+	EndFrame();
+	CCD->ResetClock();
+}

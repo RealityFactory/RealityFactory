@@ -125,7 +125,7 @@ CAttribute::~CAttribute()
 			if(pSource->Actor)
 			{
 				if(pSource->active==GE_TRUE)
-					geWorld_RemoveActor(CCD->World(), pSource->Actor);
+					CCD->ActorManager()->RemoveActor(pSource->Actor);
 				geActor_Destroy(&pSource->Actor);
 			}
 		}

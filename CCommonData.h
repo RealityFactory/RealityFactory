@@ -37,6 +37,7 @@ public:
 	// Open RealityFactory file
 	bool OpenRFFile(geVFile **theFP, int nFileType, char *szFilename, int nHow);	
 	// Use geFile for RF file opening
+	bool FileExist(int nFileType, char *szFilename);
 	char *GetDirectory(int nDirectoryType);	// Get configured directory
 	DWORD GetTimePassed_D();					// Get amount of time passed, in msec
 	geFloat GetTimePassed_F();					// Get amount of time passed, in msec
@@ -159,6 +160,7 @@ public:
 	inline CInventory *Inventory() { return theInventory;}
 	inline CLiquid *Liquids() { return theLiquid;}
 	inline CDSpotLight *CDSpot() { return theCDSpot;}
+	inline bool GetLogging() { return Logging;}
 // end change RF063
 	inline bool GetPaused() { return Paused;}
 	inline void SetPaused(bool flag) { Paused = flag;}
@@ -190,6 +192,10 @@ public:
 	bool GetMultiPlayer();
 	inline bool GetServer() { return server;}
 // end multiplayer
+	inline int GetLanguage() { return m_Language;}
+	inline void SetLanguage(int language) {m_Language = language;}
+	inline float GetLODdistance(int index) { return LODdistance[index];}
+	inline bool GetLODAnimation() { return LODAnimation;}
 private:
 	CGenesisEngine *theGameEngine;		// Genesis engine class
 // start multiplayer
@@ -358,6 +364,10 @@ private:
 	bool HasFocus;
 	bool CmdLine;
 // end change RF064
+	int m_Language;
+	bool Logging;
+	float LODdistance[5];
+	bool LODAnimation;
 };
 
 #endif

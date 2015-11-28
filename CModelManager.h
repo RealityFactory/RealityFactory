@@ -26,6 +26,7 @@ struct ModelInstanceList
 	geVec3d Rotation;							// Model rotation
 	geVec3d Mins;
 	geVec3d Maxs;
+	geXForm3d Xf;
 	bool bForward;								// Forward/backward flag
 	bool bMoving;									// Is model moving?
 	bool bLooping;								// Animation automatically loops?

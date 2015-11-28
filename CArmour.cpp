@@ -191,9 +191,9 @@ void CLiftBelt::Tick(float dwTicks)
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			
 			pSource->bState = false;
-			if(!EffectC_IsStringNull(pSource->EnableAttr))
+			if(!EffectC_IsStringNull(pSource->EnableAttr) || pSource->EnableAlways)
 			{
-				if(CCD->Player()->GetUseAttribute(pSource->EnableAttr))
+				if(CCD->Player()->GetUseAttribute(pSource->EnableAttr) || pSource->EnableAlways)
 				{
 					if(!pSource->active)
 					{
@@ -248,6 +248,8 @@ void CLiftBelt::Tick(float dwTicks)
 							else
 							{
 								pSource->Powerlevel = 0.0f;
+								if(pSource->DropFast)
+									CCD->ActorManager()->RemoveForce(CCD->Player()->GetActor(), 3);
 							}
 						}
 

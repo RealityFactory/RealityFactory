@@ -179,6 +179,8 @@ CCommonData::CCommonData()
 		network = true;
 	multiplayer = false;
 // end multiplayer
+	m_Language = 0;
+	Logging = false;
 
 	//	Debug tracing time
 	
@@ -328,6 +330,13 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					bFullScreen = true;
 				else
 					bFullScreen = false;
+			}
+			else if(!stricmp(szAtom,"logging"))
+			{
+				if(!stricmp(szArg,"true"))
+					Logging = true;
+				else
+					Logging = false;
 			}
 			else if(!stricmp(szAtom,"usedialog"))
 			{
@@ -523,6 +532,18 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				if(szArg != NULL)
 					strcpy(szStartLevel, szArg);
 			}
+			else if(!stricmp(szAtom,"defaultlanguage"))
+			{
+				if(szArg != NULL)
+				{
+					nTemp = atoi(szArg);
+					m_Language = nTemp-1;
+					if(m_Language<0)
+						m_Language = 0;
+					if(m_Language>4)
+						m_Language = 4;
+				}
+			} 
 			else
 				OutputDebugString("Unknown command in RealityFactory.ini\n");
 			}
@@ -801,6 +822,31 @@ int CCommonData::InitializeLevel(char *szLevelName)
 		return -91;
 	}
 	
+	for(int k=0;k<5;k++)
+		LODdistance[k] = 0;
+
+	LODAnimation = false;
+
+	geEntity_EntitySet* lEntitySet;
+	geEntity* lEntity;
+	
+	lEntitySet = geWorld_GetEntitySet(CCD->World(), "EnvironmentSetup");
+	
+	if(lEntitySet != NULL)
+	{
+		lEntity = geEntity_EntitySetGetNextEntity(lEntitySet, NULL);
+		if(lEntity)
+		{	
+			EnvironmentSetup *theState = (EnvironmentSetup*)geEntity_GetUserData(lEntity);
+			LODdistance[0] = theState->LODdistance1;
+			LODdistance[1] = theState->LODdistance2;
+			LODdistance[2] = theState->LODdistance3;
+			LODdistance[3] = theState->LODdistance4;
+			LODdistance[4] = theState->LODdistance5;
+			LODAnimation = theState->LODAnimation;
+		}
+	}
+
 	//	Then the Model Manager comes into exitence
 	
 	theModelManager = new CModelManager();
@@ -1565,6 +1611,9 @@ bool CCommonData::HandleGameInput()
 	int keyrotate = 0; // update #2	
 	bool bPlayerMoved = false;
 	static bool FrameRateShowing = false;
+	geExtBox CBox;
+	geVec3d CPosition;
+	int ch;
 	
 	if(Paused==true || KeyPaused)
 		return bKeepPlaying;
@@ -1601,6 +1650,17 @@ bool CCommonData::HandleGameInput()
 		{
 		case RGF_K_EXIT:
 			bKeepPlaying = false;				// Exit game
+			CCD->ActorManager()->GetBoundingBox(CCD->Player()->GetActor(), &CBox);
+			for(ch=0;ch<50;ch++)
+			{
+				CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &CPosition);
+				if(CCD->Collision()->CheckSolid(&CPosition, &CBox, CCD->Player()->GetActor()))
+				{
+					CCD->Player()->AddPosition();
+					break;
+				}
+				CCD->Player()->Backtrack();
+			}
 			return bKeepPlaying;
 			break;
 		case RGF_K_FORWARD:
@@ -1645,11 +1705,19 @@ bool CCommonData::HandleGameInput()
 			break;
 // end change RF063
 // start multiplayer
-		case RGF_K_CONSOLE:
+		case RGF_K_HUD:
 			fconsole = true;
 			if(!consolekey)
 			{
 				consoleflag = !consoleflag;
+				if(!consoleflag)
+				{
+					CCD->HUD()->Activate();
+				}
+				else
+				{
+					CCD->HUD()->Deactivate();
+				}
 				consolekey = true;
 			}
 			break;
@@ -2220,6 +2288,7 @@ bool CCommonData::ProcessLevelChange()
 	// Save off player attributes during level change..
 
 	thePlayer->SaveAttributes("temp.bin");
+	thePlayer->SaveAttributesAscii("attributes.txt");
 	
 	//	Check for a cut scene to play..
 	
@@ -2348,7 +2417,9 @@ bool CCommonData::ProcessLevelChange()
 		KeepAttributes = true;
 
 		// Move the player avatar to the start of the new level
-		
+
+		CCD->TerrainMgr()->Init();
+
 		thePlayer->MoveToStart();
 		
 		geVec3d ActPos = thePlayer->Position();
@@ -2692,10 +2763,99 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename,
 		CCD->ReportError(szDebug, false);
 	}
 	
+	if(Logging)
+	{
+		char szDebug[512];
+		sprintf(szDebug,"Loaded %s", szTemp);
+		CCD->ReportError(szDebug, false);
+	}
 	//	If it worked, return true, otherwise return false.
 	
 	if(*theFp != NULL)
 		return true;
+	else
+		return false;
+}
+
+bool CCommonData::FileExist(int nFileType, char *szFilename)
+{
+	char szTemp[256];
+	geVFile *theFp = NULL;
+
+	//	Ok, based on the TYPE of file we're looking for, build a "proper"
+	//	..filename (fully qualified, more or less).
+	
+	switch(nFileType)
+	{
+    case kActorFile:
+		strcpy(szTemp, m_ActorDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+    case kAudioFile:
+		strcpy(szTemp, m_AudioDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+    case kVideoFile:
+		strcpy(szTemp, m_VideoDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kMIDIFile:
+		strcpy(szTemp, m_MIDIDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kLevelFile:
+		strcpy(szTemp, m_LevelDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kAudioStreamFile:
+		strcpy(szTemp, m_AudioStreamDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kBitmapFile:
+		strcpy(szTemp, m_BitmapDirectory);
+		strcat(szTemp, "\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kSavegameFile:
+		strcpy(szTemp,".\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kTempFile:
+		strcpy(szTemp, ".\\");
+		strcat(szTemp, szFilename);
+		break;
+	case kInstallFile:
+// changed RF063
+		strcpy(szTemp,"install\\");
+		strcat(szTemp, szFilename);
+// end change RF063
+		break;
+	case kRawFile:
+		strcpy(szTemp, szFilename);
+		break;
+	default:
+		sprintf(szTemp,"FileExist(: bad type '%d' for '%s'", nFileType, szFilename);
+		CCD->ReportError(szTemp, false);
+		return false;
+	}
+	
+	//	Ok, open the file up.
+	
+	theFp = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, szTemp, NULL, GE_VFILE_OPEN_READONLY);
+	if(!(theFp) && VFS)
+		theFp = geVFile_Open(VFS, szTemp, GE_VFILE_OPEN_READONLY); 
+
+	if(theFp != NULL)
+	{
+		geVFile_Close(theFp);
+		return true;
+	}
 	else
 		return false;
 }

@@ -63,8 +63,8 @@ public:
   void Display();
   int LocateEntity(char *szName, void **pEntityData);
   int ReSynchronize();
+  void LoadText(char *messagetxt);
 private:
-	void LoadText();
 	CString GetText(char *Name);
 	CArray<MessageText, MessageText> Text;
 	CIniFile AttrFile;

@@ -253,6 +253,7 @@ typedef struct Eff_Item
   int		Type;
   void *        Data;
   geBoolean	Pause;
+  geBoolean RemoveNext;
 } Eff_Item;
 
 class EffManager : public CRGFComponent

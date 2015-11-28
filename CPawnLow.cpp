@@ -79,6 +79,13 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor) - theBox.Max.X;
 		return true;
 	}
+	else if (fieldName == "player_range")
+	{
+		geExtBox theBox;
+		CCD->ActorManager()->GetBoundingBox(CCD->Player()->GetActor(), &theBox);
+		value = CCD->ActorManager()->DistanceFrom(CCD->Player()->Position(), Actor) - theBox.Max.X;
+		return true;
+	}
 	else if (fieldName == "enemy_yaw")
 	{
 		GetAngles(true);
@@ -162,6 +169,34 @@ bool ScriptedObject::getValue(const skString& fieldName, const skString& attribu
 		value = false;
 		if(CCD->ActorManager()->Falling(Actor)==GE_TRUE)
 			value = true;
+		return true;
+	}
+	else if (fieldName == "current_X")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+		value = Pos.X;
+		return true;
+	}
+	else if (fieldName == "current_Y")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+		value = Pos.Y;
+		return true;
+	}
+	else if (fieldName == "current_Z")
+	{
+		geVec3d Pos;
+		CCD->ActorManager()->GetPosition(Actor, &Pos);
+		value = Pos.Z;
+		return true;
+	}
+	else if (fieldName == "LODLevel")
+	{
+		int Level = 0;
+		CCD->ActorManager()->GetLODLevel(Actor, &Level);
+		value = Level;
 		return true;
 	}
 	else 
@@ -319,6 +354,21 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		returnValue = (bool)GetTriggerState(param0);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "SetEventState"))
+	{
+		PARMCHECK(2);
+		strcpy(param0, arguments[0].str());
+		bool flag = arguments[1].boolValue();
+		CCD->Pawns()->AddEvent(param0, flag);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "Integer"))
+	{
+		PARMCHECK(1);
+		int temp = arguments[0].intValue();
+		returnValue = (int)temp;
+		return true;
+	}
 	else if (IS_METHOD(methodName, "GetAttribute"))
 	{
 		PARMCHECK(1);
@@ -433,6 +483,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				geXForm3d_GetIn(&Xf, &Direction);
 				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
 				CCD->ActorManager()->Position(Actor, Pos);
+				CCD->ActorManager()->Rotate(Actor, theRotation);
 				return true;
 			}
 		}
@@ -469,6 +520,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 				geXForm3d_GetIn(&Xf, &Direction);
 				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
 				CCD->ActorManager()->Position(CCD->Player()->GetActor(), Pos);
+				CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
 				return true;
 			}
 		}
@@ -479,11 +531,53 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 
 		return true;
 	}
+	else if (IS_METHOD(methodName, "PositionToPawn"))
+	{
+		PARMCHECK(4);
+		geXForm3d Xf;
+		geVec3d Pos, theRotation, Direction;
+		geActor *MasterActor;
+
+		strcpy(param0, arguments[0].str());
+		MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+		if(!MasterActor)
+			return true;
+		CCD->ActorManager()->GetPosition(MasterActor, &Pos);
+
+		if (arguments.entries()==5)
+		{
+			bool flag = arguments[4].boolValue();
+			if(flag)
+			{
+				CCD->ActorManager()->GetRotate(MasterActor, &theRotation);
+				geXForm3d_SetIdentity(&Xf);
+				geXForm3d_RotateZ(&Xf, theRotation.Z);
+				geXForm3d_RotateX(&Xf, theRotation.X);
+				geXForm3d_RotateY(&Xf, theRotation.Y);
+				geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
+				geXForm3d_GetUp(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[2].floatValue(), &Pos);
+				geXForm3d_GetLeft(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[1].floatValue(), &Pos);
+				geXForm3d_GetIn(&Xf, &Direction);
+				geVec3d_AddScaled (&Pos, &Direction, arguments[3].floatValue(), &Pos);
+				CCD->ActorManager()->Position(Actor, Pos);
+				CCD->ActorManager()->Rotate(Actor, theRotation);
+				return true;
+			}
+		}
+		Pos.X += arguments[1].floatValue();
+		Pos.Y += arguments[2].floatValue();
+		Pos.Z += arguments[3].floatValue();
+		CCD->ActorManager()->Position(Actor, Pos);
+
+		return true;
+	}
 	else if (IS_METHOD(methodName, "SetKeyPause"))
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->SetPaused(flag);
+		CCD->SetKeyPaused(flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "PlayerRender"))
@@ -498,7 +592,7 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		else
 		{
 			CCD->ActorManager()->SetNoCollide(CCD->Player()->GetActor());
-			geWorld_SetActorFlags(CCD->World(), CCD->Player()->GetActor(), 0);
+			CCD->ActorManager()->SetActorFlags(CCD->Player()->GetActor(), 0);
 			CCD->Weapons()->Rendering(false);
 		}
 		return true;
@@ -519,10 +613,10 @@ bool ScriptedObject::lowmethod(const skString& methodName, skRValueArray& argume
 		else
 		{
 			CCD->ActorManager()->SetNoCollide(Actor);
-			geWorld_SetActorFlags(CCD->World(), Actor, 0);
+			CCD->ActorManager()->SetActorFlags(Actor, 0);
 			if(WeaponActor)
 			{
-				geWorld_SetActorFlags(CCD->World(), WeaponActor, 0);
+				CCD->ActorManager()->SetActorFlags(WeaponActor, 0);
 			}
 		}
 		return true;

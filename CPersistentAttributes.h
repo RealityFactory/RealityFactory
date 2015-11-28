@@ -67,6 +67,7 @@ public:
 	int DeleteUserData(char *szTag);	// Delete an attributes user data
 	unsigned char *UserData(char *szTag);	// Get pointer to user data for attr
 	int SaveTo(FILE *SaveFD, bool type);				// Save attributes to a file
+	int SaveAscii(FILE *SaveFD);
 	int RestoreFrom(FILE *RestoreFD, bool type);	// Restore attributes from a file
 	void Dump();	// Debug list dumper
 private:

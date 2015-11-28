@@ -194,3 +194,10 @@ void CSoundtrackToggle::StopStreaming()
 			  CCD->AudioStreams()->Stop(pToggle->szStreamFileOne);
 	}
 }
+
+// Set the volume for all the streams
+
+void CSoundtrackToggle::SetVolume(LONG nVolume)
+{
+	m_Streams->SetVolume(nVolume);
+}

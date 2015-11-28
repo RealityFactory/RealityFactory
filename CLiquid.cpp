@@ -140,6 +140,7 @@ COverlay::COverlay()
 			pItem->Time = 0.0f;
 			pItem->CycleDir = 1;
 			pItem->Texture = pItem->FBitmap[pItem->CurTex];
+			pItem->Alpha = pItem->Transparency;
 		}
 	}
 }
@@ -220,9 +221,22 @@ void COverlay::Tick(float dwTicks)
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
 	{
 		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		if(!EffectC_IsStringNull(pItem->TriggerName))
+		{
+			if(!GetTriggerState(pItem->TriggerName))
+				continue;
+		}
 		if(pItem->Animated)
 		{
 			pItem->Time += dwTicks;
+			if(pItem->AlphaRate!=0.0f)
+			{
+				pItem->Alpha -= (pItem->AlphaRate*(dwTicks/1000.0f));
+				if(pItem->Alpha<0)
+					pItem->Alpha = 0;
+				if(pItem->Alpha>255.0f)
+					pItem->Alpha = 255.0f;
+			}
 			if(pItem->Time>=(1000.0f*(1.0f/pItem->Speed)))
 			{
 				pItem->Time = 0.0f;
@@ -293,7 +307,7 @@ void COverlay::Render()
 			Vertex.r = pItem->TintColor.r; 
 			Vertex.g = pItem->TintColor.g;
 			Vertex.b = pItem->TintColor.b;
-			Vertex.a = pItem->Transparency;
+			Vertex.a = pItem->Alpha;
 			
 			Vertex.u = 0.0f;
 			Vertex.v = 0.0f;

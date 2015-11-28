@@ -32,7 +32,7 @@ CMessage::CMessage()
 	
 	active = true;
 	
-	LoadText();
+	LoadText(CCD->MenuManager()->GetMessagetxts());
 	
 	AttrFile.SetPath("message.ini");
 	if(!AttrFile.ReadFile())
@@ -498,15 +498,18 @@ int CMessage::ReSynchronize()
 	return RGF_SUCCESS;
 }
 
-void CMessage::LoadText()
+// changed QuestOfDreams Language Menu
+void CMessage::LoadText(char *messagetxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
 	CString readinfo, keyname, text;
 	
 	Text.SetSize(0);
+
+// changed QuestOfDreams Language Menu	
 	
-	if(!CCD->OpenRFFile(&MainFS, kInstallFile, "message.txt", GE_VFILE_OPEN_READONLY))
+	if(!CCD->OpenRFFile(&MainFS, kInstallFile, messagetxt, GE_VFILE_OPEN_READONLY))
 		return;
 	
 	keyname = "";

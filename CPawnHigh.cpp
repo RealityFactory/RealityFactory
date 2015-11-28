@@ -74,6 +74,12 @@ typedef enum
 		HIDEFROMRADAR,
 		STEPHEIGHT,
 		ISVEHICLE,
+		ALIGN,
+		SETKEYPAUSE,
+		SETHUDDRAW,
+		SOUNDLOOP,
+		ROTATEAROUNDPOINT,
+		SETLODDISTANCE,
 		DELAY
 };
 
@@ -144,6 +150,12 @@ char *ActionText[] =
 	"HideFromRadar",
 	"StepHeight",
 	"IsVehicle",
+	"Align",
+	"SetKeyPause",
+	"SetHudDraw",
+	"SoundLoop",
+	"RotateAroundPoint",
+	"SetLODDistance",
 	"Delay"
 };
 
@@ -435,6 +447,11 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(RETURN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "Align"))
+	{
+		AddAction(ALIGN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "Jump"))
 	{
 		PARMCHECK(4);
@@ -490,11 +507,40 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(ROTATETOPLAYER, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "RotateAroundPointLeft"))
+	{
+		PARMCHECK(4);
+		strcpy(param0, arguments[0].str());
+		param1 = arguments[1].floatValue();
+		float param = arguments[2].floatValue();
+		strcpy(param8, arguments[3].str());
+		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 0.0f, param, 0.0f, 0.0f, param8, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "RotateAroundPointRight"))
+	{
+		PARMCHECK(4);
+		strcpy(param0, arguments[0].str());
+		param1 = arguments[1].floatValue();
+		float param = arguments[2].floatValue();
+		strcpy(param8, arguments[3].str());
+		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 1.0f, param, 0.0f, 0.0f, param8, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "TeleportToPoint"))
 	{
 		PARMCHECK(1);
 		strcpy(param0, arguments[0].str());
-		AddAction(TELEPORTTOPOINT, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		float Offx = 0;
+		float Offy = 0;
+		float Offz = 0;
+		if (arguments.entries()==4)
+		{
+			Offx = arguments[1].floatValue();
+			Offy = arguments[2].floatValue();
+			Offz = arguments[3].floatValue();
+		}
+		AddAction(TELEPORTTOPOINT, param0, 0.0f, false, Offx, Offy, Offz, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "AnimationSpeed"))
@@ -633,6 +679,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(REMOVE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "SetKeyPause"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(SETKEYPAUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "SetNoCollision"))
 	{
 		AddAction(SETNOCOLLISION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
@@ -648,6 +701,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ALLOWUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetHudDraw"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(SETHUDDRAW, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "HideFromRadar"))
@@ -727,6 +787,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(GRAVITY, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SoundLoop"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(SOUNDLOOP, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "IsPushable"))
@@ -836,8 +903,20 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	}
 	else if (IS_METHOD(methodName, "DetachFromActor"))
 	{
-
-		AddAction(DETACHFROMACTOR, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		AddAction(DETACHFROMACTOR, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "SetLODDistance"))
+	{
+		PARMCHECK(5);
+		float lod1 = arguments[0].floatValue();
+		float lod2 = arguments[1].floatValue();
+		float lod3 = arguments[2].floatValue();
+		float lod4 = arguments[3].floatValue();
+		float lod5 = arguments[4].floatValue();
+		AddAction(SETLODDISTANCE, NULL, lod1, false, lod2, lod3, lod4, lod5, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "AttachToActor"))
@@ -1200,6 +1279,58 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 		return false;
 	}
 	return true;
+}
+
+bool CPawn::RotateAroundPoint(void *Data, float dwTicks)
+{
+	ScriptedObject *Object = (ScriptedObject *)Data;
+
+	if(Object->StartAction)
+	{
+		if(!EffectC_IsStringNull(Object->Index->AnimName))
+			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+		Object->StartAction = false;
+		Object->Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
+	}
+
+	geVec3d Pos1;
+	CCD->ActorManager()->GetPosition(Object->Actor, &Pos1);
+	geVec3d LookRotation;
+	geFloat x,l;
+	geVec3d_Subtract(&Object->CurrentPoint, &Pos1, &LookRotation);
+	l = geVec3d_Length(&LookRotation);
+	// protect from Div by Zero
+	if(l > 0.0f) 
+	{
+		x = LookRotation.X;
+		LookRotation.X = -((float)( GE_PI*0.5f) - (float)acos(LookRotation.Y / l));
+		LookRotation.Y = (float)atan2( x , LookRotation.Z ) + GE_PI;
+		// roll is zero - always!!?
+		LookRotation.Z = 0.0;	
+		//if(!Object->Index->Flag)						
+		LookRotation.X = 0.0f;
+		CCD->ActorManager()->Rotate(Object->Actor, LookRotation);
+	}
+	Object->Index->Value2 -= (dwTicks/1000.0f);
+
+	if(Object->Index->Value2<=0.0f)
+		return true;
+	float distance = Object->Index->Speed * (dwTicks/1000.0f);
+	if(Object->Index->Value1!=0.0f)
+		distance = -distance;
+	if(CCD->ActorManager()->MoveLeft(Object->Actor, distance)!=RGF_SUCCESS)
+		return true;
+	float Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
+	if(Circle!=Object->Circle)
+	{
+		geVec3d In;
+		CCD->ActorManager()->InVector(Object->Actor, &In);
+		float Amount = Circle - Object->Circle;
+		if(CCD->ActorManager()->MoveForward(Object->Actor, Amount)!=RGF_SUCCESS)
+			return true;
+	}
+
+	return false;
 }
 
 bool CPawn::MoveToPoint(void *Data, float dwTicks)
@@ -1959,20 +2090,20 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 								Snd Sound;
 								
 								memset( &Sound, 0, sizeof( Sound ) );
-								if(!CCD->Player()->GetMonitorMode())
+								//if(!CCD->Player()->GetMonitorMode())
 								{
 									if(Object->Actor)
 										CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
 									else
 										Sound.Pos = Object->DeadPos;
 								}
-								else
+							/*	else
 								{
 									FixedCamera *pSource = CCD->FixedCameras()->GetCamera();
 									Sound.Pos.X = pSource->origin.X;
 									Sound.Pos.Y = pSource->origin.Y;
 									Sound.Pos.Z = pSource->origin.Z;
-								}
+								} */
 								Sound.Min=Object->AudibleRadius;
 								Sound.Loop=false;
 								Sound.SoundDef = SPool_Sound(tpool->OrderName);
@@ -2245,7 +2376,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->Index = Object->Index->prev;
 				Object->ActionActive = true;
 				Object->StartAction = true;
-				if(Object->SoundIndex!=-1)
+				if(Object->SoundIndex!=-1 && !Object->SoundLoop)
 				{
 					CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 					Object->SoundIndex = -1;
@@ -2254,23 +2385,28 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				{
 					if(!EffectC_IsStringNull(Object->Index->SoundName))
 					{
+						if(Object->SoundIndex!=-1)
+						{
+							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
+							Object->SoundIndex = -1;
+						}
 						Snd Sound;
 						
 						memset( &Sound, 0, sizeof( Sound ) );
-						if(!CCD->Player()->GetMonitorMode())
+						//if(!CCD->Player()->GetMonitorMode())
 						{
 							if(Object->Actor)
 								CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
 							else
 								Sound.Pos = Object->DeadPos;
 						}
-						else
+					/*	else
 						{
 							FixedCamera *pSource = CCD->FixedCameras()->GetCamera();
 							Sound.Pos.X = pSource->origin.X;
 							Sound.Pos.Y = pSource->origin.Y;
 							Sound.Pos.Z = pSource->origin.Z;
-						}
+						} */
 						Sound.Min=Object->AudibleRadius;
 						Sound.Loop=true;
 						if(Object->Index->Action==STOPANIMATION)
@@ -2290,13 +2426,18 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						Object->ActionActive = true;
 						Object->TargetDisable = false;
 						Object->StartAction = true;
-						if(Object->SoundIndex!=-1)
+						if(Object->SoundIndex!=-1 && !Object->SoundLoop)
 						{
 							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
 							Object->SoundIndex = -1;
 						}
 						if(!EffectC_IsStringNull(Object->Index->SoundName))
 						{
+							if(Object->SoundIndex!=-1)
+							{
+								CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
+								Object->SoundIndex = -1;
+							}
 							Snd Sound;
 							
 							memset( &Sound, 0, sizeof( Sound ) );
@@ -2675,6 +2816,15 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					else
 						Object->ActionActive = false;
 					break;
+				case ROTATEAROUNDPOINT:
+					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
+					{
+						if(RotateAroundPoint((void *)Object, dwTicks))
+							Object->ActionActive = false;
+					}
+					else
+						Object->ActionActive = false;
+					break;
 				case TELEPORTTOPOINT:
 					if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
 					{
@@ -2685,7 +2835,11 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							{
 								ScriptPoint *pProxy;
 								CCD->ScriptPoints()->LocateEntity(Object->Index->AnimName, (void**)&pProxy);
-								CCD->ActorManager()->Position(Object->Actor, pProxy->origin);
+								geVec3d Pos = pProxy->origin;
+								Pos.X += Object->Index->Value1;
+								Pos.Y += Object->Index->Value2;
+								Pos.Z += Object->Index->Value3;
+								CCD->ActorManager()->Position(Object->Actor, Pos);
 							}
 						}
 					}
@@ -3213,8 +3367,8 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						MasterActor = CCD->ActorManager()->GetByEntityName(master);
 						if(!MasterActor)
 							break;
-						CCD->ActorManager()->ActorAttach(Object->Actor,  slavebone,
-							MasterActor, masterbone, &thePosition); 
+						CCD->ActorManager()->ActorAttach(MasterActor,  masterbone,
+							Object->Actor, slavebone, Position, Rotation); 
 						Object->ActionActive = false;
 						runflag = true;
 
@@ -3228,7 +3382,51 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case DETACHFROMACTOR:
 					if(Object->Actor)
 					{
+						geActor *Actor;
+						Actor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+						if(!Actor)
+							break;
+						CCD->ActorManager()->DetachFromActor(Object->Actor, Actor);
 					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case ALIGN:
+					if(Object->Actor)
+					{
+						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+						if(EntityType)
+						{
+							if(!stricmp(EntityType, "ScriptPoint"))
+							{
+								ScriptPoint *pProxy;
+								geVec3d Orient;
+								CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
+								Orient.Z = 0.0174532925199433f*(pProxy->Angle.Z);
+								Orient.X = 0.0174532925199433f*(pProxy->Angle.X);
+								Orient.Y = 0.0174532925199433f*(pProxy->Angle.Y-90.0f);
+								CCD->ActorManager()->Rotate(Object->Actor, Orient);
+							}
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case SETKEYPAUSE:
+					CCD->SetKeyPaused(Object->Index->Flag);
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case SETHUDDRAW:
+					if(Object->Index->Flag)
+						CCD->HUD()->Activate();
+					else
+						CCD->HUD()->Deactivate();
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case SOUNDLOOP:
+					Object->SoundLoop = Object->Index->Flag;
 					Object->ActionActive = false;
 					runflag = true;
 					break;
@@ -3241,6 +3439,16 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 							geActor_Destroy(&Object->WeaponActor);
 							Object->WeaponActor = NULL;
 						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case SETLODDISTANCE:
+					if(Object->Actor)
+					{
+						CCD->ActorManager()->SetLODdistance(Object->Actor, Object->Index->Speed,
+							Object->Index->Value1, Object->Index->Value2, Object->Index->Value3, 
+							Object->Index->Value4);
 					}
 					Object->ActionActive = false;
 					runflag = true;

@@ -231,7 +231,7 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActo
 										if(pool->Bone[0]!='\0')
 											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
 										else
-											geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+											geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf );
 										pool->Position = Xf.Translation;
 										pool->Tilt = false;
 									}
@@ -290,7 +290,7 @@ void CExplosionInit::AddExplosion(char *Name, geVec3d Position, geActor *theActo
 										if(pool->Bone[0]!='\0')
 											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
 										else
-											geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+											geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf );
 										pool->Position = Xf.Translation;
 										pool->Tilt = Tilt;
 									}
@@ -379,6 +379,16 @@ void CExplosionInit::UnAttach(geActor *Actor)
 void CExplosionInit::Tick(geFloat dwTicks)
 {
 	DelayExp *pool, *temp;
+	geVec3d Zero = {0,0,0};
+
+	int count = 0;
+	pool=Bottom;
+	while ( pool != NULL )
+	{
+		temp = pool->prev;
+		count +=1;
+		pool = temp;
+	}
 
 	pool=Bottom;
 	while ( pool != NULL )
@@ -389,15 +399,13 @@ void CExplosionInit::Tick(geFloat dwTicks)
 		{
 			if(pool->Delay<=0.0f)
 			{
-				pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
 				if(pool->Actor)
 				{
-// changed RF064
 					geXForm3d Xf;
 					if(pool->Bone[0]!='\0')
 						geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
 					else
-						geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+						geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf );
 					geVec3d Position = Xf.Translation;
 
 					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
@@ -414,7 +422,8 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					geXForm3d_GetLeft(&Xf, &Direction);
 					geVec3d_AddScaled (&Position, &Direction, pool->Offset.X, &Position);
 
-// end change RF064
+					pool->index = CCD->Effect()->AddEffect(pool->Type, Position, Zero);
+
 					pool->Attached = true;
 					int type = CCD->Effect()->EffectType(pool->Type);
 					switch(type)
@@ -441,6 +450,7 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				}
 				else
 				{
+					pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
 					if(Bottom == pool)
 						Bottom = pool->prev;
 					if(pool->prev != NULL)
@@ -460,7 +470,7 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				if(pool->Bone[0]!='\0')
 					geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf );
 				else
-					geActor_GetBoneTransform(pool->Actor, NULL, &Xf );
+					geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf );
 				geVec3d Position = Xf.Translation;
 
 				geVec3d Direction;

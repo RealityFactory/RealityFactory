@@ -401,6 +401,8 @@ int CPersistentAttributes::AllocateUserData(char *szTag, int nDataSize)
 	if(pAttr == NULL)
 		return RGF_FAILURE;								// Attribute not found
 	
+	if(pAttr->UserData)
+		delete pAttr->UserData;
 	pAttr->UserData = new unsigned char[nDataSize];
 	pAttr->UserDataSize = nDataSize;
 	
@@ -467,6 +469,29 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 	
 	return RGF_SUCCESS;
 }
+
+
+int CPersistentAttributes::SaveAscii(FILE *SaveFD)
+{
+	PersistAttribute *pAttr = theList;
+	char szTemp[64];
+
+	while(pAttr != NULL)
+	{
+		fputs(pAttr->Name, SaveFD); fputs("\n", SaveFD);
+		sprintf(szTemp, "%d", pAttr->Value);
+		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
+		sprintf(szTemp, "%d", pAttr->ValueLowLimit);
+		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
+		sprintf(szTemp, "%d", pAttr->ValueHighLimit);
+		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
+
+		pAttr = pAttr->pNext;				// Next item
+	}
+	
+	return RGF_SUCCESS;
+}
+
 
 //	RestoreFrom
 //

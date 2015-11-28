@@ -19,6 +19,16 @@ class CPersistentAttributes;			// Forward ref.
 
 #define	ACTOR_LIST_SIZE		1024		// Max # of actors per level
 #define	PASSENGER_LIST_SIZE	64		// Max # of passengers in a vehicle
+#define ATTACHACTORS	16
+
+struct Attachment
+{
+	char MasterBone[64];
+	geActor *AttachedActor;
+	geVec3d Offset;
+	bool CollFlag;
+	int RenderFlag;
+};
 
 //	This struct holds information for each instance of an actor
 
@@ -26,6 +36,11 @@ struct ActorInstanceList
 {
 	geActor *Actor;								// The actor itself
 	geActor_Def *theDef;					// Pointer to loaded actor def
+	geActor_Def *theLODDef[3];			// Actor definition
+	geActor *LODActor[3];
+	geBitmap *Bitmap;
+	float LODdistance[5];
+	int LODLevel;
 	geVec3d localTranslation;			// Actor translation
 	geVec3d OldTranslation;				// Actors previous position
 	geVec3d localRotation;				// Actor rotation
@@ -57,7 +72,9 @@ struct ActorInstanceList
 	Liquid *LQ;
 	char szEntityName[128];
 	bool Attached;
-	geActor *AttachedActor;
+	geVec3d masterRotation;
+	Attachment AttachedActors[ATTACHACTORS];
+	int RenderFlag;
 // end change RF063
 // changed RF064
     geWorld_Model *PassengerModel;
@@ -95,8 +112,9 @@ struct ActorInstanceList
 
 struct LoadedActorList
 {
-	geActor_Def *theActorDef;			// Actor definition
-	geActor *Actor;
+	geActor_Def *theActorDef[4];			// Actor definition
+	geActor *Actor[4];
+	geBitmap *Bitmap;
 	geVec3d BaseRotation;					// Baseline rotation
 	geFloat BaseScale;						// Baseline scale
 	geFloat BaseHealth;						// Baseline health
@@ -254,7 +272,13 @@ public:
 		geActor **theActor, geActor *ActorToExclude, geFloat *Percent, geVec3d *Normal);
 	int SetGravityTime(geActor *theActor, geFloat fGravitytime);
 	void ActorAttach(geActor* Slave,  char *SlaveBoneName, geActor* Master,
-		char * MasterBoneName, geXForm3d* Attachment); 
+		char * MasterBoneName, geVec3d AttachOffset, geVec3d Angle); 
+	int SetRoot(geActor *theActor, char *BoneName);
+	int SetActorFlags(geActor *theActor, int Flag);
+	void ActorDetach(geActor* Slave);
+	void DetachFromActor(geActor* Master, geActor* Slave);
+	int SetLODdistance(geActor *theActor, float LOD1, float LOD2, float LOD3, float LOD4, float LOD5);
+	int GetLODLevel(geActor *theActor, int *Level);
 // end change RF064
 private:
 	//	Private member functions

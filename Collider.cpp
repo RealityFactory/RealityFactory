@@ -834,10 +834,10 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox)
 			Result = GE_FALSE;
 		}
 // changed RF064
-		else if((Contents.Contents & GE_CONTENTS_AREA))
+/*		else if((Contents.Contents & GE_CONTENTS_AREA))
 		{
 			Result = GE_FALSE;
-		}
+		} */
 // end change RF064
 		else
 		{
@@ -913,10 +913,10 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 			Result = GE_FALSE;
 		}
 // changed RF064
-		else if((Contents.Contents & GE_CONTENTS_AREA))
-		{
-			Result = GE_FALSE;
-		}
+		//else if((Contents.Contents & GE_CONTENTS_AREA))
+		//{
+			//Result = GE_FALSE;
+		//}
 // end change RF064
 		else
 		{
@@ -995,10 +995,10 @@ bool Collider::CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 			Result = GE_FALSE;
 		}
 // changed RF064
-		else if((Contents->Contents & GE_CONTENTS_AREA))
+/*		else if((Contents->Contents & GE_CONTENTS_AREA))
 		{
 			Result = GE_FALSE;
-		}
+		} */
 // end change RF064
 		else
 		{
@@ -1898,10 +1898,10 @@ bool Collider::CanOccupyPositionD(geVec3d *thePoint, geExtBox *theBox,
 			Result = GE_FALSE;
 		}
 // changed RF064
-		else if((Contents->Contents & GE_CONTENTS_AREA))
+/*		else if((Contents->Contents & GE_CONTENTS_AREA))
 		{
 			Result = GE_FALSE;
-		}
+		} */
 // end change RF064
 		else
 		{
@@ -2031,8 +2031,8 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 	memset(Collision, 0, sizeof(GE_Collision));
 
 	Result = GE_FALSE;
-	if(geWorld_Collision(CCD->World(), Min, 
-		Max, &OldPosition, &NewPosition, kCollideFlags, 
+	if(geWorld_Collision(CCD->World(), NULL, 
+		NULL, &OldPosition, &NewPosition, kCollideFlags, 
 		GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
 	{
 		Collision->Actor = NULL;
@@ -2057,10 +2057,10 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			{
 				Result = GE_FALSE;
 			}
-			else if((Contents.Contents & GE_CONTENTS_AREA))
+/*			else if((Contents.Contents & GE_CONTENTS_AREA))
 			{
 				Result = GE_FALSE;
-			}
+			} */
 			else
 			{
 				Result = GE_TRUE;
@@ -2100,4 +2100,68 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	return false;
+}
+
+bool Collider::CheckSolid(geVec3d *thePoint, geExtBox *theBox,
+								 geActor *Actor)
+{
+	GE_Contents Contents;
+	geBoolean Result = GE_FALSE;
+	
+	memset(&Contents, 0, sizeof(GE_Contents));
+
+	if(geWorld_GetContents(CCD->World(), 
+		thePoint, &theBox->Min, &theBox->Max, GE_COLLIDE_MODELS, 
+		0xffffffff, NULL, NULL, &Contents) == GE_TRUE)
+	{
+		Contents.Actor = NULL;
+		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+			Result = GE_FALSE;
+		else if((Contents.Contents & GE_CONTENTS_HINT))
+		{
+			Result = GE_FALSE;
+		}
+		else
+		{
+			Result = GE_TRUE;
+			if(CCD->Doors()->IsADoor(Contents.Model))
+				Result = GE_FALSE; 
+		}
+	}
+	
+	if(Result == GE_FALSE)
+	{
+		geWorld_Model *pModel;
+		geVec3d pTemp = *thePoint;
+		geExtBox pBox = *theBox;
+		pBox.Min.X += pTemp.X;
+		pBox.Min.Y += pTemp.Y;
+		pBox.Min.Z += pTemp.Z;
+		pBox.Max.X += pTemp.X;
+		pBox.Max.Y += pTemp.Y;
+		pBox.Max.Z += pTemp.Z;
+		// Gotta check to see if we're hitting a world model
+		if(CCD->ModelManager()->DoesBoxHitModel(pTemp, pBox, &pModel) == GE_TRUE)
+			return false;					// Sorry, you can't be here...
+		return true;						// No contents, so it's OK to be there.
+	}
+	
+	//	Well, we have contents.  Now we don't care if the contents happen
+	//	..to be something we're aware of, so let's check mainly for
+	//	..ACTORS and MODELS.
+	
+	if((Contents.Mesh != NULL) || (Contents.Model != NULL))
+		return false;						// Something there we don't like.
+	
+	//	Finally, check to see if the contents is marked IMPENETRABLE in the Type.
+	
+	if((Contents.Contents & 0xffff0000) == Impenetrable)
+		return false;						// Can't exist in this one..
+	
+	if(Result != GE_FALSE)
+		return false;						// We hit SOMETHING, so it's not OK...
+	
+	//	All else being equal, I guess it's OK to be here...
+	
+	return true;
 }

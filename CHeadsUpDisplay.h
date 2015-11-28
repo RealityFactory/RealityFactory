@@ -68,6 +68,8 @@ public:
 	int ActivateElement(char *szAttributeName, bool activate);
 	int Render();	// Render the HUD out
 	void Tick(geFloat dwTick);
+	bool GetActive()
+	{ return m_bHUDActive; }
 private:
 	bool m_bHUDActive;						// HUD displayed flag
 	HUDEntry m_theHUD[MAXHUD];				// HUD display array, up to 12 items

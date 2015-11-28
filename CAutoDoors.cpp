@@ -456,6 +456,7 @@ void CAutoDoors::Tick(float dwTicks)
 			(CCD->ModelManager()->IsRunning(pDoor->Model) == false))
 		{
 			// Animation has stopped/not running, handle it.
+			CCD->ModelManager()->Stop(pDoor->Model);
 			if((pDoor->bOneShot != GE_TRUE) && (pDoor->bActive == GE_TRUE))
 			{
 				// Ok, not one-shot, reset the door

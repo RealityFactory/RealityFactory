@@ -521,13 +521,14 @@ bool qxTerrainMgr::Init()
 				else
 					Object->Order[0] = '\0';
 			}
-			
+
 			m_pqxPolyPool = new qxPolyPool;
 			m_pqxVertPool = new qxVertPool;
 
 			qxTerrainDefinition Def;
 			Def.m_strBmp = m_strBmp;
 			Def.m_strAlpha	= m_strBmp;
+
 			Def.m_nFarPlane = 9999999;
 
 			m_pSkyDome = new qxSkyDome(	Def, (int)fSkyLengthHeight, (float)SkyMaxHeight, 
@@ -605,7 +606,9 @@ bool qxTerrainMgr::Init()
 			}
 
 			if(LoadTerrainDefinitionFile(""))
+			{
 				LoadMap(0, 0);
+			}
 
 			TerrainTime = (float)Hour * 3600.0f;
 			CalculatePlayerLatitude();

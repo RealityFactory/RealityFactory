@@ -216,15 +216,30 @@ bool CTeleporter::HandleCollision(geWorld_Model *pModel, geActor *theActor)
 							CCD->Engine()->RenderWorld();
 							CCD->Engine()->EndFrame();
 // changed RF064
-							CCD->ResetClock();
-							CCD->Engine()->BeginFrame();
-							CCD->Engine()->EndFrame();
-							CCD->ResetClock();
+							CCD->Engine()->ResetSystem();
 // end change RF064
 						}
 					}
-					// Ok, let's MOVE THE ACTOR
-					CCD->ActorManager()->Position(theActor, pTarget->origin);
+					// changed QuestOfDreams 
+					geVec3d TargetPos;
+					geVec3d Offset;
+					if(pTarget->UseOffset)
+					{
+						CCD->ActorManager()->GetPosition(theActor, &TargetPos);
+						geVec3d_Subtract(&pTeleport->origin, &TargetPos, &Offset);
+					}
+					else
+					{
+						Offset.X =0.0f;
+						Offset.Y =0.0f;
+						Offset.Z =0.0f;
+					}
+					geVec3d_Subtract(&pTarget->origin, &Offset, &TargetPos);
+				
+					CCD->ActorManager()->Position(theActor, TargetPos);
+					//CCD->ActorManager()->Position(theActor, pTarget->origin);
+					// end change QuestOfDreams
+
 					return true;
 				}
 			}

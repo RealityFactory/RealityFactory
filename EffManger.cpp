@@ -161,7 +161,8 @@ EffManager::~EffManager()
 
 void EffManager::Tick(float dwTicksIn)
 {
-  int i;
+  int i, j, L, SP, Sr, Sn, Bl, C, AS;
+  j = L = SP = Sr = Sn = Bl = C = AS = 0;
 
   // get time in seconds since last pass
   float dwTicks = (float)(dwTicksIn)*0.001f;
@@ -169,60 +170,68 @@ void EffManager::Tick(float dwTicksIn)
   for (i=0;i<MAX_EFF_ITEMS;i++)
   {
     // process if active and not paused
-    if(Item[i].Active==GE_TRUE && Item[i].Pause==GE_FALSE)
+    if(Item[i].Active==GE_TRUE && Item[i].RemoveNext==GE_TRUE)
     {
+		j+=1;
       // if effect process returns false then remove it
       switch(Item[i].Type)
       {
         case EFF_LIGHT:
-          if(Glow_Process((Glow  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Glow_Remove((Glow *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  L+=1;
           break;
         case EFF_SPRAY:
-          if(Spray_Process((Spray  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Spray_Remove((Spray *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  SP+=1;
           break;
         case EFF_SPRITE:
-          if(Sprite_Process((Sprite  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Sprite_Remove((Sprite *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  Sr+=1;
           break;
         case EFF_SND:
-          if(Snd_Process((Snd  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Snd_Remove((Snd *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  Sn +=1;
           break;
 		  case EFF_BOLT:
-          if(Bolt_Process((EBolt  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Bolt_Remove((EBolt *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  Bl+=1;
           break;
 		  case EFF_CORONA:
-          if(Corona_Process((EffCorona  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             Corona_Remove((EffCorona *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  C+=1;
           break;
 // changed RF064
 		case EFF_ACTORSPRAY:
-          if(ActorSpray_Process((ActorSpray  *)Item[i].Data,  dwTicks)==GE_FALSE)
           {
             ActorSpray_Remove((ActorSpray *)Item[i].Data);
             Item[i].Active=GE_FALSE;
+			Item[i].RemoveNext = GE_FALSE;
           }
+		  AS+=1;
           break;
 // end change RF064
         default:
@@ -230,6 +239,74 @@ void EffManager::Tick(float dwTicksIn)
       }
     }
   }
+
+  for (i=0;i<MAX_EFF_ITEMS;i++)
+  {
+    // process if active and not paused
+    if(Item[i].Active==GE_TRUE && Item[i].Pause==GE_FALSE)
+    {
+		j+=1;
+      // if effect process returns false then remove it
+      switch(Item[i].Type)
+      {
+        case EFF_LIGHT:
+          if(Glow_Process((Glow  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+			  Item[i].RemoveNext = GE_TRUE;
+          }
+		  L+=1;
+          break;
+        case EFF_SPRAY:
+          if(Spray_Process((Spray  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  SP+=1;
+          break;
+        case EFF_SPRITE:
+          if(Sprite_Process((Sprite  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  Sr+=1;
+          break;
+        case EFF_SND:
+          if(Snd_Process((Snd  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  Sn +=1;
+          break;
+		  case EFF_BOLT:
+          if(Bolt_Process((EBolt  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  Bl+=1;
+          break;
+		  case EFF_CORONA:
+          if(Corona_Process((EffCorona  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  C+=1;
+          break;
+// changed RF064
+		case EFF_ACTORSPRAY:
+          if(ActorSpray_Process((ActorSpray  *)Item[i].Data,  dwTicks)==GE_FALSE)
+          {
+            Item[i].RemoveNext = GE_TRUE;
+          }
+		  AS+=1;
+          break;
+// end change RF064
+        default:
+          break;
+      }
+    }
+  }
+
+  //geEngine_Printf(CCD->Engine()->Engine(), 0,450,"Eff Count %d %d %d %d %d %d %d %d",j, L, SP, Sr, Sn, Bl, C, AS);
 
   // process the particles
   Particle_SystemFrame(Ps, dwTicks);
@@ -264,37 +341,44 @@ int EffManager::Item_Add(int Itype, void *Idata)
         case EFF_LIGHT:
           Item[i].Data=Glow_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
         case EFF_SPRAY:
           Item[i].Data=Spray_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
         case EFF_SPRITE:
           Item[i].Data=Sprite_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
         case EFF_SND:
           Item[i].Data=Snd_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
 		  case EFF_BOLT:
           Item[i].Data=Bolt_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
 		  case EFF_CORONA:
           Item[i].Data=Corona_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
 // changed RF064
 		  case EFF_ACTORSPRAY:
           Item[i].Data=ActorSpray_Add(Idata);
           Item[i].Active=GE_TRUE;
+		  Item[i].RemoveNext = GE_FALSE;
           return i;
           break;
 // end change RF064
@@ -376,6 +460,7 @@ void EffManager::Item_Delete(int Itype, int Index)
         case EFF_SPRITE:
           Sprite_Remove((Sprite *)Item[Index].Data);
           Item[Index].Active=GE_FALSE;
+		  Item[Index].Data = NULL;
           break;
         case EFF_SND:
           Snd_Remove((Snd *)Item[Index].Data);
@@ -419,7 +504,7 @@ void EffManager::Item_Pause(int Itype, int Index, geBoolean Flag)
 // changed RF063
 bool EffManager::Item_Alive(int Index)
 {
-    if(Item[Index].Active==GE_TRUE)
+    if(Item[Index].Active==GE_TRUE && Item[Index].RemoveNext==GE_FALSE)
 		return true;
 	return false;
 }
@@ -995,7 +1080,9 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 	{
 		Data->CurrentLife += TimeDelta;
 		if(Data->CurrentLife>Data->LifeTime)
+		{
 			return GE_FALSE;
+		}
 	}
 // end change RF064
 	// adjust art
@@ -1070,10 +1157,13 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 		// If the BSP leaf the entity is in might be visible,
 		// ..go ahead and add it.
 		if(geWorld_MightSeeLeaf(CCD->World(), nLeafID) == GE_TRUE)
-		  geWorld_AddPolyOnce(CCD->World(), Data->Vertex, 1, Data->Texture[Data->CurrentTexture], GE_TEXTURED_POINT, GE_RENDER_DEPTH_SORT_BF, Data->Scale );
+		  geWorld_AddPolyOnce(CCD->World(), Data->Vertex, 1,
+		  Data->Texture[Data->CurrentTexture], GE_TEXTURED_POINT,
+		  GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
+		  Data->Scale ); 
 	}
 	// ...otherwise process it this way
-	else
+	else 
 	{
 
 		// locals
@@ -1118,7 +1208,10 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 		// If the BSP leaf the entity is in might be visible,
 		// ..go ahead and add it.
 		if(geWorld_MightSeeLeaf(CCD->World(), nLeafID) == GE_TRUE)
-		  geWorld_AddPolyOnce(CCD->World(), Data->Vertex, 4, Data->Texture[Data->CurrentTexture], GE_TEXTURED_POLY, GE_RENDER_DEPTH_SORT_BF, 1.0f );
+		  geWorld_AddPolyOnce(CCD->World(), Data->Vertex, 4,
+		  Data->Texture[Data->CurrentTexture],
+		  GE_TEXTURED_POLY, GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
+		  1.0f );
 	}
 
 	// all done
@@ -1794,7 +1887,7 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 
 	// locals
 	geVec3d			Velocity, Speed;
-	geVec3d			Left, Up;
+	geVec3d			Left, Up, In;
 	geVec3d			Source, Dest;
 	const geXForm3d		*CameraXf;
 	float			Scale;
@@ -1862,9 +1955,12 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 		{
 			geXForm3d_GetLeft( &( Data->Xf ), &Left );
 			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geXForm3d_GetIn( &( Data->Xf ), &In );
 			geVec3d_Scale( &Left, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
 			geVec3d_Scale( &Up, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Scale( &In, (float)Data->SourceVariance * EffectC_Frand( -1.0f, 1.0f ), &In );
 			geVec3d_Add( &Left, &Up, &Source );
+			geVec3d_Add( &Source, &In, &Source );
 			geVec3d_Add( &( Data->Source ), &Source, &Source );
 		}
 		else
@@ -1877,9 +1973,12 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 		{
 			geXForm3d_GetLeft( &( Data->Xf ), &Left );
 			geXForm3d_GetUp( &( Data->Xf ), &Up );
+			geXForm3d_GetIn( &( Data->Xf ), &In );
 			geVec3d_Scale( &Left, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Left );
 			geVec3d_Scale( &Up, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &Up );
+			geVec3d_Scale( &In, (float)Data->DestVariance * EffectC_Frand( -1.0f, 1.0f ), &In );
 			geVec3d_Add( &Left, &Up, &Dest );
+			geVec3d_Add( &Dest, &In, &Dest );
 			geVec3d_Add( &( Data->Dest ), &Dest, &Dest );
 		}
 		else
@@ -1992,9 +2091,10 @@ geBoolean EffManager::ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, u
   if ( Flags & SPRAY_DEST )
   {
 	  geVec3d	In;
+	  geXForm3d_RotateZ( &(NewData->Xform), Data->Angle.Z / 57.3f );
 	  geXForm3d_RotateX( &(NewData->Xform), Data->Angle.X / 57.3f );  
 	  geXForm3d_RotateY( &(NewData->Xform), Data->Angle.Y / 57.3f );  
-	  geXForm3d_RotateZ( &(NewData->Xform), Data->Angle.Z / 57.3f ); 
+ 
 	  geXForm3d_GetIn( &(NewData->Xform), &In );
 	  geVec3d_Inverse( &In );
 	  geVec3d_AddScaled( &( Data->Source ), &In, 50.0f, &( Data->Dest ) );

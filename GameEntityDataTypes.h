@@ -344,8 +344,14 @@ typedef struct _TeleportTarget
 #pragma GE_Published
 	char *Name;								  // Name of this teleport target
 	geVec3d origin;						  // Location of this teleport target
+// changed QuestOfDreams
+	geBoolean UseOffset;
+// end change QuestOfDreams
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(Name, "")
+// changed QuestOfDreams
+#pragma GE_DefaultValue(UseOffset, "False")
+// end change QuestOfDreams
 #pragma GE_Documentation(Name,"Name of this teleport target")
 } TeleportTarget;
 
@@ -893,6 +899,12 @@ typedef struct _EnvironmentSetup
 	geFloat AudibleRadius;
 	geFloat SlideSlope;
 	geFloat SlideSpeed;
+	geFloat LODdistance1;
+	geFloat LODdistance2;
+	geFloat LODdistance3;
+	geFloat LODdistance4;
+	geFloat LODdistance5;
+	geBoolean LODAnimation;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(Gravity, "0")
@@ -917,6 +929,12 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(AudibleRadius, "0.0")
 #pragma GE_DefaultValue(SlideSlope, "0.8")
 #pragma GE_DefaultValue(SlideSpeed, "40")
+#pragma GE_DefaultValue(LODdistance1, "0.0")
+#pragma GE_DefaultValue(LODdistance2, "0.0")
+#pragma GE_DefaultValue(LODdistance3, "0.0")
+#pragma GE_DefaultValue(LODdistance4, "0.0")
+#pragma GE_DefaultValue(LODdistance5, "0.0")
+#pragma GE_DefaultValue(LODAnimation, "False")
 // end change RF064
 #pragma GE_Documentation(Gravity, "Downward force of gravity")
 #pragma GE_Documentation(RealJumping, "if true use realistic jumping")
@@ -940,6 +958,7 @@ typedef struct _EnvironmentSetup
 #pragma GE_Documentation(AudibleRadius, "Maximum distance sound is audible")
 #pragma GE_Documentation(SlideSlope, "Min Slope required to start sliding (1 - flat, 0 - verticle")
 #pragma GE_Documentation(SlideSpeed, "Speed factor for slope sliding")
+#pragma GE_Documentation(LODAnimation, "if True then LOD actors have their own animations")
 // end change RF064
 } EnvironmentSetup;
 
@@ -2326,6 +2345,7 @@ typedef struct FlipBook
 	geFloat  Time;
 	int CurTex;
 	int CycleDir;
+	geBoolean changed;
 #pragma GE_Published
 	geVec3d	origin;
 	char	*szEntityName;
@@ -2346,6 +2366,7 @@ typedef struct FlipBook
 	geWorld_Model *Model;	// Name of model to attach to
 	char 	*BoneName;	// Name of actor bone to attach to
 	char 	*TriggerName;	// Name of trigger entity
+	geBoolean AtLevelStart;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue( Color, "255.0 255.0 255.0" )
@@ -2364,6 +2385,7 @@ typedef struct FlipBook
 #pragma GE_DefaultValue(EntityName, "")
 #pragma GE_DefaultValue(BoneName, "")
 #pragma GE_DefaultValue(TriggerName, "")
+#pragma GE_DefaultValue(AtLevelStart, "False")
 #pragma GE_Documentation(szEntityName, "Name of this entity, if any")
 #pragma GE_Documentation( Color, "Texture color" )
 #pragma GE_Documentation( Scale, "What scale to use for the bitmap" )
@@ -2382,6 +2404,7 @@ typedef struct FlipBook
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+#pragma GE_Documentation(AtLevelStart, "change texture only once at level start")
 } FlipBook;
 
 
@@ -2823,12 +2846,14 @@ typedef struct _Overlay
 	geFloat  Time;
 	int CurTex;
 	int CycleDir;
+	geFloat Alpha;
 #pragma GE_Published
 	geVec3d	origin;
 	char *szEntityName;
 	geWorld_Model *Model;	// Name of model to attach to
 	GE_RGBA	TintColor;
 	geFloat Transparency;
+	geFloat AlphaRate;
 	char *Bitmap;
 	char *Alphamap;
 	geBoolean Animated;
@@ -2848,6 +2873,7 @@ typedef struct _Overlay
 #pragma GE_DefaultValue(Style, "0")
 #pragma GE_DefaultValue(Speed, "10")
 #pragma GE_DefaultValue(TriggerName, "")
+#pragma GE_DefaultValue(AlphaRate, "0")
 
 #pragma GE_Documentation(szEntityName, "Name of entity")
 #pragma GE_Documentation(Model, "Name of model to attach to")
@@ -2860,6 +2886,7 @@ typedef struct _Overlay
 #pragma GE_Documentation(Style, "Animation style 0 to 3")
 #pragma GE_Documentation(Speed, "# of bitmaps per second")
 #pragma GE_Documentation(TriggerName, "Name of trigger used to activate overlay")
+#pragma GE_Documentation(AlphaRate, "Amount to decrease alpha per second")
 } Overlay;
 
 
@@ -3152,6 +3179,8 @@ typedef struct _LiftBelt
 	geFloat LiftForce;
 	geFloat PowerUse;
 	geFloat AccelRate;
+	geBoolean DropFast;
+	geBoolean EnableAlways;
 
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(EnableAttr, "")
@@ -3160,6 +3189,8 @@ typedef struct _LiftBelt
 #pragma GE_DefaultValue(PowerUse, "1")
 #pragma GE_DefaultValue(AccelRate, "1")
 #pragma GE_DefaultValue(szEntityName, "")
+#pragma GE_DefaultValue(DropFast, "False")
+#pragma GE_DefaultValue(EnableAlways, "False")
 
 #pragma GE_Documentation(EnableAttr, "attribute used to enable LiftBelt")
 #pragma GE_Documentation(PowerAttr, "attribute used as fuel")
@@ -3167,6 +3198,8 @@ typedef struct _LiftBelt
 #pragma GE_Documentation(PowerUse, "amount of fuel used per second")
 #pragma GE_Documentation(AccelRate, "amount of lift force change per second")
 #pragma GE_Documentation(szEntityName, "Name of this entity")
+#pragma GE_Documentation(DropFast, "if True then drop quickly after force is done")
+#pragma GE_Documentation(EnableAlways, "if True then enable without any EnableAttr")
 } LiftBelt;
 
 //
@@ -3240,6 +3273,7 @@ typedef struct _DSpotLight
 #pragma GE_Documentation(style, "falloff style: 0=normal, 1=soft, 2=hard")
 }	DSpotLight;
 
+/*
 // specials for curved surfaces
 // CurvePointEnt-
 #pragma GE_Type("Player.ico")
@@ -3293,7 +3327,6 @@ typedef struct CurvedSurfaceEnt
 //
 // VaporTrail
 //
-/*
 #pragma GE_Type("icons\\model.ico")
 typedef struct _VaporTrail
 {

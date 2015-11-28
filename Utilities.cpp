@@ -425,6 +425,12 @@ geBoolean EffectC_IsPointVisible(geWorld *World, geCamera *Camera, geVec3d *Targ
 		{
 			return GE_FALSE;
 		}
+		if(CCD->CameraManager()->GetClipEnable())
+		{
+			float dist = geVec3d_DistanceBetween(Target, &CameraXf->Translation);
+			if(dist>CCD->CameraManager()->GetFarClipPlane())
+				return GE_FALSE;
+		}
 	}
 	
 	// line of sight check
@@ -1016,3 +1022,16 @@ void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float 
 }
 
 // end change RF064
+
+const char *RootBoneName(geActor *Actor)
+{
+	geXForm3d XForm;
+	const char *RootBone;
+	int ParentBoneIndex;
+	geBody *Body;
+	geActor_Def *ActorDef = geActor_GetActorDef(Actor);
+	
+	Body = geActor_GetBody(ActorDef);
+	geBody_GetBone(Body,0,&RootBone,&XForm,&ParentBoneIndex);
+	return RootBone;
+}

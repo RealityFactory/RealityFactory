@@ -24,6 +24,7 @@ public:
 	~CSoundtrackToggle();		// Default destructor
   void Tick(geFloat dwTicks);						// Handle time-based action, if any
 	int ReSynchronize();
+	void SetVolume(LONG nVolume);
 private:
 	void CSoundtrackToggle::StopStreaming();
   int m_SoundtrackToggleCount;					// Count of toggle tntities

@@ -152,7 +152,9 @@ CStaticEntity::~CStaticEntity()
 		if(pProxy->Actor)
 		{
 			if(pProxy->alive==GE_TRUE || !pProxy->DeathDissappear)
-				geWorld_RemoveActor(CCD->World(), pProxy->Actor);
+			{
+				CCD->ActorManager()->RemoveActor(pProxy->Actor);
+			}
 			geActor_Destroy(&pProxy->Actor);
 		}
 	}

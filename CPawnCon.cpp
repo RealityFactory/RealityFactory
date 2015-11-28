@@ -666,7 +666,7 @@ void CPawn::PreLoadC(char *filename)
 	fclose(fdInput);
 }
 
-void CPawn::LoadConv()
+void CPawn::LoadConv(char *convtxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
@@ -674,7 +674,8 @@ void CPawn::LoadConv()
 
 	Text.SetSize(0);
 
-	if(!CCD->OpenRFFile(&MainFS, kInstallFile, "conversation.txt", GE_VFILE_OPEN_READONLY))
+// changed QuestOfDreams Language Menu
+	if(!CCD->OpenRFFile(&MainFS, kInstallFile, convtxt, GE_VFILE_OPEN_READONLY))
 		return;
 
 	keyname = "";
@@ -787,10 +788,7 @@ void CPawn::RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIco
 			methoderror = true;
 		}
 		Converse->DestroyCamera();
-		CCD->ResetClock();
-		CCD->Engine()->BeginFrame();
-		CCD->Engine()->EndFrame();
-		CCD->ResetClock();
+		CCD->Engine()->ResetSystem();
 	}
 }
 

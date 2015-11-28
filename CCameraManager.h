@@ -80,6 +80,8 @@ public:
 	{ FOV = Fov; }
 	geFloat GetFOV()
 	{ return FOV; }
+	geFloat AmtZoom()
+	{ return DEFAULTFOV/FOV; }
 	void SetShakeMin(float Min)
 	{ shakemin = Min; }
 
@@ -144,6 +146,10 @@ public:
 	{ return allowmouse3rd;	}
 	bool	GetAllowMouseIso()
 	{ return allowmouseiso;	}
+	float GetFarClipPlane()
+	{ return FarClipPlaneDistance; }
+	bool	GetClipEnable()
+	{ return ClipEnable;	}
 // end change RF064
 private:
 	//	Member functions
@@ -164,6 +170,7 @@ private:
 	geCamera *EngineCamera;							// Camera used for G3D rendering
 	geRect theCameraRect;								// G3D camera rectangle
 	geFloat FarClipPlaneDistance;				// Far clip plane distance
+	bool ClipEnable;
 	int TrackingFlags;									// Camera tracking control flags
 	geFloat m_defaultdistance;
 	geFloat m_currentdistance;
@@ -228,6 +235,7 @@ private:
 	bool	allowmouse1st;
 	bool	allowmouse3rd;
 	bool	allowmouseiso;
+	bool	allowtilt3rd;
 // end change RF064
 };
 

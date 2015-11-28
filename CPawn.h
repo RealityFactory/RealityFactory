@@ -179,6 +179,7 @@ public:
 	float		Gravity;
 	char		BoxAnim[64];
 	geVec3d		Location;
+	char		RootBone[64];
 	char		Order[64];
 	char		Point[64];
 	bool		RunOrder;
@@ -235,6 +236,8 @@ public:
 	char		Indicate[2];
 	geVec3d		WRotation;
 	geFloat		WScale;
+	bool		SoundLoop;
+	float		Circle;
 
 // Low Level variables
 
@@ -330,11 +333,13 @@ public:
 	void IncBlock()
 	{ ConsoleBlock += 1; }
 	void ParmCheck(int Entries, int Desired, char *Order, char *szName, const skString& methodname);
+	void LoadConv(char *convtxt);
 private:
 	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void Spawn(void *Data);
 	bool RotateToPoint(void *Data, float dwTicks);
+	bool RotateAroundPoint(void *Data, float dwTicks);
 	bool RotateToAlign(void *Data, float dwTicks);
 	bool Rotate(void *Data, float dwTicks);
 	bool MoveToPoint(void *Data, float dwTicks);
@@ -350,7 +355,6 @@ private:
 	bool RotateToPlayer(void *Data, float dwTicks);
 	void PreLoad(char *filename);
 	void PreLoadC(char *filename);
-	void LoadConv();
 	bool PlayerDistance(float FOV, float distance, geActor *Actor, geVec3d DeadPos, char *Bone);
 
 	CIniFile AttrFile;

@@ -74,6 +74,7 @@ public:
   bool CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox, geActor *Actor);
   bool CanOccupyPosition(geVec3d *thePoint, geExtBox *theBox,
 		geActor *Actor, GE_Contents *Contents);
+  bool CheckSolid(geVec3d *thePoint, geExtBox *theBox, geActor *Actor);
 	// This flavor of CheckSubCollision checks to see which two bones of
 	// ..a set of actors, one moving and one static, have intersected.
 	// ..Note you have to have already MOVED the moving actor for this

@@ -107,6 +107,7 @@ private:
 	bool keyleft;
 	bool keyright;
 	bool stoptime;
+	bool hudactive;
 // end change RF064
 };
 

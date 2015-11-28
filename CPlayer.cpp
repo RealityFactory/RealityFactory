@@ -286,6 +286,27 @@ CPlayer::CPlayer()
 				Type = AttrFile.GetValue(KeyName, "crawltorun");
 				strcpy(Animations[CRAWL2RUN],Type);
 // end change RF064
+				Type = AttrFile.GetValue(KeyName, "walkback");
+				strcpy(Animations[WALKBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "runback");
+				strcpy(Animations[RUNBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "crawlback");
+				strcpy(Animations[CRAWLBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "walkshootupback");
+				strcpy(Animations[WALKSHOOT1BACK],Type);
+				Type = AttrFile.GetValue(KeyName, "walkshootdwnback");
+				strcpy(Animations[WALKSHOOTBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "runshootupback");
+				strcpy(Animations[RUNSHOOT1BACK],Type);
+				Type = AttrFile.GetValue(KeyName, "runshootdwnback");
+				strcpy(Animations[RUNSHOOTBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "crawlshootupback");
+				strcpy(Animations[CRAWLSHOOT1BACK],Type);
+				Type = AttrFile.GetValue(KeyName, "crawlshootdwnback");
+				strcpy(Animations[CRAWLSHOOTBACK],Type);
+				Type = AttrFile.GetValue(KeyName, "swimback");
+				strcpy(Animations[SWIMBACK],Type);
+
 				Type = AttrFile.GetValue(KeyName, "die");
 				char strip[256], *temp;
 				int i = 0;
@@ -828,7 +849,7 @@ int CPlayer::LoadConfiguration()
 	{
 		CCD->ActorManager()->SetShadow(Actor, 0.0f);
 		CCD->ActorManager()->SetNoCollide(Actor);
-		geWorld_SetActorFlags(CCD->World(), Actor, 0);
+		CCD->ActorManager()->SetActorFlags(Actor, 0);
 		CCD->HUD()->Deactivate();
 	}
 
@@ -1163,6 +1184,8 @@ int CPlayer::MoveToStart()
 		exit(-333);
 	}
 	
+	bool flag = false;
+
 	for(lEntity= geEntity_EntitySetGetNextEntity(lEntitySet, NULL); lEntity;
 	lEntity= geEntity_EntitySetGetNextEntity(lEntitySet, lEntity)) 
 	{
@@ -1170,27 +1193,55 @@ int CPlayer::MoveToStart()
 		if(CCD->ChangeLevel() && !EffectC_IsStringNull(CCD->StartName()))
 		{
 			if(!stricmp(CCD->StartName(),theStart->szEntityName))
+			{
+				flag = true;
 				break;
+			}
+		}
+		else if(CCD->MenuManager()->GetUseSelect())
+		{
+			if(!EffectC_IsStringNull(CCD->MenuManager()->GetCurrentPS()))
+			{
+				if(!stricmp(CCD->MenuManager()->GetCurrentPS(),theStart->szEntityName))
+				{
+					flag = true;
+					break;
+				}
+			}
+			else
+			{
+				if(EffectC_IsStringNull(theStart->szEntityName))
+				{
+					flag = true;
+					break;
+				}
+			}
 		}
 		else
 		{
 			if(EffectC_IsStringNull(theStart->szEntityName))
+			{
+				flag = true;
 				break;
+			}
 		}
 	}
 	
-	if(!lEntity && CCD->ChangeLevel() && !EffectC_IsStringNull(CCD->StartName()))
+	if(!flag)
 	{
 		for(lEntity= geEntity_EntitySetGetNextEntity(lEntitySet, NULL); lEntity;
 		lEntity= geEntity_EntitySetGetNextEntity(lEntitySet, lEntity)) 
 		{
 			theStart = (PlayerStart *)geEntity_GetUserData(lEntity);
 			if(EffectC_IsStringNull(theStart->szEntityName))
+			{
+				flag = true;
 				break;
+			}
 		}
 	}
 	
-	if(lEntity)
+	if(flag)
 	{	
 		theStart = (PlayerStart *)geEntity_GetUserData(lEntity);
 		
@@ -1251,7 +1302,7 @@ int CPlayer::MoveToStart()
 	//	Fill the position history with the new location
 	
 	for(int nCtr = 0; nCtr < 50; nCtr++)
-		AddPosition();
+		m_PositionHistory[nCtr] = m_Translation;
 	
 	return RGF_SUCCESS;
 }
@@ -1961,7 +2012,7 @@ void CPlayer::SwitchCamera(int mode)
 // end change RF064
 
 	int FixedView = CCD->Weapons()->GetFixedView();
-	if(FixedView!=-1)
+	if(FixedView!=-1 && !monitormode)
 	{
 		if(mode!=FixedView)
 			return;
@@ -2097,9 +2148,9 @@ void CPlayer::Tick(geFloat dwTicks)
 		if(CCD->Input()->GetKeyboardInputNoWait()==KEY_ESC)
 		{
 			monitorstate = true;
-			while(CCD->Input()->GetKeyboardInputNoWait()==KEY_ESC)
-			{
-			}
+			//while(CCD->Input()->GetKeyboardInputNoWait()==KEY_ESC)
+			//{
+			//}
 		}
 	}
 	if(firstframe)
@@ -2128,6 +2179,8 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 		firstframe = false;
 	}
+
+	AddPosition();
 
 // end change RF064
 	float distance;
@@ -2468,7 +2521,7 @@ void CPlayer::Tick(geFloat dwTicks)
 						Pos = thePosition.Translation;
 				}
 				else
-					geActor_GetBoneTransform(Actor, NULL, &thePosition);
+					geActor_GetBoneTransform(Actor, RootBoneName(Actor), &thePosition);
 				memset( &Gl, 0, sizeof(Gl));
 				geVec3d_Copy(&(Pos), &(Gl.Pos));
 				Gl.Spot = LiteSpot;
@@ -2533,7 +2586,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Pos = thePosition.Translation;
 		}
 		else
-				geActor_GetBoneTransform(Actor, NULL, &thePosition);
+				geActor_GetBoneTransform(Actor, RootBoneName(Actor), &thePosition);
 		geVec3d_Copy(&(Pos), &(Gl.Pos));
 		geXForm3d_RotateY(&thePosition, LiteOffset.Y);
 		geXForm3d_GetEulerAngles(&thePosition, &Gl.Direction);
@@ -2579,16 +2632,17 @@ void CPlayer::Tick(geFloat dwTicks)
 #define STARTLAND (!strcmp(Motion, ANIMSTARTJUMP) || !strcmp(Motion, ANIMLAND))
 #define CSTARTLAND (!strcmp(Motion, ANIMCSTARTJUMP) || !strcmp(Motion, ANIMCLAND))
 #define TREADING (!strcmp(Motion, ANIMTREADWATER))
-#define SWIMING (!strcmp(Motion, ANIMSWIM))
+#define SWIMING (!strcmp(Motion, ANIMSWIM) || !strcmp(Motion, ANIMSWIMBACK))
 #define IDLING (!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMAIM))
 #define CIDLING (!strcmp(Motion, ANIMCIDLE) || !strcmp(Motion, ANIMCAIM))
 #define TRANS1 (!strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMC2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE) || !strcmp(Motion, ANIMIDLE2CROUCH) || !strcmp(Motion, ANIMSWIM2TREAD) || !strcmp(Motion, ANIMIDLE2TREAD) || !strcmp(Motion, ANIMTREAD2IDLE))
 #define TRANS2 (!strcmp(Motion, ANIMI2WALK) || !strcmp(Motion, ANIMI2RUN) || !strcmp(Motion, ANIMTREAD2SWIM) || !strcmp(Motion, ANIMSWIM2WALK) || !strcmp(Motion, ANIMWALK2SWIM) || !strcmp(Motion, ANIMJUMP2FALL) || !strcmp(Motion, ANIMJUMP2TREAD))
 #define TRANS3 (!strcmp(Motion, ANIMFALL2TREAD) || !strcmp(Motion, ANIMFALL2CRAWL) || !strcmp(Motion, ANIMFALL2WALK) || !strcmp(Motion, ANIMFALL2JUMP) || !strcmp(Motion, ANIMWALK2JUMP) || !strcmp(Motion, ANIMWALK2CRAWL) || !strcmp(Motion, ANIMCRAWL2WALK))
 #define TRANS4 (!strcmp(Motion, ANIMIDLE2CRAWL) || !strcmp(Motion, ANIMAIM2CROUCH) || !strcmp(Motion, ANIMCROUCH2AIM) || !strcmp(Motion, ANIMW2TREAD) || !strcmp(Motion, ANIMFALL2RUN) || !strcmp(Motion, ANIMCRAWL2RUN))
+#define ALLBACK ( !strcmp(Motion, ANIMWALKBACK) || !strcmp(Motion, ANIMRUNBACK) || !strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK) || !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK))
 #define ALLTRANS (TRANS1 || TRANS2 || TRANS3 || TRANS4)
 #define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
-#define ALLWALK (SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
+#define ALLWALK (SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
 #define ALLSLIDERIGHT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDERIGHT) || !strcmp(Motion, ANIMRUNSLIDERIGHT) || !strcmp(Motion, ANIMSLIDECRIGHT) || !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMSLIDECRIGHTSHOOT))
 #define ALLSLIDELEFT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDELEFT) || !strcmp(Motion, ANIMRUNSLIDELEFT) || !strcmp(Motion, ANIMSLIDECLEFT) || !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT) || !strcmp(Motion, ANIMSLIDECLEFTSHOOT))
 
@@ -2596,7 +2650,7 @@ void CPlayer::Tick(geFloat dwTicks)
 	
 	Motion = CCD->ActorManager()->GetMotion(Actor);
 
-	//geEngine_Printf(CCD->Engine()->Engine(), 0,10,"Motion = %s",Motion);
+	//geEngine_Printf(CCD->Engine()->Engine(), 0,310,"Motion = %s",Motion);
 	//geEngine_Printf(CCD->Engine()->Engine(), 0,20,"OldZone = %d",OldZone);
 	//geEngine_Printf(CCD->Engine()->Engine(), 0,30,"Zone = %x",Zone);
 
@@ -2898,7 +2952,9 @@ void CPlayer::Tick(geFloat dwTicks)
 		// change to idle from moving
 		if(!strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMI2WALK)
 			|| !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMI2RUN)
-			|| !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMWALKSHOOT))
+			|| !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMWALKSHOOT)
+			|| !strcmp(Motion, ANIMWALKBACK)|| !strcmp(Motion, ANIMRUNBACK)
+			|| !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK))
 		{
 			if(OldZone>0)
 			{
@@ -2919,7 +2975,8 @@ void CPlayer::Tick(geFloat dwTicks)
 			break;
 		}
 		
-		if(!strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMCRAWLSHOOT))
+		if(!strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMCRAWLSHOOT)
+			|| !strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK))
 		{
 			// changed RF064
 			CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCIDLE, ANIMC2IDLETIME, ANIMC2IDLE);
@@ -2968,7 +3025,6 @@ void CPlayer::Tick(geFloat dwTicks)
 // end change RF064
 		break;
 	case MOVEWALKFORWARD:
-	case MOVEWALKBACKWARD:
 		if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor)==GE_TRUE))
 		{
 			if(CCD->ActorManager()->ReallyFall(Actor)==RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
@@ -3315,6 +3371,27 @@ void CPlayer::Tick(geFloat dwTicks)
 			break;
 		}
 
+		if(!strcmp(Motion, ANIMWALKBACK))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
+			break;
+		}
+		if(!strcmp(Motion, ANIMRUNBACK))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
+			break;
+		}
+		if(!strcmp(Motion, ANIMCRAWLBACK))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCRAWL);
+			break;
+		}
+		if(!strcmp(Motion, ANIMSWIMBACK))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMSWIM);
+			break;
+		}
+
 // changed RF064		
 		if(!ALLWALK && !m_run)
 		{
@@ -3324,6 +3401,388 @@ void CPlayer::Tick(geFloat dwTicks)
 		if(!ALLWALK && m_run)
 		{
 			CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
+			break;
+		}
+// end change RF064
+
+		break;
+	case MOVEWALKBACKWARD:
+		if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor)==GE_TRUE))
+		{
+			if(CCD->ActorManager()->ReallyFall(Actor)==RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
+			{
+				if(!Falling)
+				{
+					CCD->ActorManager()->GetPosition(Actor, &(FallStart));
+					Falling = true;
+				}
+// changed RF063
+				if(!(Zone & kInLiquidZone || Zone & kLiquidZone) || !strcmp(Motion, ANIMJUMP))
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
+					// end change RF064
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
+				}
+// end change RF063
+				CCD->Weapons()->SetAttackFlag(false);
+				break;
+			}
+		}
+		
+		if(FALLING && (CCD->ActorManager()->Falling(Actor)==GE_FALSE))
+		{
+			Falling=false;
+			
+			if(!m_JumpActive)
+			{
+				if(m_crouch)
+				{
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
+					// end change RF063
+				}
+				else
+				{
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+					if(!m_run)
+					// changed RF064
+					{
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+					}
+					else
+					{
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMFALL2WALKTIME, ANIMFALL2RUN);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					}
+					// end change RF064
+				}
+			}
+			else
+			{
+				if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP)==GE_TRUE)
+				{
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMFALL2JUMPTIME, ANIMFALL2JUMP);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
+					// end change RF064
+					SetJump();
+				}
+				m_JumpActive = false;
+			}
+			CCD->Weapons()->SetAttackFlag(false);
+			break;
+		}
+		
+		if(m_JumpActive && strcmp(Motion, ANIMJUMP) && strcmp(Motion, ANIMFALL) 
+			&& (CCD->ActorManager()->ForceActive(Actor, 0)==GE_FALSE))
+		{
+			m_JumpActive = false;
+// changed RF063
+			if(!SWIMING)
+			{
+				if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP)==GE_TRUE)
+				{
+					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMWALK2JUMPTIME, ANIMWALK2JUMP);
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
+					// end change RF064
+					SetJump();
+					CCD->Weapons()->SetAttackFlag(false);
+					break;
+				}
+			}
+// end change RF063
+		}
+	
+		if(!strcmp(Motion, ANIMJUMP))
+		{
+			m_JumpActive = false;
+			if(CCD->Weapons()->GetAttackFlag())
+			{
+				CCD->ActorManager()->SetBlendMotion(Actor, ANIMJUMPSHOOT, ANIMJUMPSHOOT1, CCD->CameraManager()->GetTiltPercent());
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
+			}
+			break;
+		}
+		if(!strcmp(Motion, ANIMFALL))
+		{
+			m_JumpActive = false;
+			if(CCD->Weapons()->GetAttackFlag())
+			{
+				CCD->ActorManager()->SetBlendMotion(Actor, ANIMFALLSHOOT, ANIMFALLSHOOT1, CCD->CameraManager()->GetTiltPercent());
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
+			}
+			break;
+		}
+// changed RF063		
+		if(OldZone>0)
+		{
+			if(!SWIMING)
+			{
+				if(!strcmp(Motion, ANIMTREADWATER))
+				// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIMBACK, ANIMTREAD2SWIMTIME, ANIMTREAD2SWIM);
+				else
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIMBACK, ANIMWALK2SWIMTIME, ANIMWALK2SWIM);
+				// end change RF064
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMSWIMBACK);
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMSWIMBACK, true);
+			}
+		}
+		else
+		{
+			if(SWIMING)
+			{
+				// changed RF064
+				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMSWIM2WALKTIME, ANIMSWIM2WALK);
+				// end change RF064
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+			}
+		}
+// changed RF063	
+		// walk from idle
+		if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
+		{
+			if(!m_run)
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMI2WALKTIME, ANIMI2WALK);
+					// end change RF064
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				}
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				}
+			}
+			else
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+				{
+					// changed RF064
+					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMI2RUNTIME, ANIMI2RUN);
+					// end change RF064
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+				}
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+				}
+			}
+			break;
+		}
+		// walk from attack
+		if(!strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMAIM))
+		{
+			if(!m_run)
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+					CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				}
+			}
+			else
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+					CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+				}
+			}
+			break;
+		}
+		// change to crawl	
+		if((!strcmp(Motion, ANIMI2WALK) || !strcmp(Motion, ANIMWALKBACK)
+			|| !strcmp(Motion, ANIMI2RUN) || !strcmp(Motion, ANIMRUNBACK) 
+			|| !strcmp(Motion, ANIMWALKSHOOTBACK) || !strcmp(Motion, ANIMRUNSHOOTBACK)) 
+			&& m_crouch && OldZone==0)
+		{
+			CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
+			// changed RF064
+			CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMWALK2CRAWLTIME, ANIMWALK2CRAWL);
+			CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
+			// end change RF064
+			break;
+		}
+		// crawl
+		if(!strcmp(Motion, ANIMCIDLE) || !strcmp(Motion, ANIMC2IDLE) 
+			|| !strcmp(Motion, ANIMCSHOOT) || !strcmp(Motion, ANIMCAIM) || !strcmp(Motion, ANIMIDLE2CROUCH))
+		{
+			// changed RF064
+			CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMIDLE2CRAWLTIME, ANIMIDLE2CRAWL);
+			CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
+			// end change RF064
+			break;
+		}
+		// change to walk from crawl
+		if((!strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK)) && !m_crouch)
+		{
+			if(CCD->ActorManager()->CheckAnimation(Actor, ANIMIDLE)==GE_TRUE)
+			{
+				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
+				if(!m_run)
+				{
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMCRAWL2WALKTIME, ANIMCRAWL2WALK);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+						// end change RF064
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+					}
+				}
+				else
+				{
+					if(!CCD->Weapons()->GetAttackFlag())
+					{
+						// changed RF064
+						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMCRAWL2WALKTIME, ANIMCRAWL2RUN);
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+						// end change RF064
+					}
+					else
+					{
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+						CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+					}
+				}
+				break;
+			}
+		}
+		
+		if(CCD->Weapons()->GetAttackFlag() && !m_crouch)
+		{
+			if(!m_run)
+			{
+// changed RF063
+				if(OldZone==0)
+				{
+					if(!strcmp(Motion, ANIMWALKSHOOTBACK))
+						CCD->ActorManager()->SetBlendMot(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					else
+						CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				}
+			}
+			else
+			{
+				if(!strcmp(Motion, ANIMRUNSHOOTBACK))
+					CCD->ActorManager()->SetBlendMot(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+				else
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+				CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+			}
+			break;
+		}
+		
+		if(CCD->Weapons()->GetAttackFlag() && m_crouch)
+		{
+			if(!strcmp(Motion, ANIMCRAWLSHOOTBACK))
+				CCD->ActorManager()->SetBlendMot(Actor, ANIMCRAWLSHOOTBACK, ANIMCRAWLSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+			else
+				CCD->ActorManager()->SetBlendMotion(Actor, ANIMCRAWLSHOOTBACK, ANIMCRAWLSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+// end change RF063
+			CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
+			break;
+		}
+		
+		if(!strcmp(Motion, ANIMSLIDELEFT) || !strcmp(Motion, ANIMRUNSLIDELEFT)
+			|| !strcmp(Motion, ANIMSLIDERIGHT) || !strcmp(Motion, ANIMRUNSLIDERIGHT)
+			|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
+			|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
+		{
+			if(!m_run)
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+					CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMWALKSHOOTBACK, ANIMWALKSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
+				}
+			}
+			else
+			{
+				if(!CCD->Weapons()->GetAttackFlag())
+					CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+				else
+				{
+					CCD->ActorManager()->SetBlendMotion(Actor, ANIMRUNSHOOTBACK, ANIMRUNSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
+					CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
+				}
+			}
+			break;
+		}
+		
+		if(!strcmp(Motion, ANIMSLIDECLEFT) || !strcmp(Motion, ANIMSLIDECRIGHT)
+			|| !strcmp(Motion, ANIMSLIDECLEFTSHOOT) || !strcmp(Motion, ANIMSLIDECRIGHTSHOOT))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCRAWLBACK);
+			break;
+		}
+		
+		if(!strcmp(Motion, ANIMWALKBACK) && m_run)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+			break;
+		}
+		if(!strcmp(Motion, ANIMRUNBACK) && !m_run)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+			break;
+		}
+
+		if(!strcmp(Motion, ANIMWALK))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+			break;
+		}
+		if(!strcmp(Motion, ANIMRUN))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
+			break;
+		}
+		if(!strcmp(Motion, ANIMCRAWL))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMCRAWLBACK);
+			break;
+		}
+		if(!strcmp(Motion, ANIMSWIM))
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMSWIMBACK);
+			break;
+		}
+
+// changed RF064		
+		if(!ALLWALK && !m_run)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
+			break;
+		}
+		if(!ALLWALK && m_run)
+		{
+			CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
 			break;
 		}
 // end change RF064
@@ -3828,7 +4287,7 @@ void CPlayer::LookMode(bool bLookOn)
 	if(bLookOn)
 	{
 		m_LookMode = true;
-		geWorld_SetActorFlags(CCD->World(), Actor, GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
+		CCD->ActorManager()->SetActorFlags(Actor, GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
 		geExtBox theBox;
 		CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 		CCD->CameraManager()->GetCameraOffset(&LookPosition, 
@@ -3843,7 +4302,7 @@ void CPlayer::LookMode(bool bLookOn)
 	else
 	{
 		m_LookMode = false;
-		geWorld_SetActorFlags(CCD->World(), Actor, 
+		CCD->ActorManager()->SetActorFlags(Actor, 
 			GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
 		CCD->CameraManager()->SetTrackingFlags(LookFlags);
 		CCD->CameraManager()->SetCameraOffset(LookPosition, LookRotation);
@@ -3861,7 +4320,7 @@ void CPlayer::SwitchToFirstPerson()
 { 
 	m_FirstPersonView = true;
 	m_LookMode = false;
-	geWorld_SetActorFlags(CCD->World(), Actor, GE_ACTOR_COLLIDE | mirror);
+	CCD->ActorManager()->SetActorFlags(Actor, GE_ACTOR_COLLIDE | mirror);
 	
 	
 	return;
@@ -3876,7 +4335,7 @@ void CPlayer::SwitchToThirdPerson()
 { 
 	m_FirstPersonView = false;
 	m_LookMode = false;
-	geWorld_SetActorFlags(CCD->World(), Actor, 
+	CCD->ActorManager()->SetActorFlags(Actor, 
 		GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
 	return;
 }
@@ -3900,6 +4359,26 @@ int CPlayer::SaveAttributes(char *szSaveFile)
 	
 	m_Attr = CCD->ActorManager()->Inventory(Actor);
 	m_Attr->SaveTo(theFile, false);
+	
+	fclose(theFile);
+	
+	return RGF_SUCCESS;
+}
+
+int CPlayer::SaveAttributesAscii(char *szSaveFile)
+{
+	FILE *theFile = CCD->OpenRFFile(kTempFile, szSaveFile, "wt");
+	
+	if(theFile == NULL)
+	{
+		char szError[256];
+		sprintf(szError,"Can't SaveAttributes to '%s'", szSaveFile);
+		CCD->ReportError(szError, false);
+		return RGF_FAILURE;
+	}
+	
+	m_Attr = CCD->ActorManager()->Inventory(Actor);
+	m_Attr->SaveAscii(theFile);
 	
 	fclose(theFile);
 	
@@ -3943,6 +4422,7 @@ void CPlayer::Backtrack()
 		m_PositionHistoryPtr = 49;
 	
 	m_Translation = m_PositionHistory[m_PositionHistoryPtr];
+	CCD->ActorManager()->Position(Actor, m_Translation);
 	
 	return;
 }
@@ -3953,6 +4433,10 @@ void CPlayer::Backtrack()
 
 void CPlayer::AddPosition()
 {
+	Position();
+	if(geVec3d_Compare(&m_PositionHistory[m_PositionHistoryPtr], &m_Translation, 0.0f))
+		return;
+
 	m_PositionHistoryPtr++;
 	
 	if(m_PositionHistoryPtr >= 50)

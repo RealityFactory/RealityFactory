@@ -27,8 +27,6 @@ static char THIS_FILE[]=__FILE__;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
-static qxEffectTextureFlow* pTextureFlow = 0;
-
 
 qxSkyDome::qxSkyDome(	qxTerrainDefinition& TerrainDef, int HeightMapWidthLength, 
 						float fMaxHeight,
@@ -49,7 +47,7 @@ qxSkyDome::qxSkyDome(	qxTerrainDefinition& TerrainDef, int HeightMapWidthLength,
 	m_nHeightMapLength	= HeightMapWidthLength;
 	m_bRenderBackFace	= true;
 	fTimer = 0.0f;
-
+	pTextureFlow = 0;
 }
 
 qxSkyDome::~qxSkyDome()
@@ -128,6 +126,7 @@ bool qxSkyDome::Init()
 	ScaleXZ();
 	
 	m_fColorUpdateTime = CCD->TerrainMgr()->GetColorUpdateTime();
+
 	return true;
 }
 
@@ -160,7 +159,9 @@ int qxSkyDome::Frame()
 
 	fTimer += CCD->LastElapsedTime_F()*0.001f;
 
-	if( fTimer > m_fColorUpdateTime)
+	//geEngine_Printf(CCD->Engine()->Engine(), 0,10,"Time = %f",fTimer);
+
+	//if( fTimer > m_fColorUpdateTime)
 	{
 		fTimer = 0.0f;
 		m_bTimeToUpdateSkyColor = true;

@@ -53,7 +53,7 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 	
 	if(Open(szFile) != RGF_SUCCESS)
 		return RGF_FAILURE;						// AVI didn't open.
-	
+
 	StartVideoRetrieve(0);					// Start bringing it in
 	
 	//	Fine, the file opened, get the bitmap info for it.
@@ -433,7 +433,13 @@ int CAVIPlayer::Open(char *szFile)
 	
 	//	The file is open, we've loaded all the info we need about the
 	//	..file, and we're ready to start streaming from it.
-	
+
+	if(CCD->GetLogging())
+	{
+		char szDebug[512];
+		sprintf(szDebug,"Loaded %s", szFile);
+		CCD->ReportError(szDebug, false);
+	}
 	return RGF_SUCCESS;
 }
 

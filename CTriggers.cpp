@@ -368,6 +368,7 @@ void CTriggers::Tick(float dwTicks)
 				pTrigger->bInAnimation = GE_FALSE;
 				pTrigger->bTrigger = false;
 			}
+			CCD->ModelManager()->Stop(pTrigger->Model);
 			if(pTrigger->SoundHandle != -1)
 			{
 				CCD->EffectManager()->Item_Delete(EFF_SND, pTrigger->SoundHandle);

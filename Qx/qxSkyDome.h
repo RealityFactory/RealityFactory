@@ -76,6 +76,7 @@ protected:
 	float		m_fScale;
 	float		m_fMaxHeight;
 	bool		m_bMoveWithCamera;
+	qxEffectTextureFlow* pTextureFlow;
 	
 	
 	

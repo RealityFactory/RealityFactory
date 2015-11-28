@@ -365,7 +365,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 		KeyName = AttrFile.FindNextKey();
 	}
 
-	Activate();								// Turn the HUD ON!
+	//Activate();								// Turn the HUD ON!
 
 	return RGF_SUCCESS;
 }

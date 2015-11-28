@@ -66,4 +66,5 @@ bool geVec3d_IsZero( geVec3d* pVect );
 geFloat Length(geVec3d & vec);
 void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
 // end change RF064
+const char *RootBoneName(geActor *Actor);
 #endif

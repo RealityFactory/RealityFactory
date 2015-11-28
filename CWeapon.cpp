@@ -323,11 +323,11 @@ void CWeapon::Tick(float dwTicks)
 				{
 					geXForm3d thePosition;
 					if(EffectC_IsStringNull(d->EffectBone[j]))
-						geActor_GetBoneTransform(d->Actor, NULL, &(thePosition));
+						geActor_GetBoneTransform(d->Actor, RootBoneName(d->Actor), &(thePosition));
 					else
 					{
 						if(!geActor_GetBoneTransform(d->Actor, d->EffectBone[j], &(thePosition)))
-							geActor_GetBoneTransform(d->Actor, NULL, &(thePosition));
+							geActor_GetBoneTransform(d->Actor, RootBoneName(d->Actor), &(thePosition));
 					}
 					switch(d->EffectType[j])
 					{
@@ -552,7 +552,7 @@ void CWeapon::DisplayThirdPerson(int index)
 	if(WeaponD[CurrentWeapon].PBone[0]!='\0')
 		geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone, &Xf );
 	else
-		geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, NULL, &Xf );
+		geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, RootBoneName(WeaponD[CurrentWeapon].PActor), &Xf );
 	thePosition = Xf.Translation;
 	CCD->ActorManager()->GetRotate(theActor, &theRotation);
 	geVec3d CRotation, CPosition;
@@ -1139,7 +1139,7 @@ void CWeapon::SetWeapon(int value)
 // changed RF064
 void CWeapon::DoChange()
 {
-	if(WeaponD[CurrentWeapon].FixedView!=-1)
+	if(WeaponD[CurrentWeapon].FixedView!=-1 && !CCD->Player()->GetMonitorMode())
 	{
 		if(ViewPoint!=WeaponD[CurrentWeapon].FixedView)
 		{
@@ -1159,11 +1159,13 @@ void CWeapon::DoChange()
 	}
 	if(ViewPoint==FIRSTPERSON)
 	{
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
+		if(WeaponD[CurrentWeapon].VActor)
+			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
 	}
 	else
 	{
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
+		if(WeaponD[CurrentWeapon].PActor)
+			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
 	}
 }
 // end change RF064
@@ -1455,6 +1457,9 @@ void CWeapon::Attack(bool Alternate)
 	}
 	else
 	{
+		if(!WeaponD[CurrentWeapon].PActor)
+			return;
+
 		if(AttackTime != 0)
 		{
 // changed RF064
@@ -1662,7 +1667,7 @@ void CWeapon::ProjectileAttack()
 				geActor_GetBoneTransform(theActor, WeaponD[CurrentWeapon].PBone, &Xf );
 		}
 		else
-			geActor_GetBoneTransform(theActor, NULL, &Xf );
+			geActor_GetBoneTransform(theActor, RootBoneName(theActor), &Xf );
 // end change RF063
 		thePosition = Xf.Translation;
 		CCD->ActorManager()->GetRotate(theActor, &theRotation);
@@ -2003,11 +2008,11 @@ void CWeapon::Add_Projectile(geVec3d Pos, geVec3d Front, geVec3d Orient, char *P
 			d->Effect[i] = -1;
 			geXForm3d thePosition;
 			if(EffectC_IsStringNull(ProjD[Type].EffectBone[i]))
-				geActor_GetBoneTransform(d->Actor, NULL, &(thePosition));
+				geActor_GetBoneTransform(d->Actor, RootBoneName(d->Actor), &(thePosition));
 			else
 			{
 				if(!geActor_GetBoneTransform(d->Actor, ProjD[Type].EffectBone[i], &(thePosition)))
-					geActor_GetBoneTransform(d->Actor, NULL, &(thePosition));
+					geActor_GetBoneTransform(d->Actor, RootBoneName(d->Actor), &(thePosition));
 			}
 			if(ProjD[Type].Effect[i][0] != '\0')
 			{
@@ -2338,7 +2343,7 @@ void CWeapon::LoadDefaults()
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
 						geVec3d NewFillNormal;
-						geActor_GetBoneTransform(WeaponD[weapptr].VActor, NULL, &Xf );
+						geActor_GetBoneTransform(WeaponD[weapptr].VActor, RootBoneName(WeaponD[weapptr].VActor), &Xf );
 						geXForm3d_GetTranspose( &Xf, &XfT );
 						geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
 						Vector = AttrFile.GetValue(KeyName, "viewfillcolor");
@@ -2516,7 +2521,7 @@ void CWeapon::LoadDefaults()
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
 						geVec3d NewFillNormal;
-						geActor_GetBoneTransform(WeaponD[weapptr].PActor, NULL, &Xf );
+						geActor_GetBoneTransform(WeaponD[weapptr].PActor, RootBoneName(WeaponD[weapptr].PActor), &Xf );
 						geXForm3d_GetTranspose( &Xf, &XfT );
 						geXForm3d_Rotate( &XfT, &Fill, &NewFillNormal );
 						Vector = AttrFile.GetValue(KeyName, "playerfillcolor");
@@ -2723,7 +2728,29 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[FALL2RUN],Type);
 						Type = AttrFile.GetValue(KeyName, "crawltorun");
 						strcpy(WeaponD[weapptr].Animations[CRAWL2RUN],Type);
-// end change RF064
+						
+						Type = AttrFile.GetValue(KeyName, "walkback");
+						strcpy(WeaponD[weapptr].Animations[WALKBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "runback");
+						strcpy(WeaponD[weapptr].Animations[RUNBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "crawlback");
+						strcpy(WeaponD[weapptr].Animations[CRAWLBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "walkshootupback");
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOT1BACK],Type);
+						Type = AttrFile.GetValue(KeyName, "walkshootdwnback");
+						strcpy(WeaponD[weapptr].Animations[WALKSHOOTBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "runshootupback");
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOT1BACK],Type);
+						Type = AttrFile.GetValue(KeyName, "runshootdwnback");
+						strcpy(WeaponD[weapptr].Animations[RUNSHOOTBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "crawlshootupback");
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOT1BACK],Type);
+						Type = AttrFile.GetValue(KeyName, "crawlshootdwnback");
+						strcpy(WeaponD[weapptr].Animations[CRAWLSHOOTBACK],Type);
+						Type = AttrFile.GetValue(KeyName, "swimback");
+						strcpy(WeaponD[weapptr].Animations[SWIMBACK],Type);
+						
+						// end change RF064
 						Type = AttrFile.GetValue(KeyName, "die");
 						char strip[256], *temp;
 						int i = 0;

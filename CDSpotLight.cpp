@@ -165,7 +165,7 @@ geBoolean CDSpotLight::Tick(float dwTicks)
 					}
 					else
 					{
-						if(geActor_GetBoneTransform(theActor, NULL, &BoneXForm) != GE_TRUE)
+						if(geActor_GetBoneTransform(theActor, RootBoneName(theActor), &BoneXForm) != GE_TRUE)
 							continue;					// No such bone
 					}
 	

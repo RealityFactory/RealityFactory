@@ -97,6 +97,13 @@ int StreamingAudio::Create(char *szFileName)
 {
   int nError = 0;
 
+  if(CCD->GetLogging())
+	{
+		char szDebug[512];
+		sprintf(szDebug,"Loaded %s", szFileName);
+		CCD->ReportError(szDebug, false);
+	}
+
 //	Sanity check parameters
 
   if(szFileName == NULL)

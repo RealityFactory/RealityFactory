@@ -462,6 +462,7 @@ void CInventory::Display()
 	{
 		CCD->Weapons()->DisplayZoom();
 		CCD->HUD()->Render();
+		hudactive = CCD->HUD()->GetActive();
 		return;
 	}
 	
@@ -581,7 +582,8 @@ void CInventory::Display()
 		{
 			isactive = false;
 			// changed RF064
-			CCD->HUD()->Activate();
+			if(hudactive)
+				CCD->HUD()->Activate();
 			// end change RF064
 			CCD->SetKeyPaused(false);
 		}

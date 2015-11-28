@@ -53,7 +53,8 @@ void CCameraManager::Defaults()
 	bUseExtBox = false;
 	theModel = NULL;
 	bBindToModel = NULL;
-	FarClipPlaneDistance = 500.0f;
+	FarClipPlaneDistance = 0.0f;
+	ClipEnable = false;
 	TrackingFlags = kCameraTrackPosition;
 	// eaa3 12/18/2000 head bob setup
 	m_HeadBobOffset = 0.0f;					// No offset
@@ -173,6 +174,10 @@ void CCameraManager::Defaults()
 			Type = AttrFile.GetValue(KeyName, "disablemouse");
 			if(Type=="true")
 				allowmouse3rd = false;
+			allowtilt3rd = true;
+			Type = AttrFile.GetValue(KeyName, "disabletilt");
+			if(Type=="true")
+				allowtilt3rd = false;
 		}
 		else if(KeyName=="Isometric")
 		{
@@ -526,18 +531,25 @@ int CCameraManager::TiltXDown(geFloat fAmount)
 float CCameraManager::GetTiltPercent()
 {
 	float Percent = 0.5f;
-	if((TrackingFlags & kCameraTrackFree) != 0)
-		Percent = 1.0f-((CameraOffsetRotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
-	else if((TrackingFlags & kCameraTrackPosition) != 0)
-		Percent = ((Rotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
-
+	if(allowtilt3rd)
+	{
+		if((TrackingFlags & kCameraTrackFree) != 0)
+			Percent = 1.0f-((CameraOffsetRotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
+		else if((TrackingFlags & kCameraTrackPosition) != 0)
+			Percent = ((Rotation.X+m_LookDwn)/(m_LookDwn+m_LookUp));
+	}
 	return Percent; 
 }
 
 float CCameraManager::GetTilt()
 {
 	if((TrackingFlags & kCameraTrackFree) != 0)
-		return CameraOffsetRotation.X;
+	{
+		if(allowtilt3rd)
+			return CameraOffsetRotation.X;
+		else
+			return 0.0f;
+	}
 	else if((TrackingFlags & kCameraTrackPosition) != 0)
 		return Rotation.X;
 
@@ -932,7 +944,7 @@ int CCameraManager::SetFarClipPlane(geFloat fDistance)
 void CCameraManager::EnableFarClipPlane(geBoolean ClipOn)
 {
 	geCamera_SetFarClipPlane(EngineCamera, ClipOn, FarClipPlaneDistance);
-	
+	ClipEnable = ClipOn;
 	return;
 }
 

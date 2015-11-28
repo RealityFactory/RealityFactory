@@ -129,14 +129,25 @@ int CModelManager::ReStart(geWorld_Model *theModel)
 
 int CModelManager::Stop(geWorld_Model *theModel)
 {
+	geXForm3d Xf;
 	ModelInstanceList *pEntry = FindModel(theModel);
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Model not managed by us...
 	
 	pEntry->bMoving = false;				// Model stops moving now
 	
-	if (pEntry->bOneShot)                                          //MOD010122 - Close model if OneShot is selected
+	geWorld_GetModelXForm(CCD->World(), pEntry->Model, &Xf); 
+	if(memcmp(&Xf, &pEntry->Xf, sizeof(geXForm3d))==0)
+	{
 		geWorld_OpenModel(CCD->World(), pEntry->Model, GE_FALSE);
+	}
+	else
+	{
+		geWorld_OpenModel(CCD->World(), pEntry->Model, GE_TRUE);
+	}
+
+	//if (pEntry->bOneShot)                                          //MOD010122 - Close model if OneShot is selected
+		//geWorld_OpenModel(CCD->World(), pEntry->Model, GE_FALSE);
 	
 	return RGF_SUCCESS;
 }
@@ -1395,6 +1406,7 @@ geBoolean CModelManager::ContentModel(geVec3d thePoint, geExtBox theBox,
 				MainList[nTemp]->Maxs.Z -= 127.0f;
 				geWorld_GetModelRotationalCenter(CCD->World(), theModel, 
 					&MainList[nTemp]->Translation);
+				geWorld_GetModelXForm(CCD->World(), theModel, &MainList[nTemp]->Xf); 
 				geWorld_ModelSetFlags(theModel, GE_MODEL_RENDER_NORMAL |
 					GE_MODEL_RENDER_MIRRORS | GE_MODEL_COLLIDE);
 				for(int nFoo = 0; nFoo < 64; nFoo++)

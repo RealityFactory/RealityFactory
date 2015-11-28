@@ -64,6 +64,7 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	EnvironmentMapping = false;
 	collision = false;
 	pushable = false;
+	SoundLoop = false;
 }
 
 ScriptedObject::~ScriptedObject()
@@ -157,7 +158,7 @@ CPawn::CPawn()
 	
 	if(pSet) 
 	{
-		LoadConv();
+		LoadConv(CCD->MenuManager()->GetConvtxts());
 		Cache.SetSize(0);
 		WeaponCache.SetSize(0);
 
@@ -430,6 +431,10 @@ CPawn::CPawn()
 							Type = AttrFile.GetValue(KeyName, "boundingboxanimation");
 							if(Type!="")
 								strcpy(Object->BoxAnim, Type);
+							Object->RootBone[0] = '\0';
+							Type = AttrFile.GetValue(KeyName, "rootbone");
+							if(Type!="")
+								strcpy(Object->RootBone, Type);
 							Object->ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
 							Object->Icon = NULL;
 							Type = AttrFile.GetValue(KeyName, "icon");
@@ -827,6 +832,8 @@ void CPawn::Spawn(void *Data)
 	CCD->ActorManager()->SetColDetLevel(Object->Actor, RGF_COLLISIONLEVEL_2);
 	CCD->ActorManager()->SetAnimationSpeed(Object->Actor, Object->AnimSpeed);
 	CCD->ActorManager()->SetTilt(Object->Actor, true);
+	if(!EffectC_IsStringNull(Object->RootBone))
+		CCD->ActorManager()->SetRoot(Object->Actor, Object->RootBone);
 	if(Object->EnvironmentMapping)
 		SetEnvironmentMapping(Object->Actor, true, Object->AllMaterial, Object->PercentMapping, Object->PercentMaterial);
 	if(!EffectC_IsStringNull(Object->ChangeMaterial))
@@ -834,7 +841,7 @@ void CPawn::Spawn(void *Data)
 	if(!stricmp(Object->BoxAnim, "nocollide"))
 	{
 		CCD->ActorManager()->SetNoCollide(Object->Actor);
-		geWorld_SetActorFlags(CCD->World(), Object->Actor, 0);
+		CCD->ActorManager()->SetActorFlags(Object->Actor, 0);
 	}
 	else if(!EffectC_IsStringNull(Object->BoxAnim))
 	{

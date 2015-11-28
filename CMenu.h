@@ -11,6 +11,9 @@
 // changed RF063
 #define NUM_ANIM		 70
 // end change RF063
+// changed QuestOfDreams Language Menu
+#define FNAME_LENGHT	64
+// end change QuestOfDreams
 
 // Message
 //------------------------------
@@ -88,6 +91,7 @@ typedef struct Selection
   float Speed;
   float StepHeight;
   char Environment[64];
+  char PlayerStart[64];
   float SlopeSpeed;
   float SlopeSlide;
   char Hud[64];
@@ -120,6 +124,11 @@ public:
   void GameLoop();
   void GameLevel();
   void MenuInitalize();
+// changed QuestOfDreams Language Menu
+  void ChangeMenuIni();
+  char *GetConvtxts(); 
+  char *GetMessagetxts(); 
+// end change QuestOfDreams 
 // changed RF064
   void DisplaySplash();
   void LoadWBitmap();
@@ -209,6 +218,8 @@ public:
   { return CharSelect[CurrentSelect].pSetup; }
   char *GetCurrentEnv()
   { return CharSelect[CurrentSelect].Environment; }
+  char *GetCurrentPS()
+  { return CharSelect[CurrentSelect].PlayerStart; }
   char *GetCurrentHud()
   { return CharSelect[CurrentSelect].Hud; }
   float GetCurrentScale()
@@ -244,6 +255,10 @@ private:
   void FadeSet(int Dir, float Time);
   void MusicSet();
   void DoFade();
+// changed QuestOfDreams Language Menu
+  void LoadMenuIni(char *menuini);
+  void Reset();
+// end change QuestOfDreams 
 
   geBitmap	 *ScreenBmp;
   geBitmap	 *Backgrounds[NUM_BACKGROUNDS];
@@ -318,6 +333,12 @@ private:
   float	TimeFade;
   bool fontloaded;
 // end change RF064
+// changed QuestOfDreams Language Menu
+  int CurrentLanguage;
+  char MenuInis[5][FNAME_LENGHT];
+  char Convtxts[5][FNAME_LENGHT];
+  char Messagetxts[5][FNAME_LENGHT];
+// end change QuestOfDreams
 };
 
 

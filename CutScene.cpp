@@ -122,10 +122,7 @@ void CCutScene::Tick(float dwTicks)
 			CCD->Player()->ShowFog();        //  Show fog, if enabled
 			CCD->Player()->ActivateClipPlane();        //  Activate clipping plane, if enabled
 			
-			CCD->ResetClock();
-			CCD->Engine()->BeginFrame();
-			CCD->Engine()->EndFrame();
-			CCD->ResetClock();
+			CCD->Engine()->ResetSystem();
 		}
 	}
 	return;

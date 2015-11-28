@@ -91,6 +91,16 @@ enum {
 	SWIM,
 	TREADWATER,
 // end change RF063
+	WALKBACK,
+	RUNBACK,
+	CRAWLBACK,
+	WALKSHOOTBACK,
+	WALKSHOOT1BACK,
+	RUNSHOOTBACK,
+	RUNSHOOT1BACK,
+	CRAWLSHOOTBACK,
+	CRAWLSHOOT1BACK,
+	SWIMBACK,
 	ANIMMAX
 };
 
@@ -205,6 +215,18 @@ enum {
 // changed RF063
 #define ANIMSWIM				CCD->Weapons()->PlayerAnim(SWIM)
 #define ANIMTREADWATER			CCD->Weapons()->PlayerAnim(TREADWATER)
+
+#define ANIMWALKBACK			CCD->Weapons()->PlayerAnim(WALKBACK)
+#define ANIMRUNBACK				CCD->Weapons()->PlayerAnim(RUNBACK)
+#define ANIMCRAWLBACK			CCD->Weapons()->PlayerAnim(CRAWLBACK)
+#define ANIMWALKSHOOTBACK		CCD->Weapons()->PlayerAnim(WALKSHOOTBACK)
+#define ANIMWALKSHOOT1BACK		CCD->Weapons()->PlayerAnim(WALKSHOOT1BACK)
+#define ANIMRUNSHOOTBACK		CCD->Weapons()->PlayerAnim(RUNSHOOTBACK)
+#define ANIMRUNSHOOT1BACK		CCD->Weapons()->PlayerAnim(RUNSHOOT1BACK)
+#define ANIMCRAWLSHOOTBACK		CCD->Weapons()->PlayerAnim(CRAWLSHOOTBACK)
+#define ANIMCRAWLSHOOT1BACK		CCD->Weapons()->PlayerAnim(CRAWLSHOOT1BACK)
+#define ANIMSWIMBACK			CCD->Weapons()->PlayerAnim(SWIMBACK)
+
 // end change RF063
 #define ANIMDIE					GetDieAnim()
 #define ANIMINJURY				GetInjuryAnim()
@@ -261,6 +283,7 @@ public:
 	void GetIn(geVec3d *In);			// Get actors heading
 	void GetLeft(geVec3d *Left);
 	int SaveTo(FILE *SaveFD);	// Save player
+	int SaveAttributesAscii(char *szSaveFile);
 	int RestoreFrom(FILE *RestoreFD);	// Load player
 	void LookMode(bool bLookOn);	// Set/unset third-person lookmode
 	void SwitchToFirstPerson();	// First-person mode
@@ -371,8 +394,8 @@ public:
 	char *GetPlayerName()
 	{ return PlayerName; }
 // end multiplayer
+void AddPosition();						// Add current position to position history
 private:
-	void AddPosition();						// Add current position to position history
 	geSound_Def *LoadAudioClip(char *szFilename);		// Load audio clip
 	void SetJump();
 	
