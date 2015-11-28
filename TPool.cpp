@@ -77,43 +77,7 @@ geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *
 	MessageBox(NULL, szError,"Bitmap Manager", MB_OK);
 	exit(-333);
   }
-// changed RF064
-  if(CCD->Engine()->GetVoodoo())
-  {
-	  geBitmap_Info	BmpInfo;
-	  geBitmap_GetInfo(pool->Bitmap, &BmpInfo, NULL);
-	  if(BmpInfo.Width!=4)
-	  {
-		  if(BmpInfo.Width!=8)
-		  {
-			  if(BmpInfo.Width!=16)
-			  {
-				  if(BmpInfo.Width!=32)
-				  {
-					  if(BmpInfo.Width!=64)
-					  {
-						  if(BmpInfo.Width!=128)
-						  {
-							  if(BmpInfo.Width!=256)
-							  {
-								  char szError[256];
-								  sprintf(szError,"Bitmap Size Problem in %s Size : %dx%d", TBName, BmpInfo.Width, BmpInfo.Height);
-								  CCD->ReportError(szError, false);
-							  }
-						  }
-					  }
-				  }
-			  }
-		  }
-	  }
-	  if(BmpInfo.Width!=BmpInfo.Height)
-	  {
-		  char szError[256];
-		  sprintf(szError,"Bitmap Size Problem in %s Size : %dx%d", TBName, BmpInfo.Width, BmpInfo.Height);
-		  CCD->ReportError(szError, false);
-	  }
-  }
-// end change RF064
+
   if (!geWorld_AddBitmap(CCD->World(), pool->Bitmap))
   {
     geBitmap_Destroy(&pool->Bitmap);

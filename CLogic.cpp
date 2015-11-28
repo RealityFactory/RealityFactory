@@ -292,6 +292,27 @@ void CLogic::Tick(float dwTicks)
 				else if(!stricmp(pSource->Trigger1Name, "Hard") && (CCD->GetDifficultLevel()==3))
 					pSource->bState = true;
 				break;
+			case 15: // active weapon
+				pSource->bState = false;
+				if(!stricmp(pSource->Trigger1Name, "All"))
+				{
+					if(!(CCD->Weapons()->GetCurrent()==-1 || CCD->Weapons()->GetCurrent()==11))
+						pSource->bState = true;
+				}
+				else
+				{
+					if(CCD->Weapons()->GetCurrent()==atoi(pSource->Trigger1Name))
+						pSource->bState = true;
+				}
+				break;
+			case 16: // Character name
+				pSource->bState = false;
+				if(CCD->MenuManager()->GetUseSelect())
+				{
+					if(!stricmp(pSource->Trigger1Name, CCD->MenuManager()->GetCurrentName()))
+						pSource->bState = true;
+				}
+				break;
 // end change RF064
 		}
 

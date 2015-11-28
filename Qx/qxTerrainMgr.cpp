@@ -229,6 +229,13 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		CCD->TerrainMgr()->SetAllowSun(!flag);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "UseSkyFog"))
+	{
+		PARMCHECK(1);
+		bool flag = arguments[0].boolValue();
+		CCD->TerrainMgr()->SetAllowSkyFog(flag);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "DisableCloud"))
 	{
 		PARMCHECK(1);
@@ -359,6 +366,7 @@ qxTerrainMgr::qxTerrainMgr()
 	m_SunScale = 4.0f;
 	AllowSun = true;
 	AllowCloud = true;
+	skyfog = false;
 	WindDir = DIRECTION_S;
 	rgba.r = 164.0f;
 	rgba.g = 200.0f;
@@ -1086,7 +1094,7 @@ void qxTerrainMgr::UpdateFog()
 {
 	qxSkyDome* pSky = GetSkyDome();
 
-	if( pSky )
+	if( pSky && skyfog)
 	{
 		float fFogEnd = CCD->Engine()->GetFogEnd();
 		float fFogStart = CCD->Engine()->GetFogStart();

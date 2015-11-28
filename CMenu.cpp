@@ -2589,7 +2589,10 @@ CRFMenu::CRFMenu()
 				Type = AttrFile.GetValue(KeyName, "environmentfile");
 				if(Type!="")
 					strcpy(CharSelect[MaxSelect].Environment, Type);
-
+				CharSelect[MaxSelect].Hud[0] = '\0';
+				Type = AttrFile.GetValue(KeyName, "hudfile");
+				if(Type!="")
+					strcpy(CharSelect[MaxSelect].Hud, Type);
 				Type = AttrFile.GetValue(KeyName, "speed");
 				CharSelect[MaxSelect].Speed = -1.0f;
 				if(Type!="")
@@ -5598,6 +5601,7 @@ static void SetSlot()
 				return;
 			}
 			CCD->Engine()->SaveTo(outFD);
+			CCD->MenuManager()->SaveTo(outFD, false);
 			CCD->Player()->SaveTo(outFD);
 			CCD->Doors()->SaveTo(outFD, false);
 			CCD->Platforms()->SaveTo(outFD, false);
@@ -5656,6 +5660,7 @@ static void GetSlot()
 			if(CCD->MIDIPlayer())
 				CCD->MIDIPlayer()->Stop();
 			CCD->Engine()->RestoreFrom(inFD);
+			CCD->MenuManager()->RestoreFrom(inFD, false);
 			CCD->InitializeLevel(CCD->Engine()->LevelName());
 			CCD->Player()->RestoreFrom(inFD);
 			CCD->Doors()->RestoreFrom(inFD, false);
@@ -5783,7 +5788,7 @@ void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
 			fRect.Bottom=MenuFont[FontNumber].font_height-1;
 			fRect.Left=0;
 			fRect.Right=MenuFont[FontNumber].dat[chr].width-1;
-			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y, Alpha);
+			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y, Alpha, 1.0f);
 			charoff+=MenuFont[FontNumber].dat[chr].width;
 			s++;
 	  }
@@ -5860,4 +5865,32 @@ void CRFMenu::FadeOut()
 			geEngine_EndFrame(CCD->Engine()->Engine());
 		}
 	}
+}
+
+
+//	SaveTo
+//
+//	Save the current state of the menu
+//	..off to an open file.
+
+int CRFMenu::SaveTo(FILE *SaveFD, bool type)
+{
+
+	WRITEDATA(&useselect, sizeof(geBoolean), 1, SaveFD);
+	WRITEDATA(&CurrentSelect, sizeof(int), 1, SaveFD);
+
+  return RGF_SUCCESS;
+}
+
+//	RestoreFrom
+//
+//	Restore the state of the menu from an
+//	..open file.
+
+int CRFMenu::RestoreFrom(FILE *RestoreFD, bool type)
+{
+	READDATA(&useselect, sizeof(geBoolean), 1, RestoreFD);
+	READDATA(&CurrentSelect, sizeof(int), 1, RestoreFD);
+
+  return RGF_SUCCESS;
 }

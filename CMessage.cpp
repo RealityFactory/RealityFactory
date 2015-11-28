@@ -425,7 +425,7 @@ void CMessage::Display()
 						{
 							posy = (CCD->Engine()->Height() - geBitmap_Height(Data->graphic[Data->graphiccur]))/2;
 						}
-						CCD->Engine()->DrawBitmap(Data->graphic[Data->graphiccur], NULL, posx, posy, Data->graphicalpha);
+						CCD->Engine()->DrawBitmap(Data->graphic[Data->graphiccur], NULL, posx, posy, Data->graphicalpha, 1.0f);
 					}
 					char szText[256];
 					strcpy(szText, Textt);

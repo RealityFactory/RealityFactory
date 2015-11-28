@@ -47,6 +47,7 @@ typedef enum
 	PTIMER,
 	PDIST,
 	PSOUND,
+	PCOLLIDE,
 	PEND
 };
 
@@ -166,6 +167,10 @@ public:
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
+	bool		EnvironmentMapping;
+	bool		AllMaterial;
+	float		PercentMapping;
+	float		PercentMaterial;
 	float		ShadowSize;
 	bool		HideFromRadar;
 	char		ChangeMaterial[64];
@@ -219,6 +224,8 @@ public:
 	char		TargetGroup[64];
 	geVec3d		LastTargetPoint;
 	geVec3d		SavePoint;
+	bool		collision;
+	bool		pushable;
 	bool		console;
 	char		DamageAttr[64];
 	geVec3d		UpdateTargetPoint;
@@ -286,6 +293,10 @@ typedef struct WeaponPreCache
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
+	bool		EnvironmentMapping;
+	bool		AllMaterial;
+	float		PercentMapping;
+	float		PercentMaterial;
 } WeaponPreCache;
 
 class CPawn : public CRGFComponent
@@ -294,6 +305,7 @@ public:
 	CPawn();	// Constructor
 	~CPawn();
 	void Tick(float dwTicks);
+	int HandleCollision(geActor *pActor, geActor *theActor, bool Gravity);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
 	bool Converse(geActor *pActor);

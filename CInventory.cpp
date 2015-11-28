@@ -31,6 +31,8 @@ CInventory::CInventory()
 		
 		background = NULL;
 		highlight = NULL;
+		arrowr = NULL;
+		arrowl = NULL;
 		active = false;
 		Selected = 1;
 		MaxItems = 0;

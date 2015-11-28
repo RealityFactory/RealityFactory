@@ -49,11 +49,11 @@ public:
 	bool DrawAlphaBitmap(geBitmap * pBitmap, 
 		geVec3d * VertUVArray, geCamera * ClipCamera,	FloatRect * PixelRect,
 		FloatRect * PercentRect, geFloat   Alpha, 
-		GE_RGBA* RGBA_Array = NULL);
+		GE_RGBA* RGBA_Array, float zdepth);
 	bool DrawAlphaBitmapRect(geBitmap * pBitmap,
 		geRect * BitmapRect, geCamera * ClipCamera, FloatRect * PixelRect,
 		FloatRect * PercentRect, geFloat Alpha, 
-		GE_RGBA* RGBA_Array = NULL);
+		GE_RGBA* RGBA_Array, float zdepth);
 	bool BreakUpBigBitmap(geBitmap * pBitmap, 
 		IncompleteTexture*& BitmapBuffer, int & NumWide, int & NumHigh);
 	CompleteTexture BuildCompleteTexture(IncompleteTexture* 
@@ -63,8 +63,8 @@ public:
 		FloatRect * ScreenRect, FloatRect * PercentRect, 
 		geFloat Alpha, GE_RGBA* RGBA_Array = NULL);
 // changed RF064
-	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y);
-	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha);
+	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float zdepth);
+	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha, float zdepth);
 	CompleteTexture BitmapToComplete(geBitmap * pBitmap);
 	void DeleteCompleteTexture(CompleteTexture cp);
 	void DrawComplete(CompleteTexture cp, int x, int y);
@@ -104,8 +104,6 @@ public:
 	void SetDebugging(bool fOn)
 	{ m_DebugEnabled = fOn;}		// Activate/deactivate debug output
 // changed RF064
-	bool GetVoodoo()
-	{ return Voodoo; }
 	float GetFogEnd()
 	{ return fFogEnd; }
 	float GetFogStart()
@@ -164,7 +162,6 @@ private:
 	geFloat fFogStart, fFogEnd;			// Fog start, end distances
 	geFloat FarClipPlaneDistance;		// Distance to far clip plane
 // changed RF063
-	bool Voodoo;
 };
 
 #endif

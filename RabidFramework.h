@@ -78,7 +78,7 @@ enum
 #include <uuids.h>
 
 //	Genesis3D includes
-
+#include "FreeImage.h"
 #include <Genesis.h>
 #include <font.h>
 
@@ -110,6 +110,7 @@ class CCommonData;
 #include "Collider.h"								// Collision utility class
 #include "CCameraManager.h"					// Camera Manager class
 #include "CAudioManager.h"					// Audio entity manager subsystem
+#include "OggAudio.h"
 #include "CMp3.h"
 #include "CActorManager.h"					// Actor management subsystem
 #include "CModelManager.h"					// Model management subsystem
@@ -127,9 +128,9 @@ class CCommonData;
 #include "C3DAudioSource.h"					// 3D Audio Source class
 #include "CParticleSystem.h"				// Particle system handler class
 #include "CStaticEntity.h"					// Static entity handler class
-#include "CSoundtrackToggle.h"			// Soundtrack switcher
 #include "CAVIPlayer.h"							// AVI player class
 #include "CAudioStream.h"						// Streaming audio handler
+#include "CSoundtrackToggle.h"			// Soundtrack switcher
 #include "CVideoTexture.h"					// Video texture handler
 #include "CCorona.h"								// Ralph Deane's Corona component
 #include "CDynalite.h"							// Ralph Deane's Dynamic Light component

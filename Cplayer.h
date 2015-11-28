@@ -473,6 +473,10 @@ private:
 	float FallDamage;
 	GE_RGBA	FillColor;
 	GE_RGBA	AmbientColor;
+	geBoolean EnvironmentMapping;
+	geBoolean AllMaterial;
+	geFloat PercentMapping;
+	geFloat PercentMaterial;
 // changed RF063
 	float UseRange;
 // changed RF064

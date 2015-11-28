@@ -880,6 +880,7 @@ void CWeapon::DisplayFirstPerson(int index)
 		if(geActor_GetBoneTransform(WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone, &Xf )==GE_TRUE)
 		{
 			geVec3d_Copy( &( Xf.Translation ), &Muzzle);
+			//geVec3d_AddScaled (&Muzzle, &WeaponD[CurrentWeapon].VMOffset, WeaponD[CurrentWeapon].VOffset.Z, &Muzzle);
 			CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Muzzle, WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone);
 		}
 		
@@ -892,7 +893,7 @@ void CWeapon::Holster()
 	if(CurrentWeapon==-1 || CurrentWeapon==11)
 		return;
 	
-	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE || (WeaponD[CurrentWeapon].Catagory==MELEE && WeaponD[CurrentWeapon].MeleeAmmo==true))
 			CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, false);
 
 	CCD->CameraManager()->CancelZoom();
@@ -960,7 +961,7 @@ void CWeapon::DisplayZoom()
 									 NULL,	// pixels in the "camera" view 
 									 NULL,// percent of the "camera" view 
 									 255.0f, 
-									 NULL);
+									 NULL, 1.0f);
 		}
 	}
 }
@@ -1002,7 +1003,7 @@ void CWeapon::SetWeapon(int value)
 		// stop displaying old weapon
 		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, 0);
 		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, 0);
-		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE || (WeaponD[CurrentWeapon].Catagory==MELEE && WeaponD[CurrentWeapon].MeleeAmmo==true))
 			CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, false);
 	}
 // changed RF063
@@ -1023,7 +1024,7 @@ void CWeapon::SetWeapon(int value)
 	}
 // end change RF063
 // changed RF064
-	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE || (WeaponD[CurrentWeapon].Catagory==MELEE && WeaponD[CurrentWeapon].MeleeAmmo==true))
 	{
 		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
 		if(WeaponD[CurrentWeapon].ShotperMag>0)
@@ -1087,7 +1088,7 @@ void CWeapon::ClearWeapon()
 { 
 	if(!(CurrentWeapon == -1 || CurrentWeapon == 11))
 	{
-		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE || (WeaponD[CurrentWeapon].Catagory==MELEE && WeaponD[CurrentWeapon].MeleeAmmo==true))
 			CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, false);
 	}
 }
@@ -1117,17 +1118,20 @@ void CWeapon::ReSetWeapon(int value)
 	if(value==-1 || value==11)
 		return;
 // changed RF064
-	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
+	if(WeaponD[CurrentWeapon].Catagory==PROJECTILE || (WeaponD[CurrentWeapon].Catagory==MELEE && WeaponD[CurrentWeapon].MeleeAmmo==true))
 	{
 		CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, true);
-		if(WeaponD[CurrentWeapon].MagAmt==-1)
+		if(WeaponD[CurrentWeapon].Catagory==PROJECTILE)
 		{
-			geActor *theActor = CCD->Player()->GetActor();
-			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
-			if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].ShotperMag)
-				WeaponD[CurrentWeapon].MagAmt = WeaponD[CurrentWeapon].ShotperMag;
-			else
-				WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
+			if(WeaponD[CurrentWeapon].MagAmt==-1)
+			{
+				geActor *theActor = CCD->Player()->GetActor();
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
+				if(theInv->Value(WeaponD[CurrentWeapon].Ammunition)>=WeaponD[CurrentWeapon].ShotperMag)
+					WeaponD[CurrentWeapon].MagAmt = WeaponD[CurrentWeapon].ShotperMag;
+				else
+					WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
+			}
 		}
 	}
 	DoChange();
@@ -1237,12 +1241,12 @@ void CWeapon::WeaponData()
 		{
 			sprintf(szData,"Rotation : X= %.2f, Y= %.2f, Z= %.2f",
 				WeaponD[CurrentWeapon].VActorRotation.X + WeaponD[CurrentWeapon].K, WeaponD[CurrentWeapon].VActorRotation.Y + WeaponD[CurrentWeapon].Z, WeaponD[CurrentWeapon].VActorRotation.Z + WeaponD[CurrentWeapon].L);
-			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 40, 255.0f);
+			CCD->MenuManager()->WorldFontRect(szData, FONT10, 5, CCD->Engine()->Height()- 40, 255.0f);
 			
 			sprintf(szData,"Offset : X= %.2f, Y= %.2f, Z= %.2f, Scale : %.2f",
 				WeaponD[CurrentWeapon].VActorOffset.X + WeaponD[CurrentWeapon].F, WeaponD[CurrentWeapon].VActorOffset.Y + WeaponD[CurrentWeapon].H, WeaponD[CurrentWeapon].VActorOffset.Z + WeaponD[CurrentWeapon].J,
 				WeaponD[CurrentWeapon].VScale+WeaponD[CurrentWeapon].G);
-			CCD->MenuManager()->WorldFontRect(szData, FONT8, 5, CCD->Engine()->Height()- 30, 255.0f);
+			CCD->MenuManager()->WorldFontRect(szData, FONT10, 5, CCD->Engine()->Height()- 30, 255.0f);
 		}
 	}
 	return;
@@ -1555,7 +1559,10 @@ void CWeapon::ProjectileAttack()
 	{
 // changed RF063
 		if(WeaponD[CurrentWeapon].PBone[0]!='\0')
-			geActor_GetBoneTransform(theActor, WeaponD[CurrentWeapon].PBone, &Xf );
+			if(WeaponD[CurrentWeapon].PActor)
+				geActor_GetBoneTransform(WeaponD[CurrentWeapon].PActor, WeaponD[CurrentWeapon].PBone, &Xf );
+			else
+				geActor_GetBoneTransform(theActor, WeaponD[CurrentWeapon].PBone, &Xf );
 		else
 			geActor_GetBoneTransform(theActor, NULL, &Xf );
 // end change RF063
@@ -1656,6 +1663,8 @@ void CWeapon::ProjectileAttack()
 			geVec3d_AddScaled (&Front, &Direction, WeaponD[CurrentWeapon].POffset.Z, &Pos);
 		}
 // changed RF063
+		//WeaponD[CurrentWeapon].VMOffset = Direction;
+
 		GE_Contents ZoneContents;
 		if(geWorld_GetContents(CCD->World(), &Pos, &theBox.Min, 
 		&theBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
@@ -1690,14 +1699,6 @@ void CWeapon::ProjectileAttack()
 				{
 					if(WeaponD[CurrentWeapon].VBone[0] != '\0')
 					{
-					/*	geVec3d Muzzle;
-						geXForm3d Xf;
-						
-						if(geActor_GetBoneTransform(WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone, &Xf )==GE_TRUE)
-						{
-							geVec3d_Copy( &( Xf.Translation ), &Muzzle);
-							CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Muzzle, WeaponD[CurrentWeapon].VActor, WeaponD[CurrentWeapon].VBone);
-						} */
 						MFlash = true;
 					}
 					else
@@ -1709,7 +1710,9 @@ void CWeapon::ProjectileAttack()
 				if(WeaponD[CurrentWeapon].PMOffset>0.0f)
 				{
 					if(WeaponD[CurrentWeapon].PBone[0] != '\0')
+					{
 						MFlash = true;
+					}
 					else
 					{
 						geVec3d_AddScaled (&Front, &Direction, WeaponD[CurrentWeapon].PMOffset, &Front);
@@ -2114,6 +2117,7 @@ void CWeapon::LoadDefaults()
 				WeaponD[weapptr].Catagory = PROJECTILE;
 			else if(Type=="beam")
 				WeaponD[weapptr].Catagory = BEAM;
+
 			switch(WeaponD[weapptr].Catagory)
 			{
 			case MELEE:
@@ -2127,6 +2131,10 @@ void CWeapon::LoadDefaults()
 					SPool_Sound(WeaponD[weapptr].HitSound);
 				Type = AttrFile.GetValue(KeyName, "meleexplosion");
 				strcpy(WeaponD[weapptr].MeleeExplosion,Type);
+				WeaponD[weapptr].MeleeAmmo = false;
+				Type = AttrFile.GetValue(KeyName, "meleeammoactivate");
+				if(Type=="true")
+					WeaponD[weapptr].MeleeAmmo = true;
 				break;
 			case PROJECTILE:
 				Vector = AttrFile.GetValue(KeyName, "projectile");
@@ -2145,6 +2153,7 @@ void CWeapon::LoadDefaults()
 				Type = AttrFile.GetValue(KeyName, "worksunderwater");
 				if(Type=="false")
 					WeaponD[weapptr].WorksUnderwater = false;
+				WeaponD[weapptr].MeleeAmmo = false;
 // end change RF063
 				break;
 			case BEAM:
@@ -2226,6 +2235,18 @@ void CWeapon::LoadDefaults()
 
 						geActor_SetLightingOptions(WeaponD[weapptr].VActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
 						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, GE_TRUE, 6, NULL, GE_FALSE);
+
+						Vector = AttrFile.GetValue(KeyName, "environmentmapping");
+						if(Vector=="true")
+						{
+							bool all = false;
+							Vector = AttrFile.GetValue(KeyName, "allmaterial");
+							if(Vector=="true")
+								all = true;
+							float percent = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+							float percentm = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+							SetEnvironmentMapping(WeaponD[weapptr].VActor, true, all, percent, percentm);
+						}
 						Vector = AttrFile.GetValue(KeyName, "viewrotation");
 						if(Vector!="")
 						{
@@ -2388,6 +2409,17 @@ void CWeapon::LoadDefaults()
 
 						geActor_SetLightingOptions(WeaponD[weapptr].PActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
 						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, GE_TRUE, 6, NULL, GE_FALSE);
+						Vector = AttrFile.GetValue(KeyName, "playerenvironmentmapping");
+						if(Vector=="true")
+						{
+							bool all = false;
+							Vector = AttrFile.GetValue(KeyName, "playerallmaterial");
+							if(Vector=="true")
+								all = true;
+							float percent = (float)AttrFile.GetValueF(KeyName, "playerpercentmapping");
+							float percentm = (float)AttrFile.GetValueF(KeyName, "playerpercentmaterial");
+							SetEnvironmentMapping(WeaponD[weapptr].PActor, true, all, percent, percentm);
+						}
 						Vector = AttrFile.GetValue(KeyName, "playerrotation");
 						if(Vector!="")
 						{

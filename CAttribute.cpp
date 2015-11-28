@@ -204,6 +204,8 @@ void CAttribute::Tick(float dwTicks)
 						CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 						if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 							CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
+						if(pSource->EnvironmentMapping)
+							SetEnvironmentMapping(pSource->Actor, true, pSource->AllMaterial, pSource->PercentMapping, pSource->PercentMaterial);
 // end change RF064
 						pSource->active=GE_TRUE;
 						pSource->bState = GE_TRUE;
@@ -237,6 +239,8 @@ void CAttribute::Tick(float dwTicks)
 					CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 					if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 						CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
+					if(pSource->EnvironmentMapping)
+						SetEnvironmentMapping(pSource->Actor, true, pSource->AllMaterial, pSource->PercentMapping, pSource->PercentMaterial);
 // end change RF064
 					pSource->active=GE_TRUE;
 					pSource->bState = GE_TRUE;

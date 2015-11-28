@@ -255,45 +255,6 @@ bool CGenesisEngine::CreateEngine(char *szName)
 		return FALSE;
 	}
 
-// changed RF063
-	geDriver *gDriver;
-	const char *drvname = NULL;
-
-	Voodoo = false;
-
-	gDriver = geDriver_SystemGetNextDriver(m_DrvSys, NULL);
-	if(gDriver)
-	{
-		while(1) 
-		{
-			geDriver_GetName(gDriver, &drvname);
-			if(drvname[0] == 'G') 
-			{
-				Voodoo = true;
-				break;		
-			}
-			gDriver = geDriver_SystemGetNextDriver(m_DrvSys, gDriver);
-			if(!gDriver)
-				break;
-		}
-	}
-
-	if(Voodoo)
-	{
-		FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
-		fputs("16", fd); fputs("\n", fd);
-		fputs("16", fd); fputs("\n", fd);
-		fclose(fd);
-	}
-	else
-	{
-		//FILE *fd = CCD->OpenRFFile(kRawFile, "D3D24.ini", "wb");
-		//fputs("16", fd); fputs("\n", fd); // 32
-		//fputs("16", fd); fputs("\n", fd); // 24
-		//fclose(fd);
-	}
-// end change RF063
-
 	/////////////////////////////////////////////////////////////////
 	// Dee  07/07/00 - Added
 	// Find any available driver and use the first mode it has
@@ -588,7 +549,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
 									 FloatRect * PixelRect,	// pixels in the "camera" view 
 									 FloatRect * PercentRect,// percent of the "camera" view 
 									 geFloat   Alpha, 
-									 GE_RGBA* RGBA_Array) 
+									 GE_RGBA* RGBA_Array, float zdepth) 
 { 
 	// set up variables 
 	GE_TLVertex vertex[4]; 
@@ -658,7 +619,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
 	geFloat UVbreak = 0.0f;
 	vertex[0].x = (geFloat)UseRect.Left; 
 	vertex[0].y = (geFloat)UseRect.Top; 
-	vertex[0].z = 1.0f; //0.05f; 
+	vertex[0].z = zdepth; //1.0f; //0.05f; 
 	vertex[0].r = RGBA_Array[0].r; 
 	vertex[0].g = RGBA_Array[0].g; 
 	vertex[0].b = RGBA_Array[0].b; 
@@ -753,8 +714,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
     }
 	geEngine_RenderPoly(m_theEngine,vertex,  
 		4, pBitmap, (Alpha != 255 ? DRV_RENDER_ALPHA : 0 ) |  
-		DRV_RENDER_CLAMP_UV | DRV_RENDER_NO_ZMASK | 
-		DRV_RENDER_NO_ZWRITE ); 
+		DRV_RENDER_CLAMP_UV | DRV_RENDER_NO_ZMASK | DRV_RENDER_NO_ZWRITE | DRV_RENDER_FLUSH); 
 	return true; 
 }
 
@@ -762,7 +722,7 @@ bool CGenesisEngine::DrawAlphaBitmap(
 
 bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap * pBitmap,
 										 geRect * BitmapRect, geCamera * ClipCamera, FloatRect * PixelRect,
-										 FloatRect * PercentRect, geFloat Alpha, GE_RGBA* RGBA_Array)
+										 FloatRect * PercentRect, geFloat Alpha, GE_RGBA* RGBA_Array, float zdepth)
 {
 	geVec3d UVArray[4];
 	geBitmap_Info TempInfo, TempInfo2;
@@ -789,7 +749,7 @@ bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap * pBitmap,
 	UVArray[2].Y = (geFloat)BitmapRect->Bottom / (TempInfo.Height-1);
 	UVArray[3].X = (geFloat)BitmapRect->Left / (TempInfo.Width-1);
 	UVArray[3].Y = (geFloat)BitmapRect->Bottom / (TempInfo.Height-1);
-	return DrawAlphaBitmap(pBitmap, UVArray, ClipCamera, PixelRect, PercentRect, Alpha, RGBA_Array);
+	return DrawAlphaBitmap(pBitmap, UVArray, ClipCamera, PixelRect, PercentRect, Alpha, RGBA_Array, zdepth);
 }
 
 // takes Bitmap
@@ -999,7 +959,7 @@ bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp,
 			UseScreenRect.Bottom = (((Bottom-Top)/high)*(x/wide)  + Top + ((Bottom-Top)/high)); 
 			UseScreenRect.Left   = (((Right-Left)/wide)*(x%wide)) + Left; 
 			UseScreenRect.Right  = (((Right-Left)/wide)*(x%wide)  + Left + ((Right-Left)/wide)); 
-			if(!DrawAlphaBitmapRect(bmp, &BitmapRect, ClipCamera, NULL, &UseScreenRect, Alpha)) 
+			if(!DrawAlphaBitmapRect(bmp, &BitmapRect, ClipCamera, NULL, &UseScreenRect, Alpha, NULL, 1.0f)) 
 				retval = false; 
 		} 
 		else 
@@ -1026,7 +986,7 @@ bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp,
 				UseScreenRect.Left = RealScreenRect.Left; 
 				UseScreenRect.Right = RealScreenRect.Right; 
 			} 
-			if(!DrawAlphaBitmapRect(bmp, &BitmapRect, ClipCamera, &UseScreenRect, NULL, Alpha)) 
+			if(!DrawAlphaBitmapRect(bmp, &BitmapRect, ClipCamera, &UseScreenRect, NULL, Alpha, NULL, 1.0f)) 
 				retval = false; 
 		} 
 	}
@@ -1038,7 +998,7 @@ bool CGenesisEngine::DrawCompleteTexture(CompleteTexture cp,
 //
 
 // changed RF064
-bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y)
+bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float zdepth)
 {
 	FloatRect PixelRect;
 	bool ret;
@@ -1053,7 +1013,7 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right = PixelRect.Left+(float)(BitmapRect->Right-BitmapRect->Left);
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect, 
 								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, 255.0f, NULL);
+								 NULL, 255.0f, NULL, zdepth);
 	}
 	else
 	{
@@ -1065,12 +1025,12 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right = PixelRect.Left+(float)(Rect.Right);
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect, 
 								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, 255.0f, NULL);
+								 NULL, 255.0f, NULL, zdepth);
 	}
 	return ret;
 }
 
-bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha)
+bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha, float zdepth)
 {
 	FloatRect PixelRect;
 	bool ret;
@@ -1085,7 +1045,7 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right = PixelRect.Left+(float)(BitmapRect->Right-BitmapRect->Left);
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect, 
 								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, Alpha, NULL);
+								 NULL, Alpha, NULL, zdepth);
 	}
 	else
 	{
@@ -1097,7 +1057,7 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right = PixelRect.Left+(float)(Rect.Right);
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect, 
 								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, Alpha, NULL);
+								 NULL, Alpha, NULL, zdepth);
 	}
 	return ret;
 }

@@ -1658,10 +1658,18 @@ int Collider::ProcessCollision(GE_Collision theCollision, geActor *theActor, boo
 			return kCollideActor;
 			break;
 		case ENTITY_NPC:  // NPC
-			return kCollideNPC;
+			result = CCD->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
+			if(result==RGF_SUCCESS)
+				return kCollideNPC;
+			if(result==RGF_RECHECK)
+				return kNoCollision;
 			break;
 		case ENTITY_VEHICLE: // Vehicle
-			return kCollideVehicle;
+			result = CCD->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
+			if(result==RGF_SUCCESS)
+				return kCollideVehicle;
+			if(result==RGF_RECHECK)
+				return kNoCollision;
 			break;
 		case ENTITY_PROP: // StaticEntityProxy
 			result = CCD->Props()->HandleCollision(theCollision.Actor, theActor, Gravity, false);

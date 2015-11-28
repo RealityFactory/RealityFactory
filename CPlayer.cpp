@@ -532,6 +532,19 @@ CPlayer::CPlayer()
 			AmbientColor.g = TAmbientColor.Y;
 			AmbientColor.b = TAmbientColor.Z;
 			AmbientColor.a = 255.0f;
+
+			EnvironmentMapping = false;
+			Vector = AttrFile.GetValue(KeyName, "environmentmapping");
+			if(Vector=="true")
+			{
+				EnvironmentMapping = true;
+				AllMaterial = false;
+				Vector = AttrFile.GetValue(KeyName, "allmaterial");
+				if(Vector=="true")
+					AllMaterial = true;
+				PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+				PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+			}
 		}
 		
 		KeyName = AttrFile.FindNextKey();
@@ -637,6 +650,8 @@ int CPlayer::LoadAvatar(char *szFile)
 	}
 	if(!EffectC_IsStringNull(ChangeMaterial))
 		CCD->ActorManager()->ChangeMaterial(Actor, ChangeMaterial);
+	if(EnvironmentMapping)
+		SetEnvironmentMapping(Actor, true, AllMaterial, PercentMapping, PercentMaterial);
 // end change RF064
 // end change RF063
 	CCD->CameraManager()->BindToActor(Actor);							// Bind the camera
@@ -734,9 +749,9 @@ int CPlayer::LoadConfiguration()
 	case FIRSTPERSON:
 	default:
 		nFlags = kCameraTrackPosition;
-		theTranslation.Y = m_CurrentHeight*0.75f;
+		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
-			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*0.75f*m_Scale;
+			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
 			theRotation);				// Set offset
 		SwitchToFirstPerson();
@@ -1963,9 +1978,9 @@ void CPlayer::SwitchCamera(int mode)
 	case FIRSTPERSON:
 		CCD->CameraManager()->BindToActor(Actor);
 		nFlags = kCameraTrackPosition;
-		theTranslation.Y = m_CurrentHeight*0.75f;
+		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
-			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*0.75f*m_Scale;
+			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
 		CCD->CameraManager()->SetCameraOffset(theTranslation, 
 			theRotation);				// Set offset
 		SwitchToFirstPerson();
@@ -4195,6 +4210,7 @@ bool CPlayer::SetUseAttribute(char *Attr)
 	int i;
 
 	CCD->Armours()->DisableHud(Attr);
+	CCD->LiftBelts()->DisableHud(Attr);
 
 	for(i=0;i<10;i++)
 	{

@@ -80,6 +80,8 @@ CStaticEntity::CStaticEntity()
 			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
 		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor);
 		CCD->ActorManager()->SetShadow(pProxy->Actor, pProxy->ShadowSize);
+		if(pProxy->EnvironmentMapping)
+			SetEnvironmentMapping(pProxy->Actor, true, pProxy->AllMaterial, pProxy->PercentMapping, pProxy->PercentMaterial);
 // changed RF064
 		CCD->ActorManager()->SetHideRadar(pProxy->Actor, pProxy->HideFromRadar);
 		if(!EffectC_IsStringNull(pProxy->ChangeMaterial))
@@ -91,9 +93,8 @@ CStaticEntity::CStaticEntity()
 		}
 // end change RF064
 		pProxy->bInitialized = GE_FALSE;		// Pathfollowing not initialized
-		pProxy->theSound = NULL;						// No sound, right now...
-		pProxy->SoundHandle = NULL;					// No sound playing
 		pProxy->IsHit = false;
+		pProxy->index = -1;
 		pProxy->alive = true;
 		pProxy->bState = GE_TRUE;
 		pProxy->CallBack = false;
@@ -116,14 +117,7 @@ CStaticEntity::CStaticEntity()
 		pProxy->bFollower = GE_FALSE;
 		if(!EffectC_IsStringNull(pProxy->szSoundFile))
 		{
-			pProxy->theSound=SPool_Sound(pProxy->szSoundFile);
-			
-			if(!pProxy->theSound)
-			{
-				char szError[256];
-				sprintf(szError,"Can't open audio file '%s'\n", pProxy->szSoundFile);
-				CCD->ReportError(szError, false);
-			}
+			SPool_Sound(pProxy->szSoundFile);
 		}
 	}
 	
@@ -289,20 +283,29 @@ int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Grav
 			}
 		}
 
-		if(pProxy->theSound != NULL)
+		if(!EffectC_IsStringNull(pProxy->szSoundFile))
 		{
+			if(pProxy->index!=-1)
+			{
+				if(!CCD->EffectManager()->Item_Alive(pProxy->index))
+					pProxy->index = -1;
+			}
 			// eaa3 03/28/2000 Check to see if the sound is already playing,
 			// ..and if so, DON'T REPLAY IT!!!
-			if(geSound_SoundIsPlaying(CCD->Engine()->AudioSystem(), pProxy->SoundHandle) != GE_TRUE && pProxy->IsHit == false)
+			if(pProxy->IsHit == false)
 			{
-				pProxy->IsHit = true;
-				// We have some sound, play the sucker.
-				geFloat Volume, Pan, Frequency;
-				geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
-				geSound3D_GetConfig(CCD->World(),	&xfmPlayer,	&pProxy->origin,
-					CCD->GetAudibleRadius(), 2.0f,	&Volume, &Pan,	&Frequency);
-				pProxy->SoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), 
-					pProxy->theSound, Volume, Pan, Frequency, GE_FALSE);
+				if(pProxy->index==-1)
+				{
+					Snd Sound;
+					pProxy->IsHit = true;
+
+					memset( &Sound, 0, sizeof( Sound ) );
+					geVec3d_Copy( &(pProxy->origin), &( Sound.Pos ) );
+					Sound.Min=CCD->GetAudibleRadius();
+					Sound.Loop=false;
+					Sound.SoundDef = SPool_Sound(pProxy->szSoundFile);
+					pProxy->index = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+				}
 			}
 			// End of sound checking
 		}

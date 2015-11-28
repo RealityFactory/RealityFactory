@@ -115,6 +115,8 @@ CCommonData::CCommonData()
 	srand((unsigned)time(NULL));
 // end change RF064
 
+	FreeImage_Initialise();
+
 	//	Initialize game state data
 	
 	m_InGameLoop = true;						// We start in the game loop
@@ -217,6 +219,8 @@ CCommonData::~CCommonData()
 	delete skInterpreter::getInterpreter();
 	skInterpreter::setInterpreter(0);
 // end change RF064
+
+	FreeImage_DeInitialise();
 
 // start multiplayer
 	if(network)
@@ -600,11 +604,20 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			theGameEngine->ReportError("Can't create input subsystem", false);
 			return -2;
 		}
+	
+		//	The Audio Manager needs to be prepared...
+	
+		theAudioManager = new CAudioManager();
+		if(theAudioManager == NULL)
+		{
+			theGameEngine->ReportError("Couldn't create audio manager", false);
+			return -92;
+		}
 		
 		//	Get the CD Audio player working.  Note that it's not a fatal error to
 		//	..not have a CD Player device, as this system may be using the General
 		//	..MIDI soundtrack instead.
-		
+
 		theCDPlayer = new CCDAudio();
 		if(theCDPlayer == NULL)
 			theGameEngine->ReportError("CD Player failed to instantiate", false);
@@ -616,16 +629,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		theMIDIPlayer = new CMIDIAudio();
 		if(theMIDIPlayer == NULL)
 			theGameEngine->ReportError("MIDI Player failed to instantiate", false);
-/*
-		//	Set up the heads-up display (HUD) for the game
-		
-		theHUD = new CHeadsUpDisplay();
-		if(theHUD == NULL)
-		{
-			theGameEngine->ReportError("Can't create HUD class", false);
-			return -3;
-		}
-*/		
+
 		theMenu = new CRFMenu();
 		if(theMenu == NULL)
 		{
@@ -710,11 +714,7 @@ void CCommonData::ShutdownCommon()
 	if(theMenu != NULL)
 		delete theMenu;
 	theMenu = NULL;
-/*	
-	if(theHUD != NULL)
-		delete theHUD;
-	theHUD = NULL;
-*/	
+
 	if(theCDPlayer != NULL)
 		delete theCDPlayer;
 	theCDPlayer = NULL;
@@ -722,6 +722,10 @@ void CCommonData::ShutdownCommon()
 	if(theMIDIPlayer != NULL)
 		delete theMIDIPlayer;
 	theMIDIPlayer = NULL;
+
+	if(theAudioManager != NULL)
+		delete theAudioManager;
+	theAudioManager = NULL;
 
 	if(theUserInput != NULL)
 		delete theUserInput;
@@ -769,15 +773,6 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	{
 		theGameEngine->ReportError("Can't initialize entity registry!", false);
 		return -30;
-	}
-	
-	//	The Audio Manager needs to be prepared...
-	
-	theAudioManager = new CAudioManager();
-	if(theAudioManager == NULL)
-	{
-		theGameEngine->ReportError("Couldn't create audio manager", false);
-		return -92;
 	}
 
 // changed RF064
@@ -1530,10 +1525,6 @@ void CCommonData::ShutdownLevel()
 		delete theRegistry;
 	theRegistry = NULL;
 
-	if(theAudioManager != NULL)
-		delete theAudioManager;
-	theAudioManager = NULL;
-
 // changed RF064
 	if(theTerrainMgr != NULL)
 		delete theTerrainMgr;
@@ -1836,6 +1827,7 @@ bool CCommonData::HandleGameInput()
 					}
 // start multiplayer
 					theGameEngine->SaveTo(outFD);
+					theMenu->SaveTo(outFD, false);
 					thePlayer->SaveTo(outFD);
 					theAutoDoors->SaveTo(outFD, false);
 					thePlatforms->SaveTo(outFD, false);
@@ -1906,6 +1898,7 @@ bool CCommonData::HandleGameInput()
 					if(theMIDIPlayer)
 						theMIDIPlayer->Stop();
 					theGameEngine->RestoreFrom(inFD);
+					theMenu->RestoreFrom(inFD, false);
 					InitializeLevel(theGameEngine->LevelName());
 					thePlayer->RestoreFrom(inFD);
 // start multiplayer

@@ -21,6 +21,9 @@ float EffectC_Frand(float Low, float High );
 void EffectC_XFormFromVector(geVec3d *Source, geVec3d *Target, geXForm3d *Out );
 geBitmap *CreateFromFileAndAlphaNames(char * BmName,char *AlphaName);
 geBitmap * CreateFromFileName(char * BmName);
+long DLL_CALLCONV VFS_Tell(fi_handle handle);
+int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin);
+unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_handle handle);
 // Weapon
 void CollisionCalcRatio(const GE_Collision& a_Collision, const geVec3d& a_OldPos,
                                const geVec3d& a_NewPos, float& a_Ratio);
@@ -60,5 +63,7 @@ geBoolean CanSeeActorToActor(geActor *Actor1, geActor *Actor2);
 // changed RF064
 geActor * GetEntityActor(char *EntityName);
 bool geVec3d_IsZero( geVec3d* pVect );
+geFloat Length(geVec3d & vec);
+void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
 // end change RF064
 #endif

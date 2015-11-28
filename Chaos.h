@@ -16,7 +16,7 @@ RGF-based games.
 #include "genesis.h"
 
 #define GE_TWOPI		( GE_PI * 2.0f )
-#define CHAOS_FORMAT	GE_PIXELFORMAT_24BIT_RGB
+#define CHAOS_FORMAT	GE_PIXELFORMAT_32BIT_ARGB
 
 // class declaration for Chaos
 class Chaos : public CRGFComponent

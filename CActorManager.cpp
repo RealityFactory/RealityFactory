@@ -1960,7 +1960,7 @@ void CActorManager::SetVehicle(geActor *theActor, geActor *theVehicle)
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
 		return;					// Actor not found?!?!
-	
+
 	pEntry->Vehicle = theVehicle;
 	
 	return;
@@ -2010,6 +2010,7 @@ geActor *CActorManager::GetVehicle(geActor *theActor)
 
 int CActorManager::SetPassenger(geActor *thePassenger, geActor *theVehicle)
 {
+	int nX;
 	ActorInstanceList *pEntry = LocateInstance(thePassenger);
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
@@ -2018,7 +2019,13 @@ int CActorManager::SetPassenger(geActor *thePassenger, geActor *theVehicle)
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 	
-	for(int nX = 0; nX < PASSENGER_LIST_SIZE; nX++)
+	for(nX = 0; nX < PASSENGER_LIST_SIZE; nX++)
+	{
+		if(pRide->Passengers[nX] == thePassenger)
+			return RGF_SUCCESS;
+	}
+
+	for(nX = 0; nX < PASSENGER_LIST_SIZE; nX++)
 	{
 		if(pRide->Passengers[nX] == NULL)
 		{
@@ -2916,7 +2923,7 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 // changed RF064
 		if(nZoneType == kLiquidZone && 
 			(theEntry->Actor==CCD->Player()->GetActor() || theEntry->ActorType==ENTITY_NPC
-			 || theEntry->ActorType==ENTITY_PROP))
+			 || theEntry->ActorType==ENTITY_VEHICLE || theEntry->ActorType==ENTITY_PROP))
 // end change RF064
 		{
 			if(theEntry->Moving)
@@ -2955,7 +2962,7 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 		theEntry->PassengerModel = NULL;
 	}
 // end change RF064
-	
+
 	int nHitType = kNoCollision;
 
 		Result = CCD->Collision()->CheckActorCollision(oldpos, newpos, theEntry->Actor,
@@ -3039,6 +3046,7 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 			}
 		}
 
+	theEntry->OldTranslation = theEntry->localTranslation;
 	theEntry->localTranslation = newpos;
 	UpdateActorState(theEntry);
 	
@@ -3510,9 +3518,10 @@ geBoolean CActorManager::ValidateMove(geVec3d StartPos, geVec3d EndPos, geActor 
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;  // Actor not found?!?!
+	geVec3d TempPos = pEntry->localTranslation;
 	bool result = ValidateMotion(StartPos, EndPos, pEntry, true, slide);
 	if(result == GE_TRUE)
-		pEntry->OldTranslation = StartPos;	
+		pEntry->OldTranslation = TempPos;	
 	UpdateActorState(pEntry);
 	return result;
 }
@@ -3555,6 +3564,14 @@ geBoolean CActorManager::ValidateMotion(geVec3d StartPos, geVec3d EndPos,
 			if(nHitType == kCollideDoor)
 				return GE_FALSE;					// If we hit an door, exit.
 // changed RF064
+			if(pEntry->ActorType==ENTITY_VEHICLE)
+			{
+				if(pEntry->Passengers && nHitType == kCollideActor)
+				{
+					pEntry->localTranslation = EndPos;
+					return GE_TRUE;
+				}
+			}
 			//if(nHitType == kCollideActor)
 				//return GE_FALSE;
 // end change RF064
@@ -3663,13 +3680,19 @@ int CActorManager::TranslateAllPassengers(ActorInstanceList *pEntry)
 	geVec3d Delta = pEntry->localTranslation;
 	
 	Delta.X -= pEntry->OldTranslation.X;
-	Delta.Y -= pEntry->OldTranslation.Y;
+	//Delta.Y -= pEntry->OldTranslation.Y;
+	Delta.Y = 0.0f;
 	Delta.Z -= pEntry->OldTranslation.Z;
 	
 	for(int nX = 0; nX < PASSENGER_LIST_SIZE; nX++)
 	{
 		if(pEntry->Passengers[nX] == NULL)
 			continue;											// Skip blanks (doh)
+
+		char szBug[256];
+		sprintf(szBug, "Move Passenger %f %f %f", Delta.X, Delta.Y, Delta.Z);
+		CCD->ReportError(szBug, false);
+
 		AddTranslation(pEntry->Passengers[nX], Delta);	// Move it!
 		pEntry->Passengers[nX] = NULL;	// Been there, done that
 	}
@@ -3905,12 +3928,11 @@ int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool C
 			if(CCD->CameraManager()->GetViewHeight()!=-1)
 			{
 				DesiredHeight = ((ExtBox.Max.Y * 
-					CCD->CameraManager()->GetViewHeight())/CCD->Player()->GetHeight())
-					* 0.75f;
+					CCD->CameraManager()->GetViewHeight())/CCD->Player()->GetHeight());
 			}
 			else
 			{
-				DesiredHeight = ExtBox.Max.Y * 0.75f;
+				DesiredHeight = ExtBox.Max.Y;
 			}
 			break;
 		case THIRDPERSON:

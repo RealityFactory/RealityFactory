@@ -89,6 +89,8 @@ public:
 	bool GetAllowCloud()			{ return AllowCloud; }
 	void SetAllowSun(bool flag)		{ AllowSun = flag; }
 	void SetAllowCloud(bool flag)	{ AllowCloud = flag; }
+	bool GetAllowSkyFog()			{ return skyfog; }
+	void SetAllowSkyFog(bool flag)	{ skyfog = flag; }
 
 	void SetSunScale(float value)		{m_SunScale = value; }
 	void SetScaleY(float value)		{m_fScaleY = value; }
@@ -288,6 +290,7 @@ private:
 	int SkyMaxHeight;
 	float fScaleXZ;
 	float fSkyLengthHeight;
+	bool skyfog;
 	GE_RGBA rgba;
 	float m_fMinBlueSkyColor;
 	float m_fDistanceFromSunFactor;

@@ -35,6 +35,8 @@ public:
   ~CLiftBelt();
   void Tick(float dwTicks);
   void ChangeLift(bool increase);
+  void DisableHud(char *Attr);
+  int LocateEntity(char *szName, void **pEntityData);
 private:
   bool Change;
   bool Increase;

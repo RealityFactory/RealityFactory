@@ -79,6 +79,13 @@ CMorphingFields::CMorphingFields()
 		pField->cDelta.r = (pField->clrEnd.r - pField->clrStart.r) / (geFloat)pField->fogSpeed;
 		pField->cDelta.g = (pField->clrEnd.g - pField->clrStart.g) / (geFloat)pField->fogSpeed;
 		pField->cDelta.b = (pField->clrEnd.b - pField->clrStart.b) / (geFloat)pField->fogSpeed;
+		pField->OriginOffset = pField->origin;
+		if(pField->Model)
+		{
+			geVec3d ModelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), pField->Model, &ModelOrigin);
+			geVec3d_Subtract(&pField->origin, &ModelOrigin, &pField->OriginOffset);
+  		}
 	}
 	
 	return;

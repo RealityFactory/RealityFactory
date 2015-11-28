@@ -444,6 +444,18 @@ CPreEffect::CPreEffect()
 					Sp->AmbientColor.b = convert.Z;
 				}
 
+				Sp->EnvironmentMapping = false;
+				Vector = AttrFile.GetValue(KeyName, "environmentmapping");
+				if(Vector=="true")
+				{
+					Sp->EnvironmentMapping = true;
+					Sp->AllMaterial = false;
+					Vector = AttrFile.GetValue(KeyName, "allmaterial");
+					if(Vector=="true")
+						Sp->AllMaterial = true;
+					Sp->PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+					Sp->PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+				}
 				Sp->SourceVariance = AttrFile.GetValueI(KeyName, "sourcevariance");
 				Sp->DestVariance = AttrFile.GetValueI(KeyName, "destvariance");
 				Sp->Gravity = true;

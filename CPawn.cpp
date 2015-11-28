@@ -61,6 +61,9 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName)
 	for(int i=0; i<DEBUGLINES; i++)
 		ConsoleDebug[i] = NULL;
 	strcpy(Indicate, "+"); 
+	EnvironmentMapping = false;
+	collision = false;
+	pushable = false;
 }
 
 ScriptedObject::~ScriptedObject()
@@ -263,6 +266,18 @@ CPawn::CPawn()
 				WeaponCache[keynum].AmbientColor.g = AmbientColor.Y;
 				WeaponCache[keynum].AmbientColor.b = AmbientColor.Z;
 				WeaponCache[keynum].AmbientColor.a = 255.0f;
+				WeaponCache[keynum].EnvironmentMapping = false;
+				Type = AttrFile.GetValue(KeyName, "environmentmapping");
+				if(Type=="true")
+				{
+					WeaponCache[keynum].EnvironmentMapping = true;
+					WeaponCache[keynum].AllMaterial = false;
+					Type = AttrFile.GetValue(KeyName, "allmaterial");
+					if(Type=="true")
+						WeaponCache[keynum].AllMaterial = true;
+					WeaponCache[keynum].PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+					WeaponCache[keynum].PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+				}
 			}
 			KeyName = AttrFile.FindNextKey();
 		}
@@ -392,6 +407,18 @@ CPawn::CPawn()
 							Object->AmbientColor.b = AmbientColor.Z;
 							Object->AmbientColor.a = 255.0f;
 							Object->ActorAlpha = 255.0f;
+							Object->EnvironmentMapping = false;
+							Type = AttrFile.GetValue(KeyName, "environmentmapping");
+							if(Type=="true")
+							{
+								Object->EnvironmentMapping = true;
+								Object->AllMaterial = false;
+								Type = AttrFile.GetValue(KeyName, "allmaterial");
+								if(Type=="true")
+									Object->AllMaterial = true;
+								Object->PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+								Object->PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+							}
 							Type = AttrFile.GetValue(KeyName, "actoralpha");
 							if(Type!="")
 								Object->ActorAlpha = (float)AttrFile.GetValueF(KeyName, "actoralpha");
@@ -619,7 +646,8 @@ void CPawn::Tick(float dwTicks)
 				else
 					TickLow(pSource, Object, dwTicks);
 				
-				
+				Object->collision = false;
+
 				if(Object->console && ConsoleBlock<4)
 				{
 					int x,y;
@@ -644,6 +672,62 @@ void CPawn::Tick(float dwTicks)
 			}
 		}
 	}
+}
+
+int CPawn::HandleCollision(geActor *pActor, geActor *theActor, bool Gravity)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+	if(theActor!=CCD->Player()->GetActor())
+		return RGF_SUCCESS;
+
+	//	Ok, check to see if there are Pawns in this world
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "Pawn");
+	
+	if(pSet) 
+	{
+		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+		{
+			Pawn *pSource = (Pawn*)geEntity_GetUserData(pEntity);
+			if(pSource->Data)
+			{
+				ScriptedObject *Object = (ScriptedObject *)pSource->Data;
+				if(!Object->alive)
+					continue;
+				
+				if(Object->active)
+				{
+					if(!Object->Actor)
+						continue;
+					if(Object->Actor!=pActor)
+						continue;
+					Object->collision = true;
+					if(Object->pushable && !Gravity)
+					{
+						geVec3d In, SavedPosition, NewPosition;
+						int direct = CCD->Player()->LastDirection();
+						if(direct==RGF_K_FORWARD || direct == RGF_K_BACKWARD)
+							CCD->Player()->GetIn(&In);
+						else
+							CCD->Player()->GetLeft(&In);
+						CCD->ActorManager()->GetPosition(Object->Actor, &SavedPosition);
+						geFloat speed = CCD->Player()->LastMovementSpeed();
+						if(direct==RGF_K_BACKWARD || direct == RGF_K_RIGHT)
+							speed = -speed;
+						geVec3d_AddScaled(&SavedPosition, &In, speed, &NewPosition);
+						bool result = CCD->ActorManager()->ValidateMove(SavedPosition, NewPosition, Object->Actor, false);
+						if(result)
+							return RGF_RECHECK;
+					}
+					return RGF_SUCCESS;
+				}
+			}
+		}
+	}
+	return RGF_FAILURE;
 }
 
 void CPawn::AnimateWeapon()
@@ -743,6 +827,8 @@ void CPawn::Spawn(void *Data)
 	CCD->ActorManager()->SetColDetLevel(Object->Actor, RGF_COLLISIONLEVEL_2);
 	CCD->ActorManager()->SetAnimationSpeed(Object->Actor, Object->AnimSpeed);
 	CCD->ActorManager()->SetTilt(Object->Actor, true);
+	if(Object->EnvironmentMapping)
+		SetEnvironmentMapping(Object->Actor, true, Object->AllMaterial, Object->PercentMapping, Object->PercentMaterial);
 	if(!EffectC_IsStringNull(Object->ChangeMaterial))
 		CCD->ActorManager()->ChangeMaterial(Object->Actor, Object->ChangeMaterial);
 	if(!stricmp(Object->BoxAnim, "nocollide"))

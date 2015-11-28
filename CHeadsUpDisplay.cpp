@@ -15,6 +15,9 @@ CHeadsUpDisplay.cpp:		HUD display handler
 extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
 // end change RF064
 
+#define ZDEPTH11 1.1f
+#define ZDEPTH1  1.0f
+
 //	Constructor
 //
 //	Set up the HUD
@@ -56,28 +59,37 @@ int CHeadsUpDisplay::LoadConfiguration()
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	
+	char *HudInfo;
+
 	//	Ok, check to see if there's a PlayerSetup around...
 	
-	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
-	
-	if(!pSet) 
-		return RGF_FAILURE;									// No setup?
-	
-	//	Ok, get the setup information.  There should only be one, so
-	//	..we'll just take the first one we run into.
-	
-	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
-	
-	if(EffectC_IsStringNull(pSetup->HUDInfoFile))
-		return RGF_FAILURE;								// No HUD initialization?
-	
-	CIniFile AttrFile(pSetup->HUDInfoFile);
+	if(CCD->MenuManager()->GetUseSelect() && !EffectC_IsStringNull(CCD->MenuManager()->GetCurrentHud()))
+	{
+		HudInfo = CCD->MenuManager()->GetCurrentHud();
+	}
+	else
+	{
+		pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
+		
+		if(!pSet) 
+			return RGF_FAILURE;									// No setup?
+		
+		//	Ok, get the setup information.  There should only be one, so
+		//	..we'll just take the first one we run into.
+		
+		pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
+		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
+		
+		if(EffectC_IsStringNull(pSetup->HUDInfoFile))
+			return RGF_FAILURE;								// No HUD initialization?
+		HudInfo = pSetup->HUDInfoFile;
+	}
+
+	CIniFile AttrFile(HudInfo);
 	if(!AttrFile.ReadFile())
 	{
 		char szAttrError[256];
-		sprintf(szAttrError,"Can't open HUD config file '%s'", pSetup->HUDInfoFile);
+		sprintf(szAttrError,"Can't open HUD config file '%s'", HudInfo);
 		CCD->ReportError(szAttrError, false);
 		return RGF_FAILURE;
 	}
@@ -86,13 +98,13 @@ int CHeadsUpDisplay::LoadConfiguration()
 	
 	for(int nTemp = 0; nTemp < MAXHUD; nTemp++)
 	{
-		if(m_theHUD[nTemp].Identifier != NULL)
+/*		if(m_theHUD[nTemp].Identifier != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
 		if(m_theHUD[nTemp].Indicator != NULL)
 			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
 // changed RF063
 		if(m_theHUD[nTemp].Indicator2 != NULL)
-			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
+			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2); */
 // end change RF063
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
@@ -505,7 +517,7 @@ int CHeadsUpDisplay::Render()
 				// changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
+					m_theHUD[nItem].nTop, ZDEPTH11);
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -567,7 +579,7 @@ int CHeadsUpDisplay::Render()
 // changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
-					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top, ZDEPTH1);
 // end change RF064
 			}
 		}
@@ -579,7 +591,7 @@ int CHeadsUpDisplay::Render()
 				// changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
+					m_theHUD[nItem].nTop, ZDEPTH11);
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -641,7 +653,7 @@ int CHeadsUpDisplay::Render()
 // changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
-					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top);
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top, ZDEPTH1);
 // end change RF064
 			}
 			
@@ -654,7 +666,7 @@ int CHeadsUpDisplay::Render()
 				// changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
+					m_theHUD[nItem].nTop, ZDEPTH11);
 				// end change RF064
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -707,7 +719,7 @@ int CHeadsUpDisplay::Render()
 				// changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
+					m_theHUD[nItem].nTop, ZDEPTH11);
 				// end change RF064
 
 			char szBug[256];
@@ -719,14 +731,6 @@ int CHeadsUpDisplay::Render()
 		// Radar
 		if(m_theHUD[nItem].Type == RADAR)
 		{
-			// Draw the identifier icon
-			if(m_theHUD[nItem].Identifier)
-				// changed RF064
-				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
-					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
-				// end change RF064
-
 			geActor *ActorsInRange[512];
 			geVec3d Pos, RPos, Orient;
 			Pos = CCD->Player()->Position();
@@ -759,7 +763,7 @@ int CHeadsUpDisplay::Render()
 							CCD->ActorManager()->GetHideRadar(ActorsInRange[nTemp], &hide);
 							if(!hide)
 							{
-								if(ActorType==ENTITY_NPC)
+								if(ActorType==ENTITY_NPC || ActorType==ENTITY_VEHICLE)
 									flag = true;
 								CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &APos);
 								float dist = ((float)fabs(geVec3d_DistanceBetween(&Pos, &APos)))*scale;;
@@ -803,13 +807,13 @@ int CHeadsUpDisplay::Render()
 											// changed RF064
 											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
 											offx-(int)(sin(angle)*dist*mulx),
-											offy-(int)(cos(angle)*dist*muly));
+											offy-(int)(cos(angle)*dist*muly), ZDEPTH11);
 											// end change RF064
 										else
 											// changed RF064
 											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
 											offx-(int)(sin(angle)*dist*mulx),
-											offy-(int)(cos(angle)*dist*muly));
+											offy-(int)(cos(angle)*dist*muly), ZDEPTH11);
 											// end change RF064
 									}
 									else
@@ -819,13 +823,13 @@ int CHeadsUpDisplay::Render()
 											// changed RF064
 											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
 											offx-(int)(cos(angle)*dist*mulx),
-											offy-(int)(sin(angle)*dist*muly));
+											offy-(int)(sin(angle)*dist*muly), ZDEPTH11);
 											// end change RF064
 										else
 											// changed RF064
 											CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
 											offx-(int)(cos(angle)*dist*mulx),
-											offy-(int)(sin(angle)*dist*muly));
+											offy-(int)(sin(angle)*dist*muly), ZDEPTH11);
 											// end change RF064
 									}
 								}
@@ -835,6 +839,11 @@ int CHeadsUpDisplay::Render()
 					}
 				}
 			} 
+			// Draw the identifier icon
+			if(m_theHUD[nItem].Identifier)
+				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
+					m_theHUD[nItem].nLeft,
+					m_theHUD[nItem].nTop, ZDEPTH1);
 		}
 // end change RF063
 		// Compass
@@ -858,7 +867,7 @@ int CHeadsUpDisplay::Render()
 // changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 					m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
-					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset);
+					m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, ZDEPTH11);
 // end change RF064
 			}
 			// Draw the identifier icon
@@ -866,7 +875,7 @@ int CHeadsUpDisplay::Render()
 				// changed RF064
 				CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 					m_theHUD[nItem].nLeft,
-					m_theHUD[nItem].nTop);
+					m_theHUD[nItem].nTop, ZDEPTH1);
 				// end change RF064
 		}
 	}

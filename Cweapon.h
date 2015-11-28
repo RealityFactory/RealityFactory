@@ -126,6 +126,7 @@ typedef struct DefaultWeapons
 // end change RF064
 	char Ammunition[64];
 	int AmmoPerShot;
+	bool MeleeAmmo;
 	char MuzzleFlash[64];
 	geBitmap *CrossHair;
 	bool CrossHairFixed;
@@ -154,6 +155,7 @@ typedef struct DefaultWeapons
 	char VAttackEmpty[64];
 // end change RF064
 	geVec3d VOffset;
+	geVec3d VMOffset;
 	char VBone[64];
 // changed RF063
 	float JerkAmt;

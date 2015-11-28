@@ -70,6 +70,9 @@ typedef enum
 		DETACHFROMACTOR,
 		SETWEAPON,
 		REMOVEWEAPON,
+		ISPUSHABLE,
+		HIDEFROMRADAR,
+		ISVEHICLE,
 		DELAY
 };
 
@@ -136,6 +139,9 @@ char *ActionText[] =
 	"DetachFromActor",
 	"SetWeapon",
 	"RemoveWeapon",
+	"IsPushable",
+	"HideFromRadar",
+	"IsVehicle",
 	"Delay"
 };
 
@@ -586,6 +592,20 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
 		return true;
 	}
+	else if (IS_METHOD(methodName, "AddCollisionOrder"))
+	{
+		PARMCHECK(1);
+		strcpy(param0, arguments[0].str());
+		sprintf(param7,"PlayerColl%d", 1);
+		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PCOLLIDE, 1.0f, 0.0f, 0.0f, NULL, param7);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "DelCollisionOrder"))
+	{
+		sprintf(param7,"PlayerColl%d", 1);
+		AddAction(DELTRIGGERORDER, NULL, 1.0f, false, PCOLLIDE, 0.0f, 0.0f, 0.0f, NULL, param7);
+		return true;
+	}
 	else if (IS_METHOD(methodName, "AnimateStop"))
 	{
 		PARMCHECK(3);
@@ -626,6 +646,13 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(ALLOWUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "HideFromRadar"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(HIDEFROMRADAR, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "Conversation"))
@@ -691,6 +718,20 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		PARMCHECK(1);
 		param2 = arguments[0].boolValue();
 		AddAction(GRAVITY, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "IsPushable"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(ISPUSHABLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+		return true;
+	}
+	else if (IS_METHOD(methodName, "IsVehicle"))
+	{
+		PARMCHECK(1);
+		param2 = arguments[0].boolValue();
+		AddAction(ISVEHICLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "MoveToTarget"))
@@ -1649,6 +1690,7 @@ bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
 			tpool = GE_RAM_ALLOCATE_STRUCT(TriggerStack);
 			memset(tpool, 0x0, sizeof(TriggerStack));
 			tpool->next = Object->Trigger;
+			tpool->prev = NULL;
 			Object->Trigger = tpool;
 			if(tpool->next)
 				tpool->next->prev = tpool;
@@ -1897,6 +1939,9 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 						case PDIST:
 							flag = PlayerDistance(Object->FOV, tpool->Time, Object->Actor, Object->DeadPos, Object->FOVBone);
 							break;
+						case PCOLLIDE:
+							flag = Object->collision;
+							break;
 						case PSOUND:
 							flag = false;
 							if(tpool->Time==0.0f)
@@ -1997,7 +2042,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									continue;
 								int nType;
 								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-								if(nType==ENTITY_NPC && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+								if((nType==ENTITY_NPC || nType==ENTITY_VEHICLE) && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
 								{
 									bool TG = false;
 									if(!EffectC_IsStringNull(Object->TargetGroup))
@@ -2044,7 +2089,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									continue;
 								int nType;
 								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-								if(nType==ENTITY_NPC && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+								if((nType==ENTITY_NPC || nType==ENTITY_VEHICLE) && CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
 								{
 									if(!strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
 									{
@@ -2603,7 +2648,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case SETEVENTSTATE:
 					AddEvent(Object->Index->AnimName, Object->Index->Flag);
 					Object->ActionActive = false;
-					runflag = true;
+					//runflag = true;
 					break;
 				case FACEPLAYER:
 					Object->FacePlayer = Object->Index->Flag;
@@ -2950,6 +2995,36 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->ActionActive = false;
 					runflag = true;
 					break;
+				case ISVEHICLE:
+					if(Object->Actor)
+					{
+						if(Object->Index->Flag)
+							CCD->ActorManager()->SetType(Object->Actor, ENTITY_VEHICLE);
+						else
+							CCD->ActorManager()->SetType(Object->Actor, ENTITY_NPC);
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case ISPUSHABLE:
+					if(Object->Actor)
+					{
+						if(Object->Index->Flag)
+							Object->pushable = true;
+						else
+							Object->pushable = false;
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case HIDEFROMRADAR:
+					if(Object->Actor)
+					{
+						CCD->ActorManager()->SetHideRadar(Object->Actor, Object->Index->Flag);
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
 				case FIREPROJECTILE:
 					{
 						if(Object->Actor)
@@ -3166,6 +3241,8 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									Object->WScale = WeaponCache[i].Scale;
 									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale);
 									CCD->ActorManager()->SetNoCollide(Object->WeaponActor);
+									if(WeaponCache[i].EnvironmentMapping)
+										SetEnvironmentMapping(Object->WeaponActor, true, WeaponCache[i].AllMaterial, WeaponCache[i].PercentMapping, WeaponCache[i].PercentMaterial);
 									break;
 								}
 							}

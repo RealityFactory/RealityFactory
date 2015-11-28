@@ -152,10 +152,19 @@ CLiftBelt::CLiftBelt()
 		{
 			pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 			LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
-
+			if(EffectC_IsStringNull(pSource->szEntityName))
+			{
+				char szName[128];
+				geEntity_GetName(pEntity, szName, 128);
+				pSource->szEntityName = szName;
+			}
+			// Ok, put this entity into the Global Entity Registry
+			CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "LiftBelt");
+			
 			pSource->Powerlevel = 0.0f;
 			pSource->active = false;
 			pSource->Fuel = 0.0f;
+			pSource->bState = false;
 		}
 	}
 }
@@ -181,6 +190,7 @@ void CLiftBelt::Tick(float dwTicks)
 			
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			
+			pSource->bState = false;
 			if(!EffectC_IsStringNull(pSource->EnableAttr))
 			{
 				if(CCD->Player()->GetUseAttribute(pSource->EnableAttr))
@@ -222,6 +232,7 @@ void CLiftBelt::Tick(float dwTicks)
 								theInv->Set(pSource->PowerAttr, (int)pSource->Fuel);
 							}
 						}
+						pSource->bState = true;
 						if(Change)
 						{
 							if(Increase)
@@ -242,10 +253,18 @@ void CLiftBelt::Tick(float dwTicks)
 
 						if(pSource->Powerlevel>0.0f)
 							CCD->ActorManager()->SetGravityTime(CCD->Player()->GetActor(), 0.0f);
-						geEngine_Printf(CCD->Engine()->Engine(), 0,30,"Force = %f",pSource->Powerlevel);
+						//geEngine_Printf(CCD->Engine()->Engine(), 0,30,"Force = %f",pSource->Powerlevel);
 					}
 					Change = false;
 					return;
+				}
+				else
+				{
+					if(pSource->active)
+					{
+						pSource->active = false;
+						CCD->ActorManager()->RemoveForce(CCD->Player()->GetActor(), 3);
+					}
 				}
 			}
 		}
@@ -257,4 +276,84 @@ void CLiftBelt::ChangeLift(bool increase)
 {
 	Change = true;
 	Increase = increase;
+}
+
+void CLiftBelt::DisableHud(char *Attr)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+	bool IsLift = false;
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+	if(pSet)
+	{
+		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+		{
+			pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
+			LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+			if(!EffectC_IsStringNull(pSource->EnableAttr))
+			{
+				if(!strcmp(Attr, pSource->EnableAttr))
+					IsLift = true;
+			}
+		}
+		if(IsLift)
+		{
+			pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+			for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+			pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity)) 
+			{
+				pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
+				LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+				if(!EffectC_IsStringNull(pSource->EnableAttr))
+				{
+					if(CCD->Player()->GetUseAttribute(pSource->EnableAttr))
+					{
+						CCD->Player()->DelUseAttribute(pSource->EnableAttr);
+						CCD->HUD()->ActivateElement(pSource->EnableAttr, false);
+						if(pSource->active)
+						{
+							pSource->active = false;
+							CCD->ActorManager()->RemoveForce(CCD->Player()->GetActor(), 3);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+//	LocateEntity
+//
+//	Given a name, locate the desired item in the currently loaded level
+//	..and return it's user data.
+
+int CLiftBelt::LocateEntity(char *szName, void **pEntityData)
+{
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
+
+//	Ok, check to see if there are liftbelts in this world
+
+	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+
+	if(!pSet)
+		return RGF_NOT_FOUND;									// No 3D audio sources
+
+//	Ok, we have liftbelts somewhere.  Dig through 'em all.
+
+	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		{
+		LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+
+		if(strcmp(pSource->szEntityName, szName) == 0)
+		  {
+			*pEntityData = (void *)pSource;
+			return RGF_SUCCESS;
+			}
+		}
+
+  return RGF_NOT_FOUND;								// Sorry, no such entity here
 }

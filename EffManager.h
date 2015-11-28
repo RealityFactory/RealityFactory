@@ -236,7 +236,10 @@ typedef struct
 	float		MaxSpeed;		// max speed of each actor
 	geBoolean	Bounce;
 	geBoolean	Solid;
-
+	geBoolean	EnvironmentMapping;
+	geBoolean	AllMaterial;
+	geFloat		PercentMapping;
+	geFloat		PercentMaterial;
 } ActorSpray;
 
 typedef	struct	ActorParticle_System	ActorParticle_System;

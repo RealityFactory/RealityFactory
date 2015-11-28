@@ -33,6 +33,9 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 	m_fEOF = false;								// Not at end of file
 	m_bLoops = false;							// Assume no looping
 	Mpeg3 = NULL;
+	Ogg = NULL;
+	mp3 = false;
+	ogg = false;
 
   return;
 }
@@ -43,6 +46,17 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 
 StreamingAudio::~StreamingAudio()
 {
+	if(ogg)
+	{
+		if(Ogg)
+		{
+			Ogg->Stop();
+			delete Ogg;
+			Ogg = NULL;
+		}
+		return;
+	}
+
   timeKillEvent(m_nTimerID);			// Stop the timer
 
 	if(mp3)
@@ -114,6 +128,18 @@ int StreamingAudio::Create(char *szFileName)
 	  return RGF_SUCCESS;
   }
   mp3 = false;
+
+  if(stricmp((szFileName+len),".ogg")==0)
+  {
+	  if(Ogg != NULL)
+		  return RGF_FAILURE;	
+	  Ogg = new OggAudio(m_pDS);
+	  Ogg->Load(szFileName);
+	  ogg = true;
+	  m_fActive = TRUE;
+	  return RGF_SUCCESS;
+  }
+  ogg = false;
 
 //	start a timer for this stream.
 
@@ -211,18 +237,6 @@ int StreamingAudio::Play(bool bLooping)
 		return RGF_SUCCESS;
 	}
 
-//	Check for stream availability
-  if(m_pStream == NULL)
-	  return RGF_FAILURE;									// No stream
-
-// changed RF064
-  if(m_fActive == TRUE)
-	  return RGF_SUCCESS;
-// end change RF064
-
-  m_fActive = TRUE;
-	m_bLoops = bLooping;
-
 	LONG ScaledVolume;
 	LONG nVolume = (LONG)(CCD->MenuManager()->GetmVolLevel()*10000.0f);
 
@@ -234,7 +248,28 @@ int StreamingAudio::Play(bool bLooping)
 		ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
 	nVolume = ScaledVolume;
 
-	//LONG nVolume = (LONG)((CCD->MenuManager()->GetmVolLevel()*10000.0f)-10000);
+	if(ogg)
+	{
+		if(Ogg == NULL)
+			return RGF_FAILURE;
+		m_fActive = TRUE;
+		m_bLoops = bLooping;
+		Ogg->Play(bLooping);
+		SetVolume(nVolume);
+		return RGF_SUCCESS;
+	}
+
+//	Check for stream availability
+  if(m_pStream == NULL)
+	  return RGF_FAILURE;									// No stream
+
+// changed RF064
+  if(m_fActive == TRUE)
+	  return RGF_SUCCESS;
+// end change RF064
+
+  m_fActive = TRUE;
+	m_bLoops = bLooping;
 
   m_pStream->Play(0, 0, DSBPLAY_LOOPING);	// Start playback
   SetVolume(nVolume);
@@ -257,6 +292,15 @@ int StreamingAudio::Stop()
 		Mpeg3->StopMp3();
 		return RGF_SUCCESS;
 // end change RF064
+	}
+
+	if(ogg)
+	{
+		m_fActive = FALSE;
+		if(Ogg == NULL)
+			return RGF_FAILURE;
+		Ogg->Stop();
+		return RGF_SUCCESS;
 	}
 
 //	Check for stream availability
@@ -293,6 +337,14 @@ int StreamingAudio::Pause()
 		return RGF_SUCCESS;
 	}
 
+	if(ogg)
+	{
+		if(Ogg == NULL)
+			return RGF_FAILURE;
+		Ogg->Pause();
+		return RGF_SUCCESS;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return RGF_FAILURE;									// No stream
@@ -311,6 +363,16 @@ int StreamingAudio::Pause()
 
 int StreamingAudio::Delete()
 {
+	if(ogg)
+	{
+		if(Ogg == NULL)
+			return RGF_FAILURE;
+		Ogg->Stop();
+		delete Ogg;
+		Ogg = NULL;
+		return RGF_SUCCESS;
+	}
+
   timeKillEvent(m_nTimerID);							// Kill timer
 
 	if(mp3)
@@ -342,6 +404,14 @@ int StreamingAudio::Rewind()
 	{
 		if(Mpeg3 == NULL)
 			return RGF_FAILURE;
+		return RGF_SUCCESS;
+	}
+
+	if(ogg)
+	{
+		if(Ogg == NULL)
+			return RGF_FAILURE;
+		Ogg->Rewind();
 		return RGF_SUCCESS;
 	}
 
@@ -377,6 +447,13 @@ bool StreamingAudio::IsPlaying()
 		return false;
 	}
 
+	if(ogg)
+	{
+		if(!Ogg)
+			return false;
+		return Ogg->IsPlaying;
+	}
+
 //	Check for stream availability
   if(m_pStream == NULL)
 	  return false;									// No stream
@@ -402,10 +479,6 @@ int StreamingAudio::SetVolume(LONG nVolume)
 		return RGF_SUCCESS;
 	}
 
-//	Sanity check parameter
-  if((m_pStream == NULL) || (nVolume > 0))
-	  return RGF_FAILURE;						// Bad parameter
-
 	LONG ScaledVolume;
 	nVolume += 10000;;
 
@@ -416,6 +489,18 @@ int StreamingAudio::SetVolume(LONG nVolume)
 	else
 		ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
 	nVolume = ScaledVolume;
+
+	if(ogg)
+	{
+		if(Ogg==NULL)
+			return RGF_FAILURE;
+		Ogg->SetVolume(nVolume);
+		return RGF_SUCCESS;
+	}
+
+//	Sanity check parameter
+  if((m_pStream == NULL) || (nVolume > 0))
+	  return RGF_FAILURE;						// Bad parameter
 
 	m_pStream->SetVolume(nVolume);		// Set it!
 

@@ -278,6 +278,12 @@ bool GetTriggerState(char *TriggerName)
 			CCD->CountDownTimers()->LocateEntity(TriggerName, (void**)&pProxy);
 			return pProxy->bState;
 		}
+		if(!stricmp(EntityType, "LiftBelt"))
+		{
+			LiftBelt *pProxy;
+			CCD->LiftBelts()->LocateEntity(TriggerName, (void**)&pProxy);
+			return pProxy->bState;
+		}
 	}
 	return CCD->Pawns()->GetEventState(TriggerName);
 // end change RF064
@@ -589,9 +595,136 @@ geBitmap * CreateFromFileName(char * BmName)
 		exit(-333);
 	}
 	Bmp = geBitmap_CreateFromFile(File);
+	if(!Bmp) 
+	{
+		FreeImageIO io;
+		FIBITMAP *Fbmp32;
+		geBitmap *LockedBMP;
+		geBitmap_Info Info;
+		unsigned char *gptr ,*fptr;
+		int bpp, nFormat;
+		int FStride;
+		int width, height;
+
+		io.read_proc = VFS_Read;
+		io.write_proc = NULL;
+		io.seek_proc = VFS_Seek;
+		io.tell_proc = VFS_Tell;
+		FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromHandle(&io, (fi_handle)File, 16);
+		if(fif>=0)
+		{
+			FIBITMAP *Fbmp = FreeImage_LoadFromHandle(fif, &io, (fi_handle)File, 0);
+			bpp = (int)FreeImage_GetBPP(Fbmp);
+			width = (int)FreeImage_GetWidth(Fbmp);
+			height = (int)FreeImage_GetHeight(Fbmp);
+			if(bpp==32)
+			{
+				Fbmp32 = FreeImage_Clone(Fbmp);
+				nFormat = GE_PIXELFORMAT_32BIT_BGRA;
+			}
+			else
+			{
+				if(bpp!=24)
+					Fbmp32 = FreeImage_ConvertTo24Bits(Fbmp);
+				else
+					Fbmp32 = FreeImage_Clone(Fbmp);
+				nFormat = GE_PIXELFORMAT_24BIT_BGR;
+			}
+
+			Bmp = geBitmap_Create(width, height, 0, (gePixelFormat)nFormat);
+			if(Bmp)
+			{
+				geBitmap_GetInfo(Bmp,&Info,NULL);
+				geBitmap_LockForWriteFormat(Bmp,&LockedBMP,0,0, (gePixelFormat)nFormat);
+				if(LockedBMP == NULL)
+				{
+					geBitmap_SetFormat(Bmp,(gePixelFormat)nFormat,GE_TRUE,0,NULL);
+					geBitmap_LockForWriteFormat(Bmp,&LockedBMP,0,0, (gePixelFormat)nFormat);
+				}
+				if(LockedBMP)
+				{
+					FStride = (int)FreeImage_GetPitch(Fbmp32);
+					gptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
+					if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
+						gptr += (height-1)*(Info.Stride*4);
+					else
+						gptr += (height-1)*(Info.Stride*3);
+					fptr = FreeImage_GetBits(Fbmp32);
+					for(int y=0; y < Info.Height; y++)
+					{
+						if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
+						{
+							__asm
+							{
+								mov esi, fptr
+								mov edi, gptr
+								mov ecx, width
+								rep movsd
+							}
+							gptr -= (Info.Stride*4);
+						}
+						else
+						{
+							int nTemp = width * 3;
+							__asm
+							{
+								mov esi, fptr
+								mov edi, gptr
+								mov ecx, nTemp
+								rep movs
+							}
+							gptr -= (Info.Stride*3);
+						}
+						fptr += FStride;
+					}
+					geBitmap_UnLock(LockedBMP);
+				}
+				else
+				{
+					geBitmap_Destroy(&Bmp);
+					Bmp = NULL;
+				}
+			}
+			FreeImage_Free(Fbmp32);
+			FreeImage_Free(Fbmp);
+		}
+	}
 	geVFile_Close(File);
 	
 	return Bmp;
+}
+
+long DLL_CALLCONV VFS_Tell(fi_handle handle)
+{
+	long position;
+	geVFile *File = (geVFile *)handle;
+	geVFile_Tell(File, &position);
+	return position;
+}
+
+int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin)
+{
+	geVFile *File = (geVFile *)handle;
+	geVFile_Whence whence;
+
+	if(origin==SEEK_SET)
+		whence = GE_VFILE_SEEKSET;
+	else if(origin==SEEK_CUR)
+		whence = GE_VFILE_SEEKCUR;
+	else
+		whence = GE_VFILE_SEEKEND;
+	if(geVFile_Seek(File, (int)offset, whence)==GE_TRUE)
+		return 0;
+	else
+		return 1;
+}
+
+unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_handle handle)
+{
+	geVFile *File = (geVFile *)handle;
+	unsigned csize = size*count;
+	geVFile_Read(File, buffer, (int)csize);
+	return csize;
 }
 
 // Weapon
@@ -842,6 +975,43 @@ bool geVec3d_IsZero( geVec3d* pVect )
 		return false;
 
 	return true;
+}
+
+geFloat Length(geVec3d & vec)
+{
+	geFloat Len = geVec3d_Length(&vec);
+	if (Len < 0)
+		Len *= -1;
+	return Len;
+}
+
+void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial)
+{
+	geEnvironmentOptions Options;
+	Options.UseEnvironmentMapping = Enable;
+	Options.PercentPuppet = PercentMaterial/100.0f;
+	if(!Enable)
+	{
+		Options.Supercede = false;
+		Options.PercentEnvironment = 1.0f;
+		Options.PercentMaterial = 1.0f;
+	}
+	else
+	{
+		if(!AllMaterial)
+		{
+			Options.Supercede = true;
+			Options.PercentMaterial = Percent/100.0f;
+			Options.PercentEnvironment = 1.0f; 
+		}
+		else
+		{
+			Options.Supercede = false;
+			Options.PercentEnvironment = Percent/100.0f;
+			Options.PercentMaterial = 1.0f;
+		}
+	}
+	geActor_SetEnvironOptions(Actor, &Options);
 }
 
 // end change RF064

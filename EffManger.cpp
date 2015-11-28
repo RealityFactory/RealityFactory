@@ -30,7 +30,8 @@ extern void 	ActorParticle_SystemAddParticle(ActorParticle_System *ps,
 							geVec3d	BaseRotation, geVec3d RotationSpeed,
 							GE_RGBA	FillColor, GE_RGBA	AmbientColor,
 							float Alpha, float AlphaRate, geFloat Time, const geVec3d *Velocity,
-							geFloat	Scale, bool Gravity, geBoolean Bounce, geBoolean Solid);
+							geFloat	Scale, bool Gravity, geBoolean Bounce, geBoolean Solid,
+							bool EnvironmentMapping, bool AllMaterial, float PercentMapping, float PercentMaterial);
 // end change RF064
 extern void TPool_Initalize();
 extern void TPool_Delete();
@@ -945,7 +946,7 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 	if ( Data->Pause==GE_TRUE)
 		return GE_TRUE;
 
-	if ( Data->ScaleRate > 0.0f )
+	if ( Data->ScaleRate != 0.0f )
 	{
 
 		// eliminate the effect if the scale has reached zero
@@ -957,7 +958,7 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 		}
 	}
 	// adjust alpha
-	if ( Data->AlphaRate > 0.0f )
+	if ( Data->AlphaRate != 0.0f )
 	{
 
 		// eliminate the effect if the alpha has reached zero
@@ -965,6 +966,11 @@ geBoolean EffManager::Sprite_Process(Sprite  *Data,  float  TimeDelta)
 		if ( Data->Color.a <= 0.0f )
 		{
 			Data->Color.a = 0.0f;
+			return GE_FALSE;
+		}
+		if ( Data->Color.a > 255.0f )
+		{
+			Data->Color.a = 255.0f;
 			return GE_FALSE;
 		}
 
@@ -1954,7 +1960,11 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray  *Data,  float  TimeDelta)
 						Scale,
 						Data->Gravity,
 						Data->Bounce,
-						Data->Solid);
+						Data->Solid,
+						Data->EnvironmentMapping,
+						Data->AllMaterial,
+						Data->PercentMapping,
+						Data->PercentMaterial);
 	}
 
 	// all done

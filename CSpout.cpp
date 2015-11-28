@@ -419,6 +419,10 @@ int CActorSpout::Create(ActorSpout *S)
     if(Sp.Rate < 0.0f )
       Sp.Rate = 0.1f;
 	Sp.Gravity = S->Gravity;
+	Sp.EnvironmentMapping = S->EnvironmentMapping;
+	Sp.AllMaterial = S->AllMaterial;
+	Sp.PercentMapping = S->PercentMapping;
+	Sp.PercentMaterial = S->PercentMaterial;
 
     // setup orientation
     geXForm3d_SetIdentity( &( Xf ) );

@@ -27,6 +27,9 @@ public:
 private:
 	void CSoundtrackToggle::StopStreaming();
   int m_SoundtrackToggleCount;					// Count of toggle tntities
+  CMIDIAudio *theMIDIPlayer;
+  StreamingAudio *m_Streams;
+  LPDIRECTSOUND m_dsPtr;
 };
 
 #endif

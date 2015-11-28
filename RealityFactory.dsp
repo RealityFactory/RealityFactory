@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 genesis.lib strmbase.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
+# ADD LINK32 genesis.lib strmbase.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib vorbisfile.lib vorbis.lib ogg.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libcmt" /out:"../RealityFactory.exe"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
@@ -81,8 +81,8 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 genesisd.lib strmbasd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 genesisd.lib strmbasd.lib winmm.lib vfw32.lib dxguid.lib quartz.lib user32.lib gdi32.lib ole32.lib comdlg32.lib decrypt.lib wsock32.lib kernel32.lib winspool.lib advapi32.lib shell32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmtd" /out:"../RealityFactory.exe" /pdbtype:sept
+# SUBTRACT LINK32 /pdb:none /nodefaultlib
 
 !ENDIF 
 
@@ -545,6 +545,42 @@ SOURCE=.\Qx\QxUser.cpp
 SOURCE=.\Qx\QxUser.h
 # End Source File
 # End Group
+# Begin Group "ActiveCurve"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\CurvedSurface.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CurvedSurface.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Spline.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Spline.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SplinePatch.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\SplinePatch.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\XForm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\XForm.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\AutoSelect.c
@@ -616,6 +652,10 @@ SOURCE=.\CCorona.cpp
 # Begin Source File
 
 SOURCE=.\CCountDown.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CCurve.cpp
 # End Source File
 # Begin Source File
 
@@ -859,6 +899,10 @@ SOURCE=.\Mixer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\OggAudio.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ProcBumpmap.cpp
 # End Source File
 # Begin Source File
@@ -992,6 +1036,10 @@ SOURCE=.\CCorona.h
 # Begin Source File
 
 SOURCE=.\CCountDown.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CCurve.h
 # End Source File
 # Begin Source File
 
@@ -1207,6 +1255,10 @@ SOURCE=.\EffManager.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\FreeImage.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\GameEntityDataTypes.h
 # End Source File
 # Begin Source File
@@ -1216,6 +1268,10 @@ SOURCE=.\IniFile.h
 # Begin Source File
 
 SOURCE=.\Mixer.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\oggaudio.h
 # End Source File
 # Begin Source File
 

@@ -477,8 +477,7 @@ typedef struct _AudioSource3D
 typedef struct _StaticEntityProxy
 {
 #pragma GE_Private
-	geSound_Def *theSound;			// Handle of audio effect
-	geSound *SoundHandle;				// For later modification of sound
+	int	index;
 	geActor *Actor;							// Actor for this entity
 	geBoolean bFollower;				// TRUE if entity is bound to a motion path
 	geBoolean bInitialized;			// Path following initialized flag
@@ -528,6 +527,10 @@ typedef struct _StaticEntityProxy
 	geVec3d BoxSize;
 	geBoolean HideFromRadar;
 	char *ChangeMaterial;
+	geBoolean EnvironmentMapping;
+	geBoolean AllMaterial;
+	geFloat PercentMapping;
+	geFloat PercentMaterial;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szSoundFile, "")
@@ -565,6 +568,10 @@ typedef struct _StaticEntityProxy
 #pragma GE_DefaultValue(BoxSize, "0 0 0")
 #pragma GE_DefaultValue(HideFromRadar, "False")
 #pragma GE_DefaultValue(ChangeMaterial, "")
+#pragma GE_DefaultValue(EnvironmentMapping, "False")
+#pragma GE_DefaultValue(AllMaterial, "False")
+#pragma GE_DefaultValue(PercentMapping, "100")
+#pragma GE_DefaultValue(PercentMaterial, "100")
 // end change RF064
 #pragma GE_Documentation(szSoundFile, "Sound to play on collision/activation")
 #pragma GE_Documentation(SoundLoop, "TRUE if sound loops")
@@ -601,6 +608,10 @@ typedef struct _StaticEntityProxy
 #pragma GE_Documentation(BoxSize, "if not all 0 then use as bounding box size")
 #pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
 #pragma GE_Documentation(ChangeMaterial, "name of section containing material change info")
+#pragma GE_Documentation(EnvironmentMapping, "if true then use environmental mapping")
+#pragma GE_Documentation(AllMaterial, "if true apply to all material")
+#pragma GE_Documentation(PercentMapping, "percentage of mapping to apply")
+#pragma GE_Documentation(PercentMaterial, "percentage of material to use")
 // end change RF064
 } StaticEntityProxy;
 
@@ -753,20 +764,14 @@ typedef struct _ChangeLevel
 typedef struct _SoundtrackToggle
 {
 #pragma GE_Private
+	geBoolean alive;
 	geBoolean bActive;					// Trigger ready for use
-	geBoolean bWhichOne;				// Which selection to play
 	geFloat LastTimeToggled;				// Last time the soundtrack was toggled
-	geSound_Def *theSound;			// Handle of audio effect
-	geSound *SoundHandle;				// For later modification of sound
 #pragma GE_Published
 	geVec3d origin;
 	char *szMIDIFileOne;				// First MIDI file to play, if any
-	char *szMIDIFileTwo;				// Second MIDI file to play, if any
 	int CDTrackOne;							// First CD track to play, if any
-	int CDTrackTwo;							// Second CD track to play, if any
 	char *szStreamFileOne;			// First streaming sound to play, if any
-	char *szStreamFileTwo;			// Second streaming sound to play, if any
-	char *szSoundFile;					// Audio effect to play on trigger, if any
 	geBoolean bOneShot;					// Soundtrack toggles only once
 	geBoolean bCDLoops;					// TRUE if the CD soundtrack loops
 	geBoolean bMIDILoops;				// TRUE if the MIDI soundtrack loops
@@ -775,12 +780,8 @@ typedef struct _SoundtrackToggle
 	geFloat Range;								// Range of trigger entity
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szMIDIFileOne, "")
-#pragma GE_DefaultValue(szMIDIFileTwo, "")
 #pragma GE_DefaultValue(CDTrackOne, "0")
-#pragma GE_DefaultValue(CDTrackTwo, "0")
 #pragma GE_DefaultValue(szStreamFileOne, "")
-#pragma GE_DefaultValue(szStreamFileTwo, "")
-#pragma GE_DefaultValue(szSoundFile, "")
 #pragma GE_DefaultValue(bOneShot, "False")
 #pragma GE_DefaultValue(bCDLoops, "True")
 #pragma GE_DefaultValue(bMIDILoops, "True")
@@ -788,12 +789,8 @@ typedef struct _SoundtrackToggle
 #pragma GE_DefaultValue(SleepTime, "30")
 #pragma GE_DefaultValue(Range, "20.0")
 #pragma GE_Documentation(szMIDIFileOne, "MIDI soundtrack file #1")
-#pragma GE_Documentation(szMIDIFileTwo, "MIDI soundtrack file #2")
 #pragma GE_Documentation(CDTrackOne, "CD Audio track #1")
-#pragma GE_Documentation(CDTrackTwo, "CD Audio track #2")
 #pragma GE_Documentation(szStreamFileOne, "Streaming audio file #1")
-#pragma GE_Documentation(szStreamFileTwo, "Streaming audio file #2")
-#pragma GE_Documentation(szSoundFile, "Optional audio effect to play on toggle")
 #pragma GE_Documentation(bOneShot, "TRUE if toggle only works once")
 #pragma GE_Documentation(bCDLoops, "TRUE if the CD soundtrack loops")
 #pragma GE_Documentation(bMIDILoops, "TRUE if the MIDI soundtrack loops")
@@ -2248,6 +2245,10 @@ typedef struct _Attribute
 // changed RF064
 	geBoolean HideFromRadar;
 	char *ChangeMaterial;
+	geBoolean EnvironmentMapping;
+	geBoolean AllMaterial;
+	geFloat PercentMapping;
+	geFloat PercentMaterial;
 // end change RF064
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
@@ -2274,6 +2275,10 @@ typedef struct _Attribute
 // changed RF064
 #pragma GE_DefaultValue(HideFromRadar, "False")
 #pragma GE_DefaultValue(ChangeMaterial, "")
+#pragma GE_DefaultValue(EnvironmentMapping, "False")
+#pragma GE_DefaultValue(AllMaterial, "False")
+#pragma GE_DefaultValue(PercentMapping, "100")
+#pragma GE_DefaultValue(PercentMaterial, "100")
 // end change RF064
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
 #pragma GE_Documentation(EntityName, "Name of entity to attach to")
@@ -2300,6 +2305,10 @@ typedef struct _Attribute
 // changed RF064
 #pragma GE_Documentation(HideFromRadar, "if true then does not show on radar")
 #pragma GE_Documentation(ChangeMaterial, "name of section that contains material change info")
+#pragma GE_Documentation(EnvironmentMapping, "if true then use environmental mapping")
+#pragma GE_Documentation(AllMaterial, "if true apply to all material")
+#pragma GE_Documentation(PercentMapping, "percentage of mapping to apply")
+#pragma GE_Documentation(PercentMaterial, "percentage of material to use")
 // end change RF064
 } Attribute;
 
@@ -2899,6 +2908,10 @@ typedef struct ActorSpout
 	geWorld_Model *Model;	// Name of model to attach to
 	char 	*BoneName;	// Name of actor bone to attach to
 	char 	*TriggerName;	// Name of trigger entity
+	geBoolean EnvironmentMapping;
+	geBoolean AllMaterial;
+	geFloat PercentMapping;
+	geFloat PercentMaterial;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_Angles(Angles)			
@@ -2929,6 +2942,10 @@ typedef struct ActorSpout
 #pragma GE_DefaultValue( TriggerName, "")
 #pragma GE_DefaultValue( Bounce, "False")
 #pragma GE_DefaultValue( Solid, "False")
+#pragma GE_DefaultValue(EnvironmentMapping, "False")
+#pragma GE_DefaultValue(AllMaterial, "False")
+#pragma GE_DefaultValue(PercentMapping, "100")
+#pragma GE_DefaultValue(PercentMaterial, "100")
 #pragma GE_Documentation(szEntityName, "Name of this entity, if any")
 #pragma GE_Documentation( Angles, "Direction in which particles will shoot" )
 #pragma GE_Documentation( ParticleCreateRate, "Every how many seconds to add a new particle" )
@@ -2953,6 +2970,10 @@ typedef struct ActorSpout
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+#pragma GE_Documentation(EnvironmentMapping, "if true then use environmental mapping")
+#pragma GE_Documentation(AllMaterial, "if true apply to all material")
+#pragma GE_Documentation(PercentMapping, "percentage of mapping to apply")
+#pragma GE_Documentation(PercentMaterial, "percentage of material to use")
 } ActorSpout;
 
 //
@@ -3046,6 +3067,9 @@ typedef struct ActMaterial
 #pragma GE_Private
             geBoolean            active;
             geActor               *Actor;
+			geFloat		Time;
+			int		CurMat;
+			int		CycleDir;
 #pragma GE_Published
             geVec3d              origin;
             char                    *EntityName;
@@ -3055,6 +3079,9 @@ typedef struct ActMaterial
 			geBoolean	ChangeLighting;
 			GE_RGBA FillColor;
 			GE_RGBA AmbientColor;
+			int		MaterialCount;	
+			int		Style;
+			geFloat		Speed;
 
 #pragma GE_Origin(origin) 
 #pragma GE_DefaultValue( TriggerName, "" )
@@ -3062,6 +3089,9 @@ typedef struct ActMaterial
 #pragma GE_DefaultValue(FillColor, "0 0 0")
 #pragma GE_DefaultValue(AmbientColor, "0 0 0")
 #pragma GE_DefaultValue(ChangeLighting, "false" )
+#pragma GE_DefaultValue( MaterialCount, "1" )
+#pragma GE_DefaultValue( Style, "0" )
+#pragma GE_DefaultValue( Speed, "10.0" )
 
 #pragma GE_Documentation( origin, "Location of effect" )
 #pragma GE_Documentation( szEntityName, "Name of this entity" )
@@ -3071,6 +3101,9 @@ typedef struct ActMaterial
 #pragma GE_Documentation(FillColor, "Color of actor fill lighting")
 #pragma GE_Documentation(AmbientColor, "Color of actor ambient lighting")
 #pragma GE_Documentation(ChangeLighting, "if true the change actor lighting on material change" )
+#pragma GE_Documentation( MaterialCount, "How many material sections in animation" )
+#pragma GE_Documentation( Style, "Animation style 0 to 4" )
+#pragma GE_Documentation( Speed, "# of materials per second" )
 
 } ActMaterial;
 
@@ -3110,8 +3143,10 @@ typedef struct _LiftBelt
 	geFloat Powerlevel;
 	geBoolean active;
 	geFloat Fuel;
+	geBoolean bState;
 #pragma GE_Published
 	geVec3d origin;
+	char *szEntityName;
 	char *EnableAttr;
 	char *PowerAttr;
 	geFloat LiftForce;
@@ -3124,12 +3159,14 @@ typedef struct _LiftBelt
 #pragma GE_DefaultValue(LiftForce, "0")
 #pragma GE_DefaultValue(PowerUse, "1")
 #pragma GE_DefaultValue(AccelRate, "1")
+#pragma GE_DefaultValue(szEntityName, "")
 
 #pragma GE_Documentation(EnableAttr, "attribute used to enable LiftBelt")
 #pragma GE_Documentation(PowerAttr, "attribute used as fuel")
 #pragma GE_Documentation(LiftForce, "maximum amount of up force generated")
 #pragma GE_Documentation(PowerUse, "amount of fuel used per second")
 #pragma GE_Documentation(AccelRate, "amount of lift force change per second")
+#pragma GE_Documentation(szEntityName, "Name of this entity")
 } LiftBelt;
 
 //
@@ -3202,6 +3239,56 @@ typedef struct _DSpotLight
 #pragma GE_Documentation(angles, "direction of light; offset direction, if attached to a model or an actor")
 #pragma GE_Documentation(style, "falloff style: 0=normal, 1=soft, 2=hard")
 }	DSpotLight;
+
+// specials for curved surfaces
+// CurvePointEnt-
+#pragma GE_Type("Player.ico")
+typedef struct CurvePointEnt
+{
+#pragma GE_Published
+	geVec3d	Origin;
+	int		myID;
+#pragma GE_Origin(Origin)
+} CurvePointEnt;
+
+// CurveEnt
+#pragma GE_Type("Player.ico")
+typedef struct CurveEnt
+{
+#pragma GE_Published
+	geVec3d	Origin;
+	char *	CurvePointIDs;
+	int		myID;
+#pragma GE_Origin(Origin)
+} CurveEnt;
+
+// CurvePatchEnt
+#pragma GE_Type("Player.ico")
+typedef struct CurvePatchEnt
+{
+#pragma GE_Published
+	geVec3d	Origin;
+	char *	CurveIDs;
+	int		myID;
+#pragma GE_Origin(Origin)
+} CurvePatchEnt;
+
+// CurvedSurfaceEnt
+#pragma GE_Type("Player.ico")
+typedef struct CurvedSurfaceEnt
+{
+#pragma GE_Published
+	geVec3d	Origin;
+	int		myPatchID;
+	int		FlatTexture;
+	int		DefaultResX;
+	int		DefaultResY;
+	char *	TextureName;
+#pragma GE_Origin(Origin)
+#pragma GE_DefaultValue(DefaultResX, "15")
+#pragma GE_DefaultValue(DefaultResY, "15")
+} CurvedSurfaceEnt;
+
 
 //
 // VaporTrail

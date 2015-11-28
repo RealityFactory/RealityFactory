@@ -12,7 +12,7 @@ functionality, based on the SoundServices functionality.
 
 //	* Local defines, constants
 
-const int kBufferSize = 48000;
+const int kBufferSize = 48000*4;
 
 //	* Streaming audio class
 
@@ -55,7 +55,9 @@ private:
 	int m_nOffset;
 	bool m_bLoops;														// Loop this WAVE or not?
 	bool mp3;
+	bool ogg;
 	CMp3Manager *Mpeg3;
+	OggAudio *Ogg;
 };
 
 //	=========================================================================

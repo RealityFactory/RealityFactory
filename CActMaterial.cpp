@@ -49,7 +49,9 @@ CActMaterial::CActMaterial()
 		CCD->EntityRegistry()->AddEntity(pMaterial->szEntityName, "ActMaterial");
 		
 		pMaterial->active = false;
-	
+		pMaterial->Time = 0.0f;
+		pMaterial->CurMat = 0;
+		pMaterial->CycleDir = 1;
 		pMaterial->Actor = NULL;
 		if(!EffectC_IsStringNull(pMaterial->EntityName))
 			pMaterial->Actor = GetEntityActor(pMaterial->EntityName);
@@ -143,7 +145,46 @@ void CActMaterial::Tick(float dwTicks)
 			strcpy(pool->Entity, pMaterial->EntityName);
 			strcpy(pool->Material, pMaterial->ChangeMaterial);
 			pool->ChangeLighting = pMaterial->ChangeLighting;
-			CCD->ActorManager()->ChangeMaterial(pMaterial->Actor, pMaterial->ChangeMaterial);
+			pMaterial->Time += dwTicks;
+			
+			if(pMaterial->Time>=(1000.0f*(1.0f/pMaterial->Speed )))
+			{
+				pMaterial->Time = 0.0f;
+				switch(pMaterial->Style)
+				{
+				case 0:
+					break;
+				case 2:
+					pMaterial->CurMat += pMaterial->CycleDir;
+					if(pMaterial->CurMat>=pMaterial->MaterialCount || pMaterial->CurMat<0)
+					{
+						pMaterial->CycleDir = -pMaterial->CycleDir;
+						pMaterial->CurMat += pMaterial->CycleDir;
+					}
+					break;
+				case 3:
+					pMaterial->CurMat = ( rand() % pMaterial->MaterialCount );
+					break;
+				case 4:	
+					if(pMaterial->CurMat<(pMaterial->MaterialCount-1))
+						pMaterial->CurMat +=1;
+					break;
+				default:
+					pMaterial->CurMat +=1;
+					if(pMaterial->CurMat>=pMaterial->MaterialCount)
+						pMaterial->CurMat = 0;
+					break;
+				}
+			}
+			
+			char MaterialName[256];
+			// build material  name
+			sprintf( MaterialName, "%s%d", pMaterial->ChangeMaterial, pMaterial->CurMat);
+			if(pMaterial->Style!=0)
+				CCD->ActorManager()->ChangeMaterial(pMaterial->Actor, MaterialName);
+			else
+				CCD->ActorManager()->ChangeMaterial(pMaterial->Actor, pMaterial->ChangeMaterial);
+			
 			if(pMaterial->ChangeLighting)
 			{
 				pool->FillColor = pMaterial->FillColor;

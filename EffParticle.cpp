@@ -685,7 +685,11 @@ void 	ActorParticle_SystemAddParticle(
 	geFloat				Scale,
 	bool				Gravity,
 	geBoolean			Bounce,
-	geBoolean			Solid)
+	geBoolean			Solid,
+	bool				EnvironmentMapping, 
+	bool				AllMaterial, 
+	float				PercentMapping, 
+	float				PercentMaterial)
 {
 
 	// locals
@@ -705,6 +709,8 @@ void 	ActorParticle_SystemAddParticle(
 
 	// setup remaining data
 	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor);
+	if(EnvironmentMapping)
+		SetEnvironmentMapping(ptcl->Actor, true, AllMaterial, PercentMapping, PercentMaterial);
 	CCD->ActorManager()->SetScale(ptcl->Actor, Scale);
 	ptcl->ptclTime = Time;
 	ptcl->ptclTotalTime = Time;

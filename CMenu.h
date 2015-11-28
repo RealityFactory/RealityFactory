@@ -90,6 +90,7 @@ typedef struct Selection
   char Environment[64];
   float SlopeSpeed;
   float SlopeSlide;
+  char Hud[64];
 } Selection;
 
 
@@ -129,6 +130,8 @@ public:
   geBoolean StopSound(geSound_System *SoundS, geSound *Sound);
   void DeleteSound();
   void StopMenuMusic();
+  int SaveTo(FILE *SaveFD, bool type);
+  int RestoreFrom(FILE *RestoreFD, bool type);
   char *GetLevelName()
   { return LevelName; }
   void SetLevelName(char *level)
@@ -195,12 +198,16 @@ public:
   { return useselect; }
   char *GetCurrentActor()
   { return CharSelect[CurrentSelect].ActorName; }
+  char *GetCurrentName()
+  { return CharSelect[CurrentSelect].Name; }
   char *GetCurrentAttr()
   { return CharSelect[CurrentSelect].Attribute; }
   char *GetCurrentpSetup()
   { return CharSelect[CurrentSelect].pSetup; }
   char *GetCurrentEnv()
   { return CharSelect[CurrentSelect].Environment; }
+  char *GetCurrentHud()
+  { return CharSelect[CurrentSelect].Hud; }
   float GetCurrentScale()
   { return CharSelect[CurrentSelect].ActorScale; }
   geVec3d GetCurrentRotation()
