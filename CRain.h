@@ -12,11 +12,9 @@
 #ifndef __RGF_CRAIN_H_
 #define __RGF_CRAIN_H_
 
-#pragma warning( disable : 4068 )
-
-#include "genesis.h"
-
-// class declaration for CRain
+/**
+ * @brief Class declaration for CRain
+ */
 class CRain : public CRGFComponent
 {
 public:
@@ -24,8 +22,8 @@ public:
 	~CRain();
 
 	int Create(Rain *R);
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 };
 

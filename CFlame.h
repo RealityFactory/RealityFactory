@@ -7,26 +7,23 @@
 #ifndef __RGF_CFLAME_H_
 #define __RGF_CFLAME_H_
 
-#pragma warning( disable : 4068 )
-
-#include "genesis.h"
-
-// class declaration for CFlame
+/**
+ * @brief Class declaration for CFlame
+ */
 class CFlame : public CRGFComponent
 {
 public:
 	CFlame();
 	~CFlame();
 
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
-	int CreateS(Flame *S);
-	int CreateG(Flame *S);
+	int CreateS(Flame *S);	///< Create Spray effect
+	int CreateG(Flame *S);	///< Create Glow effect
 };
-
 
 #endif
 

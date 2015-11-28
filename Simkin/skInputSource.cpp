@@ -48,7 +48,7 @@ EXPORT_C skInputFile::skInputFile(const skString& filename)
 :
 #ifdef STREAMS_ENABLED
 #ifdef STL_STREAMS
-m_In(filename,ios::in)
+m_In(filename,std::ios::in)
 #else
 m_In(filename,ios::in|ios::nocreate)
 #endif

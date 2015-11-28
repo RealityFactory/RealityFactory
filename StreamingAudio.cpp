@@ -103,7 +103,7 @@ int StreamingAudio::Create(char *szFileName)
 	if(CCD->GetLogging())
 	{
 		char szDebug[512];
-		sprintf(szDebug, "*INFO* Loaded %s", szFileName);
+		sprintf(szDebug, "[INFO] Loaded %s", szFileName);
 		CCD->ReportError(szDebug, false);
 	}
 
@@ -129,7 +129,7 @@ int StreamingAudio::Create(char *szFileName)
 
 		if(nTimer == NULL)
 		{
-			CCD->ReportError("*WARNING* StreamingAudio: Timer callback set-up failed", false);
+			CCD->ReportError("[WARNING] StreamingAudio: Timer callback set-up failed", false);
 			return RGF_FAILURE;									// Timer startup failed.
 		}
 
@@ -159,7 +159,7 @@ int StreamingAudio::Create(char *szFileName)
 
 	if(nTimer == NULL)
 	{
-		CCD->ReportError("*WARNING* StreamingAudio: Timer callback set-up failed", false);
+		CCD->ReportError("[WARNING] StreamingAudio: Timer callback set-up failed", false);
 		return RGF_FAILURE;									// Timer startup failed.
 	}
 
@@ -176,7 +176,7 @@ int StreamingAudio::Create(char *szFileName)
 	if(nError != RGF_SUCCESS)
 	{
 		char szBug[128];
-		sprintf(szBug, "*WARNING* File %s - Line %d: Failed to open wave file '%s'\n(Note: streamig audio can't be placed in VFS)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open wave file '%s'\n(Note: streamig audio can't be placed in VFS)",
 				__FILE__, __LINE__, szFileName);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;									// Problem here, too!
@@ -565,7 +565,7 @@ int StreamingAudio::PumpWave(int nSize)
 
 	if(hr != DS_OK)
 	{
-		CCD->ReportError("*WARNING* StreamingAudio::PumpWave: Failed to lock", false);
+		CCD->ReportError("[WARNING] StreamingAudio::PumpWave: Failed to lock", false);
 		return RGF_SUCCESS;									// Fake it, bail out
 	}
 
@@ -692,7 +692,7 @@ void CALLBACK StreamingAudio::TimerFunction(UINT uID, UINT uMsg,
 //	..file and a WAVEFORMATEX structure containing the wave info.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
-			WAVEFORMATEX **ppwfxInfo,	MMCKINFO *pckInRIFF)
+							 WAVEFORMATEX **ppwfxInfo,	MMCKINFO *pckInRIFF)
 {
 	HMMIO hmmioIn = NULL;
 	MMCKINFO ckIn;					// chunk info. for general use.

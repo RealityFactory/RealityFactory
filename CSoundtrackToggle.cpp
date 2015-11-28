@@ -31,7 +31,7 @@ CSoundtrackToggle::CSoundtrackToggle()
 	pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
 
 	if(!pSet)
-		return;													// Don't waste CPU time.
+		return;										// Don't waste CPU time.
 
 	// Ok, we have soundtrack toggles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

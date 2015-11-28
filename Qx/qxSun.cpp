@@ -12,7 +12,8 @@
 #include "QxUser.h" //genesis
 #include "qxSkyDome.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -108,38 +109,38 @@ bool qxSun::InitFlares()
 	m_ColorSun = CCD->TerrainMgr()->GetSuncolor();
 
 	int i = 0;
-	
+
 	// Huge flare
-	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white256.Bmp","terrain\\a_sunflare.Bmp", NULL, NULL);
+	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white256.bmp","terrain\\a_sunflare.bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= 1.0f;
 	m_SunFlares[i].m_fScale			= 2.0f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 100.0f;
 
 	// The Sun image
-	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\flare6.Bmp", "terrain\\a_flare6.Bmp", NULL, NULL);
+	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\flare6.bmp", "terrain\\a_flare6.bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= 1.0f;
 	m_SunFlares[i].m_fScale			= 1.0f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 110.0f;
 
 
 	//thin ring
-	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.Bmp", "terrain\\a_flare3.Bmp", NULL, NULL);
+	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.bmp", "terrain\\a_flare3.bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= .60f;
 	m_SunFlares[i].m_fScale			= .60f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 32.0f;
 
 	//thick ring
-	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.Bmp", "terrain\\a_flare4.Bmp", NULL, NULL);
+	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.bmp", "terrain\\a_flare4.bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= 0.40f;
 	m_SunFlares[i].m_fScale			= .60f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 24.0f;
 
 	//big thick fuzz
-	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.Bmp", "terrain\\a_flare2.Bmp", NULL, NULL);
+	m_SunFlares[i].m_pBmp = TPool_Bitmap("terrain\\white128.bmp", "terrain\\a_flare2.bmp", NULL, NULL);
 	m_SunFlares[i].m_fLengthFactor	= -0.02f;
 	m_SunFlares[i].m_fScale			= 0.50f*m_fScale;
 	m_SunFlares[i++].m_fAlpha		= 24.0f;
-	
+
 
 
 	for( i = 0; i < NUM_FLARES; i++)

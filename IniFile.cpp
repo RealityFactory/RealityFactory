@@ -29,7 +29,7 @@ CIniFile::CIniFile()
 /* ------------------------------------------------------------------------------------ */
 //	constructor, can specify pathname here instead of using SetPath later
 /* ------------------------------------------------------------------------------------ */
-CIniFile::CIniFile(string inipath)
+CIniFile::CIniFile(std::string inipath)
 {
 	path = inipath;
 }
@@ -50,7 +50,7 @@ CIniFile::~CIniFile()
 /* ------------------------------------------------------------------------------------ */
 //	sets path of ini file to read and write from
 /* ------------------------------------------------------------------------------------ */
-void CIniFile::SetPath(string newpath)
+void CIniFile::SetPath(std::string newpath)
 {
 	path = newpath;
 }
@@ -63,10 +63,10 @@ void CIniFile::SetPath(string newpath)
 bool CIniFile::ReadFile()
 {
 // changed RF063
-	string readinfo;
+	std::string readinfo;
 	int curkey = -1, curval = -1;
-	string keyname, valuename, value;
-	string temp;
+	std::string keyname, valuename, value;
+	std::string temp;
 	geVFile *MainFS;
 	char szPath[132];
 	char szInputLine[132];
@@ -134,27 +134,27 @@ bool CIniFile::ReadFile()
 /* ------------------------------------------------------------------------------------ */
 void CIniFile::WriteFile()
 {
-	ofstream inifile;
+	std::ofstream inifile;
 	inifile.open(path.c_str());
 
 	for(unsigned int keynum=0; keynum<names.size(); keynum++)
 	{
 		if(keys[keynum].names.size() != 0)
 		{
-			inifile << '[' << names[keynum] << ']' << endl;
+			inifile << '[' << names[keynum] << ']' << std::endl;
 
 			for(unsigned int valuenum=0; valuenum<keys[keynum].names.size(); valuenum++)
 			{
 				inifile << keys[keynum].names[valuenum] << "=" << keys[keynum].values[valuenum];
 
 				if(valuenum != keys[keynum].names.size()-1)
-					inifile << endl;
+					inifile << std::endl;
 				else if(keynum < names.size())
-					inifile << endl;
+					inifile << std::endl;
 			}
 
 			if(keynum < names.size())
-				inifile << endl;
+				inifile << std::endl;
 		}
 	}
 
@@ -181,7 +181,7 @@ int CIniFile::GetNumKeys()
 /* ------------------------------------------------------------------------------------ */
 //	returns number of values stored for specified key, or -1 if key found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::GetNumValues(string keyname)
+int CIniFile::GetNumValues(std::string keyname)
 {
 	int keynum = FindKey(keyname);
 
@@ -195,7 +195,7 @@ int CIniFile::GetNumValues(string keyname)
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::GetValue(string keyname, string valuename)
+std::string CIniFile::GetValue(std::string keyname, std::string valuename)
 {
 	int keynum = FindKey(keyname), valuenum = FindValue(keynum, valuename);
 
@@ -218,16 +218,16 @@ string CIniFile::GetValue(string keyname, string valuename)
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::GetValueI(string keyname, string valuename)
+int CIniFile::GetValueI(std::string keyname, std::string valuename)
 {
-	return atoi(GetValue(keyname,valuename).c_str());
+	return atoi(GetValue(keyname, valuename).c_str());
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	gets value of [keyname] valuename =
 //	overloaded to return CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-double CIniFile::GetValueF(string keyname, string valuename)
+double CIniFile::GetValueF(std::string keyname, std::string valuename)
 {
 	return atof(GetValue(keyname, valuename).c_str());
 }
@@ -238,7 +238,7 @@ double CIniFile::GetValueF(string keyname, string valuename)
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValue(string keyname, string valuename, string value, bool create)
+bool CIniFile::SetValue(std::string keyname, std::string valuename, std::string value, bool create)
 {
 	int keynum = FindKey(keyname), valuenum = 0;
 
@@ -277,10 +277,10 @@ bool CIniFile::SetValue(string keyname, string valuename, string value, bool cre
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValueI(string keyname, string valuename, int value, bool create)
+bool CIniFile::SetValueI(std::string keyname, std::string valuename, int value, bool create)
 {
-	string temp;
-	ostringstream oss;
+	std::string temp;
+	std::ostringstream oss;
 	oss << value;
 	temp = oss.str();
 
@@ -293,10 +293,10 @@ bool CIniFile::SetValueI(string keyname, string valuename, int value, bool creat
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
 //	overloaded to accept CString, int, and double
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::SetValueF(string keyname, string valuename, double value, bool create)
+bool CIniFile::SetValueF(std::string keyname, std::string valuename, double value, bool create)
 {
-	string temp;
-	ostringstream oss;
+	std::string temp;
+	std::ostringstream oss;
 	oss << value;
 	temp = oss.str();
 
@@ -307,7 +307,7 @@ bool CIniFile::SetValueF(string keyname, string valuename, double value, bool cr
 //	deletes specified value
 //	returns true if value existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::DeleteValue(string keyname, string valuename)
+bool CIniFile::DeleteValue(std::string keyname, std::string valuename)
 {
 	int keynum = FindKey(keyname), valuenum = FindValue(keynum, valuename);
 
@@ -323,7 +323,7 @@ bool CIniFile::DeleteValue(string keyname, string valuename)
 //	deletes specified key and all values contained within
 //	returns true if key existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CIniFile::DeleteKey(string keyname)
+bool CIniFile::DeleteKey(std::string keyname)
 {
 	int keynum = FindKey(keyname);
 
@@ -337,7 +337,7 @@ bool CIniFile::DeleteKey(string keyname)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindFirstKey()
+std::string CIniFile::FindFirstKey()
 {
 	numkey = 0;
 
@@ -349,7 +349,7 @@ string CIniFile::FindFirstKey()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindNextKey()
+std::string CIniFile::FindNextKey()
 {
 	numkey +=1;
 
@@ -362,7 +362,7 @@ string CIniFile::FindNextKey()
 // changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindFirstName(string keyname)
+std::string CIniFile::FindFirstName(std::string keyname)
 {
 	entrykey = 0;
 	keyindex = FindKey(keyname);
@@ -378,7 +378,7 @@ string CIniFile::FindFirstName(string keyname)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindFirstValue()
+std::string CIniFile::FindFirstValue()
 {
 	if(keyindex == -1)
 		return "";
@@ -391,7 +391,7 @@ string CIniFile::FindFirstValue()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindNextName()
+std::string CIniFile::FindNextName()
 {
 	if(keyindex == -1)
 		return "";
@@ -406,7 +406,7 @@ string CIniFile::FindNextName()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-string CIniFile::FindNextValue()
+std::string CIniFile::FindNextValue()
 {
 	if(keyindex == -1)
 		return "";
@@ -427,7 +427,7 @@ string CIniFile::FindNextValue()
 /* ------------------------------------------------------------------------------------ */
 //	returns index of specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::FindKey(string keyname)
+int CIniFile::FindKey(std::string keyname)
 {
 	unsigned int keynum = 0;
 
@@ -443,7 +443,7 @@ int CIniFile::FindKey(string keyname)
 /* ------------------------------------------------------------------------------------ */
 //	returns index of specified value, in the specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
-int CIniFile::FindValue(int keynum, string valuename)
+int CIniFile::FindValue(int keynum, std::string valuename)
 {
 	if(keynum == -1)
 		return -1;

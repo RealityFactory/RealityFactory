@@ -14,9 +14,10 @@
 #include "RabidFramework.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 // changed RF064
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change RF064
 
 /* ------------------------------------------------------------------------------------ */
@@ -26,11 +27,11 @@ extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName,
 /* ------------------------------------------------------------------------------------ */
 CPlayer::CPlayer()
 {
-	//	Initialize all state variables.  Note that the player avatar is not
-	//	..scaled up at all!  Why?  This means the designer can make a level
-	//	..that is, effectively, _immense_ in the level editor without running
-	//	..up against the G3D 1.0 limit of 4096x4096x4096 maximum size.  The
-	//	..player CAN be scaled when the environment is loaded, though.
+	// Initialize all state variables.  Note that the player avatar is not
+	// ..scaled up at all!  Why?  This means the designer can make a level
+	// ..that is, effectively, _immense_ in the level editor without running
+	// ..up against the G3D 1.0 limit of 4096x4096x4096 maximum size.  The
+	// ..player CAN be scaled when the environment is loaded, though.
 
 //	03/22/2000 eaa3 Add Ralph Deane's scaling fixes
 	m_Speed = m_CurrentSpeed = 3.0f;
@@ -45,7 +46,15 @@ CPlayer::CPlayer()
 	m_FogActive				= false;
 	m_ClipActive			= false;
 	m_PlayerViewPoint		= FIRSTPERSON;
-	m_Gravity				= -4.6f;
+	m_Gravity.X				= 0.0f;
+	m_Gravity.Y				= -4.6f;
+	m_Gravity.Z				= 0.0f;
+	m_Wind.X				= 0.0f;
+	m_Wind.Y				= 0.0f;
+	m_Wind.Z				= 0.0f;
+	m_InitialWind.X			= 0.0f;
+	m_InitialWind.Y			= 0.0f;
+	m_InitialWind.Z			= 0.0f;
 // changed RF064
 	alwaysrun = m_Running = m_run = false;
 	monitorstate = monitormode = false;
@@ -123,7 +132,7 @@ CPlayer::CPlayer()
 		for(int j=0; j<3; j++)
 			Contents[nTemp][j] = NULL;
 
-	string pSetup = "playersetup.ini";
+	std::string pSetup = "playersetup.ini";
 
 	if(CCD->MenuManager()->GetUseSelect())
 	{
@@ -135,12 +144,12 @@ CPlayer::CPlayer()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("*ERROR* Failed to open playersetup initialization file\n", false);
+		CCD->ReportError("[ERROR] Failed to open playersetup initialization file\n", false);
 		return;
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type, Vector;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type, Vector;
 	char szName[64];
 
 	while(KeyName != "")
@@ -650,7 +659,10 @@ CPlayer::~CPlayer()
 	CRASHING - Get rid of crashing due to missing entity or entity parameters
 	geActor_Destroy(&Actor); */
 	if(Actor)
+	{
 		geActor_Destroy(&Actor);
+		Actor = NULL;
+	}
 
 	return;
 }
@@ -662,15 +674,12 @@ CPlayer::~CPlayer()
 //	..In normal, first-person use this won't actually be seen except in mirrors.
 /* ------------------------------------------------------------------------------------ */
 // changed QD 12/15/05
-//int CPlayer::LoadAvatar(char *szFile)
-int CPlayer::LoadAvatar(char *szFile, char *Name)
+int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 {
 // changed RF064
 	if(CCD->MenuManager()->GetUseSelect())
 	{
 		// changed QD 12/15/05
-		//strcpy(PlayerName, CCD->MenuManager()->GetCurrentActor());
-		//Actor = CCD->ActorManager()->LoadActor(PlayerName, NULL);
 		strcpy(ActorName, CCD->MenuManager()->GetCurrentActor());
 		Actor = CCD->ActorManager()->LoadActor(ActorName, NULL);
 
@@ -680,7 +689,7 @@ int CPlayer::LoadAvatar(char *szFile, char *Name)
 		if(!Actor)
 		{
 			char szError[256];
-			sprintf(szError, "*ERROR* File %s - Line %d: Missing Character Actor '%s'\n",
+			sprintf(szError, "[ERROR] File %s - Line %d: Missing Character Actor '%s'\n",
 					__FILE__, __LINE__, ActorName); // changed QD 12/15/05
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
@@ -701,7 +710,7 @@ int CPlayer::LoadAvatar(char *szFile, char *Name)
 		if(!pSet)
 		{
 			char szError[256];
-			sprintf(szError, "*ERROR* File %s - Line %d: Missing PlayerSetup\n", __FILE__, __LINE__);
+			sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerSetup\n", __FILE__, __LINE__);
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
@@ -716,7 +725,6 @@ int CPlayer::LoadAvatar(char *szFile, char *Name)
 		if(EffectC_IsStringNull(pSetup->ActorName))
 		{
 			// changed QD 12/15/05
-			// strcpy(PlayerName, szFile);
 			strcpy(ActorName, szFile);
 			// end change
 			Actor = CCD->ActorManager()->LoadActor(szFile, NULL);
@@ -724,7 +732,6 @@ int CPlayer::LoadAvatar(char *szFile, char *Name)
 		else
 		{
 			// changed QD 12/15/05
-			// strcpy(PlayerName, pSetup->ActorName);
 			strcpy(ActorName, pSetup->ActorName);
 			// end change
 			Actor = CCD->ActorManager()->LoadActor(pSetup->ActorName, NULL);
@@ -735,10 +742,10 @@ int CPlayer::LoadAvatar(char *szFile, char *Name)
 			char szError[256];
 
 			if(EffectC_IsStringNull(pSetup->ActorName))
-				sprintf(szError, "*ERROR* File %s - Line %d: Missing Player Actor '%s'\n",
+				sprintf(szError, "[ERROR] File %s - Line %d: Missing Player Actor '%s'\n",
 						__FILE__, __LINE__, szFile);
 			else
-				sprintf(szError, "*ERROR* File %s - Line %d: Missing Player Actor '%s'\n",
+				sprintf(szError, "[ERROR] File %s - Line %d: Missing Player Actor '%s'\n",
 						__FILE__, __LINE__, pSetup->ActorName);
 
 			CCD->ReportError(szError, false);
@@ -810,7 +817,7 @@ int CPlayer::LoadConfiguration()
 	if(!pSet)
 	{
 		char szError[256];
-		sprintf(szError, "*ERROR* File %s - Line %d: Missing PlayerSetup", __FILE__, __LINE__);
+		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerSetup", __FILE__, __LINE__);
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
@@ -1011,7 +1018,7 @@ int CPlayer::LoadConfiguration()
 		if(CCD->FixedCameras()->GetNumber() == 0)
 		{
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: No Fixed Cameras in Level",
+			sprintf(szError, "[WARNING] File %s - Line %d: No Fixed Cameras in Level",
 					__FILE__, __LINE__);
 			CCD->ReportError(szError, false);
 // changed QD 07/15/06 - default to 3rd person camera if no fixed camera is present
@@ -1102,8 +1109,14 @@ int CPlayer::LoadConfiguration()
 			EnvSetup = theState;
 			RealJumping = theState->RealJumping;
 
-			if(theState->Gravity != 0.0f)
+			if(theState->Gravity.X != 0.0f || theState->Gravity.Y != 0.0f || theState->Gravity.Z != 0.0f)
 				m_Gravity = theState->Gravity;				// Over-ride default gravity
+
+			if(theState->WindSpeed.X != 0.0f || theState->Gravity.Y != 0.0f || theState->Gravity.Z != 0.0f)
+			{
+				m_Wind = theState->WindSpeed;
+				m_InitialWind = theState->WindSpeed;
+			}
 
 			if(theState->JumpSpeed != 0.0f)
 				m_JumpSpeed = theState->JumpSpeed;			// Over-ride default jump speed
@@ -1197,14 +1210,14 @@ int CPlayer::LoadConfiguration()
 	if(!AttrFile.ReadFile())
 	{
 		char szAttrError[256];
-		sprintf(szAttrError, "*WARNING* File %s - Line %d: Failed to open Attribute Info file '%s'",
+		sprintf(szAttrError, "[WARNING] File %s - Line %d: Failed to open Attribute Info file '%s'",
 				__FILE__, __LINE__, AttrInfo);
 		CCD->ReportError(szAttrError, false);
 		return RGF_FAILURE;
 	}
 
 	m_Attr = CCD->ActorManager()->Inventory(Actor);
-	string KeyName = AttrFile.FindFirstKey();
+	std::string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64];
 	int InitialValue, LowValue, HighValue;
 
@@ -1260,8 +1273,8 @@ int CPlayer::LoadEnvironmentalAudio()
 
 	if(AttrFile.ReadFile())
 	{
-		string KeyName = AttrFile.FindFirstKey();
-		string Type, Value;
+		std::string KeyName = AttrFile.FindFirstKey();
+		std::string Type, Value;
 		char szName[64];
 		int count;
 
@@ -1457,7 +1470,7 @@ int CPlayer::MoveToStart()
 	if(lEntitySet == NULL)
 	{
 		char szError[256];
-		sprintf(szError, "*ERROR* File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
+		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
@@ -1553,7 +1566,7 @@ int CPlayer::MoveToStart()
 			if(!CCD->FixedCameras()->GetFirstCamera())
 			{
 				char szError[256];
-				sprintf(szError, "*ERROR* File %s - Line %d: No active Fixed Camera can see Player"
+				sprintf(szError, "[ERROR] File %s - Line %d: No active Fixed Camera can see Player"
 						__FILE__, __LINE__);
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
@@ -1584,7 +1597,7 @@ int CPlayer::MoveToStart()
 	else
 	{
 		char szError[256];
-		sprintf(szError, "*ERROR* File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
+		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
 		CCD->ReportError(szError, false);
 		CCD->ShutdownLevel();
 		delete CCD;
@@ -5159,14 +5172,14 @@ void CPlayer::SwitchToThirdPerson()
 //	Save off all attributes and inventory to a file.  Mainly used to
 //	..preserve player data across level changes.
 /* ------------------------------------------------------------------------------------ */
-int CPlayer::SaveAttributes(char *szSaveFile)
+int CPlayer::SaveAttributes(const char *szSaveFile)
 {
 	FILE *theFile = CCD->OpenRFFile(kInstallFile, szSaveFile, "wb");
 
 	if(theFile == NULL)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to SaveAttributes to '%s'",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to SaveAttributes to '%s'",
 				__FILE__, __LINE__, szSaveFile);
 		CCD->ReportError(szError, false);
 		return RGF_FAILURE;
@@ -5183,14 +5196,14 @@ int CPlayer::SaveAttributes(char *szSaveFile)
 /* ------------------------------------------------------------------------------------ */
 //	SaveAttributesAscii
 /* ------------------------------------------------------------------------------------ */
-int CPlayer::SaveAttributesAscii(char *szSaveFile)
+int CPlayer::SaveAttributesAscii(const char *szSaveFile)
 {
 	FILE *theFile = CCD->OpenRFFile(kTempFile, szSaveFile, "wt");
 
 	if(theFile == NULL)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to SaveAttributes to '%s'",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to SaveAttributes to '%s'",
 				__FILE__, __LINE__, szSaveFile);
 		CCD->ReportError(szError, false);
 		return RGF_FAILURE;
@@ -5210,14 +5223,14 @@ int CPlayer::SaveAttributesAscii(char *szSaveFile)
 //	Load all attributes and inventory from a file.  Mainly used to
 //	..restore player data after a level change.
 /* ------------------------------------------------------------------------------------ */
-int CPlayer::LoadAttributes(char *szSaveFile)
+int CPlayer::LoadAttributes(const char *szSaveFile)
 {
 	FILE *theFile = CCD->OpenRFFile(kInstallFile, szSaveFile, "rb");
 
 	if(theFile == NULL)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to LoadAttributes from '%s'",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to LoadAttributes from '%s'",
 				__FILE__, __LINE__, szSaveFile);
 		CCD->ReportError(szError, false);
 		return RGF_FAILURE;
@@ -5275,7 +5288,7 @@ void CPlayer::AddPosition()
 //
 //	Load an audio clip and return the geSound pointer
 /* ------------------------------------------------------------------------------------ */
-geSound_Def *CPlayer::LoadAudioClip(char *szFilename)
+geSound_Def *CPlayer::LoadAudioClip(const char *szFilename)
 {
 	if(!EffectC_IsStringNull(szFilename))
 	{
@@ -5577,7 +5590,7 @@ void CPlayer::UseItem()
 // changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-bool CPlayer::GetUseAttribute(char *Attr)
+bool CPlayer::GetUseAttribute(const char *Attr)
 {
 	int i;
 
@@ -5592,7 +5605,7 @@ bool CPlayer::GetUseAttribute(char *Attr)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-bool CPlayer::SetUseAttribute(char *Attr)
+bool CPlayer::SetUseAttribute(const char *Attr)
 {
 	int i;
 
@@ -5613,7 +5626,7 @@ bool CPlayer::SetUseAttribute(char *Attr)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-bool CPlayer::DelUseAttribute(char *Attr)
+bool CPlayer::DelUseAttribute(const char *Attr)
 {
 	int i;
 
@@ -5630,5 +5643,24 @@ bool CPlayer::DelUseAttribute(char *Attr)
 }
 // end change RF064
 
+void CPlayer::SetGravity(const geVec3d *vec)
+{
+	geVec3d_Copy(vec, &m_Gravity);
+}
+
+void CPlayer::SetWind(const geVec3d *vec)
+{
+	geVec3d_Copy(vec, &m_Wind);
+}
+
+void CPlayer::ModifyWind(const geVec3d *vec)
+{
+	geVec3d_Add(vec, &m_Wind, &m_Wind);
+}
+
+void CPlayer::SetInitialWind(const geVec3d *vec)
+{
+	geVec3d_Copy(vec, &m_InitialWind);
+}
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

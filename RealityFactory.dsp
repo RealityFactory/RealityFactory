@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 genesis.lib strmbase.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libc" /out:"..\RealityFactory.exe"
+# ADD LINK32 genesis.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386 /nodefaultlib:"libc" /out:"..\RealityFactory.exe"
 # SUBTRACT LINK32 /pdb:none /incremental:yes /debug /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "RGF - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 genesisd.lib strmbasd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib quartz.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\RealityFactory.exe" /pdbtype:sept
+# ADD LINK32 genesisd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /debug /machine:I386 /nodefaultlib:"libcmt" /nodefaultlib:"libc" /out:"..\RealityFactoryD.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none /incremental:no
 
 !ENDIF 
@@ -200,6 +200,11 @@ SOURCE=.\Simkin\skInterpreterp.h
 # Begin Source File
 
 SOURCE=.\Simkin\skKeywords.inl
+# End Source File
+# Begin Source File
+
+SOURCE=.\Simkin\skLang_tab.cpp
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
@@ -812,6 +817,10 @@ SOURCE=.\CLevelController.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CLiftBelt.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CLiquid.cpp
 # End Source File
 # Begin Source File
@@ -861,6 +870,10 @@ SOURCE=.\CNetwork.cpp
 # Begin Source File
 
 SOURCE=.\Collider.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\COverlay.cpp
 # End Source File
 # Begin Source File
 
@@ -965,6 +978,10 @@ SOURCE=.\CWallDecal.cpp
 # Begin Source File
 
 SOURCE=.\CWeapon.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CWindGenerator.cpp
 # End Source File
 # Begin Source File
 
@@ -1224,6 +1241,10 @@ SOURCE=.\CLevelController.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CLiftBelt.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CLiquid.h
 # End Source File
 # Begin Source File
@@ -1273,6 +1294,10 @@ SOURCE=.\CNetwork.h
 # Begin Source File
 
 SOURCE=.\Collider.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\COverlay.h
 # End Source File
 # Begin Source File
 
@@ -1368,6 +1393,10 @@ SOURCE=.\Cweapon.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CWindGenerator.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\EffManager.h
 # End Source File
 # Begin Source File
@@ -1408,6 +1437,10 @@ SOURCE=.\RGFEvents.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\RGFScriptMethods.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\RGFStatus.h
 # End Source File
 # Begin Source File
@@ -1428,7 +1461,7 @@ SOURCE=.\Utilities.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\mjbeesticklesRF.ico
+SOURCE=.\rficon.ico
 # End Source File
 # End Group
 # End Target

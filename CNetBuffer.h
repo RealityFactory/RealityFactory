@@ -6,17 +6,25 @@
 #ifndef __RGF_CNETBUFFER_H_
 #define __RGF_CNETBUFFER_H_
 
-
-class  NetBuffer
+/**
+ * @brief NetBuffer class
+ */
+class NetBuffer
 {
 public:
 	// variables
-	/* Current position in the buffer */
+	/**
+	 * @brief Current position in the buffer
+	 */
 	unsigned char *dataptr;
     int Pos;
-	/* Current size of the buffer */
+	/**
+	 * @brief Current size of the buffer
+	 */
 	int Size;
-	/* Starting position of data in the buffer */
+	/**
+	 * @brief Starting position of data in the buffer
+	 */
 	unsigned char *Data;
 
 public:
@@ -41,13 +49,13 @@ public:
 	void *Add(geFloat value);
 	void *Add(geVec3d vect3d);
 	void *Add(geXForm3d xform);
-	void *AddString(char *message, int len);
+	void *AddString(const char *message, int len);
 	void *AddLen();
 	void PosBack(int len);
 
 protected:
 	// variables
-	/** Maximum size of the buffer (before expanding) */
+	/** @brief Maximum size of the buffer (before expanding) */
 	int MaxSize;
 };
 

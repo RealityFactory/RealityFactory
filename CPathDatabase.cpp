@@ -23,23 +23,23 @@ CPathDatabase::CPathDatabase()
 	geEntity *pEntity;
 	PathPoint *OldPoint = NULL;
 
-	m_nPathCount = 0;												// No paths yet
-	memset(&m_DB, 0, 1000 * sizeof(PathDatabaseRecord*));
-	memset(&m_Handles, 0, 500 * sizeof(PathDatabaseRecord*));
+	m_nPathCount = 0;							// No paths yet
+	memset(&m_DB, 0, MAX_PATHS * sizeof(PathDatabaseRecord*));
+	memset(&m_Handles, 0, MAX_OPEN_PATHS * sizeof(PathDatabaseRecord*));
 
-	//	Ok, check to see if there are pathpoints in this world
+	// Ok, check to see if there are pathpoints in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "PathPoint");
 
 	if(!pSet)
 		return;									// No pathpoints
 
-	//	Ok, scan through the pathpoints in the level.  As we hit any
-	//	..start nodes, create a new path in the database and then chase
-	//	..the name links to replicate the entire path in our database.
+	// Ok, scan through the pathpoints in the level.  As we hit any
+	// ..start nodes, create a new path in the database and then chase
+	// ..the name links to replicate the entire path in our database.
 
-	//	And yes, while this does indeed duplicate the data that's in the
-	//	..level file, the geEntity interface is not a neatly linked,
-	//	..searchable table so we're kind of stuck with this.
+	// And yes, while this does indeed duplicate the data that's in the
+	// ..level file, the geEntity interface is not a neatly linked,
+	// ..searchable table so we're kind of stuck with this.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -48,9 +48,9 @@ CPathDatabase::CPathDatabase()
 		if(pPoint->PointType != 0)
 			continue;							// Not a head-of-list point
 
-		//	Ok, this is the first point on a path.  Let's create a new
-		//	..path in our database, then chase the chain and add all
-		//	..the waypoints to the new path.
+		// Ok, this is the first point on a path.  Let's create a new
+		// ..path in our database, then chase the chain and add all
+		// ..the waypoints to the new path.
 		PathDatabaseRecord *pPathHead = CreateNewPath(pPoint->PointName,
 										pPoint->origin, pPoint->PointType, pPoint->Range);
 
@@ -62,7 +62,7 @@ CPathDatabase::CPathDatabase()
 			if(pPoint == NULL)
 			{
 				char szBug[256];
-				sprintf(szBug, "*WARNING* File %s - Line %d: %s: Failed to locate linked pathpoint '%s'\n",
+				sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to locate linked pathpoint '%s'\n",
 						__FILE__, __LINE__, OldPoint->PointName, OldPoint->NextPointName);
 				CCD->ReportError(szBug, false);
 				break;							// Can't find next point?
@@ -83,7 +83,7 @@ CPathDatabase::~CPathDatabase()
 {
 	PathDatabaseRecord *pTemp = NULL, *pSaved = NULL;
 
-	for(int nTemp=0; nTemp<1000; nTemp++)
+	for(int nTemp=0; nTemp<MAX_PATHS; nTemp++)
 	{
 		if(m_DB[nTemp] == NULL)
 			continue;						// Nothing to delete here
@@ -107,8 +107,12 @@ CPathDatabase::~CPathDatabase()
 //	Scan through all path points in the level, looking for the
 //	..specified point.  Return all the info on it when we find it.
 /* ------------------------------------------------------------------------------------ */
-int CPathDatabase::Locate(char *szPointName, int *nType, geVec3d *Position, geFloat *fRange)
+int CPathDatabase::Locate(const char *szPointName, int *nType, geVec3d *Position, geFloat *Range)
 {
+	assert(nType);
+	assert(Position);
+	assert(Range);
+
 	PathPoint *pPoint = FindPathPoint(szPointName);
 
 	if(pPoint == NULL)
@@ -117,7 +121,7 @@ int CPathDatabase::Locate(char *szPointName, int *nType, geVec3d *Position, geFl
 	// Point we have, stuff the values and return with 'em.
 	*nType = pPoint->PointType;
 	*Position = pPoint->origin;
-	*fRange = pPoint->Range;
+	*Range = pPoint->Range;
 
 	return RGF_SUCCESS;
 }
@@ -130,11 +134,13 @@ int CPathDatabase::Locate(char *szPointName, int *nType, geVec3d *Position, geFl
 //	..as well as a 'handle' to a control block that'll be used to move
 //	..around in the specified path.
 /* ------------------------------------------------------------------------------------ */
-int CPathDatabase::OpenPath(char *szPointName, geVec3d *Position)
+int CPathDatabase::OpenPath(const char *szPointName, geVec3d *Position)
 {
+	assert(Position);
+
 	int nTemp, nHandle;
 
-	for(nTemp=0; nTemp<1000; nTemp++)
+	for(nTemp=0; nTemp<MAX_PATHS; nTemp++)
 	{
 		if(m_DB[nTemp] == NULL)
 			continue;									// Empty, don't bother
@@ -143,11 +149,11 @@ int CPathDatabase::OpenPath(char *szPointName, geVec3d *Position)
 			continue;									// Wrong name, don't bother
 
 		//	Ok, right name!  Now let's see if we have any free handles...
-		for(nHandle=0; nHandle<500; nHandle++)
+		for(nHandle=0; nHandle<MAX_OPEN_PATHS; nHandle++)
 			if(m_Handles[nHandle] == NULL)
 				break;
 
-		if(nHandle >= 500)
+		if(nHandle >= MAX_OPEN_PATHS)
 			break;										// Bail the loop, return an error
 
 		// Ok, we've got a point and we've got a handle. Do the deed!
@@ -168,7 +174,9 @@ int CPathDatabase::OpenPath(char *szPointName, geVec3d *Position)
 /* ------------------------------------------------------------------------------------ */
 int CPathDatabase::NextPoint(int nPathHandle, geVec3d *Position)
 {
-	if((nPathHandle < 0) || (nPathHandle > 500))
+	assert(Position);
+
+	if((nPathHandle < 0) || (nPathHandle >= MAX_OPEN_PATHS))
 		return RGF_FAILURE;				// Bad handle!
 
 	if(m_Handles[nPathHandle] == NULL)
@@ -194,14 +202,16 @@ int CPathDatabase::NextPoint(int nPathHandle, geVec3d *Position)
 /* ------------------------------------------------------------------------------------ */
 int CPathDatabase::PreviousPoint(int nPathHandle, geVec3d *Position)
 {
-	if((nPathHandle < 0) || (nPathHandle > 500))
+	assert(Position);
+
+	if((nPathHandle < 0) || (nPathHandle >= MAX_OPEN_PATHS))
 		return RGF_FAILURE;				// Bad handle!
 
 	if(m_Handles[nPathHandle] == NULL)
 		return RGF_FAILURE;				// Still a bad handle
 
 	if(m_Handles[nPathHandle]->pPrevious == NULL)
-		return RGF_NO_PREVIOUS;				// No previous record
+		return RGF_NO_PREVIOUS;			// No previous record
 
 	// Ok, all be hunky-dory.  Move to the previous point in the path.
 
@@ -220,7 +230,9 @@ int CPathDatabase::PreviousPoint(int nPathHandle, geVec3d *Position)
 /* ------------------------------------------------------------------------------------ */
 int CPathDatabase::Rewind(int nPathHandle, geVec3d *Position)
 {
-	if((nPathHandle < 0) || (nPathHandle > 500))
+	assert(Position);
+
+	if((nPathHandle < 0) || (nPathHandle >= MAX_OPEN_PATHS))
 		return RGF_FAILURE;				// Bad handle!
 
 	if(m_Handles[nPathHandle] == NULL)
@@ -241,15 +253,17 @@ int CPathDatabase::Rewind(int nPathHandle, geVec3d *Position)
 //	Passed the handle of an open path, return the range value associated
 //	..with that point, if any.
 /* ------------------------------------------------------------------------------------ */
-int CPathDatabase::GetPointRange(int nPathHandle, geFloat *fRange)
+int CPathDatabase::GetPointRange(int nPathHandle, geFloat *Range)
 {
-	if((nPathHandle < 0) || (nPathHandle > 500))
+	assert(Range);
+
+	if((nPathHandle < 0) || (nPathHandle >= MAX_OPEN_PATHS))
 		return RGF_FAILURE;				// Bad handle!
 
 	if(m_Handles[nPathHandle] == NULL)
 		return RGF_FAILURE;				// Still a bad handle
 
-	*fRange = m_Handles[nPathHandle]->Range;
+	*Range = m_Handles[nPathHandle]->Range;
 
 	return RGF_SUCCESS;
 }
@@ -261,7 +275,7 @@ int CPathDatabase::GetPointRange(int nPathHandle, geFloat *fRange)
 /* ------------------------------------------------------------------------------------ */
 int CPathDatabase::ClosePath(int nPathHandle)
 {
-	if((nPathHandle < 0) || (nPathHandle > 500))
+	if((nPathHandle < 0) || (nPathHandle >= MAX_OPEN_PATHS))
 		return RGF_FAILURE;				// Bad handle!
 
 	if(m_Handles[nPathHandle] == NULL)
@@ -280,11 +294,11 @@ int CPathDatabase::ClosePath(int nPathHandle)
 //	Allocate a new path in the in-memory path database, using the
 //	..passed-in data to set up the first point in the path.
 /* ------------------------------------------------------------------------------------ */
-PathDatabaseRecord *CPathDatabase::CreateNewPath(char *szPointName, const geVec3d &Position,
+PathDatabaseRecord *CPathDatabase::CreateNewPath(const char *szPointName, const geVec3d &Position,
 												 int nType, geFloat Range)
 {
 	// Ok, look for a free entry in our path table
-	for(int nTemp=0; nTemp<1000; nTemp++)
+	for(int nTemp=0; nTemp<MAX_PATHS; nTemp++)
 	{
 		if(m_DB[nTemp] == NULL)
 		{
@@ -293,7 +307,8 @@ PathDatabaseRecord *CPathDatabase::CreateNewPath(char *szPointName, const geVec3
 			m_DB[nTemp]->nType = nType;
 			m_DB[nTemp]->Position = Position;
 			m_DB[nTemp]->Range = Range;
-			strcpy(m_DB[nTemp]->szName, szPointName);
+			strncpy(m_DB[nTemp]->szName, szPointName, 127);
+			m_DB[nTemp]->szName[127] = '\0';
 			m_DB[nTemp]->pPrevious = m_DB[nTemp]->pNext = NULL;
 
 			return m_DB[nTemp];					// Back to caller
@@ -312,7 +327,7 @@ PathDatabaseRecord *CPathDatabase::CreateNewPath(char *szPointName, const geVec3
 //	..record to have the new record as it's 'next', and the new
 //	..record to have the previous record as it's 'previous'.
 /* ------------------------------------------------------------------------------------ */
-int CPathDatabase::AddToPath(PathDatabaseRecord *pHead, char *szPointName,
+int CPathDatabase::AddToPath(PathDatabaseRecord *pHead, const char *szPointName,
 							 const geVec3d &Position, int nType, geFloat fRange)
 {
 	while(pHead->pNext != NULL)
@@ -329,8 +344,8 @@ int CPathDatabase::AddToPath(PathDatabaseRecord *pHead, char *szPointName,
 	pNew->nType = nType;
 	pNew->Position = Position;
 	pNew->Range = fRange;
-	strcpy(pNew->szName, szPointName);
-
+	strncpy(pNew->szName, szPointName, 127);
+	pNew->szName[127] = '\0';
 	// Done, time to leave.
 	return RGF_SUCCESS;
 }
@@ -340,7 +355,7 @@ int CPathDatabase::AddToPath(PathDatabaseRecord *pHead, char *szPointName,
 //
 //	Search the currently loaded level for a specific point and return it.
 /* ------------------------------------------------------------------------------------ */
-PathPoint *CPathDatabase::FindPathPoint(char *szPointName)
+PathPoint *CPathDatabase::FindPathPoint(const char *szPointName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -349,7 +364,7 @@ PathPoint *CPathDatabase::FindPathPoint(char *szPointName)
 	pSet = geWorld_GetEntitySet(CCD->World(), "PathPoint");
 
 	if(!pSet)
-		return NULL;									// No pathpoints
+		return NULL;				// No pathpoints
 
 	// Grovel through the pathpoints looking for the one we want...
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

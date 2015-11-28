@@ -21,7 +21,7 @@
 #include "skTracer.h"
 #ifdef STL_STREAMS
 #include <iostream>
-using namespace std;
+//using namespace std;
 #endif
 
 //------------------------------------------
@@ -29,8 +29,13 @@ void skTracer::trace(const skString& s)
 //------------------------------------------
 {
 #ifdef STREAMS_ENABLED
-  cout << s;
-  cout.flush();
+#ifdef STL_STREAMS
+	std::cout << s;
+	std::cout.flush();
+#else
+	cout << s;
+	cout.flush();
+#endif
 #else
 #ifdef UNICODE_STRINGS
 #ifdef _WIN32_WCE
@@ -52,8 +57,13 @@ void skTracer::trace(const Char * s)
 //------------------------------------------
 {
 #ifdef STREAMS_ENABLED
+#ifdef STL_STREAMS
+  std::cout << s;
+  std::cout.flush();
+#else
   cout << s;
   cout.flush();
+#endif
 #else
 #ifdef UNICODE_STRINGS
 #ifdef _WIN32_WCE

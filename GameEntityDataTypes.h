@@ -501,6 +501,7 @@ typedef struct _Teleporter
 // end change
 } Teleporter;
 
+
 #pragma GE_Type("..\\icons\\sf_teletargt.bmp")
 typedef struct _TeleportTarget
 {
@@ -1264,7 +1265,8 @@ typedef struct _EnvironmentSetup
 {
 #pragma GE_Published
 	geVec3d		origin;					// Required origin
-	geFloat		Gravity;				// Player gravity
+	geVec3d		WindSpeed;
+	geVec3d		Gravity;				// Player gravity
 	geFloat		Speed;					// Player speed
 	geFloat		JumpSpeed;				// Player jump speed
 	geFloat		StepHeight;				// Player stair step-up height
@@ -1301,7 +1303,8 @@ typedef struct _EnvironmentSetup
 	int			SShadowsMaxLightToUse;
 // end change
 #pragma GE_Origin(origin)
-#pragma GE_DefaultValue(Gravity, "0")
+#pragma GE_DefaultValue(WindSpeed, "0.0 0.0 0.0")
+#pragma GE_DefaultValue(Gravity, "0.0 0.0 0.0")
 #pragma GE_DefaultValue(Speed, "0")
 #pragma GE_DefaultValue(JumpSpeed, "0")
 #pragma GE_DefaultValue(StepHeight, "0")
@@ -1337,7 +1340,8 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(SShadowsAlpha, "96.0")
 #pragma GE_DefaultValue(SShadowsMaxLightToUse, "0")
 // end change
-#pragma GE_Documentation(Gravity, "Downward force of gravity")
+#pragma GE_Documentation(WindSpeed, "Strength of wind")
+#pragma GE_Documentation(Gravity, "Gravity vector")
 #pragma GE_Documentation(RealJumping, "if true use realistic jumping")
 #pragma GE_Documentation(Speed, "Player speed of motion")
 #pragma GE_Documentation(JumpSpeed, "Player upward jump speed")
@@ -1975,30 +1979,33 @@ typedef struct Rain
 	geWorld_Model	*Model;			// Name of model to attach to
 	char			*BoneName;		// Name of actor bone to attach to
 	char 			*TriggerName;	// Name of trigger entity
+	geBoolean		UseWind;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue( Gravity, "0.0 -60.0 0.0" )
-#pragma GE_DefaultValue( Radius, "100.0" )
-#pragma GE_DefaultValue( Severity, "0.5" )
-#pragma GE_DefaultValue( DropLife, "1.0" )
-#pragma GE_DefaultValue( ColorMin, "255.0 255.0 255.0" )
-#pragma GE_DefaultValue( ColorMax, "255.0 255.0 255.0" )
+#pragma GE_DefaultValue(Gravity, "0.0 -60.0 0.0" )
+#pragma GE_DefaultValue(Radius, "100.0" )
+#pragma GE_DefaultValue(Severity, "0.5" )
+#pragma GE_DefaultValue(DropLife, "1.0" )
+#pragma GE_DefaultValue(ColorMin, "255.0 255.0 255.0" )
+#pragma GE_DefaultValue(ColorMax, "255.0 255.0 255.0" )
 #pragma GE_DefaultValue(EntityName, "")
 #pragma GE_DefaultValue(BoneName, "")
 #pragma GE_DefaultValue(TriggerName, "")
+#pragma GE_DefaultValue(UseWind, "False")
 #pragma GE_Documentation(szEntityName, "Name of this entity, if any")
-#pragma GE_Documentation( Gravity, "The velocity applied to each drop each second (world units)" )
-#pragma GE_Documentation( Radius, "The redius of the rain coverage aren (world units)" )
-#pragma GE_Documentation( Severity, "How severe the rain is, 0.0 being tame, 1.0 being insanity" )
-#pragma GE_Documentation( DropLife, "How long a drop lasts (seconds)" )
-#pragma GE_Documentation( ColorMin, "Minimum RGB for each drop" )
-#pragma GE_Documentation( ColorMax, "Maximum RGB for each drop" )
-#pragma GE_Documentation( BmpName, "Name of bitmap file to use" )
-#pragma GE_Documentation( AlphaName, "Name of alpha bitmap file to use" )
+#pragma GE_Documentation(Gravity, "The velocity applied to each drop each second (world units)" )
+#pragma GE_Documentation(Radius, "The redius of the rain coverage aren (world units)" )
+#pragma GE_Documentation(Severity, "How severe the rain is, 0.0 being tame, 1.0 being insanity" )
+#pragma GE_Documentation(DropLife, "How long a drop lasts (seconds)" )
+#pragma GE_Documentation(ColorMin, "Minimum RGB for each drop" )
+#pragma GE_Documentation(ColorMax, "Maximum RGB for each drop" )
+#pragma GE_Documentation(BmpName, "Name of bitmap file to use" )
+#pragma GE_Documentation(AlphaName, "Name of alpha bitmap file to use" )
 #pragma GE_Documentation(EntityName, "Name of entity to attach to")
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+#pragma GE_Documentation(UseWind, "if TRUE then entity is affected by wind")
 } Rain;
 
 
@@ -2040,6 +2047,7 @@ typedef struct Spout
 	geWorld_Model	*Model;			// Name of model to attach to
 	char 			*BoneName;		// Name of actor bone to attach to
 	char 			*TriggerName;	// Name of trigger entity
+	geBoolean		UseWind;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_Angles(Angles)
@@ -2062,6 +2070,7 @@ typedef struct Spout
 #pragma GE_DefaultValue(BoneName, "")
 #pragma GE_DefaultValue(TriggerName, "")
 #pragma GE_DefaultValue(Bounce, "False")
+#pragma GE_DefaultValue(UseWind, "False")
 #pragma GE_Documentation(szEntityName, "Name of this entity, if any")
 #pragma GE_Documentation(Angles, "Direction in which particles will shoot" )
 #pragma GE_Documentation(ParticleCreateRate, "Every how many seconds to add a new particle" )
@@ -2086,6 +2095,7 @@ typedef struct Spout
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+#pragma GE_Documentation(UseWind, "if TRUE then entity is affected by wind")
 } Spout;
 
 
@@ -2130,54 +2140,54 @@ typedef struct Flame
 	geWorld_Model	*Model;			// Name of model to attach to
 	char 			*BoneName;		// Name of actor bone to attach to
 	char 			*TriggerName;	// Name of trigger entity
+	geBoolean		UseWind;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_Angles(Angles)
-#pragma GE_DefaultValue( Angles, "-90.0.0 0.0" )
-#pragma GE_DefaultValue( Scale, "1.0" )
-#pragma GE_DefaultValue( ParticleCreateRate, "0.05" )
-#pragma GE_DefaultValue( MinScale, "0.5" )
-#pragma GE_DefaultValue( MaxScale, "0.5" )
-#pragma GE_DefaultValue( MinSpeed, "10.0" )
-#pragma GE_DefaultValue( MaxSpeed, "30.0" )
-#pragma GE_DefaultValue( MinUnitLife, "0.5" )
-#pragma GE_DefaultValue( MaxUnitLife, "1.0" )
-#pragma GE_DefaultValue( SourceVariance, "3" )
-#pragma GE_DefaultValue( DestVariance, "20" )
-#pragma GE_DefaultValue( ColorMin, "255.0 255.0 255.0" )
-#pragma GE_DefaultValue( ColorMax, "255.0 255.0 255.0" )
-#pragma GE_DefaultValue( Gravity, "0.0.0 0.0" )
-#pragma GE_DefaultValue( TotalLife, "0.0" )
+#pragma GE_DefaultValue(Angles, "-90.0.0 0.0")
+#pragma GE_DefaultValue(Scale, "1.0" )
+#pragma GE_DefaultValue(ParticleCreateRate, "0.05")
+#pragma GE_DefaultValue(MinScale, "0.5")
+#pragma GE_DefaultValue(MaxScale, "0.5")
+#pragma GE_DefaultValue(MinSpeed, "10.0")
+#pragma GE_DefaultValue(MaxSpeed, "30.0")
+#pragma GE_DefaultValue(MinUnitLife, "0.5")
+#pragma GE_DefaultValue(MaxUnitLife, "1.0")
+#pragma GE_DefaultValue(SourceVariance, "3")
+#pragma GE_DefaultValue(DestVariance, "20")
+#pragma GE_DefaultValue(ColorMin, "255.0 255.0 255.0")
+#pragma GE_DefaultValue(ColorMax, "255.0 255.0 255.0")
+#pragma GE_DefaultValue(Gravity, "0.0 0.0 0.0")
+#pragma GE_DefaultValue(TotalLife, "0.0")
 #pragma GE_DefaultValue(EntityName, "")
 #pragma GE_DefaultValue(BoneName, "")
 #pragma GE_DefaultValue(TriggerName, "")
+#pragma GE_DefaultValue(UseWind, "False")
+#pragma GE_DefaultValue(GRadiusMin, "150.0")
+#pragma GE_DefaultValue(GRadiusMax, "300.0")
+#pragma GE_DefaultValue(GColorMin, "255.0 255.0 255.0")
+#pragma GE_DefaultValue(GColorMax, "255.0 255.0 255.0")
+#pragma GE_DefaultValue(GIntensity, "1.0")
+#pragma GE_DefaultValue(GCastShadows, "True")
 #pragma GE_Documentation(szEntityName, "Name of this entity, if any")
-#pragma GE_Documentation( Angles, "Direction in which particles will shoot" )
-#pragma GE_Documentation( Scale, "Scale of the flame" )
-#pragma GE_Documentation( BoneName, "Which bone on the actor to hook to" )
-#pragma GE_Documentation( ParticleCreateRate, "Every how many seconds to add a new particle" )
-#pragma GE_Documentation( MinScale, "Min scale of the textures" )
-#pragma GE_Documentation( MaxScale, "Max scale of the textures" )
-#pragma GE_Documentation( MinSpeed, "Min speed of the textures" )
-#pragma GE_Documentation( MaxSpeed, "Max speed of the textures" )
-#pragma GE_Documentation( MinUnitLife, "Min life of each texture" )
-#pragma GE_Documentation( MaxUnitLife, "Max life of each texture" )
-#pragma GE_Documentation( SourceVariance, "How much to vary spray source point" )
-#pragma GE_Documentation( DestVariance, "How much to vary spray dest point" )
-#pragma GE_Documentation( ColorMin, "Minimum RGB values for each particle" )
-#pragma GE_Documentation( ColorMax, "Maximum RGB values for each particle" )
-#pragma GE_Documentation( Gravity, "Gravity vector to apply to each particle" )
-#pragma GE_Documentation( BmpName, "Name of bitmap file to use" )
-#pragma GE_Documentation( AlphaName, "Name of alpha bitmap file to use" )
-#pragma GE_Documentation( TotalLife, "How many seconds this spout lasts. Set to 0 for continuous." )
-
-#pragma GE_DefaultValue( GRadiusMin, "150.0" )
-#pragma GE_DefaultValue( GRadiusMax, "300.0" )
-#pragma GE_DefaultValue( GColorMin, "255.0 255.0 255.0" )
-#pragma GE_DefaultValue( GColorMax, "255.0 255.0 255.0" )
-#pragma GE_DefaultValue( GIntensity, "1.0" )
-#pragma GE_DefaultValue( GCastShadows, "True" )
-
+#pragma GE_Documentation(Angles, "Direction in which particles will shoot")
+#pragma GE_Documentation(Scale, "Scale of the flame")
+#pragma GE_Documentation(BoneName, "Which bone on the actor to hook to")
+#pragma GE_Documentation(ParticleCreateRate, "Every how many seconds to add a new particle")
+#pragma GE_Documentation(MinScale, "Min scale of the textures")
+#pragma GE_Documentation(MaxScale, "Max scale of the textures")
+#pragma GE_Documentation(MinSpeed, "Min speed of the textures")
+#pragma GE_Documentation(MaxSpeed, "Max speed of the textures")
+#pragma GE_Documentation(MinUnitLife, "Min life of each texture")
+#pragma GE_Documentation(MaxUnitLife, "Max life of each texture")
+#pragma GE_Documentation(SourceVariance, "How much to vary spray source point")
+#pragma GE_Documentation(DestVariance, "How much to vary spray dest point")
+#pragma GE_Documentation(ColorMin, "Minimum RGB values for each particle")
+#pragma GE_Documentation(ColorMax, "Maximum RGB values for each particle")
+#pragma GE_Documentation(Gravity, "Gravity vector to apply to each particle")
+#pragma GE_Documentation(BmpName, "Name of bitmap file to use")
+#pragma GE_Documentation(AlphaName, "Name of alpha bitmap file to use")
+#pragma GE_Documentation(TotalLife, "How many seconds this spout lasts. Set to 0 for continuous.")
 #pragma GE_Documentation(GRadiusMin, "Min light radius")
 #pragma GE_Documentation(GRadiusMax, "Max light radius")
 #pragma GE_Documentation(GColorMin, "Min color values")
@@ -2188,6 +2198,7 @@ typedef struct Flame
 #pragma GE_Documentation(Model, "Name of model to attach to")
 #pragma GE_Documentation(BoneName, "Name of actor bone to attach to")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
+#pragma GE_Documentation(UseWind, "if TRUE then entity is affected by wind")
 } Flame;
 
 //	Trigger - sets state to true when hit
@@ -3018,6 +3029,7 @@ typedef struct _ScreenShake
 #pragma GE_Documentation(ShakeDecay, "Speed of decay of shaking, higher is faster")
 } ScreenShake;
 
+
 //	Possible brush contents
 
 #pragma GE_BrushContents
@@ -3095,6 +3107,7 @@ typedef struct _FixedCamera
 #pragma GE_Documentation(AngleRotation, "if False then use rotation from actor")
 // end change RF064
 } FixedCamera;
+
 
 //
 // View Switch
@@ -3188,6 +3201,7 @@ typedef struct _Liquid
 #pragma GE_Documentation(SurfaceSound, "Name of sound played when on surface in liquid")
 #pragma GE_Documentation(InLiquidSound, "Name of sound played when walking in liquid")
 } Liquid;
+
 
 //
 // ModifyAttribute
@@ -3757,6 +3771,7 @@ typedef struct _LiftBelt
 //
 // Dynamic Spotlight by QD
 //
+
 #pragma GE_Type("..\\icons\\sf_dynlight.bmp")
 typedef struct _DSpotLight
 {
@@ -3824,6 +3839,37 @@ typedef struct _DSpotLight
 #pragma GE_Documentation(angles, "direction of light; offset direction, if attached to a model or an actor")
 #pragma GE_Documentation(style, "falloff style: 0=normal, 1=soft, 2=hard")
 }	DSpotLight;
+
+//
+// WindGenerator
+//
+
+#pragma GE_Type("..\\icons\\default.bmp")
+typedef struct _WindGenerator
+{
+#pragma GE_Published
+	geVec3d		origin;
+	geVec3d		AnchorValue;
+	geFloat		ThinkTime;
+	geFloat		ChangeSpeed;
+	geFloat		MinPauseTime;
+	geFloat		MaxPauseTime;
+	geVec3d		MinWindSpeed;
+	geVec3d		MaxWindSpeed;
+	char		*szEntityName;
+#pragma GE_Origin(origin)
+#pragma GE_DefaultValue(AnchorValue, "0.0 0.0 0.0")
+#pragma GE_DefaultValue(ThinkTime, "0.1")
+#pragma GE_DefaultValue(ChangeSpeed, "5.0")
+#pragma GE_DefaultValue(MinPauseTime, "0.0")
+#pragma GE_DefaultValue(MaxPauseTime, "2.0")
+#pragma GE_DefaultValue(MinWindSpeed, "0.0 0.0 0.0")
+#pragma GE_DefaultValue(MaxWindSpeed, "0.0 0.0 0.0")
+#pragma GE_DefaultValue(szEntityName, "")
+
+#pragma GE_Documentation(origin, "Location of effect")
+#pragma GE_Documentation(szEntityName, "Name of this entity, if any")
+} WindGenerator;
 
 /*
 // specials for curved surfaces

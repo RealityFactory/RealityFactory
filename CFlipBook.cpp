@@ -7,7 +7,8 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CFlipBook Constructor
@@ -148,12 +149,10 @@ CFlipBook::~CFlipBook()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFlipBook::Tick(float dwTicksIn)
+void CFlipBook::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-
-	float dwTicks = dwTicksIn;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
@@ -231,7 +230,7 @@ void CFlipBook::Tick(float dwTicksIn)
 				S->Time += dwTicks;
 
 // changed RF064
-				if(S->Time >= (1000.f/S->Speed))//(1000.0f*(1.0f/S->Speed))) // changed QD 12/15/05
+				if(S->Time >= (1000.f/S->Speed))
 // end change RF064
 				{
 					S->Time = 0.0f;
@@ -271,7 +270,7 @@ void CFlipBook::Tick(float dwTicksIn)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CFlipBook::LocateEntity(char *szName, void **pEntityData)
+int CFlipBook::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

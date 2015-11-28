@@ -29,13 +29,16 @@
 
 #ifdef STL_STREAMS
 #include <ostream>
-using namespace std;
+//using namespace std;
 #else
 #include <iostream.h>
 #endif
 
 #endif
+// changed QD 02/01/07
+//#include <string.h>
 #include <string>
+// end change
 
 #ifdef UNICODE_STRINGS
 typedef wchar_t Char;
@@ -470,7 +473,11 @@ CLASSEXPORT IMPORT_C skString operator+(const Char *& s1,const skString& s2);
 /*
  * A streaming operator to write a string to an output stream
  */
+#ifdef STL_STREAMS
+CLASSEXPORT std::ostream& operator<<(std::ostream& out, const skString& s);
+#else
 CLASSEXPORT ostream& operator<<(ostream& out,const skString& s);
+#endif
 #endif
 /*
  * Some helper macros for declaring literal strings, and references to literal strings

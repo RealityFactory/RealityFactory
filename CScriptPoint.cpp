@@ -5,7 +5,8 @@
 
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -54,7 +55,7 @@ CScriptPoint::~CScriptPoint()
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CScriptPoint::LocateEntity(char *szName, void **pEntityData)
+int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -277,7 +278,7 @@ void CScriptPoint::SetOrigin()
 /* ------------------------------------------------------------------------------------ */
 //	GetOrigin
 /* ------------------------------------------------------------------------------------ */
-geVec3d CScriptPoint::GetOrigin(char *Name)
+geVec3d CScriptPoint::GetOrigin(const char *Name)
 {
 	SPOrigin *pool;
 	geVec3d zero = {0.0f, 0.0f, 0.0f};
@@ -299,7 +300,7 @@ geVec3d CScriptPoint::GetOrigin(char *Name)
 			}
 
 			char szError[256];
-			sprintf(szError, "*WARNING* Invalid ScriptPoint Name '%s'\n", Name);
+			sprintf(szError, "[WARNING] Invalid ScriptPoint Name '%s'\n", Name);
 			CCD->ReportError(szError, false);
 			return zero;
 		}

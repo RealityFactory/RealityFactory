@@ -82,7 +82,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	{
 		vidsetup = true;
 	}
-
+// changed JRW 02/20/07
+	else
+	{
+		fclose(fd);
+	}
+// end change
 
 	ShowCursor(FALSE);						// Turn off the mouse cursor
 

@@ -11,21 +11,18 @@
 #include "HawkNL\\nl.h"
 // end multiplayer
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
 #endif
 
 // #define BLIT
 
 // start add Nout - Show save game image
-// changed QD 12/15/05
-//static void CopyFile(const char *srcPath, const char *destPath);
 static void CopyImageFile(const char *srcPath, const char *destPath);
-// end change
 void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height);
 // end add Nout
 
@@ -86,26 +83,18 @@ typedef enum
 {
 	END_LIST=0,
 	CLICKABLE,
-// begin add Nout - Show save game image
 	SAVEGAMEIMAGE,
-//end add Nout
 	IMAGE,
-// changed RF063
 	CHARIMAGE,
 	SLIDER,
 	BOX,
-// changed QD Language Menu
 	RADIO,
-// end change QD
 	TEXT,
-// Start Multiplayer
 	TEXTEDIT,
-// end Multiplayer
 	REMAP,
 	SCROLLBAR,
 	LSBOX,
 	EXIT_MENU,
-// changed RF063
 	CANCEL_MENU
 
 } MENU_ITEM_TYPE;
@@ -221,7 +210,6 @@ typedef struct Box
 
 } Box;
 
-// changed QD Language Menu
 //--------------------------
 // Radio button menu type
 //--------------------------
@@ -244,16 +232,15 @@ typedef struct Radio
 	int AnimationLit;
 
 } Radio;
-// end change QD
 
 //--------------------------
 // Text menu type
 //--------------------------
 typedef struct Text
 {
-	int Font;		// font to use
-	char *text;		// text to display
-	int ingame;		// display if in game only
+	int Font;			// font to use
+	char *text;			// text to display
+	int ingame;			// display if in game only
 
 } Text;
 
@@ -262,11 +249,9 @@ typedef struct Text
 //--------------------------
 typedef struct Savedef
 {
-	char *text;		// text to display in line
-	int empty;		// = 0 if unused
-// changed QD 12/15/05
+	char *text;			// text to display in line
+	int empty;			// = 0 if unused
 	geBitmap *SGImage;
-// end change
 
 } Savedef;
 
@@ -285,8 +270,8 @@ typedef struct Keydef
 //-----------------------------
 typedef struct Keyname
 {
-	char *text;		// name of key
-	KEYCODES key;	// value of key
+	char *text;			// name of key
+	KEYCODES key;		// value of key
 
 } Keyname;
 
@@ -650,9 +635,10 @@ Keyname TextEditKeys[] =
 };
 // end Multiplayer
 
+// names of all actions
+char* RedefNames[50];
 // names of all the currently defined actions
 Keydef Redef[50];
-
 //-------------------------------------
 // Control Menu
 //-------------------------------------
@@ -760,7 +746,6 @@ MenuItem DebugMenu[] =
 	{END_LIST,	0, 0, NULL}
 };
 
-// changed QD Language Menu
 //-------------------------------------
 // Language Menu
 //-------------------------------------
@@ -791,7 +776,7 @@ MenuItem LanguageMenu[] =
 	{TEXT,      0, 0, (void*)&L5text},
 	{END_LIST,	0, 0, NULL}
 };
-// end change QD
+
 
 //-------------------------------------
 // Options Menu
@@ -801,7 +786,6 @@ Clickable AudioItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, AudioMenu, NULL, 0, -1, -1
 Clickable VideoItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, VideoMenu, NULL, 0, -1, -1};
 Clickable ControlItem	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ControlMenu, NULL, 0, -1, -1};
 Clickable DebugItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, DebugMenu, NULL, 0, -1, -1};
-// changed QD Language Menu
 Clickable LanguageItem	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, LanguageMenu, NULL, 0, -1, -1};
 
 MenuItem OptionMenu[] =
@@ -814,7 +798,6 @@ MenuItem OptionMenu[] =
 	{EXIT_MENU, 0, 0, (void*)&QuitOption},
 	{END_LIST, 0, 0, NULL}
 };
-// end change
 
 //---------------------
 // saved game default
@@ -1046,7 +1029,7 @@ char *NextToken()
 	if(temp == (char*)NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Missing menu token in line\n %s",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Missing menu token in line\n %s",
 				__FILE__, __LINE__, errortext);
 		CCD->ReportError(szBug, false);
 		exit(-100);
@@ -1066,7 +1049,7 @@ char *NextString()
 	if(temp == (char*)NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Missing menu token in line\n %s",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Missing menu token in line\n %s",
 				__FILE__, __LINE__, errortext);
 		CCD->ReportError(szBug, false);
 		exit(-100);
@@ -1155,7 +1138,7 @@ int NextFont()
 	else
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Bad font size name %s",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Bad font size name %s",
 				__FILE__, __LINE__, szArg);
 		CCD->ReportError(szBug, false);
 		exit(-100);
@@ -1197,6 +1180,7 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	}
 // end multiplayer
 
+	bShowCursor		= false;
 // changed QD 07/15/06
 	theMIDIPlayer	= NULL;
 	m_Streams		= NULL;
@@ -1249,9 +1233,7 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	filter_text.text			= strdup("Mouse filter");
 	rev_text.text				= strdup("Reverse mouse");
 	xhair_text.text				= strdup("Crosshair");
-// changed QD Shadows
 	shadow_text.text			= strdup("Enable Stencil Shadows");
-// end change QD Shadows
 
 	L1text.text = NULL;
 	L2text.text = NULL;
@@ -1308,7 +1290,7 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 
 		if(!AttrFile.ReadFile())
 		{
-			CCD->ReportError("*ERROR* Failed to open character.ini file", false);
+			CCD->ReportError("[ERROR] Failed to open character.ini file", false);
 			delete CCD;
 			CCD = NULL;
 			MessageBox(NULL, "Missing character INI file", "Fatal Error", MB_OK);
@@ -1316,8 +1298,8 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 		}
 
 		MaxSelect = CurrentSelect = 0;
-		string KeyName = AttrFile.FindFirstKey();
-		string Type, Vector;
+		std::string KeyName = AttrFile.FindFirstKey();
+		std::string Type, Vector;
 		char szName[64];
 
 		while(KeyName != "")
@@ -1334,12 +1316,12 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				if(!CharSelect[MaxSelect].Bitmap)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* File %s - Line %d: Bad character image file name %s",
+					sprintf(szBug, "[ERROR] File %s - Line %d: Bad character image file name %s",
 							__FILE__, __LINE__, szName);
 					CCD->ReportError(szBug, false);
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, "Bad character image file name","Fatal Error", MB_OK);
+					MessageBox(NULL, "Bad character image file name", "Fatal Error", MB_OK);
 					exit(-100);
 				}
 
@@ -1349,12 +1331,12 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				if(Type == "")
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* File %s - Line %d: Missing character actor name %s",
+					sprintf(szBug, "[ERROR] File %s - Line %d: Missing character actor name %s",
 							__FILE__, __LINE__, szName);
 					CCD->ReportError(szBug, false);
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, "Missing character actor name","Fatal Error", MB_OK);
+					MessageBox(NULL, "Missing character actor name", "Fatal Error", MB_OK);
 					exit(-100);
 				}
 
@@ -1512,7 +1494,7 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 
 		if(MaxSelect == 0)
 		{
-			CCD->ReportError("*ERROR* No characters defined", false);
+			CCD->ReportError("[ERROR] No characters defined", false);
 			delete CCD;
 			CCD = NULL;
 			MessageBox(NULL, "No characters defined","Fatal Error", MB_OK);
@@ -1547,7 +1529,7 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 //	LoadMenuIni
 /* ------------------------------------------------------------------------------------ */
 // changed QD Language Menu
-void CRFMenu::LoadMenuIni(char *menuini)
+void CRFMenu::LoadMenuIni(const char *menuini)
 {
 // 08.05.2004 - begin change gekido
 	CCD->ReportError("Parsing Menu.ini...", false);
@@ -1609,7 +1591,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(TB == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1639,7 +1621,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(Backgrounds[index] == (geBitmap*)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1658,7 +1640,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(Images[index] == (geBitmap *)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1677,7 +1659,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(Titles[index] == (geBitmap*)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1700,14 +1682,14 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(MenuFont[index].Bitmap == (geBitmap*)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
 
 				geEngine_AddBitmap(CCD->Engine()->Engine(), MenuFont[index].Bitmap);
 
-				for(int jj=0; jj<96; jj++)
+				for(int jj=0; jj<CHAR_RANGE; jj++)
 					MenuFont[index].WBitmap[jj] = NULL;
 
 				strcpy(menuline, "fonts\\");
@@ -1717,11 +1699,27 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				CCD->OpenRFFile(&datFile, kBitmapFile, menuline, GE_VFILE_OPEN_READONLY);
 				geVFile_Read(datFile, &MenuFont[index].font_height, sizeof(int));
 
+				memset(MenuFont[index].dat, 0, sizeof(CharDat)*CHAR_RANGE);
+
 				for(int c=0; c<96; c++)
 				{
 					geVFile_Read(datFile, &MenuFont[index].dat[c].width,sizeof(int));
 					geVFile_Read(datFile, &MenuFont[index].dat[c].x,	sizeof(int));
 					geVFile_Read(datFile, &MenuFont[index].dat[c].y,	sizeof(int));
+				}
+
+				if(geVFile_Read(datFile, &MenuFont[index].dat[96].width,	sizeof(int)))
+				{
+					geVFile_Read(datFile, &MenuFont[index].dat[96].x,		sizeof(int));
+					geVFile_Read(datFile, &MenuFont[index].dat[96].y,		sizeof(int));
+
+					// read extended character set if available
+					for(int cext=97; cext<CHAR_RANGE; cext++)
+					{
+						geVFile_Read(datFile, &MenuFont[index].dat[cext].width,	sizeof(int));
+						geVFile_Read(datFile, &MenuFont[index].dat[cext].x,		sizeof(int));
+						geVFile_Read(datFile, &MenuFont[index].dat[cext].y,		sizeof(int));
+					}
 				}
 
 				geVFile_Close(datFile);
@@ -1788,7 +1786,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(Cursor == (geBitmap*)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -1807,7 +1805,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(Crosshair == (geBitmap*)NULL)
 				{
 					char szBug[256];
-					sprintf(szBug, "*ERROR* Bad file name %s", menuline);
+					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
 					CCD->ReportError(szBug, false);
 					exit(-100);
 				}
@@ -2269,7 +2267,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 					if(EmptySlotImage == (geBitmap*)NULL)
 					{
 						char szBug[256];
-						sprintf(szBug, "*ERROR* Bad file name %s", SaveScreen.EmptySlotImage);
+						sprintf(szBug, "[ERROR] Bad file name %s", SaveScreen.EmptySlotImage);
 						CCD->ReportError(szBug, false);
 						exit(-100);
 					}
@@ -3171,7 +3169,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
 				{
 					char szError[256];
-					sprintf(szError, "*ERROR* Missing MouseClick Sound");
+					sprintf(szError, "[ERROR] Missing MouseClick Sound");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
@@ -3191,7 +3189,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
 				{
 					char szError[256];
-					sprintf(szError, "*ERROR* Missing KeyClick Sound");
+					sprintf(szError, "[ERROR] Missing KeyClick Sound");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
@@ -3211,7 +3209,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
 				{
 					char szError[256];
-					sprintf(szError, "*ERROR* Missing SlideClick Sound");
+					sprintf(szError, "[ERROR] Missing SlideClick Sound");
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
@@ -3244,7 +3242,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 					theMIDIPlayer = new CMIDIAudio();
 
 					if(theMIDIPlayer == NULL)
-						CCD->ReportError("*WARNING* MIDI Player failed to instantiate", false);
+						CCD->ReportError("[WARNING] MIDI Player failed to instantiate", false);
 					else
 					{
 						musictype = 1;
@@ -3465,99 +3463,99 @@ void CRFMenu::LoadMenuIni(char *menuini)
 
 			if(!stricmp(szAtom, "xhairtext"))
 			{
-				free(xhair_text.text);
+				SAFE_FREE(xhair_text.text);
 				xhair_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "revtext"))
 			{
-				free(rev_text.text);
+				SAFE_FREE(rev_text.text);
 				rev_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "mfiltertext"))
 			{
-				free(filter_text.text);
+				SAFE_FREE(filter_text.text);
 				filter_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "sensitivetext"))
 			{
-				free(sens_text.text);
+				SAFE_FREE(sens_text.text);
 				sens_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "vgammatext"))
 			{
-				free(gam_text.text);
+				SAFE_FREE(gam_text.text);
 				gam_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "vdetailtext"))
 			{
-				free(det_text.text);
+				SAFE_FREE(det_text.text);
 				det_text.text = strdup(NextString());
 			}
 // changed QD Shadows
 			else if(!stricmp(szAtom, "vshadowtext"))
 			{
-				free(shadow_text.text);
+				SAFE_FREE(shadow_text.text);
 				shadow_text.text = strdup(NextString());
 			}
 // end change
 			else if(!stricmp(szAtom, "volumetext"))
 			{
-				free(vol_text.text);
+				SAFE_FREE(vol_text.text);
 				vol_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "musicvoltext"))
 			{
-				free(mvol_text.text);
+				SAFE_FREE(mvol_text.text);
 				mvol_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "cdplaytext"))
 			{
-				free(cd_text.text);
+				SAFE_FREE(cd_text.text);
 				cd_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "debuggingtext"))
 			{
-				free(debug_text.text);
+				SAFE_FREE(debug_text.text);
 				debug_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "fratetext"))
 			{
-				free(fps_text.text);
+				SAFE_FREE(fps_text.text);
 				fps_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "clippingtext"))
 			{
-				free(clip_text.text);
+				SAFE_FREE(clip_text.text);
 				clip_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "bboxtext"))
 			{
-				free(bb_text.text);
+				SAFE_FREE(bb_text.text);
 				bb_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "enitybbtext"))
 			{
-				free(sebb_text.text);
+				SAFE_FREE(sebb_text.text);
 				sebb_text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "ipaddtext"))
 			{
-				free(IPAdd_Text.text);
+				SAFE_FREE(IPAdd_Text.text);
 				IPAdd_Text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "mphelptext"))
 			{
-				free(MultiplayerHelp_Text.text);
+				SAFE_FREE(MultiplayerHelp_Text.text);
 				MultiplayerHelp_Text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "iptext"))
 			{
-				free(PlayerIP_Text.text);
+				SAFE_FREE(PlayerIP_Text.text);
 				PlayerIP_Text.text = strdup(NextString());
 			}
 			else if(!stricmp(szAtom, "gamereturntext"))
 			{
-				free(return_text.text);
+				SAFE_FREE(return_text.text);
 				return_text.text = strdup(NextString());
 			}
 /*
@@ -3576,7 +3574,7 @@ void CRFMenu::LoadMenuIni(char *menuini)
 	}
 	else
 	{
-		CCD->ReportError("*ERROR* Missing menu INI file", false);
+		CCD->ReportError("[ERROR] Missing menu INI file", false);
 		CCD->ShutdownLevel();
 		delete CCD;
 		CCD = NULL;
@@ -3592,44 +3590,31 @@ CRFMenu::~CRFMenu()
 {
 	int i;
 
-	if(L1text.text)
-		free(L1text.text);
-	if(L2text.text)
-		free(L2text.text);
-	if(L3text.text)
-		free(L3text.text);
-	if(L4text.text)
-		free(L4text.text);
-	if(L5text.text)
-		free(L5text.text);
+	SAFE_FREE(L1text.text);
+	SAFE_FREE(L2text.text);
+	SAFE_FREE(L3text.text);
+	SAFE_FREE(L4text.text);
+	SAFE_FREE(L5text.text);
 
-	L1text.text = NULL;
-	L2text.text = NULL;
-	L3text.text = NULL;
-	L4text.text = NULL;
-	L5text.text = NULL;
-
-	free(return_text.text);
-	free(PlayerIP_Text.text);
-	free(MultiplayerHelp_Text.text);
-	free(IPAdd_Text.text);
-	free(sebb_text.text);
-	free(bb_text.text);
-	free(clip_text.text);
-	free(fps_text.text);
-	free(debug_text.text);
-	free(cd_text.text);
-	free(mvol_text.text);
-	free(vol_text.text);
-	free(det_text.text);
-	free(gam_text.text);
-	free(sens_text.text);
-	free(filter_text.text);
-	free(rev_text.text);
-	free(xhair_text.text);
-// changed QD Shadows
-	free(shadow_text.text);
-// end change
+	SAFE_FREE(return_text.text);
+	SAFE_FREE(PlayerIP_Text.text);
+	SAFE_FREE(MultiplayerHelp_Text.text);
+	SAFE_FREE(IPAdd_Text.text);
+	SAFE_FREE(sebb_text.text);
+	SAFE_FREE(bb_text.text);
+	SAFE_FREE(clip_text.text);
+	SAFE_FREE(fps_text.text);
+	SAFE_FREE(debug_text.text);
+	SAFE_FREE(cd_text.text);
+	SAFE_FREE(mvol_text.text);
+	SAFE_FREE(vol_text.text);
+	SAFE_FREE(det_text.text);
+	SAFE_FREE(gam_text.text);
+	SAFE_FREE(sens_text.text);
+	SAFE_FREE(filter_text.text);
+	SAFE_FREE(rev_text.text);
+	SAFE_FREE(xhair_text.text);
+	SAFE_FREE(shadow_text.text);
 
 	// free click sounds
 	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
@@ -3676,11 +3661,7 @@ CRFMenu::~CRFMenu()
 // changed RF063
 	for(i=0; i<NUM_ANIM; i++)
 	{
-		if(Animation[i])
-		{
-			delete Animation[i];
-			Animation[i] = 0;
-		}
+		SAFE_DELETE(Animation[i]);
 	}
 // end change RF063
 
@@ -3733,8 +3714,7 @@ CRFMenu::~CRFMenu()
 
 	for(i=0; i<16; i++)
 	{
-		if(SavedGame[i].text)
-			free(SavedGame[i].text);
+		SAFE_FREE(SavedGame[i].text);
 
 // changed QD 12/15/05
 		if(SavedGame[i].SGImage)
@@ -3757,11 +3737,8 @@ CRFMenu::~CRFMenu()
 	if(mixer.IsOk())
 		mixer.SetControlValue(WinVol);
 
-	if(theMIDIPlayer != NULL)
-	{
-		delete theMIDIPlayer;
-		theMIDIPlayer = NULL;
-	}
+	SAFE_DELETE(theMIDIPlayer);
+
 // end change RF064
 
 	return;
@@ -3770,7 +3747,7 @@ CRFMenu::~CRFMenu()
 /* ------------------------------------------------------------------------------------ */
 //	DoMenu
 /* ------------------------------------------------------------------------------------ */
-int CRFMenu::DoMenu(char *levelname)
+int CRFMenu::DoMenu(const char *levelname)
 {
 // 08.05.2004 - begin change gekido
 	CCD->ReportError("Entering CRFMenu::DoMenu()", false);
@@ -3793,11 +3770,10 @@ int CRFMenu::DoMenu(char *levelname)
 			m_Streams->Play(true);
 	}
 
+	SetmMusicVol(mVolLevel);
+
 	FadeSet(-1, TimeFade);
 
-// 08.05.2004 - begin change gekido
-//	CCD->ReportError("Entering ProcessMenu...", false);
-// 08.05.2004 - end change gekido
 	int ret = ProcessMenu(MainMenu, MainBack, MainTitle);
 
 	if(musictype != -1)
@@ -3822,7 +3798,7 @@ int CRFMenu::DoMenu(char *levelname)
 	FILE *fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "wb");
 
 	if(!fd)
-		CCD->ReportError("*WARNING* CRFMenu: Failed to create setup.ini file", false);
+		CCD->ReportError("[WARNING] CRFMenu: Failed to create setup.ini file", false);
 	else
 	{
 		fwrite(&Gamma_Slide.Current,	sizeof(int), 1, fd);
@@ -3920,17 +3896,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	remapf					= -1;
 	focus					= -1;
 	lsbox_click				= -1;
-// Show save game image
-//add Nout
-//	char filename[64];
-//  geBitmap *savescr		= (geBitmap*)NULL;
-//	geBitmap *savescrbmp	= (geBitmap*)NULL;
-//	LoadSGImage				= GE_TRUE;
-//	int LastCurrent			= 0;
-//end Nout
-// start multiplayer
 	textedit_click			= -1;
-// end multiplayer
 
 	POINT pos;
 
@@ -3953,9 +3919,9 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 		// If Winblows has something to say, take it in and pass it on in the
 		// ..off-chance someone cares.
-		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		while(PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
 		{
-			GetMessage(&msg, NULL, 0, 0 );
+			GetMessage(&msg, NULL, 0, 0);
 			// start multiplayer
 			TranslateMessage(&msg);
 			// end multiplayer
@@ -3965,56 +3931,11 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		if(!CCD->GetHasFocus())
 			continue;
 
-// begin add Nout - Show save game image
-/*		if(SaveScreen.Width > 0 && SaveScreen.Height > 0 && LoadSGImage == GE_TRUE)
-		{
-			if(LoadBox.text[LoadBox.Current].empty != 0 && SaveBox.text[SaveBox.Current].empty != 0)
-				sprintf(filename, "SaveScreen%d.bmp", LastCurrent);
-			else
-				strcpy(filename, SaveScreen.EmptySlotImage);
-
-			if(!EffectC_IsStringNull(filename))
-			{
-				geBitmap *savescr = CreateFromFileName(filename);
-
-				if(savescr == (geBitmap*)NULL)
-				{
-					char szBug[256];
-					sprintf(szBug, "File %s - Line %d: Bad file name %s", __FILE__, __LINE__, filename);
-					CCD->ReportError(szBug, false);
-					exit(-100);
-				}
-
-				geBitmap_GetInfo(savescr, &BmpInfo, NULL);
-				savescrbmp = geBitmap_Create(BmpInfo.Width, BmpInfo.Height, BmpInfo.MaximumMip+1, BmpInfo.Format);
-				geBitmap_BlitBitmap(savescr, savescrbmp);
-
-				if(savescr)
-					geBitmap_Destroy(&savescr);
-
-				if(savescrbmp == (geBitmap*)NULL)
-				{
-					char szBug[256];
-					sprintf(szBug, "File %s - Line %d: Bad SaveGame Screenshot File Name %s",
-							__FILE__, __LINE__, filename);
-					CCD->ReportError(szBug, false);
-					exit(-100);
-				}
-				else
-					geBitmap_SetColorKey(savescrbmp, GE_TRUE, 255, GE_FALSE);
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), savescrbmp);
-				LoadSGImage = GE_FALSE;
-			}
-		}*/
-// end add Nout
 
 		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
-// changed RF063
-// changed QD 12/15/05
-		if(Backgrounds[Background_Number] && Background_Number >= 0 && Background_Number < NUM_BACKGROUNDS)
+
+		if((Background_Number >= 0 && Background_Number < NUM_BACKGROUNDS) && Backgrounds[Background_Number])
 			DrawBitmap(Backgrounds[Background_Number], NULL, bx, by);
-// end change
 
 		if(MTitles[Title_Number].Animation < 0 || Animation[MTitles[Title_Number].Animation] == NULL)
 		{
@@ -4047,14 +3968,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 		for(i=0; i<max; i++)
 		{
-// changed QD 12/15/05 - replaced separate if(Menu[i].Type == ...) statements with if - else if
 // changed RF063
 			switch(Menu[i].Type)
 			{
 			case CLICKABLE:
 			case EXIT_MENU:
 			case CANCEL_MENU:
-				//if(Menu[i].Type == CLICKABLE || Menu[i].Type == EXIT_MENU || Menu[i].Type == CANCEL_MENU)
 				{
 					data = (Clickable*)Menu[i].data;
 
@@ -4135,7 +4054,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // end change RF063
-			case IMAGE:	//else if(Menu[i].Type == IMAGE)
+			case IMAGE:
 				{
 					idata = (Image*)Menu[i].data;
 
@@ -4158,14 +4077,14 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // changed RF063
-			case CHARIMAGE: //else if(Menu[i].Type == CHARIMAGE)
+			case CHARIMAGE:
 				{
 					DrawBitmap(CharSelect[CurrentSelect].Bitmap, NULL, Menu[i].X+x, Menu[i].Y+y);
 
 					break;
 				}
 // end change RF063
-			case SLIDER: //else if(Menu[i].Type == SLIDER)
+			case SLIDER:
 				{
 					sdata = (Slider*)Menu[i].data;
 					temp = sdata->Current;
@@ -4213,7 +4132,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-			case BOX: // else if(Menu[i].Type == BOX)
+			case BOX:
 				{
 					bdata = (Box*)Menu[i].data;
 
@@ -4316,7 +4235,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // changed QD Language Menu
-			case RADIO: // else if(Menu[i].Type == RADIO)
+			case RADIO:
 				{
 					radiodata = (Radio*)Menu[i].data;
 
@@ -4420,7 +4339,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // end change QD
-			case TEXT: // else if(Menu[i].Type == TEXT)
+			case TEXT:
 				{
 					char *s;
 
@@ -4437,7 +4356,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // start multiplayer
-			case TEXTEDIT: //else if(Menu[i].Type == TEXTEDIT)
+			case TEXTEDIT:
 				{
 					tedata = (TextEdit*)Menu[i].data;
 					Keyname *KTEdata = tedata->keyname;
@@ -4491,51 +4410,41 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							// do nothing if there are no more characters left
 							Size = strlen(tedata->text);
 
-							// changed QD 12/15/05
 							// strlen returns the number of characters, _excluding_ the terminating null character
-							if(Size >= 2) //2)
+							if(Size >= 2)
 							{
 								// delete as character
 								tedata->text[Size-2] = '\0';
 								strcat(tedata->text, "_");
 								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 							}
-						}
 
-						int keybrd = CCD->Input()->GetKeyboardInput();
-
-						if(keybrd != -1)
-						{
-							char *s = NULL;
-							int idex = 0;
-
-							while(KTEdata[idex].text != NULL)
+							while((GetAsyncKeyState(VK_BACK) & 0x8000) != 0)
 							{
-								if(keybrd == KTEdata[idex].key)
-								{
-									s = KTEdata[idex].text;
-									break;
-								}
-
-								idex++;
 							}
-
-							if(s != NULL)
+							while((GetAsyncKeyState(VK_LEFT) & 0x8000) != 0)
 							{
-								// do nothing is there is no more room to add characters
+							}
+						}
+						else
+						{
+							int keybrd = CCD->Input()->GetAscii();
+
+							if(keybrd != -1 && (unsigned char)keybrd>31)
+							{
+								// do nothing if there is no more room to add characters
 								Size = strlen(tedata->text);
 
 								if(Size+2 <= sizeof(tedata->text))
 								{
-									tedata->text[Size-1] = s[0];
+									tedata->text[Size-1] = (unsigned char)keybrd;
 									tedata->text[Size] = '\0';
 									strcat(tedata->text, "_");
 
-									//strcat(tedata->text,s);
 									geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-									//textedit_click = i;
 								}
 							}
+
 						}
 					}
 
@@ -4544,7 +4453,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 					break;
 				}
 // end multiplayer
-			case REMAP: // else if(Menu[i].Type == REMAP)
+			case REMAP:
 				{
 					rdata = (Remap*)Menu[i].data;
 					Keydef *Kdata = rdata->keydef;
@@ -4692,7 +4601,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-			case SCROLLBAR: // else if(Menu[i].Type == SCROLLBAR)
+			case SCROLLBAR:
 				{
 					geBitmap *theBmp;
 					bool up = false;
@@ -4849,7 +4758,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-			case LSBOX: //else if(Menu[i].Type == LSBOX)
+			case LSBOX:
 				{
 					lrdata = (LSBox*)Menu[i].data;
 					Savedef *Kdata = lrdata->text;
@@ -4924,8 +4833,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 // end change
 					}
 
-// begin add Nout - Show save game image
-// changed QD 12/15/05
 					if(lrdata->Current > -1)
 					{
 						if(lrdata->text[lrdata->Current].SGImage)
@@ -4948,24 +4855,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						}
 					}
 
-/*					BitRect.Left	= SaveScreen.Image_X;
-					BitRect.Top		= SaveScreen.Image_Y;
-					BitRect.Right	= SaveScreen.Image_X+SaveScreen.Width;
-					BitRect.Bottom	= SaveScreen.Image_Y+SaveScreen.Height;
-
-					if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
-						DrawBitmap(savescrbmp, &BitRect, SaveScreen.X, SaveScreen.Y);
-
-					if(LastCurrent == lrdata->Current)
-						LoadSGImage = GE_FALSE;
-					else
-					{
-						LoadSGImage = GE_TRUE;			//set a flag to load the bitmap .BMP file
-						LastCurrent = lrdata->Current;	//ensure the bitmap is loaded only when a new has to be loaded
-					}
-*/
-// end change
-// end add Nout
 					break;
 				}
 			}
@@ -5329,15 +5218,14 @@ void CRFMenu::DrawBitmap(const geBitmap *Bitmap, geRect *Source, uint32 x, uint3
 /* ------------------------------------------------------------------------------------ */
 //	MFontRect
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::MFontRect(char *s, int FontNumber, int x, int y)
+void CRFMenu::MFontRect(const char *s, int FontNumber, int x, int y)
 {
-	//int charoff;
-	char chr;
+	unsigned char chr;
 
 	if(MenuFont[FontNumber].Bitmap == NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
 				__FILE__, __LINE__, FontNumber, FontNumber+1);
 		CCD->ReportError(szBug, false);
 		return;
@@ -5346,17 +5234,16 @@ void CRFMenu::MFontRect(char *s, int FontNumber, int x, int y)
 	if(s)
 	{
 		geEngine *theEngine = CCD->Engine()->Engine();
-		//charoff = 0;
+
 		while(*s != 0)
 		{
-			chr = *s-32;
+			chr = (unsigned char)(*s)-32;
 
 			fRect.Top		= MenuFont[FontNumber].dat[chr].y;
 			fRect.Bottom	= MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height;
 			fRect.Left		= MenuFont[FontNumber].dat[chr].x;
 			fRect.Right		= MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width;
 
-			//DrawBitmap(MenuFont[FontNumber].Bitmap, &fRect, x+charoff, y);
 			geEngine_DrawBitmap(theEngine, MenuFont[FontNumber].Bitmap, &fRect, x, y);
 
 			x += MenuFont[FontNumber].dat[chr].width;
@@ -5369,45 +5256,33 @@ void CRFMenu::MFontRect(char *s, int FontNumber, int x, int y)
 //	setup bitmap rectangle for
 //	the letter in the given font
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::FontRect(char *s, int FontNumber, int x, int y)
+void CRFMenu::FontRect(const char *s, int FontNumber, int x, int y)
 {
-	//int charoff;
-	char chr;
+	unsigned char chr;
 
 	if(MenuFont[FontNumber].Bitmap == NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
 				__FILE__, __LINE__, FontNumber, FontNumber+1);
 		CCD->ReportError(szBug, false);
-		// changed QD 07/15/06
+
 		return;
-		/*
-// changed RF064
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szBug,"Fatal Error", MB_OK);
-		exit(-336);
-// end change RF064
-		*/
-		// end change
 	}
 
 	if(s)
 	{
 		geEngine *theEngine = CCD->Engine()->Engine();
-		//charoff = 0;
+
 		while(*s != 0)
 		{
-			chr = *s-32;
+			chr = (unsigned char)(*s)-32;
 
 			fRect.Top		= MenuFont[FontNumber].dat[chr].y;
 			fRect.Bottom	= MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height-1;
 			fRect.Left		= MenuFont[FontNumber].dat[chr].x;
 			fRect.Right		= MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width-1;
 
-			//geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FontNumber].Bitmap, &fRect, x+charoff, y);
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FontNumber].Bitmap, &fRect, x, y);
 
 			x += MenuFont[FontNumber].dat[chr].width;
@@ -5424,7 +5299,7 @@ int CRFMenu::FontHeight(int FontNumber)
 	if(MenuFont[FontNumber].Bitmap == NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
 				__FILE__, __LINE__, FontNumber, FontNumber+1);
 		CCD->ReportError(szBug, false);
 		return 0;
@@ -5436,15 +5311,15 @@ int CRFMenu::FontHeight(int FontNumber)
 /* ------------------------------------------------------------------------------------ */
 //	FontWidth
 /* ------------------------------------------------------------------------------------ */
-int CRFMenu::FontWidth(int FontNumber, char *s)
+int CRFMenu::FontWidth(int FontNumber, const char *s)
 {
 	int charoff;
-	char chr;
+	unsigned char chr;
 
 	if(MenuFont[FontNumber].Bitmap == NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
 				__FILE__, __LINE__, FontNumber, FontNumber+1);
 		CCD->ReportError(szBug, false);
 		return 0;
@@ -5456,7 +5331,7 @@ int CRFMenu::FontWidth(int FontNumber, char *s)
 
 		while(*s!=0)
 		{
-			chr = *s-32;
+			chr = (unsigned char)(*s)-32;
 			charoff += MenuFont[FontNumber].dat[chr].width;
 			s++;
 		}
@@ -5692,7 +5567,7 @@ void CRFMenu::GameLevel()
 
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FirstFont].Bitmap, &firstRect, 0, 0);
 
-			CCD->RenderComponents();						// Render the RGF components
+			CCD->RenderComponents();					// Render the RGF components
 
 			CCD->Engine()->RenderWorld();				// Render the world
 
@@ -5786,11 +5661,13 @@ void CRFMenu::GameLevel()
 			CCD->Inventory()->Display(); // render Inventory / HUD
 // end change RF064
 
+
 // changed Nout 12/15/05
 			// Displays a text on the screen that tracks position with an Entity
 			for(int ii=0; ii<MAXTEXT; ii++)
 				CCD->Pawns()->ShowText(ii);
 // end change
+
 
 // changed QD 12/15/05
 			CCD->Teleporters()->DoFade();
@@ -5816,6 +5693,8 @@ void CRFMenu::GameLevel()
 				geEngine_FillRect(CCD->Engine()->Engine(), &Rect, &Color);
 				framecount += 1;
 			}
+
+			DisplayCursor();
 
 			// Everything rendered, now end the frame.
 			CCD->Engine()->EndFrame();					// All done, do the necessary flip
@@ -5943,6 +5822,8 @@ void CRFMenu::GameLevel()
 					// 08.05.2004 - end change gekido
 					CCD->Player()->DisableFog();		// Fogging OFF
 					CCD->Player()->DisableClipPlane();	// Clip plane OFF
+					CCD->SetMouseControl(true);
+					bShowCursor = false;
 
 					if(EffectC_IsStringNull(CCD->NextLevel()))
 					{
@@ -5963,6 +5844,8 @@ void CRFMenu::GameLevel()
 							else
 								m_Streams->Play(true);
 						}
+
+						SetmMusicVol(mVolLevel);
 
 						ingame = 0;
 						CCD->SetChangeLevel(false);
@@ -6042,6 +5925,8 @@ void CRFMenu::GameLevel()
 		else
 			m_Streams->Play(true);
 	}
+
+	SetmMusicVol(mVolLevel);
 
 	FadeSet(-1, TimeFade);
 	MusicSet();
@@ -6150,6 +6035,37 @@ void CRFMenu::DisplayCrossHair()
 // End Aug2003DCS
 }
 
+void CRFMenu::DisplayCursor()
+{
+	if(bShowCursor)
+	{
+		POINT pos = {0, 0};
+		POINT temppos;
+		GetCursorPos(&temppos);	// get the mouse position in SCREEN coordinates
+
+		if(!CCD->Engine()->FullScreen())
+		{
+			RECT client;
+			GetClientRect(CCD->Engine()->WindowHandle(), &client);
+			pos.x = client.left;
+			pos.y = client.top;
+			ClientToScreen(CCD->Engine()->WindowHandle(), &pos);
+			temppos.x -= pos.x;
+			temppos.y -= pos.y;
+		}
+
+		if(AnimCursor < 0 || Animation[AnimCursor] == NULL)
+		{
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY);
+		}
+		else
+		{
+			geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
+			DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY);
+		}
+	}
+}
+
 // changed RF064
 /* ------------------------------------------------------------------------------------ */
 //	DisplaySplash
@@ -6178,14 +6094,11 @@ void CRFMenu::DisplaySplash()
 			if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
 			{
 				char szError[200];
-				sprintf(szError, "*WARNING* File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
 						__FILE__, __LINE__, Loading);
 				CCD->ReportError(szError, false);
 				return;
 			}
-			// change begin Nout - Show save game image
-			// geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
-			// change end Nout
 
 			if(CCD->GetHasFocus())
 			{
@@ -6194,7 +6107,7 @@ void CRFMenu::DisplaySplash()
 				if(geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y) == GE_FALSE)
 				{
 					char szError[200];
-					sprintf(szError, "*WARNING* File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
+					sprintf(szError, "[WARNING] File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
 							__FILE__, __LINE__, Loading);
 					CCD->ReportError(szError, false);
 				}
@@ -6225,7 +6138,7 @@ void CRFMenu::ScreenShot()
 
 	if(geEngine_ScreenShot(CCD->Engine()->Engine(), filename) == false)
 	{
-		CCD->ReportError("*WARNING* Failed to create screenshot file!", false);
+		CCD->ReportError("[WARNING] Failed to create screenshot file!", false);
 		return;
 	}
 
@@ -6332,8 +6245,7 @@ void CRFMenu::MenuInitalize()
 			for(int nTemp = 0; nTemp < SaveBox.Max; nTemp++)
 			{
 				// changed QD 12/15/05
-				if(SaveBox.text[nTemp].text)
-					free(SaveBox.text[nTemp].text);
+				SAFE_FREE(SaveBox.text[nTemp].text);
 
 				SaveBox.text[nTemp].text = (char*)malloc(30);
 				// end change
@@ -6354,7 +6266,7 @@ void CRFMenu::MenuInitalize()
 							if(SavedGame[nTemp].SGImage == (geBitmap*)NULL)
 							{
 								char szBug[256];
-								sprintf(szBug, "*ERROR* Bad file name %s", filename);
+								sprintf(szBug, "[ERROR] Bad file name %s", filename);
 								CCD->ReportError(szBug, false);
 								exit(-100);
 							}
@@ -6412,6 +6324,7 @@ void CRFMenu::MenuInitalize()
 		if(percent == 0)
 			mVolLevel = 0.0f;
 
+
 // changed QD Shadows
 		fread(&ShadowBox.Current, sizeof(int), 1, fd);
 		if(ShadowBox.Current==BOX_ON)
@@ -6430,8 +6343,8 @@ void CRFMenu::MenuInitalize()
 
 	if(AttrFile.ReadFile())
 	{
-		string KeyName = AttrFile.FindFirstKey();
-		string Type;
+		std::string KeyName = AttrFile.FindFirstKey();
+		std::string Type;
 
 		while(KeyName != "")
 		{
@@ -6963,7 +6876,7 @@ void CRFMenu::MenuInitalize()
 		if(!flg)
 		{
 			char szError[256];
-			sprintf(szError, "*ERROR* File %s - Line %d: Missing section in Control.ini", __FILE__, __LINE__);
+			sprintf(szError, "[ERROR] File %s - Line %d: Missing section in Control.ini", __FILE__, __LINE__);
 			CCD->ReportError(szError, false);
 			CCD->ShutdownLevel();
 			delete CCD;
@@ -7481,6 +7394,7 @@ void CRFMenu::DoGame(bool editor)
 {
 	useselect = false;
 	usenameselect = false; // changed QD 12/15/05
+	bShowCursor = false;
 
 	// changed QD 12/15/05
 	//if(CCD->GetCSelect() || CCD->GetCDifficult())
@@ -7568,7 +7482,7 @@ void CRFMenu::DoGame(bool editor)
 	{
 		if(!CCD->NetPlayerManager()->Initialize(CCD->GetServer(), ServerIP))
 		{
-			CCD->ReportError("*WARNING* Cant Begin Multiplayer session", false);
+			CCD->ReportError("[WARNING] Cant Begin Multiplayer session", false);
 			return;
 		}
 	}
@@ -7576,7 +7490,7 @@ void CRFMenu::DoGame(bool editor)
 
 	if((CCD->InitializeLevel(CCD->MenuManager()->GetLevelName())) != 0)
 	{
-		CCD->ReportError("*ERROR* Failed to initialize first level", false);
+		CCD->ReportError("[ERROR] Failed to initialize first level", false);
 		CCD->ShutdownLevel();						// Clean up anything that got loaded
 		delete CCD;
 		CCD = NULL;   // Kill off the engine and such
@@ -7588,6 +7502,7 @@ void CRFMenu::DoGame(bool editor)
 	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
 	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
 // end change RF064
+	CCD->SetMouseControl(true);
 
 // changed RF064
 	CCD->TerrainMgr()->Init();
@@ -7597,7 +7512,7 @@ void CRFMenu::DoGame(bool editor)
 	//	..game level.
 	if(CCD->Player()->MoveToStart() != RGF_SUCCESS)
 	{
-		CCD->ReportError("*ERROR* Failed to move player to start", false);
+		CCD->ReportError("[ERROR] Failed to move player to start", false);
 		CCD->ShutdownLevel();
 		delete CCD;
 		exit(-336);
@@ -7663,7 +7578,7 @@ static void AcceptChar()
 {
 	if(!CCD->GetUseDialog() && !CCD->GetCmdLine())
 	{
-		char *StartLevel = CCD->MenuManager()->GetCurrentStartLevel();
+		const char *StartLevel = CCD->MenuManager()->GetCurrentStartLevel();
 
 		if(StartLevel[0] != 0)
 			CCD->MenuManager()->SetLevelName(StartLevel);
@@ -7826,8 +7741,7 @@ static void SetSlot()
 
 			// set date/time and level name
 			// changed QD 12/15/05
-			if(SaveBox.text[SaveBox.Current].text)
-				free(SaveBox.text[SaveBox.Current].text);
+			SAFE_FREE(SaveBox.text[SaveBox.Current].text);
 
 			SaveBox.text[SaveBox.Current].text = (char*)malloc(30);
 			// end change
@@ -7842,7 +7756,7 @@ static void SetSlot()
 			if(fd == NULL)
 			{
 				char szBug[200];
-				sprintf(szBug, "*WARNING* File %s - Line %d: Save Game: Failed to create savedgames.rgf\n",
+				sprintf(szBug, "[WARNING] File %s - Line %d: Save Game: Failed to create savedgames.rgf\n",
 						__FILE__, __LINE__);
 				CCD->ReportError(szBug, false);
 				return;										// Fatal error
@@ -7864,7 +7778,7 @@ static void SetSlot()
 
 			if(outFD == NULL)
 			{
-				CCD->ReportError("*WARNING* Failed to create savegame file!", false);
+				CCD->ReportError("[WARNING] Failed to create savegame file!", false);
 				return;
 			}
 
@@ -7925,7 +7839,7 @@ static void SetSlot()
 					if(SaveBox.text[SaveBox.Current].SGImage == (geBitmap*)NULL)
 					{
 						char szBug[256];
-						sprintf(szBug, "*ERROR* SetSlot: Bad file name %s", filename);
+						sprintf(szBug, "[ERROR] SetSlot: Bad file name %s", filename);
 						CCD->ReportError(szBug, false);
 						exit(-100);
 					}
@@ -7957,7 +7871,7 @@ static void GetSlot()
 
 			if(inFD == NULL)
 			{
-				CCD->ReportError("*WARNING* No savegame file to restore", false);
+				CCD->ReportError("[WARNING] No savegame file to restore", false);
 				return;
 			}
 // end change RF064
@@ -8032,29 +7946,6 @@ static void CopyImageFile(const char *srcPath, const char *destPath)
 	}
 }
 
-/*
-// add Nout - Show save game image
-static void CopyFile(const char *srcPath, const char *destPath)
-{
-	CFile sourceFile;
-	CFile destFile;
-	BYTE buffer[16384];
-	DWORD dwRead;
-
-	CFileException ex;
-	sourceFile.Open(srcPath, CFile::modeRead | CFile::shareDenyWrite, &ex);
-	destFile.Open(destPath, CFile::modeWrite | CFile::shareExclusive | CFile::modeCreate, &ex);
-
-	do
-	{
-		dwRead = sourceFile.Read(buffer, 16384);
-		destFile.Write(buffer, dwRead);
-	} while (dwRead > 0);
-
-	destFile.Close();
-	sourceFile.Close();
-}
-*/
 // end change
 
 /* ------------------------------------------------------------------------------------ */
@@ -8076,28 +7967,6 @@ void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height)
 	}
 }
 
-/*
-static void ScaleBmp(short x,short y, short x2, short y2)
-{
-	float xstep,ystep,xratio,yratio;
-	short xdiff,ydiff,xcount,ycount;
-	long VStart= vid->Screen_Width*y2;
-
-	ydiff = y2-y;
-	xdiff = x2-x;
-	xratio = (float)BitmapWidth/xdiff;
-	yratio = (float)BitmapHeight/ydiff;
-
-	for(ystep=0,ycount=y;   ycount<ydiff; ystep+=yratio,ycount++)
-	{
-		for(xstep=0,xcount=x;xcount<xdiff; xstep+=xratio,xcount++)
-		{
-			video_buffer[(y2-ycount)*Screen_Width+xcount]=
-			Bmp[(short)ystep*(short)BitmapWidth+(short)xstep];
-		}
-	}
-}
-*/
 //end add Nout
 
 /* ------------------------------------------------------------------------------------ */
@@ -8131,22 +8000,51 @@ void CRFMenu::LoadWBitmap()
 		{
 			BAlpha = geBitmap_GetAlpha(MenuFont[i].Bitmap);
 
-			for(int chr=0; chr<96 ; chr++)
+			int h = PowerOfTwo(MenuFont[i].font_height);
+
+			for(int chr=0; chr<CHAR_RANGE ; chr++)
 			{
 				int w = PowerOfTwo(MenuFont[i].dat[chr].width);
-				int h = PowerOfTwo(MenuFont[i].font_height);
+
+
+				if(MenuFont[i].dat[chr].width == 0)
+					w = PowerOfTwo(MenuFont[i].dat[0].width);
 
 				MenuFont[i].WBitmap[chr] = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);//GE_PIXELFORMAT_8BIT);
 
-				geBitmap_Blit(MenuFont[i].Bitmap, MenuFont[i].dat[chr].x,
-					MenuFont[i].dat[chr].y, MenuFont[i].WBitmap[chr], 0, 0,
-					MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				if(MenuFont[i].dat[chr].width == 0)
+				{
+					geBitmap_Blit(MenuFont[i].Bitmap,
+						MenuFont[i].dat[0].x, MenuFont[i].dat[0].y,
+						MenuFont[i].WBitmap[chr], 0, 0,
+						MenuFont[i].dat[0].width, MenuFont[i].font_height);
+				}
+				else
+				{
+					geBitmap_Blit(MenuFont[i].Bitmap,
+						MenuFont[i].dat[chr].x,	MenuFont[i].dat[chr].y,
+						MenuFont[i].WBitmap[chr], 0, 0,
+						MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				}
 
 				Alpha = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);
 
-				geBitmap_Blit(BAlpha, MenuFont[i].dat[chr].x,
-					MenuFont[i].dat[chr].y, Alpha, 0, 0,
-					MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				if(MenuFont[i].dat[chr].width == 0)
+				{
+					geBitmap_Blit(BAlpha,
+						MenuFont[i].dat[0].x, MenuFont[i].dat[0].y,
+						Alpha, 0, 0,
+						MenuFont[i].dat[0].width, MenuFont[i].font_height);
+
+					MenuFont[i].dat[chr].width = MenuFont[i].dat[0].width;
+				}
+				else
+				{
+					geBitmap_Blit(BAlpha,
+						MenuFont[i].dat[chr].x,	MenuFont[i].dat[chr].y,
+						Alpha, 0, 0,
+						MenuFont[i].dat[chr].width, MenuFont[i].font_height);
+				}
 
 				geWorld_AddBitmap(CCD->World(), MenuFont[i].WBitmap[chr]);
 				geBitmap_SetPreferredFormat(MenuFont[i].WBitmap[chr],GE_PIXELFORMAT_32BIT_ARGB);
@@ -8171,7 +8069,7 @@ void CRFMenu::UnLoadWBitmap()
 	{
 		if(MenuFont[i].Bitmap != NULL)
 		{
-			for(int j=0; j<96; j++)
+			for(int j=0; j<CHAR_RANGE; j++)
 			{
 				if(MenuFont[i].WBitmap[j])
 				{
@@ -8188,46 +8086,33 @@ void CRFMenu::UnLoadWBitmap()
 /* ------------------------------------------------------------------------------------ */
 //	WorldFontRect
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha)
+void CRFMenu::WorldFontRect(const char *s, int FontNumber, int x, int y, float Alpha)
 {
-	int charoff;
-	char chr;
+	unsigned char chr;
 
 	if(MenuFont[FontNumber].Bitmap == NULL)
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
+		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
 				__FILE__, __LINE__, FontNumber, FontNumber+1);
 		CCD->ReportError(szBug, false);
-		// changed QD 07/15/06
 		return;
-		/*
-		sprintf(szBug, "ERROR - File %s - Line %d: No Font defined", __FILE__, __LINE__);
-		CCD->ReportError(szBug, true);
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		exit(-336);
-		*/
-		// end change
 	}
 
 	if(s != NULL)
 	{
-		charoff = 0;
-
 		while(*s != 0)
 		{
-			chr = *s-32;
+			chr = (unsigned char)(*s)-32;
 
 			fRect.Top		= 0;
 			fRect.Bottom	= MenuFont[FontNumber].font_height-1;
 			fRect.Left		= 0;
 			fRect.Right		= MenuFont[FontNumber].dat[chr].width-1;
 
-			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x+charoff, y, Alpha, 1.0f);
+			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x, y, Alpha, 1.0f);
 
-			charoff += MenuFont[FontNumber].dat[chr].width;
+			x += MenuFont[FontNumber].dat[chr].width;
 			s++;
 		}
 	}
@@ -8385,146 +8270,152 @@ void CRFMenu::ChangeMenuIni()
 	if(CurrentLanguage == l)
 		return;
 
-	if(!stricmp(MenuInis[l], MenuInis[CurrentLanguage]))
-		return;
-	//**********************************************************
-
-	// stop music
-	if(musictype != -1)
+	if(stricmp(MenuInis[l], MenuInis[CurrentLanguage]))
 	{
-		if(musictype == 1)
+		SAFE_FREE(L1text.text);
+		SAFE_FREE(L2text.text);
+		SAFE_FREE(L3text.text);
+		SAFE_FREE(L4text.text);
+		SAFE_FREE(L5text.text);
+
+		// stop music
+		if(musictype != -1)
 		{
-			MIDIPlayer()->Stop();
-		}
-		else
-		{
-			if(m_Streams)
+			if(musictype == 1)
 			{
-				m_Streams->Delete();
-				delete m_Streams;
-				m_Streams = 0;
+				MIDIPlayer()->Stop();
+			}
+			else
+			{
+				if(m_Streams)
+				{
+					m_Streams->Delete();
+					delete m_Streams;
+					m_Streams = 0;
+				}
 			}
 		}
-	}
 
-	// free click sounds
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), keyclick );
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), slideclick );
+		// free click sounds
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), keyclick );
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), slideclick );
 
-	// delete the bitmaps
-	for(i=0; i<NUM_BACKGROUNDS; i++)
-	{
-		if(Backgrounds[i] != (geBitmap*)NULL)
+		// delete the bitmaps
+		for(i=0; i<NUM_BACKGROUNDS; i++)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Backgrounds[i]);
-			geBitmap_Destroy(&Backgrounds[i]);
+			if(Backgrounds[i] != (geBitmap*)NULL)
+			{
+				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Backgrounds[i]);
+				geBitmap_Destroy(&Backgrounds[i]);
+			}
 		}
-	}
 
-	for(i=0; i<NUM_IMAGES; i++)
-	{
-		if(Images[i] != (geBitmap*)NULL)
+		for(i=0; i<NUM_IMAGES; i++)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Images[i]);
-			geBitmap_Destroy(&Images[i]);
+			if(Images[i] != (geBitmap*)NULL)
+			{
+				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Images[i]);
+				geBitmap_Destroy(&Images[i]);
+			}
 		}
-	}
 
-	for(i=0; i<NUM_TITLES; i++)
-	{
-		if(Titles[i] != (geBitmap*)NULL)
+		for(i=0; i<NUM_TITLES; i++)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Titles[i]);
-			geBitmap_Destroy(&Titles[i]);
+			if(Titles[i] != (geBitmap*)NULL)
+			{
+				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Titles[i]);
+				geBitmap_Destroy(&Titles[i]);
+			}
 		}
-	}
 
-	if(ingame)
-		UnLoadWBitmap();
+		if(ingame)
+			UnLoadWBitmap();
 
-	for(i=0; i<NUM_FONTS; i++)
-	{
-		if(MenuFont[i].Bitmap != (geBitmap*)NULL)
+		for(i=0; i<NUM_FONTS; i++)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), MenuFont[i].Bitmap);
-			geBitmap_Destroy(&MenuFont[i].Bitmap);
+			if(MenuFont[i].Bitmap != (geBitmap*)NULL)
+			{
+				geEngine_RemoveBitmap(CCD->Engine()->Engine(), MenuFont[i].Bitmap);
+				geBitmap_Destroy(&MenuFont[i].Bitmap);
+			}
 		}
-	}
 
-	for(i=0; i<NUM_ANIM; i++)
-	{
-		if(Animation[i] != NULL)
-			delete Animation[i];
-	}
+		for(i=0; i<NUM_ANIM; i++)
+		{
+			if(Animation[i] != NULL)
+				delete Animation[i];
+		}
 
 // changed QD 12/15/05
-	if(EmptySlotImage)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
-		geBitmap_Destroy(&EmptySlotImage);
-	}
+		if(EmptySlotImage)
+		{
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
+			geBitmap_Destroy(&EmptySlotImage);
+		}
 // end change
 
-	if(Cursor != (geBitmap*)NULL)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cursor);
-		geBitmap_Destroy(&Cursor);
-	}
+		if(Cursor != (geBitmap*)NULL)
+		{
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cursor);
+			geBitmap_Destroy(&Cursor);
+		}
 
-	if(Crosshair != (geBitmap*)NULL)
-	{
-		geBitmap_Destroy(&Crosshair);
-	}
+		if(Crosshair != (geBitmap*)NULL)
+		{
+			geBitmap_Destroy(&Crosshair);
+		}
 
-	if(FCrosshair != (geBitmap*)NULL)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), FCrosshair);
-		geBitmap_Destroy(&FCrosshair);
-	}
+		if(FCrosshair != (geBitmap*)NULL)
+		{
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), FCrosshair);
+			geBitmap_Destroy(&FCrosshair);
+		}
 
-	Cursor = NULL;
-	Crosshair = NULL;
-	FCrosshair = NULL;
+		Cursor = NULL;
+		Crosshair = NULL;
+		FCrosshair = NULL;
 
+		Reset();
 
-	Reset();
-
-	// changed QD 12/15/05 - default is a better indicator ;-)
-	if(!stricmp("standard", MenuInis[l]) || !stricmp("default", MenuInis[l]))
-		LoadMenuIni(CCD->MenuIni());
-	else
-		LoadMenuIni(MenuInis[l]);
-
-
-	if(ingame)
-		LoadWBitmap();
-
-	if(musictype != -1)
-	{
-		if(musictype == 1)
-			MIDIPlayer()->Play(music, true);
+		/* load new menu.ini file */
+		if(!stricmp("standard", MenuInis[l]) || !stricmp("default", MenuInis[l]))
+			LoadMenuIni(CCD->MenuIni());
 		else
-			m_Streams->Play(true);
+			LoadMenuIni(MenuInis[l]);
+
+		if(ingame)
+			LoadWBitmap();
+
+		if(musictype != -1)
+		{
+			if(musictype == 1)
+				MIDIPlayer()->Play(music, true);
+			else
+				m_Streams->Play(true);
+		}
 	}
 
-
-	if(CCD->Pawns() != NULL)
+	if(stricmp(Convtxts[l], Convtxts[CurrentLanguage]))
 	{
-		// changed QD 12/15/05 - default is a better indicator ;-)
-		if(!stricmp("standard", Convtxts[l]) || !stricmp("default", Convtxts[l]))
-			CCD->Pawns()->LoadConv("conversation.txt");
-		else
-			CCD->Pawns()->LoadConv(Convtxts[l]);
+		if(CCD->Pawns() != NULL)
+		{
+			if(!stricmp("standard", Convtxts[l]) || !stricmp("default", Convtxts[l]))
+				CCD->Pawns()->LoadConv("conversation.txt");
+			else
+				CCD->Pawns()->LoadConv(Convtxts[l]);
+		}
 	}
 
-	if(CCD->Messages() != NULL)
+	if(stricmp(Messagetxts[l], Messagetxts[CurrentLanguage]))
 	{
-		// changed QD 12/15/05 - default is a better indicator ;-)
-		if(!stricmp("standard", Messagetxts[l]) || !stricmp("default", Messagetxts[l]))
-			CCD->Messages()->LoadText("message.txt");
-		else
-			CCD->Messages()->LoadText(Messagetxts[l]);
+		if(CCD->Messages() != NULL)
+		{
+			if(!stricmp("standard", Messagetxts[l]) || !stricmp("default", Messagetxts[l]))
+				CCD->Messages()->LoadText("message.txt");
+			else
+				CCD->Messages()->LoadText(Messagetxts[l]);
+		}
 	}
 
 	CurrentLanguage = l;
@@ -8569,23 +8460,6 @@ char *CRFMenu::GetMessagetxts()
 /* ------------------------------------------------------------------------------------ */
 void ChangeMenu()
 {
-	if(L1text.text)
-		free(L1text.text);
-	if(L2text.text)
-		free(L2text.text);
-	if(L3text.text)
-		free(L3text.text);
-	if(L4text.text)
-		free(L4text.text);
-	if(L5text.text)
-		free(L5text.text);
-
-	L1text.text = NULL;
-	L2text.text = NULL;
-	L3text.text = NULL;
-	L4text.text = NULL;
-	L5text.text = NULL;
-
 	CCD->MenuManager()->ChangeMenuIni();
 }
 
@@ -9672,27 +9546,25 @@ void CRFMenu::Reset()
 	QuitMods.Animation		= -1;
 	QuitMods.AnimationOver	= -1;
 
-	free(return_text.text);
-	free(PlayerIP_Text.text);
-	free(MultiplayerHelp_Text.text);
-	free(IPAdd_Text.text);
-	free(sebb_text.text);
-	free(bb_text.text);
-	free(clip_text.text);
-	free(fps_text.text);
-	free(debug_text.text);
-	free(cd_text.text);
-	free(mvol_text.text);
-	free(vol_text.text);
-	free(det_text.text);
-	free(gam_text.text);
-	free(sens_text.text);
-	free(filter_text.text);
-	free(rev_text.text);
-	free(xhair_text.text);
-// changed QD Shadows
-	free(shadow_text.text);
-// end change
+	SAFE_FREE(return_text.text);
+	SAFE_FREE(PlayerIP_Text.text);
+	SAFE_FREE(MultiplayerHelp_Text.text);
+	SAFE_FREE(IPAdd_Text.text);
+	SAFE_FREE(sebb_text.text);
+	SAFE_FREE(bb_text.text);
+	SAFE_FREE(clip_text.text);
+	SAFE_FREE(fps_text.text);
+	SAFE_FREE(debug_text.text);
+	SAFE_FREE(cd_text.text);
+	SAFE_FREE(mvol_text.text);
+	SAFE_FREE(vol_text.text);
+	SAFE_FREE(det_text.text);
+	SAFE_FREE(gam_text.text);
+	SAFE_FREE(sens_text.text);
+	SAFE_FREE(filter_text.text);
+	SAFE_FREE(rev_text.text);
+	SAFE_FREE(xhair_text.text);
+	SAFE_FREE(shadow_text.text);
 
 	return_text.text			= strdup("Press ESC to Return to Game");
 	PlayerIP_Text.text			= strdup("Your IP :");
@@ -9712,9 +9584,8 @@ void CRFMenu::Reset()
 	filter_text.text			= strdup("Mouse filter");
 	rev_text.text				= strdup("Reverse mouse");
 	xhair_text.text				= strdup("Crosshair");
-// changed QD Shadows
 	shadow_text.text			= strdup("Enable Stencil Shadows");
-// end change
+
 }
 // end change QD
 

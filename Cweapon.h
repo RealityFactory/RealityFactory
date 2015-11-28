@@ -11,6 +11,9 @@
 #ifndef __RGF_CWEAPON_H_
 #define __RGF_CWEAPON_H_
 
+/**
+ * @brief Projectile definition
+ */
 typedef struct Proj
 {
 	Proj    	*next;
@@ -53,6 +56,9 @@ typedef struct Proj
 // end change RF063
 } Proj;
 
+/**
+ * @brief Default Projectile definition
+ */
 typedef struct DefaultProj
 {
 	bool		active;
@@ -90,6 +96,9 @@ typedef struct DefaultProj
 
 } DefaultProj;
 
+/**
+ * @brief Weapon types
+ */
 typedef enum
 {
 	MELEE,
@@ -98,7 +107,9 @@ typedef enum
 
 } WeaponType;
 
-
+/**
+ * @brief Default Weapon dfinition
+ */
 typedef struct DefaultWeapons
 {
 	bool		active;
@@ -139,6 +150,20 @@ typedef struct DefaultWeapons
 	int			ZoomAmt;
 	geBitmap	*ZoomOverlay;
 	bool		MoveZoom;
+
+	char		DropActor[128];
+	geVec3d		DropActorRotation;
+	geVec3d		DropActorOffset;
+	float		DropScale;
+	geVec3d		DropFillColor;
+	geVec3d		DropAmbientColor;
+	geBoolean	DropAmbientLightFromFloor;
+	geBoolean	DropEnvironmentMapping;
+	geBoolean	DropAllMaterial;
+	float		DropPercentMapping;
+	float		DropPercentMaterial;
+	geBoolean	DropGravity;
+	geBoolean	DropHideFromRadar;
 
 	geActor		*VActor;
 	geActor_Def	*VActorDef;
@@ -187,10 +212,16 @@ typedef struct DefaultWeapons
 
 } DefaultWeapons;
 
-// NOTE: if MAX_WEAPONS change, size of Slot in CCommonData must change too
+/**
+ * @brief Max # of weapons
+ * @note if MAX_WEAPONS changes, size of Slot in CCommonData must change too
+ */
 #define MAX_WEAPONS		40
 #define MAX_PROJD       50
 
+ /**
+  * @brief Possible actions of 1st person weapons
+  */
 typedef enum
 {
 	VWEPCHANGE = 0,
@@ -210,15 +241,16 @@ typedef enum
 
 } VwepAction;
 
-
-
+/**
+ * @brief CWeapon handles weapons and projectiles
+ */
 class CWeapon : public CRGFComponent
 {
 public:
 	CWeapon();
 	~CWeapon();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	int ReSynchronize();
 	void Display();
 	void Holster();
@@ -228,7 +260,7 @@ public:
 	int SaveTo(FILE *SaveFD);
 	int RestoreFrom(FILE *RestoreFD);
 
-	void ChangeWeapon(char *name);
+	void ChangeWeapon(const char *name);
 	char *DieAnim();
 	char *InjuryAnim();
 	// end change RF063
@@ -238,7 +270,7 @@ public:
 	void Attack(bool Alternate);
 	// changed RF063
 	void Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geVec3d &Orient,
-						char *Projectile, char *PAttribute, char *PAltAttribute);
+						const char *Projectile, char *PAttribute, char *PAltAttribute);
 	// end change RF063
 
 	bool CrossHair();
@@ -270,8 +302,8 @@ public:
 	void DropWeapon();
 	void Use();
 	void SetView(int value)			{ ViewPoint = value; OldViewPoint = value;	}
-	char *GetWeaponName()			{ return WeaponD[CurrentWeapon].Name;		}
-	char *GetWeaponAmmo()			{ return WeaponD[CurrentWeapon].Ammunition; }
+	const char *GetWeaponName()		{ return WeaponD[CurrentWeapon].Name;		}
+	const char *GetWeaponAmmo()		{ return WeaponD[CurrentWeapon].Ammunition; }
 	int GetMagSize()				{ return WeaponD[CurrentWeapon].ShotperMag;	}
 	int GetShotFired()				{ return WeaponD[CurrentWeapon].ShotFired;	}
 	int GetMagAmt()					{ return WeaponD[CurrentWeapon].MagAmt;		}
@@ -299,6 +331,7 @@ private:
 	// changed RF064
 	void DoChange();
 	// end change RF064
+	void SpawnWeaponAttribute(int index);
 
 private:
 	// changed QD 12/15/05

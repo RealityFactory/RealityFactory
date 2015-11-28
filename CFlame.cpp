@@ -7,7 +7,8 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -49,7 +50,7 @@ CFlame::CFlame()
 		S->EffectList0	= -1;
 		S->EffectList1	= -1;
 
-		TPool_Bitmap("flame03.Bmp", "A_flame.Bmp", S->BmpName, S->AlphaName);
+		TPool_Bitmap("flame03.bmp", "a_flame.bmp", S->BmpName, S->AlphaName);
 	}
 
 	return;
@@ -69,7 +70,7 @@ int CFlame::CreateS(Flame *S)
 
 	memset(&Sp, 0, sizeof(Sp));
 
-	Sp.Texture = TPool_Bitmap("flame03.Bmp", "A_flame.Bmp", S->BmpName, S->AlphaName);
+	Sp.Texture = TPool_Bitmap("flame03.Bmp", "a_flame.bmp", S->BmpName, S->AlphaName);
 
 	// variance
 	Sp.SourceVariance = S->SourceVariance * (int)S->Scale;
@@ -164,6 +165,7 @@ int CFlame::CreateS(Flame *S)
 
 	geVec3d_Copy(&(S->Gravity), &(Sp.Gravity));
 
+	Sp.UseWind = S->UseWind;
 
 	// setup orientation
 // changed QD 12/15/05
@@ -263,12 +265,10 @@ CFlame::~CFlame()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFlame::Tick(float dwTicksIn)
+void CFlame::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-
-	float dwTicks = (float)(dwTicksIn);
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
 
@@ -384,7 +384,7 @@ void CFlame::Tick(float dwTicksIn)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CFlame::LocateEntity(char *szName, void **pEntityData)
+int CFlame::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

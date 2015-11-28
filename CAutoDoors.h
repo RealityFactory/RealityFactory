@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CAutoDoors.h
  * @brief Automatic door handler
@@ -13,29 +12,30 @@
 #ifndef __RGF_CAUTODOORS_H__
 #define __RGF_CAUTODOORS_H__
 
-
+/**
+ * @brief CAutoDoors handles all Door entities
+ */
 class CAutoDoors : public CRGFComponent
 {
 public:
-	CAutoDoors();										// Constructor
-	~CAutoDoors();										// Destructor
+	CAutoDoors();										///< Constructor
+	~CAutoDoors();										///< Destructor
 
-	void Render(geXForm3d ViewPoint, DWORD  dwTime);	// Render all doors
+	void Render(geXForm3d ViewPoint, DWORD  dwTime);	///< Render all doors
 	// changed RF063
 	bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor);
 	void TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall);
-														// Follow door trigger chain
-	bool IsADoor(geWorld_Model *theModel);				// Is this model a door?
-	void Tick(geFloat dwTicks);							// Increment animation time
-	int SaveTo(FILE *SaveFD, bool type);				// Save all doors to a file
-	int RestoreFrom(FILE *RestoreFD, bool type);		// Restore all doors from a file
-	int LocateEntity(char *szName, void **pEntityData);
+														///< Follow door trigger chain
+	bool IsADoor(geWorld_Model *theModel);				///< Is this model a door?
+	void Tick(geFloat dwTicks);							///< Increment animation time
+	int SaveTo(FILE *SaveFD, bool type);				///< Save all doors to a file
+	int RestoreFrom(FILE *RestoreFD, bool type);		///< Restore all doors from a file
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
-	// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
-	int m_DoorCount;					// Count of doors in world
+	int m_DoorCount;					///< Count of doors in world
 };
 
 #endif

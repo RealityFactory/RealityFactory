@@ -23,18 +23,17 @@
 // changed Nout 12/15/05
 typedef struct TxtMessage
 {
-	bool	ShowText;
-	char	EntityName[64];
-	char	AnimName[64];
-	//char	TextString[256];
-	string	TextString;
-	int		FontNr;
-	int		TextWidth;
-	char	TextSound[64];
-	int		ScreenOffsetX;
-	int		ScreenOffsetY;
-	float	Alpha;
-	char	Alignment;
+	bool		ShowText;
+	char		EntityName[64];
+	char		AnimName[64];
+	std::string	TextString;
+	int			FontNr;
+	int			TextWidth;
+	char		TextSound[64];
+	int			ScreenOffsetX;
+	int			ScreenOffsetY;
+	float		Alpha;
+	char		Alignment;
 
 } TxtMessage;
 
@@ -121,19 +120,18 @@ typedef struct EventStack
 
 } EventStack;
 
-
-//
-// ScriptConverse class
-//
+/**
+ * @brief ScriptConverse class
+ */
 class ScriptedConverse : public skScriptedExecutable
 {
 public:
-	ScriptedConverse(char *fileName);
+	ScriptedConverse(const char *fileName);
 	~ScriptedConverse();
 
-	bool getValue (const skString &fieldName, const skString &attribute, skRValue &value);
-    bool setValue (const skString &fieldName, const skString &attribute, const skRValue &value);
-    bool method (const skString& methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
+	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
+	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
+	bool method(const skString& methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
 	int DoConversation(int charpersec);
 	// changed Nout
@@ -141,7 +139,7 @@ public:
 	int DoSoundConversation(int charpersec, bool RenderHUD);
 
 
-	void TextDisplay(char *Text, int Width, int Font);
+	void TextDisplay(const char *Text, int Width, int Font);
 	int TextOut(int startline, int Height, int Font, int X, int Y);
 	// changed Nout 12/15/05
 	int TextOutLine(int startline, int Font, int X, int Y);
@@ -167,7 +165,7 @@ public:
 	bool		DrawrBackground;
 	bool		ReplyInSpeakWindow;
 	StreamingAudio *m_Streams_reply;
-	string		ReplySoundFileName[9];
+	std::string	ReplySoundFileName[9];
 	bool		ClearScreen;
 	geVec3d		PawnPos;
 	// end add 16/09/2003 Nout
@@ -193,7 +191,7 @@ public:
 	int ReplyHeight;
 	int ReplyFont;
 	bool replyflg[9];
-	string Text;
+	std::string Text;
 	StreamingAudio *m_Streams;
 
 	// changed Nout 12/15/05
@@ -206,12 +204,12 @@ public:
 	// StreamingAudio *m_Streams_reply;
 
 	LPDIRECTSOUND m_dsPtr;
-	string Reply[9];
+	std::string Reply[9];
 
 	// changed Nout 16/09/2003
 	// CString ReplySoundFileName[9];
 
-	vector<string> TextLines;
+	std::vector<std::string> TextLines;
 	bool ConvFlag;
 
 	// changed Nout 12/15/05
@@ -231,10 +229,11 @@ public:
 	StreamingAudio *m_Streams_mouseover;
 	bool MouseMenu;
 	geBitmap	*BGBitmap[9];
-	string		SoundAtClick[9];
-	string		SoundMouseOver[9];
+	std::string	SoundAtClick[9];
+	std::string	SoundMouseOver[9];
 	geBitmap	*MouseOverBitmap[9];
 	// end change
+
 private:
 	geCamera *M_Camera;
 	geRect 	 M_CameraRect;
@@ -242,18 +241,18 @@ private:
 };
 
 
-//
-// ScriptedObject class
-//
+/**
+ * @brief ScriptedObject class
+ */
 class ScriptedObject : public skScriptedExecutable
 {
 public:
 	ScriptedObject(char *fileName);
 	~ScriptedObject();
 
-	bool getValue (const skString &fieldName, const skString &attribute, skRValue &value);
-    bool setValue (const skString &fieldName, const skString &attribute, const skRValue &value);
-    bool method (const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);//change simkin
+	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
+	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
+	bool method(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);//change simkin
 	bool highmethod(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 	bool lowmethod(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
@@ -310,7 +309,7 @@ public:
 	char		ChangeMaterial[64];
 	char		Attribute[64];
 	int			OldAttributeAmount;
-	float		Gravity;
+	geVec3d		Gravity;
 	char		BoxAnim[64];
 	geVec3d		Location;
 	char		RootBone[64];
@@ -376,7 +375,7 @@ public:
 	bool		SoundLoop;
 	float		Circle;
 
-    // FindPointOrder code.
+	// FindPointOrder code.
 	// added QD RF07E
 	bool PointFind;
 	char PointOrder[64];
@@ -388,7 +387,6 @@ public:
 	// end change
 
 // Low Level variables
-
 	float		lowTime;
 	float		ThinkTime;
 	float		ElapseTime;
@@ -415,29 +413,29 @@ public:
 	ScriptedConverse *Converse;
 
 private:
-	void AddAction(int Action, char *AnimName, float Speed, bool Flag,
+	void AddAction(int Action, const char *AnimName, float Speed, bool Flag,
 		float Value1, float Value2, float Value3, float Value4,
-		char *Sound, char *Trigger);
+		const char *Sound, const char *Trigger);
 
 };
 
 typedef struct ConversationText
 {
-	string Text;
-	string Name;
+	std::string Text;
+	std::string Name;
 
 } ConversationText;
 
-typedef struct PreCache
+typedef struct BitampPreCache
 {
-	string Name;
+	std::string Name;
 	geBitmap *Bitmap;
 
-} PreCache;
+} BitmapPreCache;
 
-typedef struct WeaponPreCache
+typedef struct ActorPreCache
 {
-	string		Name;
+	std::string	Name;
 	char		ActorName[64];
 	geVec3d		Rotation;
 	geFloat		Scale;
@@ -451,25 +449,28 @@ typedef struct WeaponPreCache
 	float		PercentMapping;
 	float		PercentMaterial;
 
-} WeaponPreCache;
+} ActorPreCache;
 
+/**
+ * @brief CPawn class
+ */
 class CPawn : public CRGFComponent
 {
 public:
 	CPawn();	// Constructor
 	~CPawn();
 
-	void Tick(float dwTicks);
-	int HandleCollision(geActor *pActor, geActor *theActor, bool Gravity);
+	void Tick(geFloat dwTicks);
+	int HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
-	bool Converse(geActor *pActor);
-	void RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIcon);
-	int LocateEntity(char *szName, void **pEntityData);
-	void AddEvent(char *Event, bool State);
-	bool GetEventState(char *Event);
-	string GetText(char *Name);
-	geBitmap *GetCache(char *Name);
+	bool Converse(const geActor *pActor);
+	void RunConverse(ScriptedConverse *Converse, const char *szName, geBitmap *OIcon);
+	int LocateEntity(const char *szName, void **pEntityData);
+	void AddEvent(const char *Event, bool State);
+	bool GetEventState(const char *Event);
+	std::string GetText(const char *Name);
+	geBitmap *GetCache(const char *Name);
 	void AnimateWeapon();
 
 	bool GetConvFlag()						{ return ConvFlag;			}
@@ -477,24 +478,27 @@ public:
 	bool GetPawnFlag(int index)				{ return PawnFlag[index];	}
 	void SetPawnFlag(int index, bool flag)	{ PawnFlag[index] = flag;	}
 
-	bool CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone);
+	void GetGifXY(int *pGifX, int *pGifY)	{ if(pGifX)*pGifX=GifX; if(pGifY)*pGifY=GifY; }
+
+	bool CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const char *Bone);
 	// FindPointOrder code
 	// Added QD RF07E
-	bool CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *Bone);
+	bool CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const char *Bone);
 
 	int GetBlock()	{ return ConsoleBlock;	}
 	void IncBlock()	{ ConsoleBlock += 1;	}
 
-	void ParmCheck(int Entries, int Desired, char *Order, char *szName, const skString &methodname);
-	void LoadConv(char *convtxt);
+	void ParmCheck(int Entries, int Desired, const char *Order, const char *szName, const skString &methodname);
+	void LoadConv(const char *convtxt);
 
 	// changed Nout 12/15/05
-	bool Area(char *FromActorName, char *ToActorName, bool DistanceMode,
+	bool Area(const char *FromActorName, const char *ToActorName, bool DistanceMode,
 				float MinScr, float MaxScr, float MinDist, float MaxDist,
 				bool IgnoreX, bool IgnoreY, bool IgnoreZ);
 	void ShowText(int Nr);
 	void FillScreenArea(int Nr);
 
+public:
 	TxtMessage		TextMessage[MAXTEXT];
 	StreamingAudio	*m_Streams;
 	LPDIRECTSOUND	m_dsPtr;
@@ -505,24 +509,24 @@ private:
 	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void Spawn(void *Data);
-	bool RotateToPoint(void *Data, float dwTicks);
-	bool RotateAroundPoint(void *Data, float dwTicks);
-	bool RotateToAlign(void *Data, float dwTicks);
-	bool Rotate(void *Data, float dwTicks);
-	bool MoveToPoint(void *Data, float dwTicks);
-	bool Move(void *Data, float dwTicks);
-	bool RotateMoveToPoint(void *Data, float dwTicks);
-	bool RotateMove(void *Data, float dwTicks);
-	bool NextPoint(void *Data, float dwTicks);
-	bool NextOrder(void *Data, float dwTicks);
-	bool NextPath(void *Data, float dwTicks);
-	bool Jump(void *Data, float dwTicks);
-	bool AddTriggerOrder(void *Data, float dwTicks);
-	bool DelTriggerOrder(void *Data, float dwTicks);
-	bool RotateToPlayer(void *Data, float dwTicks);
-	void PreLoad(char *filename);
-	void PreLoadC(char *filename);
-	bool PlayerDistance(float FOV, float distance, geActor *Actor, const geVec3d &DeadPos, char *Bone);
+	bool RotateToPoint		(void *Data, float dwTicks);
+	bool RotateAroundPoint	(void *Data, float dwTicks);
+	bool RotateToAlign		(void *Data, float dwTicks);
+	bool Rotate				(void *Data, float dwTicks);
+	bool MoveToPoint		(void *Data, float dwTicks);
+	bool Move				(void *Data, float dwTicks);
+	bool RotateMoveToPoint	(void *Data, float dwTicks);
+	bool RotateMove			(void *Data, float dwTicks);
+	bool NextPoint			(void *Data, float dwTicks);
+	bool NextOrder			(void *Data, float dwTicks);
+	bool NextPath			(void *Data, float dwTicks);
+	bool Jump				(void *Data, float dwTicks);
+	bool AddTriggerOrder	(void *Data, float dwTicks);
+	bool DelTriggerOrder	(void *Data, float dwTicks);
+	bool RotateToPlayer		(void *Data, float dwTicks);
+	void PreLoad(const char *filename);
+	void PreLoadC(const char *filename);
+	bool PlayerDistance(float FOV, float distance, const geActor *Actor, const geVec3d &DeadPos, const char *Bone);
 
 private:
 	CIniFile AttrFile;
@@ -563,10 +567,11 @@ private:
 	int ReplyFont;
 	bool ConvFlag;
 	bool PawnFlag[MAXFLAGS];
-	vector<ConversationText> Text;
+	std::vector<ConversationText> Text;
 	EventStack *Events;
-	vector<WeaponPreCache> WeaponCache;
-	vector<PreCache> Cache;
+	std::vector<ActorPreCache> WeaponCache;
+	std::vector<ActorPreCache> AccessoryCache;
+	std::vector<BitmapPreCache> BitmapCache;
 	int ConsoleBlock;
 };
 

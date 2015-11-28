@@ -10,14 +10,14 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "RGFScriptMethods.h"
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 #include "Simkin\\skRuntimeException.h"
 #include "Simkin\\skParseException.h"
 
-
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	get a variable's value
@@ -26,433 +26,426 @@ bool ScriptedObject::getValue(const skString &fieldName,
 							  const skString &attribute,
 							  skRValue &value)
 {
-	skString sval;
+	long variable = CCD->GetHashMethod(fieldName.c_str());
 
-	if(fieldName == "time")
+	switch(variable)
 	{
-		value = lowTime;
-		return true;
-	}
-	else if(fieldName == "ThinkTime")
-	{
-		value = ThinkTime;
-		return true;
-	}
-	else if(fieldName == "DifficultyLevel")
-	{
-		value = CCD->GetDifficultLevel();
-		return true;
-	}
-	else if(fieldName == "EntityName")
-	{
-		value = skString(szName);
-		return true;
-	}
-	else if(fieldName == "health")
-	{
-		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
-
-		if(!EffectC_IsStringNull(Attribute))
-			value = theInv->Value(Attribute);
-		else
-			value = -1;
-
-		return true;
-	}
-	else if(fieldName == "attack_finished")
-	{
-		value = attack_finished;
-		return true;
-	}
-	else if(fieldName == "attack_state")
-	{
-		value = attack_state;
-		return true;
-	}
-	else if(fieldName == "enemy_vis")
-	{
-		if(!TargetActor)
+	case RGF_SM_TIME:
 		{
-			value = false;
+			value = lowTime;
 			return true;
 		}
-
-		bool flag = CCD->Pawns()->CanSee(FOV, Actor, TargetActor, FOVBone);
-
-		if(flag)
+	case RGF_SM_THINKTIME:
 		{
-			CCD->ActorManager()->GetPosition(TargetActor, &LastTargetPoint);
-			geExtBox theBox;
-			CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
-			LastTargetPoint.Y += ((theBox.Max.Y)*0.5f);// /2.0f);
+			value = ThinkTime;
+			return true;
 		}
-
-		value = flag;
-		return true;
-	}
-	else if(fieldName == "enemy_infront")
-	{
-		GetAngles(true);
-		value = false;
-
-		if(actoryaw == targetyaw)
-			value = true;
-
-		return true;
-	}
-	else if(fieldName == "enemy_range")
-	{
-		geExtBox theBox;
-		CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
-		value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor) - theBox.Max.X;
-		return true;
-	}
-	else if(fieldName == "player_range")
-	{
-		geExtBox theBox;
-		CCD->ActorManager()->GetBoundingBox(CCD->Player()->GetActor(), &theBox);
-		value = CCD->ActorManager()->DistanceFrom(CCD->Player()->Position(), Actor) - theBox.Max.X;
-		return true;
-	}
-	else if(fieldName == "enemy_yaw")
-	{
-		GetAngles(true);
-		value = targetyaw;
-		return true;
-	}
-	else if(fieldName == "last_enemy_yaw")
-	{
-		GetAngles(false);
-		value = targetyaw;
-		return true;
-	}
-	else if(fieldName == "enemy_pitch")
-	{
-		GetAngles(true);
-		value = targetpitch;
-		return true;
-	}
-	else if(fieldName == "last_enemy_pitch")
-	{
-		GetAngles(false);
-		value = targetpitch;
-		return true;
-	}
-	else if(fieldName == "last_enemy_range")
-	{
-		value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor);
-		return true;
-	}
-	else if(fieldName == "current_yaw")
-	{
-		GetAngles(true);
-		value = actoryaw;
-		return true;
-	}
-	else if(fieldName == "yaw_speed")
-	{
-		value = yaw_speed;
-		return true;
-	}
-	else if(fieldName == "ideal_yaw")
-	{
-		value = ideal_yaw;
-		return true;
-	}
-	else if(fieldName == "current_pitch")
-	{
-		GetAngles(true);
-		value = actorpitch;
-		return true;
-	}
-	else if(fieldName == "pitch_speed")
-	{
-		value = pitch_speed;
-		return true;
-	}
-	else if(fieldName == "ideal_pitch")
-	{
-		value = ideal_pitch;
-		return true;
-	}
-	else if(fieldName == "in_pain")
-	{
-		value = false;
-
-		if(!EffectC_IsStringNull(Attribute))
+	case RGF_SM_DIFFICULTYLEVEL:
+		{
+			value = CCD->GetDifficultLevel();
+			return true;
+		}
+	case RGF_SM_ENTITYNAME:
+		{
+			value = skString(szName);
+			return true;
+		}
+	case RGF_SM_HEALTH:
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
 
-			if(OldAttributeAmount>theInv->Value(Attribute))
-				value = true;
+			if(!EffectC_IsStringNull(Attribute))
+				value = theInv->Value(Attribute);
+			else
+				value = -1;
 
-			OldAttributeAmount = theInv->Value(Attribute);
+			return true;
 		}
+	case RGF_SM_ATTACK_FINISHED:
+		{
+			value = attack_finished;
+			return true;
+		}
+	case RGF_SM_ATTACK_STATE:
+		{
+			value = attack_state;
+			return true;
+		}
+	case RGF_SM_ENEMY_VIS:
+		{
+			if(!TargetActor)
+			{
+				value = false;
+				return true;
+			}
 
-		return true;
-	}
-	else if(fieldName == "animate_at_end")
-	{
-		value = CCD->ActorManager()->EndAnimation(Actor);
-		return true;
-	}
-	else if (fieldName == "IsFalling")
-	{
-		value = false;
+			bool flag = CCD->Pawns()->CanSee(FOV, Actor, TargetActor, FOVBone);
 
-// changed QD 07/15/06 - add additional ReallyFall check
-		if(CCD->ActorManager()->Falling(Actor)==GE_TRUE)
-			if(CCD->ActorManager()->ReallyFall(Actor) == RGF_SUCCESS)
+			if(flag)
+			{
+				CCD->ActorManager()->GetPosition(TargetActor, &LastTargetPoint);
+				geExtBox theBox;
+				CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
+				LastTargetPoint.Y += ((theBox.Max.Y)*0.5f);// /2.0f);
+			}
+
+			value = flag;
+			return true;
+		}
+	case RGF_SM_ENEMY_INFRONT:
+		{
+			GetAngles(true);
+			value = false;
+
+			if(actoryaw == targetyaw)
 				value = true;
-// end change
-		return true;
-	}
-	else if(fieldName == "current_X")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(Actor, &Pos);
-		value = Pos.X;
-		return true;
-	}
-	else if(fieldName == "current_Y")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(Actor, &Pos);
-		value = Pos.Y;
-		return true;
-	}
-	else if(fieldName == "current_Z")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(Actor, &Pos);
-		value = Pos.Z;
-		return true;
-	}
-// Added By Pickles to RF07D --------------------------
-	else if(fieldName == "player_Z")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
-		value = Pos.Z;
-		return true;
-	}
-	else if(fieldName == "player_Y")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
-		value = Pos.Y;
-		return true;
-	}
-	else if(fieldName == "player_X")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
-		value = Pos.X;
-		return true;
-	}
-	else if(fieldName == "distancetopoint")
-	{
-		value = -1;
 
-		if(ValidPoint)
+			return true;
+		}
+	case RGF_SM_ENEMY_RANGE:
+		{
+			geExtBox theBox;
+			CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
+			value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor) - theBox.Max.X;
+			return true;
+		}
+	case RGF_SM_PLAYER_RANGE:
+		{
+			geExtBox theBox;
+			CCD->ActorManager()->GetBoundingBox(CCD->Player()->GetActor(), &theBox);
+			value = CCD->ActorManager()->DistanceFrom(CCD->Player()->Position(), Actor) - theBox.Max.X;
+			return true;
+		}
+	case RGF_SM_ENEMY_YAW:
+		{
+			GetAngles(true);
+			value = targetyaw;
+			return true;
+		}
+	case RGF_SM_LAST_ENEMY_YAW:
+		{
+			GetAngles(false);
+			value = targetyaw;
+			return true;
+		}
+	case RGF_SM_ENEMY_PITCH:
+		{
+			GetAngles(true);
+			value = targetpitch;
+			return true;
+		}
+	case RGF_SM_LAST_ENEMY_PITCH:
+		{
+			GetAngles(false);
+			value = targetpitch;
+			return true;
+		}
+	case RGF_SM_LAST_ENEMY_RANGE:
+		{
+			value = CCD->ActorManager()->DistanceFrom(LastTargetPoint, Actor);
+			return true;
+		}
+	case RGF_SM_CURRENT_YAW:
+		{
+			GetAngles(true);
+			value = actoryaw;
+			return true;
+		}
+	case RGF_SM_YAW_SPEED:
+		{
+			value = yaw_speed;
+			return true;
+		}
+	case RGF_SM_IDEAL_YAW:
+		{
+			value = ideal_yaw;
+			return true;
+		}
+	case RGF_SM_CURRENT_PITCH:
+		{
+			GetAngles(true);
+			value = actorpitch;
+			return true;
+		}
+	case RGF_SM_PITCH_SPEED:
+		{
+			value = pitch_speed;
+			return true;
+		}
+	case RGF_SM_IDEAL_PITCH:
+		{
+			value = ideal_pitch;
+			return true;
+		}
+	case RGF_SM_IN_PAIN:
+		{
+			value = false;
+
+			if(!EffectC_IsStringNull(Attribute))
+			{
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
+
+				if(OldAttributeAmount>theInv->Value(Attribute))
+					value = true;
+
+				OldAttributeAmount = theInv->Value(Attribute);
+			}
+
+			return true;
+		}
+	case RGF_SM_ANIMATE_AT_END:
+		{
+			value = CCD->ActorManager()->EndAnimation(Actor);
+			return true;
+		}
+	case RGF_SM_ISFALLING:
+		{
+			value = false;
+
+			if(CCD->ActorManager()->Falling(Actor)==GE_TRUE)
+				if(CCD->ActorManager()->ReallyFall(Actor) == RGF_SUCCESS)
+					value = true;
+
+			return true;
+		}
+	case RGF_SM_CURRENT_X:
 		{
 			geVec3d Pos;
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
-			value = geVec3d_DistanceBetween(&CurrentPoint, &Pos);
+			value = Pos.X;
+			return true;
 		}
-
-		return true;
-	}
-// pickles Jul 04
-	else if(fieldName == "playertopoint")
-	{
-		value = -1;
-
-		if(ValidPoint)
+	case RGF_SM_CURRENT_Y:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(Actor, &Pos);
+			value = Pos.Y;
+			return true;
+		}
+	case RGF_SM_CURRENT_Z:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(Actor, &Pos);
+			value = Pos.Z;
+			return true;
+		}
+	case RGF_SM_PLAYER_X:
 		{
 			geVec3d Pos;
 			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
-			value = geVec3d_DistanceBetween(&CurrentPoint, &Pos);
+			value = Pos.X;
+			return true;
 		}
-
-		return true;
-	}
-//pickles Jul 04
-	else if(fieldName == "key_pressed")
-	{
-		value = CCD->Input()->GetKeyboardInputNoWait();
-		return true;
-	}
-	else if(fieldName == "player_vis")
-	{
-		GetAngles(true);
-		bool flag = CCD->Pawns()->CanSee(FOV, Actor, CCD->Player()->GetActor(), FOVBone);
-		value = flag;
-		return true;
-	}
-	else if(fieldName == "target_name")
-	{
-		if(CCD->ActorManager()->IsActor(TargetActor))
-			value = skString(CCD->ActorManager()->GetEntityName(TargetActor));
-		else
-			value = false;
-
-		return true;
-	}
-	else if(fieldName == "enemy_X")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
-		value = Pos.X;
-		return true;
-	}
-	else if(fieldName == "enemy_Y")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
-		value = Pos.Y;
-		return true;
-	}
-	else if(fieldName == "enemy_Z")
-	{
-		geVec3d Pos;
-		CCD->ActorManager()->GetPosition(TargetActor, &Pos);
-		value = Pos.Z;
-		return true;
-	}
-	else if(fieldName == "player_yaw")
-	{
-		geVec3d Orient;
-		CCD->ActorManager()->GetRotation(CCD->Player()->GetActor(), &Orient);
-		value = Orient.Y;
-		return true;
-	}
-	else if(fieldName == "point_vis")
-	{
-		bool flag = CCD->Pawns()->CanSeePoint(FOV, Actor, &CurrentPoint, FOVBone);
-		value = flag;
-		return true;
-	}
-	else if(fieldName == "player_weapon")
-	{
-		value = CCD->Weapons()->GetCurrent();
-		return true;
-	}
-	else if(fieldName == "point_name")
-	{
-		if(!Point)
+	case RGF_SM_PLAYER_Y:
 		{
-			value=skString("FALSE");
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+			value = Pos.Y;
+			return true;
+		}
+	case RGF_SM_PLAYER_Z:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+			value = Pos.Z;
+			return true;
+		}
+	case RGF_SM_DISTANCETOPOINT:
+		{
+			value = -1;
+
+			if(ValidPoint)
+			{
+				geVec3d Pos;
+				CCD->ActorManager()->GetPosition(Actor, &Pos);
+				value = geVec3d_DistanceBetween(&CurrentPoint, &Pos);
+			}
+
+			return true;
+		}
+	case RGF_SM_PLAYERTOPOINT:
+		{
+			value = -1;
+
+			if(ValidPoint)
+			{
+				geVec3d Pos;
+				CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos);
+				value = geVec3d_DistanceBetween(&CurrentPoint, &Pos);
+			}
+
+			return true;
+		}
+	case RGF_SM_KEY_PRESSED:
+		{
+			value = CCD->Input()->GetKeyboardInputNoWait();
+			return true;
+		}
+	case RGF_SM_PLAYER_VIS:
+		{
+			GetAngles(true);
+			bool flag = CCD->Pawns()->CanSee(FOV, Actor, CCD->Player()->GetActor(), FOVBone);
+			value = flag;
+			return true;
+		}
+	case RGF_SM_TARGET_NAME:
+		{
+			if(CCD->ActorManager()->IsActor(TargetActor))
+				value = skString(CCD->ActorManager()->GetEntityName(TargetActor));
+			else
+				value = false;
+
+			return true;
+		}
+	case RGF_SM_ENEMY_X:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+			value = Pos.X;
+			return true;
+		}
+	case RGF_SM_ENEMY_Y:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+			value = Pos.Y;
+			return true;
+		}
+	case RGF_SM_ENEMY_Z:
+		{
+			geVec3d Pos;
+			CCD->ActorManager()->GetPosition(TargetActor, &Pos);
+			value = Pos.Z;
+			return true;
+		}
+	case RGF_SM_PLAYER_YAW:
+		{
+			geVec3d Orient;
+			CCD->ActorManager()->GetRotation(CCD->Player()->GetActor(), &Orient);
+			value = Orient.Y;
+			return true;
+		}
+	case RGF_SM_POINT_VIS:
+		{
+			bool flag = CCD->Pawns()->CanSeePoint(FOV, Actor, &CurrentPoint, FOVBone);
+			value = flag;
+			return true;
+		}
+	case RGF_SM_PLAYER_WEAPON:
+		{
+			value = CCD->Weapons()->GetCurrent();
+			return true;
+		}
+	case RGF_SM_POINT_NAME:
+		{
+			if(!Point)
+			{
+				value=skString("FALSE");
+				return true;
+			}
+
+			value = skString(Point);
+			return true;
+		}
+	case RGF_SM_CAMERA_PITCH:
+		{
+			value = CCD->CameraManager()->GetTilt();
+			return true;
+		}
+	case RGF_SM_LODLEVEL:
+		{
+			int Level = 0;
+			CCD->ActorManager()->GetLODLevel(Actor, &Level);
+			value = Level;
+			return true;
+		}
+	case RGF_SM_CURRENT_SCREEN_X:
+		{
+			// Gets the ScreenX position of the active Pawn
+			geVec3d Pos, ScreenPos;
+			CCD->ActorManager()->GetPosition(Actor, &Pos);
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			value = (int)ScreenPos.X;
+			return true;
+		}
+	case RGF_SM_CURRENT_SCREEN_Y:
+		{
+			// Gets the ScreenY position of the active Pawn
+			geVec3d Pos, ScreenPos;
+			CCD->ActorManager()->GetPosition(Actor, &Pos);
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			value = (int)ScreenPos.Y;
 			return true;
 		}
 
-		value = skString(Point);
-		return true;
-	}
-	else if(fieldName == "camera_pitch")
-	{
-		value = CCD->CameraManager()->GetTilt();
-		return true;
-	}
-// END Added By Pickles ----------------------------------------
-	else if(fieldName == "LODLevel")
-	{
-		int Level = 0;
-		CCD->ActorManager()->GetLODLevel(Actor, &Level);
-		value = Level;
-		return true;
-	}
-// changed Nout 12/15/05
-	// Gets the ScreenX position of the active Pawn
-	else if(fieldName == "current_screen_X")
-	{
-		geVec3d Pos, ScreenPos;
-		CCD->ActorManager()->GetPosition(Actor, &Pos);
-		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-		value = int((CCD->Engine()->Width()/2 -1) * (1.0f - ScreenPos.X / ScreenPos.Z));
-		return true;
-	}
-	// Gets the ScreenY position of the active Pawn
-	else if(fieldName == "current_screen_Y")
-	{
-		geVec3d Pos, ScreenPos;
-		CCD->ActorManager()->GetPosition(Actor, &Pos);
-		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-		value = int((CCD->Engine()->Height()/2 - 1) * (1.0f + ScreenPos.Y / ScreenPos.Z));
-		return true;
-	}
-	// Gets the ScreenX position of the player
-	else if(fieldName == "player_screen_X")
-	{
-		geVec3d Pos, ScreenPos;
-		Pos = CCD->Player()->Position();
-		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-		value = int((CCD->Engine()->Width()/2 - 1) * (1.0f - ScreenPos.X / ScreenPos.Z));
-		return true;
-	}
-	// Gets the ScreenY position of the player
-	else if(fieldName == "player_screen_Y")
-	{
-		geVec3d Pos, ScreenPos;
-		Pos = CCD->Player()->Position();
-		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-		value = int((CCD->Engine()->Height()/2 - 1) * (1.0f + ScreenPos.Y / ScreenPos.Z));
-		return true;
-	}
-	// Check if left mouse button is pressed
-	else if(fieldName == "lbutton_pressed")
-	{
-		int SwapButton = GetSystemMetrics(SM_SWAPBUTTON);
-
-		if(SwapButton)
+	case RGF_SM_PLAYER_SCREEN_X:
 		{
-			value = (GetAsyncKeyState(VK_RBUTTON) < 0);
+			// Gets the ScreenX position of the player
+			geVec3d Pos, ScreenPos;
+			Pos = CCD->Player()->Position();
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			value = (int)ScreenPos.X;
+			return true;
 		}
-		else
-			value = (GetAsyncKeyState(VK_LBUTTON) < 0);
 
-		return true;
-	}
-	// Check if right mouse button is pressed
-	else if(fieldName == "rbutton_pressed")
-	{
-		int SwapButton = GetSystemMetrics(SM_SWAPBUTTON);
-
-		if(SwapButton)
+	case RGF_SM_PLAYER_SCREEN_Y:
 		{
-			value = (GetAsyncKeyState(VK_LBUTTON) < 0);
+			// Gets the ScreenY position of the player
+			geVec3d Pos, ScreenPos;
+			Pos = CCD->Player()->Position();
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			value = (int)ScreenPos.Y;
+			return true;
 		}
-		else
-			value = (GetAsyncKeyState(VK_RBUTTON) < 0);
+	case RGF_SM_LBUTTON_PRESSED:
+		{
+			// Check if left mouse button is pressed
+			int SwapButton = GetSystemMetrics(SM_SWAPBUTTON);
 
-		return true;
-	}
-	// Check if middle mouse button is pressed
-	else if(fieldName == "mbutton_pressed")
-	{
-		value = (GetAsyncKeyState(VK_MBUTTON) < 0);
-		return true;
-	}
-// end change by Nout
-// changed AndyCR 07/15/06
-	else if(fieldName == "player_animation")
-	{
-		value = skString(CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
-		return true;
-	}
-// end change AndyCR 07/15/06
-// changed QD 07/15/06
-	else if(fieldName == "player_viewpoint")
-	{
-		value = CCD->Player()->GetViewPoint();
-		return true;
-	}
-// end change QD 07/15/06
-	else
-	{
-		return skScriptedExecutable::getValue(fieldName, attribute, value);
-	}
+			if(SwapButton)
+			{
+				value = (GetAsyncKeyState(VK_RBUTTON) < 0);
+			}
+			else
+				value = (GetAsyncKeyState(VK_LBUTTON) < 0);
 
+			return true;
+		}
+	case RGF_SM_RBUTTON_PRESSED:
+		{
+			// Check if right mouse button is pressed
+			int SwapButton = GetSystemMetrics(SM_SWAPBUTTON);
+
+			if(SwapButton)
+			{
+				value = (GetAsyncKeyState(VK_LBUTTON) < 0);
+			}
+			else
+				value = (GetAsyncKeyState(VK_RBUTTON) < 0);
+
+			return true;
+		}
+	case RGF_SM_MBUTTON_PRESSED:
+		{
+			// Check if middle mouse button is pressed
+			value = (GetAsyncKeyState(VK_MBUTTON) < 0);
+			return true;
+		}
+	case RGF_SM_PLAYER_ANIMATION:
+		{
+			value = skString(CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
+			return true;
+		}
+	case RGF_SM_PLAYER_VIEWPOINT:
+		{
+			value = CCD->Player()->GetViewPoint();
+			return true;
+		}
+	default:
+		{
+			return skScriptedExecutable::getValue(fieldName, attribute, value);
+		}
+	}
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -462,54 +455,59 @@ bool ScriptedObject::setValue(const skString &fieldName,
 							  const skString &attribute,
 							  const skRValue &value)
 {
-	if(fieldName == "lowTime")
+	long variable = CCD->GetHashMethod(fieldName.c_str());
+
+	switch(variable)
 	{
-		lowTime = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "ThinkTime")
-	{
-		ThinkTime = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "think")
-	{
-		strcpy(thinkorder, value.str());
-		return true;
-	}
-	else if(fieldName == "attack_finished")
-	{
-		attack_finished = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "attack_state")
-	{
-		attack_state = value.intValue();
-		return true;
-	}
-	else if(fieldName == "yaw_speed")
-	{
-		yaw_speed = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "ideal_yaw")
-	{
-		ideal_yaw = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "pitch_speed")
-	{
-		pitch_speed = value.floatValue();
-		return true;
-	}
-	else if(fieldName == "ideal_pitch")
-	{
-		ideal_pitch = value.floatValue();
-		return true;
-	}
-	else
-	{
-		return skScriptedExecutable::setValue(fieldName, attribute, value);
+	case RGF_SM_LOWTIME:
+		{
+			lowTime = value.floatValue();
+			return true;
+		}
+	case RGF_SM_THINKTIME:
+		{
+			ThinkTime = value.floatValue();
+			return true;
+		}
+	case RGF_SM_THINK:
+		{
+			strcpy(thinkorder, value.str());
+			return true;
+		}
+	case RGF_SM_ATTACK_FINISHED:
+		{
+			attack_finished = value.floatValue();
+			return true;
+		}
+	case RGF_SM_ATTACK_STATE:
+		{
+			attack_state = value.intValue();
+			return true;
+		}
+	case RGF_SM_YAW_SPEED:
+		{
+			yaw_speed = value.floatValue();
+			return true;
+		}
+	case RGF_SM_IDEAL_YAW:
+		{
+			ideal_yaw = value.floatValue();
+			return true;
+		}
+	case RGF_SM_PITCH_SPEED:
+		{
+			pitch_speed = value.floatValue();
+			return true;
+		}
+	case RGF_SM_IDEAL_PITCH:
+		{
+			ideal_pitch = value.floatValue();
+			return true;
+		}
+	default:
+		{
+			return skScriptedExecutable::setValue(fieldName, attribute, value);
+		}
 	}
 }
 
@@ -521,52 +519,43 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 {
 
 	char param0[128], param4[128], param5[128]; // pickles Jul 04
-	bool param2;
 	float param1, param3;
 	param0[0] = '\0';
 	param4[0] = '\0';
 	param5[0] = '\0'; // pickles Jul 04
 
-	strcpy(param0, methodName);//change scripting
-	long ComCall = CCD->GetHashCommand(param0);//change scripting
+	long method = CCD->GetHashMethod(methodName.c_str());//change scripting
 
-	//open switch
-	switch(ComCall)
+	switch(method)
 	{
-	case 0:
-		{
-			return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt);//change simkin
-		}
-	case 1:	// if (IS_METHOD(methodName, "HighLevel"))
+	case RGF_SM_HIGHLEVEL:
 		{
 			//PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			highlevel = true;
-			strcpy(thinkorder, param0);
+			strcpy(thinkorder, arguments[0].str());
 			RunOrder = true;
 			ActionActive = false;
 			return true;
 		}
-	case 2:	// else if (IS_METHOD(methodName, "Animate"))
+	case RGF_SM_ANIMATE:
 		{
 			//PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->ActorManager()->SetMotion(Actor, param0);
+			CCD->ActorManager()->SetMotion(Actor, arguments[0].str().c_str());//param0);
 			CCD->ActorManager()->SetHoldAtEnd(Actor, false);
 			return true;
 		}
-	case 3:	// else if (IS_METHOD(methodName, "Gravity"))
+	case RGF_SM_GRAVITY:
 		{
 			PARMCHECK(1);
-			bool flag = arguments[0].boolValue();
-			float Gravity = 0.0f;
+			geVec3d Gravity = { 0.0f, 0.0f, 0.0f };
 
-			if(flag)
+			if(arguments[0].boolValue())
 				Gravity = CCD->Player()->GetGravity();
+
 			CCD->ActorManager()->SetGravity(Actor, Gravity);
 			return true;
 		}
-	case 4:	// else if (IS_METHOD(methodName, "PlaySound"))
+	case RGF_SM_PLAYSOUND:
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
@@ -591,7 +580,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			return true;
 		}
-	case 5:	// else if (IS_METHOD(methodName, "EnemyExist"))
+	case RGF_SM_ENEMYEXIST:
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
@@ -625,26 +614,23 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 6:	// else if (IS_METHOD(methodName, "GetEventState"))
+	case RGF_SM_GETEVENTSTATE:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			returnValue = (bool)GetTriggerState(param0);
+			returnValue = (bool)GetTriggerState(arguments[0].str().c_str());
 			return true;
 		}
-	case 7:	// else if (IS_METHOD(methodName, "Integer"))
+	case RGF_SM_INTEGER:
 		{
 			PARMCHECK(1);
-			int temp = arguments[0].intValue();
-			returnValue = (int)temp;
+			returnValue = (int)arguments[0].intValue();
 			return true;
 		}
-	case 8:	// else if (IS_METHOD(methodName, "GetAttribute"))
+	case RGF_SM_GETATTRIBUTE:
 		{
 			// USAGE:	GetAttribute(char *Attribute)
 			//			GetAttribute(char *Attribute, char *EntityName)
 			// PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 
 // changed QD 12/15/05
 			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -662,29 +648,27 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change
-			returnValue = (int)theInv->Value(param0);
+			returnValue = (int)theInv->Value(arguments[0].str().c_str());
 			return true;
 		}
 // changed QD 01/2004
-	case 9:	// else if (IS_METHOD(methodName, "GetCurFlipBook"))
+	case RGF_SM_GETCURFLIPBOOK:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			FlipBook *pEntityData=NULL;
+			FlipBook *pEntityData = NULL;
 // changed QD 04/23/2004
-			if(CCD->FlipBooks()->LocateEntity(param0, (void**)&pEntityData) == RGF_SUCCESS)
+			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData) == RGF_SUCCESS)
 // end change
-				returnValue = (int)pEntityData->CurTex;
+				returnValue = pEntityData->CurTex;
 			else
 				returnValue = 0;
 
 			return true;
 		}
 // end change
-	case 10:	// else if (IS_METHOD(methodName, "ModifyAttribute"))
+	case RGF_SM_MODIFYATTRIBUTE:
 		{
 			PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
 
 // changed QD 12/15/05
 			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -703,14 +687,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change
 
-			returnValue = (int)theInv->Modify(param0, arguments[1].intValue());
+			returnValue = (int)theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
 // Added By Pickles to RF07D --------------------------
-	case 11:	// else if (IS_METHOD(methodName, "SetAttribute"))
+	case RGF_SM_SETATTRIBUTE:
 		{
 			PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
 
 // changed QD 12/15/05
 			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -729,153 +712,132 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change
 
-			returnValue = (int)theInv->Set(param0, arguments[1].intValue());
+			returnValue = (int)theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
-	case 12:	// else if (IS_METHOD(methodName, "SetPlayerWeapon"))
+	case RGF_SM_SETPLAYERWEAPON:
 		{
 			PARMCHECK(1);
 			int temp = arguments[0].intValue();
 			// changed QD 07/15/06
-			if(temp<0)
+			if(temp<0 || temp>=MAX_WEAPONS)
 				CCD->Weapons()->Holster();
 			else
 				CCD->Weapons()->SetWeapon(temp);
 			// end change
 			return true;
 		}
-	case 13:	// else if (IS_METHOD(methodName, "SetUseItem"))
+	case RGF_SM_SETUSEITEM:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->Player()->SetUseAttribute(param0);
-			CCD->HUD()->ActivateElement(param0,true);
+			CCD->Player()->SetUseAttribute(arguments[0].str().c_str());
+			CCD->HUD()->ActivateElement(arguments[0].str().c_str(), true);
 			return true;
 		}
-	case 14:	// else if (IS_METHOD(methodName, "ClearUseItem"))
+	case RGF_SM_CLEARUSEITEM:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->HUD()->ActivateElement(param0,false);
-			CCD->Player()->DelUseAttribute(param0);
+			CCD->HUD()->ActivateElement(arguments[0].str().c_str(), false);
+			CCD->Player()->DelUseAttribute(arguments[0].str().c_str());
 			return true;
 		}
-	case 15:	// else if (IS_METHOD(methodName, "StringCopy"))
+	case RGF_SM_STRINGCOPY:
 		{
 			// PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			returnValue = skString(param0);
+			returnValue = skString(arguments[0].str());
 			return true;
 		}
-	case 16:	// else if (IS_METHOD(methodName, "LeftCopy"))
+	case RGF_SM_LEFTCOPY:
 		{
 			// PARMCHECK(2);
-			int temp = arguments[1].intValue();
-			// changed QD 07/15/06
-			/*
-			char* cstemp="";
-			strncpy(cstemp,arguments[0].str(),temp);
-			cstemp[temp]='\0';
-			returnValue = skString(cstemp);
-			*/
-			temp = (temp<127)?temp:127;
-			strncpy(param0, arguments[0].str(), temp);
-			param0[temp] = 0;
-			returnValue = skString(param0);
-			// end change
+			int length = arguments[1].intValue();
+			int slength = arguments[0].str().length();
+
+			if(length>slength)
+				length = slength;
+
+			returnValue = arguments[0].str().substr(0, length);
+
 			return true;
 		}
-	case 17:	// else if (IS_METHOD(methodName, "IsEntityVisible"))
+	case RGF_SM_ISENTITYVSIBLE:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			bool flag = CCD->Pawns()->CanSee(FOV, Actor,CCD->ActorManager()->GetByEntityName(param0), FOVBone);
-			returnValue = flag;
+			returnValue = CCD->Pawns()->CanSee(FOV, Actor, CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), FOVBone);
 			return true;
 		}
-	case 18:	// else if (IS_METHOD(methodName, "DamageEntity"))
+	case RGF_SM_DAMAGEENTITY:
 		{
 			// PARMCHECK(3);
 			float amount = arguments[0].floatValue();
-			strcpy(param0, arguments[1].str());
-			strcpy(param4, arguments[2].str());
-			CCD->Damage()->DamageActor(CCD->ActorManager()->GetByEntityName(param4), amount, param0, amount, param0, "Melee");
+			CCD->Damage()->DamageActor(CCD->ActorManager()->GetByEntityName(arguments[2].str().c_str()),
+										amount, arguments[1].str().c_str(),
+										amount, arguments[1].str().c_str(),
+										"Melee");
 			return true;
 		}
-	case 19:	// else if (IS_METHOD(methodName, "AnimateEntity"))
+	case RGF_SM_ANIMATEENTITY:
 		{
 			PARMCHECK(3);
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
-			param2 = arguments[2].boolValue();
-			CCD->ActorManager()->SetMotion(CCD->ActorManager()->GetByEntityName(param4), param0);
-			CCD->ActorManager()->SetHoldAtEnd(CCD->ActorManager()->GetByEntityName(param4), param2);
+			CCD->ActorManager()->SetMotion(CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str()), arguments[0].str().c_str());
+			CCD->ActorManager()->SetHoldAtEnd(CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str()), arguments[2].boolValue());
 			return true;
 		}
-	case 20:	// else if (IS_METHOD(methodName, "AnimateHold"))
+	case RGF_SM_ANIMATEHOLD:
 		{
 			// PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->ActorManager()->SetMotion(Actor, param0);
+			CCD->ActorManager()->SetMotion(Actor, arguments[0].str().c_str());
 			CCD->ActorManager()->SetHoldAtEnd(Actor, true);
 			return true;
 		}
-	case 21:	// else if (IS_METHOD(methodName, "AnimateTarget"))
+	case RGF_SM_ANIMATETARGET:
 		{
 			PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
-			param2 = arguments[1].boolValue();
-			CCD->ActorManager()->SetMotion(TargetActor, param0);
-			CCD->ActorManager()->SetHoldAtEnd(TargetActor, param2);
+			CCD->ActorManager()->SetMotion(TargetActor, arguments[0].str().c_str());
+			CCD->ActorManager()->SetHoldAtEnd(TargetActor, arguments[1].boolValue());
 			return true;
 		}
-	case 22:	// else if (IS_METHOD(methodName, "GetEntityX"))
+	case RGF_SM_GETENTITYX:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			geVec3d Pos;
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos);
 			returnValue = Pos.X;
 			return true;
 		}
-	case 23:	// else if (IS_METHOD(methodName, "GetEntityY"))
+	case RGF_SM_GETENTITYY:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			geVec3d Pos;
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos);
 			returnValue = Pos.Y;
 			return true;
 		}
-	case 24:	// else if (IS_METHOD(methodName, "GetEntityZ"))
+	case RGF_SM_GETENTITYZ:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			geVec3d Pos;
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos);
 			returnValue = Pos.Z;
 			return true;
 		}
-	case 25:	// else if (IS_METHOD(methodName, "IsKeyDown"))
+	case RGF_SM_ISKEYDOWN:
 		{
 // Changed RF071A Picklkes
 			PARMCHECK(1);
-			int temp = arguments[0].intValue();
 			returnValue = false;
 
-			if(CCD->Input()->GetKeyCheck(temp) == true)
+			if(CCD->Input()->GetKeyCheck(arguments[0].intValue()) == true)
 				returnValue = true;
 
 			return true;
 		}
-	case 26:	// else if (IS_METHOD(methodName, "GetEntityYaw"))
+	case RGF_SM_GETENTITYYAW:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			geVec3d Orient;
 			geActor *MasterActor;
-			strcpy(param0, arguments[0].str());
-			MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+			MasterActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MasterActor)
 				return true;
@@ -884,14 +846,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = Orient.Y;
 			return true;
 		}
-	case 27:	// else if (IS_METHOD(methodName, "MatchEntityAngles"))
+	case RGF_SM_MATCHENTITYANGLES:
 		{
 			PARMCHECK(1);
 			GetAngles(true);
 			geVec3d theRotation;
 			geActor *MasterActor;
-			strcpy(param0, arguments[0].str());
-			MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+			MasterActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MasterActor)
 				return true;
@@ -900,14 +861,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->Rotate(Actor, theRotation);
 			return true;
 		}
-	case 28:	// else if (IS_METHOD(methodName, "FacePoint"))
+	case RGF_SM_FACEPOINT:
 		{
 			if(ValidPoint)
-				CCD->ActorManager()->RotateToFacePoint(Actor,CurrentPoint);
+				CCD->ActorManager()->RotateToFacePoint(Actor, CurrentPoint);
 
 			return true;
 		}
-	case 29:	// else if (IS_METHOD(methodName, "NewPoint"))
+	case RGF_SM_NEWPOINT:
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
@@ -932,7 +893,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 		}
 // ADDED TO RF071 BY PICKLES
-	case 30:	// else if (IS_METHOD(methodName, "GetPointYaw"))
+	case RGF_SM_GETPOINTYAW:
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
@@ -952,7 +913,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 31:	// else if (IS_METHOD(methodName, "NextPoint"))
+	case RGF_SM_NEXTPOINT:
 		{
 			char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
 
@@ -994,12 +955,11 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 		}
 //END ADDED TO RF071 BY PICKLES
-	case 32:	// else if (IS_METHOD(methodName, "SetTarget"))
+	case RGF_SM_SETTARGET:
 		{
 			PARMCHECK(1);
 			geActor *MActor;
-			strcpy(param0, arguments[0].str());
-			MActor = CCD->ActorManager()->GetByEntityName(param0);
+			MActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MActor)
 				return true;
@@ -1007,13 +967,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			TargetActor = MActor;
 			return true;
 		}
-	case 33:	// else if (IS_METHOD(methodName, "GetDistanceTo"))
+	case RGF_SM_GETDISTANCETO:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 			geVec3d Pos, tPos;
 			geActor *MActor;
-			MActor = CCD->ActorManager()->GetByEntityName(param0);
+			MActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MActor)
 				return true;
@@ -1023,7 +982,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = geVec3d_DistanceBetween(&tPos, &Pos);
 			return true;
 		}
-	case 34:	// else if (IS_METHOD(methodName, "TeleportEntity"))
+	case RGF_SM_TELEPORTENTITY:
 		{
 			// USAGE : TeleportEntity(EntityName, Point)
 			// TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ)
@@ -1081,40 +1040,34 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					}
 // end change
 
-// Added Pickles RF071
-// changed QD 12/15/05 - we're not teleporting this scripted object!
-					//if(WeaponActor)
-					//	CCD->ActorManager()->Position(WeaponActor, Pos);
-// end change
-// End Added Pickles RF071
+					if(tActor == Actor && WeaponActor)
+						CCD->ActorManager()->Position(WeaponActor, Pos);
 				}
 			}
 
 			return true;
 		}
-	case 35:	// else if (IS_METHOD(methodName, "SaveAttributes"))
+	case RGF_SM_SAVEATTRIBUTES:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->Player()->SaveAttributesAscii(param0);
+			CCD->Player()->SaveAttributesAscii(arguments[0].str().c_str());
 			return true;
 		}
-	case 36:	// else if (IS_METHOD(methodName, "TraceToActor"))
+	case RGF_SM_TRACETOACTOR:
 		{
 			PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, Normal, theRotation, Direction;
 			geActor *pActor;
 			geFloat T;
-			strcpy(param0, arguments[0].str());
 			CCD->ActorManager()->GetPosition(Actor, &OldPos);
 			returnValue = skString("FALSE");
 			bool bone;
 
 			if(WeaponActor)
-				bone = geActor_GetBoneTransform(WeaponActor, param0, &Xf);
+				bone = geActor_GetBoneTransform(WeaponActor, arguments[0].str().c_str(), &Xf);
 			else
-				bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+				bone = geActor_GetBoneTransform(Actor, arguments[0].str().c_str(), &Xf);
 
 			if(!bone)
 				return true;
@@ -1146,28 +1099,26 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 37:	// else if (IS_METHOD(methodName, "AnimateBlend"))
+	case RGF_SM_ANIMATEBLEND:
 		{
 			// PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
 			param1 = arguments[1].floatValue();
-			strcpy(param4, CCD->ActorManager()->GetMotion(Actor));
 
 			if(param1 > 0.0f)
 			{
-				CCD->ActorManager()->SetTransitionMotion(Actor, param0, param1, NULL);
+				CCD->ActorManager()->SetTransitionMotion(Actor, arguments[0].str().c_str(), param1, NULL);
 				CCD->ActorManager()->SetHoldAtEnd(Actor, true);
 			}
 
 			return true;
 		}
-	case 38:	// else if (IS_METHOD(methodName, "AnimationSpeed"))
+	case RGF_SM_ANIMATIONSPEED:
 		{
 			// PARMCHECK(1);
-			CCD->ActorManager()->SetAnimationSpeed(Actor,arguments[0].floatValue());
+			CCD->ActorManager()->SetAnimationSpeed(Actor, arguments[0].floatValue());
 			return true;
 		}
-	case 39:	// else if (IS_METHOD(methodName, "SetCollision"))
+	case RGF_SM_SETCOLLISION:
 		{
 			CCD->ActorManager()->SetCollide(Actor);
 
@@ -1179,33 +1130,31 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 40:	// else if (IS_METHOD(methodName, "SetNoCollision"))
+	case RGF_SM_SETNOCOLLISION:
 		{
 			CCD->ActorManager()->SetNoCollide(Actor);
 			return true;
 		}
-	case 41:	// else if (IS_METHOD(methodName, "DamageArea"))
+	case RGF_SM_DAMAGEAREA:
 		{
 			PARMCHECK(3);
-			char* dAttrib='\0';
 			geVec3d Pos;
 			geFloat dAmount,dRange;
 			dAmount = arguments[0].floatValue();
 			dRange = arguments[1].floatValue();
-			strcpy(dAttrib, arguments[2].str());
+			strcpy(param0, arguments[2].str());
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
-			CCD->Damage()->DamageActorInRange(Pos,dRange,dAmount,dAttrib,0.0f,"","Explosion");
-			CCD->Damage()->DamageModelInRange(Pos,dRange,dAmount,dAttrib,0.0f,"");
+			CCD->Damage()->DamageActorInRange(Pos, dRange, dAmount, param0, 0.0f, "", "Explosion");
+			CCD->Damage()->DamageModelInRange(Pos, dRange, dAmount, param0, 0.0f, "");
 			return true;
 		}
-	case 42:	// else if (IS_METHOD(methodName, "PlayerMatchAngles"))
+	case RGF_SM_PLAYERMATCHANGLES:
 		{
 			PARMCHECK(1);
 			GetAngles(true);
 			geVec3d theRotation;
 			geActor *MasterActor;
-			strcpy(param0, arguments[0].str());
-			MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+			MasterActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MasterActor)
 				return true;
@@ -1214,47 +1163,43 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
 			return true;
 		}
-	case 43:	// else if (IS_METHOD(methodName, "ConvertDegrees"))
+	case RGF_SM_CONVERTDEGREES:
 		{
 			PARMCHECK(1);
-			param3 = arguments[0].floatValue();
-			returnValue = param3*0.0174532925199433f;
+			returnValue = arguments[0].floatValue()*GE_PIOVER180;
 			return true;
 		}
-	case 44:	// else if (IS_METHOD(methodName, "AttachCamera"))
+	case RGF_SM_ATTACHCAMERA:
 		{
 			CCD->CameraManager()->BindToActor(Actor);
 			return true;
 		}
-	case 45:	// else if (IS_METHOD(methodName, "AttachCameraToBone"))
+	case RGF_SM_ATTACHCAMERATOBONE:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->CameraManager()->BindToActorBone(Actor,param0);
+			CCD->CameraManager()->BindToActorBone(Actor, arguments[0].str().c_str());
 			return true;
 		}
-	case 46:	// else if (IS_METHOD(methodName, "AttachCameraToEntity"))
+	case RGF_SM_ATTACHCAMERATOENTITY:
 		{
 			PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
-			CCD->CameraManager()->BindToActorBone(CCD->ActorManager()->GetByEntityName(param0),param4);
+			CCD->CameraManager()->BindToActorBone(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str());
 			return true;
 		}
-	case 47:	// else if (IS_METHOD(methodName, "DetachCamera"))
+	case RGF_SM_DETACHCAMERA:
 		{
 			CCD->CameraManager()->BindToActor(CCD->Player()->GetActor());
 			return true;
 		}
-	case 48:	// else if (IS_METHOD(methodName, "TiltCamera"))
+	case RGF_SM_TILTCAMERA:
 		{
 			PARMCHECK(1);
 			param3 = arguments[0].floatValue();
 
 			if(param3 < 0)
 			{
-				// changed QD 12/15/05
-				CCD->CameraManager()->TiltUp(-param3); //(param3*(+1));
+				CCD->CameraManager()->TiltUp(-param3);
 			}
 			else
 			{
@@ -1263,17 +1208,16 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 49:	// else if (IS_METHOD(methodName, "PositionToPlatform"))
+	case RGF_SM_POSITIONTOPLATFORM:
 		{
 // Changed Pickles rf07A
 			PARMCHECK(5);
 			geVec3d Pos,theRotation;
 			geXForm3d Xf;
-			strcpy(param0, arguments[0].str());
 			MovingPlatform *pEntity;
-			CCD->Platforms()->LocateEntity(param0, (void**)&pEntity);
-			CCD->ModelManager()->GetPosition(pEntity->Model,&Pos);
-			CCD->ModelManager()->GetRotation(pEntity->Model,&theRotation);
+			CCD->Platforms()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntity);
+			CCD->ModelManager()->GetPosition(pEntity->Model, &Pos);
+			CCD->ModelManager()->GetRotation(pEntity->Model, &theRotation);
 
 			if(pEntity->ParentModel)
 			{
@@ -1288,9 +1232,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			CCD->ActorManager()->Position(Actor, Pos);
 
-			bool flag = arguments[4].boolValue();
-
-			if(flag)
+			if(arguments[4].boolValue())
 				CCD->ActorManager()->Rotate(Actor, theRotation);
 
 // Added Pickles RF071
@@ -1301,15 +1243,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 // End Changed Pickles rf07A
 		}
-	case 50:	// else if (IS_METHOD(methodName, "ActivateTrigger"))
+	case RGF_SM_ACTIVATETRIGGER:
 		{
 			// PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->Triggers()->HandleTriggerEvent(param0);
+			CCD->Triggers()->HandleTriggerEvent(arguments[0].str().c_str());
 			return true;
 		}
 // Added Pickles to RF071A
-	case 51:	// else if (IS_METHOD(methodName, "UpdateEnemyVis"))
+	case RGF_SM_UPDATEENEMYVIS:
 		{
 			GetAngles(true);
 
@@ -1322,20 +1263,19 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			LastTargetPoint.Y += ((theBox.Max.Y)*0.5f); // /2.0f);
 			return true;
 		}
-	case 52:	// else if (IS_METHOD(methodName, "TargetPlayer"))
+	case RGF_SM_TARGETPLAYER:
 		{
 			TargetActor = CCD->Player()->GetActor();
 			return true;
 		}
-	case 53:	// else if (IS_METHOD(methodName, "FireProjectileBlind"))
+	case RGF_SM_FIREPROJECTILEBLIND:
 		{
 			// PARMCHECK(6);
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction, Orient, tPoint;
-			char *dAttrib ="\0";
 			strcpy(param0, arguments[1].str());// Bone
 			strcpy(param4, arguments[0].str());// Projectile
-			strcpy(dAttrib, arguments[5].str());// Attribute
+			strcpy(param5, arguments[5].str());// Attribute
 			bool bone;
 
 			if(WeaponActor)
@@ -1376,158 +1316,143 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(l > 0.0f)
 			{
 				float x = Orient.X;
-				// changed QD 12/15/05
-				// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
 				Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
 				Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
 				Orient.Z = 0.0f;	// roll is zero - always!!?
 
-				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, param4, dAttrib, dAttrib);
+				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, param4, param5, param5);
 			}
 
 			return true;
 		}
-	case 54:	// else if (IS_METHOD(methodName, "SetTargetPoint"))
+	case RGF_SM_SETTARGETPOINT:
 		{
 			// PARMCHECK(3);
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction;
+			bool Offset = true;
 
-			CCD->ActorManager()->GetPosition(Actor, &Pos);
-			CCD->ActorManager()->GetRotate(Actor, &theRotation);
+			if(arguments.entries()>3)
+				Offset = arguments[3].boolValue();
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xf);
-			//geXForm3d_RotateZ(&Xf, theRotation.Z);
-			geXForm3d_SetZRotation(&Xf, theRotation.Z);
-			geXForm3d_RotateX(&Xf, theRotation.X);
-			geXForm3d_RotateY(&Xf, theRotation.Y);
-			//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-			// end change
+			if(Offset)
+			{
+				CCD->ActorManager()->GetPosition(Actor, &Pos);
+				CCD->ActorManager()->GetRotate(Actor, &theRotation);
 
-			geXForm3d_GetUp(&Xf, &Direction);
-			geVec3d_AddScaled(&Pos, &Direction, arguments[1].floatValue(), &Pos);
+				geXForm3d_SetZRotation(&Xf, theRotation.Z);
+				geXForm3d_RotateX(&Xf, theRotation.X);
+				geXForm3d_RotateY(&Xf, theRotation.Y);
 
-			geXForm3d_GetLeft(&Xf, &Direction);
-			geVec3d_AddScaled(&Pos, &Direction, arguments[0].floatValue(), &Pos);
+				geXForm3d_GetUp(&Xf, &Direction);
+				geVec3d_AddScaled(&Pos, &Direction, arguments[1].floatValue(), &Pos);
 
-			geXForm3d_GetIn(&Xf, &Direction);
-			geVec3d_AddScaled(&Pos, &Direction, arguments[2].floatValue(), &Pos);
+				geXForm3d_GetLeft(&Xf, &Direction);
+				geVec3d_AddScaled(&Pos, &Direction, arguments[0].floatValue(), &Pos);
+
+				geXForm3d_GetIn(&Xf, &Direction);
+				geVec3d_AddScaled(&Pos, &Direction, arguments[2].floatValue(), &Pos);
+			}
+			else
+			{
+				geVec3d_Set(&Pos, arguments[0].floatValue(), arguments[1].floatValue(), arguments[2].floatValue());
+			}
 
 			UpdateTargetPoint = Pos;
 			return true;
 		}
 //-------------------- End Added by Pickles -----------------------------------
 // begin added pickles 042004
-	case 55:	// else if (IS_METHOD(methodName, "GetBoneX"))
+	case RGF_SM_GETBONEX:
 		{
 			// USAGE: GetBoneX("ENTITY NAME","BONE NAME");
 			PARMCHECK(1);
 			geVec3d Pos;
-			strcpy(param0, arguments[0].str());// entity name
-			strcpy(param4, arguments[0].str());// bone name
-			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(param0),param4,&Pos);
+			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str(), &Pos);
 			returnValue = Pos.X;
 			return true;
 		}
-	case 56:	// else if (IS_METHOD(methodName, "GetBoneY"))
+	case RGF_SM_GETBONEY:
 		{
 			// USAGE: GetBoneY("ENTITY NAME","BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
-			strcpy(param0, arguments[0].str());// entity name
-			strcpy(param4, arguments[0].str());// bone name
-			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(param0),param4,&Pos);
-// changed QD 04/28/2004
+			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str(), &Pos);
 			returnValue = Pos.Y;
-// end change
 			return true;
 		}
-	case 57:	// else if (IS_METHOD(methodName, "GetBoneZ"))
+	case RGF_SM_GETBONEZ:
 		{
 			// USAGE: GetBoneZ("ENTITY NAME","BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
-			strcpy(param0, arguments[0].str());// entity name
-			strcpy(param4, arguments[0].str());// bone name
-			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(param0),param4,&Pos);
-// changed QD 04/28/2004
+			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str(), &Pos);
 			returnValue = Pos.Z;
-// end change
 			return true;
 		}
-	case 58:	// else if (IS_METHOD(methodName, "GetBoneYaw"))
+	case RGF_SM_GETBONEYAW:
 		{
 			// USAGE: GetBoneYaw("ENTITY NAME","BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
-			strcpy(param0, arguments[0].str());// entity name
-			strcpy(param4, arguments[0].str());// bone name
-			CCD->ActorManager()->GetBoneRotation(CCD->ActorManager()->GetByEntityName(param0),param4,&Pos);
+			CCD->ActorManager()->GetBoneRotation(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str(), &Pos);
 			returnValue = Pos.Y;
 			return true;
 		}
-	case 59:	// else if (IS_METHOD(methodName, "SetPosition"))
+	case RGF_SM_SETPOSITION:
 		{
 			// USAGE; SetPosition("ENTITY NAME",X, Y, Z);
 			PARMCHECK(4);
-// changed QD 04/28/2004
 			geVec3d Pos;
-			geVec3d_Set(&Pos,0.f,0.f,0.f);
-			strcpy(param0, arguments[0].str());// entity name
-			Pos.X = arguments[1].floatValue();// x
-			Pos.Y = arguments[2].floatValue();// y
-			Pos.Z = arguments[3].floatValue();// z
-// end change
-			CCD->ActorManager()->Position(CCD->ActorManager()->GetByEntityName(param0), Pos);
+			geVec3d_Set(&Pos, arguments[1].floatValue(), arguments[2].floatValue(), arguments[3].floatValue());
+
+			CCD->ActorManager()->Position(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), Pos);
 			return true;
 		}
 // end added pickles 042004
 // start pickles Jul 04
-	case 60:	// else if (IS_METHOD(methodName, "IsButtonDown"))
+	case RGF_SM_ISBUTTONDOWN:
 		{
 			PARMCHECK(2);
-			int a = arguments[0].intValue();
-			int b = arguments[1].intValue();
-			returnValue = CCD->CheckJoystickButton(a, b);
+			returnValue = CCD->CheckJoystickButton(arguments[0].intValue(), arguments[1].intValue());
 			return true;
 		}
-	case 61:	// else if (IS_METHOD(methodName, "GetJoyAxisX"))
+	case RGF_SM_GETJOYAXISX:
 		{
 			PARMCHECK(1);
-			int a = arguments[0].intValue();
-			returnValue = CCD->PollJoystickAxis(a, 0);
+			returnValue = CCD->PollJoystickAxis(arguments[0].intValue(), 0);
 			return true;
 		}
-	case 62:	// else if (IS_METHOD(methodName, "GetJoyAxisY"))
+	case RGF_SM_GETJOYAXISY:
 		{
 			PARMCHECK(1);
-			int a = arguments[0].intValue();
-			returnValue = CCD->PollJoystickAxis(a, 1);
+			returnValue = CCD->PollJoystickAxis(arguments[0].intValue(), 1);
 			return true;
 		}
-	case 63:	// else if (IS_METHOD(methodName, "GetJoyAxisZ"))
+	case RGF_SM_GETJOYAXISZ:
 		{
 			PARMCHECK(1);
-			int a = arguments[0].intValue();
-			returnValue = CCD->PollJoystickAxis(a, 2);
+			returnValue = CCD->PollJoystickAxis(arguments[0].intValue(), 2);
 			return true;
 		}
-	case 64:	// else if (IS_METHOD(methodName, "GetNumJoySticks"))
+	case RGF_SM_GETNUMJOYSTICKS:
 		{
 			returnValue = CCD->GetNumJoys();
 			return true;
 		}
-	case 65:	// else if (IS_METHOD(methodName, "SetBoundingBox"))
+	case RGF_SM_SETBOUNDINGBOX:
 		{
 			// USAGE SetBoundingBox(ANIMATION,width);
 			// PARMCHECK(1);
-			strcpy(param0, arguments[0].str());// animation
 			float width = arguments[1].floatValue(); // width
-			CCD->ActorManager()->SetBoundingBox(Actor,param0);
+			CCD->ActorManager()->SetBoundingBox(Actor, arguments[0].str().c_str());
 			geExtBox theBox;
-			float CurrentHeight;
 			CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
+			float CurrentHeight;
 			CurrentHeight = theBox.Max.Y;
 
 			if(width > 0.0f)
@@ -1535,103 +1460,94 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 66:	// else if (IS_METHOD(methodName, "GetBoneToBone"))
+	case RGF_SM_GETBONETOBONE:
 		{
 			// USAGE: FLOAT GetBoneToBone(BONE NAME, TARGET ENTITY NAME, TARGET BONE NAME);
 			PARMCHECK(3);
 			geVec3d bpos1, bpos2;
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
-			strcpy(param5, arguments[2].str());
-			CCD->ActorManager()->GetBonePosition(Actor,param0,&bpos1);
-			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(param4),param5,&bpos2);
+			CCD->ActorManager()->GetBonePosition(Actor, arguments[0].str().c_str(), &bpos1);
+			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str()),
+				arguments[2].str().c_str(), &bpos2);
 			returnValue = geVec3d_DistanceBetween(&bpos1, &bpos2);
 			return true;
 		}
-	case 67:	// else if (IS_METHOD(methodName, "SwitchView"))
+	case RGF_SM_SWITCHVIEW:
 		{
 			// USAGE SwitchView(INT 0-2);
 			PARMCHECK(1);
-			int v = arguments[0].intValue();
-			CCD->Player()->SwitchCamera(v);
+			CCD->Player()->SwitchCamera(arguments[0].intValue());
 			return true;
 		}
-	case 68:	// else if (IS_METHOD(methodName, "ForceEntityUp"))
+	case RGF_SM_FORCEENTITYUP:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->UpVector(mActor, &theUp);
 			CCD->ActorManager()->SetForce(mActor, 0, theUp, amount, amount);
 			return true;
 		}
-	case 69:	// else if (IS_METHOD(methodName, "ForceEntityDown"))
+	case RGF_SM_FORCEENTITYDOWN:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->UpVector(mActor, &theUp);
 			geVec3d_Inverse(&theUp);
 			CCD->ActorManager()->SetForce(mActor, 0, theUp, amount, amount);
 			return true;
 		}
-	case 70:	// else if (IS_METHOD(methodName, "ForceEntityRight"))
+	case RGF_SM_FORCEENTITYRIGHT:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->LeftVector(mActor, &theUp);
 			geVec3d_Inverse(&theUp);
 			CCD->ActorManager()->SetForce(mActor, 1, theUp, amount, amount);
 			return true;
 		}
-	case 71:	// else if (IS_METHOD(methodName, "ForceEntityLeft"))
+	case RGF_SM_FORCEENTITYLEFT:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->LeftVector(mActor, &theUp);
 			CCD->ActorManager()->SetForce(mActor, 1, theUp, amount, amount);
 			return true;
 		}
-	case 72:	// else if (IS_METHOD(methodName, "ForceEntityForward"))
+	case RGF_SM_FORCEENTITYFORWARD:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->InVector(mActor, &theUp);
 			CCD->ActorManager()->SetForce(mActor, 2, theUp, amount, amount);
 			return true;
 		}
-	case 73:	// else if (IS_METHOD(methodName, "ForceEntityBackward"))
+	case RGF_SM_FORCEENTITYBACKWARD:
 		{
 			// PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
-			strcpy(param0,arguments[1].str());
-			mActor = CCD->ActorManager()->GetByEntityName(param0);
+			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 			CCD->ActorManager()->InVector(mActor, &theUp);
 			geVec3d_Inverse(&theUp);
 			CCD->ActorManager()->SetForce(mActor, 2, theUp, amount, amount);
 			return true;
 		}
-	case 74:	// else if (IS_METHOD(methodName, "GetGroundTexture")) //PWX
+	case RGF_SM_GETGROUNDTEXTURE:
 		{
 			char Texture[256];
 			geVec3d fPos,tPos;
@@ -1642,7 +1558,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = skString(Texture);
 			return true;
 		}
-	case 75:	//	else if (IS_METHOD(methodName, "GetPlayerGroundTexture")) //PWX
+	case RGF_SM_GETPLAYERGROUNDTEXTURE:
 		{
 			char Texture[256];
 			geVec3d fPos,tPos;
@@ -1653,23 +1569,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = skString(Texture);
 			return true;
 		}
-	case 76:	// else if (IS_METHOD(methodName, "PositionToBone")) //PWX
+	case RGF_SM_POSITIONTOBONE:
 		{
 			// PARMCHECK(2);
 			geVec3d bPos;
-			strcpy(param0,arguments[0].str());
-			strcpy(param4,arguments[1].str());
-			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(param0),param4,&bPos);
-			CCD->ActorManager()->Position(Actor,bPos);
+			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
+				arguments[1].str().c_str(), &bPos);
+			CCD->ActorManager()->Position(Actor, bPos);
 			return true;
 		}
-	case 77:	// else if (IS_METHOD(methodName, "SetWeaponMatFromFlip"))
+	case RGF_SM_SETWEAPONMATFROMFLIP:
 		{
-			// USAGE: SetPlayerMaterial(FLIPBOOK szEntityName,Actor MatIndex,FlipBook Image Index, R,G,B);
+			// USAGE: SetWeaponMatFromFlip(FLIPBOOK szEntityName, Actor MatIndex, FlipBook Image Index, R, G, B);
 			// PARMCHECK(6);
 			geActor *Wactor;
 
-			strcpy(param0, arguments[0].str());
 			int MatIndex = arguments[1].intValue();
 			int FlipIndex = arguments[2].intValue();
 			float R = arguments[3].floatValue();
@@ -1685,7 +1599,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			returnValue = false;
 
-			if(CCD->FlipBooks()->LocateEntity(param0, (void**)&pEntityData) == RGF_SUCCESS)
+			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData) == RGF_SUCCESS)
 			{
 				if(geActor_SetMaterial(Wactor, MatIndex, pEntityData->Bitmap[FlipIndex], R, G, B))
 					returnValue = true;// Set Actor Material
@@ -1693,28 +1607,26 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 78:	// else if (IS_METHOD(methodName, "SetShadowFromFlip")) // PWX
+	case RGF_SM_SETSHADOWFROMFLIP:
 		{
 			// USAGE: SetShadowFromFlip(FLIPBOOK szEntityName,ACTOR EntityName);
 			// PARMCHECK(2);
 			float tm;
 			int tb;
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
 
 			FlipBook *pEntityData = NULL;
 
-			if(CCD->FlipBooks()->LocateEntity(param0, (void**)&pEntityData)==RGF_SUCCESS)
+			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData)==RGF_SUCCESS)
 			{
 				// find frame time of animation and set the proper bitmap
-				geActor *wActor = CCD->ActorManager()->GetByEntityName(param4);
+				geActor *wActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 				tm = CCD->ActorManager()->GetAnimationTime(wActor)*30.f;
 				tb = (int)(tm-1);
 
 				if((tb > (pEntityData->BitmapCount - 1)) || tb < 0)
 					tb = 0;
 
-				CCD->ActorManager()->SetShadowBitmap(wActor,pEntityData->Bitmap[tb]);
+				CCD->ActorManager()->SetShadowBitmap(wActor, pEntityData->Bitmap[tb]);
 				returnValue = pEntityData->BitmapCount;
 			}
 
@@ -1786,18 +1698,17 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		return true;
 	}
 */
-	case 79:	// else if (IS_METHOD(methodName, "GetCollideDistance")) //PWX
+	case RGF_SM_GETCOLLIDEDISTANCE:
 		{
 			// USAGE: GetCollideDistance(BONE_NAME ,Offset X,Offset Y, Offset Z);
 			// PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, theRotation, Direction;
 			GE_Collision Collision;
-			strcpy(param0, arguments[0].str());
 			CCD->ActorManager()->GetPosition(Actor, &OldPos);
 			float gd = -1.f;
 			bool bone;
-			bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+			bone = geActor_GetBoneTransform(Actor, arguments[0].str().c_str(), &Xf);
 
 			if(!bone)
 				return true;
@@ -1832,24 +1743,22 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = gd;
 			return true;
 		}
-	case 80:	// else if (IS_METHOD(methodName, "ResetAnimate")) // PWX
+	case RGF_SM_RESETANIMATE:
 		{
 			PARMCHECK(2);
 			geVec3d pos;
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
-			CCD->ActorManager()->GetBonePosition(Actor, param4, &pos);
-			CCD->ActorManager()->SetMotion(Actor, param0);
+			CCD->ActorManager()->GetBonePosition(Actor, arguments[1].str().c_str(), &pos);
+			CCD->ActorManager()->SetMotion(Actor, arguments[0].str().c_str());
 			CCD->ActorManager()->SetHoldAtEnd(Actor, true);
 			CCD->ActorManager()->Position(Actor, pos);
 			return true;
 		}
-	case 81:	// else if (IS_METHOD(methodName, "WhereIsPlayer")) // PWX
+	case RGF_SM_WHEREISPLAYER:
 		{
 			geVec3d Pos1, Pos2, temp, Rot;
 			geFloat fP, dP;
 
-			strcpy(param0, arguments[0].str());
+			//strcpy(param0, arguments[0].str());
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
 			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos2);
 			geVec3d_Subtract(&Pos2, &Pos1, &temp);
@@ -1888,15 +1797,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 82:	// else if (IS_METHOD(methodName, "WhereIsEntity")) // PWX
+	case RGF_SM_WHEREISENTITY:
 		{
 			PARMCHECK(1);
 			geVec3d Pos1, Pos2, temp, Rot;
 			geFloat fP, dP;
 
-			strcpy(param0, arguments[0].str());
-			CCD->ActorManager()->GetPosition(Actor,&Pos1);
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0),&Pos2);
+			CCD->ActorManager()->GetPosition(Actor, &Pos1);
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos2);
 			geVec3d_Subtract(&Pos2, &Pos1, &temp);
 			geVec3d_Normalize(&temp);
 
@@ -1933,23 +1841,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 83:	// else if (IS_METHOD(methodName, "InsertEvent")) // PWX
+	case RGF_SM_INSERTEVENT:
 		{
 			PARMCHECK(3);
 			geActor_Def *aDef;
 			float tKey;
 			tKey = arguments[2].floatValue();
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
 			aDef = geActor_GetActorDef(Actor);
 			returnValue = false;
 
-			if(geMotion_InsertEvent(geActor_GetMotionByName(aDef, param0),tKey, param4))
+			if(geMotion_InsertEvent(geActor_GetMotionByName(aDef, arguments[0].str().c_str()), tKey, arguments[1].str().c_str()))
 				returnValue = true;
 
 			return true;
 		}
-	case 84:	// else if (IS_METHOD(methodName, "CheckForEvent")) // PWX
+	case RGF_SM_CHECKFOREVENT:
 		{
 			const char *evnt;
 			geMotion *cMot;
@@ -1971,22 +1877,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 85:	// else if (IS_METHOD(methodName, "PlayEventSound")) // PWX
+	case RGF_SM_PLAYEVENTSOUND:
 		{
-			// USAGE: Playevent sound entity,volume
-			// PARMCHECK(1);
+			// USAGE: PlayEventSound(Entity, Volume)
+			// PARMCHECK(2);
 
 			const char *evnt;
 			geMotion *cMot;
 			float StartTime, EndTime;
 			float volume;
-			strcpy(param0, arguments[0].str());
 			volume = arguments[1].floatValue();
 
-			geActor *wActor = CCD->ActorManager()->GetByEntityName(param0);
+			geActor *wActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			cMot = geActor_GetMotionByName(geActor_GetActorDef(wActor), CCD->ActorManager()->GetMotion(wActor));
-			EndTime = CCD->ActorManager()->GetAnimationTime(wActor,ANIMATION_CHANNEL_ROOT);
+			EndTime = CCD->ActorManager()->GetAnimationTime(wActor, ANIMATION_CHANNEL_ROOT);
 			StartTime = EndTime - (CCD->GetTicksGoneBy() * 0.001f);
 
 			if(StartTime < 0.0f)
@@ -2044,7 +1949,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		return true;
 	}
 */
-	case 86:	// else if (IS_METHOD(methodName, "LoadAnimation")) // PWX
+	case RGF_SM_LOADANIMATION:
 		{
 			PARMCHECK(1);
 
@@ -2053,9 +1958,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			int ind;
 			ind = 0;
 
-			strcpy(param0, arguments[0].str());
-
-			file = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, param0, NULL, GE_VFILE_OPEN_READONLY);
+			file = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, arguments[0].str().c_str(), NULL, GE_VFILE_OPEN_READONLY);
 
 			if(file != NULL)
 			{
@@ -2093,43 +1996,42 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		return true;
 	}
 */
-	case 87:	// else if (IS_METHOD(methodName, "StartSoundtrack"))
+	case RGF_SM_STARTSOUNDTRACK:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
-			CCD->AudioStreams()->Play(param0, true, true);
+			CCD->AudioStreams()->Play(arguments[0].str().c_str(), true, true);
 			return true;
 		}
-	case 88:	// else if (IS_METHOD(methodName, "StopAllAudioStreams"))
+	case RGF_SM_STOPALLAUDIOSTREAMS:
 		{
 			CCD->AudioStreams()->StopAll();
 			return true;
 		}
 // end pickles Jul 04
-	case 89:	// else if (IS_METHOD(methodName, "ChangeYaw"))
+	case RGF_SM_CHANGEYAW:
 		{
 			ChangeYaw();
 			return true;
 		}
-	case 90:	// else if (IS_METHOD(methodName, "ChangePitch"))
+	case RGF_SM_CHANGEPITCH:
 		{
 			ChangePitch();
 			return true;
 		}
-	case 91:	// else if (IS_METHOD(methodName, "random"))
+	case RGF_SM_RANDOM:
 		{
 			// PARMCHECK(2);
-			param1 = arguments[0].floatValue();
-			param3 = arguments[1].floatValue();
+			int param1 = arguments[0].intValue();
+			int param3 = arguments[1].intValue();
 
-			if(param1 <= param3)
-				returnValue = (int)EffectC_Frand(param1, param3);
+			if(param1 < param3)
+				returnValue = EffectC_rand(param1, param3);
 			else
-				returnValue = (int)EffectC_Frand(param3, param1);
+				returnValue = EffectC_rand(param3, param1);
 
 			return true;
 		}
-	case 92:	// else if (IS_METHOD(methodName, "walkmove"))
+	case RGF_SM_WALKMOVE:
 		{
 			// PARMCHECK(2);
 			float amount = arguments[1].floatValue() * ElapseTime;
@@ -2153,7 +2055,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 93:	// else if (IS_METHOD(methodName, "flymove"))
+	case RGF_SM_FLYMOVE:
 		{
 			PARMCHECK(3);
 			float amount = arguments[2].floatValue() * ElapseTime;
@@ -2178,7 +2080,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 94:	// else if (IS_METHOD(methodName, "Damage"))
+	case RGF_SM_DAMAGE:
 		{
 			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
@@ -2186,7 +2088,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0, "Melee");
 			return true;
 		}
-	case 95:	// else if (IS_METHOD(methodName, "DamagePlayer"))
+	case RGF_SM_DAMAGEPLAYER:
 		{
 			// PARMCHECK(2);
 			float amount = arguments[0].floatValue();
@@ -2194,7 +2096,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->Damage()->DamageActor(CCD->Player()->GetActor(), amount, param0, amount, param0, "Melee");
 			return true;
 		}
-	case 96:	// else if (IS_METHOD(methodName, "PositionToPlayer"))
+	case RGF_SM_POSITIONTOPLAYER:
 		{
 			// PARMCHECK(3);
 			geXForm3d Xf;
@@ -2260,7 +2162,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 97:	// else if (IS_METHOD(methodName, "PlayerToPosition"))
+	case RGF_SM_PLAYERTOPOSITION:
 		{
 			PARMCHECK(3);
 			geXForm3d Xf;
@@ -2319,15 +2221,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 98:	// else if (IS_METHOD(methodName, "PositionToPawn"))
+	case RGF_SM_POSITIONTOPAWN:
 		{
 			PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d Pos, OldPos, theRotation, Direction;
 			geActor *MasterActor;
 
-			strcpy(param0, arguments[0].str());
-			MasterActor = CCD->ActorManager()->GetByEntityName(param0);
+			MasterActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			if(!MasterActor)
 				return true;
@@ -2423,19 +2324,17 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 99:	// else if (IS_METHOD(methodName, "SetKeyPause"))
+	case RGF_SM_SETKEYPAUSE:
 		{
 			PARMCHECK(1);
-			bool flag = arguments[0].boolValue();
-			CCD->SetKeyPaused(flag);
+			CCD->SetKeyPaused(arguments[0].boolValue());
 			return true;
 		}
-	case 100:	// else if (IS_METHOD(methodName, "PlayerRender"))
+	case RGF_SM_PLAYERRENDER:
 		{
 			PARMCHECK(1);
-			bool flag = arguments[0].boolValue();
 
-			if(flag)
+			if(arguments[0].boolValue())
 			{
 				CCD->ActorManager()->SetCollide(CCD->Player()->GetActor());
 				CCD->Weapons()->Rendering(true);
@@ -2449,12 +2348,11 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 101:	// else if (IS_METHOD(methodName, "PawnRender"))
+	case RGF_SM_PAWNRENDER:
 		{
 			PARMCHECK(1);
-			bool flag = arguments[0].boolValue();
 
-			if(flag)
+			if(arguments[0].boolValue())
 			{
 				CCD->ActorManager()->SetCollide(Actor);
 
@@ -2477,7 +2375,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 102:	// else if (IS_METHOD(methodName, "ChangeMaterial"))
+	case RGF_SM_CHANGEMATERIAL:
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
@@ -2487,14 +2385,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 103:	// else if (IS_METHOD(methodName, "SetHoldAtEnd"))
+	case RGF_SM_SETHOLDATEND:
 		{
 			PARMCHECK(1);
-			bool amount = arguments[0].boolValue();
-			CCD->ActorManager()->SetHoldAtEnd(Actor, amount);
+			CCD->ActorManager()->SetHoldAtEnd(Actor, arguments[0].boolValue());
 			return true;
 		}
-	case 104:	// else if (IS_METHOD(methodName, "ForceUp"))
+	case RGF_SM_FORCEUP:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2503,7 +2400,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->SetForce(Actor, 0, theUp, amount, amount);
 			return true;
 		}
-	case 105:	// else if (IS_METHOD(methodName, "ForceDown"))
+	case RGF_SM_FORCEDOWN:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2513,7 +2410,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->SetForce(Actor, 0, theUp, amount, amount);
 			return true;
 		}
-	case 106:	// else if (IS_METHOD(methodName, "ForceRight"))
+	case RGF_SM_FORCERIGHT:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2523,7 +2420,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->SetForce(Actor, 1, theRight, amount, amount);
 			return true;
 		}
-	case 107:	// else if (IS_METHOD(methodName, "ForceLeft"))
+	case RGF_SM_FORCELEFT:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2532,7 +2429,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->SetForce(Actor, 1, theLeft, amount, amount);
 			return true;
 		}
-	case 108:	// else if (IS_METHOD(methodName, "ForceForward"))
+	case RGF_SM_FORCEFORWARD:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2541,7 +2438,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->SetForce(Actor, 2, theIn, amount, amount);
 			return true;
 		}
-	case 109:	// else if (IS_METHOD(methodName, "ForceBackward"))
+	case RGF_SM_FORCEBACKWARD:
 		{
 			PARMCHECK(1);
 			float amount = arguments[0].floatValue();
@@ -2558,12 +2455,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		return true;
 	}
 */
-	case 110:	// else if (IS_METHOD(methodName, "UpdateTarget"))
+	case RGF_SM_UPDATETARGET:
 		{
 			UpdateTargetPoint = LastTargetPoint;
 			return true;
 		}
-	case 111:	// else if (IS_METHOD(methodName, "FireProjectile"))
+	case RGF_SM_FIREPROJECTILE:
 		{
 			PARMCHECK(6);
 			geXForm3d Xf;
@@ -2571,6 +2468,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geFloat x;
 			geExtBox theBox;
 
+			// changed QD 03/30/07
+			/*
 			CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
 			TargetPoint = UpdateTargetPoint;
 			// changed QD 12/15/05
@@ -2583,9 +2482,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			else
 				TargetPoint.Y += (theBox.Max.Y*0.5f);
+			*/
+			TargetPoint = UpdateTargetPoint;
 
-			strcpy(param4, arguments[0].str());
-			strcpy(param0, arguments[1].str());
+			if(CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox) != RGF_NOT_FOUND)
+			{
+				if(arguments.entries() == 7)
+				{
+					float height = arguments[6].floatValue() - 0.5f;
+					TargetPoint.Y += (theBox.Max.Y*height);
+				}
+			}
+
 			strcpy(DamageAttr, arguments[5].str());
 
 			float FireOffsetX = arguments[2].floatValue();
@@ -2595,9 +2503,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			bool bone;
 
 			if(WeaponActor)
-				bone = geActor_GetBoneTransform(WeaponActor, param0, &Xf);
+				bone = geActor_GetBoneTransform(WeaponActor, arguments[1].str().c_str(), &Xf);
 			else
-				bone = geActor_GetBoneTransform(Actor, param0, &Xf);
+				bone = geActor_GetBoneTransform(Actor, arguments[1].str().c_str(), &Xf);
 
 			if(bone)
 			{
@@ -2628,71 +2536,31 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				if(l > 0.0f)
 				{
 					x = Orient.X;
-					// changed QD 12/15/05
-					// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
 					Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
 					Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
 					Orient.Z = 0.0f;	// roll is zero - always!!?
 
-					CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, param4, DamageAttr, DamageAttr);
+					CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, arguments[0].str().c_str(), DamageAttr, DamageAttr);
 				}
 			}
 
 			return true;
 		}
-	case 112:	// else if (IS_METHOD(methodName, "AddExplosion"))
+	case RGF_SM_ADDEXPLOSION:
 		{
 			PARMCHECK(5);
-			//geXForm3d Xf;
-			//geVec3d theRotation, Direction;
 			geVec3d Pos;
 
-			strcpy(param0, arguments[0].str());
 			strcpy(param4, arguments[1].str());
 
-			float OffsetX = arguments[2].floatValue();
-			float OffsetY = arguments[3].floatValue();
-			float OffsetZ = arguments[4].floatValue();
-
-			// changed QD 12/15/05
-			/*if(geActor_GetBoneTransform(Actor, param4, &Xf))
-			{
-				geVec3d_Copy(&(Xf.Translation), &Pos);
-				CCD->ActorManager()->GetRotate(Actor, &theRotation);
-
-				// changed QD 12/15/05
-				//geXForm3d_SetIdentity(&Xf);
-				//geXForm3d_RotateZ(&Xf, theRotation.Z);
-				geXForm3d_SetZRotation(&Xf, theRotation.Z);
-				geXForm3d_RotateX(&Xf, theRotation.X);
-				geXForm3d_RotateY(&Xf, theRotation.Y);
-				//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-				// end change
-
-				geXForm3d_GetUp(&Xf, &Direction);
-				geVec3d_AddScaled(&Pos, &Direction, OffsetY, &Pos);
-
-				geXForm3d_GetLeft(&Xf, &Direction);
-				geVec3d_AddScaled(&Pos, &Direction, OffsetX, &Pos);
-
-				geXForm3d_GetIn(&Xf, &Direction);
-				geVec3d_AddScaled(&Pos, &Direction, OffsetZ, &Pos);
-
-				Pos.X = OffsetX;
-				Pos.Y = OffsetY;
-				Pos.Z = OffsetZ;
-
-				CCD->Explosions()->AddExplosion(param0, Pos, Actor, param4);
-			}*/
 			if(geActor_DefHasBoneNamed(geActor_GetActorDef(Actor), param4))
 			{
-				Pos.X = OffsetX;
-				Pos.Y = OffsetY;
-				Pos.Z = OffsetZ;
+				Pos.X = arguments[2].floatValue();
+				Pos.Y = arguments[3].floatValue();
+				Pos.Z = arguments[4].floatValue();
 
-				CCD->Explosions()->AddExplosion(param0, Pos, Actor, param4);
+				CCD->Explosions()->AddExplosion(arguments[0].str().c_str(), Pos, Actor, param4);
 			}
-			// end change
 
 			return true;
 		}
@@ -2712,20 +2580,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		return true;
 	}
 */
-/* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
-	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
-	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
-	case 113:	// else if (IS_METHOD(methodName, "GetLastBoneHit"))
+	case RGF_SM_GETLASTBONEHIT:
 		{
-			strcpy(param0, CCD->ActorManager()->GetLastBoneHit(Actor));
-			returnValue = skString(param0);
+			returnValue = skString(CCD->ActorManager()->GetLastBoneHit(Actor));
 			return true;
 		}
-	case 114:	// else if (IS_METHOD(methodName, "debug"))
+	case RGF_SM_DEBUG:
 		{
 			PARMCHECK(1);
-			strcpy(param0, arguments[0].str());
 
 			if(console)
 			{
@@ -2743,7 +2605,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 				if(index != -1)
 				{
-					strcpy(ConsoleDebug[index], param0);
+					strcpy(ConsoleDebug[index], arguments[0].str().c_str());
 				}
 				else
 				{
@@ -2752,97 +2614,79 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 						strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
 					}
 
-					strcpy(ConsoleDebug[DEBUGLINES-1], param0);
+					strcpy(ConsoleDebug[DEBUGLINES-1], arguments[0].str().c_str());
 				}
 			}
 
 			return true;
 		}
-	case 115:	// else if (IS_METHOD(methodName, "SetEventState"))
+	case RGF_SM_SETEVENTSTATE:
 		{
 			// PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
-			bool flag = arguments[1].boolValue();
-			CCD->Pawns()->AddEvent(param0, flag);
+			CCD->Pawns()->AddEvent(arguments[0].str().c_str(), arguments[1].boolValue());
 			return true;
 		}
-	case 116:	// else if (IS_METHOD(methodName, "GetStringLength")) //PWX - ERROR
+	case RGF_SM_GETSTRINGLENGTH:
 		{
 			PARMCHECK(1);
-			strcpy(param0,arguments[0].str());
-// changed QD 12/15/05
-			// returnValue = param0;
-			returnValue = (int)strlen(param0);
-// end change
+			returnValue = (int)arguments[0].str().length();
 			return true;
 		}
-	case 117:	// else if (IS_METHOD(methodName, "DrawText")) // PWX
+	case RGF_SM_DRAWTEXT:
 		{
 			PARMCHECK(8);
-			strcpy(param0,arguments[0].str());			// string
-			int Xpos = arguments[1].intValue();			// X pos
-			int Ypos = arguments[2].intValue();			// Y pos
-			float Alpha = arguments[3].floatValue();	// Alpha
-			int Fnt = arguments[4].intValue();			// Font Number
-			int R = arguments[5].intValue();			// Red
-			int G = arguments[6].intValue();			// Green
-			int B = arguments[7].intValue();			// Blue
-			CCD->PWXImMgr()->AddImage(param0, NULL, Xpos, Ypos, Alpha, R, G, B, Fnt, 1.0f);
+			CCD->PWXImMgr()->AddImage(	arguments[0].str().c_str(), NULL,
+										arguments[1].intValue(), arguments[2].intValue(),
+										arguments[3].floatValue(),
+										arguments[5].intValue(), arguments[6].intValue(), arguments[7].intValue(),
+										arguments[4].intValue(), 1.0f);
 			return true;
 		}
-	case 118:	// if (IS_METHOD(methodName, "DrawFlipBookImage")) //PWX
+	case RGF_SM_DRAWFLIPBOOKIMAGE:
 		{
 			PARMCHECK(9);
-			strcpy(param0, arguments[0].str());			// Flipbook
-			int FlipIndex = arguments[1].intValue();	// image ndex
-			int Xpos = arguments[2].intValue();			// X pos
-			int Ypos = arguments[3].intValue();			// Y pos
-			float Alpha = arguments[4].floatValue();	// Alpha
-			int R = arguments[5].intValue();			// Red
-			int G = arguments[6].intValue();			// Green
-			int B = arguments[7].intValue();			// Blue
-			float ZDepth = arguments[8].floatValue();	// ZDepth
 			FlipBook *pEntityData = NULL;
 
-			if(CCD->FlipBooks()->LocateEntity(param0, (void**)&pEntityData)==RGF_SUCCESS)
+			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData)==RGF_SUCCESS)
 			{
-				CCD->PWXImMgr()->AddImage(NULL,pEntityData->Bitmap[FlipIndex],Xpos,Ypos,Alpha,R,G,B,0,ZDepth);
+				if(pEntityData->BitmapCount > arguments[1].intValue())
+				{
+					CCD->PWXImMgr()->AddImage(	NULL, pEntityData->Bitmap[arguments[1].intValue()],
+												arguments[2].intValue(), arguments[3].intValue(),
+												arguments[4].floatValue(),
+												arguments[5].intValue(), arguments[6].intValue(), arguments[7].intValue(),
+												0, arguments[8].floatValue());
+				}
 			}
 
 			return true;
 		}
-	case 119:	// DrawPolyShadow
+	case RGF_SM_DRAWPOLYSHADOW:
 		{
 			CCD->PlyShdw()->DrawShadow(Actor);
 			return true;
 		}
-	case 120 :	// MatchPlayerAngles
+	case RGF_SM_MATCHPLAYERANGLES:
 		{
 			geVec3d Rot;
 			CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &Rot);
 			CCD->ActorManager()->Rotate(Actor, Rot);
 			return true;
 		}
-	case 121:	// DamageAtBone
+	case RGF_SM_DAMAGEATBONE:
 		{
 			// USAGE: DamageAtBone(damage amount, radius, attribute, bone name)
 			geVec3d Pos;
-			geFloat dAmount,dRange;
-			dAmount = arguments[0].floatValue();
-			dRange = arguments[1].floatValue();
-			strcpy(param0, arguments[2].str());
-			strcpy(param4, arguments[3].str());
-			CCD->ActorManager()->GetBonePosition(Actor, param4, &Pos);
-			CCD->Damage()->DamageActorInRange(Pos, dRange, dAmount, param0, 0.0f, "", "");
+			CCD->ActorManager()->GetBonePosition(Actor, arguments[3].str().c_str(), &Pos);
+			CCD->Damage()->DamageActorInRange(	Pos, arguments[1].floatValue(), arguments[0].floatValue(),
+												arguments[2].str().c_str(), 0.0f, "", "");
 			return true;
 		}
-	case 122:	//SaveActor
+	case RGF_SM_SAVEACTOR:
 		{
 			// USAGE: SaveActor(Actor Name)
 			geVFile *df;
 			geActor_Def *aDef;
-			//strcpy(param4,arguments[1].str());
-			//aDef = geActor_GetActorDef(CCD->ActorManager()->GetByEntityName(param4));
 			aDef = geActor_GetActorDef(Actor);
 			strcpy(param0, "savedactors\\");
 			strcat(param0, arguments[0].str());
@@ -2853,25 +2697,24 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				return true;
 
 			geActor_DefWriteToFile(aDef, df);
-			geVFile_Close(df);//close file
+			geVFile_Close(df);	// close file
 			returnValue = true;
 			return true;
 		}
 
-	case 123 :	// LookAtPawn
+	case RGF_SM_LOOKATPAWN:
 		{
 			// USAGE: LookAtPawn(Pawn Name)
-			geVec3d Pos1,Pos2,Rot;
-			strcpy(param0,arguments[0].str());
-			float heightoff = arguments[1].floatValue();
+			geVec3d Pos1 ,Pos2, Rot;
+
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos2);
-			Pos2.Y += heightoff;//add height offset to target point
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos2);
+			Pos2.Y += arguments[1].floatValue();	// add height offset to target point
 			CCD->PathFollower()->GetRotationToFacePoint(Pos1, Pos2, &Rot);
 			CCD->ActorManager()->Rotate(Actor, Rot);
 			return true;
 		}
-	case 124:	// AutoWalk
+	case RGF_SM_AUTOWALK:
 		{
 			// PARMCHECK(3);
 			float amount = arguments[1].floatValue() * ElapseTime;
@@ -2907,15 +2750,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 125:	// FastDistance
+	case RGF_SM_FASTDISTANCE:
 		{
 			// USAGE: BOOL = FastDistance(EntityName,distance);
 			float result;
-			strcpy(param0,arguments[0].str());
 			float dist = arguments[1].floatValue();
 			geVec3d Pos1, Pos2, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos2);
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos2);
 			geVec3d_Subtract(&Pos1, &Pos2, &dV);
 			result = geVec3d_DotProduct(&dV, &dV);
 			returnValue = false;
@@ -2925,46 +2767,41 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 126:	// StepHeight
+	case RGF_SM_STEPHEIGHT:
 		{
 			// USAGE: StepHeight(float)
-			float ht = arguments[0].floatValue();
-			CCD->ActorManager()->SetStepHeight(Actor, ht);
+			CCD->ActorManager()->SetStepHeight(Actor, arguments[0].floatValue());
 			return true;
 		}
-	case 127:	// DrawHPoly
+	case RGF_SM_DRAWVPOLY:
+	case RGF_SM_DRAWHPOLY:
 		{
 			return true;
 		}
-
-	case 128:	// DrawVPoly
+	case RGF_SM_GETPITCHTOPOINT:
 		{
-			return true;
-		}
-	case 129:	// GetPitchToPoint
-		{
-			geVec3d Pos1,Rot;
+			geVec3d Pos1, Rot;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
-			CCD->PathFollower()->GetRotationToFacePoint(Pos1,CurrentPoint, &Rot);
+			CCD->PathFollower()->GetRotationToFacePoint(Pos1, CurrentPoint, &Rot);
 			returnValue = Rot.X;
 			return true;
 		}
-	case 130:	// GetYawToPoint
+	case RGF_SM_GETYAWTOPOINT:
 		{
-			geVec3d Pos1,Rot;
+			geVec3d Pos1, Rot;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
 			CCD->PathFollower()->GetRotationToFacePoint(Pos1, CurrentPoint, &Rot);
 			returnValue = Rot.Y;
 			return true;
 		}
-	case 131:	// FastPointCheck
+	case RGF_SM_FASTPOINTCHECK:
 		{
 			// USAGE: BOOL = FastPointCheck(distance);
 			float result;
 			float dist = arguments[0].floatValue();
 			geVec3d Pos1, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
-			geVec3d_Subtract(&Pos1,&CurrentPoint, &dV);
+			geVec3d_Subtract(&Pos1, &CurrentPoint, &dV);
 			result = geVec3d_DotProduct(&dV, &dV);
 			returnValue = false;
 
@@ -2974,7 +2811,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 		}
 // changed Nout/QD 12/15/05
-	case 132:	// SetCameraWindow
+	case RGF_SM_SETCAMERAWINDOW:
 		{
 			// USAGE: SetCameraWindow(float FOV)
 			// SetCameraWindow(float FOV, bool UseWidhtHeight, Left, Top, Width/Right, Height/Bottom);
@@ -3008,7 +2845,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 133:	// SetFixedCameraPosition
+	case RGF_SM_SETFIXEDCAMERAPOSITION:
 		{
 			// USAGE: SetFixedCameraPosition(PosX, PosY, PosZ)
 			PARMCHECK(3);
@@ -3021,20 +2858,20 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 134:	// SetFixedCameraRotation
+	case RGF_SM_SETFIXEDCAMERAROTATION:
 		{
 			// USAGE: SetFixedCameraRotation(RotX, RotY, RotZ)
 			PARMCHECK(3);
 
 			geVec3d Rot;
-			Rot.X = 0.0174532925199433f*arguments[0].floatValue();
-			Rot.Y = 0.0174532925199433f*arguments[1].floatValue();
-			Rot.Z = 0.0174532925199433f*arguments[2].floatValue();
+			Rot.X = GE_PIOVER180*arguments[0].floatValue();
+			Rot.Y = GE_PIOVER180*arguments[1].floatValue();
+			Rot.Z = GE_PIOVER180*arguments[2].floatValue();
 			CCD->FixedCameras()->SetRotation(Rot);
 
 			return true;
 		}
-	case 135:	// SetFixedCameraFOV
+	case RGF_SM_SETFIXEDCAMERAFOV:
 		{
 			// USAGE: SetFixedCameraFOV(float FOV)
 			PARMCHECK(1);
@@ -3043,7 +2880,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 136:	// MoveFixedCamera
+	case RGF_SM_MOVEFIXEDCAMERA:
 		{
 			// USAGE: MoveFixedCamera(PosX, PosY, PosZ)
 			PARMCHECK(3);
@@ -3056,20 +2893,20 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 137:	// RotateFixedCamera
+	case RGF_SM_ROTATEFIXEDCAMERA:
 		{
 			// USAGE: RotateFixedCamera(RotX, RotY, RotZ)
 			PARMCHECK(3);
 
 			geVec3d Rot;
-			Rot.X = 0.0174532925199433f*arguments[0].floatValue();
-			Rot.Y = 0.0174532925199433f*arguments[1].floatValue();
-			Rot.Z = 0.0174532925199433f*arguments[2].floatValue();
+			Rot.X = GE_PIOVER180*arguments[0].floatValue();
+			Rot.Y = GE_PIOVER180*arguments[1].floatValue();
+			Rot.Z = GE_PIOVER180*arguments[2].floatValue();
 			CCD->FixedCameras()->Rotate(Rot);
 
 			return true;
 		}
-	case 138:	// DistanceBetweenEntities
+	case RGF_SM_DISTANCEBETWEENENTITIES:
 		{
 			// USAGE: DistanceBetweenEntities(FromEntity, ToEntity, OnlyXZ);
 			// "Player" is a special Entity
@@ -3096,7 +2933,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 139:	// SetEntityProperties
+	case RGF_SM_SETENTITYPROPERTIES:
 		{
 			// USAGE:
 			// SetEntityProperties(EntityName, dPosX, dPosY, dPosZ)
@@ -3144,17 +2981,16 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 				if(arguments.entries() > 11)
 				{
-					//CCD->ActorManager()->GetRotation(pActor, &Rot);
-					Rot.X = 0.0174532925199433f*arguments[9].floatValue();
-					Rot.Y = 0.0174532925199433f*arguments[10].floatValue();
-					Rot.Z = 0.0174532925199433f*arguments[11].floatValue();
+					Rot.X = GE_PIOVER180*arguments[9].floatValue();
+					Rot.Y = GE_PIOVER180*arguments[10].floatValue();
+					Rot.Z = GE_PIOVER180*arguments[11].floatValue();
 					CCD->ActorManager()->Rotate(pActor, Rot);
 				}
 			}
 
 			return true;
 		}
-	case 140:	// SetEntityLighting
+	case RGF_SM_SETENTITYLIGHTING:
 		{
 			// USAGE: SetEntityLighting(EntityName, FillR, FillG, FillB,
 			//							AmbientR, AmbientG, AmbientB, AmbientFromFloor)
@@ -3192,7 +3028,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 141:	// UpdateScriptPoint
+	case RGF_SM_UPDATESCRIPTPOINT:
 		{
 			// USAGE:
 			// UpdateScriptPoint(PointName, EntityName, OffsetX, OffsetY, OffsetZ)
@@ -3236,7 +3072,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 142:	// GetEntityScreenX
+	case RGF_SM_GETENTITYSCREENX:
 		{
 			// USAGE:
 			// int = GetEntityScreenX(EntityName)
@@ -3257,12 +3093,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			else
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
 
-			geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			returnValue = int((CCD->Engine()->Width()/2 - 1) * (1.0f - ScreenPos.X / ScreenPos.Z));
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			returnValue = (int)ScreenPos.X;
 
 			return true;
 		}
-	case 143:	// GetEntityScreenY
+	case RGF_SM_GETENTITYSCREENY:
 		{
 			// USAGE:
 			// int = GetEntityScreenY(EntityName)
@@ -3283,12 +3119,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			else
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
 
-			geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			returnValue = int((CCD->Engine()->Height()/2 -1) * (1.0f + ScreenPos.Y / ScreenPos.Z));
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+			returnValue = (int)ScreenPos.Y;
 
 			return true;
 		}
-	case 144:	// GetScreenWidth
+	case RGF_SM_GETSCREENWIDTH:
 		{
 			// USAGE:
 			// int = GetScreenWidth()
@@ -3296,7 +3132,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = int(CCD->Engine()->Width());
 			return true;
 		}
-	case 145:	// GetScreenHeight
+	case RGF_SM_GETSCREENHEIGHT:
 		{
 			// USAGE:
 			// int = GetScreenHeight()
@@ -3304,7 +3140,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = int(CCD->Engine()->Height());
 			return true;
 		}
-	case 146:	// MouseSelect
+	case RGF_SM_MOUSESELECT:
 		{
 			// USAGE:
 			// MouseSelect(HighlightOnCollision);
@@ -3344,7 +3180,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theAmbientColor.b = arguments[7].floatValue();
 			}
 
-			ShowCursor(TRUE);
+			CCD->MenuManager()->ShowCursor(true);
 
 			if(!CCD->Engine()->FullScreen())
 			{
@@ -3406,25 +3242,25 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 147:	// MouseControlledPlayer
+	case RGF_SM_MOUSECONTROLLEDPLAYER:
 		{
 			// USAGE: MouseControlledPlayer(true/false)
 
 			CCD->SetMouseControl(arguments[0].boolValue());
 			return true;
 		}
-	case 148:	// ShowMouse
+	case RGF_SM_SHOWMOUSE:
 		{
 			// USAGE: ShowMouse(true/false)
 
 			if(arguments[0].boolValue())
-				ShowCursor(TRUE);
+				CCD->MenuManager()->ShowCursor(true);
 			else
-				ShowCursor(FALSE);
+				CCD->MenuManager()->ShowCursor(false);
 
 			return true;
 		}
-	case 149:	// GetMousePosX
+	case RGF_SM_GETMOUSEPOSX:
 		{
 			// USAGE: int = GetMousePosX()
 			RECT client;
@@ -3447,7 +3283,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 150:	// GetMousePosY
+	case RGF_SM_GETMOUSEPOSY:
 		{
 			// USAGE: int = GetMousePosY()
 			RECT client;
@@ -3470,32 +3306,28 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 151:	// SetMousePos
+	case RGF_SM_SETMOUSEPOS:
 		{
 			// USAGE: SetMousePos(int ScreenPosX, int ScreenPosY)
-
-			POINT MousePos;
-			MousePos.x = arguments[0].intValue();
-			MousePos.y = arguments[1].intValue();
-			SetCursorPos(MousePos.x, MousePos.y);
+			PARMCHECK(2);
+			SetCursorPos(arguments[0].intValue(), arguments[1].intValue());
 			return true;
 		}
-	case 152:	// SetGamma
+	case RGF_SM_SETGAMMA:
 		{
 			// USAGE: SetGamma(Gamma)
 			PARMCHECK(1);
-			param1 = arguments[0].floatValue();
-			geEngine_SetGamma(CCD->Engine()->Engine(), param1);
+			geEngine_SetGamma(CCD->Engine()->Engine(), arguments[0].floatValue());
 			return true;
 		}
-	case 153:	// GetGamma
+	case RGF_SM_GETGAMMA:
 		{
 			// USAGE: GetGamma()
 			geEngine_GetGamma(CCD->Engine()->Engine(), &param1);
 			returnValue = param1;
 			return true;
 		}
-	case 154:	// FillScreenArea
+	case RGF_SM_FILLSCREENAREA:
 		{
 			// USAGE:
 			// FillScreenArea(Nr, KeepVisible, Alpha);
@@ -3549,7 +3381,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			return true;
 
 		}
-	case 155:	// RemoveScreenArea
+	case RGF_SM_REMOVESCREENAREA:
 		{
 			// USAGE: RemoveScreenArea(Nr)
 			PARMCHECK(1);
@@ -3563,7 +3395,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 156:	// ShowText
+	case RGF_SM_SHOWTEXT:
 		{
 			// USAGE: ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound,
 			//					ScreenOffsetX, ScreenOffsetY, Align, Alpha);
@@ -3580,7 +3412,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
 			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
-			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
 			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
 			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
 
@@ -3598,7 +3429,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 157:	// RemoveText
+	case RGF_SM_REMOVETEXT:
 		{
 			// USAGE: RemoveText(int Nr)
 			PARMCHECK(1);
@@ -3612,7 +3443,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 158:	// ShowHudPicture
+	case RGF_SM_SHOWHUDPICTURE:
 		{
 			// USAGE:
 			// ShowHudPicture(HUDpictureNr, IsVisible)
@@ -3620,8 +3451,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// ShowHudPicture(HUDpictureNr, IsVisible, EntityName, ScreenX, ScreenY, DisplayTime, WinX, WinY)
 
 			geVec3d Pos, ScreenPos;
-			int ScreenX = 0;
-			int ScreenY = 0;
 			char element[16];
 
 			if(arguments.entries() > 1)
@@ -3644,11 +3473,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 						else
 							CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0),&Pos);
 
-						geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-						ScreenX = int(((CCD->Engine()->Width()/2) -1) * (1.0f - (ScreenPos.X / ScreenPos.Z)));
-						ScreenY = int(((CCD->Engine()->Height()/2) -1) * (1.0f + (ScreenPos.Y / ScreenPos.Z)));
+						geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 
-						CCD->HUD()->SetElementLeftTop(element, ScreenX + arguments[3].intValue(), ScreenY + arguments[4].intValue());
+						CCD->HUD()->SetElementLeftTop(element, (int)ScreenPos.X + arguments[3].intValue(), (int)ScreenPos.Y + arguments[4].intValue());
 					}
 					else
 						CCD->HUD()->SetElementLeftTop(element, arguments[3].intValue(), arguments[4].intValue());
@@ -3656,12 +3483,11 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					if(arguments.entries() > 7)
 						CCD->HUD()->SetElementILeftTop(element, arguments[6].intValue(), arguments[7].intValue());
 				}
-
 			}
 
 			return true;
 		}
-	case 159:	// SetHudDraw
+	case RGF_SM_SETHUDDRAW:
 		{
 			// USAGE: SetHudDraw(true/false)
 			PARMCHECK(1);
@@ -3673,23 +3499,22 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 160:	// GetHudDraw
+	case RGF_SM_GETHUDDRAW:
 		{
 			// USAGE: bool = GetHudDraw()
 			returnValue = CCD->HUD()->GetActive();
 			return true;
 		}
-	case 161:	// SetAlpha
+	case RGF_SM_SETALPHA:
 		{
 			// USAGE: SetAlpha(Alpha)
 			PARMCHECK(1);
-			param1 = arguments[1].floatValue();
 
-			CCD->ActorManager()->SetAlpha(Actor, param1);
+			CCD->ActorManager()->SetAlpha(Actor, arguments[1].floatValue());
 
 			return true;
 		}
-	case 162:	// GetAlpha
+	case RGF_SM_GETALPHA:
 		{
 			// USAGE: float = GetAlpha()
 
@@ -3699,7 +3524,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 163:	// SetEntityAlpha
+	case RGF_SM_SETENTITYALPHA:
 		{
 			// USAGE: SetEntityAlpha(EntityName, Alpha)
 			PARMCHECK(2);
@@ -3713,7 +3538,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 164:	// GetEntityAlpha
+	case RGF_SM_GETENTITYALPHA:
 		{
 			// USAGE: float = GetEntityAlpha(EntityName)
 			PARMCHECK(1);
@@ -3729,21 +3554,20 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 165:	// SetScale
+	case RGF_SM_SETSCALE:
 		{
 			// USAGE:
 			// SetScale(Scale)
 			// SetScale(ScaleX, ScaleY, ScaleZ)
 
-			strcpy(param0, arguments[0].str());
 			geVec3d Scale;
 
-			Scale.X = arguments[1].floatValue();
+			Scale.X = arguments[0].floatValue();
 
-			if(arguments.entries() > 3)
+			if(arguments.entries() > 2)
 			{
-				Scale.Y = arguments[2].floatValue();
-				Scale.Z = arguments[3].floatValue();
+				Scale.Y = arguments[1].floatValue();
+				Scale.Z = arguments[2].floatValue();
 
 				CCD->ActorManager()->SetScaleXYZ(Actor, Scale);
 
@@ -3754,7 +3578,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 166:	// SetEntityScale
+	case RGF_SM_SETENTITYSCALE:
 		{
 			// USAGE:
 			// SetEntityScale(EntityName, Scale)
@@ -3785,7 +3609,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 167:	// CheckArea
+	case RGF_SM_CHECKAREA:
 		{
 			// USAGE:
 			// CheckArea(FromEntityName, ToEntityName, DistanceMode, MinSceenX, MaxSceenX,
@@ -3801,19 +3625,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// Can be used to check if Player, Pawn, Camera or Mouse is in a screen box
 
 			PARMCHECK(10);
-			strcpy(param0, arguments[0].str());
-			strcpy(param4, arguments[1].str());
-			param2 = arguments[2].boolValue();
-			param1 = arguments[3].floatValue();
-			param3 = arguments[4].floatValue();
 
-			returnValue = bool(CCD->Pawns()->Area(param0, param4, param2, param1, param3,
+			returnValue = bool(CCD->Pawns()->Area(arguments[0].str().c_str(), arguments[1].str().c_str(),
+								arguments[2].boolValue(), arguments[3].floatValue(), arguments[4].floatValue(),
 								arguments[5].floatValue(), arguments[6].floatValue(),
 								arguments[7].boolValue(), arguments[8].boolValue(), arguments[9].boolValue()));
 
 			return true;
 		}
-	case 168:	// SetFlag
+	case RGF_SM_SETFLAG:
 		{
 			// USAGE: SetFlag(int FlagNr, true/false)
 			int int1 = arguments[0].intValue();
@@ -3821,11 +3641,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(int1 < 0 || int1 >= MAXFLAGS)
 				return true;
 
-			param2 = arguments[1].boolValue();
-			CCD->Pawns()->SetPawnFlag(int1, param2);
+			CCD->Pawns()->SetPawnFlag(int1, arguments[1].boolValue());
 			return true;
 		}
-	case 169:	// GetFlag
+	case RGF_SM_GETFLAG:
 		{
 			// USAGE: bool = GetFlag(int FlagNr)
 			int int1 = arguments[0].intValue();
@@ -3838,7 +3657,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 // end change
 // changed QD 12/15/05
-	case 170:	// PowerUp
+	case RGF_SM_POWERUP:
 		{
 			// USAGE:	PowerUp(char *AttributeName, int Amount, bool SetMaximumAmount)
 			//			PowerUp(char *AttributeName, int Amount, bool SetMaximumAmount, EntityName)
@@ -3867,11 +3686,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 171:	// GetPowerUpLevel
+	case RGF_SM_GETPOWERUPLEVEL:
 		{
 			// USAGE:	int = GetPowerUpLevel(char *AttributeName)
 			//			int = GetPowerUpLevel(char *AttributeName, char *EntityName)
-			strcpy(param0, arguments[0].str());
 
 			CPersistentAttributes *theInv;
 
@@ -3887,19 +3705,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
 
-			returnValue = theInv->GetPowerUpLevel(param0);
+			returnValue = theInv->GetPowerUpLevel(arguments[0].str().c_str());
 
 			return true;
 		}
-	case 172:	// ActivateHudElement
+	case RGF_SM_ACTIVATEHUDELEMENT:
 		{
 			// USAGE: ActivateHudElement(char *AttributeName, bool Flag)
-			strcpy(param0, arguments[0].str());
 
-			CCD->HUD()->ActivateElement(param0, arguments[1].boolValue());
+			CCD->HUD()->ActivateElement(arguments[0].str().c_str(), arguments[1].boolValue());
 			return true;
 		}
-	case 173:	// MoveEntity
+	case RGF_SM_MOVEENTITY:
 		{
 			// USAGE: MoveEntity(EntityName, AmountX, AmountY, AmountZ);
 			strcpy(param0, arguments[0].str());
@@ -3916,15 +3733,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 174:	// RotateEntity
+	case RGF_SM_ROTATEENTITY:
 		{
 			// USAGE: RotateEntity(EntityName, AmountX, AmountY, AmountZ);
 			strcpy(param0, arguments[0].str());
 			geVec3d Amount;
 
-			Amount.X = 0.0174532925199433f*arguments[1].floatValue();
-			Amount.Y = 0.0174532925199433f*arguments[2].floatValue();
-			Amount.Z = 0.0174532925199433f*arguments[3].floatValue();
+			Amount.X = GE_PIOVER180*arguments[1].floatValue();
+			Amount.Y = GE_PIOVER180*arguments[2].floatValue();
+			Amount.Z = GE_PIOVER180*arguments[3].floatValue();
 
 			if(!stricmp(param0, "Player"))
 				CCD->ActorManager()->AddRotation(CCD->Player()->GetActor(), Amount);
@@ -3933,7 +3750,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 175:	// SetEntityPosition
+	case RGF_SM_SETENTITYPOSITION:
 		{
 			// USAGE: SetEntityPosition(EntityName, PosX, PosY, PosZ);
 			strcpy(param0, arguments[0].str());
@@ -3950,15 +3767,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 176:	// SetEntityRotation
+	case RGF_SM_SETENTITYROTATION:
 		{
 			// USAGE: SetEntityRotation(EntityName, RotX, RotY, RotZ);
 			strcpy(param0, arguments[0].str());
 			geVec3d Rot;
 
-			Rot.X = 0.0174532925199433f*arguments[1].floatValue();
-			Rot.Y = 0.0174532925199433f*arguments[2].floatValue();
-			Rot.Z = 0.0174532925199433f*arguments[3].floatValue();
+			Rot.X = GE_PIOVER180*arguments[1].floatValue();
+			Rot.Y = GE_PIOVER180*arguments[2].floatValue();
+			Rot.Z = GE_PIOVER180*arguments[3].floatValue();
 
 			if(!stricmp(param0, "Player"))
 				CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), Rot);
@@ -3967,7 +3784,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 177:	// AddAttribute
+	case RGF_SM_ADDATTRIBUTE:
 		{
 			// USAGE:	AddAttribute(char *Attribute)
 			//			AddAttribute(char *Attribute, EntityName)
@@ -4004,13 +3821,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 // end change
 // changed QD 07/15/06
-	case 178:	// SetAttributeValueLimits
+	case RGF_SM_SETATTRIBUTEVALUELIMITS:
 		{
 			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
 			//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
 			PARMCHECK(3);
-			strcpy(param0, arguments[0].str());
 
 			CPersistentAttributes *theInv;
 
@@ -4026,53 +3842,27 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
 
-			theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
 
 			return true;
 		}
-	case 179:	// sin
+	case RGF_SM_RIGHTCOPY:
 		{
-			PARMCHECK(1);
-			returnValue = (float)sin((double)arguments[0].floatValue());
+			int length = arguments[1].intValue();
+			int slength = arguments[0].str().length();
 
+			if(length>slength)
+				length = slength;
+
+			returnValue = arguments[0].str().substr(slength-length);
 			return true;
 		}
-	case 180:	// cos
+	case RGF_SM_NEARESTPOINT:
 		{
-			PARMCHECK(1);
-			returnValue = (float)cos((double)arguments[0].floatValue());
-
-			return true;
-		}
-	case 181:	// tan
-		{
-			PARMCHECK(1);
-			returnValue = (float)tan((double)arguments[0].floatValue());
-
-			return true;
-		}
-	case 182:	// RightCopy
-		{
-			int length;
-			int temp = arguments[1].intValue();
-			temp = (temp<127)?temp:127;
-			strncpy(param0, arguments[0].str(), 127);
-			param0[127] = 0;
-			length = strlen(param0);
-
-			strncpy(param4, &param0[length-temp], temp);
-			param4[temp] = 0;
-			returnValue = skString(param4);
-			return true;
-		}
-	case 183:	// NearestPoint(float MinDistance, float MaxDistance)
-		{
+			// USAGE:	NearestPoint(float MinDistance, float MaxDistance)
 			PARMCHECK(2);
 
 			returnValue = false;
-
-			//if(!TargetActor)
-			//	return true;
 
 			geEntity_EntitySet *pSet;
 			geEntity *pEntity;
@@ -4082,17 +3872,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(!pSet)
 				return true;
 
-			geVec3d Pos, Dist;//TargetPos,
-			float minDist2, MinDistance2, MaxDistance2;//minTargetDist2,
-			float newDist2;//, newTargetDist2;
+			geVec3d Pos, Dist;
+			float minDist2, MinDistance2, MaxDistance2;
+			float newDist2;
 
 			MinDistance2 = arguments[0].floatValue()*arguments[0].floatValue();
 			MaxDistance2 = arguments[1].floatValue()*arguments[1].floatValue();
 			minDist2 = MaxDistance2;
-			//minTargetDist2 = minDist2*10000.f;
 
 			CCD->ActorManager()->GetPosition(Actor,	&Pos);
-			//CCD->ActorManager()->GetPosition(TargetActor, &TargetPos);
 
 			// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
 			for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -4103,20 +3891,17 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				//calc new dist
 				geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
 				newDist2 = geVec3d_LengthSquared(&Dist);
-				//geVec3d_Subtract(&pSource->origin, &TargetPos, &Dist);
-				//newTargetDist2 = geVec3d_LengthSquared(&Dist);
 
 				// point is too close
 				if(newDist2<MinDistance2 || newDist2>MaxDistance2)
 					continue;
 
-				if(newDist2<minDist2)// && newTargetDist2<=minTargetDist2)
+				if(newDist2<minDist2)
 				{
 					// probably slowest test...
 					if(CCD->Pawns()->CanSeePoint(FOV, Actor, &(pSource->origin), FOVBone))
 					{
 						minDist2 = newDist2;
-						//minTargetDist2 = newTargetDist2;
 						strcpy(Point, pSource->szEntityName);
 						CurrentPoint= pSource->origin;
 						ValidPoint = true;
@@ -4127,7 +3912,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	case 184:	// SetFOV - same as high level command
+	case RGF_SM_SETFOV:
 		{
 			PARMCHECK(1);
 
@@ -4147,29 +3932,161 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 // end change QD 07/15/06
 // changed QD 02/01/07
-	case 185:	// asin
+	case RGF_SM_SIN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)sin((double)arguments[0].floatValue());
+
+			return true;
+		}
+	case RGF_SM_COS:
+		{
+			PARMCHECK(1);
+			returnValue = (float)cos((double)arguments[0].floatValue());
+
+			return true;
+		}
+	case RGF_SM_TAN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)tan((double)arguments[0].floatValue());
+
+			return true;
+		}
+	case RGF_SM_ASIN:
 		{
 			PARMCHECK(1);
 			returnValue = (float)asin((double)arguments[0].floatValue());
 
 			return true;
 		}
-	case 186:	// acos
+	case RGF_SM_ACOS:
 		{
 			PARMCHECK(1);
 			returnValue = (float)acos((double)arguments[0].floatValue());
 
 			return true;
 		}
-	case 187:	// atan
+	case RGF_SM_ATAN:
 		{
 			PARMCHECK(1);
 			returnValue = (float)atan((double)arguments[0].floatValue());
 
 			return true;
 		}
-// end change
-	} // close switch statement
+	// end change
+	case RGF_SM_SETGRAVITY:
+		{
+			PARMCHECK(3);
+			geVec3d vec = { arguments[0].floatValue(), arguments[1].floatValue(), arguments[2].floatValue() };
+			CCD->Player()->SetGravity(&vec);
+			return true;
+		}
+	case RGF_SM_GETGRAVITYX:
+		{
+			returnValue = CCD->Player()->GetGravity().X;
+			return true;
+		}
+	case RGF_SM_GETGRAVITYY:
+		{
+			returnValue = CCD->Player()->GetGravity().Y;
+			return true;
+		}
+	case RGF_SM_GETGRAVITYZ:
+		{
+			returnValue = CCD->Player()->GetGravity().Z;
+			return true;
+		}
+	case RGF_SM_SETWIND:
+		{
+			PARMCHECK(3);
+			geVec3d vec = { arguments[0].floatValue(), arguments[1].floatValue(), arguments[2].floatValue() };
+			CCD->Player()->SetWind(&vec);
+			return true;
+		}
+	case RGF_SM_GETWINDX:
+		{
+			returnValue = CCD->Player()->GetWind().X;
+			return true;
+		}
+	case RGF_SM_GETWINDY:
+		{
+			returnValue = CCD->Player()->GetWind().Y;
+			return true;
+		}
+	case RGF_SM_GETWINDZ:
+		{
+			returnValue = CCD->Player()->GetWind().Z;
+			return true;
+		}
+	case RGF_SM_SETWINDBASE:
+		{
+			PARMCHECK(3);
+			geVec3d vec = { arguments[0].floatValue(), arguments[1].floatValue(), arguments[2].floatValue() };
+			CCD->Player()->SetInitialWind(&vec);
+			return true;
+		}
+	case RGF_SM_GETWINDBASEX:
+		{
+			returnValue = CCD->Player()->GetInitialWind().X;
+			return true;
+		}
+	case RGF_SM_GETWINDBASEY:
+		{
+			returnValue = CCD->Player()->GetInitialWind().Y;
+			return true;
+		}
+	case RGF_SM_GETWINDBASEZ:
+		{
+			returnValue = CCD->Player()->GetInitialWind().Z;
+			return true;
+		}
+	case RGF_SM_SETWINDGENERATOR:
+		{
+			PARMCHECK(1);
+			CCD->WindGenerator()->SetEnabled(arguments[0].boolValue());
+			return true;
+		}
+	case RGF_SM_SETFORCEENABLED:
+		{
+			PARMCHECK(1);
+			CCD->ActorManager()->SetForceEnabled(Actor, arguments[0].boolValue());
+			return true;
+		}
+	case RGF_SM_ISINLIQUID:
+		{
+			int nZoneType;
+			CCD->ActorManager()->GetActorZone(Actor, &nZoneType);
+
+			if(nZoneType == kLiquidZone)
+				returnValue = true;
+			else
+				returnValue = false;
+
+			return true;
+		}
+	case RGF_SM_GETLIQUID:
+		{
+			int nZoneType;
+			CCD->ActorManager()->GetActorZone(Actor, &nZoneType);
+
+			if(nZoneType == kLiquidZone)
+				returnValue = skString(CCD->ActorManager()->GetLiquid(Actor)->szEntityName);
+			else
+				returnValue = skString("");
+
+			return true;
+		}
+	case RGF_SM_ENDSCRIPT:
+		{
+			alive=false;
+			return true;
+		}
+	default:
+		{
+			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);//change simkin
+		}
+	} // switch
 
 	return true;
 }

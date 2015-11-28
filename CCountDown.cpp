@@ -6,7 +6,7 @@
 
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -72,7 +72,7 @@ CCountDown::~CCountDown()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CCountDown::Tick(float dwTicks)
+void CCountDown::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -169,7 +169,7 @@ void CCountDown::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CCountDown::LocateEntity(char *szName, void **pEntityData)
+int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

@@ -250,7 +250,7 @@ CStaticMesh::CStaticMesh()
 			if(CCD->GetLogging())
 			{
 				char Info[512];
-				sprintf(Info, "*INFO* Set Ambient light for %s", pMesh->szEntityName);
+				sprintf(Info, "[INFO] Set Ambient light for %s", pMesh->szEntityName);
 				CCD->ReportError(Info, false);
 			}
 		}
@@ -263,7 +263,7 @@ CStaticMesh::CStaticMesh()
 			if(CCD->GetLogging())
 			{
 				char Info[512];
-				sprintf(Info, "*INFO* Set Sunlight light for %s", pMesh->szEntityName);
+				sprintf(Info, "[INFO] Set Sunlight light for %s", pMesh->szEntityName);
 				CCD->ReportError(Info, false);
 			}
 		}
@@ -279,7 +279,7 @@ CStaticMesh::CStaticMesh()
 			if(CCD->GetLogging())
 			{
 				char Info[512];
-				sprintf(Info, "*INFO* Set Light for %s", pMesh->szEntityName);
+				sprintf(Info, "[INFO] Set Light for %s", pMesh->szEntityName);
 				CCD->ReportError(Info, false);
 			}
 		}
@@ -296,7 +296,7 @@ CStaticMesh::CStaticMesh()
 			if(CCD->GetLogging())
 			{
 				char Info[512];
-				sprintf(Info, "*INFO* Set Spotlight for %s", pMesh->szEntityName);
+				sprintf(Info, "[INFO] Set Spotlight for %s", pMesh->szEntityName);
 				CCD->ReportError(Info, false);
 			}
 		}
@@ -314,7 +314,7 @@ CStaticMesh::CStaticMesh()
 //	in: filename
 //	out: found?,  index
 /* ------------------------------------------------------------------------------------ */
-bool CStaticMesh::IsInList(char *szActorFile, int *Index)
+bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 {
 	for(int i=0; i<m_MeshCount; i++)
 	{
@@ -334,7 +334,7 @@ bool CStaticMesh::IsInList(char *szActorFile, int *Index)
 //	in: filename
 //	out: success?
 /* ------------------------------------------------------------------------------------ */
-bool CStaticMesh::AddNewMesh(char *szActorFile)
+bool CStaticMesh::AddNewMesh(const char *szActorFile)
 {
 	MeshList[m_MeshCount] = new LoadedMeshList;
 	memset(MeshList[m_MeshCount], 0, sizeof(LoadedMeshList));
@@ -710,9 +710,15 @@ bool CStaticMesh::AddNewMesh(char *szActorFile)
 
 CLEAN_UP:
 		if(ActorDef != NULL)
+		{
 			geActor_DefDestroy(&ActorDef);
+			ActorDef = NULL;
+		}
 		if(theActor != NULL)
+		{
 			geActor_Destroy(&theActor);
+			theActor = NULL;
+		}
 
 		// error - clean up
 		if(CleanUp)
@@ -2497,7 +2503,7 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-int CStaticMesh::LocateEntity(char *szName, void **pEntityData)
+int CStaticMesh::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

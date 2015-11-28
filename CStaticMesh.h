@@ -47,12 +47,12 @@ public:
 	virtual ~CStaticMesh();
 
 	void Tick(geFloat dwTicks);
-	bool AddNewMesh(char *szActorFile);
+	bool AddNewMesh(const char *szActorFile);
 	void AddPoly(StaticMesh *pMesh, int LOD);
 
 	int SaveTo(FILE *SaveFD, bool type);					// Save states to a supplied file
 	int RestoreFrom(FILE *RestoreFD, bool type);			// Restore states from a supplied file
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 	bool CollisionCheck(geVec3d *Min, geVec3d *Max,
@@ -77,7 +77,7 @@ private:
 	void SetAmbientLight(StaticMesh *pMesh);
 // end change
 // changed QD 12/15/05
-	bool IsInList(char *szActorFile, int *Index);
+	bool IsInList(const char *szActorFile, int *Index);
 	void CleanUp();
 // end change
 

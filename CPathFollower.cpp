@@ -27,7 +27,7 @@ CPathFollower::CPathFollower()
 	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
-		return;									// No path followers
+		return;										// No path followers
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -49,7 +49,7 @@ CPathFollower::CPathFollower()
 		{
 			// We'll consider this a modest error
 			char szBug[132];
-			sprintf(szBug, "*WARNING* File %s - Line %d: Missing bound entity '%s' in registry\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: Missing bound entity '%s' in registry\n",
 					__FILE__, __LINE__, pFollower->EntityName);
 			CCD->ReportError(szBug, false);
 			continue;					// Maybe the next one will be OK
@@ -110,7 +110,7 @@ CPathFollower::CPathFollower()
 			if(CCD->MorphingFields()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				char szBug[128];
-				sprintf(szBug, "*WARNING* Failed to bind MorphingField entity '%s' to path '%s'\n",
+				sprintf(szBug, "[WARNING] Failed to bind MorphingField entity '%s' to path '%s'\n",
 						pFollower->EntityName, pFollower->PathFirstNode);
 				CCD->ReportError(szBug, false);
 			}
@@ -119,7 +119,7 @@ CPathFollower::CPathFollower()
 			if(CCD->Props()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				char szBug[128];
-				sprintf(szBug, "*WARNING* Failed to bind StaticEntityProxy entity '%s' to path '%s'\n",
+				sprintf(szBug, "[WARNING] Failed to bind StaticEntityProxy entity '%s' to path '%s'\n",
 						pFollower->EntityName, pFollower->PathFirstNode);
 				CCD->ReportError(szBug, false);
 			}
@@ -128,7 +128,7 @@ CPathFollower::CPathFollower()
 			if(CCD->Teleporters()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				char szBug[128];
-				sprintf(szBug, "*WARNING* Failed to bind TeleportTarget entity '%s' to path '%s'\n",
+				sprintf(szBug, "[WARNING] Failed to bind TeleportTarget entity '%s' to path '%s'\n",
 						pFollower->EntityName, pFollower->PathFirstNode);
 				CCD->ReportError(szBug, false);
 			}
@@ -136,7 +136,7 @@ CPathFollower::CPathFollower()
 		default:
 			{
 				char szBug[128];
-				sprintf(szBug, "*WARNING* Attempt to bind nonbindable entity '%s' type '%s' to path\n",
+				sprintf(szBug, "[WARNING] Attempt to bind nonbindable entity '%s' type '%s' to path\n",
 						pFollower->EntityName, szType);
 				CCD->ReportError(szBug, false);
 			}
@@ -164,7 +164,6 @@ CPathFollower::CPathFollower()
 /* ------------------------------------------------------------------------------------ */
 CPathFollower::~CPathFollower()
 {
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -228,7 +227,7 @@ int CPathFollower::Tick(geFloat dwTicks)
 //	Check to see if the model collided with is a motion trigger, and if so,
 //	..trigger it and tell the caller.
 /* ------------------------------------------------------------------------------------ */
-bool CPathFollower::HandleCollision(geWorld_Model *Model)
+bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -285,8 +284,8 @@ bool CPathFollower::HandleCollision(geWorld_Model *Model)
 //	..permitted in the Y range (this prevents having props locked to a
 //	..motion path from flying in the air!).
 /* ------------------------------------------------------------------------------------ */
-int CPathFollower::GetNextPosition(char *szEntityName, geVec3d *NextPosition,
-		bool YLocked)
+int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPosition,
+								   bool YLocked)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -490,7 +489,7 @@ int CPathFollower::GetNextPosition(char *szEntityName, geVec3d *NextPosition,
 //	..current target.  This is used primarily to help set the
 //	..facing direction of entities moving through the world.
 /* ------------------------------------------------------------------------------------ */
-int CPathFollower::GetTarget(char *szEntityName, geVec3d *Target)
+int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -535,7 +534,7 @@ int CPathFollower::GetTarget(char *szEntityName, geVec3d *Target)
 //
 //	Return the FIRST point on the path associated with this entity.
 /* ------------------------------------------------------------------------------------ */
-int CPathFollower::GetPathOrigin(char *szEntityName, geVec3d *PathOrigin)
+int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -572,7 +571,7 @@ int CPathFollower::GetPathOrigin(char *szEntityName, geVec3d *PathOrigin)
 //
 //	Get the motion speed of an entity on a path.
 /* ------------------------------------------------------------------------------------ */
-geFloat CPathFollower::GetSpeed(char *szEntityName)
+geFloat CPathFollower::GetSpeed(const char *szEntityName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -606,7 +605,7 @@ geFloat CPathFollower::GetSpeed(char *szEntityName)
 //
 //	Given a component type name, turn it into a fixed type index.
 /* ------------------------------------------------------------------------------------ */
-int CPathFollower::TypeNameToIndex(char *szName)
+int CPathFollower::TypeNameToIndex(const char *szName)
 {
 	// Effect
 	static char *theNames[] = {"MorphingField", "StaticEntityProxy", "TeleportTarget", NULL};

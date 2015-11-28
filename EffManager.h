@@ -33,38 +33,42 @@
 #define SPRAY_FOLLOWTAIL	4 //( 1 << 2 )
 #define SPRAY_ACTUALDEST	8 //( 1 << 3 )
 
+/**
+ * @brief Spray
+ */
 typedef struct
 {
-	geVec3d		*ParticleGravity;	// RESERVED
-	float		TimeRemaining;		// RESERVED
-	float		PolyCount;			// RESERVED
-	geXForm3d	Xf;					// RESERVED
-	GE_LVertex	Vertex;				// RESERVED
-	geBoolean	Paused;				// RESERVED, whether or not the sprite is paused
-	int32		Leaf;				// RESERVED
-	geBoolean	ShowAlways;			// RESERVED
-	geBitmap	*Texture;			// texture to use
-	float		SprayLife;			// life of effect
-	float		Rate;				// add a new texture every "Rate" seconds
-	geVec3d		*AnchorPoint;		// point to which particles are hooked to
-	GE_RGBA		ColorMin;			// min values for each color
-	GE_RGBA		ColorMax;			// max values for each color
-	geVec3d		Gravity;			// gravity vector
-	float		DistanceMax;		// distance past which the effect is not drawn
-	float		DistanceMin;		// distance up to which no level of detail processing is done
-	geVec3d		Source;				// source point
-	int			SourceVariance;		// +/- units to vary the source point
-	geVec3d		Dest;				// dest point
+	geVec3d		*ParticleGravity;	///< RESERVED
+	float		TimeRemaining;		///< RESERVED
+	float		PolyCount;			///< RESERVED
+	geXForm3d	Xf;					///< RESERVED
+	GE_LVertex	Vertex;				///< RESERVED
+	geBoolean	Paused;				///< RESERVED, whether or not the sprite is paused
+	int32		Leaf;				///< RESERVED
+	geBoolean	ShowAlways;			///< RESERVED
+	geBitmap	*Texture;			///< texture to use
+	float		SprayLife;			///< life of effect
+	float		Rate;				///< add a new texture every "Rate" seconds
+	geVec3d		*AnchorPoint;		///< point to which particles are hooked to
+	GE_RGBA		ColorMin;			///< min values for each color
+	GE_RGBA		ColorMax;			///< max values for each color
+	geVec3d		Gravity;			///< gravity vector
+	float		DistanceMax;		///< distance past which the effect is not drawn
+	float		DistanceMin;		///< distance up to which no level of detail processing is done
+	geVec3d		Source;				///< source point
+	int			SourceVariance;		///< +/- units to vary the source point
+	geVec3d		Dest;				///< dest point
 	geVec3d		Angle;
 	geXForm3d	Xform;
-	int			DestVariance;		// +/- units to vary the dest point
-	float		MinScale;			// min scale for the art
-	float		MaxScale;			// max scale for the art
-	float		MinUnitLife;		// min life of each texture
-	float		MaxUnitLife;		// max life of each texture
-	float		MinSpeed;			// min speed of each texture
-	float		MaxSpeed;			// max speed of each texture
+	int			DestVariance;		///< +/- units to vary the dest point
+	float		MinScale;			///< min scale for the art
+	float		MaxScale;			///< max scale for the art
+	float		MinUnitLife;		///< min life of each texture
+	float		MaxUnitLife;		///< max life of each texture
+	float		MinSpeed;			///< min speed of each texture
+	float		MaxSpeed;			///< max speed of each texture
 	geBoolean	Bounce;
+	geBoolean	UseWind;			///< effect is affected by wind
 
 } Spray;
 
@@ -73,24 +77,27 @@ typedef struct
 #define GLOW_RADIUSMAX	4 //( 1 << 2 )
 #define GLOW_INTENSITY	8 //( 1 << 3 )
 
+/**
+ * @brief Glow
+ */
 typedef struct
 {
-	geLight		*Light;			// RESERVED
-	int32		Leaf;			// RESERVED
+	geLight		*Light;			///< RESERVED
+	int32		Leaf;			///< RESERVED
 	float		LightLife;
-	geVec3d		Pos;			// vector which light will follow
-	float		RadiusMin;		// min light radius
-	float		RadiusMax;		// max light radius
-	GE_RGBA		ColorMin;		// min color info
-	GE_RGBA		ColorMax;		// max color info
-	float		Intensity;		// light intensity
-	geBoolean	DoNotClip;		// whether or not clipping should be ignored
-	geBoolean	CastShadows;	// whether or not the light should cast shadows
+	geVec3d		Pos;			///< vector which light will follow
+	float		RadiusMin;		///< min light radius
+	float		RadiusMax;		///< max light radius
+	GE_RGBA		ColorMin;		///< min color info
+	GE_RGBA		ColorMax;		///< max color info
+	float		Intensity;		///< light intensity
+	geBoolean	DoNotClip;		///< whether or not clipping should be ignored
+	geBoolean	CastShadows;	///< whether or not the light should cast shadows
 // change QD
-	geBoolean	Spot;			// is it a spotlight?
-	geFloat		Arc;			// angle of lightcone
-	geVec3d		Direction;		// direction of spotlight
-	int			Style;			// falloff style
+	geBoolean	Spot;			///< is it a spotlight?
+	geFloat		Arc;			///< angle of lightcone
+	geVec3d		Direction;		///< direction of spotlight
+	int			Style;			///< falloff style
 // end change QD
 
 } Glow;
@@ -112,26 +119,29 @@ typedef enum
 
 } Sprite_CycleStyle;
 
+/**
+ * @brief Sprite
+ */
 typedef struct
 {
-	GE_LVertex	Vertex[4];		// RESERVED, vert info
-	int32		Direction;		// RESERVED
-	float		ElapsedTime;	// RESERVED
-	int32		CurrentTexture;	// RESERVED
-	int32		Leaf;			// RESERVED
-	geBoolean	Pause;			// RESERVED, whether or not the sprite is paused
-	geBoolean	ShowAlways;		// RESERVED
-	geVec3d		Pos;			// location
-	GE_RGBA		Color;			// color
-	geBitmap	**Texture;		// list of textures to use
-	int32		TotalTextures;	// total number of textures in the list
-	float		TextureRate;	// every how many seconds to switch to the next texture
-	float		Scale;			// how to scale the art
-	float		ScaleRate;		// how much to subtract from scale each second
-	float		RotationRate;	// how much to add to art rotation each second (radians)
-	float		AlphaRate;		// how much to subtract from alpha each second
-	Sprite_CycleStyle	Style;	// how to cycle through the images
-	float		Rotation;		// art rotation amount (radians)
+	GE_LVertex	Vertex[4];		///< RESERVED, vert info
+	int32		Direction;		///< RESERVED
+	float		ElapsedTime;	///< RESERVED
+	int32		CurrentTexture;	///< RESERVED
+	int32		Leaf;			///< RESERVED
+	geBoolean	Pause;			///< RESERVED, whether or not the sprite is paused
+	geBoolean	ShowAlways;		///< RESERVED
+	geVec3d		Pos;			///< location
+	GE_RGBA		Color;			///< color
+	geBitmap	**Texture;		///< list of textures to use
+	int32		TotalTextures;	///< total number of textures in the list
+	float		TextureRate;	///< every how many seconds to switch to the next texture
+	float		Scale;			///< how to scale the art
+	float		ScaleRate;		///< how much to subtract from scale each second
+	float		RotationRate;	///< how much to add to art rotation each second (radians)
+	float		AlphaRate;		///< how much to subtract from alpha each second
+	Sprite_CycleStyle	Style;	///< how to cycle through the images
+	float		Rotation;		///< art rotation amount (radians)
 // changed RF064
 	float		LifeTime;
 	float		CurrentLife;
@@ -142,16 +152,19 @@ typedef struct
 #define SND_POS					1 //( 1 << 0 )
 #define SND_MINAUDIBLEVOLUME	0.1f
 
+/**
+ * @brief Sound
+ */
 typedef struct
 {
-	geSound		*Sound;			// RESERVED, pointer to the active sound
+	geSound		*Sound;			///< RESERVED, pointer to the active sound
 	geBoolean	Paused;
-	geFloat		LastVolume;		// RESERVED, its volume the last time it was modified
-	geFloat		LastPan;		// RESERVED, its pan the last time it was modified
-	geSound_Def	*SoundDef;		// sound def to play from
-	geVec3d		Pos;			// location of the sound
-	geFloat		Min;			// min distance whithin which sound is at max volume
-	geBoolean	Loop;			// whether or not to loop it
+	geFloat		LastVolume;		///< RESERVED, its volume the last time it was modified
+	geFloat		LastPan;		///< RESERVED, its pan the last time it was modified
+	geSound_Def	*SoundDef;		///< sound def to play from
+	geVec3d		Pos;			///< location of the sound
+	geFloat		Min;			///< min distance whithin which sound is at max volume
+	geBoolean	Loop;			///< whether or not to loop it
 
 } Snd;
 
@@ -160,6 +173,9 @@ typedef struct
 #define BOLT_COLOR		4 //( 1 << 2 )
 #define BOLT_ENDOFFSET	8 //( 1 << 3 )
 
+/**
+ * @brief Electric bolt
+ */
 typedef struct EBolt
 {
 	float		CompleteLife;
@@ -184,32 +200,37 @@ typedef struct EBolt
 
 #define CORONA_POS	1 //( 1 << 0 )
 
+/**
+ * @brief Corona effect
+ */
 typedef struct
 {
-	float		LastVisibleRadius;	// RESERVED, last visible radius
-	int32		Leaf;				// RESERVED, leaf it resides in
-	geBoolean	Paused;				// RESERVED, whether or not the sprite is paused
+	float		LastVisibleRadius;	///< RESERVED, last visible radius
+	int32		Leaf;				///< RESERVED, leaf it resides in
+	geBoolean	Paused;				///< RESERVED, whether or not the sprite is paused
 	geFloat		LifeTime;
-	geBitmap	*Texture;			// texture to use
-	GE_LVertex	Vertex;				// location and color info
-	geFloat		FadeTime;			// how many seconds to spend fading away the corona
-	float		MinRadius;			// mix corona radius
-	float		MaxRadius;			// max corona radius
-	float		MaxRadiusDistance;	// above this distance, corona is capped at MaxRadius
-	float		MinRadiusDistance;	// below this distance, corona is capped at MinRadius
-	float		MaxVisibleDistance;	// beyond this distance the corona is not visible
+	geBitmap	*Texture;			///< texture to use
+	GE_LVertex	Vertex;				///< location and color info
+	geFloat		FadeTime;			///< how many seconds to spend fading away the corona
+	float		MinRadius;			///< mix corona radius
+	float		MaxRadius;			///< max corona radius
+	float		MaxRadiusDistance;	///< above this distance, corona is capped at MaxRadius
+	float		MinRadiusDistance;	///< below this distance, corona is capped at MinRadius
+	float		MaxVisibleDistance;	///< beyond this distance the corona is not visible
 
 } EffCorona;
 
 // changed RF064
-
+/**
+ * @brief Actor Spout
+ */
 typedef struct
 {
-	float		TimeRemaining;		// RESERVED
-	float		PolyCount;			// RESERVED
-	geXForm3d	Xf;					// RESERVED
-	geBoolean	Paused;				// RESERVED, whether or not the sprite is paused
-	int			ActorNum;			// RESERVED
+	float		TimeRemaining;		///< RESERVED
+	float		PolyCount;			///< RESERVED
+	geXForm3d	Xf;					///< RESERVED
+	geBoolean	Paused;				///< RESERVED, whether or not the sprite is paused
+	int			ActorNum;			///< RESERVED
 	bool		Direction;
 	int			NumActors;
 	char		BaseName[64];
@@ -224,23 +245,23 @@ typedef struct
 	int			Style;
 	float		Alpha;
 	float		AlphaRate;
-	float		SprayLife;			// life of effect
-	float		Rate;				// add a new actor every "Rate" seconds
-	bool		Gravity;			// gravity flag
-	float		DistanceMax;		// distance past which the effect is not drawn
-	float		DistanceMin;		// distance up to which no level of detail processing is done
-	geVec3d		Source;				// source point
-	int			SourceVariance;		// +/- units to vary the source point
-	geVec3d		Dest;				// dest point
+	float		SprayLife;			///< life of effect
+	float		Rate;				///< add a new actor every "Rate" seconds
+	bool		Gravity;			///< gravity flag
+	float		DistanceMax;		///< distance past which the effect is not drawn
+	float		DistanceMin;		///< distance up to which no level of detail processing is done
+	geVec3d		Source;				///< source point
+	int			SourceVariance;		///< +/- units to vary the source point
+	geVec3d		Dest;				///< dest point
 	geVec3d		Angle;
 	geXForm3d	Xform;
-	int			DestVariance;		// +/- units to vary the dest point
-	float		MinScale;			// min scale for the art
-	float		MaxScale;			// max scale for the art
-	float		MinUnitLife;		// min life of each actor
-	float		MaxUnitLife;		// max life of each actor
-	float		MinSpeed;			// min speed of each actor
-	float		MaxSpeed;			// max speed of each actor
+	int			DestVariance;		///< +/- units to vary the dest point
+	float		MinScale;			///< min scale for the art
+	float		MaxScale;			///< max scale for the art
+	float		MinUnitLife;		///< min life of each actor
+	float		MaxUnitLife;		///< max life of each actor
+	float		MinSpeed;			///< min speed of each actor
+	float		MaxSpeed;			///< max speed of each actor
 	geBoolean	Bounce;
 	geBoolean	Solid;
 	geBoolean	EnvironmentMapping;
@@ -265,13 +286,16 @@ typedef struct Eff_Item
 
 } Eff_Item;
 
+/**
+ * @brief Effect Manager class
+ */
 class EffManager : public CRGFComponent
 {
 public:
 	EffManager();
 	~EffManager();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	int Item_Add(int Itype, void *Idata);
 	void Item_Modify(int Itype, int Index, void *Data, uint32 Flags);
 	void Item_Delete(int Itype, int Index);

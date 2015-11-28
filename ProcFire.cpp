@@ -48,7 +48,7 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 
 	if(strlen(ParmStart) < 10)
 	{
-		ParmStart = strdup("F, pow, 400, 280, 200, 530, 0.3, 0.6, 1.0, 0.8");
+		ParmStart = _strdup("F, pow, 400, 280, 200, 530, 0.3, 0.6, 1.0, 0.8");
 	}
 
 	if(!ppBitmap)

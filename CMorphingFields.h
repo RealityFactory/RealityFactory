@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CMorphingFields.h
  * @brief Morphing Fields class handler
@@ -12,22 +11,25 @@
 #ifndef __RGF_CMORPHINGFIELDS_H_
 #define __RGF_CMORPHINGFIELDS_H_
 
+/**
+ * @brief CMorphingFields handles MorphingField entities
+ */
 class CMorphingFields : public CRGFComponent
 {
 public:
 	CMorphingFields();
 	~CMorphingFields();
 
-	void Tick(geFloat dwTicks);				// Do any animation
-	int BindToPath(char *szName);			// Bind entity to motion path
+	void Tick(geFloat dwTicks);				///< Do any animation
+	int BindToPath(const char *szName);		///< Bind entity to motion path
 	int SaveTo(FILE *SaveFD);
-											// Save state to a file
-	int RestoreFrom(FILE *RestoreFD);		// Restore state from a file
-	int LocateEntity(char *szName, void **pEntityData);
+											///< Save state to a file
+	int RestoreFrom(FILE *RestoreFD);		///< Restore state from a file
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
-	int m_MorphingFieldCount;				// Count of morphing fields
+	int m_MorphingFieldCount;				///< Count of morphing fields
 };
 
 #endif

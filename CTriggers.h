@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CTriggers.h
  * @brief Trigger handler
@@ -15,6 +14,9 @@
 
 #include <Ram.h>
 
+/**
+ * @brief Trigger state list element
+ */
 typedef struct	TState
 {
 	TState	*next;
@@ -24,28 +26,29 @@ typedef struct	TState
 
 } TState;
 
-
+/**
+ * @brief CTriggers handles Trigger entities
+ */
 class CTriggers : public CRGFComponent
 {
 public:
-	CTriggers();				// Constructor
-	~CTriggers();				// Destructor
+	CTriggers();				///< Constructor
+	~CTriggers();				///< Destructor
 
-	bool HandleTriggerEvent(char *TName);			// MOD010122 - This line added
+	bool HandleTriggerEvent(const char *TName);		// MOD010122 - This line added
 	// changed RF063
-	int HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey, geActor *theActor);
-	bool IsATrigger(geWorld_Model *theModel);		// Is this model a trigger?
-	void Tick(float dwTicks);						// Increment animation time
-	int SaveTo(FILE *SaveFD, bool type);			// Save triggers to file
-	int RestoreFrom(FILE *RestoreFD, bool type);	// Restore triggers from file
-	int LocateEntity(char *szName, void **pEntityData);
+	int HandleCollision(const geWorld_Model *pModel, bool HitType, bool UseKey, const geActor *theActor);
+	bool IsATrigger(const geWorld_Model *theModel);		///< Is this model a trigger?
+	void Tick(geFloat dwTicks);						///< Increment animation time
+	int SaveTo(FILE *SaveFD, bool type);			///< Save triggers to file
+	int RestoreFrom(FILE *RestoreFD, bool type);	///< Restore triggers from file
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
-	// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
 	void SetState();
-	bool GetTTriggerState(char *Name);
+	bool GetTTriggerState(const char *Name);
 	void FreeState();
 
 private:

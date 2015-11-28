@@ -12,9 +12,7 @@
 // You only need the one, master include file.
 #include "RabidFramework.h"
 
-extern geBoolean EffectC_IsStringNull(char *String );
-extern bool GetTriggerState(char *TriggerName);
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CTriggers
@@ -41,7 +39,14 @@ CTriggers::CTriggers()
 		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
 
 		if(pTrigger->Model == NULL)
-  			continue;
+		{
+			char szError[256];
+			sprintf(szError, "[WARNING] File %s - Line %d: '%s' Missing Model",
+					__FILE__, __LINE__, pTrigger->szEntityName);
+			CCD->ReportError(szError, false);
+
+			continue;
+		}
 
 		if(EffectC_IsStringNull(pTrigger->szEntityName))
 		{
@@ -50,32 +55,15 @@ CTriggers::CTriggers()
 			pTrigger->szEntityName = szName;
 		}
 
-		// Now add the trigger into the Model Manager, which will do all the
-		// ..hard work for us!
-		if(!pTrigger->Model)
-		{
-			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: '%s' Missing Model",
-					__FILE__, __LINE__, pTrigger->szEntityName);
-			CCD->ReportError(szError, false);
-			// changed QD 07/15/06
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			MessageBox(NULL, szError, "Missing Trigger Model", MB_OK);
-			exit(-333);
-			*/
-			continue;
-			// end change
-		}
+
 
 		m_TriggerCount++;							// Kick count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pTrigger->szEntityName, "Trigger");
 
-
-		if(pTrigger->Model)
+		// Now add the trigger into the Model Manager, which will do all the
+		// ..hard work for us!
 		{
 			CCD->ModelManager()->AddModel(pTrigger->Model, ENTITY_TRIGGER);
 			CCD->ModelManager()->SetLooping(pTrigger->Model, false);
@@ -103,7 +91,7 @@ CTriggers::CTriggers()
 			if(!pTrigger->theSound)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to open audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
 						__FILE__, __LINE__, pTrigger->szEntityName, pTrigger->szSoundFile);
 				CCD->ReportError(szError, false);
 			}
@@ -131,7 +119,7 @@ CTriggers::~CTriggers()
 //	Handle a collision with a  trigger
 /* ------------------------------------------------------------------------------------ */
 // changed RF063
-int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey, geActor *theActor)
+int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool UseKey, const geActor *theActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -228,7 +216,7 @@ int CTriggers::HandleCollision(geWorld_Model *pModel, bool HitType, bool UseKey,
 //
 //	Handle an animated model's trigger event
 /* ------------------------------------------------------------------------------------ */
-bool CTriggers::HandleTriggerEvent(char *TName)
+bool CTriggers::HandleTriggerEvent(const char *TName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -327,7 +315,7 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 //
 //	Return TRUE if the passed-in model is a  trigger, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CTriggers::IsATrigger(geWorld_Model *theModel)
+bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -353,10 +341,10 @@ bool CTriggers::IsATrigger(geWorld_Model *theModel)
 		// end change
 
 		if(pTrigger->Model == theModel)
-			return true;							// Model IS a  trigger
+			return true;							// Model IS a trigger
 	}
 
-	return false;							// Nope, it's not a  trigger
+	return false;							// Nope, it's not a trigger
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -365,7 +353,7 @@ bool CTriggers::IsATrigger(geWorld_Model *theModel)
 //	Increment animation times for all _animating_  triggers that aren't
 //	..in a collision state.
 /* ------------------------------------------------------------------------------------ */
-void CTriggers::Tick(float dwTicks)
+void CTriggers::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -550,7 +538,7 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CTriggers::LocateEntity(char *szName, void **pEntityData)
+int CTriggers::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -639,7 +627,7 @@ void CTriggers::SetState()
 /* ------------------------------------------------------------------------------------ */
 //	GetTTriggerState
 /* ------------------------------------------------------------------------------------ */
-bool CTriggers::GetTTriggerState(char *Name)
+bool CTriggers::GetTTriggerState(const char *Name)
 {
 	TState *pool;
 
@@ -660,7 +648,7 @@ bool CTriggers::GetTTriggerState(char *Name)
 			}
 
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: Invalid Trigger Name '%s'\n",
+			sprintf(szError, "[WARNING] File %s - Line %d: Invalid Trigger Name '%s'\n",
 					__FILE__, __LINE__, Name);
 			CCD->ReportError(szError, false);
 			return false;

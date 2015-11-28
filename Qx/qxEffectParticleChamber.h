@@ -63,7 +63,7 @@ public:
 
 
 	// Array for storing random bitmaps or animation bitmaps
-	vector<geBitmap*> m_BmpArray;
+	std::vector<geBitmap*> m_BmpArray;
 
 protected:
 
@@ -110,7 +110,7 @@ protected:
 	float		m_fEmissionResidue;
 
 	// array of particles.
-	vector<qxParticleBase*> m_pParticles;
+	std::vector<qxParticleBase*> m_pParticles;
 
 	bool		m_bUseGravity;
 	bool		m_bUseVelocity;

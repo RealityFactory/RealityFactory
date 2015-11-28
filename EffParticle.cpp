@@ -19,7 +19,6 @@
 
 #include "RabidFramework.h"
 #include <memory>
-//#include <malloc.h>
 #include <Ram.h>
 
 #define	POLYQ
@@ -27,6 +26,7 @@
 #define	PARTICLE_USER			1 //( 1 << 0 )
 #define	PARTICLE_HASVELOCITY	2 //( 1 << 1 )
 #define PARTICLE_HASGRAVITY		4 //( 1 << 2 )
+#define PARTICLE_HASWIND		8 //( 1 << 3 )
 #define PARTICLE_RENDERSTYLE	GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS
 
 typedef struct	Particle
@@ -233,8 +233,20 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 					geVec3d_Add(&DeltaPos, &Gravity, &DeltaPos);
 				}
 
+				//apply wind
+				if(ptcl->ptclFlags & PARTICLE_HASWIND)
+				{
+					geVec3d Wind = CCD->Player()->GetWind();
+
+					//make wind vector
+					geVec3d_Scale(&Wind, ps->psQuantumSeconds, &Wind);
+
+					//add wind to delta pos
+					geVec3d_Add(&DeltaPos, &Wind, &DeltaPos);
+				}
+
 				// apply DeltaPos to particle position
-				if((ptcl->ptclFlags & PARTICLE_HASVELOCITY) || (ptcl->ptclFlags & PARTICLE_HASGRAVITY))
+				if((ptcl->ptclFlags & PARTICLE_HASVELOCITY) || (ptcl->ptclFlags & PARTICLE_HASGRAVITY) || (ptcl->ptclFlags & PARTICLE_HASWIND))
 				{
 					geVec3d temppos, temppos1;
 					GE_Collision Collision;
@@ -386,7 +398,8 @@ void Particle_SystemAddParticle(Particle_System		*ps,
 								const geVec3d		*Velocity,
 								geFloat				Scale,
 								const geVec3d		*Gravity,
-								geBoolean			Bounce)
+								geBoolean			Bounce,
+								geBoolean			UseWind)
 {
 	// locals
 	Particle *ptcl;
@@ -410,6 +423,12 @@ void Particle_SystemAddParticle(Particle_System		*ps,
 	{
 		geVec3d_Copy(Velocity, &(ptcl->ptclVelocity));
 		ptcl->ptclFlags |= PARTICLE_HASVELOCITY;
+	}
+
+	//setup wind
+	if(UseWind == GE_TRUE)
+	{
+		ptcl->ptclFlags |= PARTICLE_HASWIND;
 	}
 
 	// setup the anchor point

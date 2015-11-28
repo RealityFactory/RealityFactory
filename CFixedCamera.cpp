@@ -264,7 +264,7 @@ bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 
 // changed QD 12/15/05 - simplified right side, then added a CheckRange factor (0 - 1)
 	// if(dotProduct > ((90.0f-(pSource->FieldofView*28.6f))/90.0f))
-	if(dotProduct > (1 - pSource->FieldofView*pSource->FOVCheckRange*GE_1OVERPI))
+	if(dotProduct > (1.f - pSource->FieldofView*pSource->FOVCheckRange*GE_1OVERPI))
 	{
 		if(CanSeePointToActor(&pSource->origin, CCD->Player()->GetActor()))
 			return true;

@@ -11,7 +11,8 @@
 #include "RabidFramework.h"		//	The One True Include File
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Default constructor
@@ -23,10 +24,6 @@ CActorManager::CActorManager()
 
 	m_GlobalInstanceCount = 0;			//	No instances
 // changed RF064
-// changed QD 06/26/04
-	//	ShadowBitmap = TPool_Bitmap("lvsmoke.Bmp", "a_lvsmoke.Bmp", NULL, NULL);
-	//	ShadowAlpha = 128.0f;
-// end change QD 06/26/04
 	AttrFile.SetPath("material.ini");
 	ValidAttr = true;
 
@@ -59,11 +56,15 @@ CActorManager::~CActorManager()
 			for(int i=0; i<4; i++)
 			{
 				if(MainList[nTemp]->theActorDef[i])
+				{
 					geActor_DefDestroy(&MainList[nTemp]->theActorDef[i]);
+					MainList[nTemp]->theActorDef[i] = NULL;
+				}
 
 				if(MainList[nTemp]->Actor[i])
 				{
 					geActor_Destroy(&MainList[nTemp]->Actor[i]);
+					MainList[nTemp]->Actor[i] = NULL;
 				}
 			}
 
@@ -71,6 +72,7 @@ CActorManager::~CActorManager()
 			{
 				geWorld_RemoveBitmap(CCD->World(), MainList[nTemp]->Bitmap);
 				geBitmap_Destroy(&MainList[nTemp]->Bitmap);
+				MainList[nTemp]->Bitmap = NULL;
 			}
 		}
 
@@ -400,7 +402,7 @@ CollideObjectInformation *CActorManager::GetCollideObject(CollideObjectLevels Co
 //	..make a new instance of it.  Regardless, return a numeric
 //	..handle to the actor instance.
 /* ------------------------------------------------------------------------------------ */
-geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
+geActor *CActorManager::LoadActor(const char *szFilename, geActor *OldActor)
 {
 	geVFile *ActorFile;
 	geActor *theActor = NULL;
@@ -438,7 +440,7 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 			geVFile_Close(ActorFile);				//	Clean up in case of error
 			char szError[256];
 
-			sprintf(szError,"*WARNING* File %s - Line %d: Failed to create geActor_Def from file '%s'",
+			sprintf(szError,"[WARNING] File %s - Line %d: Failed to create geActor_Def from file '%s'",
 					__FILE__, __LINE__, szFilename);
 			CCD->ReportError(szError, false);
 			return RGF_FAILURE;
@@ -448,7 +450,7 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 	{
 		char szError[256];
 
-		sprintf(szError,"*WARNING* File %s - Line %d: Failed to load actor '%s'",
+		sprintf(szError,"[WARNING] File %s - Line %d: Failed to load actor '%s'",
 				__FILE__, __LINE__, szFilename);
 		CCD->ReportError(szError, false);
 		return RGF_FAILURE;
@@ -487,7 +489,7 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 	LodName[len-4] = '\0';
 	strcat(LodName, "_LOD");
 
-	for(int j=1;j<4;j++)
+	for(int j=1; j<4; j++)
 	{
 		sprintf(Name, "%s%d.act", LodName, j);
 
@@ -504,7 +506,7 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 					geVFile_Close(ActorFile);							// Clean up in case of error
 					char szError[256];
 
-					sprintf(szError,"*WARNING* File %s - Line %d: Failed to create geActor_Def from file '%s'",
+					sprintf(szError,"[WARNING] File %s - Line %d: Failed to create geActor_Def from file '%s'",
 							__FILE__, __LINE__, Name);
 					CCD->ReportError(szError, false);
 					return RGF_FAILURE;
@@ -554,11 +556,11 @@ geActor *CActorManager::LoadActor(char *szFilename, geActor *OldActor)
 /* ------------------------------------------------------------------------------------ */
 //	SpawnActor
 /* ------------------------------------------------------------------------------------ */
-geActor *CActorManager::SpawnActor(char				*szFilename,
+geActor *CActorManager::SpawnActor(const char		*szFilename,
 								   const geVec3d	&thePosition,
 								   const geVec3d	&Rotation,
-								   char				*DefaultMotion,
-								   char				*CurrentMotion,
+								   const char		*DefaultMotion,
+								   const char		*CurrentMotion,
 								   geActor			*OldActor)
 {
 	//	Try and load it...
@@ -566,7 +568,7 @@ geActor *CActorManager::SpawnActor(char				*szFilename,
 	{
 // begin change gekido
 		char szDebugLog[256];
-		sprintf(szDebugLog, "*WARNING* File %s - Line %d: Null Actor Name, Failed To Load: %s",
+		sprintf(szDebugLog, "[WARNING] File %s - Line %d: Null Actor Name, Failed To Load: %s",
 				__FILE__, __LINE__, szFilename);
 		CCD->ReportError(szDebugLog, false);
 // end change gekido
@@ -582,7 +584,6 @@ geActor *CActorManager::SpawnActor(char				*szFilename,
 		geVec3d theRotation = {0.0f, 0.0f, 0.0f};
 		Rotate(theActor, theRotation);
 		Position(theActor, thePosition);			//	Position the actor
-		//Position(theActor, thePosition);
 		SetMotion(theActor, CurrentMotion);			//	Set actor motion
 		SetDefaultMotion(theActor, DefaultMotion);	//	Set default motion
 	}
@@ -600,7 +601,7 @@ geActor *CActorManager::SpawnActor(char				*szFilename,
 /* ------------------------------------------------------------------------------------ */
 //	ChangeMaterial
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
+int CActorManager::ChangeMaterial(const geActor *theActor, const char *Change)
 {
 	geBody		*Body;
 	int32		Material;
@@ -615,8 +616,8 @@ int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
 	if(pEntry == NULL || !ValidAttr)
 		return RGF_NOT_FOUND;
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type, Value;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type, Value;
 
 	while(KeyName != "")
 	{
@@ -685,7 +686,7 @@ int CActorManager::ChangeMaterial(geActor *theActor, char *Change)
 //	Remove the actor instance referred to by the given handle.
 //	..This takes it out of the game IMMEDIATELY.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RemoveActor(geActor *theActor)
+int CActorManager::RemoveActor(const geActor *theActor)
 {
 	return RemoveInstance(theActor);
 }
@@ -693,7 +694,7 @@ int CActorManager::RemoveActor(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	RemoveActorCheck
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RemoveActorCheck(geActor *theActor)
+int CActorManager::RemoveActorCheck(const geActor *theActor)
 {
 	CCD->Explosions()->UnAttach(theActor);
 	return RemoveInstance(theActor);
@@ -704,12 +705,15 @@ int CActorManager::RemoveActorCheck(geActor *theActor)
 //
 //	Set the rotation necessary to align actor with world
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetAligningRotation(geActor *theActor, const geVec3d &theRotation)
+int CActorManager::SetAligningRotation(const geActor *theActor, const geVec3d &theRotation)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->BaseRotation = theRotation;
 
@@ -721,8 +725,10 @@ int CActorManager::SetAligningRotation(geActor *theActor, const geVec3d &theRota
 //
 //	Get the alignment rotation for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetAligningRotation(geActor *theActor, geVec3d *theRotation)
+int CActorManager::GetAligningRotation(const geActor *theActor, geVec3d *theRotation)
 {
+	assert(theRotation);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -738,7 +744,7 @@ int CActorManager::GetAligningRotation(geActor *theActor, geVec3d *theRotation)
 //
 //	Sets the TYPE of an actor (prop, vehicle, NPC, etc.)
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetType(geActor *theActor, int nType)
+int CActorManager::SetType(const geActor *theActor, int nType)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -755,8 +761,10 @@ int CActorManager::SetType(geActor *theActor, int nType)
 //
 //	Gets the TYPE of an actor (prop, vehicle, NPC, etc.)
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetType(geActor *theActor, int *nType)
+int CActorManager::GetType(const geActor *theActor, int *nType)
 {
+	assert(nType);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -772,17 +780,24 @@ int CActorManager::GetType(geActor *theActor, int *nType)
 //
 //	Assign an absolute rotation to an actor instance
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::Rotate(geActor *theActor, const geVec3d &theRotation)
+int CActorManager::Rotate(const geActor *theActor, const geVec3d &theRotation)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
 	if(pEntry->Attached)
+	{
 		geVec3d_Subtract(&theRotation, &(pEntry->masterRotation), &(pEntry->localRotation));
+	}
 	else
+	{
 		pEntry->localRotation = theRotation;	// Set it, and forget it!
+	}
 
 	UpdateActorState(pEntry);
 
@@ -794,12 +809,15 @@ int CActorManager::Rotate(geActor *theActor, const geVec3d &theRotation)
 //
 //	Assign an absolute position to an actor instance
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::Position(geActor *theActor, const geVec3d &Position)
+int CActorManager::Position(const geActor *theActor, const geVec3d &Position)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->OldTranslation = pEntry->localTranslation;
 
@@ -815,7 +833,7 @@ int CActorManager::Position(geActor *theActor, const geVec3d &Position)
 //
 //	Move an actor to a position totally outside any possible world.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::MoveAway(geActor *theActor)
+int CActorManager::MoveAway(const geActor *theActor)
 {
 	geVec3d thePosition = {10000.0f, 10000.0f, 10000.0f};
 	Position(theActor, thePosition);
@@ -828,8 +846,10 @@ int CActorManager::MoveAway(geActor *theActor)
 //
 //	Get the current position of a specific actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetPosition(geActor *theActor, geVec3d *thePosition)
+int CActorManager::GetPosition(const geActor *theActor, geVec3d *thePosition)
 {
+	assert(thePosition);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -845,8 +865,10 @@ int CActorManager::GetPosition(geActor *theActor, geVec3d *thePosition)
 //
 //	Get the current rotation for a specific actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetRotation(geActor *theActor, geVec3d *theRotation)
+int CActorManager::GetRotation(const geActor *theActor, geVec3d *theRotation)
 {
+	assert(theRotation);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -868,8 +890,10 @@ int CActorManager::GetRotation(geActor *theActor, geVec3d *theRotation)
 /* ------------------------------------------------------------------------------------ */
 //	GetRotate
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetRotate(geActor *theActor, geVec3d *theRotation)
+int CActorManager::GetRotate(const geActor *theActor, geVec3d *theRotation)
 {
+	assert(theRotation);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -893,12 +917,15 @@ int CActorManager::GetRotate(geActor *theActor, geVec3d *theRotation)
 //
 //	Rotate actor to turn to the LEFT
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::TurnLeft(geActor *theActor, geFloat theAmount)
+int CActorManager::TurnLeft(const geActor *theActor, geFloat theAmount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->localRotation.Y -= theAmount;
 
@@ -912,12 +939,15 @@ int CActorManager::TurnLeft(geActor *theActor, geFloat theAmount)
 //
 //	Rotate actor to turn to the RIGHT
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::TurnRight(geActor *theActor, geFloat theAmount)
+int CActorManager::TurnRight(const geActor *theActor, geFloat theAmount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->localRotation.Y += theAmount;
 
@@ -931,12 +961,15 @@ int CActorManager::TurnRight(geActor *theActor, geFloat theAmount)
 //
 //	Rotate actor to tilt up
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::TiltUp(geActor *theActor, geFloat theAmount)
+int CActorManager::TiltUp(const geActor *theActor, geFloat theAmount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	if(pEntry->AllowTilt)
 		pEntry->localRotation.X += theAmount;
@@ -951,14 +984,17 @@ int CActorManager::TiltUp(geActor *theActor, geFloat theAmount)
 /* ------------------------------------------------------------------------------------ */
 //	TiltDown
 //
-//	Rotate actor to tilt up
+//	Rotate actor to tilt down
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::TiltDown(geActor *theActor, geFloat theAmount)
+int CActorManager::TiltDown(const geActor *theActor, geFloat theAmount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	if(pEntry->AllowTilt)
 		pEntry->localRotation.X -= theAmount;
@@ -973,7 +1009,7 @@ int CActorManager::TiltDown(geActor *theActor, geFloat theAmount)
 /* ------------------------------------------------------------------------------------ */
 //	GetTiltX
 /* ------------------------------------------------------------------------------------ */
-float CActorManager::GetTiltX(geActor *theActor)
+float CActorManager::GetTiltX(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -986,7 +1022,7 @@ float CActorManager::GetTiltX(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	ReallyFall
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::ReallyFall(geActor *theActor)
+int CActorManager::ReallyFall(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1017,7 +1053,7 @@ int CActorManager::ReallyFall(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	CheckReallyFall
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::CheckReallyFall(geActor *theActor, const geVec3d &StartPos)
+int CActorManager::CheckReallyFall(const geActor *theActor, const geVec3d &StartPos)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1047,8 +1083,10 @@ int CActorManager::CheckReallyFall(geActor *theActor, const geVec3d &StartPos)
 //
 //	Return the UP vector for a specified actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::UpVector(geActor *theActor, geVec3d *UpVector)
+int CActorManager::UpVector(const geActor *theActor, geVec3d *UpVector)
 {
+	assert(UpVector);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -1082,8 +1120,10 @@ int CActorManager::UpVector(geActor *theActor, geVec3d *UpVector)
 //
 //	Return the IN vector for a specified actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::InVector(geActor *theActor, geVec3d *InVector)
+int CActorManager::InVector(const geActor *theActor, geVec3d *InVector)
 {
+	assert(InVector);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -1117,8 +1157,10 @@ int CActorManager::InVector(geActor *theActor, geVec3d *InVector)
 //
 //	Return the LEFT vector for a specified actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::LeftVector(geActor *theActor, geVec3d *LeftVector)
+int CActorManager::LeftVector(const geActor *theActor, geVec3d *LeftVector)
 {
+	assert(LeftVector);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -1152,8 +1194,10 @@ int CActorManager::LeftVector(geActor *theActor, geVec3d *LeftVector)
 //
 //	Return the translation of a bone in an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetBonePosition(geActor *theActor, char *szBone, geVec3d *thePosition)
+int CActorManager::GetBonePosition(const geActor *theActor, const char *szBone, geVec3d *thePosition)
 {
+	assert(thePosition);
+
 	geXForm3d BoneXForm;
 
 	if(geActor_GetBoneTransform(theActor, szBone, &BoneXForm) != GE_TRUE)
@@ -1169,8 +1213,10 @@ int CActorManager::GetBonePosition(geActor *theActor, char *szBone, geVec3d *the
 //
 //	Return the rotation of a bone in an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetBoneRotation(geActor *theActor, char *szBone, geVec3d *theRotation)
+int CActorManager::GetBoneRotation(const geActor *theActor, const char *szBone, geVec3d *theRotation)
 {
+	assert(theRotation);
+
 	geXForm3d BoneXForm;
 
 	if(!EffectC_IsStringNull(szBone))
@@ -1194,12 +1240,15 @@ int CActorManager::GetBoneRotation(geActor *theActor, char *szBone, geVec3d *the
 //
 //	Add translation to actors current position
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::AddTranslation(geActor *theActor, const geVec3d &Amount)
+int CActorManager::AddTranslation(const geActor *theActor, const geVec3d &Amount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->OldTranslation = pEntry->localTranslation;
 
@@ -1217,12 +1266,15 @@ int CActorManager::AddTranslation(geActor *theActor, const geVec3d &Amount)
 //
 //	Add rotation to actors current rotation
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::AddRotation(geActor *theActor, const geVec3d &Amount)
+int CActorManager::AddRotation(const geActor *theActor, const geVec3d &Amount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->localRotation.X += Amount.X;
 	pEntry->localRotation.Y += Amount.Y;
@@ -1238,7 +1290,7 @@ int CActorManager::AddRotation(geActor *theActor, const geVec3d &Amount)
 //
 //	Rotate the actor to face a specific point
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RotateToFacePoint(geActor *theActor, const geVec3d &Position)
+int CActorManager::RotateToFacePoint(const geActor *theActor, const geVec3d &Position)
 {
 	geVec3d LookAt, LookFrom;
 	geVec3d LookRotation;
@@ -1249,6 +1301,9 @@ int CActorManager::RotateToFacePoint(geActor *theActor, const geVec3d &Position)
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
 	LookAt = Position;
 	LookFrom = pEntry->localTranslation;
 
@@ -1256,7 +1311,7 @@ int CActorManager::RotateToFacePoint(geActor *theActor, const geVec3d &Position)
 
 	l = geVec3d_Length(&LookRotation);
 
-	//	protect from Div by Zero
+	// protect from Div by Zero
 	if(l > 0.0f)
 	{
 		x = LookRotation.X;
@@ -1281,7 +1336,7 @@ int CActorManager::RotateToFacePoint(geActor *theActor, const geVec3d &Position)
 //
 //	Enable or disable auto step up for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetAutoStepUp(geActor *theActor, bool fEnable)
+int CActorManager::SetAutoStepUp(const geActor *theActor, bool fEnable)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1298,14 +1353,14 @@ int CActorManager::SetAutoStepUp(geActor *theActor, bool fEnable)
 //
 //	Set the step-up height for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetStepHeight(geActor *theActor, geFloat fMaxStep)
+int CActorManager::SetStepHeight(const geActor *theActor, geFloat MaxStep)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->MaxStepHeight = fMaxStep;
+	pEntry->MaxStepHeight = MaxStep;
 
 	return RGF_SUCCESS;
 }
@@ -1316,14 +1371,16 @@ int CActorManager::SetStepHeight(geActor *theActor, geFloat fMaxStep)
 //
 //	Get the step-up height for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetStepHeight(geActor *theActor, geFloat *fMaxStep)
+int CActorManager::GetStepHeight(const geActor *theActor, geFloat *MaxStep)
 {
+	assert(MaxStep);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fMaxStep = pEntry->MaxStepHeight;
+	*MaxStep = pEntry->MaxStepHeight;
 
 	return RGF_SUCCESS;
 }
@@ -1334,14 +1391,14 @@ int CActorManager::GetStepHeight(geActor *theActor, geFloat *fMaxStep)
 //
 //	Move the actor forward at some specific velocity
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::MoveForward(geActor *theActor, geFloat fSpeed)
+int CActorManager::MoveForward(const geActor *theActor, geFloat Speed)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	return Move(pEntry, RGF_K_FORWARD, fSpeed);
+	return Move(pEntry, RGF_K_FORWARD, Speed);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1349,14 +1406,14 @@ int CActorManager::MoveForward(geActor *theActor, geFloat fSpeed)
 //
 //	Move the actor backward at some specific velocity
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::MoveBackward(geActor *theActor, geFloat fSpeed)
+int CActorManager::MoveBackward(const geActor *theActor, geFloat Speed)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	return Move(pEntry, RGF_K_BACKWARD, fSpeed);
+	return Move(pEntry, RGF_K_BACKWARD, Speed);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1364,14 +1421,14 @@ int CActorManager::MoveBackward(geActor *theActor, geFloat fSpeed)
 //
 //	Move the actor left at some specific velocity
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::MoveLeft(geActor *theActor, geFloat fSpeed)
+int CActorManager::MoveLeft(const geActor *theActor, geFloat Speed)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	return Move(pEntry, RGF_K_LEFT, fSpeed);
+	return Move(pEntry, RGF_K_LEFT, Speed);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1379,14 +1436,14 @@ int CActorManager::MoveLeft(geActor *theActor, geFloat fSpeed)
 //
 //	Move the actor right at some specific velocity
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::MoveRight(geActor *theActor, geFloat fSpeed)
+int CActorManager::MoveRight(const geActor *theActor, geFloat Speed)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	return Move(pEntry, RGF_K_RIGHT, fSpeed);
+	return Move(pEntry, RGF_K_RIGHT, Speed);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1395,14 +1452,14 @@ int CActorManager::MoveRight(geActor *theActor, geFloat fSpeed)
 //	Set the speed at which the actors animation will run, in percent
 //	(1.0 is 100% normal speed).
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetAnimationSpeed(geActor *theActor, geFloat fSpeed)
+int CActorManager::SetAnimationSpeed(const geActor *theActor, geFloat Speed)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->ActorAnimationSpeed = fSpeed;
+	pEntry->ActorAnimationSpeed = Speed;
 
 	return RGF_SUCCESS;
 }
@@ -1410,7 +1467,7 @@ int CActorManager::SetAnimationSpeed(geActor *theActor, geFloat fSpeed)
 /* ------------------------------------------------------------------------------------ */
 //	SetBoxChange
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetBoxChange(geActor *theActor, bool Flag)
+int CActorManager::SetBoxChange(const geActor *theActor, bool Flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1428,7 +1485,7 @@ int CActorManager::SetBoxChange(geActor *theActor, bool Flag)
 //	Assign a new motion to an actor instance.  This replaces
 //	..the current animation on the next time cycle.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetMotion(geActor *theActor, char *MotionName, int Channel)
+int CActorManager::SetMotion(const geActor *theActor, const char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1454,7 +1511,7 @@ int CActorManager::SetMotion(geActor *theActor, char *MotionName, int Channel)
 //
 //	Assign motion to switch to when the current animation cycle is complete.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetNextMotion(geActor *theActor, char *MotionName, int Channel)
+int CActorManager::SetNextMotion(const geActor *theActor, const char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1476,7 +1533,7 @@ int CActorManager::SetNextMotion(geActor *theActor, char *MotionName, int Channe
 //
 //	Assign the "default motion" for an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetDefaultMotion(geActor *theActor, char *MotionName, int Channel)
+int CActorManager::SetDefaultMotion(const geActor *theActor, const char *MotionName, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1497,7 +1554,7 @@ int CActorManager::SetDefaultMotion(geActor *theActor, char *MotionName, int Cha
 //	Clear all current and pending motions for an actor and set the
 //	..current motion to the default.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::ClearMotionToDefault(geActor *theActor, int Channel)
+int CActorManager::ClearMotionToDefault(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1520,7 +1577,7 @@ int CActorManager::ClearMotionToDefault(geActor *theActor, int Channel)
 //	SetActorDynamicLighting
 /* ------------------------------------------------------------------------------------ */
 // changed QD 07/21/04
-int CActorManager::SetActorDynamicLighting(geActor *theActor,
+int CActorManager::SetActorDynamicLighting(const geActor *theActor,
 										   const GE_RGBA &FillColor,
 										   const GE_RGBA &AmbientColor,
 										   geBoolean AmbientLightFromFloor)
@@ -1549,7 +1606,7 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor,
 // changed QD 07/21/04
 	//	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
 	//						AmbientColor.r, AmbientColor.g, AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
-	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
+	geActor_SetLightingOptions(pEntry->Actor, GE_TRUE, &NewFillNormal, FillColor.r, FillColor.g, FillColor.b,
 						AmbientColor.r, AmbientColor.g, AmbientColor.b, AmbientLightFromFloor, 6, NULL, GE_FALSE);
 
 	for(int i=0;i<3;i++)
@@ -1561,7 +1618,7 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor,
 
 // also the geActor_SetStaticLightingOptions must be updated, because both - dynamic and static - AmbientLightFromFloor options
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
-	geActor_SetStaticLightingOptions(theActor, AmbientLightFromFloor, GE_TRUE, 6);
+	geActor_SetStaticLightingOptions(pEntry->Actor, AmbientLightFromFloor, GE_TRUE, 6);
 
 	for(int j=0; j<3; j++)
 	{
@@ -1577,7 +1634,7 @@ int CActorManager::SetActorDynamicLighting(geActor *theActor,
 /* ------------------------------------------------------------------------------------ */
 //	GetActorDynamicLighting
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetActorDynamicLighting(geActor *theActor,
+int CActorManager::GetActorDynamicLighting(const geActor *theActor,
 										   GE_RGBA *FillColor,
 										   GE_RGBA *AmbientColor,
 										   geBoolean *AmbientLightFromFloor)
@@ -1603,7 +1660,7 @@ int CActorManager::GetActorDynamicLighting(geActor *theActor,
 /* ------------------------------------------------------------------------------------ */
 //	ResetActorDynamicLighting
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::ResetActorDynamicLighting(geActor *theActor)
+int CActorManager::ResetActorDynamicLighting(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1623,7 +1680,7 @@ int CActorManager::ResetActorDynamicLighting(geActor *theActor)
 // changed QD 07/21/04
 	//	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
 	//						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, GE_TRUE, 6, NULL, GE_FALSE);
-	geActor_SetLightingOptions(theActor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
+	geActor_SetLightingOptions(pEntry->Actor, GE_TRUE, &NewFillNormal, pEntry->FillColor.r, pEntry->FillColor.g, pEntry->FillColor.b,
 						pEntry->AmbientColor.r, pEntry->AmbientColor.g, pEntry->AmbientColor.b, pEntry->AmbientLightFromFloor, 6, NULL, GE_FALSE);
 
 	for(int i=0; i<3; i++)
@@ -1635,7 +1692,7 @@ int CActorManager::ResetActorDynamicLighting(geActor *theActor)
 
 // also the geActor_SetStaticLightingOptions must be updated, because both - dynamic and static - AmbientLightFromFloor options
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
-	geActor_SetStaticLightingOptions(theActor, pEntry->AmbientLightFromFloor, GE_TRUE, 6);
+	geActor_SetStaticLightingOptions(pEntry->Actor, pEntry->AmbientLightFromFloor, GE_TRUE, 6);
 
 	for(int j=0; j<3; j++)
 	{
@@ -1652,7 +1709,7 @@ int CActorManager::ResetActorDynamicLighting(geActor *theActor)
 //
 //	Assign a force to one of the four force slots to affect the actor.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetForce(geActor *theActor, int nForceNumber, const geVec3d &fVector,
+int CActorManager::SetForce(const geActor *theActor, int nForceNumber, const geVec3d &fVector,
 							geFloat InitialValue, geFloat Decay)
 {
 	if((nForceNumber < 0) || (nForceNumber > 3))
@@ -1662,6 +1719,9 @@ int CActorManager::SetForce(geActor *theActor, int nForceNumber, const geVec3d &
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	pEntry->ForceVector[nForceNumber] = fVector;
 	pEntry->ForceLevel[nForceNumber] = InitialValue;
@@ -1674,7 +1734,7 @@ int CActorManager::SetForce(geActor *theActor, int nForceNumber, const geVec3d &
 /* ------------------------------------------------------------------------------------ */
 //	GetForce
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetForce(geActor *theActor, int nForceNumber, geVec3d *ForceVector,
+int CActorManager::GetForce(const geActor *theActor, int nForceNumber, geVec3d *ForceVector,
 							geFloat *ForceLevel, geFloat *ForceDecay)
 {
 	if((nForceNumber < 0) || (nForceNumber > 3))
@@ -1703,7 +1763,7 @@ int CActorManager::GetForce(geActor *theActor, int nForceNumber, geVec3d *ForceV
 //
 //	Remove a force from an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RemoveForce(geActor *theActor, int nForceNumber)
+int CActorManager::RemoveForce(const geActor *theActor, int nForceNumber)
 {
 	if((nForceNumber < 0) || (nForceNumber > 3))
 		return RGF_FAILURE;						// Bad argument
@@ -1724,7 +1784,7 @@ int CActorManager::RemoveForce(geActor *theActor, int nForceNumber)
 //
 //	Returns GE_TRUE if the given force is active, GE_FALSE otherwise.
 /* ------------------------------------------------------------------------------------ */
-geBoolean CActorManager::ForceActive(geActor *theActor, int nForceNumber)
+geBoolean CActorManager::ForceActive(const geActor *theActor, int nForceNumber)
 {
 	if((nForceNumber < 0) || (nForceNumber > 3))
 		return RGF_FAILURE;							// Bad argument
@@ -1734,6 +1794,9 @@ geBoolean CActorManager::ForceActive(geActor *theActor, int nForceNumber)
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;						// Actor not found?!?!
 
+	if(!(pEntry->ForceEnabled))
+		return GE_FALSE;
+
 	if(pEntry->ForceLevel[nForceNumber] > 0.0f)
 		return GE_TRUE;								// Force is active
 
@@ -1741,9 +1804,20 @@ geBoolean CActorManager::ForceActive(geActor *theActor, int nForceNumber)
 }
 
 /* ------------------------------------------------------------------------------------ */
+//	SetForceEnable
+/* ------------------------------------------------------------------------------------ */
+void CActorManager::SetForceEnabled(const geActor *theActor, bool enable)
+{
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+
+	if(pEntry)
+		pEntry->ForceEnabled = enable;
+}
+
+/* ------------------------------------------------------------------------------------ */
 //	SetColDetLevel
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetColDetLevel(geActor *theActor, int ColDetLevel)
+int CActorManager::SetColDetLevel(const geActor *theActor, int ColDetLevel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1758,8 +1832,10 @@ int CActorManager::SetColDetLevel(geActor *theActor, int ColDetLevel)
 /* ------------------------------------------------------------------------------------ */
 //	GetColDetLevel
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetColDetLevel(geActor *theActor, int *ColDetLevel)
+int CActorManager::GetColDetLevel(const geActor *theActor, int *ColDetLevel)
 {
+	assert(ColDetLevel);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -1778,7 +1854,8 @@ int CActorManager::GetColDetLevel(geActor *theActor, int *ColDetLevel)
 //	Description:  Creates a custom pose based on 2 animations,
 //	..does NOT reset the animation timing
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, float Amount, int Channel)
+int CActorManager::SetBlendMot(const geActor *theActor, const char *name1, const char *name2,
+							   float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1810,7 +1887,8 @@ int CActorManager::SetBlendMot(geActor *theActor, char *name1, char *name2, floa
 //	Description:  Creates a custom pose based on 2 animations,
 //	..first RESETS the animation timing
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, float Amount, int Channel)
+int CActorManager::SetBlendMotion(const geActor *theActor, const char *name1, const char *name2,
+								  float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1838,7 +1916,7 @@ int CActorManager::SetBlendMotion(geActor *theActor, char *name1, char *name2, f
 /* ------------------------------------------------------------------------------------ */
 //	SetBlendNextMotion
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name2,
+int CActorManager::SetBlendNextMotion(const geActor *theActor, const char *name1, const char *name2,
 									  float Amount, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
@@ -1864,8 +1942,8 @@ int CActorManager::SetBlendNextMotion(geActor *theActor, char *name1, char *name
 /* ------------------------------------------------------------------------------------ */
 //	SetTransitionMotion
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amount,
-									   char *name2, int Channel)
+int CActorManager::SetTransitionMotion(const geActor *theActor, const char *name1, float Amount,
+									   const char *name2, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1907,7 +1985,7 @@ int CActorManager::SetTransitionMotion(geActor *theActor, char *name1, float Amo
 /* ------------------------------------------------------------------------------------ */
 //	CheckTransitionMotion
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::CheckTransitionMotion(geActor *theActor, char *name1, int Channel)
+bool CActorManager::CheckTransitionMotion(const geActor *theActor, const char *name1, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1926,7 +2004,7 @@ bool CActorManager::CheckTransitionMotion(geActor *theActor, char *name1, int Ch
 /* ------------------------------------------------------------------------------------ */
 //	SetActorFlags
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetActorFlags(geActor *theActor, int Flag)
+int CActorManager::SetActorFlags(const geActor *theActor, int Flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1934,7 +2012,7 @@ int CActorManager::SetActorFlags(geActor *theActor, int Flag)
 		return false;			// Actor not found?!?!
 
 	pEntry->RenderFlag = Flag;
-	geWorld_SetActorFlags(CCD->World(), theActor, Flag);
+	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, Flag);
 	return true;
 }
 
@@ -1943,8 +2021,10 @@ int CActorManager::SetActorFlags(geActor *theActor, int Flag)
 //
 //	Get GravityCollision structure
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetGravityCollision(geActor *theActor, GE_Collision *Collision)
+int CActorManager::GetGravityCollision(const geActor *theActor, GE_Collision *Collision)
 {
+	assert(Collision);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -1958,7 +2038,7 @@ int CActorManager::GetGravityCollision(geActor *theActor, GE_Collision *Collisio
 /* ------------------------------------------------------------------------------------ */
 //	SetHideRadar
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetHideRadar(geActor *theActor, bool flag)
+int CActorManager::SetHideRadar(const geActor *theActor, bool flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1973,7 +2053,7 @@ int CActorManager::SetHideRadar(geActor *theActor, bool flag)
 /* ------------------------------------------------------------------------------------ */
 //	GetHideRadar
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetHideRadar(geActor *theActor, bool *flag)
+int CActorManager::GetHideRadar(const geActor *theActor, bool *flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -1988,7 +2068,7 @@ int CActorManager::GetHideRadar(geActor *theActor, bool *flag)
 /* ------------------------------------------------------------------------------------ */
 //	SetGroup
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetGroup(geActor *theActor, char *name)
+int CActorManager::SetGroup(const geActor *theActor, const char *name)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2012,7 +2092,7 @@ int CActorManager::SetGroup(geActor *theActor, char *name)
 /* ------------------------------------------------------------------------------------ */
 //	GetGroup
 /* ------------------------------------------------------------------------------------ */
-char *CActorManager::GetGroup(geActor *theActor)
+const char *CActorManager::GetGroup(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2027,7 +2107,7 @@ char *CActorManager::GetGroup(geActor *theActor)
 //
 //	Get the actor by its EntityName
 /* ------------------------------------------------------------------------------------ */
-geActor *CActorManager::GetByEntityName(char *name)
+geActor *CActorManager::GetByEntityName(const char *name)
 {
 	ActorInstanceList *pTemp = NULL;
 
@@ -2060,7 +2140,7 @@ geActor *CActorManager::GetByEntityName(char *name)
 /* ------------------------------------------------------------------------------------ */
 //	SetEntityName
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetEntityName(geActor *theActor, char *name)
+int CActorManager::SetEntityName(const geActor *theActor, const char *name)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2085,7 +2165,7 @@ int CActorManager::SetEntityName(geActor *theActor, char *name)
 /* ------------------------------------------------------------------------------------ */
 //	GetEntityName
 /* ------------------------------------------------------------------------------------ */
-char *CActorManager::GetEntityName(geActor *theActor)
+const char *CActorManager::GetEntityName(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2104,16 +2184,16 @@ char *CActorManager::GetEntityName(geActor *theActor)
 //
 //	Set the shadow of an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetShadow(geActor *theActor, geFloat fSize)
+int CActorManager::SetShadow(const geActor *theActor, geFloat Size)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	if(fSize>0.0f)
+	if(Size>0.0f)
 	{
-		pEntry->ShadowSize = fSize;
+		pEntry->ShadowSize = Size;
 	}
 
 	return RGF_SUCCESS;
@@ -2123,7 +2203,7 @@ int CActorManager::SetShadow(geActor *theActor, geFloat fSize)
 /* ------------------------------------------------------------------------------------ */
 //	SetShadowAlpha
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetShadowAlpha(geActor *theActor, geFloat Alpha)
+int CActorManager::SetShadowAlpha(const geActor *theActor, geFloat Alpha)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2137,7 +2217,7 @@ int CActorManager::SetShadowAlpha(geActor *theActor, geFloat Alpha)
 /* ------------------------------------------------------------------------------------ */
 //	SetShadowBitmap
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetShadowBitmap(geActor *theActor, geBitmap *Bitmap)
+int CActorManager::SetShadowBitmap(const geActor *theActor, geBitmap *Bitmap)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2155,7 +2235,7 @@ int CActorManager::SetShadowBitmap(geActor *theActor, geBitmap *Bitmap)
 //
 //	Activate projected shadows for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetProjectedShadows(geActor *theActor, bool flag)
+int CActorManager::SetProjectedShadows(const geActor *theActor, bool flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2173,9 +2253,14 @@ int CActorManager::SetProjectedShadows(geActor *theActor, bool flag)
 //
 //	Activate stencil shadows for this actor
 /* ------------------------------------------------------------------------------------ */
-geBoolean CActorManager::SetStencilShadows(geActor *theActor, geBoolean flag)
+geBoolean CActorManager::SetStencilShadows(const geActor *theActor, geBoolean flag)
 {
-	return(geActor_SetStencilShadow(theActor, flag));
+	ActorInstanceList *pEntry = LocateInstance(theActor);
+
+	if(pEntry == NULL)
+		return GE_FALSE;
+
+	return(geActor_SetStencilShadow(pEntry->Actor, flag));
 }
 // end change
 
@@ -2184,24 +2269,40 @@ geBoolean CActorManager::SetStencilShadows(geActor *theActor, geBoolean flag)
 //
 //	Set the scale of an actor (x,y,z get the same value)
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetScale(geActor *theActor, geFloat fScale)
+int CActorManager::SetScale(const geActor *theActor, geFloat Scale)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;									// Actor not found?!?!
 
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
 // changed Nout/QD 12/15/05
 	// pEntry->Scale = fScale;
-	geVec3d_Set(&(pEntry->Scale), fScale, fScale, fScale);
+	geVec3d_Set(&(pEntry->Scale), Scale, Scale, Scale);
 // end change
 
-	geActor_SetScale(pEntry->Actor, fScale, fScale, fScale);	// Scale the actor
+	geActor_SetScale(pEntry->Actor, Scale, Scale, Scale);		// Scale the actor
 
 	for(int i=0; i<3; i++)
 	{
 		if(pEntry->LODActor[i])
-			geActor_SetScale(pEntry->LODActor[i], fScale, fScale, fScale);
+			geActor_SetScale(pEntry->LODActor[i], Scale, Scale, Scale);
+	}
+
+	// update attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				geActor_SetScale(sEntry->Actor, Scale, Scale, Scale);
+			}
+		}
 	}
 
 	UpdateActorState(pEntry);
@@ -2214,8 +2315,10 @@ int CActorManager::SetScale(geActor *theActor, geFloat fScale)
 //
 //	Return an actors current scale (max of x,y,z scale)
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetScale(geActor *theActor, geFloat *fScale)
+int CActorManager::GetScale(const geActor *theActor, geFloat *Scale)
 {
+	assert(Scale);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -2226,16 +2329,16 @@ int CActorManager::GetScale(geActor *theActor, geFloat *fScale)
 	if(pEntry->Scale.X > pEntry->Scale.Y)
 	{
 		if(pEntry->Scale.X > pEntry->Scale.Z)
-			*fScale = pEntry->Scale.X;
+			*Scale = pEntry->Scale.X;
 		else
-			*fScale = pEntry->Scale.Z;
+			*Scale = pEntry->Scale.Z;
 	}
 	else
 	{
 		if(pEntry->Scale.Y > pEntry->Scale.Z)
-			*fScale = pEntry->Scale.Y;
+			*Scale = pEntry->Scale.Y;
 		else
-			*fScale = pEntry->Scale.Z;
+			*Scale = pEntry->Scale.Z;
 	}
 // end change
 
@@ -2248,14 +2351,17 @@ int CActorManager::GetScale(geActor *theActor, geFloat *fScale)
 //
 //	Set the x-scale of an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetScaleX(geActor *theActor, geFloat fScale)
+int CActorManager::SetScaleX(const geActor *theActor, geFloat Scale)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;									// Actor not found?!?!
 
-	pEntry->Scale.X = fScale;
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
+	pEntry->Scale.X = Scale;
 
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2264,6 +2370,19 @@ int CActorManager::SetScaleX(geActor *theActor, geFloat fScale)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+	}
+
+	// update attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				geActor_SetScale(sEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+			}
+		}
 	}
 
 	UpdateActorState(pEntry);
@@ -2276,14 +2395,17 @@ int CActorManager::SetScaleX(geActor *theActor, geFloat fScale)
 //
 //	Set the y-scale of an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetScaleY(geActor *theActor, geFloat fScale)
+int CActorManager::SetScaleY(const geActor *theActor, geFloat Scale)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;									// Actor not found?!?!
 
-	pEntry->Scale.Y = fScale;
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
+	pEntry->Scale.Y = Scale;
 
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2292,6 +2414,19 @@ int CActorManager::SetScaleY(geActor *theActor, geFloat fScale)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+	}
+
+	// update attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				geActor_SetScale(sEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+			}
+		}
 	}
 
 	UpdateActorState(pEntry);
@@ -2304,14 +2439,17 @@ int CActorManager::SetScaleY(geActor *theActor, geFloat fScale)
 //
 //	Set the z-scale of an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetScaleZ(geActor *theActor, geFloat fScale)
+int CActorManager::SetScaleZ(const geActor *theActor, geFloat Scale)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;									// Actor not found?!?!
 
-	pEntry->Scale.Z = fScale;
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
+	pEntry->Scale.Z = Scale;
 
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2320,6 +2458,19 @@ int CActorManager::SetScaleZ(geActor *theActor, geFloat fScale)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+	}
+
+	// update attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				geActor_SetScale(sEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+			}
+		}
 	}
 
 	UpdateActorState(pEntry);
@@ -2332,12 +2483,15 @@ int CActorManager::SetScaleZ(geActor *theActor, geFloat fScale)
 //
 //	Set the xyz-scale of an actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetScaleXYZ(geActor *theActor, const geVec3d &Scale)
+int CActorManager::SetScaleXYZ(const geActor *theActor, const geVec3d &Scale)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;									// Actor not found?!?!
+
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
 
 	geVec3d_Copy(&Scale, &(pEntry->Scale));
 
@@ -2350,6 +2504,19 @@ int CActorManager::SetScaleXYZ(geActor *theActor, const geVec3d &Scale)
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
 	}
 
+	// update attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				geActor_SetScale(sEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
+			}
+		}
+	}
+
 	UpdateActorState(pEntry);
 
 	return RGF_SUCCESS;
@@ -2360,14 +2527,16 @@ int CActorManager::SetScaleXYZ(geActor *theActor, const geVec3d &Scale)
 //
 //	Return an actors current x-scale
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetScaleX(geActor *theActor, geFloat *fScale)
+int CActorManager::GetScaleX(const geActor *theActor, geFloat *Scale)
 {
+	assert(Scale);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fScale = pEntry->Scale.X;
+	*Scale = pEntry->Scale.X;
 
 	return RGF_SUCCESS;
 }
@@ -2377,14 +2546,16 @@ int CActorManager::GetScaleX(geActor *theActor, geFloat *fScale)
 //
 //	Return an actors current y-scale
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetScaleY(geActor *theActor, geFloat *fScale)
+int CActorManager::GetScaleY(const geActor *theActor, geFloat *Scale)
 {
+	assert(Scale);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fScale = pEntry->Scale.Y;
+	*Scale = pEntry->Scale.Y;
 
 	return RGF_SUCCESS;
 }
@@ -2394,14 +2565,16 @@ int CActorManager::GetScaleY(geActor *theActor, geFloat *fScale)
 //
 //	Return an actors current z-scale
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetScaleZ(geActor *theActor, geFloat *fScale)
+int CActorManager::GetScaleZ(const geActor *theActor, geFloat *Scale)
 {
+	assert(Scale);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fScale = pEntry->Scale.Z;
+	*Scale = pEntry->Scale.Z;
 
 	return RGF_SUCCESS;
 }
@@ -2411,8 +2584,10 @@ int CActorManager::GetScaleZ(geActor *theActor, geFloat *fScale)
 //
 //	Return an actors current xyz-scale
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetScaleXYZ(geActor *theActor, geVec3d *Scale)
+int CActorManager::GetScaleXYZ(const geActor *theActor, geVec3d *Scale)
 {
+	assert(Scale);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -2427,8 +2602,10 @@ int CActorManager::GetScaleXYZ(geActor *theActor, geVec3d *Scale)
 /* ------------------------------------------------------------------------------------ */
 //	GetLODLevel
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetLODLevel(geActor *theActor, int *Level)
+int CActorManager::GetLODLevel(const geActor *theActor, int *Level)
 {
+	assert(Level);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -2444,16 +2621,19 @@ int CActorManager::GetLODLevel(geActor *theActor, int *Level)
 //
 //	Set collision for the desired actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetCollide(geActor *theActor)
+int CActorManager::SetCollide(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
 	pEntry->NoCollision = false;
-	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
 	pEntry->RenderFlag = GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS;
+	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, pEntry->RenderFlag);
 
 	return RGF_SUCCESS;
 }
@@ -2463,7 +2643,7 @@ int CActorManager::SetCollide(geActor *theActor)
 //
 //	Set no collision for the desired actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetNoCollide(geActor *theActor)
+int CActorManager::SetNoCollide(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2471,8 +2651,8 @@ int CActorManager::SetNoCollide(geActor *theActor)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
 	pEntry->NoCollision = true;
-	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
 	pEntry->RenderFlag = GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS;
+	geWorld_SetActorFlags(CCD->World(), pEntry->Actor, pEntry->RenderFlag);
 
 	return RGF_SUCCESS;
 }
@@ -2482,14 +2662,27 @@ int CActorManager::SetNoCollide(geActor *theActor)
 //
 //	Set the alpha blend level for the desired actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetAlpha(geActor *theActor, geFloat fAlpha)
+int CActorManager::SetAlpha(const geActor *theActor, geFloat Alpha)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	geActor_SetAlpha(pEntry->Actor, fAlpha);
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
+	geActor_SetAlpha(pEntry->Actor, Alpha);
+
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(pEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(pEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+				geActor_SetAlpha(sEntry->Actor, Alpha);
+		}
+	}
 
 	return RGF_SUCCESS;
 }
@@ -2499,14 +2692,16 @@ int CActorManager::SetAlpha(geActor *theActor, geFloat fAlpha)
 //
 //	Get the current alpha blend level for the desired actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetAlpha(geActor *theActor, geFloat *fAlpha)
+int CActorManager::GetAlpha(const geActor *theActor, geFloat *Alpha)
 {
+	assert(Alpha);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fAlpha = geActor_GetAlpha(pEntry->Actor);
+	*Alpha = geActor_GetAlpha(pEntry->Actor);
 
 	return RGF_SUCCESS;
 }
@@ -2514,7 +2709,7 @@ int CActorManager::GetAlpha(geActor *theActor, geFloat *fAlpha)
 /* ------------------------------------------------------------------------------------ */
 //	SetRoot
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetRoot(geActor *theActor, char *BoneName)
+int CActorManager::SetRoot(const geActor *theActor, const char *BoneName)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2543,7 +2738,7 @@ int CActorManager::SetRoot(geActor *theActor, char *BoneName)
 //
 //	Get the current bounding box for the requested actor.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetBoundingBox(geActor *theActor, geExtBox *theBox)
+int CActorManager::GetBoundingBox(const geActor *theActor, geExtBox *theBox)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 	if(pEntry == NULL)
@@ -2652,7 +2847,7 @@ geBoolean CActorManager::DoesBoxHitActor(const geVec3d &thePoint, const geExtBox
 //	..check.
 /* ------------------------------------------------------------------------------------ */
 geBoolean CActorManager::DoesBoxHitActor(const geVec3d &thePoint, const geExtBox &theBox,
-										 geActor **theActor, geActor *ActorToExclude)
+										 geActor **theActor, const geActor *ActorToExclude)
 {
 	geExtBox Result, Temp;
 
@@ -2723,14 +2918,14 @@ geBoolean CActorManager::DoesBoxHitActor(const geVec3d &thePoint, const geExtBox
 //
 //	Set the "health level" of an actor.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetHealth(geActor *theActor, geFloat fHealth)
+int CActorManager::SetHealth(const geActor *theActor, geFloat Health)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->Health = fHealth;
+	pEntry->Health = Health;
 
 	return RGF_SUCCESS;
 }
@@ -2740,14 +2935,14 @@ int CActorManager::SetHealth(geActor *theActor, geFloat fHealth)
 //
 //	Update the current health of an actor by a specified amount
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::ModifyHealth(geActor *theActor, geFloat fAmount)
+int CActorManager::ModifyHealth(const geActor *theActor, geFloat Amount)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->Health += fAmount;
+	pEntry->Health += Amount;
 
 	return RGF_SUCCESS;
 }
@@ -2757,14 +2952,16 @@ int CActorManager::ModifyHealth(geActor *theActor, geFloat fAmount)
 //
 //	Return the current health of an actor.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetHealth(geActor *theActor, geFloat *fHealth)
+int CActorManager::GetHealth(const geActor *theActor, geFloat *Health)
 {
+	assert(Health);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fHealth = pEntry->Health;
+	*Health = pEntry->Health;
 
 	return RGF_SUCCESS;
 }
@@ -2774,7 +2971,7 @@ int CActorManager::GetHealth(geActor *theActor, geFloat *fHealth)
 //
 //	Set the Tilt flag for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetTilt(geActor *theActor, bool Flag)
+int CActorManager::SetTilt(const geActor *theActor, bool Flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2791,7 +2988,7 @@ int CActorManager::SetTilt(geActor *theActor, bool Flag)
 //
 //	Set the Slide flag for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetSlide(geActor *theActor, bool Flag)
+int CActorManager::SetSlide(const geActor *theActor, bool Flag)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2808,14 +3005,14 @@ int CActorManager::SetSlide(geActor *theActor, bool Flag)
 //
 //	Set the gravity force for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetGravity(geActor *theActor, geFloat fGravity)
+int CActorManager::SetGravity(const geActor *theActor, geVec3d Gravity)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->Gravity = fGravity;
+	pEntry->Gravity = Gravity;
 
 	return RGF_SUCCESS;
 }
@@ -2825,14 +3022,14 @@ int CActorManager::SetGravity(geActor *theActor, geFloat fGravity)
 //
 //	Set the gravity force for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetGravityTime(geActor *theActor, geFloat fGravitytime)
+int CActorManager::SetGravityTime(const geActor *theActor, geFloat Gravitytime)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	pEntry->GravityTime = fGravitytime;
+	pEntry->GravityTime = Gravitytime;
 
 	return RGF_SUCCESS;
 }
@@ -2842,14 +3039,17 @@ int CActorManager::SetGravityTime(geActor *theActor, geFloat fGravitytime)
 //
 //	Get the gravity force for this actor
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetGravity(geActor *theActor, geFloat *fGravity)
+int CActorManager::GetGravity(const geActor *theActor, geVec3d *Gravity)
 {
+	if(!Gravity)
+		return RGF_FAILURE;
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Actor not found?!?!
 
-	*fGravity = pEntry->Gravity;
+	*Gravity = pEntry->Gravity;
 
 	return RGF_SUCCESS;
 }
@@ -2859,7 +3059,7 @@ int CActorManager::GetGravity(geActor *theActor, geFloat *fGravity)
 //
 //	Determine if one actor is "in front of" another.
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::IsInFrontOf(geActor *theActor, geActor *theOtherActor)
+bool CActorManager::IsInFrontOf(const geActor *theActor, const geActor *theOtherActor)
 {
 	ActorInstanceList *pEntry1 = LocateInstance(theActor);
 
@@ -2896,7 +3096,7 @@ bool CActorManager::IsInFrontOf(geActor *theActor, geActor *theOtherActor)
 //
 //	Determine how far apart two actors are
 /* ------------------------------------------------------------------------------------ */
-geFloat CActorManager::DistanceFrom(geActor *theActor, geActor *theOtherActor)
+geFloat CActorManager::DistanceFrom(const geActor *theActor, const geActor *theOtherActor)
 {
 	ActorInstanceList *pEntry1 = LocateInstance(theActor);
 
@@ -2917,7 +3117,7 @@ geFloat CActorManager::DistanceFrom(geActor *theActor, geActor *theOtherActor)
 //
 //	Determine how far an actor is from a specific point
 /* ------------------------------------------------------------------------------------ */
-geFloat CActorManager::DistanceFrom(const geVec3d &Point, geActor *theActor)
+geFloat CActorManager::DistanceFrom(const geVec3d &Point, const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -2969,8 +3169,10 @@ int CActorManager::GetActorsInRange(const geVec3d &Point, geFloat Range,
 //
 //	Return the current ZONE TYPE the desired actor is in
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetActorZone(geActor *theActor, int *ZoneType)
+int CActorManager::GetActorZone(const geActor *theActor, int *ZoneType)
 {
+	assert(ZoneType);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -2988,8 +3190,10 @@ int CActorManager::GetActorZone(geActor *theActor, int *ZoneType)
 //
 //	Return the current ZONE TYPE the desired actor is in
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetActorOldZone(geActor *theActor, int *ZoneType)
+int CActorManager::GetActorOldZone(const geActor *theActor, int *ZoneType)
 {
+	assert(ZoneType);
+
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
@@ -3003,7 +3207,7 @@ int CActorManager::GetActorOldZone(geActor *theActor, int *ZoneType)
 /* ------------------------------------------------------------------------------------ */
 //	SetMoving
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::SetMoving(geActor *theActor)
+void CActorManager::SetMoving(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3016,7 +3220,7 @@ void CActorManager::SetMoving(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	GetMoving
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::GetMoving(geActor *theActor)
+bool CActorManager::GetMoving(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3029,7 +3233,7 @@ bool CActorManager::GetMoving(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	GetLiquid
 /* ------------------------------------------------------------------------------------ */
-Liquid *CActorManager::GetLiquid(geActor *theActor)
+Liquid *CActorManager::GetLiquid(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3045,7 +3249,7 @@ Liquid *CActorManager::GetLiquid(geActor *theActor)
 //
 // get the current actor animation sequence
 /* ------------------------------------------------------------------------------------ */
-char *CActorManager::GetMotion(geActor *theActor)
+char *CActorManager::GetMotion(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3058,7 +3262,7 @@ char *CActorManager::GetMotion(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	GetpMotion
 /* ------------------------------------------------------------------------------------ */
-geMotion *CActorManager::GetpMotion(geActor *theActor, int Channel)
+geMotion *CActorManager::GetpMotion(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3071,7 +3275,7 @@ geMotion *CActorManager::GetpMotion(geActor *theActor, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	GetpBMotion
 /* ------------------------------------------------------------------------------------ */
-geMotion *CActorManager::GetpBMotion(geActor *theActor, int Channel)
+geMotion *CActorManager::GetpBMotion(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3087,7 +3291,7 @@ geMotion *CActorManager::GetpBMotion(geActor *theActor, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	GetBlendAmount
 /* ------------------------------------------------------------------------------------ */
-float CActorManager::GetBlendAmount(geActor *theActor, int Channel)
+float CActorManager::GetBlendAmount(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3104,7 +3308,7 @@ float CActorManager::GetBlendAmount(geActor *theActor, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	GetStartTime
 /* ------------------------------------------------------------------------------------ */
-float CActorManager::GetStartTime(geActor *theActor, int Channel)
+float CActorManager::GetStartTime(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3117,7 +3321,7 @@ float CActorManager::GetStartTime(geActor *theActor, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	GetTransitionFlag
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::GetTransitionFlag(geActor *theActor, int Channel)
+bool CActorManager::GetTransitionFlag(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3133,7 +3337,7 @@ bool CActorManager::GetTransitionFlag(geActor *theActor, int Channel)
 //
 //	Return GE_TRUE if the actor is falling, GE_FALSE if landed.
 /* ------------------------------------------------------------------------------------ */
-geBoolean CActorManager::Falling(geActor *theActor)
+geBoolean CActorManager::Falling(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3156,7 +3360,7 @@ geBoolean CActorManager::Falling(geActor *theActor)
 //
 //	Tell this actor what model he's riding on, if any
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::SetVehicle(geActor *theActor, geActor *theVehicle)
+void CActorManager::SetVehicle(const geActor *theActor, geActor *theVehicle)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3171,7 +3375,7 @@ void CActorManager::SetVehicle(geActor *theActor, geActor *theVehicle)
 /* ------------------------------------------------------------------------------------ */
 //	ActorDetach
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::ActorDetach(geActor *Slave)
+void CActorManager::ActorDetach(const geActor *Slave)
 {
 	ActorInstanceList *pEntry = LocateInstance(Slave);
 
@@ -3185,7 +3389,7 @@ void CActorManager::ActorDetach(geActor *Slave)
 /* ------------------------------------------------------------------------------------ */
 //	DetachFromActor
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::DetachFromActor(geActor *Master, geActor *Slave)
+void CActorManager::DetachFromActor(const geActor *Master, const geActor *Slave)
 {
 	ActorInstanceList *pEntry = LocateInstance(Slave);
 
@@ -3212,14 +3416,17 @@ void CActorManager::DetachFromActor(geActor *Master, geActor *Slave)
 /* ------------------------------------------------------------------------------------ */
 //	ActorAttach
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::ActorAttach(geActor *Slave,  char *SlaveBoneName,
-								geActor *Master, char *MasterBoneName,
+void CActorManager::ActorAttach(geActor *Slave,  const char *SlaveBoneName,
+								const geActor *Master, const char *MasterBoneName,
 								const geVec3d &AttachOffset, const geVec3d &Angle)
 {
 	int Att;
 	ActorInstanceList *pEntry = LocateInstance(Slave);
 
 	if(pEntry == NULL)
+		return;
+
+	if(pEntry->Attached || pEntry->AttachedB)
 		return;
 
 	ActorInstanceList *mEntry = LocateInstance(Master);
@@ -3256,9 +3463,106 @@ void CActorManager::ActorAttach(geActor *Slave,  char *SlaveBoneName,
 }
 
 /* ------------------------------------------------------------------------------------ */
+//
+/* ------------------------------------------------------------------------------------ */
+void CActorManager::ActorAttachBlend(geActor *Slave, const geActor *Master)
+{
+	if(Slave == Master) // cannot attach to itself
+		return;
+
+	int Att;
+	ActorInstanceList *sEntry = LocateInstance(Slave);
+
+	if(sEntry == NULL)
+		return;
+
+	if(sEntry->Attached || sEntry->AttachedB)
+		return;
+
+	ActorInstanceList *mEntry = LocateInstance(Master);
+
+	if(mEntry == NULL)
+		return;
+
+	if(mEntry->AttachedB)
+		return;
+
+	for(Att=0; Att<ATTACHBLENDACTORS; Att++)
+	{
+		if(mEntry->AttachedBlendActors[Att] == NULL)
+			break;
+	}
+
+	if(Att == ATTACHBLENDACTORS)	// sorry, no empty slot left
+		return;
+
+	SetNoCollide(sEntry->Actor);
+	RemoveForce(sEntry->Actor, 0);
+	RemoveForce(sEntry->Actor, 1);
+	RemoveForce(sEntry->Actor, 2);
+	RemoveForce(sEntry->Actor, 3);
+	{
+		GE_RGBA FillColor;
+		GE_RGBA AmbientColor;
+		geBoolean AmbientLightFromFloor;
+
+		GetActorDynamicLighting(mEntry->Actor, &FillColor, &AmbientColor, &AmbientLightFromFloor);
+		SetActorDynamicLighting(sEntry->Actor, FillColor, AmbientColor, AmbientLightFromFloor);
+	}
+	SetScaleXYZ(sEntry->Actor, mEntry->Scale);
+	SetAlpha(sEntry->Actor, geActor_GetAlpha(mEntry->Actor));
+	sEntry->BaseRotation = mEntry->BaseRotation;
+	sEntry->localRotation = mEntry->localRotation;
+	sEntry->localTranslation = mEntry->localTranslation;
+	strcpy(sEntry->szMotionName, mEntry->szMotionName);
+	sEntry->AnimationTime = mEntry->AnimationTime;
+
+	sEntry->AttachedB = true;
+	geExtBox ExtBox;
+	GetBoundingBox(mEntry->Actor, &ExtBox);
+	geActor_SetExtBox(sEntry->Actor, &ExtBox, NULL);
+	geActor_SetRenderHintExtBox(sEntry->Actor, &ExtBox, NULL);
+	mEntry->AttachedBlendActors[Att] = sEntry->Actor;
+
+	UpdateActorState(mEntry);
+}
+
+/* ------------------------------------------------------------------------------------ */
+//
+/* ------------------------------------------------------------------------------------ */
+void CActorManager::DetachBlendFromActor(const geActor *Master, const geActor *Slave)
+{
+	if(Master == Slave)
+		return;
+
+	int Att;
+	ActorInstanceList *sEntry = LocateInstance(Slave);
+
+	if(sEntry == NULL)
+		return;
+
+	ActorInstanceList *mEntry = LocateInstance(Master);
+
+	if(mEntry == NULL)
+		return;
+
+	for(Att=0; Att<ATTACHBLENDACTORS; Att++)
+	{
+		if(mEntry->AttachedBlendActors[Att] == sEntry->Actor)
+		{
+			sEntry->AttachedB = false;
+			mEntry->AttachedBlendActors[Att] = NULL;
+			return;
+		}
+	}
+
+	// slave not found in master's attach-list
+}
+
+/* ------------------------------------------------------------------------------------ */
 //	IsActor
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::IsActor(geActor *theActor)
+bool CActorManager::IsActor(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3273,7 +3577,7 @@ bool CActorManager::IsActor(geActor *theActor)
 //
 //	Tell us what model the actor is on, if any
 /* ------------------------------------------------------------------------------------ */
-geActor *CActorManager::GetVehicle(geActor *theActor)
+geActor *CActorManager::GetVehicle(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3286,8 +3590,8 @@ geActor *CActorManager::GetVehicle(geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 //	SetLODdistance
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetLODdistance(geActor *theActor, float LOD1, float LOD2, float LOD3,
-								  float LOD4, float LOD5)
+int CActorManager::SetLODdistance(const geActor *theActor, float LOD1, float LOD2,
+								  float LOD3, float LOD4, float LOD5)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3346,7 +3650,7 @@ int CActorManager::SetPassenger(geActor *thePassenger, geActor *theVehicle)
 //
 //	Given an actor, remove it from the vehicle it's on.
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RemovePassenger(geActor *thePassenger)
+int CActorManager::RemovePassenger(const geActor *thePassenger)
 {
 	ActorInstanceList *pEntry = LocateInstance(thePassenger);
 
@@ -3377,7 +3681,7 @@ int CActorManager::RemovePassenger(geActor *thePassenger)
 //	Returns a pointer to the list of persistent attributes used as the
 //	..inventory/attribute list for the desired actor.
 /* ------------------------------------------------------------------------------------ */
-CPersistentAttributes *CActorManager::Inventory(geActor *theActor)
+CPersistentAttributes *CActorManager::Inventory(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3564,6 +3868,7 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->pNext = NULL;
 	NewEntry->AllowTilt = true;
 	NewEntry->slide = true;
+	NewEntry->ForceEnabled = true;
 	NewEntry->TiltX = 0.0f;
 // changed RF063
 	NewEntry->ShadowSize = 0.0f;
@@ -3596,14 +3901,17 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 	NewEntry->BlendFlag = false;
 	NewEntry->HoldAtEnd = false;
 	NewEntry->Attached = false;
+	NewEntry->AttachedB = false;
 
 	for(int Att=0; Att<ATTACHACTORS; Att++)
 		NewEntry->AttachedActors[Att].AttachedActor = NULL;
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+		NewEntry->AttachedBlendActors[AttB] = NULL;
 
 	NewEntry->CollDetLevel = RGF_COLLISIONLEVEL_1;
 	NewEntry->ActorType = ENTITY_GENERIC;		// Generic, for now
 	NewEntry->Inventory = new CPersistentAttributes;
-	NewEntry->Inventory->AddAndSet("health",1);
+	NewEntry->Inventory->AddAndSet("health", 1);
 	NewEntry->Inventory->SetValueLimits("health", 1, 1);
 	NewEntry->ActorAnimationSpeed = 1.0f;
 
@@ -3677,8 +3985,8 @@ int CActorManager::CountActors()
 //	Scan through the list of instances for this loaded actor entry and
 //	..see if the desired handle is in the list.
 /* ------------------------------------------------------------------------------------ */
-ActorInstanceList *CActorManager::LocateInstance(geActor *theActor,
-												 LoadedActorList *theEntry)
+ActorInstanceList *CActorManager::LocateInstance(const geActor *theActor,
+												 const LoadedActorList *theEntry)
 {
 	if(theEntry==NULL)
 		return NULL;
@@ -3701,7 +4009,7 @@ ActorInstanceList *CActorManager::LocateInstance(geActor *theActor,
 //
 //	Search ALL loaded actors for this specific instance
 /* ------------------------------------------------------------------------------------ */
-ActorInstanceList *CActorManager::LocateInstance(geActor *theActor)
+ActorInstanceList *CActorManager::LocateInstance(const geActor *theActor)
 {
 	ActorInstanceList *pTemp = NULL;
 
@@ -3721,7 +4029,7 @@ ActorInstanceList *CActorManager::LocateInstance(geActor *theActor)
 //
 //	Search ALL loaded actors for this specific instance and KILL IT DEAD!
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::RemoveInstance(geActor *theActor)
+int CActorManager::RemoveInstance(const geActor *theActor)
 {
 	ActorInstanceList *pTemp = NULL;
 	ActorInstanceList *pPrev = NULL;
@@ -3743,6 +4051,7 @@ int CActorManager::RemoveInstance(geActor *theActor)
 					{
 						geWorld_RemoveActor(CCD->World(), pTemp->LODActor[i]);
 						geActor_Destroy(&pTemp->LODActor[i]);
+						pTemp->LODActor[i] = NULL;
 					}
 				}
 
@@ -3756,6 +4065,21 @@ int CActorManager::RemoveInstance(geActor *theActor)
 						{
 							ActorDetach(pEntry->Actor);
 						}
+					}
+				}
+
+				for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+				{
+					if(pTemp->AttachedBlendActors[AttB] != NULL)
+					{
+						ActorInstanceList *pEntry = LocateInstance(pTemp->AttachedBlendActors[AttB]);
+
+						if(pEntry != NULL)
+						{
+							DetachBlendFromActor(pTemp->Actor, pEntry->Actor);
+						}
+
+						pTemp->AttachedBlendActors[AttB] = NULL;
 					}
 				}
 
@@ -3802,14 +4126,16 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 {
 	ActorInstanceList *pTemp = theEntry->IList;
 
+	// advance unattached instances
 	while(pTemp != NULL)
 	{
 		if(pTemp->ActorType != ENTITY_VEHICLE)
 		{
-			if(!pTemp->Attached)
+			if(!pTemp->Attached && !pTemp->AttachedB)
 			{
 				pTemp->CurrentZone = GetCurrentZone(pTemp);
-				ProcessForce(pTemp, dwTicks);			// Process any forces
+				if(pTemp->ForceEnabled)
+					ProcessForce(pTemp, dwTicks);		// Process any forces
 				ProcessGravity(pTemp, dwTicks);
 				AdvanceInstanceTime(pTemp, dwTicks);	// Make time move
 			}
@@ -3820,14 +4146,16 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 
 	pTemp = theEntry->IList;
 
+	// advance attached instances
 	while(pTemp != NULL)
 	{
 		if(pTemp->ActorType != ENTITY_VEHICLE)
 		{
-			if(pTemp->Attached)
+			if(pTemp->Attached && !pTemp->AttachedB)
 			{
 				pTemp->CurrentZone = GetCurrentZone(pTemp);
-				ProcessForce(pTemp, dwTicks);			// Process any forces
+				if(pTemp->ForceEnabled)
+					ProcessForce(pTemp, dwTicks);		// Process any forces
 				ProcessGravity(pTemp, dwTicks);
 				AdvanceInstanceTime(pTemp, dwTicks);	// Make time move
 			}
@@ -3843,11 +4171,14 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 /* ------------------------------------------------------------------------------------ */
 //	SetAnimationTime
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::SetAnimationTime(geActor *theActor, float time, int Channel)
+void CActorManager::SetAnimationTime(const geActor *theActor, float time, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
 	if(pEntry == NULL)
+		return;
+
+	if(pEntry->AttachedB)
 		return;
 
 	pEntry->AnimationTime = time;
@@ -3857,7 +4188,7 @@ void CActorManager::SetAnimationTime(geActor *theActor, float time, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	GetAnimationTime
 /* ------------------------------------------------------------------------------------ */
-float CActorManager::GetAnimationTime(geActor *theActor, int Channel)
+float CActorManager::GetAnimationTime(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3870,7 +4201,7 @@ float CActorManager::GetAnimationTime(geActor *theActor, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	SetHoldAtEnd
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::SetHoldAtEnd(geActor *theActor, bool State, int Channel)
+void CActorManager::SetHoldAtEnd(const geActor *theActor, bool State, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -3883,7 +4214,7 @@ void CActorManager::SetHoldAtEnd(geActor *theActor, bool State, int Channel)
 /* ------------------------------------------------------------------------------------ */
 //	EndAnimation
 /* ------------------------------------------------------------------------------------ */
-bool CActorManager::EndAnimation(geActor *theActor, int Channel)
+bool CActorManager::EndAnimation(const geActor *theActor, int Channel)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -4060,7 +4391,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 		//	is the animation missing from the actor?
 		if(!EffectC_IsStringNull(theEntry->szMotionName) && theEntry->Actor == CCD->Player()->GetActor())
 		{
-			sprintf(szBug, "*WARNING* File %s - Line %d: Player missing animation %s",
+			sprintf(szBug, "[WARNING] File %s - Line %d: Player missing animation %s",
 					__FILE__, __LINE__, theEntry->szMotionName);
 			CCD->ReportError(szBug, false);
 		}
@@ -4097,11 +4428,13 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 // end change QD 07/15/06
 			theEntry->NeedsNewBB = true;
 		}
-		// no 'next' motion, lets just defualt to the 'default' animation instead
+		// no 'next' motion, lets just default to the 'default' animation instead
 		else
 		{
 			if(EffectC_IsStringNull(theEntry->szDefaultMotionName))
+			{
 				pMotion = NULL;
+			}
 			else
 			{
 // changed QD 07/15/06
@@ -4191,8 +4524,60 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 		theEntry->AnimationTime = 0.0f;
 	}
 
+	// advance player's weapons
 	if(theEntry->Actor==CCD->Player()->GetActor() && !CCD->Player()->GetMonitorMode())
 		CCD->Weapons()->Display();
+
+	// advance attached blending actors
+	for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+	{
+		if(theEntry->AttachedBlendActors[AttB])
+		{
+			ActorInstanceList *sEntry = LocateInstance(theEntry->AttachedBlendActors[AttB]);
+			if(sEntry)
+			{
+				sEntry->localRotation = theEntry->localRotation;
+				sEntry->localTranslation = theEntry->localTranslation;
+				geWorld_SetActorFlags(CCD->World(), sEntry->Actor, theEntry->RenderFlag & ~GE_ACTOR_COLLIDE);
+
+				if(pMotion)
+				{
+					if(theEntry->TransitionFlag)
+					{
+						geActor_SetPose(sEntry->Actor, pMotion, theEntry->BlendAmount-time, &thePosition);
+
+						pBMotion = geActor_GetMotionByName(theDef, theEntry->szBlendMotionName);
+						if(pBMotion)
+						{
+							float BM = (theEntry->BlendAmount - time)/theEntry->BlendAmount;
+
+							if(BM < 0.0f)
+								BM = 0.0f;
+
+							geActor_BlendPose(sEntry->Actor, pBMotion, theEntry->StartTime, &thePosition, BM);
+						}
+					}
+					else
+					{
+						geActor_SetPose(sEntry->Actor, pMotion, time, &thePosition);
+						if(theEntry->BlendFlag)
+						{
+							pBMotion = geActor_GetMotionByName(theDef, theEntry->szBlendMotionName);
+							if(pBMotion)
+							{
+								geActor_BlendPose(sEntry->Actor, pBMotion, time, &thePosition, theEntry->BlendAmount);
+							}
+						}
+					}
+				}
+				else
+				{
+					geActor_ClearPose(sEntry->Actor, &thePosition);
+				}
+			}
+		}
+	}
+
 
 	for(int Att=0; Att<ATTACHACTORS; Att++)
 	{
@@ -4244,6 +4629,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 			}
 		}
 	}
+
 
 // changed RF063
 
@@ -4579,6 +4965,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 			geActor_SetRenderHintExtBox(theEntry->Actor, &ExtBox, NULL);
 		}
 	}
+
 // added by gekido (thanx for pickles for the shadow code)
 // Draw Poly Shadow at LOD0 - TEMP MOD
 	//	if(theEntry->LODLevel == 0)
@@ -4599,6 +4986,9 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 /* ------------------------------------------------------------------------------------ */
 void CActorManager::UpdateActorState(ActorInstanceList *theEntry)
 {
+	if(theEntry->AttachedB)
+		return;
+
 	geMotion *pMotion;
 	geXForm3d thePosition;
 
@@ -4607,7 +4997,7 @@ void CActorManager::UpdateActorState(ActorInstanceList *theEntry)
 	else
 		pMotion = geActor_GetMotionByName(theEntry->theDef,	theEntry->szMotionName); // Get the motion name
 
-	geFloat time = ((geFloat)theEntry->AnimationTime) * 0.001f; // / 1000.0f;
+	geFloat time = ((geFloat)theEntry->AnimationTime) * 0.001f;
 	geFloat tStart, tEnd;
 
 	if(pMotion)
@@ -4634,6 +5024,26 @@ void CActorManager::UpdateActorState(ActorInstanceList *theEntry)
 	else
 		geActor_ClearPose(theEntry->Actor, &thePosition);
 
+	// update attached blending actors
+	{
+		for(int AttB=0; AttB<ATTACHBLENDACTORS; AttB++)
+		{
+			if(theEntry->AttachedBlendActors[AttB])
+			{
+				ActorInstanceList *sEntry = LocateInstance(theEntry->AttachedBlendActors[AttB]);
+				if(sEntry)
+				{
+					sEntry->localRotation = theEntry->localRotation;
+					sEntry->localTranslation = theEntry->localTranslation;
+					if(pMotion)
+						geActor_SetPose(sEntry->Actor, pMotion, time, &thePosition);
+					else
+						geActor_ClearPose(sEntry->Actor, &thePosition);
+				}
+			}
+		}
+	}
+
 	return;
 }
 
@@ -4644,16 +5054,16 @@ void CActorManager::UpdateActorState(ActorInstanceList *theEntry)
 /* ------------------------------------------------------------------------------------ */
 void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 {
-	if(theEntry->Gravity == 0.0f)
+	if(theEntry->Gravity.X == 0.0f && theEntry->Gravity.Y == 0.0f && theEntry->Gravity.Z == 0.0f)
 		return;												// Don't bother, no gravity for this actor
 
 	//	Ok, we have gravity to deal with, let's do it!
 
-	geFloat	movespeed;
+	geVec3d	movespeed;
 	geFloat	Slide;
 	bool    Result;
 	GE_Collision Collision;
-	geVec3d Up, oldpos, newpos;
+	geVec3d oldpos, newpos;
 
 // changed RF063
 	//	If in Zero-G, don't apply gravity!
@@ -4682,25 +5092,18 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 			return;
 		}
 
-		movespeed = (theEntry->Gravity * (theEntry->GravityTime * 0.00125f) * ((float)theEntry->GravityCoeff*0.01f));					// Slow sinking to bottom
+		geVec3d_Scale(&theEntry->Gravity, (theEntry->GravityTime * 0.00125f) * ((float)theEntry->GravityCoeff*0.01f), &movespeed); // Slow sinking to bottom
 	}
 	else
-		movespeed = theEntry->Gravity * (theEntry->GravityTime * 0.00125f);
+		geVec3d_Scale(&theEntry->Gravity, (theEntry->GravityTime * 0.00125f), &movespeed);
+
 // end change RF063
 
-	if(movespeed == 0.0f)
+	if(movespeed.X == 0.0f && movespeed.Y == 0.0f && movespeed.Z == 0.0f)
 		return;
 
-// changed QD 12/15/05
-	//geXForm3d Xform;
-	//geXForm3d_SetIdentity(&Xform);
-	//geXForm3d_GetUp(&Xform, &Up);				//get our upward vector
-	geVec3d_Set(&Up, 0.0f, 1.0f, 0.0f);
-// end change
-
 	oldpos = theEntry->localTranslation;
-
-	geVec3d_AddScaled(&oldpos, &Up, movespeed, &newpos); // Move
+	geVec3d_Add(&oldpos, &movespeed, &newpos); // Move
 
 	//	EVIL HACK:  There is some problem with bone-box collision checking
 	//	..when doing gravity processing, so for now (or until someone
@@ -4790,7 +5193,7 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 		{
 			float Sspeed = (1.0f-Collision.Plane.Normal.Y)*CCD->Player()->GetSlideSpeed();
 
-			geVec3d_AddScaled(&newpos, &Up, movespeed*Sspeed, &newpos); // Make it a faster slide
+			geVec3d_AddScaled(&newpos, &movespeed, Sspeed, &newpos); // Make it a faster slide
 			Slide = geVec3d_DotProduct (&newpos, &Collision.Plane.Normal) - Collision.Plane.Dist;
 
 			newpos.X -= Collision.Plane.Normal.X * Slide;
@@ -4895,6 +5298,9 @@ void CActorManager::ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CActorManager::Move(ActorInstanceList *pEntry, int nHow, geFloat fSpeed)
 {
+	if(pEntry->AttachedB)
+		return RGF_SUCCESS;
+
 	geXForm3d Xform;
 	geVec3d In, NewPosition, SavedPosition;
 
@@ -5413,7 +5819,7 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 //	ValidateMove
 /* ------------------------------------------------------------------------------------ */
 geBoolean CActorManager::ValidateMove(const geVec3d &StartPos, const geVec3d &EndPos,
-									  geActor *theActor, bool slide)
+									  const geActor *theActor, bool slide)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -5649,7 +6055,8 @@ void CActorManager::MoveAllVehicles(LoadedActorList *theEntry, float dwTicks)
 	{
 		if(pTemp->ActorType == ENTITY_VEHICLE)
 		{
-			ProcessForce(pTemp, dwTicks);			// Process any forces
+			if(pTemp->ForceEnabled)
+				ProcessForce(pTemp, dwTicks);		// Process any forces
 			ProcessGravity(pTemp, dwTicks);			// Process any gravity
 			AdvanceInstanceTime(pTemp, dwTicks);	// Make time move
 			TranslateAllPassengers(pTemp);			// Move any passengers
@@ -5703,7 +6110,7 @@ int CActorManager::TranslateAllPassengers(ActorInstanceList *pEntry)
 //
 //	check to see if our new animation collides with something
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::CheckAnimation(geActor *theActor, char *Animation, int Channel)
+int CActorManager::CheckAnimation(const geActor *theActor, const char *Animation, int Channel)
 {
 	ActorInstanceList *theEntry = LocateInstance(theActor);
 
@@ -5754,7 +6161,7 @@ void CActorManager::SetBBox(geActor *theActor, float SizeX, float SizeY, float S
 /* ------------------------------------------------------------------------------------ */
 //	SetBoundingBox
 /* ------------------------------------------------------------------------------------ */
-void CActorManager::SetBoundingBox(geActor *theActor, char *Animation)
+void CActorManager::SetBoundingBox(const geActor *theActor, const char *Animation)
 {
 	geExtBox ExtBox, maxExtBox;
 	float fTimer = 0.0f;
@@ -5841,8 +6248,9 @@ void CActorManager::SetBoundingBox(geActor *theActor, char *Animation)
 /* ------------------------------------------------------------------------------------ */
 //	GetAnimationHeight
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::GetAnimationHeight(geActor *theActor, char *Animation, float *Height)
+int CActorManager::GetAnimationHeight(const geActor *theActor, const char *Animation, float *Height)
 {
+	assert(Height);
 	ActorInstanceList *theEntry = LocateInstance(theActor);
 
 	if(theEntry == NULL)
@@ -5905,7 +6313,7 @@ int CActorManager::GetAnimationHeight(geActor *theActor, char *Animation, float 
 /* ------------------------------------------------------------------------------------ */
 //	SetAnimationHeight
 /* ------------------------------------------------------------------------------------ */
-int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool Camera)
+int CActorManager::SetAnimationHeight(const geActor *theActor, const char *Animation, bool Camera)
 {
 	ActorInstanceList *theEntry = LocateInstance(theActor);
 
@@ -6032,7 +6440,7 @@ int CActorManager::SetAnimationHeight(geActor *theActor, char *Animation, bool C
 geBoolean CActorManager::DoesRayHitActor(const geVec3d	&OldPosition,
 										 const geVec3d	&NewPosition,
 										 geActor		**theActor,
-										 geActor		*ActorToExclude,
+										 const geActor	*ActorToExclude,
 										 geFloat		*Percent,
 										 geVec3d		*Normal,
 										 void			*CollisionObject)
@@ -6108,7 +6516,7 @@ geBoolean CActorManager::DoesRayHitActor(const geVec3d	&OldPosition,
 geBoolean CActorManager::DidRayHitActor(const geVec3d	&OldPosition,
 										const geVec3d	&NewPosition,
 										geActor			**theActor,
-										geActor			*ActorToExclude,
+										const geActor	*ActorToExclude,
 										geFloat			*Percent,
 										geVec3d			*Normal,
 										void			*CollisionObj)
@@ -6164,7 +6572,7 @@ geBoolean CActorManager::DidRayHitActor(const geVec3d	&OldPosition,
 /* ------------------------------------------------------------------------------------ */
 //	SetLastBoneHit
 /* ------------------------------------------------------------------------------------ */
-geBoolean CActorManager::SetLastBoneHit(geActor *theActor, const char *LastBoneHit)
+geBoolean CActorManager::SetLastBoneHit(const geActor *theActor, const char *LastBoneHit)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -6184,7 +6592,7 @@ geBoolean CActorManager::SetLastBoneHit(geActor *theActor, const char *LastBoneH
 /* ------------------------------------------------------------------------------------ */
 //	GetLastBoneHit
 /* ------------------------------------------------------------------------------------ */
-char* CActorManager::GetLastBoneHit(geActor *theActor)
+char* CActorManager::GetLastBoneHit(const geActor *theActor)
 {
 	ActorInstanceList *pEntry = LocateInstance(theActor);
 
@@ -6205,7 +6613,7 @@ char* CActorManager::GetLastBoneHit(geActor *theActor)
 geBoolean CActorManager::DoesRayHitActor(const geVec3d	&OldPosition,
 										 const geVec3d	&NewPosition,
 										 geActor		**theActor,
-										 geActor		*ActorToExclude,
+										 const geActor	*ActorToExclude,
 										 geFloat		*Percent,
 										 geVec3d		*Normal)
 {

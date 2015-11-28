@@ -23,35 +23,38 @@ inline void MakeLower(std::string &source)
 { for(unsigned int i=source.size(); i--!=0; source[i] = tolower(source[i])); }
 
 inline void TrimRight(std::string &source)
-{ source.erase(source.find_last_not_of(" \t\n")+1); }
+{ source.erase(source.find_last_not_of(" \r\t\n")+1); }
 
 inline void TrimRight(std::string &source, const std::string &t)
 { source.erase(source.find_last_not_of(t)+1); }
 
 inline void TrimLeft(std::string &source)
-{ source.erase(0, source.find_first_not_of(" \t\n"));}
+{ source.erase(0, source.find_first_not_of(" \r\t\n"));}
 
 inline void TrimLeft(std::string &source, const std::string &t)
 { source.erase(0, source.find_first_not_of(t)); }
 // end change
 
-bool SetOriginOffset(char *EntityName, char *BoneName, geWorld_Model *Model, geVec3d *OriginOffset);
-bool SetAngle(char *EntityName, char *BoneName, geVec3d *Angle);
+bool SetOriginOffset(const char *EntityName, const char *BoneName,
+					 const geWorld_Model *Model, geVec3d *OriginOffset);
+bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle);
 
-bool GetTriggerState(char *TriggerName);
-bool GetCallBackState(char *CallBackName);
+bool GetTriggerState(const char *TriggerName);
+bool GetCallBackState(const char *CallBackName);
 
-geBoolean EffectC_IsStringNull(char *String);
-geBoolean EffectC_IsPointVisible(geWorld *World, geCamera *Camera, geVec3d *Target, int32 Leaf,	uint32 ClipStyle);
+geBoolean EffectC_IsStringNull(const char *String);
+geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const geVec3d *Target,
+								 int32 Leaf, uint32 ClipStyle);
 
 // changed QD 01/2004
-geBoolean EffectC_IsBoxVisible(geWorld *World, geCamera *Camera, geExtBox* TestBox);
+geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geExtBox* TestBox);
 // end change
+int EffectC_rand(int Low, int High);
 float EffectC_Frand(float Low, float High);
-void EffectC_XFormFromVector(geVec3d *Source, geVec3d *Target, geXForm3d *Out);
+void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXForm3d *Out);
 
-geBitmap *CreateFromFileAndAlphaNames(char *BmName, char *AlphaName);
-geBitmap * CreateFromFileName(char *BmName);
+geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName);
+geBitmap *CreateFromFileName(const char *BmName);
 
 long DLL_CALLCONV VFS_Tell(fi_handle handle);
 int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin);
@@ -83,31 +86,20 @@ geVec3d Extract(char *Vector);
 #define RESET_BITARR(bitarr, bitnum)	(bitarr[(bitnum)>>3] &= ~(1<<((bitnum)&7)))
 #define TEST_BITARR(bitarr, bitnum)		(bitarr[(bitnum)>>3] & (1<<((bitnum)&7)))
 
-// begin change - gekido
-// modified 02.16.2004 - gekido
-// commented out during ODE integration, it uses a more 'precise' definition of M_PI, so we'll use that instead
-//#define M_PI (3.14159f)
-// end change - gekido
-
-// changed QD 12/15/05 - using Genesis3D defines
-//#define PI_2 (M_PI*2.0f)
-//#define M_PI2 (PI_2)
-// end change
-
 void Ang2Vec(float ang, geVec3d *vec);
 
-geBoolean CanSeePointToPoint(geVec3d *Pos1, geVec3d *Pos2);
-geBoolean CanSeeActorToPoint(geActor *Actor, geVec3d *Pos2);
-geBoolean CanSeePointToActor(geVec3d *Pos2, geActor *Actor);
-geBoolean CanSeeActorToActor(geActor *Actor1, geActor *Actor2);
+geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2);
+geBoolean CanSeeActorToPoint(const geActor *Actor, const geVec3d *Pos2);
+geBoolean CanSeePointToActor(const geVec3d *Pos2, const geActor *Actor);
+geBoolean CanSeeActorToActor(const geActor *Actor1, const geActor *Actor2);
 
 // changed RF064
-geActor * GetEntityActor(char *EntityName);
+geActor *GetEntityActor(const char *EntityName);
 bool geVec3d_IsZero(geVec3d* pVect);
 geFloat Length(geVec3d &vec);
 void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
 // end change RF064
-const char *RootBoneName(geActor *Actor);
+const char *RootBoneName(const geActor *Actor);
 
 #endif
 

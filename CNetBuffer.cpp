@@ -318,7 +318,7 @@ geXForm3d NetBuffer::GetXForm3d()
 //	@param len The string's length that you want to add to the buffer
 //	@returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
-void* NetBuffer::AddString(char *message, int len)
+void* NetBuffer::AddString(const char *message, int len)
 {
 	if((Size + (int32)(len+4)) >= MaxSize)
 		Expand(len);

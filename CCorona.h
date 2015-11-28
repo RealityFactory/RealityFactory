@@ -9,18 +9,23 @@
 #ifndef __RGF_CCORONA_H_
 #define __RGF_CCORONA_H_
 
-
+/**
+ * @brief CCorona handles Corona entities
+ */
 class CCorona : public CRGFComponent
 {
 public:
 	CCorona();
 	~CCorona();
 
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
+	/**
+	 * @brief Create corona effect
+	 */
 	int Create(const geVec3d &Origin, Corona *pCorona);
 
 private:

@@ -10,8 +10,9 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "RGFScriptMethods.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
@@ -86,6 +87,10 @@ typedef enum
 	CHANGEMATERIAL,
 	ATTACHTOACTOR,
 	DETACHFROMACTOR,
+	ATTACHBLENDACTOR,
+	DETACHBLENDACTOR,
+	ATTACHACCESSORY,
+	DETACHACCESSORY,
 	SETWEAPON,
 	REMOVEWEAPON,
 	ISPUSHABLE,
@@ -172,6 +177,10 @@ char *ActionText[] =
 	"ChangeMaterial",
 	"AttachToActor",
 	"DetachFromActor",
+	"AttachBlendActor",
+	"DetachBlendActor",
+	"AttachAccessory",
+	"DetachAccessory",
 	"SetWeapon",
 	"RemoveWeapon",
 	"IsPushable",
@@ -204,1248 +213,1168 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 								skRValue& returnValue,skExecutableContext &ctxt)
 {
 	char param0[128], param7[128], param8[128];
-	float param1, param3, param4, param5, param6;
+	float param1, param3, param4; //param5, param6;
 	bool param2;
 
 	param0[0] = '\0';
 	param7[0] = '\0';
 	param8[0] = '\0';
 
-	if(IS_METHOD(methodName, "MoveToPoint"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(MOVETOPOINT, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateToPoint"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATETOPOINT, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "NewOrder"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(NEWORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "NextOrder"))
-	{
-		AddAction(NEXTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateToAlign"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATETOALIGN, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "NextPoint"))
-	{
-		AddAction(NEXTPOINT, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Delay"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(DELAY, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "PlayAnimation"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param2 = arguments[1].boolValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(PLAYANIMATION, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "BlendToAnimation"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(BLENDTOANIMATION, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "LoopAnimation"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(LOOPANIMATION, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Rotate"))
-	{
-		PARMCHECK(6);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		param4 = arguments[3].floatValue();
-		param5 = arguments[4].floatValue();
-		strcpy(param8, arguments[5].str());
-		AddAction(ROTATE, param0, param1, false, param3, param4, param5, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateMoveToPoint"))
-	{
-		PARMCHECK(5);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		param2 = arguments[3].boolValue();
-		strcpy(param8, arguments[4].str());
-		AddAction(ROTATEMOVETOPOINT, param0, param1, param2, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateMove"))
-	{
-		PARMCHECK(7);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param6 = arguments[2].floatValue();
-		param3 = arguments[3].floatValue();
-		param4 = arguments[4].floatValue();
-		param5 = arguments[5].floatValue();
-		strcpy(param8, arguments[6].str());
-		AddAction(ROTATEMOVE, param0, param1, false, param3, param4, param5, param6, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "NewPath"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(NEWPATH, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RestartOrder"))
-	{
-		AddAction(RESTARTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "PlayerDistOrder"))
-	{
-		PARMCHECK(2);
-		MinDistance = arguments[0].floatValue();
+	long method = CCD->GetHashMethod(methodName.c_str());//change scripting
 
-		if(MinDistance != 0.0f)
+	switch(method)
+	{
+	case RGF_SM_MOVETOPOINT:
 		{
-			DistActive = true;
-			strcpy(DistOrder, arguments[1].str());
+			PARMCHECK(3);
+			AddAction(MOVETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
 		}
-		else
-			DistActive = false;
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Console"))
-	{
-		PARMCHECK(1);
-		console = arguments[0].boolValue();
-
-		if(console)
+	case RGF_SM_ROTATETOPOINT:
 		{
-			ConsoleHeader = (char *)malloc(128);
-			*ConsoleHeader = '\0';
-			ConsoleError = (char *)malloc(128);
-			*ConsoleError = '\0';
+			PARMCHECK(4);
+			AddAction(ROTATETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_NEWORDER:
+		{
+			PARMCHECK(1);
+			AddAction(NEWORDER, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_NEXTORDER:
+		{
+			AddAction(NEXTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ROTATETOALIGN:
+		{
+			PARMCHECK(4);
+			AddAction(ROTATETOALIGN, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_NEXTPOINT:
+		{
+			AddAction(NEXTPOINT, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_DELAY:
+		{
+			PARMCHECK(3);
+			AddAction(DELAY, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_PLAYANIMATION:
+		{
+			PARMCHECK(3);
+			AddAction(PLAYANIMATION, arguments[0].str().c_str(), 0.0f,
+				arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_BLENDTOANIMATION:
+		{
+			PARMCHECK(4);
+			AddAction(BLENDTOANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_LOOPANIMATION:
+		{
+			PARMCHECK(3);
+			AddAction(LOOPANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATE:
+		{
+			PARMCHECK(6);
+			AddAction(ROTATE, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), arguments[3].floatValue(),
+				arguments[4].floatValue(), 0.0f, arguments[5].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATEMOVETOPOINT:
+		{
+			PARMCHECK(5);
+			AddAction(ROTATEMOVETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[3].boolValue(), arguments[2].floatValue(), 0.0f, 0.0f, 0.0f,
+				arguments[4].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATEMOVE:
+		{
+			PARMCHECK(7);
+			AddAction(ROTATEMOVE, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[3].floatValue(), arguments[4].floatValue(), arguments[5].floatValue(),
+				arguments[2].floatValue(), arguments[6].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_NEWPATH:
+		{
+			PARMCHECK(1);
+			AddAction(NEWPATH, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_RESTARTORDER:
+		{
+			AddAction(RESTARTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_PLAYERDISTORDER:
+		{
+			PARMCHECK(2);
+			MinDistance = arguments[0].floatValue();
 
-			for(int i=0; i<DEBUGLINES; i++)
+			if(MinDistance != 0.0f)
 			{
-				ConsoleDebug[i] = (char*)malloc(64);
-				*ConsoleDebug[i] = '\0';
+				DistActive = true;
+				strcpy(DistOrder, arguments[1].str());
 			}
+			else
+				DistActive = false;
+
+			return true;
 		}
-		else
+	case RGF_SM_CONSOLE:
 		{
-			if(ConsoleHeader)
-				free(ConsoleHeader);
+			PARMCHECK(1);
+			console = arguments[0].boolValue();
 
-			if(ConsoleError)
-				free(ConsoleError);
-
-			for(int i=0; i<DEBUGLINES; i++)
+			if(console)
 			{
-				if(ConsoleDebug[i])
-					free(ConsoleDebug[i]);
-			}
-		}
+				ConsoleHeader = (char *)malloc(128);
+				*ConsoleHeader = '\0';
+				ConsoleError = (char *)malloc(128);
+				*ConsoleError = '\0';
 
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AudibleRadius"))
-	{
-		PARMCHECK(1);
-		AudibleRadius = arguments[0].floatValue();
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddPainOrder"))
-	{
-		PARMCHECK(2);
-		PainActive = true;
-		strcpy(PainOrder, arguments[0].str());
-		PainPercent = arguments[1].intValue();
-		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
-		OldAttributeAmount = theInv->Value(Attribute);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "FindTargetOrder"))
-	{
-		PARMCHECK(3);
-		TargetDistance = arguments[0].floatValue();
-
-		if(TargetDistance != 0.0f)
-		{
-			TargetDisable = false;
-			TargetFind = true;
-			strcpy(TargetOrder, arguments[1].str());
-			strcpy(TargetAttr, arguments[2].str());
-		}
-		else
-			TargetFind = false;
-
-		return true;
-	}
-// added QD
-	else if(IS_METHOD(methodName, "FindPointOrder"))
-	{
-		PARMCHECK(1);
-		PointFind = true;
-		strcpy(PointOrder, arguments[0].str());
-
-		if(PointOrder == "")
-			PointFind = false;
-
-		return true;
-	}
-// end QD
-	else if(IS_METHOD(methodName, "NewPoint"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(NEWPOINT, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "MoveForward"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(MOVEFORWARD, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "MoveBackward"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(MOVEBACKWARD, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "MoveLeft"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(MOVELEFT, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "MoveRight"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(MOVERIGHT, param0, param1, false, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Move"))
-	{
-		PARMCHECK(7);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		param4 = arguments[3].floatValue();
-		param5 = arguments[4].floatValue();
-		param6 = arguments[5].floatValue();
-		strcpy(param8, arguments[6].str());
-		AddAction(MOVE, param0, param1, false, param3, param4, param5, param6, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AvoidOrder"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(AVOIDORDER, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Return"))
-	{
-		AddAction(RETURN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Align"))
-	{
-		AddAction(ALIGN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Jump"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(JUMPCMD, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddTriggerOrder"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		strcpy(param7, arguments[1].str());
-		param1 = arguments[2].floatValue();
-		AddAction(ADDTRIGGERORDER, param0, param1, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelTriggerOrder"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(DELTRIGGERORDER, NULL, 0.0f, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param0);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetEventState"))
-	{
-		PARMCHECK(2);
-		strcpy(param0, arguments[0].str());
-		param2 = arguments[1].boolValue();
-		AddAction(SETEVENTSTATE, param0, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "FacePlayer"))
-	{
-		PARMCHECK(2);
-		param2 = arguments[0].boolValue();
-		bool para = arguments[1].boolValue();
-		param1 = 0.0f;
-
-		if(para)
-			param1 = 1.0f;
-
-		AddAction(FACEPLAYER, NULL, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateToPlayer"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATETOPLAYER, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateAroundPointLeft"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		float param = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 0.0f, param, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateAroundPointRight"))
-	{
-		PARMCHECK(4);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		float param = arguments[2].floatValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATEAROUNDPOINT, param0, param1, false, 1.0f, param, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "TeleportToPoint"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		float Offx = 0.0f;
-		float Offy = 0.0f;
-		float Offz = 0.0f;
-		param2 = false;
-		param8[0] = 0;
-
-// changed Nout/QD 12/15/05
-		// - use scriptpoint angles as actor orientation after teleporting
-		// - specify actor to teleport
-		if(arguments.entries() > 3)
-		{
-			Offx = arguments[1].floatValue();
-			Offy = arguments[2].floatValue();
-			Offz = arguments[3].floatValue();
-		}
-
-		if(arguments.entries() > 4)
-			param2 = arguments[4].boolValue();
-
-		if(arguments.entries() > 5)
-			strcpy(param8, arguments[5].str());
-
-		AddAction(TELEPORTTOPOINT, param0, 0.0f, param2, Offx, Offy, Offz, 0.0f, NULL, param8);
-// end change
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AnimationSpeed"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-		AddAction(ANIMATIONSPEED, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetFlag"))
-	{
-		PARMCHECK(2);
-		param1 = (float)arguments[0].intValue();
-		param2 = arguments[1].boolValue();
-
-		if(param1 >= 0.0f && param1 < MAXFLAGS)
-			AddAction(SETFLAG, NULL, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddFlagOrder"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[2].str());
-		param1 = (float)arguments[0].intValue();
-		param2 = arguments[1].boolValue();
-		sprintf(param7,"PawnFlag%d", (int)param1);
-
-		if(param1 >= 0.0f && param1 < MAXFLAGS)
-			AddAction(ADDTRIGGERORDER, param0, 0.0f, param2, PFLAG, param1, 0.0f, 0.0f, NULL, param7);
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelFlagOrder"))
-	{
-		PARMCHECK(1);
-		param1 = (float)arguments[0].intValue();
-		sprintf(param7,"PawnFlag%d", (int)param1);
-		AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "ChangeMaterial"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(CHANGEMATERIAL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddTimerOrder"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[2].str());
-		param1 = (float)arguments[0].intValue();
-		param3 = (float)arguments[1].floatValue();
-		sprintf(param7,"PawnTimer%d", (int)param1);
-		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PTIMER, param1, param3, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelTimerOrder"))
-	{
-		PARMCHECK(1);
-		param1 = (float)arguments[0].intValue();
-		sprintf(param7,"PawnTimer%d", (int)param1);
-		AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddRandomSound"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[3].str());
-		param1 = (float)arguments[0].intValue();
-		param3 = (float)arguments[1].floatValue();
-		param4 = (float)arguments[2].floatValue();
-		sprintf(param7,"RandomSound%d", (int)param1);
-		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PSOUND, param1, param3, param4, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelRandomSound"))
-	{
-		PARMCHECK(1);
-		param1 = (float)arguments[0].intValue();
-		sprintf(param7,"RandomSound%d", (int)param1);
-		AddAction(DELTRIGGERORDER, NULL, param1, false, PSOUND, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddDistanceOrder"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[2].str());
-		param1 = (float)arguments[0].intValue();
-		param3 = (float)arguments[1].floatValue();
-		sprintf(param7,"PlayerDist%d", (int)param1);
-		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PDIST, param1, param3, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelDistanceOrder"))
-	{
-		PARMCHECK(1);
-		param1 = (float)arguments[0].intValue();
-		sprintf(param7,"PlayerDist%d", (int)param1);
-		AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddCollisionOrder"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		sprintf(param7,"PlayerColl%d", 1);
-		AddAction(ADDTRIGGERORDER, param0, 0.0f, false, PCOLLIDE, 1.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DelCollisionOrder"))
-	{
-		sprintf(param7,"PlayerColl%d", 1);
-		AddAction(DELTRIGGERORDER, NULL, 1.0f, false, PCOLLIDE, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AnimateStop"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(STOPANIMATION, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AttributeOrder"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = (float)arguments[1].intValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(ATTRIBUTEORDER, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, param8);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Remove"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(REMOVE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetKeyPause"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(SETKEYPAUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetNoCollision"))
-	{
-		AddAction(SETNOCOLLISION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetCollision"))
-	{
-		AddAction(SETNOCOLLISION, NULL, 0.0f, true, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AllowUseKey"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(ALLOWUSE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetHudDraw"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(SETHUDDRAW, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "HideFromRadar"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(HIDEFROMRADAR, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Conversation"))
-	{
-// changed Nout 12/15/05
-		// Conversation();
-		// Conversation(OrderName);
-		// Allows to define a different start-order to be used for this conversation
-		if(arguments.entries() > 0)
-			strcpy(Converse->Order, arguments[0].str());
-		CCD->Pawns()->SetConvFlag(false);
-// end change
-		AddAction(CONVERSATION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "FadeIn"))
-	{
-		PARMCHECK(2);
-		param1 = arguments[0].floatValue();
-		param3 = arguments[1].floatValue();
-		AddAction(FADEIN, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "FadeOut"))
-	{
-		PARMCHECK(2);
-		param1 = arguments[0].floatValue();
-		param3 = arguments[1].floatValue();
-		AddAction(FADEOUT, NULL, param1, false, param3, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetFOV"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-
-		if(arguments.entries() == 2)
-			strcpy(param0, arguments[1].str());
-
-		AddAction(FIELDOFVIEW, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "StepHeight"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-		AddAction(STEPHEIGHT, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetGroup"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(SETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "HostilePlayer"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(HOSTILEPLAYER, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "HostileDifferent"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(HOSTILEDIFF, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "HostileSame"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(HOSTILESAME, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "Gravity"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(GRAVITY, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SoundLoop"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(SOUNDLOOP, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "IsPushable"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(ISPUSHABLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "IsVehicle"))
-	{
-		PARMCHECK(1);
-		param2 = arguments[0].boolValue();
-		AddAction(ISVEHICLE, NULL, 0.0f, param2, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "MoveToTarget"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		strcpy(param8, arguments[2].str());
-		AddAction(MOVETOTARGET, param0, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateToTarget"))
-	{
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param2 = arguments[2].boolValue();
-		strcpy(param8, arguments[3].str());
-		AddAction(ROTATETOTARGET, param0, param1, param2, 0.0f, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RotateMoveToTarget"))
-	{
-		PARMCHECK(5);
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].floatValue();
-		param3 = arguments[2].floatValue();
-		param2 = arguments[3].boolValue();
-		strcpy(param8, arguments[4].str());
-		AddAction(ROTATEMOVETOTARGET, param0, param1, param2, param3, 0.0f, 0.0f, 0.0f, param8, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "LowLevel"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(LOWLEVEL, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "BoxWidth"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-		AddAction(BOXWIDTH, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-// changed QD 12/15/05
-	else if(IS_METHOD(methodName, "BoxHeight"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-		AddAction(BOXHEIGHT, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-// end change
-	else if(IS_METHOD(methodName, "Scale"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-// changed QD 12/15/05
-		if(arguments.entries() > 2)
-		{
-			param3 = arguments[1].floatValue();
-			param4 = arguments[2].floatValue();
-		}
-		else
-			param3 = param4 = param1;
-
-		//AddAction(SCALE, NULL, param1, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		AddAction(SCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
-// end change
-		return true;
-	}
-// changed QD 12/15/05
-	else if(IS_METHOD(methodName, "SetScale"))
-	{
-		PARMCHECK(1);
-		param1 = arguments[0].floatValue();
-		if(arguments.entries() > 2)
-		{
-			param3 = arguments[1].floatValue();
-			param4 = arguments[2].floatValue();
-		}
-		else
-			param3 = param4 = param1;
-
-		AddAction(SETSCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-// end change
-	else if(IS_METHOD(methodName, "FireProjectile"))
-	{
-		PARMCHECK(7);
-		strcpy(param0, arguments[0].str());
-		param1 = (float)strlen(param0);
-		strcpy(param7, arguments[1].str());
-		param3 = arguments[2].floatValue();
-		param4 = arguments[3].floatValue();
-		param5 = arguments[4].floatValue();
-		strcat(param0, arguments[5].str());
-		strcpy(param8, arguments[6].str());
-		AddAction(FIREPROJECTILE, param0, param1, false, param3, param4, param5, 0.0f, param8, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AddExplosion"))
-	{
-		PARMCHECK(5);
-		strcpy(param0, arguments[0].str());
-		strcpy(param7, arguments[1].str());
-		param3 = arguments[2].floatValue();
-		param4 = arguments[3].floatValue();
-		param5 = arguments[4].floatValue();
-		AddAction(ADDEFFECT, param0, 0.0f, false, param3, param4, param5, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "TargetGroup"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(TARGETGROUP, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "TestDamageOrder"))
-	{
-		PARMCHECK(2);
-		strcpy(param0, arguments[1].str());
-		param3 = arguments[0].floatValue();
-		AddAction(TESTDAMAGEORDER, param0, param3, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "DetachFromActor"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(DETACHFROMACTOR, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetLODDistance"))
-	{
-		PARMCHECK(5);
-		float lod1 = arguments[0].floatValue();
-		float lod2 = arguments[1].floatValue();
-		float lod3 = arguments[2].floatValue();
-		float lod4 = arguments[3].floatValue();
-		float lod5 = arguments[4].floatValue();
-		AddAction(SETLODDISTANCE, NULL, lod1, false, lod2, lod3, lod4, lod5, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "AttachToActor"))
-	{
-		float x0,y0,z0,x1,y1,z1;
-		PARMCHECK(9);
-		strcpy(param0, arguments[0].str());
-		param3 = (float)strlen(param0);
-		strcpy(param7, arguments[1].str());
-		param1 = (float)strlen(param7);
-		strcat(param0, param7);
-		strcpy(param7, arguments[2].str());
-		strcat(param0, param7);
-		x0 = arguments[3].floatValue();
-		y0 = arguments[4].floatValue();
-		z0 = arguments[5].floatValue();
-		x1 = arguments[6].floatValue();
-		y1 = arguments[7].floatValue();
-		z1 = arguments[8].floatValue();
-		sprintf(param7,"%f %f %f %f %f %f", x0,y0,z0,x1,y1,z1);
-		AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "SetWeapon"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		AddAction(SETWEAPON, param0, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RemoveWeapon"))
-	{
-		AddAction(REMOVEWEAPON, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-		return true;
-	}
-	else if(IS_METHOD(methodName, "random"))
-	{
-		PARMCHECK(2);
-		param1 = arguments[0].floatValue();
-		param3 = arguments[1].floatValue();
-
-		if(param1 <= param3)
-			returnValue = (int)EffectC_Frand(param1, param3);
-		else
-			returnValue = (int)EffectC_Frand(param3, param1);
-
-		return true;
-	}
-// 08/11/2004 Wendell Buckner - Added High level Debug Pawn command
-	else if(IS_METHOD(methodName, "debug"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-
-		if(console)
-		{
-			int index = -1;
-			int i;
-
-			for(i=0; i<DEBUGLINES; i++)
-			{
-				if(EffectC_IsStringNull(ConsoleDebug[i]))
+				for(int i=0; i<DEBUGLINES; i++)
 				{
-					index = i;
-					break;
+					ConsoleDebug[i] = (char*)malloc(64);
+					*ConsoleDebug[i] = '\0';
 				}
-			}
-
-			if(index != -1)
-			{
-				strcpy(ConsoleDebug[index], param0);
 			}
 			else
 			{
-				for(i=1; i<DEBUGLINES; i++)
+				SAFE_FREE(ConsoleHeader);
+				SAFE_FREE(ConsoleError);
+
+				for(int i=0; i<DEBUGLINES; i++)
 				{
-					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
+					SAFE_FREE(ConsoleDebug[i]);
+				}
+			}
+
+			return true;
+		}
+	case RGF_SM_AUDIBLERADIUS:
+		{
+			PARMCHECK(1);
+			AudibleRadius = arguments[0].floatValue();
+			return true;
+		}
+	case RGF_SM_ADDPAINORDER:
+		{
+			PARMCHECK(2);
+			PainActive = true;
+			strcpy(PainOrder, arguments[0].str());
+			PainPercent = arguments[1].intValue();
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
+			OldAttributeAmount = theInv->Value(Attribute);
+			return true;
+		}
+	case RGF_SM_FINDTARGETORDER:
+		{
+			PARMCHECK(3);
+			TargetDistance = arguments[0].floatValue();
+
+			if(TargetDistance != 0.0f)
+			{
+				TargetDisable = false;
+				TargetFind = true;
+				strcpy(TargetOrder, arguments[1].str());
+				strcpy(TargetAttr, arguments[2].str());
+			}
+			else
+				TargetFind = false;
+
+			return true;
+		}
+	case RGF_SM_FINDPOINTORDER:
+		{
+			PARMCHECK(1);
+			PointFind = true;
+			strcpy(PointOrder, arguments[0].str());
+
+			if(EffectC_IsStringNull(PointOrder))
+				PointFind = false;
+
+			return true;
+		}
+	case RGF_SM_NEWPOINT:
+		{
+			PARMCHECK(1);
+			AddAction(NEWPOINT, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_MOVEFORWARD:
+		{
+			PARMCHECK(4);
+			AddAction(MOVEFORWARD, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_MOVEBACKWARD:
+		{
+			PARMCHECK(4);
+			AddAction(MOVEBACKWARD, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_MOVELEFT:
+		{
+			PARMCHECK(4);
+			AddAction(MOVELEFT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_MOVERIGHT:
+		{
+			PARMCHECK(4);
+			AddAction(MOVERIGHT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_MOVE:
+		{
+			PARMCHECK(7);
+			AddAction(MOVE, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
+				arguments[5].floatValue(), arguments[6].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_AVOIDORDER:
+		{
+			PARMCHECK(1);
+			AddAction(AVOIDORDER, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_RETURN:
+		{
+			AddAction(RETURN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ALIGN:
+		{
+			AddAction(ALIGN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_JUMP:
+		{
+			PARMCHECK(4);
+			AddAction(JUMPCMD, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ADDTRIGGERORDER:
+		{
+			PARMCHECK(3);
+			AddAction(ADDTRIGGERORDER, arguments[0].str().c_str(), arguments[2].floatValue(),
+				false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			return true;
+		}
+	case RGF_SM_DELTRIGGERORDER:
+		{
+			PARMCHECK(1);
+			AddAction(DELTRIGGERORDER, arguments[0].str().c_str(), 0.0f, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param0);
+			return true;
+		}
+	case RGF_SM_SETEVENTSTATE:
+		{
+			PARMCHECK(2);
+			AddAction(SETEVENTSTATE, arguments[0].str().c_str(), 0.0f, arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_FACEPLAYER:
+		{
+			PARMCHECK(2);
+			param1 = 0.0f;
+
+			if(arguments[1].boolValue())
+				param1 = 1.0f;
+
+			AddAction(FACEPLAYER, NULL, param1, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ROTATETOPLAYER:
+		{
+			PARMCHECK(4);
+			AddAction(ROTATETOPLAYER, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATEAROUNDPOINTLEFT:
+		{
+			PARMCHECK(4);
+			AddAction(ROTATEAROUNDPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, arguments[2].floatValue(), 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATEAROUNDPOINTRIGHT:
+		{
+			PARMCHECK(4);
+			AddAction(ROTATEAROUNDPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 1.0f, arguments[2].floatValue(), 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_TELEPORTTOPOINT:
+		{
+			PARMCHECK(1);
+			float Offx = 0.0f;
+			float Offy = 0.0f;
+			float Offz = 0.0f;
+			param2 = false;
+			param8[0] = 0;
+
+// changed Nout/QD 12/15/05
+			// - use scriptpoint angles as actor orientation after teleporting
+			// - specify actor to teleport
+			if(arguments.entries() > 3)
+			{
+				Offx = arguments[1].floatValue();
+				Offy = arguments[2].floatValue();
+				Offz = arguments[3].floatValue();
+
+				if(arguments.entries() > 4)
+				{
+					param2 = arguments[4].boolValue();
+
+					if(arguments.entries() > 5)
+						strcpy(param8, arguments[5].str());
+				}
+			}
+
+			AddAction(TELEPORTTOPOINT, arguments[0].str().c_str(), 0.0f, param2, Offx, Offy, Offz, 0.0f, NULL, param8);
+// end change
+
+			return true;
+		}
+	case RGF_SM_ANIMATIONSPEED:
+		{
+			PARMCHECK(1);
+			AddAction(ANIMATIONSPEED, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETFLAG:
+		{
+			PARMCHECK(2);
+			param1 = (float)arguments[0].intValue();
+
+			if(param1 >= 0.0f && param1 < MAXFLAGS)
+				AddAction(SETFLAG, NULL, param1, arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+
+			return true;
+		}
+	case RGF_SM_ADDFLAGORDER:
+		{
+			PARMCHECK(3);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PawnFlag%d", (int)param1);
+
+			if(param1 >= 0.0f && param1 < MAXFLAGS)
+				AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
+					arguments[1].boolValue(), PFLAG, param1, 0.0f, 0.0f, NULL, param7);
+
+			return true;
+		}
+	case RGF_SM_DELFLAGORDER:
+		{
+			PARMCHECK(1);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PawnFlag%d", (int)param1);
+			AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_CHANGEMATERIAL:
+		{
+			PARMCHECK(1);
+			AddAction(CHANGEMATERIAL, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ADDTIMERORDER:
+		{
+			PARMCHECK(3);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PawnTimer%d", (int)param1);
+			AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
+				false, PTIMER, param1, arguments[1].floatValue(), 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_DELTIMERORDER:
+		{
+			PARMCHECK(1);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PawnTimer%d", (int)param1);
+			AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_ADDRANDOMSOUND:
+		{
+			PARMCHECK(3);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "RandomSound%d", (int)param1);
+			AddAction(ADDTRIGGERORDER, arguments[3].str().c_str(), 0.0f,
+				false, PSOUND, param1, arguments[1].floatValue(), arguments[2].floatValue(), NULL, param7);
+			return true;
+		}
+	case RGF_SM_DELRANDOMSOUND:
+		{
+			PARMCHECK(1);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "RandomSound%d", (int)param1);
+			AddAction(DELTRIGGERORDER, NULL, param1, false, PSOUND, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_ADDDISTANCEORDER:
+		{
+			PARMCHECK(3);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PlayerDist%d", (int)param1);
+			AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
+				false, PDIST, param1, arguments[1].floatValue(), 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_DELDISTANCEORDER:
+		{
+			PARMCHECK(1);
+			param1 = (float)arguments[0].intValue();
+			sprintf(param7, "PlayerDist%d", (int)param1);
+			AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_ADDCOLLISIONORDER:
+		{
+			PARMCHECK(1);
+			sprintf(param7, "PlayerColl%d", 1);
+			AddAction(ADDTRIGGERORDER, arguments[0].str().c_str(), 0.0f, false, PCOLLIDE, 1.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_DELCOLLISIONORDER:
+		{
+			sprintf(param7, "PlayerColl%d", 1);
+			AddAction(DELTRIGGERORDER, NULL, 1.0f, false, PCOLLIDE, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_ANIMATESTOP:
+		{
+			PARMCHECK(3);
+			AddAction(STOPANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ATTRIBUTEORDER:
+		{
+			PARMCHECK(3);
+			AddAction(ATTRIBUTEORDER, arguments[0].str().c_str(), (float)arguments[1].intValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[2].str().c_str());
+			return true;
+		}
+	case RGF_SM_REMOVE:
+		{
+			PARMCHECK(1);
+			AddAction(REMOVE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETKEYPAUSE:
+		{
+			PARMCHECK(1);
+			AddAction(SETKEYPAUSE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETNOCOLLISION:
+		{
+			AddAction(SETNOCOLLISION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETCOLLISION:
+		{
+			AddAction(SETNOCOLLISION, NULL, 0.0f, true, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ALLOWUSEKEY:
+		{
+			PARMCHECK(1);
+			AddAction(ALLOWUSE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETHUDDRAW:
+		{
+			PARMCHECK(1);
+			AddAction(SETHUDDRAW, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_HIDEFROMRADAR:
+		{
+			PARMCHECK(1);
+			AddAction(HIDEFROMRADAR, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_CONVERSATION:
+		{
+// changed Nout 12/15/05
+			// Conversation();
+			// Conversation(OrderName);
+			// Allows to define a different start-order to be used for this conversation
+			if(arguments.entries() > 0)
+				strcpy(Converse->Order, arguments[0].str());
+			CCD->Pawns()->SetConvFlag(false);
+// end change
+			AddAction(CONVERSATION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_FADEIN:
+		{
+			PARMCHECK(2);
+			AddAction(FADEIN, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_FADEOUT:
+		{
+			PARMCHECK(2);
+			AddAction(FADEOUT, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETFOV:
+		{
+			PARMCHECK(1);
+
+			if(arguments.entries() == 2)
+				strcpy(param0, arguments[1].str());
+
+			AddAction(FIELDOFVIEW, param0, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_STEPHEIGHT:
+		{
+			PARMCHECK(1);
+			AddAction(STEPHEIGHT, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETGROUP:
+		{
+			PARMCHECK(1);
+			AddAction(SETGROUP, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_HOSTILEPLAYER:
+		{
+			PARMCHECK(1);
+			AddAction(HOSTILEPLAYER, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_HOSTILEDIFFERENT:
+		{
+			PARMCHECK(1);
+			AddAction(HOSTILEDIFF, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_HOSTILESAME:
+		{
+			PARMCHECK(1);
+			AddAction(HOSTILESAME, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_GRAVITY:
+		{
+			PARMCHECK(1);
+			AddAction(GRAVITY, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SOUNDLOOP:
+		{
+			PARMCHECK(1);
+			AddAction(SOUNDLOOP, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ISPUSHABLE:
+		{
+			PARMCHECK(1);
+			AddAction(ISPUSHABLE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ISVEHICLE:
+		{
+			PARMCHECK(1);
+			AddAction(ISVEHICLE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_MOVETOTARGET:
+		{
+			PARMCHECK(3);
+			AddAction(MOVETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
+				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATETOTARGET:
+		{
+			PARMCHECK(3);
+			AddAction(ROTATETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_ROTATEMOVETOTARGET:
+		{
+			PARMCHECK(5);
+			AddAction(ROTATEMOVETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
+				arguments[3].boolValue(), arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[4].str().c_str(), NULL);
+			return true;
+		}
+	case RGF_SM_LOWLEVEL:
+		{
+			PARMCHECK(1);
+			AddAction(LOWLEVEL, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_BOXWIDTH:
+		{
+			PARMCHECK(1);
+			AddAction(BOXWIDTH, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+// changed QD 12/15/05
+	case RGF_SM_BOXHEIGHT:
+		{
+			PARMCHECK(1);
+			AddAction(BOXHEIGHT, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+// end change
+	case RGF_SM_SCALE:
+		{
+			// USAGE:	Scale(Scale)
+			//			Scale(ScaleX, ScaleY, ScaleZ)
+			PARMCHECK(1);
+			param1 = arguments[0].floatValue();
+
+			if(arguments.entries() > 2)
+			{
+				param3 = arguments[1].floatValue();
+				param4 = arguments[2].floatValue();
+			}
+			else
+				param3 = param4 = param1;
+
+			AddAction(SCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+// changed QD 12/15/05
+	case RGF_SM_SETSCALE:
+		{
+			PARMCHECK(1);
+			param1 = arguments[0].floatValue();
+
+			if(arguments.entries() > 2)
+			{
+				param3 = arguments[1].floatValue();
+				param4 = arguments[2].floatValue();
+			}
+			else
+				param3 = param4 = param1;
+
+			AddAction(SETSCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+// end change
+	case RGF_SM_FIREPROJECTILE:
+		{
+			PARMCHECK(7);
+			strcpy(param0, arguments[0].str());
+			param1 = (float)strlen(param0);
+			strcat(param0, arguments[5].str());
+			AddAction(FIREPROJECTILE, param0, param1, false,
+				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
+				0.0f, arguments[6].str().c_str(), arguments[1].str().c_str());
+			return true;
+		}
+	case RGF_SM_ADDEXPLOSION:
+		{
+			PARMCHECK(5);
+			AddAction(ADDEFFECT, arguments[0].str().c_str(), 0.0f, false,
+				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
+				0.0f, NULL, arguments[1].str().c_str());
+			return true;
+		}
+	case RGF_SM_TARGETGROUP:
+		{
+			PARMCHECK(1);
+			AddAction(TARGETGROUP, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_TESTDAMAGEORDER:
+		{
+			PARMCHECK(2);
+			AddAction(TESTDAMAGEORDER, arguments[1].str().c_str(), arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_SETLODDISTANCE:
+		{
+			PARMCHECK(5);
+			AddAction(SETLODDISTANCE, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(),
+				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(), NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ATTACHTOACTOR:
+		{
+			float x0,y0,z0,x1,y1,z1;
+			PARMCHECK(9);
+			strcpy(param0, arguments[0].str());
+			param3 = (float)strlen(param0);
+			strcpy(param7, arguments[1].str());
+			param1 = (float)strlen(param7);
+			strcat(param0, param7);
+			strcpy(param7, arguments[2].str());
+			strcat(param0, param7);
+			x0 = arguments[3].floatValue();
+			y0 = arguments[4].floatValue();
+			z0 = arguments[5].floatValue();
+			x1 = arguments[6].floatValue();
+			y1 = arguments[7].floatValue();
+			z1 = arguments[8].floatValue();
+			sprintf(param7,"%f %f %f %f %f %f", x0,y0,z0,x1,y1,z1);
+			AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
+			return true;
+		}
+	case RGF_SM_DETACHFROMACTOR:
+		{
+			PARMCHECK(1);
+			AddAction(DETACHFROMACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_ATTACHBLENDACTOR:
+		{
+			PARMCHECK(1);
+
+			if(arguments.entries() > 1)
+			{
+				AddAction(ATTACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			}
+			else
+			{
+				AddAction(ATTACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+			return true;
+		}
+	case RGF_SM_DETACHBLENDACTOR:
+		{
+			PARMCHECK(1);
+
+			if(arguments.entries() > 1)
+			{
+				AddAction(DETACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			}
+			else
+			{
+				AddAction(DETACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+			return true;
+		}
+	case RGF_SM_ATTACHACCESSORY:
+		{
+			PARMCHECK(1);
+
+			if(arguments.entries() > 1)
+			{
+				AddAction(ATTACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			}
+			else
+			{
+				AddAction(ATTACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+			return true;
+		}
+	case RGF_SM_DETACHACCESSORY:
+		{
+			PARMCHECK(1);
+
+			if(arguments.entries() > 1)
+			{
+				AddAction(DETACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			}
+			else
+			{
+				AddAction(DETACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+			return true;
+		}
+	case RGF_SM_SETWEAPON:
+		{
+			PARMCHECK(1);
+			AddAction(SETWEAPON, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_REMOVEWEAPON:
+		{
+			AddAction(REMOVEWEAPON, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			return true;
+		}
+	case RGF_SM_RANDOM:
+		{
+			PARMCHECK(2);
+			int param1 = arguments[0].intValue();
+			int param3 = arguments[1].intValue();
+
+			if(param1 < param3)
+				returnValue = EffectC_rand(param1, param3);
+			else
+				returnValue = EffectC_rand(param3, param1);
+
+			return true;
+		}
+// 08/11/2004 Wendell Buckner - Added High level Debug Pawn command
+	case RGF_SM_DEBUG:
+		{
+			PARMCHECK(1);
+
+			if(console)
+			{
+				int index = -1;
+				int i;
+
+				for(i=0; i<DEBUGLINES; i++)
+				{
+					if(EffectC_IsStringNull(ConsoleDebug[i]))
+					{
+						index = i;
+						break;
+					}
 				}
 
-				strcpy(ConsoleDebug[DEBUGLINES-1], param0);
-			}
-		}
+				if(index != -1)
+				{
+					strcpy(ConsoleDebug[index], arguments[0].str().c_str());
+				}
+				else
+				{
+					for(i=1; i<DEBUGLINES; i++)
+					{
+						strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
+					}
 
-		return true;
-	}
+					strcpy(ConsoleDebug[DEBUGLINES-1], arguments[0].str().c_str());
+				}
+			}
+
+			return true;
+		}
 // changed Nout 12/15/05
 	// ShowTextDelay(Nr, EntityName, Animation, TextString, FontNr, Time,
 	//				 TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha)
 	// If EntityName is empty, use fixed screen-coordinates, If EntityName="Player", use the player as Entity
 	// Align can be Left, Right or Center and defines the alignment relative to the origin
-	else if(IS_METHOD(methodName, "ShowTextDelay"))
-	{
-		int Nr = arguments[0].intValue();
-
-		if(Nr < 0 || Nr >= MAXTEXT)
-			return true;
-
-		if(arguments.entries() > 1)
+	case RGF_SM_SHOWTEXTDELAY:
 		{
-			strcpy(param0, arguments[2].str());
-			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
-			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
-			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
-			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+			int Nr = arguments[0].intValue();
 
-			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
-			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[6].str());
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[7].intValue();
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[8].intValue();
-			strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[9].str(), 1);
-			CCD->Pawns()->TextMessage[Nr].Alpha = arguments[10].floatValue();
-			param1 = arguments[5].floatValue();
-			strcpy(param8, arguments[6].str());
+			if(Nr < 0 || Nr >= MAXTEXT)
+				return true;
 
-			AddAction(SHOWTEXTDELAY, param0, param1, true, float(Nr), 0.0f, 0.0f, 0.0f, param8, NULL);
+			if(arguments.entries() > 10)
+			{
+				strcpy(CCD->Pawns()->TextMessage[Nr].EntityName,	arguments[1].str());
+				strcpy(CCD->Pawns()->TextMessage[Nr].AnimName,		arguments[2].str());
+
+				CCD->Pawns()->TextMessage[Nr].TextString =			arguments[3].str();
+				Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+
+				CCD->Pawns()->TextMessage[Nr].FontNr =				arguments[4].intValue();
+				strcpy(CCD->Pawns()->TextMessage[Nr].TextSound,		arguments[6].str());
+				CCD->Pawns()->TextMessage[Nr].ScreenOffsetX =		arguments[7].intValue();
+				CCD->Pawns()->TextMessage[Nr].ScreenOffsetY =		arguments[8].intValue();
+				strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[9].str(), 1);
+				CCD->Pawns()->TextMessage[Nr].Alpha =				arguments[10].floatValue();
+
+				AddAction(SHOWTEXTDELAY, arguments[2].str().c_str(), arguments[5].floatValue(),
+					true, float(Nr), 0.0f, 0.0f, 0.0f, arguments[6].str().c_str(), NULL);
+			}
+			else
+			{
+				AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+
+			return true;
 		}
-		else
-			AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
-
-		return true;
-	}
 	// ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha)
 	// If EntityName is empty, use fixed screen-coordinates, If EntityName="Player", use the player as Entity
 	// Align can be Left, Right or Center and defines the alignment relative to the origin
-	else if(IS_METHOD(methodName, "ShowText"))
-	{
-		int Nr = arguments[0].intValue();
-
-		if(Nr < 0 || Nr >= MAXTEXT)
-			return true;
-
-		if(arguments.entries() > 1)
+	case RGF_SM_SHOWTEXT:
 		{
-			strcpy(param0, arguments[2].str());
-			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
-			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
-			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
-			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+			int Nr = arguments[0].intValue();
 
-			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
-			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[5].str());
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[6].intValue();
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[7].intValue();
-			strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
-			CCD->Pawns()->TextMessage[Nr].Alpha = arguments[9].floatValue();
-			strcpy(param8, arguments[5].str());
-			AddAction(SHOWTEXT, param0, 0.0f, true, float(Nr), 0.0f, 0.0f, 0.0f, param8, NULL);
+			if(Nr < 0 || Nr >= MAXTEXT)
+				return true;
+
+			if(arguments.entries() > 9)
+			{
+				strcpy(CCD->Pawns()->TextMessage[Nr].EntityName,	arguments[1].str());
+				strcpy(CCD->Pawns()->TextMessage[Nr].AnimName,		arguments[2].str());
+				CCD->Pawns()->TextMessage[Nr].TextString =			arguments[3].str();
+				Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+
+				CCD->Pawns()->TextMessage[Nr].FontNr =				arguments[4].intValue();
+				strcpy(CCD->Pawns()->TextMessage[Nr].TextSound,		arguments[5].str());
+				CCD->Pawns()->TextMessage[Nr].ScreenOffsetX =		arguments[6].intValue();
+				CCD->Pawns()->TextMessage[Nr].ScreenOffsetY =		arguments[7].intValue();
+				strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
+				CCD->Pawns()->TextMessage[Nr].Alpha =				arguments[9].floatValue();
+
+				AddAction(SHOWTEXT, arguments[2].str().c_str(), 0.0f,
+					true, float(Nr), 0.0f, 0.0f, 0.0f, arguments[5].str().c_str(), NULL);
+			}
+			else
+			{
+				AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			}
+
+			return true;
 		}
-		else
+	case RGF_SM_REMOVETEXT:
+		{
+			int Nr = arguments[0].intValue();
+
+			if(Nr < 0 || Nr >= MAXTEXT)
+				return true;
+
 			AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
 
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RemoveText"))
-	{
-		int Nr = arguments[0].intValue();
-
-		if(Nr < 0 || Nr >= MAXTEXT)
 			return true;
-
-		AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
-
-		return true;
-	}
-	// GetConvReplyNr: returns the number of the last reply message choosen from a conversation
-	else if(IS_METHOD(methodName, "GetConvReplyNr"))
-	{
-		returnValue = Converse->LastReplyNr;
-		return true;
-	}
-	// Concatenate string elements to 1 new string
-	else if(IS_METHOD(methodName, "Concat"))
-	{
-		strcpy(param0, arguments[0].str());
-		strcat(param0, arguments[1].str());
-
-		if(arguments.entries() > 2)
-			for(int i=2; i<int(arguments.entries()); i++)
-				strcat(param0, arguments[i].str());
-
-		returnValue = skString(param0);
-		return true;
-	}
-	// GetAttribute
-	else if(IS_METHOD(methodName, "GetAttribute"))
-	{
-		PARMCHECK(1);
-
-		strcpy(param0, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-		CPersistentAttributes *theInv;
-
-		if(arguments.entries() > 1)
-		{
-			strcpy(param7, arguments[1].str());
-
-			if(!stricmp(param7, "Player"))
-				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
 		}
-		else
-			theInv = CCD->ActorManager()->Inventory(Actor);
+	case RGF_SM_GETCONVREPLYNR:
+		{
+			// GetConvReplyNr: returns the number of the last reply message choosen from a conversation
+			returnValue = Converse->LastReplyNr;
+			return true;
+		}
+	case RGF_SM_CONCAT:
+		{
+			// Concatenate string elements to 1 new string
+			PARMCHECK(2);
+
+			strcpy(param0, arguments[0].str());
+			strcat(param0, arguments[1].str());
+
+			if(arguments.entries() > 2)
+				for(int i=2; i<int(arguments.entries()); i++)
+					strcat(param0, arguments[i].str());
+
+			returnValue = skString(param0);
+			return true;
+		}
+	case RGF_SM_GETATTRIBUTE:
+		{
+			PARMCHECK(1);
+
+// changed QD 12/15/05
+			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			CPersistentAttributes *theInv;
+
+			if(arguments.entries() > 1)
+			{
+				strcpy(param7, arguments[1].str());
+
+				if(!stricmp(param7, "Player"))
+					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				else
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			}
+			else
+				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change QD
-		returnValue = (int)theInv->Value(param0);
-		return true;
-	}
-	// ModifyAttribute
-	else if(IS_METHOD(methodName, "ModifyAttribute"))
-	{
-		PARMCHECK(2);
-		strcpy(param0, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-		CPersistentAttributes *theInv;
-
-		if(arguments.entries() > 2)
-		{
-			strcpy(param7, arguments[2].str());
-
-			if(!stricmp(param7, "Player"))
-				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			returnValue = theInv->Value(arguments[0].str().c_str());
+			return true;
 		}
-		else
-			theInv = CCD->ActorManager()->Inventory(Actor);
+	case RGF_SM_MODIFYATTRIBUTE:
+		{
+			PARMCHECK(2);
+
+// changed QD 12/15/05
+			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			CPersistentAttributes *theInv;
+
+			if(arguments.entries() > 2)
+			{
+				strcpy(param7, arguments[2].str());
+
+				if(!stricmp(param7, "Player"))
+					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				else
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			}
+			else
+				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change QD
-		returnValue = (int)theInv->Modify(param0, arguments[1].intValue());
-		return true;
-	}
-	// SetAttribute
-	else if(IS_METHOD(methodName, "SetAttribute"))
-	{
-		PARMCHECK(2);
-		strcpy(param0, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-		CPersistentAttributes *theInv;
-
-		if(arguments.entries() > 2)
-		{
-			strcpy(param7, arguments[2].str());
-
-			if(!stricmp(param7, "Player"))
-				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
+			return true;
 		}
-		else
-			theInv = CCD->ActorManager()->Inventory(Actor);
+	case RGF_SM_SETATTRIBUTE:
+		{
+			PARMCHECK(2);
+
+// changed QD 12/15/05
+			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			CPersistentAttributes *theInv;
+
+			if(arguments.entries() > 2)
+			{
+				strcpy(param7, arguments[2].str());
+
+				if(!stricmp(param7, "Player"))
+					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				else
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			}
+			else
+				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change QD
-		returnValue = (int)theInv->Set(param0, arguments[1].intValue());
-		return true;
+			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
+			return true;
 	}
 // changed QD 12/15/05
-	// AddAttribute
-	else if(IS_METHOD(methodName, "AddAttribute"))
-	{
-		// USAGE:	AddAttribute(char *Attribute)
-		//			AddAttribute(char *Attribute, EntityName)
-
-		// changed QD 07/15/06 - add optional arguments
-		//			AddAttribute(char *Attribute, int LowValue, int HighValue)
-		//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-
-		CPersistentAttributes *theInv;
-
-		if(arguments.entries() == 2 || arguments.entries() == 4)
+	case RGF_SM_ADDATTRIBUTE:
 		{
-			strcpy(param7, arguments[arguments.entries()-1].str());
+			// USAGE:	AddAttribute(char *Attribute)
+			//			AddAttribute(char *Attribute, EntityName)
 
-			if(!stricmp(param7, "Player"))
-				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			// changed QD 07/15/06 - add optional arguments
+			//			AddAttribute(char *Attribute, int LowValue, int HighValue)
+			//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
+			PARMCHECK(1);
+			strcpy(param0, arguments[0].str());
+
+			CPersistentAttributes *theInv;
+
+			if(arguments.entries() == 2 || arguments.entries() == 4)
+			{
+				strcpy(param7, arguments[arguments.entries()-1].str());
+
+				if(!stricmp(param7, "Player"))
+					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				else
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			}
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				theInv = CCD->ActorManager()->Inventory(Actor);
+
+			returnValue = theInv->Add(param0);
+
+			if(arguments.entries() > 2)
+			{
+				theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+			}
+			// end change QD 07/15/06
+
+			return true;
 		}
-		else
-			theInv = CCD->ActorManager()->Inventory(Actor);
-
-		returnValue = (int)theInv->Add(param0);
-
-		if(arguments.entries() > 2)
-		{
-			theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
-		}
-		// end change QD 07/15/06
-
-		return true;
-	}
 // end change QD
 // changed QD 07/15/06
-	else if(IS_METHOD(methodName, "SetAttributeValueLimits"))
-	{
-		// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
-		//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
-
-		PARMCHECK(3);
-		strcpy(param0, arguments[0].str());
-
-		CPersistentAttributes *theInv;
-
-		if(arguments.entries() > 3)
+	case RGF_SM_SETATTRIBUTEVALUELIMITS:
 		{
-			strcpy(param7, arguments[3].str());
+			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
+			//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
-			if(!stricmp(param7, "Player"))
-				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			PARMCHECK(3);
+
+			CPersistentAttributes *theInv;
+
+			if(arguments.entries() > 3)
+			{
+				strcpy(param7, arguments[3].str());
+
+				if(!stricmp(param7, "Player"))
+					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				else
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+			}
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				theInv = CCD->ActorManager()->Inventory(Actor);
+
+			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
+
+			return true;
 		}
-		else
-			theInv = CCD->ActorManager()->Inventory(Actor);
-
-		theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "sin"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)sin((double)arguments[0].floatValue());
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "cos"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)cos((double)arguments[0].floatValue());
-
-		return true;
-	}
-	else if(IS_METHOD(methodName, "tan"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)tan((double)arguments[0].floatValue());
-
-		return true;
-	}
+	case RGF_SM_SIN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)sin((double)arguments[0].floatValue());
+			return true;
+		}
+	case RGF_SM_COS:
+		{
+			PARMCHECK(1);
+			returnValue = (float)cos((double)arguments[0].floatValue());
+			return true;
+		}
+	case RGF_SM_TAN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)tan((double)arguments[0].floatValue());
+			return true;
+		}
 // end change QD 07/15/06
-// changed QD 02/01/07
-	else if(IS_METHOD(methodName, "asin"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)asin((double)arguments[0].floatValue());
+	case RGF_SM_ASIN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)asin((double)arguments[0].floatValue());
+			return true;
+		}
+	case RGF_SM_ACOS:
+		{
+			PARMCHECK(1);
+			returnValue = (float)acos((double)arguments[0].floatValue());
+			return true;
+		}
+	case RGF_SM_ATAN:
+		{
+			PARMCHECK(1);
+			returnValue = (float)atan((double)arguments[0].floatValue());
+			return true;
+		}
+	case RGF_SM_GETFLAG:
+		{
+			// GetFlag
+			int temp = arguments[0].intValue();
 
-		return true;
-	}
-	else if(IS_METHOD(methodName, "acos"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)acos((double)arguments[0].floatValue());
+			if(temp >= 0 && temp < MAXFLAGS)
+				returnValue = CCD->Pawns()->GetPawnFlag(temp);
 
-		return true;
-	}
-	else if(IS_METHOD(methodName, "atan"))
-	{
-		PARMCHECK(1);
-		returnValue = (float)atan((double)arguments[0].floatValue());
-
-		return true;
-	}
-// end change
-	// GetFlag
-	else if(IS_METHOD(methodName, "GetFlag"))
-	{
-		int temp = arguments[0].intValue();
-
-		if(temp >= 0 && temp < MAXFLAGS)
-			returnValue = CCD->Pawns()->GetPawnFlag(temp);
-
-		return true;
-	}
-	// MouseControlledPlayer(true/false)
-	else if(IS_METHOD(methodName, "MouseControlledPlayer"))
-	{
-		CCD->SetMouseControl(arguments[0].boolValue());
-		return true;
-	}
-	// GetEventState
-	else if (IS_METHOD(methodName, "GetEventState"))
-	{
-		PARMCHECK(1);
-		strcpy(param0, arguments[0].str());
-		returnValue = GetTriggerState(param0);
-		return true;
-	}
+			return true;
+		}
+	case RGF_SM_MOUSECONTROLLEDPLAYER:
+		{
+			// MouseControlledPlayer(true/false)
+			CCD->SetMouseControl(arguments[0].boolValue());
+			return true;
+		}
+	case RGF_SM_GETEVENTSTATE:
+		{
+			// GetEventState
+			PARMCHECK(1);
+			returnValue = GetTriggerState(arguments[0].str().c_str());
+			return true;
+		}
 // end change Nout
-	else
-	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt); // change simkin
+	case RGF_SM_ENDSCRIPT:
+		{
+			alive=false;
+			return true;
+		}
+	default:
+		{
+			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt); // change simkin
+		}
 	}
-
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1548,9 +1477,9 @@ void ScriptedObject::RemoveTriggerStack(TriggerStack *tpool)
 /* ------------------------------------------------------------------------------------ */
 //	AddAction
 /* ------------------------------------------------------------------------------------ */
-void ScriptedObject::AddAction(int Action, char *AnimName, float Speed, bool Flag,
+void ScriptedObject::AddAction(int Action, const char *AnimName, float Speed, bool Flag,
 							   float Value1, float Value2, float Value3, float Value4,
-							   char *Sound, char *Trigger)
+							   const char *Sound, const char *Trigger)
 {
 	ActionList	*pool;
 
@@ -1594,7 +1523,7 @@ void ScriptedObject::AddAction(int Action, char *AnimName, float Speed, bool Fla
 /* ------------------------------------------------------------------------------------ */
 //	AddEvent
 /* ------------------------------------------------------------------------------------ */
-void CPawn::AddEvent(char *Event, bool State)
+void CPawn::AddEvent(const char *Event, bool State)
 {
 	EventStack *pool, *temp;
 	pool = Events;
@@ -1627,7 +1556,7 @@ void CPawn::AddEvent(char *Event, bool State)
 /* ------------------------------------------------------------------------------------ */
 //	GetEventState
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::GetEventState(char *Event)
+bool CPawn::GetEventState(const char *Event)
 {
 	EventStack *pool, *temp;
 	pool = Events;
@@ -1648,7 +1577,7 @@ bool CPawn::GetEventState(char *Event)
 /* ------------------------------------------------------------------------------------ */
 //	CanSee
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone)
+bool CPawn::CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const char *Bone)
 {
 	geVec3d Pos, TgtPos, temp, In;
 	float dotProduct;
@@ -1684,7 +1613,7 @@ bool CPawn::CanSee(float FOV, geActor *Actor, geActor *TargetActor, char *Bone)
 /* ------------------------------------------------------------------------------------ */
 //	CanSeePoint
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *Bone)
+bool CPawn::CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const char *Bone)
 {
 	geVec3d Pos, temp, In;
 	float dotProduct;
@@ -1719,8 +1648,8 @@ bool CPawn::CanSeePoint(float FOV, geActor *Actor, geVec3d *TargetPoint, char *B
 /* ------------------------------------------------------------------------------------ */
 //	PlayerDistance
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor,
-						   const geVec3d &DeadPos, char *Bone)
+bool CPawn::PlayerDistance(float FOV, float distance, const geActor *Actor,
+						   const geVec3d &DeadPos, const char *Bone)
 {
 	bool flg = false;
 	bool fov = true;
@@ -1757,7 +1686,7 @@ bool CPawn::PlayerDistance(float FOV, float distance, geActor *Actor,
 //	if DistanceMode=true: 2 distances defined and within 2 screen widths (from entity2)
 //	if DistanceMode=false: 2 screen heights and within 2 screen widths (from entity2)
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
+bool CPawn::Area(const char *FromActorName, const char *ToActorName, bool DistanceMode,
 				 float MinScr, float MaxScr, float MinDist, float MaxDist,
 				 bool IgnoreX, bool IgnoreY, bool IgnoreZ)
 {
@@ -1785,7 +1714,7 @@ bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
 		}
 
 		GetCursorPos(&MousePos);
-		ShowCursor(TRUE);
+		CCD->MenuManager()->ShowCursor(true);
 		ScreenX = (int)MousePos.x - RectPos.x;
 		ScreenY = (int)MousePos.y - RectPos.y;
 		Pos.X = (float)ScreenX;
@@ -1801,18 +1730,9 @@ bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
 		else
 			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(FromActorName),&Pos);
 
-		geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-
-		if(ScreenPos.Z != 0.0f)
-		{
-			ScreenX = int(((CCD->Engine()->Width()/2) - 1) * (1.0f - (ScreenPos.X / ScreenPos.Z)));
-			ScreenY = int(((CCD->Engine()->Height()/2) - 1) * (1.0f + (ScreenPos.Y / ScreenPos.Z)));
-		}
-		else
-		{
-			ScreenX = 0;
-			ScreenY = 0;
-		}
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+		ScreenX = (int)ScreenPos.X;
+		ScreenY = (int)ScreenPos.Y;
 	}
 
 	if(!strcmp(ToActorName, ""))
@@ -1824,9 +1744,7 @@ bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
 
 	if(!stricmp(FromActorName, "Mouse")) //convert it to screen coordinates
 	{
-		geCamera_Transform(CCD->CameraManager()->Camera(), &ToPos, &ScreenPos);
-		ToPos.X= (float) int(((CCD->Engine()->Width()/2) - 1) * (1.0f - (ScreenPos.X / ScreenPos.Z)));
-		ToPos.Y = (float) int(((CCD->Engine()->Height()/2) - 1) * (1.0f + (ScreenPos.Y / ScreenPos.Z)));
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &ToPos, &ToPos);
 		ToPos.Z = 0.0f;
 	}
 
@@ -1845,10 +1763,7 @@ bool CPawn::Area(char *FromActorName, char *ToActorName, bool DistanceMode,
 		flg = ((ScreenY >= MinDist) && (ScreenY <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
 
 	if(flg)
-	{
-		ShowCursor(FALSE);
 		return true;
-	}
 	else
 		return false;
 }
@@ -3572,7 +3487,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				}
 
 				ActionList *pool, *temp;
-				float Gravity = 0.0f;
+				geVec3d Gravity = { 0.f, 0.f, 0.f };
 
 				switch(Object->Index->Action)
 				{
@@ -4443,7 +4358,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case GRAVITY:
 					if(Object->Actor)
 					{
-						Gravity = 0.0f;
+						Gravity.X = Gravity.Y = Gravity.Z = 0.0f;
 
 						if(Object->Index->Flag)
 							Gravity = CCD->Player()->GetGravity();
@@ -4721,6 +4636,164 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 					Object->ActionActive = false;
 					runflag = true;
 					break;
+				case ATTACHBLENDACTOR:
+					if(!EffectC_IsStringNull(Object->Index->TriggerName))
+					{
+						geActor *SlaveActor;
+						SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+						if(!SlaveActor)
+							break;
+
+						geActor *MasterActor;
+						if(!stricmp(Object->Index->TriggerName, "Player"))
+							MasterActor = CCD->Player()->GetActor();
+						else
+							MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
+
+						if(!MasterActor)
+							break;
+
+						CCD->ActorManager()->ActorAttachBlend(SlaveActor, MasterActor);
+					}
+					else
+					{
+						if(Object->Actor)
+						{
+							geActor *SlaveActor;
+							SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+
+							if(!SlaveActor)
+								break;
+
+							CCD->ActorManager()->ActorAttachBlend(SlaveActor, Object->Actor);
+
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case DETACHBLENDACTOR:
+					if(!EffectC_IsStringNull(Object->Index->TriggerName))
+					{
+						geActor *SlaveActor;
+						SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+						if(SlaveActor)
+							break;
+
+						geActor *MasterActor;
+						if(!stricmp(Object->Index->TriggerName, "Player"))
+							MasterActor = CCD->Player()->GetActor();
+						else
+							MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
+
+						if(!MasterActor)
+							break;
+
+						CCD->ActorManager()->DetachBlendFromActor(MasterActor, SlaveActor);
+					}
+					else
+					{
+						if(Object->Actor)
+						{
+							geActor *SlaveActor;
+							SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
+
+							if(!SlaveActor)
+								break;
+
+							CCD->ActorManager()->DetachBlendFromActor(Object->Actor, SlaveActor);
+						}
+					}
+					Object->ActionActive = false;
+					runflag = true;
+					break;
+				case ATTACHACCESSORY:
+					{
+						geActor *MasterActor = NULL;
+						std::string EntityName;
+						if(!EffectC_IsStringNull(Object->Index->TriggerName))
+						{
+							EntityName = Object->Index->TriggerName;
+							if(!stricmp(Object->Index->TriggerName, "Player"))
+								MasterActor = CCD->Player()->GetActor();
+							else
+								MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
+						}
+						else
+						{
+							EntityName = CCD->ActorManager()->GetEntityName(Object->Actor);
+							MasterActor = Object->Actor;
+						}
+
+						if(MasterActor)
+						{
+							unsigned int keynum = AccessoryCache.size();
+							if(keynum>0)
+							{
+								for(unsigned int i=0; i<keynum; i++)
+								{
+									if(!strcmp(AccessoryCache[i].Name.c_str(), Object->Index->AnimName))
+									{
+										geActor *SlaveActor;
+										SlaveActor = CCD->ActorManager()->SpawnActor(AccessoryCache[i].ActorName,
+											Object->Location, AccessoryCache[i].Rotation, "", "", NULL);
+
+										if(!SlaveActor)
+											break;
+
+										EntityName += Object->Index->AnimName;
+										CCD->ActorManager()->SetEntityName(SlaveActor, EntityName.c_str());
+
+										if(AccessoryCache[i].EnvironmentMapping)
+											SetEnvironmentMapping(	SlaveActor, true,
+																	AccessoryCache[i].AllMaterial,
+																	AccessoryCache[i].PercentMapping,
+																	AccessoryCache[i].PercentMaterial);
+
+										CCD->ActorManager()->ActorAttachBlend(SlaveActor, MasterActor);
+										break;
+									}
+								}
+							}
+						}
+						Object->ActionActive = false;
+						runflag = true;
+						break;
+					}
+				case DETACHACCESSORY:
+					{
+						geActor *MasterActor = NULL;
+						std::string EntityName;
+						if(!EffectC_IsStringNull(Object->Index->TriggerName))
+						{
+							EntityName = Object->Index->TriggerName;
+							if(!stricmp(Object->Index->TriggerName, "Player"))
+								MasterActor = CCD->Player()->GetActor();
+							else
+								MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
+						}
+						else
+						{
+							EntityName = CCD->ActorManager()->GetEntityName(Object->Actor);
+							MasterActor = Object->Actor;
+						}
+
+						if(MasterActor)
+						{
+							EntityName += Object->Index->AnimName;
+							geActor *SlaveActor = CCD->ActorManager()->GetByEntityName(EntityName.c_str());
+							if(SlaveActor)
+							{
+								CCD->ActorManager()->DetachBlendFromActor(MasterActor, SlaveActor);
+								CCD->ActorManager()->RemoveActor(SlaveActor);
+								geActor_Destroy(&SlaveActor);
+							}
+						}
+
+						Object->ActionActive = false;
+						runflag = true;
+						break;
+					}
 				case ALIGN:
 					if(Object->Actor)
 					{
@@ -4798,6 +4871,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 									{
 										CCD->ActorManager()->RemoveActor(Object->WeaponActor);
 										geActor_Destroy(&Object->WeaponActor);
+										Object->WeaponActor = NULL;
 									}
 
 									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName,

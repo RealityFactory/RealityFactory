@@ -12,23 +12,20 @@
 #ifndef __RGF_CFLOAT_H_
 #define __RGF_CFLOAT_H_
 
-#pragma warning( disable : 4068 )
-
-#include "genesis.h"
-
-// class declaration for CFloat
+/**
+ * @brief Class declaration for CFloat
+ */
 class CFloat : public CRGFComponent
 {
 public:
 	CFloat();
 	~CFloat();
 
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 private:
 };
-
 
 #endif
 

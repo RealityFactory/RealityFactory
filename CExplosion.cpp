@@ -40,18 +40,18 @@ CExplosionInit::CExplosionInit()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("*WARNING* Failed to open explosion.ini file", false);
+		CCD->ReportError("[WARNING] Failed to open explosion.ini file", false);
 		return;
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type;
 	int effptr = 0;
 	int expptr = 0;
 
 	while(KeyName != "")
 	{
-		string Ename, Vector;
+		std::string Ename, Vector;
 		char szName[64];
 
 		strcpy(Explosions[expptr].Name, KeyName.c_str());
@@ -242,8 +242,8 @@ CExplosionInit::~CExplosionInit()
 /* ------------------------------------------------------------------------------------ */
 //	AddExplosion
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position,
-								  geActor *theActor, char *theBone)
+void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
+								  geActor *theActor, const char *theBone)
 {
 	int i;
 
@@ -312,8 +312,8 @@ void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position,
 /* ------------------------------------------------------------------------------------ */
 //	AddExplosion
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position,
-								  geActor *theActor, char *theBone, bool Tilt)
+void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
+								  geActor *theActor, const char *theBone, bool Tilt)
 {
 	int i;
 
@@ -382,7 +382,7 @@ void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position,
 /* ------------------------------------------------------------------------------------ */
 //	AddExplosion
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position)
+void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position)
 {
 	int i;
 
@@ -434,7 +434,7 @@ void CExplosionInit::AddExplosion(char *Name, const geVec3d &Position)
 /* ------------------------------------------------------------------------------------ */
 //	UnAttach
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::UnAttach(geActor *Actor)
+void CExplosionInit::UnAttach(const geActor *Actor)
 {
 	DelayExp *pool, *temp;
 
@@ -718,7 +718,7 @@ CExplosion::~CExplosion()
 /* ------------------------------------------------------------------------------------ */
 // Tick
 /* ------------------------------------------------------------------------------------ */
-void CExplosion::Tick(float dwTicks)
+void CExplosion::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

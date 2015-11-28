@@ -12,15 +12,11 @@
 #ifndef __RGF_CHAOS_H_
 #define __RGF_CHAOS_H_
 
-#pragma warning( disable : 4068 )
-
-#include "genesis.h"
-
-// changed QD 12/15/05
-// #define GE_TWOPI		(GE_PI*2.0f)
 #define CHAOS_FORMAT	GE_PIXELFORMAT_32BIT_ARGB
 
-// class declaration for Chaos
+/**
+ * @brief Class declaration for Chaos
+ */
 class Chaos : public CRGFComponent
 {
 public:
@@ -31,7 +27,6 @@ public:
 
 private:
 };
-
 
 #endif
 

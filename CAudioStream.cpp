@@ -94,7 +94,7 @@ CAudioStream::~CAudioStream()
 //	..keep it looping.  Note that there is a slight delay between when
 //	..this call is made and when the playback starts.
 /* ------------------------------------------------------------------------------------ */
-int CAudioStream::Play(char *szFilename, bool fLoopIt, bool bProxy)
+int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return RGF_FAILURE;
@@ -154,7 +154,7 @@ int CAudioStream::Play(char *szFilename, bool fLoopIt, bool bProxy)
 	{
 		char szBug[256];
 
-		sprintf(szBug, "*WARNING* File %s - Line %d: Failed to play '%s'\n", __FILE__, __LINE__, szTemp);
+		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play '%s'\n", __FILE__, __LINE__, szTemp);
 		CCD->ReportError(szBug, false);
 
 		delete m_FileList[nSlot];
@@ -181,7 +181,7 @@ int CAudioStream::Play(char *szFilename, bool fLoopIt, bool bProxy)
 //
 //	Check to see if a specific streaming WAVE file is playing.
 /* ------------------------------------------------------------------------------------ */
-bool CAudioStream::IsPlaying(char *szFilename)
+bool CAudioStream::IsPlaying(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
@@ -208,7 +208,7 @@ bool CAudioStream::IsPlaying(char *szFilename)
 //	..the stream file, so there will be some delay before playback is
 //	..actually suspended.
 /* ------------------------------------------------------------------------------------ */
-int CAudioStream::Pause(char *szFilename)
+int CAudioStream::Pause(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
@@ -235,7 +235,7 @@ int CAudioStream::Pause(char *szFilename)
 //	..Note that there is a slight delay between this call and
 //	..when the file actually stops streaming.
 /* ------------------------------------------------------------------------------------ */
-int CAudioStream::Stop(char *szFilename)
+int CAudioStream::Stop(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
@@ -415,7 +415,7 @@ int CAudioStream::FindFreeSlot()
 //	Look through the list of streams we're playing and see if the
 //	..named file is one of 'em.
 /* ------------------------------------------------------------------------------------ */
-int CAudioStream::FindInList(char *szFile)
+int CAudioStream::FindInList(const char *szFile)
 {
 	for(int nTemp=0; nTemp<32; nTemp++)
 	{

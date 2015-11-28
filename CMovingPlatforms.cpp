@@ -12,7 +12,7 @@
 //	You only need the one, master include file.
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
 /* ------------------------------------------------------------------------------------ */
@@ -54,7 +54,7 @@ CMovingPlatforms::CMovingPlatforms()
 		if(!pPlatform->Model)
 		{
 			char szError[256];
-			sprintf(szError,"*WARNING* File %s - Line %d: %s: Missing Model\n",
+			sprintf(szError,"[WARNING] File %s - Line %d: %s: Missing Model\n",
 					__FILE__, __LINE__, pPlatform->szEntityName);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06
@@ -181,7 +181,7 @@ CMovingPlatforms::CMovingPlatforms()
 			if(!pPlatform->theSound)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to open audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
 						__FILE__, __LINE__, pPlatform->szEntityName, pPlatform->szSoundFile);
 				CCD->ReportError(szError, false);
 			}
@@ -272,32 +272,6 @@ CMovingPlatforms::CMovingPlatforms()
 /* ------------------------------------------------------------------------------------ */
 CMovingPlatforms::~CMovingPlatforms()
 {
-// changed QD 12/15/05 - code does nothing
-/*
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	if(m_PlatformCount == 0)
-		return;										// Don't waste time here
-
-	// Ok, check to see if there are platforms in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
-
-	if(!pSet)
-		return;									// No platforms, how odd...
-
-	// Ok, we have platforms somewhere.  Dig through 'em all and release
-	// ..the audio (if any).
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
-	}
-
-	//	Platforms cleaned up, bail.
-	return;
-*/
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -332,8 +306,8 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bo
 //	Handle a collision with a platform.
 /* ------------------------------------------------------------------------------------ */
 // changed RF063
-bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel, bool bTriggerCall,
-									   bool UseKey, geActor *theActor)
+bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTriggerCall,
+									   bool UseKey, const geActor *theActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -443,7 +417,7 @@ bool CMovingPlatforms::HandleCollision(geWorld_Model *pModel, bool bTriggerCall,
 //	..point at each other as a recursive call is NOT made if the platform
 //	..being triggered here is already triggered.
 /* ------------------------------------------------------------------------------------ */
-void CMovingPlatforms::TriggerNextPlatform(geWorld_Model *pModel, bool bTriggerCall)
+void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTriggerCall)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -527,7 +501,7 @@ void CMovingPlatforms::TriggerNextPlatform(geWorld_Model *pModel, bool bTriggerC
 //
 //	Return TRUE if the passed-in model is a platform, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CMovingPlatforms::IsAPlatform(geWorld_Model *theModel)
+bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -565,7 +539,7 @@ bool CMovingPlatforms::IsAPlatform(geWorld_Model *theModel)
 //	Increment animation times for all _animating_ platforms that aren't
 //	..in a collision state.
 /* ------------------------------------------------------------------------------------ */
-void CMovingPlatforms::Tick(float dwTicks)
+void CMovingPlatforms::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -794,7 +768,7 @@ int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CMovingPlatforms::LocateEntity(char *szName, void **pEntityData)
+int CMovingPlatforms::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

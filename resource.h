@@ -2,6 +2,9 @@
 // Microsoft Developer Studio generated include file.
 // Used by RealityFactory.rc
 //
+#ifndef IDC_STATIC
+#define IDC_STATIC                     (-1)     // all static controls
+#endif
 #define IDI_MAINFRAME                   101
 #define IDD_DRIVERDIALOG                101
 #define IDI_ICON1                       107

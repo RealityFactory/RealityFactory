@@ -45,17 +45,19 @@ typedef struct	Electric_BoltEffect
 
 } Electric_BoltEffect;
 
-// class declaration for CElectric
+/**
+ * @brief Class declaration for CElectric
+ */
 class CElectric : public CRGFComponent
 {
 public:
-	CElectric();	// Default constructor
+	CElectric();	///< Default constructor
 	~CElectric();
 
 	int Create(const geVec3d &Origin, ElectricBolt *pBolt);
-	geBoolean Tick(float dwTicks);
+	geBoolean Tick(geFloat dwTicks);
 	void CheckCollision(ElectricBolt *Bolt);
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 // start multiplayer
 	int SaveTo(FILE *SaveFD, bool type);

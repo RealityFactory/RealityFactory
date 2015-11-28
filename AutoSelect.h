@@ -21,6 +21,9 @@
 extern "C" {
 #endif
 
+/**
+ * @enum ModeList_DriverType
+ */
 typedef enum ModeList_DriverType
 {
 	MODELIST_TYPE_D3D_PRIMARY,
@@ -56,7 +59,7 @@ typedef	struct	ModeList
 
 
 void      ModeList_Destroy(ModeList *List);
-ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_DrvSys,
+ModeList *ModeList_Create(geEngine *Engine, int *ListLength, geDriver_System *m_DrvSys,
 						  geDriver *m_Driver, geDriver_Mode *m_Mode);
 
 void AutoSelect_SortDriverList(ModeList *DriverList, int ListLength);

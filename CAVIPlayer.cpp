@@ -40,7 +40,7 @@ CAVIPlayer::~CAVIPlayer()
 //	..same file.
 // Version 053
 /* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
+int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 {
 	DWORD ElapsedTime, OldTime, FrameTime = 0, TotalTime = 0;
 	int nFrameTotal = 0;
@@ -79,7 +79,7 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
-		CCD->ReportError("*WARNING* 8-bit video unsupported", false);
+		CCD->ReportError("[WARNING] 8-bit video unsupported", false);
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
@@ -419,7 +419,7 @@ int CAVIPlayer::Play(char *szFile, int XPos, int YPos, bool Center)
 //
 //	Open an AVI file for playback, but don't start playing it.
 /* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::Open(char *szFile)
+int CAVIPlayer::Open(const char *szFile)
 {
 	if((szFile == NULL) || (strlen(szFile) <= 0))
 		return RGF_FAILURE;					// Wrong!
@@ -440,7 +440,7 @@ int CAVIPlayer::Open(char *szFile)
 	if(AVIFileOpen(&m_pAviFile, szTemp, OF_READ, NULL))
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: Failed to open AVI file %s",
+		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open AVI file %s",
 				__FILE__, __LINE__, szTemp);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;					// Wrong again!
@@ -454,7 +454,7 @@ int CAVIPlayer::Open(char *szFile)
 	if(!DetermineAudioFormats() || !DetermineVideoFormats())
 	{
 		char szBug[256];
-		sprintf(szBug, "*WARNING* File %s - Line %d: AVI file %s has invalid/indeterminate formats",
+		sprintf(szBug, "[WARNING] File %s - Line %d: AVI file %s has invalid/indeterminate formats",
 				__FILE__, __LINE__, szFile);
 		CCD->ReportError(szBug, false);
 		Release();
@@ -469,7 +469,7 @@ int CAVIPlayer::Open(char *szFile)
 	if(CCD->GetLogging())
 	{
 		char szDebug[512];
-		sprintf(szDebug, "*INFO* Loaded %s", szFile);
+		sprintf(szDebug, "[INFO] Loaded %s", szFile);
 		CCD->ReportError(szDebug, false);
 	}
 
@@ -512,7 +512,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
-		CCD->ReportError("*WARNING* 8-bit video unsupported", false);
+		CCD->ReportError("[WARNING] 8-bit video unsupported", false);
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
@@ -680,7 +680,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
-		CCD->ReportError("*WARNING* 8-bit video unsupported", false);
+		CCD->ReportError("[WARNING] 8-bit video unsupported", false);
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
@@ -854,7 +854,7 @@ int CAVIPlayer::GetVideoStreamCount()
 //	..contents of the desired frame of the AVI file.  Note that this
 //	..affects every polygon surfaced with this bitmap!!!
 /* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::DisplayFrameTexture(int nFrame, char *szTextureName)
+int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 {
 	geBitmap *theBitmap;
 	int nAlignValue = 0;
@@ -895,7 +895,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, char *szTextureName)
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
-		CCD->ReportError("*WARNING* 8-bit video unsupported", false);
+		CCD->ReportError("[WARNING] 8-bit video unsupported", false);
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
@@ -1013,7 +1013,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, char *szTextureName)
 		nStatus = RGF_SUCCESS;
 	}
 
-	//	Ok, we (hopefully!) did it!  Let's bail out.
+	// Ok, we (hopefully!) did it!  Let's bail out.
 	return nStatus;
 }
 
@@ -1029,7 +1029,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, char *szTextureName)
 //	..after the "first frame" call.  It makes a SIGNIFICANT performance
 //	..improvement to do this.
 /* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::DisplayNextFrameTexture(char *szTextureName,	bool bFirstFrame)
+int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFrame)
 {
 	static int OldTime = 0;
 	static int FrameTime = 0;
@@ -1070,7 +1070,7 @@ int CAVIPlayer::DisplayNextFrameTexture(char *szTextureName,	bool bFirstFrame)
 		switch(pVideoFormat->bmiHeader.biBitCount)
 		{
 		case 8:
-			CCD->ReportError("*WARNING* 8-bit video unsupported", false);
+			CCD->ReportError("[WARNING] 8-bit video unsupported", false);
 			EndVideoRetrieve(0);
 			Close();
 			return RGF_FAILURE;
@@ -1384,7 +1384,7 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 
 	if(nStreamNum >= m_nNumAudioStreams)
 	{
-		CCD->ReportError("*WARNING* ExtractAudioStream: bad stream ID", false);
+		CCD->ReportError("[WARNING] ExtractAudioStream: bad stream ID", false);
 		return 0;
 	}
 
@@ -1395,7 +1395,7 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 	if(AVIStreamRead(pStream, nSamplePos, nSamples, pBuffer, nBufSize,
 		&nReadIn, &nSamplesIn))
 	{
-		CCD->ReportError("*WARNING* ExtractAudioStream: Error reading AVI stream\n", false);
+		CCD->ReportError("[WARNING] ExtractAudioStream: Error reading AVI stream\n", false);
 		return 0;
 	}
 
@@ -1583,7 +1583,7 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 	if(nError != 0)										// Error!  Sick out.
 	{
 		char szBug[128];
-		sprintf(szBug, "*WARNING* File %s - Line %d: Failed to create buffer for streamID %d\n",
+		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to create buffer for streamID %d\n",
 				__FILE__, __LINE__, nAudioStreamID);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;
@@ -1709,7 +1709,7 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 	if(hr != DS_OK)
 	{
-		CCD->ReportError("*WARNING* PumpWave: Failed to lock", false);
+		CCD->ReportError("[WARNING] PumpWave: Failed to lock", false);
 #ifdef MONDO_DEBUG
 		char szFrack[256];
 		sprintf(szFrack,"locktry for audiobuf bytes failed\n", nSize);

@@ -13,7 +13,8 @@
 #include "RabidFramework.h"
 
 // changed RF064
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change RF064
 
 #define ZDEPTH11 1.1f
@@ -43,7 +44,7 @@ CHeadsUpDisplay::CHeadsUpDisplay()
 /* ------------------------------------------------------------------------------------ */
 CHeadsUpDisplay::~CHeadsUpDisplay()
 {
-	//	Clean up all the HUD bitmaps
+	// Clean up all the HUD bitmaps
 	for(int nTemp=0; nTemp<MAXHUD; nTemp++)
 	{
 // changed Nout 12/15/05
@@ -79,8 +80,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 		if(!pSet)
 			return RGF_FAILURE;									// No setup?
 
-		//	Ok, get the setup information.  There should only be one, so
-		//	..we'll just take the first one we run into.
+		// Ok, get the setup information.  There should only be one, so
+		// ..we'll just take the first one we run into.
 		pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 
 		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
@@ -96,13 +97,13 @@ int CHeadsUpDisplay::LoadConfiguration()
 	if(!AttrFile.ReadFile())
 	{
 		char szAttrError[256];
-		sprintf(szAttrError, "*ERROR* File %s - Line %d: Failed to open HUD config file '%s'",
+		sprintf(szAttrError, "[ERROR] File %s - Line %d: Failed to open HUD config file '%s'",
 				__FILE__, __LINE__, HudInfo);
 		CCD->ReportError(szAttrError, false);
 		return RGF_FAILURE;
 	}
 
-	//	Something is there, so let's clean up all the HUD bitmaps to prepare
+	// Something is there, so let's clean up all the HUD bitmaps to prepare
 	for(int nTemp=0; nTemp<MAXHUD; nTemp++)
 	{
 // Note QD: TPool handles these bitmaps
@@ -126,9 +127,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
+	std::string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
-	string Tname, Talpha;
+	std::string Tname, Talpha;
 // changed RF063
 	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
 	bool valid, active, modify, flipindicator; // changed QD 07/15/06
@@ -515,7 +516,7 @@ int CHeadsUpDisplay::Deactivate()
 //
 //	Remove the named element from the HUD display list.
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::RemoveElement(char *szAttributeName)
+int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
 {
 	for(int nItem=0; nItem<MAXHUD; nItem++)
 	{
@@ -547,7 +548,7 @@ int CHeadsUpDisplay::RemoveElement(char *szAttributeName)
 /* ------------------------------------------------------------------------------------ */
 //	ActivateElement
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::ActivateElement(char *szAttributeName, bool activate)
+int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 {
 // changed RF063
 	bool flag = false;
@@ -573,7 +574,7 @@ int CHeadsUpDisplay::ActivateElement(char *szAttributeName, bool activate)
 /* ------------------------------------------------------------------------------------ */
 //	SetElementLeftTop
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementLeftTop(char *szAttributeName, int nLeft, int nTop)
+int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop)
 {
 	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{
@@ -591,7 +592,7 @@ int CHeadsUpDisplay::SetElementLeftTop(char *szAttributeName, int nLeft, int nTo
 /* ------------------------------------------------------------------------------------ */
 //	SetElementILeftTop
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementILeftTop(char *szAttributeName, int iLeftOffset, int iTopOffset)
+int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset)
 {
 	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{
@@ -609,7 +610,7 @@ int CHeadsUpDisplay::SetElementILeftTop(char *szAttributeName, int iLeftOffset, 
 /* ------------------------------------------------------------------------------------ */
 //	SetElementDisplayTime
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementDisplayTime(char *szAttributeName, float DisplayTime)
+int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float DisplayTime)
 {
 	for(int nItem = 0; nItem < MAXHUD; nItem++)
 	{

@@ -13,7 +13,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -217,7 +218,7 @@ bool qxEffectBase::AttachWorldBmp(char* pBmpName)
 	QXASSERT(!EffectC_IsStringNull(pBmpName));
 
 	//Genesis doesn't want extension
-	string s = pBmpName;
+	std::string s = pBmpName;
 	if(s.find(".bmp") != -1) s.erase(s.find(".bmp"));
 	m_pBmp = geWorld_GetBitmapByName(CCD->Engine()->World(), s.c_str());
 	QXASSERT(m_pBmp);

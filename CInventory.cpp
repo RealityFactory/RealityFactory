@@ -11,7 +11,7 @@
 // Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -30,6 +30,8 @@ CInventory::CInventory()
 	highlight	= NULL;
 	arrowr		= NULL;
 	arrowl		= NULL;
+	arrowrhighlight = NULL;
+	arrowlhighlight = NULL;
 	active		= false;
 	Selected	= 1;
 	MaxItems	= 0;
@@ -47,14 +49,19 @@ CInventory::CInventory()
 	keyright	= false;
 // end change QD
 
+	LoadInventoryIni();
+}
+
+void CInventory::LoadInventoryIni()
+{
 	CIniFile AttrFile("Inventory.ini");
 
 	if(!AttrFile.ReadFile())
 		return;
 
-	string KeyName = AttrFile.FindFirstKey();
+	std::string KeyName = AttrFile.FindFirstKey();
 	char szName[128], szAlpha[128];
-	string Tname, Talpha;
+	std::string Tname, Talpha;
 	geBitmap_Info	BmpInfo;
 	bool flag = false;
 
@@ -70,8 +77,8 @@ CInventory::CInventory()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				Tname = "inventory\\"+Tname;
-				Talpha = "inventory\\"+Talpha;
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
 				background = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -94,8 +101,8 @@ CInventory::CInventory()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				Tname = "inventory\\"+Tname;
-				Talpha = "inventory\\"+Talpha;
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
 				highlight = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -116,13 +123,34 @@ CInventory::CInventory()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				Tname = "inventory\\"+Tname;
-				Talpha = "inventory\\"+Talpha;
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
 				arrowr = CreateFromFileAndAlphaNames(szName, szAlpha);
 
 				if(!arrowr)
+					flag = false;
+			}
+			else
+				flag = false;
+
+			Tname = AttrFile.GetValue(KeyName, "arrowrhighlight");
+
+			if(Tname != "" && flag)
+			{
+				Talpha = AttrFile.GetValue(KeyName, "arrowralpha");
+
+				if(Talpha == "")
+					Talpha = Tname;
+
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
+				arrowrhighlight = CreateFromFileAndAlphaNames(szName, szAlpha);
+
+				if(!arrowrhighlight)
 					flag = false;
 			}
 			else
@@ -137,8 +165,8 @@ CInventory::CInventory()
 				if(Talpha == "")
 					Talpha = Tname;
 
-				Tname = "inventory\\"+Tname;
-				Talpha = "inventory\\"+Talpha;
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
 				arrowl = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -148,15 +176,36 @@ CInventory::CInventory()
 			}
 			else
 				flag = false;
+
+			Tname = AttrFile.GetValue(KeyName, "arrowlhighlight");
+
+			if(Tname != "" && flag)
+			{
+				Talpha = AttrFile.GetValue(KeyName, "arrowlalpha");
+
+				if(Talpha == "")
+					Talpha = Tname;
+
+				Tname = "inventory\\" + Tname;
+				Talpha = "inventory\\" + Talpha;
+				strcpy(szName, Tname.c_str());
+				strcpy(szAlpha, Talpha.c_str());
+				arrowlhighlight = CreateFromFileAndAlphaNames(szName, szAlpha);
+
+				if(!arrowlhighlight)
+					flag = false;
+			}
+			else
+				flag = false;
 // end change QD
 
 			if(!flag)
 			{
-				CCD->ReportError("*ERROR* Missing Data in Inventory\n", false);
+				CCD->ReportError("[ERROR] Missing Data in Inventory\n", false);
 				CCD->ShutdownLevel();
 				delete CCD;
 				CCD = NULL;
-				MessageBox(NULL, "Missing Data in Inventory","Inventory Setup", MB_OK);
+				MessageBox(NULL, "Missing Data in Inventory", "Inventory Setup", MB_OK);
 				exit(-333);
 			}
 
@@ -172,6 +221,8 @@ CInventory::CInventory()
 
 			arrowrx = AttrFile.GetValueI(KeyName, "arrowrx");
 			arrowlx = AttrFile.GetValueI(KeyName, "arrowlx");
+			arrowry = AttrFile.GetValueI(KeyName, "arrowry");
+			arrowly = AttrFile.GetValueI(KeyName, "arrowly");
 // end change QD
 
 			font = AttrFile.GetValueI(KeyName, "font");
@@ -197,6 +248,8 @@ CInventory::CInventory()
 // change QD
 			geEngine_AddBitmap(CCD->Engine()->Engine(), arrowr);
 			geEngine_AddBitmap(CCD->Engine()->Engine(), arrowl);
+			geEngine_AddBitmap(CCD->Engine()->Engine(), arrowrhighlight);
+			geEngine_AddBitmap(CCD->Engine()->Engine(), arrowlhighlight);
 // end change QD
 		}
 		else
@@ -277,8 +330,8 @@ CInventory::CInventory()
 						if(Talpha == "")
 							Talpha = Tname;
 
-						Tname = "inventory\\"+Tname;
-						Talpha = "inventory\\"+Talpha;
+						Tname = "inventory\\" + Tname;
+						Talpha = "inventory\\" + Talpha;
 						strcpy(szName, Tname.c_str());
 						strcpy(szAlpha, Talpha.c_str());
 						Main[MaxMain]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -330,8 +383,8 @@ CInventory::CInventory()
 						if(Talpha == "")
 							Talpha = Tname;
 
-						Tname = "inventory\\"+Tname;
-						Talpha = "inventory\\"+Talpha;
+						Tname = "inventory\\" + Tname;
+						Talpha = "inventory\\" + Talpha;
 						strcpy(szName, Tname.c_str());
 						strcpy(szAlpha, Talpha.c_str());
 						SubInv[WEAPONINV][MaxWeapons]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -400,8 +453,8 @@ CInventory::CInventory()
 							if(Talpha == "")
 								Talpha = Tname;
 
-							Tname = "inventory\\"+Tname;
-							Talpha = "inventory\\"+Talpha;
+							Tname = "inventory\\" + Tname;
+							Talpha = "inventory\\" + Talpha;
 							strcpy(szName, Tname.c_str());
 							strcpy(szAlpha, Talpha.c_str());
 							SubInv[ITEMINV][MaxItems]->Graphic = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -418,8 +471,8 @@ CInventory::CInventory()
 						if(Talpha == "")
 							Talpha = Tname;
 
-						Tname = "inventory\\"+Tname;
-						Talpha = "inventory\\"+Talpha;
+						Tname = "inventory\\" + Tname;
+						Talpha = "inventory\\" + Talpha;
 						strcpy(szName, Tname.c_str());
 						strcpy(szAlpha, Talpha.c_str());
 						SubInv[ITEMINV][MaxItems]->Image = CreateFromFileAndAlphaNames(szName, szAlpha);
@@ -489,11 +542,25 @@ CInventory::~CInventory()
 		arrowr = NULL;
 	}
 
+	if(arrowrhighlight != NULL)
+	{
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), arrowrhighlight);
+		geBitmap_Destroy(&arrowrhighlight);
+		arrowrhighlight = NULL;
+	}
+
 	if(arrowl != NULL)
 	{
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), arrowl);
 		geBitmap_Destroy(&arrowl);
 		arrowl = NULL;
+	}
+
+	if(arrowlhighlight != NULL)
+	{
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), arrowlhighlight);
+		geBitmap_Destroy(&arrowlhighlight);
+		arrowlhighlight = NULL;
 	}
 
 	for(int index0=0; index0<4; index0++)
@@ -812,27 +879,25 @@ void CInventory::Blit(int menu)
 		geEngine_DrawBitmap(CCD->Engine()->Engine(), Bmp, NULL, x, y);
 	}
 
-	// Draw highlight
-	if(Selected < 3)
-		x = backgroundx+leftx;
-	else if(Selected > 5)
-		x = backgroundx+rightx;
-	else
-		x = backgroundx+middlex;
+	// Draw highlight (if not on arrow)
+	if(Selected != -1 && Selected != 9)
+	{
+		if(Selected < 3)
+			x = backgroundx+leftx;
+		else if(Selected > 5)
+			x = backgroundx+rightx;
+		else
+			x = backgroundx+middlex;
 
-	if(Selected == 0 || Selected == 3 || Selected == 6)
-		y = backgroundy+topy;
-	else if(Selected == -1 || Selected == 1 || Selected == 4 || Selected == 7 || Selected== 9)
-		y = backgroundy+middley;
-	else
-		y = backgroundy+bottomy;
+		if(Selected == 0 || Selected == 3 || Selected == 6)
+			y = backgroundy+topy;
+		else if(Selected == 1 || Selected == 4 || Selected == 7)
+			y = backgroundy+middley;
+		else
+			y = backgroundy+bottomy;
 
-	if(Selected == -1)
-		x = backgroundx+arrowlx;
-	else if(Selected == 9)
-		x = backgroundx+arrowrx;
-
-	geEngine_DrawBitmap(CCD->Engine()->Engine(), highlight, NULL, x, y);
+		geEngine_DrawBitmap(CCD->Engine()->Engine(), highlight, NULL, x, y);
+	}
 
 	int cat = GetCatagory(Selected+page*9, menu);
 
@@ -850,8 +915,23 @@ void CInventory::Blit(int menu)
 	// Draw arrows, only if needed
 	if((menu == WEAPONINV && MaxWeapons > 9) || (menu == ITEMINV && MaxItems > 9))
 	{
-		geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowr, NULL, backgroundx+arrowrx, backgroundy+middley);
-		geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowl, NULL, backgroundx+arrowlx, backgroundy+middley);
+		if(Selected == 9)
+		{
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowrhighlight, NULL, backgroundx+arrowrx, backgroundy+arrowry);
+		}
+		else
+		{
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowr, NULL, backgroundx+arrowrx, backgroundy+arrowry);
+		}
+
+		if(Selected == -1)
+		{
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowlhighlight, NULL, backgroundx+arrowlx, backgroundy+arrowly);
+		}
+		else
+		{
+			geEngine_DrawBitmap(CCD->Engine()->Engine(), arrowl, NULL, backgroundx+arrowlx, backgroundy+arrowly);
+		}
 	}
 }
 

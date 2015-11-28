@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skInterpreterNode.cpp,v 1.8 2003/11/01 10:17:27 sdw Exp $
+  $Id: skInterpreterNode.cpp,v 1.9 2004/12/17 21:31:17 sdw Exp $
 */
 #include "skInterpreter.h"
 #ifdef EXECUTE_PARSENODES
@@ -35,10 +35,10 @@ skLITERAL_STRING(Failed," failed\n");
 skLITERAL_STRING(OnMiddle," on ");
 skLITERAL_STRING(CannotFindField,"Cannot find field ");
 //---------------------------------------------------
-bool skInterpreter::executeStats(skStackFrame& frame,skStatListNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeStats(skStackFrame& frame,skStatListNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   if (n){
     for (USize i=0;i<n->numStats();i++){
       skStatNode * pstat=n->getStat(i);
@@ -49,7 +49,8 @@ bool skInterpreter::executeStats(skStackFrame& frame,skStatListNode * n,skRValue
       frame.setLineNum(pstat->getLineNum());
       int stat_type=pstat->getType();
       if (m_StatementStepper)
-        bRet=(m_StatementStepper->statementExecuted(frame,stat_type)==false);
+        if (m_StatementStepper->statementExecuted(frame,stat_type)==false)
+          bRet=SRC_RETURN;
       if (bRet==false){
         switch(stat_type){
         case s_If:
@@ -58,6 +59,8 @@ bool skInterpreter::executeStats(skStackFrame& frame,skStatListNode * n,skRValue
           bRet=executeWhileStat(frame,(skWhileNode*)pstat,r);break;
         case s_Return:
           bRet=executeReturnStat(frame,(skReturnNode*)pstat,r);break;
+        case s_Break:
+          bRet=executeBreakStat(frame,(skBreakNode*)pstat,r);break;
         case s_Assign:
           executeAssignStat(frame,(skAssignNode*)pstat);break;
         case s_Method:
@@ -70,12 +73,13 @@ bool skInterpreter::executeStats(skStackFrame& frame,skStatListNode * n,skRValue
           bRet=executeForStat(frame,(skForNode*)pstat,r);break;
         }
         // break out if stop has been passed back
-        if (bRet)
+        if (bRet!=SRC_CONTINUE)
           break;
       }
     }
     if (m_StatementStepper)
-      bRet=(m_StatementStepper->compoundStatementExecuted(frame)==false);
+      if (m_StatementStepper->compoundStatementExecuted(frame)==false)
+        bRet=SRC_RETURN;
   }
   return bRet;
 }
@@ -194,19 +198,25 @@ void  skInterpreter::makeMethodCall(skStackFrame& frame,skRValue& robject,const 
   }
 }
 //---------------------------------------------------
-bool skInterpreter::executeReturnStat(skStackFrame& frame,skReturnNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeReturnStat(skStackFrame& frame,skReturnNode * n,skRValue& r)
   //---------------------------------------------------
 {
   if (n->getExpr())
     r=evaluate(frame,n->getExpr());
-  return true;
+  return SRC_RETURN;
 }
 //---------------------------------------------------
-bool skInterpreter::executeWhileStat(skStackFrame& frame,skWhileNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeBreakStat(skStackFrame& frame,skBreakNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
-  while(bRet==false){
+  return SRC_BREAK;
+}
+//---------------------------------------------------
+skInterpreter::StatementReturnCode skInterpreter::executeWhileStat(skStackFrame& frame,skWhileNode * n,skRValue& r)
+  //---------------------------------------------------
+{
+  StatementReturnCode bRet=SRC_CONTINUE;
+  while(bRet==SRC_CONTINUE){
 #ifndef EXCEPTIONS_DEFINED
     if (frame.getContext().getError().getErrorCode()!=skScriptError::NONE)
       break;
@@ -218,13 +228,16 @@ bool skInterpreter::executeWhileStat(skStackFrame& frame,skWhileNode * n,skRValu
     }else
       break;
   }
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeIfStat(skStackFrame& frame,skIfNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeIfStat(skStackFrame& frame,skIfNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skRValue rExpr;
   SAVE_VARIABLE(rExpr);
   rExpr=evaluate(frame,n->getExpr());
@@ -244,10 +257,10 @@ bool skInterpreter::executeIfStat(skStackFrame& frame,skIfNode * n,skRValue& r)
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeSwitchStat(skStackFrame& frame,skSwitchNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeSwitchStat(skStackFrame& frame,skSwitchNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skRValue expr;
   SAVE_VARIABLE(expr);
   expr=evaluate(frame,n->getExpr());
@@ -282,10 +295,10 @@ bool skInterpreter::executeSwitchStat(skStackFrame& frame,skSwitchNode * n,skRVa
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeForEachStat(skStackFrame& frame,skForEachNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeForEachStat(skStackFrame& frame,skForEachNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skString checked_id;
   SAVE_VARIABLE(checked_id);
      checked_id=checkIndirectId(frame,n->getId());
@@ -302,7 +315,7 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skForEachNode * n,skR
       SAVE_POINTER(iterator);
       skRValue value;
       SAVE_VARIABLE(value);
-      while ((iterator->next(value) && bRet==false)){
+      while ((iterator->next(value) && bRet==SRC_CONTINUE)){
 #ifndef EXCEPTIONS_DEFINED
         if (frame.getContext().getError().getErrorCode()!=skScriptError::NONE)
           break;
@@ -321,13 +334,16 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skForEachNode * n,skR
     runtimeError(frame,skSTR("Cannot apply foreach to a non-executable object\n"));
   RELEASE_VARIABLE(expr);
   RELEASE_VARIABLE(checked_id);
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeForStat(skStackFrame& frame,skForNode * n,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeForStat(skStackFrame& frame,skForNode * n,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skString checked_id;
   SAVE_VARIABLE(checked_id);
   checked_id=checkIndirectId(frame,n->getId());
@@ -355,7 +371,7 @@ bool skInterpreter::executeForStat(skStackFrame& frame,skForNode * n,skRValue& r
           addLocalVariable(frame.getVars(),checked_id,i);
           if (n->getStats()){
             bRet=executeStats(frame,n->getStats(),r);
-            if (bRet)
+            if (bRet!=SRC_CONTINUE)
               break;
           }
         }
@@ -372,7 +388,7 @@ bool skInterpreter::executeForStat(skStackFrame& frame,skForNode * n,skRValue& r
             addLocalVariable(frame.getVars(),checked_id,i);
             if (n->getStats()){
               bRet=executeStats(frame,n->getStats(),r);
-              if (bRet)
+              if (bRet!=SRC_CONTINUE)
                 break;
             }
           }
@@ -385,6 +401,9 @@ bool skInterpreter::executeForStat(skStackFrame& frame,skForNode * n,skRValue& r
   RELEASE_VARIABLE(end_expr);
   RELEASE_VARIABLE(start_expr);
   RELEASE_VARIABLE(checked_id);
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------

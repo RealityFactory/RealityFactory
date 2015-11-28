@@ -11,13 +11,16 @@
 #ifndef __RGF_CCHANGE_H_
 #define __RGF_CCHANGE_H_
 
+/**
+ * @brief CChangeAttribute handles ChangeAttribute entities
+ */
 class CChangeAttribute : public CRGFComponent
 {
 public:
 	CChangeAttribute();
 	~CChangeAttribute();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
 	bool GetActive()  { return Active; }

@@ -9,7 +9,8 @@
 
 #include "RabidFramework.h"				// The One True Include File
 // changed RF063
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Default constructor
@@ -32,7 +33,7 @@ CCameraManager::CCameraManager()
 
 	if(!EngineCamera)
 	{
-		CCD->ReportError("*ERROR* CCameraManager.cpp: geCamera_Create failed", false);
+		CCD->ReportError("[ERROR] CCameraManager.cpp: geCamera_Create failed", false);
 		return;
 	}
 
@@ -86,12 +87,12 @@ void CCameraManager::Defaults()
 	CIniFile AttrFile("camera.ini");
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("*ERROR* Failed to open camera.ini file", false);
+		CCD->ReportError("[ERROR] Failed to open camera.ini file", false);
 		exit(-1);
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type;
 
 	while(KeyName != "")
 	{
@@ -388,7 +389,7 @@ void CCameraManager::CancelZoom()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CCameraManager::Tick(float dwTicks)
+void CCameraManager::Tick(geFloat dwTicks)
 {
 	int zoomamt = CCD->Weapons()->ZoomAmount();
 
@@ -776,7 +777,7 @@ int CCameraManager::GetCameraOffset(geVec3d *theTranslation, geVec3d *theRotatio
 //	Binds the camera to a specific bone on a specific actor, other than that,
 //	..is just like BindToActor().  The camera offset is used here.
 /* ------------------------------------------------------------------------------------ */
-int CCameraManager::BindToActorBone(geActor *theBindActor, char *szBoneName)
+int CCameraManager::BindToActorBone(geActor *theBindActor, const char *szBoneName)
 {
 	theActor = theBindActor;
 	strcpy(szActorBone, szBoneName);
@@ -1121,8 +1122,8 @@ void CCameraManager::CameraRotX(bool direction)
 		{
 			m_cameraX += 2.0f;
 
-			if(m_cameraX > (89.99f-(CameraOffsetRotation.X*GE_180OVERPI)))	// /0.0174532925199433f)))
-				m_cameraX = 89.99f-(CameraOffsetRotation.X*GE_180OVERPI);	// /0.0174532925199433f));
+			if(m_cameraX > (89.99f-(CameraOffsetRotation.X*GE_180OVERPI)))
+				m_cameraX = 89.99f-(CameraOffsetRotation.X*GE_180OVERPI);
 		}
 		else
 		{

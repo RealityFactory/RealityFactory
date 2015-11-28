@@ -12,8 +12,9 @@
 //	Include the One True Header File
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geSound_Def *SPool_Sound(const char *SName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -74,7 +75,7 @@ CParticleSystem::CParticleSystem()
 // end change RF064
 		{
 			char szBug[256];
-			sprintf(szBug, "*WARNING* File %s - Line %d: %s: Failed to load particle map '%s'\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to load particle map '%s'\n",
 					__FILE__, __LINE__, pProxy->szEntityName, pProxy->szTexture);
 			CCD->ReportError(szBug, false);
 			return;												// Pretty serious problem.
@@ -98,7 +99,7 @@ CParticleSystem::CParticleSystem()
 				if(Create(&psHandle, pProxy->nStyle, pmHandle, pProxy->origin,
 					pProxy->Scale, pProxy->szEntityName) != RGF_SUCCESS)
 				{
-					CCD->ReportError("*WARNING* Failed to create particle system from proxy", false);
+					CCD->ReportError("[WARNING] Failed to create particle system from proxy", false);
 					return;							// Way bad serious error
 				}
 
@@ -123,7 +124,7 @@ CParticleSystem::CParticleSystem()
 				break;
 			}
 		default:
-			CCD->ReportError("*WARNING* Illegal particle system style", false);
+			CCD->ReportError("[WARNING] Illegal particle system style", false);
 			return;											// Another serious error.
 		}
 
@@ -151,7 +152,7 @@ CParticleSystem::CParticleSystem()
 /* ------------------------------------------------------------------------------------ */
 //	CreateSound
 /* ------------------------------------------------------------------------------------ */
-int CParticleSystem::CreateSound(const geVec3d &Origin, char *SoundFile, float radius)
+int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, float radius)
 {
 	int effect = -1;
 	Snd Sound;
@@ -165,7 +166,7 @@ int CParticleSystem::CreateSound(const geVec3d &Origin, char *SoundFile, float r
 	if(!(Sound.SoundDef))
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to open audio file '%s'\n",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to open audio file '%s'\n",
 				__FILE__, __LINE__, SoundFile);
 		CCD->ReportError(szError, false);
 	}
@@ -221,7 +222,7 @@ CParticleSystem::~CParticleSystem()
 //	..Note that, if the ALPHA map is not specified, the SAME FILE is
 //	..used both for alpha and color.
 /* ------------------------------------------------------------------------------------ */
-int CParticleSystem::LoadParticleMap(int *pmHandle, char *szPrimary, char *szAlpha)
+int CParticleSystem::LoadParticleMap(int *pmHandle, const char *szPrimary, const char *szAlpha)
 {
 	int nHandle = (-1), nTemp;
 
@@ -233,8 +234,6 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, char *szPrimary, char *szAlp
 	if(EffectC_IsStringNull(szPrimary) == GE_TRUE)
 		return RGF_FAILURE;		//if you want to have a default bmp file you can do it here
 
-	if(EffectC_IsStringNull(szAlpha ) == GE_TRUE)
-		szAlpha = szPrimary;
 // end change RF064
 
 	// Ok, first find a free handle
@@ -251,12 +250,19 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, char *szPrimary, char *szAlp
 		return RGF_FAILURE;							// Didn't work!
 
 	// We have a handle, let's load the files.
-	bmpList[nHandle] = TPool_Bitmap(szPrimary, szAlpha, NULL, NULL);
+	if(EffectC_IsStringNull(szAlpha) == GE_TRUE)
+	{
+		bmpList[nHandle] = TPool_Bitmap(szPrimary, szPrimary, NULL, NULL);
+	}
+	else
+	{
+		bmpList[nHandle] = TPool_Bitmap(szPrimary, szAlpha, NULL, NULL);
+	}
 
 	if(bmpList[nHandle] == NULL)
 	{
 		char szBug[200];
-		sprintf(szBug, "*WARNING* File %s - Line %d: Failed to open particlemap file '%s'",
+		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open particlemap file '%s'",
 				__FILE__, __LINE__, szPrimary);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;
@@ -276,7 +282,7 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, char *szPrimary, char *szAlp
 //	successfully.  Note that all systems are created NOT RUNNING and HIDDEN.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
-							const geVec3d &emitterPos, float Scale, char *szName)
+							const geVec3d &emitterPos, float Scale, const char *szName)
 {
 	int nHandle = -1;
 
@@ -294,7 +300,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, SHOCKWAVE", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, SHOCKWAVE", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -324,7 +330,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, FOUNTAIN", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, FOUNTAIN", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -354,7 +360,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, RAIN", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, RAIN", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -384,7 +390,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, SPHERE", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, SPHERE", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -415,7 +421,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, COLUMN", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, COLUMN", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -446,7 +452,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, EXPLOSIVE ARRAY", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, EXPLOSIVE ARRAY", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -476,7 +482,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed: SpiralArm", false);
+				CCD->ReportError("[WARNING] PSAlloc failed: SpiralArm", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -506,7 +512,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed: SpiralArm", false);
+				CCD->ReportError("[WARNING] PSAlloc failed: SpiralArm", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -536,7 +542,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, GUARDIAN EFFECT", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, GUARDIAN EFFECT", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -566,7 +572,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, IMPLODESPHERE", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, IMPLODESPHERE", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -596,7 +602,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed, IMPLODE_SHOCKWAVE", false);
+				CCD->ReportError("[WARNING] PSAlloc failed, IMPLODE_SHOCKWAVE", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -626,7 +632,7 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 			nHandle = Allocate();
 			if(nHandle < 0)
 			{
-				CCD->ReportError("*WARNING* PSAlloc failed: SpiralArm", false);
+				CCD->ReportError("[WARNING] PSAlloc failed: SpiralArm", false);
 				return RGF_FAILURE;
 			}
 			// Set particle system defaults
@@ -1008,7 +1014,7 @@ int CParticleSystem::SetMaxSize(int psHandle, int nMaxParticles)
 //
 //	Increment time for all the currently running particle systems.
 /* ------------------------------------------------------------------------------------ */
-void CParticleSystem::Tick(float dwTicks)
+void CParticleSystem::Tick(geFloat dwTicks)
 {
 	for(int nTemp=0; nTemp<50; nTemp++)
 	{
@@ -1182,7 +1188,7 @@ theParticle *CParticleSystem::Spawn(int nHandle, const GE_RGBA &theColor,
 
 	if(theNewParticle == NULL)
 	{
-		CCD->ReportError("*WARNING* Particle Spawn: out of memory", false);
+		CCD->ReportError("[WARNING] Particle Spawn: out of memory", false);
 	    return NULL;								// Uh-oh, major problem.
 	}
 
@@ -1247,7 +1253,7 @@ theParticle *CParticleSystem::ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 
 	if(theNewParticle == NULL)
 	{
-		CCD->ReportError("*WARNING* Reverse Particle Spawn: out of memory", false);
+		CCD->ReportError("[WARNING] Reverse Particle Spawn: out of memory", false);
 		return NULL;								// Uh-oh, major problem.
 	}
 
@@ -2190,7 +2196,7 @@ void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CParticleSystem::LocateEntity(char *szName, void **pEntityData)
+int CParticleSystem::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

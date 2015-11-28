@@ -5,10 +5,8 @@
 
 #include "genesis.h"
 #include <ram.h>
-// changed QD 2007
 #include <memory>
 #include <string>
-// end change
 #include <malloc.h>
 #include <stdlib.h>
 #include <math.h>
@@ -22,7 +20,7 @@
 #ifndef __RGF_PROCUTIL_H_
 #define __RGF_PROCUTIL_H_
 
-geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo,void *FmBits,
+geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits,
 								  void *ToBits, int radius, geBoolean wrap);
 geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A);
 geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap,char **pParams);

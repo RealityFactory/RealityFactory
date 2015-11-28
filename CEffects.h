@@ -23,7 +23,9 @@ typedef struct ExpItem
 
 } ExpItem;
 
-
+/**
+ * @brief CPreEffect handles predefined effects
+ */
 class CPreEffect : public CRGFComponent
 {
 public:

@@ -8,9 +8,10 @@
 
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 // changed QD 06/26/04
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change
 
 #include "Simkin\\skScriptedExecutable.h"
@@ -117,12 +118,14 @@ ScriptedObject::~ScriptedObject()
 		CCD->RemoveScriptedObject(CCD->ActorManager()->GetEntityName(Actor));//change scripting
 		CCD->ActorManager()->RemoveActor(Actor);
 		geActor_Destroy(&Actor);
+		Actor = NULL;
 	}
 
 	if(WeaponActor)
 	{
 		CCD->ActorManager()->RemoveActor(WeaponActor);
 		geActor_Destroy(&WeaponActor);
+		WeaponActor = NULL;
 	}
 
 	if(Icon)
@@ -239,19 +242,20 @@ CPawn::CPawn()
 	if(pSet)
 	{
 		LoadConv(CCD->MenuManager()->GetConvtxts());
-		Cache.resize(0);
+		BitmapCache.resize(0);
 		WeaponCache.resize(0);
+		AccessoryCache.resize(0);
 
 		AttrFile.SetPath("pawn.ini");
 
 		if(!AttrFile.ReadFile())
 		{
-			CCD->ReportError("*ERROR* Failed to open Pawn.ini file\n", false);
+			CCD->ReportError("[ERROR] Failed to open Pawn.ini file\n", false);
 			return;
 		}
 
-		string KeyName = AttrFile.FindFirstKey();
-		string Type, Vector;
+		std::string KeyName = AttrFile.FindFirstKey();
+		std::string Type, Vector;
 
 		geBitmap_Info	BmpInfo;
 		char szName[64];
@@ -459,6 +463,7 @@ CPawn::CPawn()
 
 				CCD->ActorManager()->RemoveActor(Actor);
 				geActor_Destroy(&Actor);
+				Actor = NULL;
 				WeaponCache[keynum].Scale = (float)AttrFile.GetValueF(KeyName, "actorscale");
 				geVec3d FillColor = {0.0f, 0.0f, 0.0f};
 				geVec3d AmbientColor = {0.0f, 0.0f, 0.0f};
@@ -512,6 +517,85 @@ CPawn::CPawn()
 
 					WeaponCache[keynum].PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
 					WeaponCache[keynum].PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+				}
+			}
+			else if(Type == "accessory")
+			{
+				AccessoryCache.resize(AccessoryCache.size()+1);
+				int keynum = AccessoryCache.size()-1;
+				AccessoryCache[keynum].Name = KeyName;
+
+				Type = AttrFile.GetValue(KeyName, "actorname");
+				strcpy(AccessoryCache[keynum].ActorName, Type.c_str());
+
+				Vector = AttrFile.GetValue(KeyName, "actorrotation");
+
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					AccessoryCache[keynum].Rotation = Extract(szName);
+					AccessoryCache[keynum].Rotation.X *= GE_PIOVER180;
+					AccessoryCache[keynum].Rotation.Y *= GE_PIOVER180;
+					AccessoryCache[keynum].Rotation.Z *= GE_PIOVER180;
+				}
+
+				geActor *Actor = CCD->ActorManager()->SpawnActor(AccessoryCache[keynum].ActorName,
+					AccessoryCache[keynum].Rotation, AccessoryCache[keynum].Rotation, "", "", NULL);
+
+				CCD->ActorManager()->RemoveActor(Actor);
+				geActor_Destroy(&Actor);
+				Actor = NULL;
+				AccessoryCache[keynum].Scale = (float)AttrFile.GetValueF(KeyName, "actorscale");
+				geVec3d FillColor = {0.0f, 0.0f, 0.0f};
+				geVec3d AmbientColor = {0.0f, 0.0f, 0.0f};
+
+				Vector = AttrFile.GetValue(KeyName, "fillcolor");
+
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					FillColor = Extract(szName);
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
+
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					AmbientColor = Extract(szName);
+				}
+
+				AccessoryCache[keynum].FillColor.r = FillColor.X;
+				AccessoryCache[keynum].FillColor.g = FillColor.Y;
+				AccessoryCache[keynum].FillColor.b = FillColor.Z;
+				AccessoryCache[keynum].FillColor.a = 255.0f;
+				AccessoryCache[keynum].AmbientColor.r = AmbientColor.X;
+				AccessoryCache[keynum].AmbientColor.g = AmbientColor.Y;
+				AccessoryCache[keynum].AmbientColor.b = AmbientColor.Z;
+				AccessoryCache[keynum].AmbientColor.a = 255.0f;
+
+				AccessoryCache[keynum].AmbientLightFromFloor = true;
+
+				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+
+				if(Type == "false")
+					AccessoryCache[keynum].AmbientLightFromFloor = false;
+
+				AccessoryCache[keynum].EnvironmentMapping = false;
+
+				Type = AttrFile.GetValue(KeyName, "environmentmapping");
+
+				if(Type == "true")
+				{
+					AccessoryCache[keynum].EnvironmentMapping = true;
+					AccessoryCache[keynum].AllMaterial = false;
+					Type = AttrFile.GetValue(KeyName, "allmaterial");
+
+					if(Type == "true")
+						AccessoryCache[keynum].AllMaterial = true;
+
+					AccessoryCache[keynum].PercentMapping = (float)AttrFile.GetValueF(KeyName, "percentmapping");
+					AccessoryCache[keynum].PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
 				}
 			}
 
@@ -631,6 +715,7 @@ CPawn::CPawn()
 
 							CCD->ActorManager()->RemoveActor(Actor);
 							geActor_Destroy(&Actor);
+							Actor = NULL;
 
 							// scale
 							Object->Scale = (float)AttrFile.GetValueF(KeyName, "actorscale");
@@ -694,7 +779,7 @@ CPawn::CPawn()
 								Object->ActorAlpha = (float)AttrFile.GetValueF(KeyName, "actoralpha");
 
 							// gravity
-							Object->Gravity = 0.0f;
+							Object->Gravity.X = Object->Gravity.Y = Object->Gravity.Z = 0.0f;
 							Type = AttrFile.GetValue(KeyName, "subjecttogravity");
 							if(Type == "true")
 								Object->Gravity = CCD->Player()->GetGravity();
@@ -775,7 +860,7 @@ CPawn::CPawn()
 								if(Object->Icon == (geBitmap *)NULL)
 								{
 									char szError[256];
-									sprintf(szError, "*WARNING* CPawn: Failed to create icon image %s", szName);
+									sprintf(szError, "[WARNING] CPawn: Failed to create icon image %s", szName);
 									CCD->ReportError(szError, false);
 								}
 								else
@@ -924,19 +1009,19 @@ CPawn::~CPawn()
 	}
 // end change
 
-	unsigned int keynum = Cache.size();
+	unsigned int keynum = BitmapCache.size();
 
 	if(keynum > 0)
 	{
 		for(unsigned int i=0; i<keynum; i++)
 		{
 			// changed QD 07/15/06
-			if(Cache[i].Bitmap)
+			if(BitmapCache[i].Bitmap)
 			{
 				// changed QD 12/15/05
-				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cache[i].Bitmap);
+				geEngine_RemoveBitmap(CCD->Engine()->Engine(), BitmapCache[i].Bitmap);
 				// end change
-				geBitmap_Destroy(&(Cache[i].Bitmap));
+				geBitmap_Destroy(&(BitmapCache[i].Bitmap));
 			}
 			// end change
 		}
@@ -983,7 +1068,7 @@ CPawn::~CPawn()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CPawn::Tick(float dwTicks)
+void CPawn::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -1080,7 +1165,7 @@ void CPawn::Tick(float dwTicks)
 /* ------------------------------------------------------------------------------------ */
 //	HandleCollision
 /* ------------------------------------------------------------------------------------ */
-int CPawn::HandleCollision(geActor *pActor, geActor *theActor, bool Gravity)
+int CPawn::HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -1323,14 +1408,14 @@ void CPawn::Spawn(void *Data)
 //
 //	Preload scripts (sound files)
 /* ------------------------------------------------------------------------------------ */
-void CPawn::PreLoad(char *filename)
+void CPawn::PreLoad(const char *filename)
 {
 // changed Nout 12/15/05
 	//FILE *fdInput = NULL;
 	geVFile *fdInput = NULL;
 // end change
 	char szInputString[1024] = {""};
-	string str;
+	std::string str;
 	int i, j;
 	char file[256];
 
@@ -1345,7 +1430,7 @@ void CPawn::PreLoad(char *filename)
 	if(!CCD->OpenRFFile(&fdInput, kScriptFile, filename, GE_VFILE_OPEN_READONLY))
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to open file: '%s'",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to open file: '%s'",
 			__FILE__, __LINE__, filename);
 		CCD->ReportError(szError, false);
 		return;
@@ -1371,7 +1456,7 @@ void CPawn::PreLoad(char *filename)
 
 			while(!(str[j] == '"' || str[j] == '[') && j >= 0)
 			{
-				j--;// -= 1;
+				j--;
 			}
 
 			if(j >= 0)
@@ -1415,18 +1500,7 @@ void CPawn::ShowText(int Nr)
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
 			}
 
-			geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-
-			if(ScreenPos.Z != 0.0f)
-			{
-				ScreenPos.X = (float)(CCD->Engine()->Width()/2 -1) * (1.0f - ScreenPos.X / ScreenPos.Z);
-				ScreenPos.Y = (float)(CCD->Engine()->Height()/2 -1) * (1.0f + ScreenPos.Y / ScreenPos.Z);
-			}
-			else
-			{
-				ScreenPos.X = 0.0f;
-				ScreenPos.Y = 0.0f;
-			}
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 		}
 		else
 		{
@@ -1593,17 +1667,17 @@ void CPawn::FillScreenArea(int Nr)
 /* ------------------------------------------------------------------------------------ */
 //	GetCache
 /* ------------------------------------------------------------------------------------ */
-geBitmap *CPawn::GetCache(char *Name)
+geBitmap *CPawn::GetCache(const char *Name)
 {
-	int keynum = Cache.size();
+	int keynum = BitmapCache.size();
 
 	if(keynum > 0)
 	{
 		for(int i=0; i<keynum; i++)
 		{
-			if(!strcmp(Cache[i].Name.c_str(), Name))
+			if(!strcmp(BitmapCache[i].Name.c_str(), Name))
 			{
-				return Cache[i].Bitmap;
+				return BitmapCache[i].Bitmap;
 			}
 		}
 	}
@@ -1619,7 +1693,7 @@ geBitmap *CPawn::GetCache(char *Name)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CPawn::LocateEntity(char *szName, void **pEntityData)
+int CPawn::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -1649,7 +1723,7 @@ int CPawn::LocateEntity(char *szName, void **pEntityData)
 /* ------------------------------------------------------------------------------------ */
 //	ParmCheck
 /* ------------------------------------------------------------------------------------ */
-void CPawn::ParmCheck(int Entries, int Desired, char *Order, char *szName, const skString &methodname)
+void CPawn::ParmCheck(int Entries, int Desired, const char *Order, const char *szName, const skString &methodname)
 {
 	if(Entries >= Desired)
 		return;
@@ -1657,7 +1731,7 @@ void CPawn::ParmCheck(int Entries, int Desired, char *Order, char *szName, const
 	char param0[128];
 	strcpy(param0, methodname);
 	char szError[256];
-	sprintf(szError, "*ERROR* Incorrect # of parameters in command '%s' in Script '%s'  Order '%s'",
+	sprintf(szError, "[ERROR] Incorrect # of parameters in command '%s' in Script '%s'  Order '%s'",
 			param0, szName, Order);
 	CCD->ReportError(szError, false);
 	CCD->ShutdownLevel();

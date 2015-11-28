@@ -8,23 +8,23 @@
 
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 // changed Nout 12/15/05
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change
 
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 
-//not commented, from picklses newsource.zip, nouts soundconversation...
 // #define BACKCLEAR	GE_TRUE
 #define BACKCLEAR	GE_FALSE
 
 /* ------------------------------------------------------------------------------------ */
 //	ScriptConverse class
 /* ------------------------------------------------------------------------------------ */
-ScriptedConverse::ScriptedConverse(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //update simkin
+ScriptedConverse::ScriptedConverse(const char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //update simkin
 {
 	M_CameraRect.Left	= 0;
 	M_CameraRect.Right	= CCD->Engine()->Width() - 1;
@@ -42,10 +42,10 @@ ScriptedConverse::ScriptedConverse(char *fileName) : skScriptedExecutable(fileNa
 	rIcon				= NULL;
 	ReplyMenuBar		= NULL;
 
-	SpeachWidth = 0;
-	SpeachHeight = 0;
-	ReplyWidth = 0;
-	ReplyHeight = 0;
+	SpeachWidth		= 0;
+	SpeachHeight	= 0;
+	ReplyWidth		= 0;
+	ReplyHeight		= 0;
 
 
 	for(int i=0; i<9; i++)
@@ -138,39 +138,35 @@ bool ScriptedConverse::setValue(const skString &fieldName, const skString &attri
 bool ScriptedConverse::method(const skString &methodName, skRValueArray &arguments,
 							  skRValue &returnValue, skExecutableContext &ctxt)
 {
-	char param0[128];
-	int param1;
-	bool param2;
+	char cparam0[128];
+	char cparam1[128];
+	bool bparam0;
+	int iparam0;
 
-// not commented, from picklses newsource.zip, nouts soundconversation...
-	char param3[128];
-
-	param0[0] = '\0';
-
-// not commented, from picklses newsource.zip, nouts soundconversation...
-	param3[0] = '\0';
+	cparam0[0] = '\0';
+	cparam1[0] = '\0';
 
 	if(IS_METHOD(methodName, "random"))
 	{
-		if(arguments[0].floatValue() <= arguments[1].floatValue())
-			returnValue = (int)EffectC_Frand(arguments[0].floatValue(), arguments[1].floatValue());
+		if(arguments[0].intValue() < arguments[1].intValue())
+			returnValue = EffectC_rand(arguments[0].intValue(), arguments[1].intValue());
 		else
-			returnValue = (int)EffectC_Frand(arguments[1].floatValue(), arguments[0].floatValue());
+			returnValue = EffectC_rand(arguments[1].intValue(), arguments[0].intValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Speak"))
 	{
-		strcpy(param0, arguments[0].str());
-		Text = CCD->Pawns()->GetText(param0);
-		strcpy(param0, arguments[1].str());
+		strcpy(cparam0, arguments[0].str());
+		Text = CCD->Pawns()->GetText(cparam0);
+		strcpy(cparam0, arguments[1].str());
 
-		if(!EffectC_IsStringNull(param0))
+		if(!EffectC_IsStringNull(cparam0))
 		{
 			char music[256];
 			strcpy(music, CCD->GetDirectory(kAudioStreamFile));
 			strcat(music, "\\");
-			strcat(music, param0);
+			strcat(music, cparam0);
 			m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
 			m_Streams = new StreamingAudio(m_dsPtr);
 
@@ -188,20 +184,20 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	}
 	else if(IS_METHOD(methodName, "Reply"))
 	{
-		strcpy(param0, arguments[1].str());
-		param1 = arguments[0].intValue();
+		strcpy(cparam0, arguments[1].str());
+		iparam0 = arguments[0].intValue();
 
-		if(param1 > 9 || param1 < 1)
+		if(iparam0 > 9 || iparam0 < 1)
 			return true;
 
-		ostringstream oss;
-		oss << param1 << " : ";
-		Reply[param1-1] = oss.str();
-		Reply[param1-1] += CCD->Pawns()->GetText(param0);
-		TrimRight(Reply[param1-1]);
-		TrimLeft(Reply[param1-1]);
+		std::ostringstream oss;
+		oss << iparam0 << " : ";
+		Reply[iparam0-1] = oss.str();
+		Reply[iparam0-1] += CCD->Pawns()->GetText(cparam0);
+		TrimRight(Reply[iparam0-1]);
+		TrimLeft(Reply[iparam0-1]);
 
-		replyflg[param1-1] = true;
+		replyflg[iparam0-1] = true;
 		return true;
 	}
 // Nout begin 20-8-2003
@@ -220,52 +216,52 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 // End add Nout 23/09/2003
 	else if(IS_METHOD(methodName, "SoundReply"))
 	{
-		strcpy(param0, arguments[1].str());
-		param1 = arguments[0].intValue();
-		strcpy(param3, arguments[2].str());
+		strcpy(cparam0, arguments[1].str());
+		iparam0 = arguments[0].intValue();
+		strcpy(cparam1, arguments[2].str());
 
-		if(param1 > 9 || param1 < 1)
+		if(iparam0 > 9 || iparam0 < 1)
 			return true;
 
-		ostringstream oss;
-		oss << param1 << " : ";
-		Reply[param1-1] = oss.str();
-		Reply[param1-1] += CCD->Pawns()->GetText(param0);
-		TrimRight(Reply[param1-1]);
-		TrimLeft(Reply[param1-1]);
+		std::ostringstream oss;
+		oss << iparam0 << " : ";
+		Reply[iparam0-1] = oss.str();
+		Reply[iparam0-1] += CCD->Pawns()->GetText(cparam0);
+		TrimRight(Reply[iparam0-1]);
+		TrimLeft(Reply[iparam0-1]);
 
-		ReplySoundFileName[param1-1] = param3;
-		TrimRight(ReplySoundFileName[param1-1]);
-		TrimLeft(ReplySoundFileName[param1-1]);
+		ReplySoundFileName[iparam0-1] = cparam1;
+		TrimRight(ReplySoundFileName[iparam0-1]);
+		TrimLeft(ReplySoundFileName[iparam0-1]);
 
-		replyflg[param1-1] = true;
+		replyflg[iparam0-1] = true;
 
 // changed Nout 12/15/05
 		ShowSelectedReply = true;
 
 		if(arguments.entries() > 7)
 		{
-			param1 = arguments[3].intValue();
-			if(param1>=0)
-				ReplyX = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0>=0)
+				ReplyX = iparam0;
 
-			param1 = arguments[4].intValue();
-			if(param1>=0)
-				ReplyY = param1;
+			iparam0 = arguments[4].intValue();
+			if(iparam0>=0)
+				ReplyY = iparam0;
 
-			param1 = arguments[5].intValue();
+			iparam0 = arguments[5].intValue();
 
-			if(param1>=0)
-				MyReplyWidth = param1;
+			if(iparam0>=0)
+				MyReplyWidth = iparam0;
 
-			param1 = arguments[6].intValue();
+			iparam0 = arguments[6].intValue();
 
-			if(param1>=0)
-				MyReplyHeight = param1;
+			if(iparam0>=0)
+				MyReplyHeight = iparam0;
 
-			param1 = arguments[7].intValue();
-			if(param1>=0)
-				ReplyFont = param1;
+			iparam0 = arguments[7].intValue();
+			if(iparam0>=0)
+				ReplyFont = iparam0;
 		}
 // end change
 
@@ -278,28 +274,28 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	// Numbers can be added to the conversation.txt strings itself
 	else if(IS_METHOD(methodName, "MenuReply"))
 	{
-		param1 = arguments[0].intValue();
-		param1--;
-		strcpy(param0, arguments[1].str());
-		strcpy(param3, arguments[2].str());
+		iparam0 = arguments[0].intValue();
+		iparam0--;
+		strcpy(cparam0, arguments[1].str());
+		strcpy(cparam1, arguments[2].str());
 
-		if(param1 > 8 || param1 < 0)
+		if(iparam0 > 8 || iparam0 < 0)
 			return true;
 
 		if(arguments[1].str() == "")
-			Reply[param1] = " ";
+			Reply[iparam0] = " ";
 		else
 		{
-			Reply[param1] = CCD->Pawns()->GetText(param0);
-			TrimRight(Reply[param1]);
-			TrimLeft(Reply[param1]);
+			Reply[iparam0] = CCD->Pawns()->GetText(cparam0);
+			TrimRight(Reply[iparam0]);
+			TrimLeft(Reply[iparam0]);
 		}
 
-	    ReplySoundFileName[param1] = param3;
-		TrimRight(ReplySoundFileName[param1]);
-		TrimLeft(ReplySoundFileName[param1]);
+		ReplySoundFileName[iparam0] = cparam1;
+		TrimRight(ReplySoundFileName[iparam0]);
+		TrimLeft(ReplySoundFileName[iparam0]);
 
-	    replyflg[param1] = true;
+	    replyflg[iparam0] = true;
 		MouseReply = true;
 		ShowSelectedReply = false;
 
@@ -309,43 +305,47 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 			GifY = arguments[9].intValue();
 		}
 		else
-			GifX = GifY = 0;
+		{
+			CCD->Pawns()->GetGifXY(&GifX, &GifY);
+		}
 
+		ReplyGifNr[iparam0] = -1;
 		if(arguments.entries() > 7)
-			ReplyGifNr[param1] = arguments[7].intValue();
-		else
-			ReplyGifNr[param1] = -1;
+		{
+			if(arguments[7].intValue() > 0 && arguments[7].intValue() < 10)
+				ReplyGifNr[iparam0] = arguments[7].intValue();
+		}
 
 		if(arguments.entries() > 6)
 		{
-			strcpy(param0, arguments[5].str());
+			strcpy(cparam0, arguments[5].str());
 
-			if(strlen(param0) > 0)
+			if(strlen(cparam0) > 0)
 			{
-				geBitmap *Icon = CCD->Pawns()->GetCache(param0);
+				geBitmap *Icon = CCD->Pawns()->GetCache(cparam0);
 
 				if(Icon)
 				{
 					ReplyMenuBar = Icon;
-					strcpy(param0, arguments[6].str());
+					strcpy(cparam0, arguments[6].str());
 
-					if(strlen(param0) > 0)
+					if(strlen(cparam0) > 0)
 					{
-						geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
+						geBitmap *TIcon = CCD->Pawns()->GetCache(cparam0);
 
 						if(TIcon)
 							geBitmap_SetAlpha(Icon, TIcon);
 						else
 						{
-							sprintf(param3, "*WARNING* Order %s, MenuReplyBarAlphaBitmap: AlphaBitmap %s not found", Order, param0);
-							CCD->ReportError(param3, false);
+							sprintf(cparam1, "[WARNING] Order %s, MenuReplyBarAlphaBitmap: AlphaBitmap %s not found", Order, cparam0);
+							CCD->ReportError(cparam1, false);
 						}
 					}
 				}
 				else
 				{
-					sprintf(param3, "*WARNING* Order %s, MenuReplyBarBitmap: Bitmap %s not found", Order, param0);
-					CCD->ReportError(param3, false);
+					sprintf(cparam1, "[WARNING] Order %s, MenuReplyBarBitmap: Bitmap %s not found", Order, cparam0);
+					CCD->ReportError(cparam1, false);
 				}
 			}
 			else
@@ -356,16 +356,16 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 
 		if(arguments.entries() > 4)
 		{
-			param1 = arguments[4].intValue();
-			if(param1 >= 0)
-				ReplyMenuFont = param1;
+			iparam0 = arguments[4].intValue();
+			if(iparam0 >= 0)
+				ReplyMenuFont = iparam0;
 		}
 
 		if(arguments.entries() > 3)
 		{
-			param1 = arguments[3].intValue();
-			if(param1 >= 0)
-				ReplyFont = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0 >= 0)
+				ReplyFont = iparam0;
 		}
 
 		return true;
@@ -387,51 +387,47 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	// SoundConversation(CharProSec, ShowHUD)
 	else if(IS_METHOD(methodName, "SoundConversation"))
 	{
-		param2 = true;
+		bparam0 = true;
 
 		if(arguments.entries() > 1)
-			param2 = arguments[1].boolValue();
+			bparam0 = arguments[1].boolValue();
 
-		returnValue = DoSoundConversation(arguments[0].intValue(), param2);
-		//returnValue = DoSoundConversation(arguments[0].intValue());
+		returnValue = DoSoundConversation(arguments[0].intValue(), bparam0);
 		return true;
 	}
 	// AttachSpeakToPawn(PawnName, OffsetX, OffsetY, TextAreaWidth, TextAreaHeight, TextFont)
-	// Attaches the speak window + text to a defined pawn. Use as PawnName "Player" to itentify the player
+	// Attaches the speak window + text to a defined pawn. Use "Player" as PawnName to identify the player
 	else if(IS_METHOD(methodName, "AttachSpeakToPawn"))
 	{
 		geVec3d Pos, ScreenPos;
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
-		if(strlen(param0) > 0)
+		if(strlen(cparam0) > 0)
 		{
-			if(!stricmp(param0, "Player"))	//arguments[0].str()=="Player")
+			if(!stricmp(cparam0, "Player"))
 				Pos = CCD->Player()->Position();
 			else
-				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(cparam0), &Pos);
 
-			geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-
-			ScreenPos.X = (float)(CCD->Engine()->Width()/2 - 1) * (1.0f - ScreenPos.X / ScreenPos.Z);
-			ScreenPos.Y = (float)(CCD->Engine()->Height()/2 - 1) * (1.0f + ScreenPos.Y / ScreenPos.Z);
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 			ScreenPos.Z = 0.0f;
 
 			SpeachX = int(ScreenPos.X) + arguments[1].intValue();
 			SpeachY = int(ScreenPos.Y) + arguments[2].intValue();
 
-			param1 = arguments[3].intValue();
-			if(param1 >= 0)
-				SpeachWidth = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0 >= 0)
+				SpeachWidth = iparam0;
 
-			param1 = arguments[4].intValue();
-			if(param1 >= 0)
-				SpeachHeight = param1;
+			iparam0 = arguments[4].intValue();
+			if(iparam0 >= 0)
+				SpeachHeight = iparam0;
 
-			param1 = arguments[5].intValue();
-			if(param1 >= 0)
-				SpeachFont = param1;
+			iparam0 = arguments[5].intValue();
+			if(iparam0 >= 0)
+				SpeachFont = iparam0;
 
-			DrawBackground = false; //enforce no speak background
+			DrawBackground = false; // enforce no speak background
 		}
 
 		return true;
@@ -441,38 +437,35 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	else if(IS_METHOD(methodName, "AttachReplyToPawn"))
 	{
 		geVec3d Pos, ScreenPos;
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
-		if(strlen(param0) > 0)
+		if(strlen(cparam0) > 0)
 		{
-			if(!stricmp(param0, "Player"))	//arguments[0].str()=="Player")
+			if(!stricmp(cparam0, "Player"))
 				Pos = CCD->Player()->Position();
 			else
-				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
+				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(cparam0), &Pos);
 
-			geCamera_Transform(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-
-			ScreenPos.X = (float)(CCD->Engine()->Width()/2 -1) * (1.0f - ScreenPos.X / ScreenPos.Z);
-			ScreenPos.Y = (float)(CCD->Engine()->Height()/2 -1) * (1.0f + ScreenPos.Y / ScreenPos.Z);
+			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 			ScreenPos.Z = 0.0f;
 
 			ReplyX = int(ScreenPos.X) + arguments[1].intValue();
 			ReplyY = int(ScreenPos.Y) + arguments[2].intValue();
 
-			param1 = arguments[3].intValue();
-			if(param1 >= 0)
-				MyReplyWidth = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0 >= 0)
+				MyReplyWidth = iparam0;
 
-			param1 = arguments[4].intValue();
-			if(param1 >= 0)
-				MyReplyHeight = param1;
+			iparam0 = arguments[4].intValue();
+			if(iparam0 >= 0)
+				MyReplyHeight = iparam0;
 
-			param1 = arguments[5].intValue();
-			if(param1 >= 0)
-				ReplyFont = param1;
+			iparam0 = arguments[5].intValue();
+			if(iparam0 >= 0)
+				ReplyFont = iparam0;
 
-			ReplyInSpeakWindow = false; //enforce the reply in the reply window, not in the speak window
-			DrawrBackground = false; //enforce to show no reply background
+			ReplyInSpeakWindow = false; // enforce the reply in the reply window, not in the speak window
+			DrawrBackground = false; // enforce to show no reply background
 		}
 
 		return true;
@@ -485,30 +478,30 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		char delim[] = ":";
 		char *result = NULL;
 		bool MultiLoop = false;
-		bool MultiReply = false; //Indicates if a multiple reply menu is created or not
+		bool MultiReply = false; // Indicates if a multiple reply menu is created or not
 		Index = arguments[0].intValue() - 1;
 
 		if(Index < 0 || !replyflg[Index])
 		{
-			sprintf(param3, "GetMouseClick with ReplyNr=%d: no Reply() or SoundReply() command found before this command with ReplyNumber=%d", Index);
-			MessageBox(NULL, param3, "Error", MB_OK);
+			sprintf(cparam1, "GetMouseClick with ReplyNr=%d: no Reply() or SoundReply() command found before this command with ReplyNumber=%d", Index);
+			MessageBox(NULL, cparam1, "Error", MB_OK);
 			return true;
 		}
 
-		strcpy(param0, arguments[1].str());
-		geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
+		strcpy(cparam0, arguments[1].str());
+		geBitmap *TIcon = CCD->Pawns()->GetCache(cparam0);
 
 		if(TIcon)
 			BGBitmap[Index] = TIcon;
 		else
 		{
 			BGBitmap[Index] = NULL;
-			sprintf(param3, "Script Command GetMouseClick: Bitmap %s not found", param0);
-			CCD->ReportError(param3, false);
+			sprintf(cparam1, "Script Command GetMouseClick: Bitmap %s not found", cparam0);
+			CCD->ReportError(cparam1, false);
 		}
 
-		strcpy(param0, arguments[2].str());
-		result = strtok(param0, delim);
+		strcpy(cparam0, arguments[2].str());
+		result = strtok(cparam0, delim);
 		MouseRepPosX[Index] = atoi(result);
 		result = strtok(NULL, delim);
 		if(result != NULL)
@@ -516,8 +509,8 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		else
 			dPosX = 0;
 
-		strcpy(param0, arguments[3].str());
-		result = strtok(param0, delim);
+		strcpy(cparam0, arguments[3].str());
+		result = strtok(cparam0, delim);
 		MouseRepPosY[Index] = atoi(result);
 		result = strtok(NULL, delim);
 		if(result != NULL)
@@ -528,27 +521,27 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		MouseRepWidth[Index] = arguments[4].intValue();
 		MouseRepHeight[Index] = arguments[5].intValue();
 
-		strcpy(param0, arguments[6].str());
-		if(!EffectC_IsStringNull(param0))
-			SoundAtClick[Index] = param0;
+		strcpy(cparam0, arguments[6].str());
+		if(!EffectC_IsStringNull(cparam0))
+			SoundAtClick[Index] = cparam0;
 		else
 			SoundAtClick[Index] = "";
 
-		strcpy(param0, arguments[7].str());
-		if(!EffectC_IsStringNull(param0))
-			SoundMouseOver[Index] = param0;
+		strcpy(cparam0, arguments[7].str());
+		if(!EffectC_IsStringNull(cparam0))
+			SoundMouseOver[Index] = cparam0;
 		else
 			SoundMouseOver[Index] = "";
 
-		strcpy(param0, arguments[8].str());
-		geBitmap *SIcon = CCD->Pawns()->GetCache(param0);
+		strcpy(cparam0, arguments[8].str());
+		geBitmap *SIcon = CCD->Pawns()->GetCache(cparam0);
 		if(SIcon)
 			MouseOverBitmap[Index] = SIcon;
 		else
 		{
 			MouseOverBitmap[Index] = NULL;
-			sprintf(param3, "*WARNING* Script Command GetMouseClick: bitmap %s not found", param0);
-			CCD->ReportError(param3, false);
+			sprintf(cparam1, "[WARNING] Script Command GetMouseClick: bitmap %s not found", cparam0);
+			CCD->ReportError(cparam1, false);
 		}
 
 		MouseMenu = true;
@@ -562,11 +555,11 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	// SoundCustomSpeakBackground(SpeakBackgroundBitmap, SpeakBackgroundX, SpeakBackgroundY, SpeakX, SpeakY, SpeakWidth, SpeakHeight, SpeakFont);
     else if(IS_METHOD(methodName, "SoundCustomSpeakBackground"))
 	{
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
-		if(strlen(param0) > 0) //if no .BMP name, then use no background
+		if(strlen(cparam0) > 0) //if no .BMP name, then use no background
 		{
-			geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
+			geBitmap *TIcon = CCD->Pawns()->GetCache(cparam0);
 
 			if(TIcon)
 			{
@@ -577,44 +570,44 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 			}
 			else
 			{
-				sprintf(param3, "*WARNING* %s: The bitmap name may not include capitals!", param0);
-				CCD->ReportError(param3, false);
+				sprintf(cparam1, "[WARNING] %s: The bitmap name may not include capitals!", cparam0);
+				CCD->ReportError(cparam1, false);
 			}
 		}
 		else
 			DrawBackground = false;
 
-		param1 = arguments[1].intValue();
-		BackgroundX = param1;
-		param1 = arguments[2].intValue();
-		BackgroundY = param1;
+		iparam0 = arguments[1].intValue();
+		BackgroundX = iparam0;
+		iparam0 = arguments[2].intValue();
+		BackgroundY = iparam0;
 
 // changed Nout 12/15/05
 		if(arguments.entries() > 4)
 		{
-			param1 = arguments[3].intValue();
-			if(param1 >= 0)
-				SpeachX = param1;
-			param1 = arguments[4].intValue();
-			if(param1 >= 0)
-				SpeachY = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0 >= 0)
+				SpeachX = iparam0;
+			iparam0 = arguments[4].intValue();
+			if(iparam0 >= 0)
+				SpeachY = iparam0;
 		}
 
 		if(arguments.entries() > 6)
 		{
-			param1 = arguments[5].intValue();
-			if(param1 >= 0)
-				SpeachWidth = param1;
-			param1 = arguments[6].intValue();
-			if(param1 >= 0)
-				SpeachHeight = param1;
+			iparam0 = arguments[5].intValue();
+			if(iparam0 >= 0)
+				SpeachWidth = iparam0;
+			iparam0 = arguments[6].intValue();
+			if(iparam0 >= 0)
+				SpeachHeight = iparam0;
 		}
 
 		if(arguments.entries() > 7)
 		{
-			param1 = arguments[7].intValue();
-			if(param1 >= 0)
-				SpeachFont = param1;
+			iparam0 = arguments[7].intValue();
+			if(iparam0 >= 0)
+				SpeachFont = iparam0;
 		}
 // end change
 
@@ -626,11 +619,11 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	// SoundCustomReplyBackground(ReplyBackgroundBitmap, ReplyBackgroundX, ReplyBackgroundY, ReplyX, ReplyY, ReplyWidth, ReplyHeight, ReplyFont);
 	else if(IS_METHOD(methodName, "SoundCustomReplyBackground"))
 	{
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
-		if(strlen(param0) > 0) //if no .BMP name,then use no background
+		if(strlen(cparam0) > 0) //if no .BMP name,then use no background
 		{
-			geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
+			geBitmap *TIcon = CCD->Pawns()->GetCache(cparam0);
 
 			if(TIcon)
 			{
@@ -641,44 +634,44 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 			}
 			else
 			{
-				sprintf(param3, "*WARNING* %s: The bitmap name may not include capitals!", param0);
-				CCD->ReportError(param3, false);
+				sprintf(cparam1, "[WARNING] %s: The bitmap name may not include capitals!", cparam0);
+				CCD->ReportError(cparam1, false);
 			}
 		}
 		else
 			DrawrBackground = false;
 
-		param1 = arguments[1].intValue();
-		rBackgroundX = param1;
-		param1 = arguments[2].intValue();
-		rBackgroundY = param1;
+		iparam0 = arguments[1].intValue();
+		rBackgroundX = iparam0;
+		iparam0 = arguments[2].intValue();
+		rBackgroundY = iparam0;
 
 // changed Nout 12/15/05
 		if(arguments.entries() > 4)
 		{
-			param1 = arguments[3].intValue();
-			if(param1 >= 0)
-				ReplyX = param1;
-			param1 = arguments[4].intValue();
-			if(param1 >= 0)
-				ReplyY = param1;
+			iparam0 = arguments[3].intValue();
+			if(iparam0 >= 0)
+				ReplyX = iparam0;
+			iparam0 = arguments[4].intValue();
+			if(iparam0 >= 0)
+				ReplyY = iparam0;
 		}
 
 		if (arguments.entries() > 6)
 		{
-			param1 = arguments[5].intValue();
-			if(param1 >= 0)
-				MyReplyWidth = param1;
-			param1 = arguments[6].intValue();
-			if(param1 >= 0)
-				MyReplyHeight = param1;
+			iparam0 = arguments[5].intValue();
+			if(iparam0 >= 0)
+				MyReplyWidth = iparam0;
+			iparam0 = arguments[6].intValue();
+			if(iparam0 >= 0)
+				MyReplyHeight = iparam0;
 		}
 
 		if(arguments.entries() > 7)
 		{
-			param1 = arguments[7].intValue();
-			if(param1 >= 0)
-				ReplyFont = param1;
+			iparam0 = arguments[7].intValue();
+			if(iparam0 >= 0)
+				ReplyFont = iparam0;
 		}
 // end change
 
@@ -697,38 +690,38 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	}
 	else if(IS_METHOD(methodName, "SetAttribute"))
 	{
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].intValue();
+		strcpy(cparam0, arguments[0].str());
+		iparam0 = arguments[1].intValue();
 // changed QD 12/15/05
 		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
 		{
-			strcpy(param3, arguments[2].str());
+			strcpy(cparam1, arguments[2].str());
 
-			if(!stricmp(param3, "Player"))
+			if(!stricmp(cparam1, "Player"))
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param3));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(cparam1));
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 // end change
-		returnValue = (int)theInv->Set(param0, param1);
+		returnValue = (int)theInv->Set(cparam0, iparam0);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetEventState"))
 	{
-		strcpy(param0, arguments[0].str());
-		returnValue = (bool)GetTriggerState(param0);
+		strcpy(cparam0, arguments[0].str());
+		returnValue = (bool)GetTriggerState(cparam0);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetEventState"))
 	{
-		strcpy(param0, arguments[0].str());
-		param2 = arguments[1].boolValue();
-		CCD->Pawns()->AddEvent(param0, param2);
+		strcpy(cparam0, arguments[0].str());
+		bparam0 = arguments[1].boolValue();
+		CCD->Pawns()->AddEvent(cparam0, bparam0);
 		return true;
 	}
 // Nout end 20-8-2003
@@ -739,42 +732,38 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	}
 	else if(IS_METHOD(methodName, "NewConversation"))
 	{
-		strcpy(param0, arguments[0].str());
-		param2 = arguments[1].boolValue();
-		strcpy(Order, param0);
-		ConvFlag = !param2;
+		strcpy(cparam0, arguments[0].str());
+		bparam0 = arguments[1].boolValue();
+		strcpy(Order, cparam0);
+		ConvFlag = !bparam0;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "CustomIcon"))
 	{
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].intValue();
+		strcpy(cparam0, arguments[0].str());
 
-		if(param1 >= 0)
-			IconX = param1;
-
-		param1 = arguments[2].intValue();
-
-		if(param1 >= 0)
-			IconY = param1;
-
-		geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
-
-		if(TIcon)
+		iparam0 = arguments[1].intValue();
+		if(iparam0 >= 0)
 		{
-			Icon = TIcon;
+			IconX = iparam0;
+		}
 
-// begin add Nout 16/09/2003
-// Changed by Nout 16/09/2003
-//			if(Icon)
-//				geBitmap_SetColorKey(Icon, GE_TRUE, 0x00ff00fe, GE_TRUE);
+		iparam0 = arguments[2].intValue();
+		if(iparam0 >= 0)
+		{
+			IconY = iparam0;
+		}
+
+		geBitmap *CustomIcon = CCD->Pawns()->GetCache(cparam0);
+		if(CustomIcon)
+		{
+			Icon = CustomIcon;
 		}
 // begin add Nout 16/09/2003
 		else
 		{
-			sprintf(param3, "*WARNING* %s: The bitmap name may not include capitals!", param0);
-			CCD->ReportError(param3, false);
-
+			sprintf(cparam1, "[WARNING] %s: The bitmap name may not include capitals!", cparam0);
+			CCD->ReportError(cparam1, false);
 		}
 //end add Nout 16/09/2003
 
@@ -782,16 +771,18 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	}
 	else if(IS_METHOD(methodName, "CustomBackground"))
 	{
-		strcpy(param0, arguments[0].str());
-		geBitmap *TIcon = CCD->Pawns()->GetCache(param0);
+		strcpy(cparam0, arguments[0].str());
+		geBitmap *CustomBackground = CCD->Pawns()->GetCache(cparam0);
 
-		if(TIcon)
-			Background = TIcon;
+		if(CustomBackground)
+		{
+			Background = CustomBackground;
+		}
 //begin add Nout 16/09/2003
 		else
 		{
-			sprintf(param3, "*WARNING* %s: The bitmap name may not include capitals!", param0);
-			CCD->ReportError(param3, false);
+			sprintf(cparam1, "[WARNING] %s: The bitmap name may not include capitals!", cparam0);
+			CCD->ReportError(cparam1, false);
 		}
 //end add Nout 16/09/2003
 
@@ -799,124 +790,134 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	}
 	else if(IS_METHOD(methodName, "CustomSpeak"))
 	{
-		param1 = arguments[0].intValue();
+		iparam0 = arguments[0].intValue();
+		if(iparam0 >= 0)
+		{
+			SpeachX = iparam0;
+		}
 
-		if(param1 >= 0)
-			SpeachX = param1;
-		param1 = arguments[1].intValue();
+		iparam0 = arguments[1].intValue();
+		if(iparam0 >= 0)
+		{
+			SpeachY = iparam0;
+		}
 
-		if(param1 >= 0)
-			SpeachY = param1;
+		iparam0 = arguments[2].intValue();
+		if(iparam0 >= 0)
+		{
+			SpeachWidth = iparam0;
+		}
 
-		param1 = arguments[2].intValue();
+		iparam0 = arguments[3].intValue();
+		if(iparam0 >= 0)
+		{
+			SpeachHeight = iparam0;
+		}
 
-		if(param1 >= 0)
-			SpeachWidth = param1;
-
-		param1 = arguments[3].intValue();
-
-		if(param1 >= 0)
-			SpeachHeight = param1;
-
-		param1 = arguments[4].intValue();
-
-		if(param1 >= 0)
-			SpeachFont = param1;
+		iparam0 = arguments[4].intValue();
+		if(iparam0 >= 0)
+		{
+			SpeachFont = iparam0;
+		}
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "CustomReply"))
 	{
-		param1 = arguments[0].intValue();
+		iparam0 = arguments[0].intValue();
+		if(iparam0 >= 0)
+		{
+			ReplyX = iparam0;
+		}
 
-		if(param1 >= 0)
-			ReplyX = param1;
+		iparam0 = arguments[1].intValue();
+		if(iparam0 >= 0)
+		{
+			ReplyY = iparam0;
+		}
 
-		param1 = arguments[1].intValue();
+		iparam0 = arguments[2].intValue();
+		if(iparam0 >= 0)
+		{
+			MyReplyWidth = iparam0;
+		}
 
-		if(param1 >= 0)
-			ReplyY = param1;
+		iparam0 = arguments[3].intValue();
+		if(iparam0 >= 0)
+		{
+			MyReplyHeight = iparam0;
+		}
 
-		param1 = arguments[2].intValue();
-		if(param1 >= 0)
-			MyReplyWidth = param1;
-
-		param1 = arguments[3].intValue();
-		if(param1 >= 0)
-			MyReplyHeight = param1;
-
-		param1 = arguments[4].intValue();
-
-		if(param1 >= 0)
-			ReplyFont = param1;
+		iparam0 = arguments[4].intValue();
+		if(iparam0 >= 0)
+		{
+			ReplyFont = iparam0;
+		}
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetFlag"))
 	{
-		param1 = arguments[0].intValue();
-
-		if(param1 >= MAXFLAGS)
+		iparam0 = arguments[0].intValue();
+		if(iparam0 >= MAXFLAGS)
+		{
 			return true;
+		}
 
-		param2 = arguments[1].boolValue();
-		CCD->Pawns()->SetPawnFlag(param1, param2);
+		bparam0 = arguments[1].boolValue();
+		CCD->Pawns()->SetPawnFlag(iparam0, bparam0);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetFlag"))
 	{
-		param1 = arguments[0].intValue();
-
-		if(param1 >= MAXFLAGS)
+		iparam0 = arguments[0].intValue();
+		if(iparam0 >= MAXFLAGS)
+		{
 			return true;
+		}
 
-		returnValue = CCD->Pawns()->GetPawnFlag(param1);
-
+		returnValue = CCD->Pawns()->GetPawnFlag(iparam0);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetAttribute"))
 	{
-		strcpy(param0, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		strcpy(cparam0, arguments[0].str());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 1)
 		{
-			strcpy(param3, arguments[1].str());
+			strcpy(cparam1, arguments[1].str());
 
-			if(!stricmp(param3, "Player"))
+			if(!stricmp(cparam1, "Player"))
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param3));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(cparam1));
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-// end change
-		returnValue = theInv->Value(param0);
+
+		returnValue = theInv->Value(cparam0);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "ModifyAttribute"))
 	{
-		strcpy(param0, arguments[0].str());
-		param1 = arguments[1].intValue();
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		strcpy(cparam0, arguments[0].str());
+		iparam0 = arguments[1].intValue();
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
 		{
-			strcpy(param3, arguments[2].str());
+			strcpy(cparam1, arguments[2].str());
 
-			if(!stricmp(param3, "Player"))
+			if(!stricmp(cparam1, "Player"))
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param3));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(cparam1));
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-// end change
-		theInv->Modify(param0, param1);
+
+		theInv->Modify(cparam0, iparam0);
 		return true;
 	}
 // changed QD 12/15/05
@@ -924,33 +925,30 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 	{
 		// USAGE:	AddAttribute(char *Attribute)
 		//			AddAttribute(char *Attribute, char *EntityName)
-
-		// changed QD 07/15/06 - add optional arguments
 		//			AddAttribute(char *Attribute, int LowValue, int HighValue)
 		//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() == 2 || arguments.entries() == 4)
 		{
-			strcpy(param3, arguments[arguments.entries()-1].str());
+			strcpy(cparam1, arguments[arguments.entries()-1].str());
 
-			if(!stricmp(param3, "Player"))
+			if(!stricmp(cparam1, "Player"))
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param3));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(cparam1));
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-		returnValue = (int)theInv->Add(param0);
+		returnValue = (int)theInv->Add(cparam0);
 
 		if(arguments.entries() > 2)
 		{
-			theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+			theInv->SetValueLimits(cparam0, arguments[1].intValue(), arguments[2].intValue());
 		}
-		// end change QD 07/15/06
 
 		return true;
 	}
@@ -961,30 +959,30 @@ bool ScriptedConverse::method(const skString &methodName, skRValueArray &argumen
 		// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
 		//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
-		strcpy(param0, arguments[0].str());
+		strcpy(cparam0, arguments[0].str());
 
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 3)
 		{
-			strcpy(param3, arguments[3].str());
+			strcpy(cparam1, arguments[3].str());
 
-			if(!stricmp(param3, "Player"))
+			if(!stricmp(cparam1, "Player"))
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			else
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param3));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(cparam1));
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-		theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
+		theInv->SetValueLimits(cparam0, arguments[1].intValue(), arguments[2].intValue());
 
 		return true;
 	}
 // end change QD 07/15/06
 	else
 	{
-		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt);//change simkin
+		return skScriptedExecutable::method(methodName, arguments, returnValue,ctxt);
 	}
 }
 
@@ -1000,14 +998,16 @@ int ScriptedConverse::DoConversation(int charpersec)
 	unsigned int counter = 1;
 
 	if(charpersec == 0)
+	{
 		counter = Text.length();
+	}
 
 	DWORD ElapsedTime;
 	int startline = 1;
 	int replyline = 1;
 	strcpy(temp, Text.substr(0, counter).c_str());
 
-	string Reply1 = "";
+	std::string Reply1 = "";
 
 	for(int j=0; j<9; j++)
 	{
@@ -1306,8 +1306,6 @@ int ScriptedConverse::DoConversation(int charpersec)
 /* ------------------------------------------------------------------------------------ */
 //	DoSoundConversation
 /* ------------------------------------------------------------------------------------ */
-// changed Nout 12/15/05
-//int ScriptedConverse::DoSoundConversation(int charpersec)
 int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 {
 // changed Nout 12/15/05
@@ -1342,10 +1340,12 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 	unsigned int counter = 1;
 
 	if(charpersec == 0)
+	{
 		counter = Text.length();
+	}
 
 	strcpy(temp, Text.substr(0, counter).c_str());
-	string Reply1 = "";
+	std::string Reply1 = "";
 
 	for(int j=0; j<9; j++)
 	{
@@ -1484,6 +1484,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 // changed Nout 12/15/05
 	int MouseChoice = -1;
 // end change
+	bool bShowCursor = CCD->MenuManager()->GetShowCursor();
 
 	for(;;)
 	{
@@ -1613,7 +1614,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 		// ..menureplay although this makes no sense)
 		if(MouseReply)
 		{
-			ShowCursor(TRUE);
+			CCD->MenuManager()->ShowCursor(true);
 			GetCursorPos(&MousePos);
 
 			//Compensate mouse-pos for windowed screens
@@ -1673,15 +1674,15 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 						else
 							replyline = TextOutLine(m, ReplyMenuFont, ReplyX+4, ReplyY);
 
-						//Check for GIF to display
+						// Check for GIF to display
 						if(ReplyGifNr[m]>0)
 						{
-							rIcon = CCD->Pawns()->GifFile[ReplyGifNr[m]]->NextFrame(true);
+							rIcon = CCD->Pawns()->GifFile[ReplyGifNr[m]-1]->NextFrame(true);
 							if(rIcon)
 								CCD->MenuManager()->DrawBitmap(rIcon, NULL, rBackgroundX+GifX, rBackgroundY+GifY+m*FontHeight);
 						}
 
-						//Check if mouse or key pressed
+						// Check if mouse or key pressed
 						if (!((GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0) ||
 							(key == KEY_SPACE) || (key == KEY_RETURN)) //Mouse was clicked or SPACE or ENTER was pressed
 						{
@@ -1696,6 +1697,8 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 
 				m++;
 			} while(MouseChoice < 0 && m < 9);
+
+			CCD->MenuManager()->DisplayCursor();
 
 			if(MouseChoice >= 0)
 			{
@@ -2181,7 +2184,7 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 		delete temp1;
 
 // changed Nout 12/15/05
-	ShowCursor(FALSE); //hide mouse pointer
+	CCD->MenuManager()->ShowCursor(bShowCursor);
 	LastReplyNr = choice;
 // end change
 
@@ -2192,10 +2195,10 @@ int ScriptedConverse::DoSoundConversation(int charpersec, bool RenderHUD)
 /* ------------------------------------------------------------------------------------ */
 //	TextDisplay
 /* ------------------------------------------------------------------------------------ */
-void ScriptedConverse::TextDisplay(char *Text, int Width, int Font)
+void ScriptedConverse::TextDisplay(const char *Text, int Width, int Font)
 {
-	string WText = Text;
-	string Line, Line1;
+	std::string WText = Text;
+	std::string Line, Line1;
 	int i, width, width1;
 	char *temp = new char[strlen(Text)+1];
 	int Index = 0;
@@ -2324,7 +2327,7 @@ int ScriptedConverse::TextOut(int startline, int Height, int Font, int X, int Y)
 
 		for(int i=sline; i<eline; i++)
 		{
-			string Text = TextLines[i];
+			std::string Text = TextLines[i];
 			char *temp = new char[Text.length()+1];
 			strcpy(temp, Text.c_str());
 // changed Nout 12/15/05
@@ -2354,7 +2357,7 @@ int ScriptedConverse::TextOutLine(int startline, int Font, int X, int Y)
 		int YOffset = Y + (startline * (CCD->MenuManager()->FontHeight(ReplyFont)+2));
 
 		{
-			string Text = TextLines[startline];//(i);
+			std::string Text = TextLines[startline];//(i);
 			char *temp = new char[Text.length()+1];
 			strcpy(temp, Text.c_str());
 			CCD->MenuManager()->FontRect(temp, Font, X, YOffset);
@@ -2374,33 +2377,19 @@ int ScriptedConverse::TextOutLine(int startline, int Font, int X, int Y)
 //
 //	Preload conversation scripts
 /* ------------------------------------------------------------------------------------ */
-void CPawn::PreLoadC(char *filename)
+void CPawn::PreLoadC(const char *filename)
 {
-// changed Nout 12/15/05
-	//FILE *fdInput = NULL;
 	geVFile *fdInput = NULL;
-// end change
 	char szInputString[1024] = {""};
-	string str;
+	std::string str;
 	int i, j;
 	char file[256];
-// changed Nout 12/15/05
-	int bmp, tga, jpg, gif;
-// end change
-
-// changed Nout 12/15/05
-//	fdInput = fopen(filename, "rt");
-//
-//	if(!fdInput)
-//		return;
-//
-//	while(fgets(szInputString, 1024, fdInput) != NULL)
+	int bmp, tga, jpg;
 
 	if(!CCD->OpenRFFile(&fdInput, kScriptFile, filename, GE_VFILE_OPEN_READONLY))
 		return;
 
 	while(geVFile_GetS(fdInput, szInputString, 1024) == GE_TRUE)
-// end change
 	{
 		if(szInputString[0] == ';' || strlen(szInputString) <= 1)
 			continue;
@@ -2409,55 +2398,6 @@ void CPawn::PreLoadC(char *filename)
 		TrimRight(str);
 		MakeLower(str);
 
-// changed Nout 12/15/05
-/*
-		i = str.Find(".bmp");
-
-		if(i >= 0 && i < str.GetLength())
-		{
-			j = i-1;
-
-			while(!(str.GetAt(j) == '"' || str.GetAt(j) == '[') && j >= 0)
-			{
-				j -= 1;
-			}
-
-			if(j >= 0)
-			{
-				strcpy(file, "conversation\\");
-				strcat(file, str.Mid(j+1, i-j+3));
-				Cache.SetSize(Cache.GetSize()+1);
-				int keynum = Cache.GetSize()-1;
-				Cache[keynum].Name = str.Mid(j+1, i-j+3);
-				Cache[keynum].Bitmap = CreateFromFileName(file);
-				geEngine_AddBitmap(CCD->Engine()->Engine(), Cache[keynum].Bitmap);
-			}
-		}
-		else
-		{
-			i = str.Find(".tga");
-			if(i >= 0 && i < str.GetLength())
-			{
-				j = i-1;
-
-				while(!(str.GetAt(j) == '"' || str.GetAt(j) == '[') && j >= 0)
-				{
-					j -= 1;
-				}
-
-				if(j >= 0)
-				{
-					strcpy(file, "conversation\\");
-					strcat(file, str.Mid(j+1, i-j+3));
-					Cache.SetSize(Cache.GetSize()+1);
-					int keynum = Cache.GetSize()-1;
-					Cache[keynum].Name = str.Mid(j+1, i-j+3);
-					Cache[keynum].Bitmap = CreateFromFileName(file);
-					geEngine_AddBitmap(CCD->Engine()->Engine(), Cache[keynum].Bitmap);
-				}
-			}
-		}
-*/
 		i = 0;
 
 		bmp = str.find(".bmp");
@@ -2472,10 +2412,6 @@ void CPawn::PreLoadC(char *filename)
 		if(jpg > 0 && (jpg < i || i == 0))
 			i = jpg;
 
-		gif = str.find(".gif");
-		if(gif > 0 && (gif < i || i == 0))
-			i = gif;
-
 		while(i > 0 && i < (int)str.length())
 		{
 			j = i-1;
@@ -2488,24 +2424,23 @@ void CPawn::PreLoadC(char *filename)
 				strcpy(file, "conversation\\");
 				strcat(file, str.substr(j+1, i-j+3).c_str());
 
-				Cache.resize(Cache.size()+1);
+				BitmapCache.resize(BitmapCache.size()+1);
 
-				int keynum = Cache.size()-1;
+				int keynum = BitmapCache.size()-1;
 
-				Cache[keynum].Name = str.substr(j+1, i-j+3);
-				Cache[keynum].Bitmap = CreateFromFileName(file);
-				// changed QD 07/15/06
-				if(Cache[keynum].Bitmap == (geBitmap *)NULL)
+				BitmapCache[keynum].Name = str.substr(j+1, i-j+3);
+				BitmapCache[keynum].Bitmap = CreateFromFileName(file);
+
+				if(BitmapCache[keynum].Bitmap == (geBitmap *)NULL)
 				{
 					char szError[256];
-					sprintf(szError, "*WARNING* CPawnCon: Failed to create image %s", file);
+					sprintf(szError, "[WARNING] CPawnCon: Failed to create image %s", file);
 					CCD->ReportError(szError, false);
 				}
 				else
 				{
-					geEngine_AddBitmap(CCD->Engine()->Engine(), Cache[keynum].Bitmap);
+					geEngine_AddBitmap(CCD->Engine()->Engine(), BitmapCache[keynum].Bitmap);
 				}
-				// end change
 			}
 
 			if((int)str.size() > i+6) str = str.substr(i+6);
@@ -2524,28 +2459,20 @@ void CPawn::PreLoadC(char *filename)
 			jpg = str.find(".jpg");
 			if(jpg > 0 && (jpg < i || i == 0))
 				i = jpg;
-
-			gif = str.find(".gif");
-			if(gif > 0 && (gif < i || i == 0))
-				i = gif;
 		}
-// end change
 	}
 
-// changed Nout 12/15/05
-	//fclose(fdInput);
 	geVFile_Close(fdInput);
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	LoadConv
 /* ------------------------------------------------------------------------------------ */
-void CPawn::LoadConv(char *convtxt)
+void CPawn::LoadConv(const char *convtxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
-	string readinfo, keyname, text;
+	std::string readinfo, keyname, text;
 
 	Text.resize(0);
 
@@ -2580,9 +2507,7 @@ void CPawn::LoadConv(char *convtxt)
 					int keynum = Text.size()-1;
 					Text[keynum].Name = keyname;
 					Text[keynum].Text = text;
-// changed QD 12/15/05
 					Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
-// end change
 				}
 
 				keyname = readinfo;
@@ -2614,9 +2539,7 @@ void CPawn::LoadConv(char *convtxt)
 		int keynum = Text.size()-1;
 		Text[keynum].Name = keyname;
 		Text[keynum].Text = text;
-// changed QD 12/15/05
 		Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
-// end change
 	}
 
 	geVFile_Close(MainFS);
@@ -2625,7 +2548,7 @@ void CPawn::LoadConv(char *convtxt)
 /* ------------------------------------------------------------------------------------ */
 //	GetText
 /* ------------------------------------------------------------------------------------ */
-string CPawn::GetText(char *Name)
+std::string CPawn::GetText(const char *Name)
 {
 	int size = Text.size();
 
@@ -2644,9 +2567,9 @@ string CPawn::GetText(char *Name)
 /* ------------------------------------------------------------------------------------ */
 //	RunConverse
 /* ------------------------------------------------------------------------------------ */
-void CPawn::RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIcon)
+void CPawn::RunConverse(ScriptedConverse *Converse, const char *szName, geBitmap *OIcon)
 {
-	skRValueArray args;// change simkin
+	skRValueArray args;
 	skRValue ret;
 
 	if(!EffectC_IsStringNull(Converse->Order))
@@ -2740,7 +2663,7 @@ void CPawn::RunConverse(ScriptedConverse *Converse, char *szName, geBitmap *OIco
 /* ------------------------------------------------------------------------------------ */
 //	Converse
 /* ------------------------------------------------------------------------------------ */
-bool CPawn::Converse(geActor *pActor)
+bool CPawn::Converse(const geActor *pActor)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

@@ -3,7 +3,6 @@
  * @brief Texture pool
  ****************************************************************************************/
 
-//#include <malloc.h>
 #include <memory>
 #include "RabidFramework.h"
 #include <Ram.h>
@@ -32,10 +31,11 @@ void TPool_Initalize()
 /* ------------------------------------------------------------------------------------ */
 //	TPool_Bitmap
 /* ------------------------------------------------------------------------------------ */
-geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName)
+geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+					   const char *BName, const char *AName)
 {
 	TPool *pool;
-	char *TBName, *TAName;
+	const char *TBName, *TAName;
 
 	if(EffectC_IsStringNull(BName) == GE_TRUE)
 	{
@@ -81,7 +81,7 @@ geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *
 	if(!pool->Bitmap)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Error in Bitmap %s or Alphamap '%s'\n",
+		sprintf(szError, "[WARNING] File %s - Line %d: Error in Bitmap %s or Alphamap '%s'\n",
 				__FILE__, __LINE__, TBName, TAName);
 		CCD->ReportError(szError, false);
 		free(pool->BmpName);

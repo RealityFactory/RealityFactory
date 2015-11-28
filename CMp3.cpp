@@ -31,7 +31,7 @@ CMp3Manager::~CMp3Manager()
 //	This function opens and renders the specified media file.
 //	File..Open has been selected
 /* ------------------------------------------------------------------------------------ */
-void CMp3Manager::OpenMediaFile(LPSTR szFile )
+void CMp3Manager::OpenMediaFile(LPSTR szFile)
 {
 	m_Video = MCIWndCreate(CCD->Engine()->WindowHandle(),
 		// AfxGetInstanceHandle(),

@@ -10,7 +10,7 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -45,7 +45,7 @@ CDamage::CDamage()
 		if(!pDestroy->Model)
 		{
 			char szError[256];
-			sprintf(szError,"*WARNING* File %s - Line %d: DestroyableModel: '%s' Missing Model\n",
+			sprintf(szError,"[WARNING] File %s - Line %d: DestroyableModel: '%s' Missing Model\n",
 					__FILE__, __LINE__, pDestroy->szEntityName);
 			CCD->ReportError(szError, false);
 			continue;
@@ -99,7 +99,7 @@ CDamage::~CDamage()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CDamage::Tick(float dwTicks)
+void CDamage::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -403,8 +403,9 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 //	DamageActor
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageActor(geActor *Actor, float amount, char *Attr,
-						  float Altamount, char *AltAttr, char *name)
+void CDamage::DamageActor(const geActor *Actor,
+						  float amount, const char *Attr,
+						  float Altamount, const char *AltAttr, const char *name)
 {
 	int ActualAmount;
 
@@ -451,8 +452,9 @@ void CDamage::DamageActor(geActor *Actor, float amount, char *Attr,
 /* ------------------------------------------------------------------------------------ */
 //	DamageActorInRange
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, char *Attr,
-								 float Altamount, char *AltAttr, char *name)
+void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
+								 float amount, const char *Attr,
+								 float Altamount, const char *AltAttr, const char *name)
 {
 	geActor *ActorsInRange[512];
 
@@ -471,8 +473,9 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range, float amount, cha
 /* ------------------------------------------------------------------------------------ */
 //	DamageModel
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr,
-						  float Altamount, char *AltAttr)
+void CDamage::DamageModel(const geWorld_Model *Model,
+						  float amount, const char *Attr,
+						  float Altamount, const char *AltAttr)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -522,8 +525,9 @@ void CDamage::DamageModel(geWorld_Model *Model, float amount, char *Attr,
 /* ------------------------------------------------------------------------------------ */
 //	DamageModelInRange
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageModelInRange(geVec3d Point, geFloat Range, float amount, char *Attr,
-								 float Altamount, char *AltAttr)
+void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
+								 float amount, const char *Attr,
+								 float Altamount, const char *AltAttr)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -685,7 +689,7 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CDamage::LocateEntity(char *szName, void **pEntityData)
+int CDamage::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

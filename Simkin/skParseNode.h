@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  * $Id: skParseNode.h,v 1.41 2003/11/01 10:17:27 sdw Exp $
+  * $Id: skParseNode.h,v 1.42 2004/12/17 21:31:17 sdw Exp $
   */
 
 #ifndef PARSENODE_H
@@ -58,6 +58,7 @@ static const int s_LessEqual=33;
 static const int s_MoreEqual=34;
 static const int s_For=35;
 static const int s_MethodDef=36;
+static const int s_Break=37;
 
 // Switch on to check size of node tree
 //#define _DEBUG_SIZE
@@ -125,6 +126,7 @@ enum skInstruction{
   b_Op,              // param1 = op type           param2 = has 2nd expression
   b_CaseList,        // param1 = number of cases   param2 = number of byte codes in case list
   b_StatsSize,       // param1 = 0                 param2 = number of bytes in stat list
+  b_Break,           // param1 = 0                 
   b_NUMCODES
 };
 
@@ -754,7 +756,7 @@ class  skReturnNode : public skStatNode {
     USize size=sizeof(this);
     if (m_Expr)
       size+=m_Expr->getSize();
-    retirn size;
+    return size;
   }
 #endif
 #ifndef EXECUTE_PARSENODES
@@ -766,6 +768,32 @@ class  skReturnNode : public skStatNode {
 #endif
  private:
   skExprNode * m_Expr;
+};
+class  skBreakNode : public skStatNode {
+ public:
+  inline skBreakNode(int linenum) 
+    : skStatNode(linenum){
+  }
+  inline ~skBreakNode(){
+  }
+  inline void clear(){
+  }
+  inline int getType(){
+    return s_Break;
+  }
+#ifdef _DEBUG_SIZE
+  virtual USize getSize() const {
+    return sizeof(this);
+  }
+#endif
+#ifndef EXECUTE_PARSENODES
+ public:
+  /**
+   * @exception Symbian - a leaving function
+   */
+  void compile(skCompiledCode& compiled_code);
+#endif
+ private:
 };
 class  skWhileNode : public skStatNode {
  public:

@@ -12,20 +12,21 @@
 #ifndef __RGF_CDYNALITE_H_
 #define __RGF_CDYNALITE_H_
 
-// class declaration for CDynalite
+/**
+ * @brief CDynalite handles DynamicLight entities
+ */
 class CDynalite : public CRGFComponent
 {
 public:
-	CDynalite();	// Default constructor
+	CDynalite();	///< Default constructor
 	~CDynalite();
 
-	geBoolean Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	geBoolean Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 private:
 
 };
-
 
 #endif
 

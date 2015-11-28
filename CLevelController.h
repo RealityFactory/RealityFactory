@@ -18,9 +18,12 @@
 
 #define DEBUGLINES	8
 
-
+/**
+ * @brief ControllerObject class for LevelController scripts
+ */
 class ControllerObject : public skScriptedExecutable
 {
+	friend class CLevelController;
 public:
 	ControllerObject(char *fileName);
 	~ControllerObject();
@@ -29,6 +32,7 @@ public:
 	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
 	bool method (const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
+private:
 	char	Order[64];
 	char	ThinkOrder[64];
 	float	ElapseTime;
@@ -40,15 +44,18 @@ public:
 	char	*ConsoleDebug[DEBUGLINES];
 };
 
+/**
+ * @brief CLevelController handles LEvelController entities
+ */
 class CLevelController : public CRGFComponent
 {
 public:
-	CLevelController();					// Constructor
-	~CLevelController();				// Destructor
+	CLevelController();					///< Constructor
+	~CLevelController();				///< Destructor
 
-	void Tick(geFloat dwTicks);			// Increment animation time
-	int SaveTo(FILE *SaveFD);			// Save LevelController status to a file
-	int RestoreFrom(FILE *RestoreFD);	// Restore LevelController status from a file
+	void Tick(geFloat dwTicks);			///< Increment animation time
+	int SaveTo(FILE *SaveFD);			///< Save LevelController status to a file
+	int RestoreFrom(FILE *RestoreFD);	///< Restore LevelController status from a file
 private:
 	int ConsoleBlock;
 };

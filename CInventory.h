@@ -28,6 +28,9 @@ typedef enum
 	INVMODIFY
 };
 
+/**
+ * @brief Inventory item definition
+ */
 typedef struct InvItem
 {
 	//InvItem *next;
@@ -44,7 +47,9 @@ typedef struct InvItem
 
 } InvItem;
 
-
+/**
+ * @brief CInventory handles Inventory display
+ */
 class CInventory : public CRGFComponent
 {
 public:
@@ -58,6 +63,8 @@ public:
 // end change RF064
 
 private:
+
+	void LoadInventoryIni();
 
 	void DisplaySubInv(int menu);
 	void Blit(int menu);
@@ -85,13 +92,16 @@ private:
 	geBitmap *highlight;
 	geBitmap *arrowr;
 	geBitmap *arrowl;
+	geBitmap *arrowrhighlight;
+	geBitmap *arrowlhighlight;
 	int backgroundx, backgroundy;
 	int leftx;//, lefty;
 	int middlex, middley;
 	int rightx;//, righty;
 	int topy;
 	int bottomy;
-	int arrowrx, arrowlx;
+	int arrowrx, arrowry;
+	int arrowlx, arrowly;
 	int font;
 	int txtfont;
 //	InvItem *Bottom;

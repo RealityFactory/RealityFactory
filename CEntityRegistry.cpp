@@ -50,7 +50,7 @@ CEntityRegistry::~CEntityRegistry()
 //	..list.  Note that multiple entities with the same name end
 //	..up creating multiple instances and are NOT uniquely tagged.
 /* ------------------------------------------------------------------------------------ */
-int CEntityRegistry::AddEntity(char *szName, char *szType)
+int CEntityRegistry::AddEntity(const char *szName, const char *szType)
 {
 	//if(m_pList->Has(szName))
 	//{
@@ -77,7 +77,7 @@ int CEntityRegistry::AddEntity(char *szName, char *szType)
 //	Remove an entity instance of name 'szName'.  If the last instance
 //	..is removed, the record is deleted.
 /* ------------------------------------------------------------------------------------ */
-int CEntityRegistry::DeleteEntity(char *szName)
+int CEntityRegistry::DeleteEntity(const char *szName)
 {
 	m_pList->Remove(szName);				// Drop the instance
 
@@ -89,7 +89,7 @@ int CEntityRegistry::DeleteEntity(char *szName)
 //
 //	Given an entity name, return the type associated with it.
 /* ------------------------------------------------------------------------------------ */
-char *CEntityRegistry::GetEntityType(char *szName)
+char *CEntityRegistry::GetEntityType(const char *szName)
 {
 	if(!m_pList->Has(szName))
 		return NULL;							// No such entity?

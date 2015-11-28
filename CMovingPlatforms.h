@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CMovingPlatforms.h
  * @brief Moving Platform Handler
@@ -13,36 +12,41 @@
 #ifndef __RGF_CMOVINGPLATFORMS_H__
 #define __RGF_CMOVINGPLATFORMS_H__
 
+/**
+ * actors riding on a moving platform
+ */
 struct ActorsOnPlatforms
 {
-	geActor *theActor;			// Actor that's on the platform
-	geWorld_Model *thePlatform;	// Platform model actor is on!
+	geActor *theActor;			///< Actor that's on the platform
+	geWorld_Model *thePlatform;	///< Platform model actor is on!
 };
 
-
+/**
+ * @brief CMovingPlatforms handles MovingPlatform entities
+ */
 class CMovingPlatforms : public CRGFComponent
 {
 public:
-	CMovingPlatforms();								// Constructor
-	~CMovingPlatforms();							// Destructor
+	CMovingPlatforms();								///< Constructor
+	~CMovingPlatforms();							///< Destructor
 
 	// changed RF063
-	bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor);
-	void TriggerNextPlatform(geWorld_Model *pModel, bool bTriggerCall);
-	bool IsAPlatform(geWorld_Model *theModel);		// Is this model a platform?
-	void Tick(geFloat dwTicks);						// Increment animation time
+	bool HandleCollision(const geWorld_Model *pModel, bool bTriggerCall, bool UseKey, const geActor *theActor);
+	void TriggerNextPlatform(const geWorld_Model *pModel, bool bTriggerCall);
+	bool IsAPlatform(const geWorld_Model *theModel);		///< Is this model a platform?
+	void Tick(geFloat dwTicks);						///< Increment animation time
 
-	int SaveTo(FILE *SaveFD, bool type);			// Save all platforms to a file
-	int RestoreFrom(FILE *RestoreFD, bool type);	// Restore all platforms from a file
+	int SaveTo(FILE *SaveFD, bool type);			///< Save all platforms to a file
+	int RestoreFrom(FILE *RestoreFD, bool type);	///< Restore all platforms from a file
 
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
 	// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
-	int m_PlatformCount;					// Count of moving platforms in world
-	ActorsOnPlatforms AP[512];				// No more than 512 actors on platforms at once
+	int m_PlatformCount;					///< Count of moving platforms in world
+	ActorsOnPlatforms AP[512];				///< No more than 512 actors on platforms at once
 };
 
 #endif

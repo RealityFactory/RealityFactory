@@ -62,7 +62,7 @@ CCutScene::~CCutScene()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CCutScene::Tick(float dwTicks)
+void CCutScene::Tick(geFloat dwTicks)
 {
 
 	geEntity_EntitySet *pSet;

@@ -10,10 +10,10 @@
  ****************************************************************************************/
 
 //	Include the One True Header
-
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CFloat Constructor
@@ -69,8 +69,8 @@ CFloat::CFloat()
 		S->Speed = (float*)calloc(S->ParticleCount * sizeof(*(S->Speed)) ,1);
 
 		// get the bitmap used as the sprite
-		// g_bubble/A__bubl are default bitmap names
-		S->Bitmap = TPool_Bitmap("g_bubble.Bmp", "A_bubl.Bmp", S->BmpName, S->AlphaName);
+		// g_bubble/A__bubble are default bitmap names
+		S->Bitmap = TPool_Bitmap("g_bubble.bmp", "a_bubble.bmp", S->BmpName, S->AlphaName);
 
 		if(S->Color.r < 0.0f)
 			S->Color.r = 0.0f;
@@ -164,14 +164,14 @@ CFloat::~CFloat()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFloat::Tick(float dwTicksIn)
+void CFloat::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	int i;
 
 	// get amount of time since last call
-	float dwTicks = dwTicksIn*0.001f;
+	dwTicks *= 0.001f;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
@@ -265,7 +265,7 @@ void CFloat::Tick(float dwTicksIn)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CFloat::LocateEntity(char *szName, void **pEntityData)
+int CFloat::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

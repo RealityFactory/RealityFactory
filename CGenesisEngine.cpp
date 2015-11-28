@@ -14,6 +14,7 @@
 // Dee 07-07-00
 #include "AutoSelect.h"
 // End Dee
+#include "resource.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	This is the window procedure that will be used by the main
@@ -68,6 +69,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
+	case WM_WINDOWPOSCHANGED:
+		{
+			if(CCD->Engine() != NULL)
+				geEngine_UpdateWindow(CCD->Engine()->Engine());
+			return 0;
+		}
     }
 /*
 	if(iMessage == WM_CHAR)
@@ -93,8 +100,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 //	..Genesis sound system.
 /* ------------------------------------------------------------------------------------ */
 CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
-							   char *szName, HINSTANCE theInstance,
-							   char chDriverID, bool bSoftware,
+							   const char *szName, HINSTANCE theInstance,
+							   char chDriverID, bool fSoftware,
 							   bool UseDialog, char *szStartLevel)
 {
 	WNDCLASS wc;
@@ -108,7 +115,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	m_MasterVolume		= 0;
 	m_SplashAudio		= NULL;
 	m_World				= NULL;
-	m_bUseSoftware		= bSoftware;
+	m_fUseSoftware		= fSoftware;
 	m_CurrentLevel[0]	= 0;
 	m_SelectedDriverID	= chDriverID;			// Use the desired driver
 	fFogStart = fFogEnd = 0.0f;					// Fog start, end distances
@@ -154,9 +161,9 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 		// Call the common dialog function.
 		if(GetOpenFileName(&OpenFileName))
 		{
-			string FileName = OpenFileName.lpstrFileTitle;
+			std::string FileName = OpenFileName.lpstrFileTitle;
 			strcpy(szStartLevel, FileName.c_str());
-			string PathName = OpenFileName.lpstrFile;
+			std::string PathName = OpenFileName.lpstrFile;
 			PathName = PathName.substr(0, PathName.rfind('\\'));
 			TCHAR m_lev[512];
 			strcpy(m_lev, PathName.c_str());
@@ -179,7 +186,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	wc.cbClsExtra		= 0;
 	wc.cbWndExtra		= 0;
 	wc.hInstance		= theInstance;
-	wc.hIcon			= LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIcon			= LoadIcon(theInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wc.hCursor			= LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wc.lpszMenuName		= (const char*)NULL;
@@ -194,7 +201,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	if(!hWnd)
 	{
 		OutputDebugString("Main window creation failure\n");
-		ReportError("*ERROR* Main window creation failure", false);
+		ReportError("[ERROR] Main window creation failure", false);
 		exit(-1);
 	}
 
@@ -214,12 +221,12 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	if(CreateEngine(szName) == FALSE)
 	{
 		DestroyWindow(m_wndMain);					// Clean up
-		ReportError("*ERROR* Genesis3D engine creation failure", false);
+		ReportError("[ERROR] Genesis3D engine creation failure", false);
 		exit(-2);
 	}
 
 	m_DebugEnabled = false;							// No debug by default
-	m_bInFramePass = false;							// Not in frame rendering
+	m_fInFramePass = false;							// Not in frame rendering
 
 	//	Now set up the sound system.
 	m_Audio = geSound_CreateSoundSystem(m_wndMain);
@@ -227,7 +234,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	if(m_Audio == NULL)
 	{
 		DestroyWindow(m_wndMain);
-		ReportError("*ERROR* Genesis3D audio subsystem creation failure", false);
+		ReportError("[ERROR] Genesis3D audio subsystem creation failure", false);
 		exit(-86);
 	}
 
@@ -274,7 +281,7 @@ CGenesisEngine::~CGenesisEngine()
 //	Set up the Genesis3D engine and attach it to the main window, which
 //	..must exist prior to this member function being called.
 /* ------------------------------------------------------------------------------------ */
-bool CGenesisEngine::CreateEngine(char *szName)
+bool CGenesisEngine::CreateEngine(const char *szName)
 {
 	m_World = NULL;
 
@@ -283,7 +290,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 
 	if(!m_theEngine)
 	{
-		ReportError("*ERROR* geEngine_Create failure", false);
+		ReportError("[ERROR] geEngine_Create failure", false);
 		return false;
 	}
 
@@ -295,7 +302,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 
 	if(!m_DrvSys)
 	{
-		ReportError("*ERROR* geEngine_GetDriverSystem failure", false);
+		ReportError("[ERROR] geEngine_GetDriverSystem failure", false);
 		return false;
 	}
 
@@ -305,7 +312,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 	{
 		if(AutoDriver() == false)
 		{
-			ReportError("*ERROR* Failed to locate any available Genesis3D driver", false);
+			ReportError("[ERROR] Failed to locate any available Genesis3D driver", false);
 			return false;
 		}
 	}
@@ -319,10 +326,10 @@ bool CGenesisEngine::CreateEngine(char *szName)
 		{
 			//Probably hit "Pick Something for Me" or ESC...
 			//So try to auto select for them
-			ReportError("*INFO* Auto-Detecting Driver", false);
+			ReportError("[INFO] Auto-Detecting Driver", false);
 			if(AutoDriver() == false)
 			{
-				ReportError("*ERROR* Failed to locate any available Genesis3D driver", false);
+				ReportError("[ERROR] Failed to locate any available Genesis3D driver", false);
 				return false;
 			}
 		}
@@ -342,7 +349,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 
 			if(!cline)
 			{
-				ReportError("*ERROR* geEngine_SetDriverAndMode failure", false);
+				ReportError("[ERROR] geEngine_SetDriverAndMode failure", false);
 				return false;
 			}
 		}
@@ -356,7 +363,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 	{
 		if(FindDriver() == FALSE)
 		{
-			ReportError("*ERROR* Failed to locate good Genesis3D driver", false);
+			ReportError("[ERROR] Failed to locate good Genesis3D driver", false);
 			return false;
 		}
 
@@ -370,7 +377,7 @@ bool CGenesisEngine::CreateEngine(char *szName)
 
 		if(!cline)
 		{
-			ReportError("*ERROR* geEngine_SetDriverAndMode failure", false);
+			ReportError("[ERROR] geEngine_SetDriverAndMode failure", false);
 			return false;
 		}
 	}
@@ -399,7 +406,7 @@ bool CGenesisEngine::FindDriver()
 
 		if(!m_Driver)
 		{
-			ReportError("*ERROR* geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
+			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
 			return FALSE;
 		}
 
@@ -414,7 +421,7 @@ bool CGenesisEngine::FindDriver()
 
 			if(!m_Driver)
 			{
-				ReportError("*ERROR* Unexpected SystemGetNextDriver error", false);
+				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
 				return FALSE;
 			}
 		}
@@ -450,7 +457,7 @@ bool CGenesisEngine::FindDriver()
 
 		if(!m_Driver)
 		{
-			ReportError("*ERROR* geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
+			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
 			return FALSE;
 		}
 
@@ -473,7 +480,7 @@ bool CGenesisEngine::FindDriver()
 
 			if(!m_Driver)
 			{
-				ReportError("*ERROR* Unexpected SystemGetNextDriver error", false);
+				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
 				return FALSE;
 			}
 		}
@@ -485,7 +492,7 @@ bool CGenesisEngine::FindDriver()
 		{
 			if(!m_Mode)
 			{
-				CCD->ReportError("*ERROR* GetNextMode - *No Mode* failure", false);
+				CCD->ReportError("[ERROR] GetNextMode - *No Mode* failure", false);
 				return FALSE;
 			}
 
@@ -500,7 +507,7 @@ bool CGenesisEngine::FindDriver()
 
 		if(!(m_Driver && m_Mode))
 		{
-			ReportError("*ERROR* Failed to find windowed driver and mode", false);
+			ReportError("[ERROR] Failed to find windowed driver and mode", false);
 			return FALSE;
 		}
 	}
@@ -526,7 +533,7 @@ bool CGenesisEngine::AutoDriver()
 
 	if(DriverModeList == NULL)
 	{
-		ReportError("*ERROR* No Driver List", false);
+		ReportError("[ERROR] No Driver List", false);
 		ModeList_Destroy(DriverModeList);
 		return false;
 	}
@@ -568,7 +575,7 @@ bool CGenesisEngine::PickDriver()
 
 	if(DriverModeList == NULL)
 	{
-		ReportError("*ERROR* No Driver List", false);
+		ReportError("[ERROR] No Driver List", false);
 		ModeList_Destroy(DriverModeList);
 		return false;
 	}
@@ -578,7 +585,7 @@ bool CGenesisEngine::PickDriver()
 
 	if(DrvList_PickDriver(m_Instance, m_wndMain, DriverModeList, DriverModeListLength, &Selection)==GE_FALSE)
 	{
-		ShowCursor(FALSE);						// Turn the mouse cursor back off
+		ShowCursor(FALSE);					// Turn the mouse cursor back off
 		return false;
 	}
 
@@ -844,13 +851,13 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 	if(!pBitmap)
 	{
-		ReportError("*ERROR* BreakUpBigBitmap needs a bitmap", false);
+		ReportError("[ERROR] BreakUpBigBitmap needs a bitmap", false);
 		return false;
 	}
 
 	if(!BitmapBuffer)
 	{
-		ReportError("*ERROR* BreakUpBigBitmap needs a bitmapbuffer", false);
+		ReportError("[ERROR] BreakUpBigBitmap needs a bitmapbuffer", false);
 		return false;
 	}
 
@@ -886,7 +893,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!Bitmap)
 			{
-				ReportError("*ERROR* BreakUpBigBitmap could not create a bitmap", false);
+				ReportError("[ERROR] BreakUpBigBitmap could not create a bitmap", false);
 				delete BitmapBuffer;
 				// MEMORY LEAK
 				return false;
@@ -894,7 +901,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!geBitmap_Blit(pBitmap, j<<8, i<<8,/* j*256, i*256,*/ Bitmap, 0, 0, Width, Height))
 			{
-				ReportError("*ERROR* BreakUpBigBitmap could not blit a bitmap", false);
+				ReportError("[ERROR] BreakUpBigBitmap could not blit a bitmap", false);
 				delete BitmapBuffer;
 				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
@@ -903,7 +910,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!geBitmap_SetPreferredFormat(Bitmap, GE_PIXELFORMAT_8BIT))
 			{
-				ReportError("*ERROR* BreakUpBigBitmap could not change formats", false);
+				ReportError("[ERROR] BreakUpBigBitmap could not change formats", false);
 				delete BitmapBuffer;
 				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
@@ -1206,7 +1213,7 @@ void CGenesisEngine::ShowFrameRate(bool bHow)
 //
 //	Load a level file into the current engine.
 /* ------------------------------------------------------------------------------------ */
-bool CGenesisEngine::LoadLevel(char *szLevelFileName)
+bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 {
 	//	Check to see if we have a level loaded, and if so, gun it!
 	if(m_World != NULL)
@@ -1222,7 +1229,7 @@ bool CGenesisEngine::LoadLevel(char *szLevelFileName)
 	if(!m_Level)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Failed to load level '%s'",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Failed to load level '%s'",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
 		return FALSE;
@@ -1235,7 +1242,7 @@ bool CGenesisEngine::LoadLevel(char *szLevelFileName)
 	if(!m_World)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Loaded level '%s' failed to create World",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to create World",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
 		return FALSE;
@@ -1244,7 +1251,7 @@ bool CGenesisEngine::LoadLevel(char *szLevelFileName)
 	if(geEngine_AddWorld(m_theEngine, m_World) == GE_FALSE)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Loaded level '%s' failed to add World",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to add World",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
 		return FALSE;
@@ -1263,17 +1270,17 @@ bool CGenesisEngine::LoadLevel(char *szLevelFileName)
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::BeginFrame()
 {
-	if(m_bInFramePass)
+	if(m_fInFramePass)
 		return RGF_FAILURE;					// Already in a BeginFrame()/EndFrame() block
 
 	if(geEngine_BeginFrame(m_theEngine, CCD->CameraManager()->Camera(), GE_TRUE) == GE_FALSE)
 	{
-		ReportError("*ERROR* CGenesisEngine::BeginFrame failed", false);
+		ReportError("[ERROR] CGenesisEngine::BeginFrame failed", false);
 		exit(-1);
 		return RGF_FAILURE;
 	}
 
-	m_bInFramePass = true;
+	m_fInFramePass = true;
 
 	return RGF_SUCCESS;
 }
@@ -1286,16 +1293,16 @@ int CGenesisEngine::BeginFrame()
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::EndFrame()
 {
-	if(!m_bInFramePass)
+	if(!m_fInFramePass)
 		return RGF_FAILURE;				// Not in BeginFrame()/EndFrame() block
 
 	if(geEngine_EndFrame(m_theEngine) == GE_FALSE)
 	{
-		ReportError("*ERROR* CGenesisEngine::EndFrame failed", false);
+		ReportError("[ERROR] CGenesisEngine::EndFrame failed", false);
 		return RGF_FAILURE;
 	}
 
-	m_bInFramePass = false;
+	m_fInFramePass = false;
 
 	return RGF_SUCCESS;
 }
@@ -1307,7 +1314,7 @@ int CGenesisEngine::EndFrame()
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::RenderWorld()
 {
-	if(!m_bInFramePass)
+	if(!m_fInFramePass)
 		return RGF_FAILURE;				// Not in BeginFrame()/EndFrame() block
 
 	//	Update the camera position for bindings, etc.
@@ -1317,7 +1324,7 @@ int CGenesisEngine::RenderWorld()
 	//	We're ready, render it!
 	if(geEngine_RenderWorld(m_theEngine, m_World, CCD->CameraManager()->Camera(), 0.00f) == GE_FALSE)
 	{
-		ReportError("*ERROR* CGenesisEngine::RenderWorld failed", false);
+		ReportError("[ERROR] CGenesisEngine::RenderWorld failed", false);
 		return RGF_FAILURE;
 	}
 
@@ -1331,7 +1338,7 @@ int CGenesisEngine::RenderWorld()
 //	..displaying "Loading" bitmaps, intro screens, credit screens, etc.
 //	..Note that the next render cycle will over-write what's on the screen.
 /* ------------------------------------------------------------------------------------ */
-int CGenesisEngine::DisplaySplash(char *szSplashBMP, char *szAudioFile)
+int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFile)
 {
 	geBitmap *theBmp;
 	geBitmap_Info	BmpInfo;
@@ -1361,23 +1368,23 @@ int CGenesisEngine::DisplaySplash(char *szSplashBMP, char *szAudioFile)
 			if(geEngine_AddBitmap(m_theEngine, theBmp) == GE_FALSE)
 			{
 				char szError[200];
-				sprintf(szError, "*ERROR* File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
+				sprintf(szError, "[ERROR] File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
 						__FILE__, __LINE__, szSplashBMP);
 				ReportError(szError, false);
 				return RGF_FAILURE;
 			}
 
-			if(m_bInFramePass)
+			if(m_fInFramePass)
 				EndFrame();
 
 			// Version 053
 			geEngine_BeginFrame(m_theEngine, CCD->CameraManager()->Camera(), GE_TRUE);
-			m_bInFramePass = true;
+			m_fInFramePass = true;
 
 			if(geEngine_DrawBitmap(m_theEngine, theBmp, NULL, x, y ) == GE_FALSE)
 			{
 				char szError[200];
-				sprintf(szError,"*WARNING* File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
+				sprintf(szError,"[WARNING] File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
 						__FILE__, __LINE__, szSplashBMP);
 				ReportError(szError, false);
 			}
@@ -1402,7 +1409,7 @@ int CGenesisEngine::DisplaySplash(char *szSplashBMP, char *szAudioFile)
 			if(!SoundFile)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: Failed to open Splash Audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: Failed to open Splash Audio file '%s'\n",
 						__FILE__, __LINE__, szAudioFile);
 				ReportError(szError, false);
 			}
@@ -1456,7 +1463,7 @@ void CGenesisEngine::EnableFog(geBoolean FogOn)
 //	..TRUE, the user gets a Windows message box containing the
 //	..offending message.
 /* ------------------------------------------------------------------------------------ */
-bool CGenesisEngine::ReportError(char *szError, bool bMessageBoxIt)
+bool CGenesisEngine::ReportError(const char *szError, bool bMessageBoxIt)
 {
 	FILE *fd;
 
@@ -1470,7 +1477,7 @@ bool CGenesisEngine::ReportError(char *szError, bool bMessageBoxIt)
 		OutputDebugString("Error logging failure!\n");
 
 		if(bMessageBoxIt)
-			MessageBox(NULL, "Error Logging Failure!","RGF Error Report",
+			MessageBox(NULL, "Error Logging Failure!", "RGF Error Report",
 			MB_ICONEXCLAMATION | MB_OK);
 
 		CCD->SetDebugLevel(OldDebugLevel);
@@ -1489,8 +1496,7 @@ bool CGenesisEngine::ReportError(char *szError, bool bMessageBoxIt)
 
 	fclose(fd);
 
-	// Ok, out to a file, now to be sure we can track it in the
-	// ..debugger
+	// Ok, out to a file, now to be sure we can track it in the debugger
 
 	// OutputDebugString(asctime(newtime));
 	OutputDebugString(szError);

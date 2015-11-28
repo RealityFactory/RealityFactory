@@ -16,7 +16,7 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-* $Id: skInterpreter.h,v 1.49 2003/04/19 13:22:23 simkin_cvs Exp $
+* $Id: skInterpreter.h,v 1.50 2004/12/17 21:31:17 sdw Exp $
 */
 #ifndef skINTERPRETER_H
 #define skINTERPRETER_H
@@ -320,6 +320,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    */
   skInterpreter& operator=(const skInterpreter&);
 
+  /** This code is returned by methods executing statements, it indicates how the control flow should continue after the statement
+      has completed */
+  enum StatementReturnCode {SRC_CONTINUE=0,SRC_RETURN=1,SRC_BREAK=2};
 #ifdef EXECUTE_PARSENODES
   /**
    * this function parses the script in the code variable and returns
@@ -408,7 +411,7 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeStats(skStackFrame& frame,skStatListNode * n,skRValue& r);
+  StatementReturnCode executeStats(skStackFrame& frame,skStatListNode * n,skRValue& r);
 #else
   /** This method executes a list of statements
    * @param frame - the current stack frame
@@ -420,7 +423,7 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @return true to halt further processing (i.e. a return statement has been executed)
    * @exception Symbian - a leaving function
    */
-  bool executeStats(skStackFrame& frame,skCompiledCode& code,USize& pc,int& num_bytes,bool execute_bytes,skRValue& r);
+  StatementReturnCode executeStats(skStackFrame& frame,skCompiledCode& code,USize& pc,int& num_bytes,bool execute_bytes,skRValue& r);
 #endif
   /** This method executes a return statement
    * @param frame - the current stack frame
@@ -430,9 +433,21 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeReturnStat(skStackFrame& frame,skReturnNode * n,skRValue& r);
+  StatementReturnCode executeReturnStat(skStackFrame& frame,skReturnNode * n,skRValue& r);
 #else
-  bool executeReturnStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_expr);
+  StatementReturnCode executeReturnStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_expr);
+#endif
+
+  /** This method executes a break statement
+   * @param frame - the current stack frame
+   * @param n - the break statement parse tree
+   * @param r - the value to receive the return value from the statement
+   * @return true to halt further processing (i.e. a return statement has been executed)
+   */
+#ifdef EXECUTE_PARSENODES
+  StatementReturnCode executeBreakStat(skStackFrame& frame,skBreakNode * n,skRValue& r);
+#else
+  StatementReturnCode executeBreakStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r);
 #endif
 
   /** This method executes an if statement
@@ -443,9 +458,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeIfStat(skStackFrame& frame,skIfNode * n,skRValue& r);
+  StatementReturnCode executeIfStat(skStackFrame& frame,skIfNode * n,skRValue& r);
 #else
-  bool executeIfStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_else);
+  StatementReturnCode executeIfStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_else);
 #endif
 
   /** This method executes a while statement
@@ -456,9 +471,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeWhileStat(skStackFrame& frame,skWhileNode * n,skRValue& r);
+  StatementReturnCode executeWhileStat(skStackFrame& frame,skWhileNode * n,skRValue& r);
 #else
-  bool executeWhileStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r);
+  StatementReturnCode executeWhileStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r);
 #endif
 
   /** This method executes a switch statement
@@ -469,9 +484,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeSwitchStat(skStackFrame& frame,skSwitchNode * n,skRValue& r);
+  StatementReturnCode executeSwitchStat(skStackFrame& frame,skSwitchNode * n,skRValue& r);
 #else
-  bool executeSwitchStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_default);
+  StatementReturnCode executeSwitchStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_default);
 #endif
 
   /** This method executes a foreach statement
@@ -482,9 +497,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeForEachStat(skStackFrame& frame,skForEachNode * n,skRValue& r);
+  StatementReturnCode executeForEachStat(skStackFrame& frame,skForEachNode * n,skRValue& r);
 #else
-  bool executeForEachStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,USize id_index);
+  StatementReturnCode executeForEachStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,USize id_index);
 #endif
 
   /** This method executes a for statement
@@ -495,9 +510,9 @@ class CLASSEXPORT skInterpreter : public skExecutable
    * @exception Symbian - a leaving function
    */
 #ifdef EXECUTE_PARSENODES
-  bool executeForStat(skStackFrame& frame,skForNode * n,skRValue& r);
+  StatementReturnCode executeForStat(skStackFrame& frame,skForNode * n,skRValue& r);
 #else
-  bool executeForStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_step);
+  StatementReturnCode executeForStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_step);
 #endif
 
   // Misc runtime routines

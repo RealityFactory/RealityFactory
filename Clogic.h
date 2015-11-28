@@ -22,24 +22,27 @@ typedef struct	LState
 
 } LState;
 
+/**
+ * @brief CLogic handles LogicGate entities
+ */
 class CLogic : public CRGFComponent
 {
 public:
 	CLogic();
 	~CLogic();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 
 private:
 	void SetState();
-	bool GetLTriggerState(char *Name);
+	bool GetLTriggerState(const char *Name);
 
 private:
-	int		Count;		// Count of 3D audio sources
+	int		Count;		// Count of LogicGate entities
 	LState	*Bottom;
 };
 

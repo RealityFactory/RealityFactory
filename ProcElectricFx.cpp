@@ -10,11 +10,6 @@
 
 #define SMOOTH_WRAP GE_TRUE
 
-// changed QD 12/15/05
-//#define		PI	(3.14159f)
-//#define		PI_2	(PI*2.0f)
-// end change
-
 #define		ELECTRICFX_MAX_FX_TYPES	128
 #define		ELECTRICFX_MAX_VECS	128
 

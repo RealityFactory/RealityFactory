@@ -10,7 +10,7 @@
 
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -68,7 +68,7 @@ CMorphingFields::CMorphingFields()
 			if(!pField->theSound)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to open audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
 						__FILE__, __LINE__, pField->szEntityName, pField->szSoundFile);
 				CCD->ReportError(szError, false);
 			}
@@ -413,7 +413,7 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 //
 //	Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
-int CMorphingFields::BindToPath(char *szName)
+int CMorphingFields::BindToPath(const char *szName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -448,7 +448,7 @@ int CMorphingFields::BindToPath(char *szName)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CMorphingFields::LocateEntity(char *szName, void **pEntityData)
+int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

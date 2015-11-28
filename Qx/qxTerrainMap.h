@@ -67,7 +67,7 @@ protected:
 	void			ShadeLambert();
 	void			ShadeGouraud();
 
-	string			m_strHeightMap;
+	std::string		m_strHeightMap;
 	virtual	bool	LoadHeightMap();
 	bool			BuildTextures();
 

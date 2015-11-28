@@ -15,7 +15,8 @@
 #include "QxUser.h"
 
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 #ifdef _DEBUG
 #undef THIS_FILE

@@ -314,7 +314,7 @@ inline void qxSkyDome::MoveWithCamera()
 	if( !CCD->CameraManager()->GetPositionMoved() )
 		return;
 
-	geVec3d* pCamMove = CCD->CameraManager()->GetMoveDif();
+	const geVec3d* pCamMove = CCD->CameraManager()->GetMoveDif();
 	qxTerrainVert* pVert = m_pVertList;
 
 	while ( pVert )

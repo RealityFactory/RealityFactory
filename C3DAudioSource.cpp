@@ -11,7 +11,7 @@
 // Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -81,7 +81,7 @@ C3DAudioSource::C3DAudioSource()
 // End Aug2003DCS
 	}
 
-	//	Audio loaded and running, let's go!
+	// Audio loaded and running, let's go!
 	return;
 }
 
@@ -89,7 +89,7 @@ C3DAudioSource::C3DAudioSource()
 //	Create
 /* ------------------------------------------------------------------------------------ */
 // Start Aug2003DCS   Added Looping
-int C3DAudioSource::Create(const geVec3d &Origin, char *SoundFile, float radius, geBoolean Looping)
+int C3DAudioSource::Create(const geVec3d &Origin, const char *SoundFile, float radius, geBoolean Looping)
 // End Aug2003DCS
 {
 	int effect = -1;
@@ -100,7 +100,6 @@ int C3DAudioSource::Create(const geVec3d &Origin, char *SoundFile, float radius,
 	Sound.Min = radius;
 
 // Start Aug2003DCS
-	//	Sound.Loop = GE_TRUE;
 	Sound.Loop = Looping;
 // End Aug2003DCS
 
@@ -109,7 +108,7 @@ int C3DAudioSource::Create(const geVec3d &Origin, char *SoundFile, float radius,
 	if(!Sound.SoundDef)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to open audio file '%s'\n",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to open audio file '%s'\n",
 				__FILE__, __LINE__, SoundFile);
 		CCD->ReportError(szError, false);
 	}
@@ -158,7 +157,7 @@ C3DAudioSource::~C3DAudioSource()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void C3DAudioSource::Tick(float dwTicks)
+void C3DAudioSource::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -243,9 +242,9 @@ void C3DAudioSource::Tick(float dwTicks)
 //	SetProgrammedTrigger
 //
 //	Given a name, locate the desired item in the currently loaded level
-//	..and set it's ProgrammedTrigger boolean.
+//	..and set its ProgrammedTrigger boolean.
 /* ------------------------------------------------------------------------------------ */
-int C3DAudioSource::SetProgrammedTrigger(char *szName, geBoolean Flag)
+int C3DAudioSource::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -278,7 +277,7 @@ int C3DAudioSource::SetProgrammedTrigger(char *szName, geBoolean Flag)
 //	Given a name, locate the desired sound in the currently loaded level
 //	..and return true if it is playing, false if not.
 /* ------------------------------------------------------------------------------------ */
-geBoolean C3DAudioSource::IsPlaying(char *szName)
+geBoolean C3DAudioSource::IsPlaying(const char *szName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -315,9 +314,9 @@ geBoolean C3DAudioSource::IsPlaying(char *szName)
 //	LocateEntity
 //
 //	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+//	..and return its user data.
 /* ------------------------------------------------------------------------------------ */
-int C3DAudioSource::LocateEntity(char *szName, void **pEntityData)
+int C3DAudioSource::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

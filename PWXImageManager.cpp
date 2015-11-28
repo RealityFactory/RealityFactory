@@ -5,9 +5,6 @@
 
 #include "RabidFramework.h"
 
-PWXImage Image[PWX_IMAGES];
-int IMC;
-
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
@@ -28,9 +25,9 @@ PWXImageManager::~PWXImageManager()
 /* ------------------------------------------------------------------------------------ */
 //	AddImage
 /* ------------------------------------------------------------------------------------ */
-geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm,
+geBoolean PWXImageManager::AddImage(const char* Txt, geBitmap* Bm,
 									int Xp, int Yp,
-									float Alph, int R, int G, int B,
+									float Alpha, int R, int G, int B,
 									int tFont, float ZDepth)
 {
 // changed QD 12/15/05
@@ -40,13 +37,14 @@ geBoolean PWXImageManager::AddImage(char* Txt, geBitmap* Bm,
 
 	Image[IMC].Xpos = Xp;
 	Image[IMC].Ypos = Yp;
-	Image[IMC].Alpha = Alph;
+	Image[IMC].Alpha = Alpha;
 	Image[IMC].Fnt = tFont;
 	Image[IMC].ZDpth = ZDepth;
 
 	if(Txt != NULL)
 	{
-		strcpy(Image[IMC].PWX_Text,Txt);
+		strncpy(Image[IMC].PWX_Text, Txt, 127);
+		Image[IMC].PWX_Text[127] = '\0';
 		Image[IMC].TXTactive = true;
 	}
 	else

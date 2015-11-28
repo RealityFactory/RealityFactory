@@ -49,7 +49,7 @@ Chaos::Chaos()
 					char szError[256];
 					geEntity_GetName(pEntity, szName, 128);
 
-					sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing actor '%s'\n",
+					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 							__FILE__, __LINE__, szName, pTex->EntityName);
 					CCD->ReportError(szError, false);
 					/*
@@ -106,7 +106,7 @@ Chaos::Chaos()
 					char szName[128];
 					char szError[256];
 					geEntity_GetName(pEntity, szName, 128);
-					sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing ActorMaterial %s\n",
+					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial %s\n",
 						__FILE__, __LINE__, szName, pTex->AttachBmp);
 					CCD->ReportError(szError, false);
 					pTex->CAttachBmp = NULL;
@@ -128,7 +128,7 @@ Chaos::Chaos()
 					char szName[128];
 					char szError[256];
 					geEntity_GetName(pEntity, szName, 128);
-					sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing Texture %s in level\n",
+					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing Texture %s in level\n",
 						__FILE__, __LINE__, szName, pTex->AttachBmp);
 					CCD->ReportError(szError, false);
 					continue;
@@ -207,7 +207,7 @@ Chaos::~Chaos()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void Chaos::Tick(geFloat dwTicksIn)
+void Chaos::Tick(geFloat dwTicks)
 {
 	geBitmap_Info AttachInfo, OriginalInfo;
 	int	Row, Col;
@@ -219,8 +219,7 @@ void Chaos::Tick(geFloat dwTicksIn)
 	geEntity_EntitySet	*pSet;
 	geEntity			*pEntity;
 
-// changed QD 12/15/05
-	geFloat dwTicks = dwTicksIn*0.001f;
+	dwTicks *= 0.001f;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
@@ -263,7 +262,7 @@ void Chaos::Tick(geFloat dwTicksIn)
 
 		// compute vertical offset
 		// changed QD 12/15/05
-		pTex->YOffset += (geFloat)pTex->YStep * dwTicks;//(dwTicks*0.001f);
+		pTex->YOffset += (geFloat)pTex->YStep * dwTicks;
 
 		if(pTex->YOffset > GE_2PI)
 			pTex->YOffset = 0.0f;
@@ -281,7 +280,7 @@ void Chaos::Tick(geFloat dwTicksIn)
 			{
 				CosStep = -CosStep;
 				// changed QD 12/15/05
-				CurYOffset = GE_2PI - CurYOffset;// GE_PI - (CurYOffset - GE_PI);
+				CurYOffset = GE_2PI - CurYOffset;
 			}
 			else if(CurYOffset < 0.0)
 			{
@@ -300,7 +299,7 @@ void Chaos::Tick(geFloat dwTicksIn)
 
 		// compute horizontal offset
 		// changed QD 12/15/05
-		pTex->XOffset += (geFloat)pTex->XStep * dwTicks;//(dwTicks*0.001f);
+		pTex->XOffset += (geFloat)pTex->XStep * dwTicks;
 
 		if(pTex->XOffset > GE_2PI)
 			pTex->XOffset = 0.0f;
@@ -318,7 +317,7 @@ void Chaos::Tick(geFloat dwTicksIn)
 			{
 				CosStep = -CosStep;
 				// changed QD 12/15/05
-				CurXOffset = GE_2PI - CurXOffset; // GE_PI - (CurXOffset - GE_PI);
+				CurXOffset = GE_2PI - CurXOffset;
 			}
 			else if(CurXOffset < 0.0f)
 			{

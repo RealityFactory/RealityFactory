@@ -11,6 +11,9 @@
 #ifndef __RGF_CVIEWSWITCH_H_
 #define __RGF_CVIEWSWITCH_H_
 
+/**
+ * @brief CViewSwitch handles ViewSwitch entities
+ */
 class CViewSwitch : public CRGFComponent
 {
 public:

@@ -1,4 +1,3 @@
-#pragma warning( disable : 4068 )
 /************************************************************************************//**
  * @file CPolyShadow.h
  * @brief CPolyShadow class declaration
@@ -10,16 +9,18 @@
 #ifndef	_PLYSHDW_H_
 #define	_PLYSHDW_H_
 
-#include "genesis.h"
-
+/**
+ * @brief CPolyShadow projects an actor onto a surfaces and renders its polys
+ */
 class CPolyShadow
 {
 public:
 	CPolyShadow();
 	~CPolyShadow();
 
-	bool DrawShadow(geActor *Actor);
-	bool DrawPolyCel(geActor *Actor);
+	bool DrawShadow(const geActor *Actor);
+private:
+	GE_LVertex m_Vertex[3];
 };
 
 #endif

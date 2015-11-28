@@ -12,7 +12,8 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -146,7 +147,7 @@ CWallDecal::~CWallDecal()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CWallDecal::Tick(float dwTicks)
+void CWallDecal::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -505,7 +506,7 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 // Start Aug2003DCS - Added three functions
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-void CWallDecal::AddDecal(WallDecal *pSource, geVec3d *InVec, geVec3d *RightVec)
+void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3d *RightVec)
 {
 	geVec3d    up;
 	GE_LVertex vertex[4];
@@ -535,14 +536,12 @@ void CWallDecal::AddDecal(WallDecal *pSource, geVec3d *InVec, geVec3d *RightVec)
 		{0.0f, 0.0f, 1.0f}
 	};
 
-	geVec3d impact, normal;//, Pos;
-	geVec3d Front, Back;
+	geVec3d impact, normal;
+	geVec3d Front, Back, Right;
 	GE_Collision Collision;
 
 // changed QD 12/15/05
-	//geVec3d_Set(&Pos, pSource->origin.X, pSource->origin.Y, pSource->origin.Z);
 	geVec3d_AddScaled(&(pSource->origin), InVec, 4000.0f, &Back);
-	// geVec3d_AddScaled(&Pos, InVec, 0.0f, &Front);
 	geVec3d_Copy(&(pSource->origin), &Front);
 // end change
 
@@ -553,29 +552,30 @@ void CWallDecal::AddDecal(WallDecal *pSource, geVec3d *InVec, geVec3d *RightVec)
 
 	geVec3d_CrossProduct(&normal, RightVec, &up);
 	geVec3d_Normalize(&up);
-	geVec3d_Normalize(RightVec);
+	geVec3d_Copy(RightVec, &Right);
+	geVec3d_Normalize(&Right);
 
-	geVec3d_Scale(RightVec, pSource->Width*0.5f, RightVec);
+	geVec3d_Scale(&Right, pSource->Width*0.5f, &Right);
 	geVec3d_Scale(&up, pSource->Height*0.5f, &up);
 
 	geVec3d_MA(&impact, 0.1f, &normal, &impact);
 
 	//calculate vertices from corners
-	vertex[1].X = impact.X + (-RightVec->X - up.X);
-	vertex[1].Y = impact.Y + (-RightVec->Y - up.Y);
-	vertex[1].Z = impact.Z + (-RightVec->Z - up.Z);
+	vertex[1].X = impact.X + (-Right.X - up.X);
+	vertex[1].Y = impact.Y + (-Right.Y - up.Y);
+	vertex[1].Z = impact.Z + (-Right.Z - up.Z);
 
-	vertex[2].X = impact.X + (RightVec->X - up.X);
-	vertex[2].Y = impact.Y + (RightVec->Y - up.Y);
-	vertex[2].Z = impact.Z + (RightVec->Z - up.Z);
+	vertex[2].X = impact.X + (Right.X - up.X);
+	vertex[2].Y = impact.Y + (Right.Y - up.Y);
+	vertex[2].Z = impact.Z + (Right.Z - up.Z);
 
-	vertex[3].X = impact.X + (RightVec->X + up.X);
-	vertex[3].Y = impact.Y + (RightVec->Y + up.Y);
-	vertex[3].Z = impact.Z + (RightVec->Z + up.Z);
+	vertex[3].X = impact.X + (Right.X + up.X);
+	vertex[3].Y = impact.Y + (Right.Y + up.Y);
+	vertex[3].Z = impact.Z + (Right.Z + up.Z);
 
-	vertex[0].X = impact.X + (-RightVec->X + up.X);
-	vertex[0].Y = impact.Y + (-RightVec->Y + up.Y);
-	vertex[0].Z = impact.Z + (-RightVec->Z + up.Z);
+	vertex[0].X = impact.X + (-Right.X + up.X);
+	vertex[0].Y = impact.Y + (-Right.Y + up.Y);
+	vertex[0].Z = impact.Z + (-Right.Z + up.Z);
 
 	if(!pSource->Animated)
 	{
@@ -606,7 +606,7 @@ void CWallDecal::AddDecal(WallDecal *pSource, geVec3d *InVec, geVec3d *RightVec)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and set it's ProgrammedTrigger boolean.
 /* ------------------------------------------------------------------------------------ */
-int CWallDecal::SetProgrammedTrigger(char *szName, geBoolean Flag)
+int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -639,7 +639,7 @@ int CWallDecal::SetProgrammedTrigger(char *szName, geBoolean Flag)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and set it's CurBmp value.
 /* ------------------------------------------------------------------------------------ */
-int CWallDecal::SetCurrentBitmap(char *szName, int CurrentBitmap)
+int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

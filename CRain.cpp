@@ -14,7 +14,8 @@
 
 #define RAINM_RADIUSTOEFFECTRATIO	50
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CRain Constructor
@@ -69,7 +70,7 @@ CRain::CRain()
 
 		R->active = GE_FALSE;
 
-		TPool_Bitmap("rain.Bmp", "A_rain.Bmp", R->BmpName, R->AlphaName);
+		TPool_Bitmap("rain.bmp", "a_rain.bmp", R->BmpName, R->AlphaName);
 	}
 }
 
@@ -86,7 +87,7 @@ int CRain::Create(Rain *R)
 
     // get bitmap for use as texture
     // rain/a_rain are default bitmap names
-    Sp.Texture = TPool_Bitmap("rain.Bmp", "A_rain.Bmp", R->BmpName, R->AlphaName);
+    Sp.Texture = TPool_Bitmap("rain.bmp", "a_rain.bmp", R->BmpName, R->AlphaName);
 
     // setup spray data
     Sp.MinScale		= 0.5f;
@@ -109,6 +110,8 @@ int CRain::Create(Rain *R)
     memcpy(&(Sp.ColorMax), &(R->ColorMax), sizeof(Sp.ColorMax));
 
 	Sp.ColorMin.a = Sp.ColorMax.a = 255.0f;
+
+	Sp.UseWind = R->UseWind;
 
 	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
 	return effect;
@@ -141,7 +144,7 @@ CRain::~CRain()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CRain::Tick(float dwTicks)
+void CRain::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -218,7 +221,7 @@ void CRain::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CRain::LocateEntity(char *szName, void **pEntityData)
+int CRain::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

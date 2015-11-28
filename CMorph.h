@@ -8,13 +8,16 @@
 #ifndef __RGF_CMORPH_H_
 #define __RGF_CMORPH_H_
 
+/**
+ * @brief CMorph handles EM_Morph entities
+ */
 class CMorph : public CRGFComponent
 {
 public:
 	CMorph();
 	~CMorph();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 };
 
 #endif

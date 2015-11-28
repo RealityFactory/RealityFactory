@@ -50,7 +50,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="4"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;C:\RF_VS2005\Genesis_03102005\GenesisLib\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug/RealityFactory.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="genesisd.lib strmbasd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib quartz.lib gdi32.lib decrypt.lib wsock32.lib advapi32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib"
+				AdditionalDependencies="genesisd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib gdi32.lib decrypt.lib wsock32.lib advapi32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib"
 				OutputFile="..\RealityFactoryD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -149,8 +149,9 @@
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="2"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;C:\RF_VS2005\Genesis_03102005\GenesisLib\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
+				MinimalRebuild="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/RealityFactory.pch"
@@ -175,7 +176,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="genesis.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib quartz.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib"
+				AdditionalDependencies="genesis.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib"
 				OutputFile="..\RealityFactory.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -1021,6 +1022,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CLiftBelt.cpp"
+				>
+			</File>
+			<File
 				RelativePath="CLiquid.cpp"
 				>
 				<FileConfiguration
@@ -1279,6 +1284,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\COverlay.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CParticleSystem.cpp"
@@ -1799,6 +1808,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CWindGenerator.cpp"
+				>
 			</File>
 			<File
 				RelativePath="drawbbox.c"
@@ -3822,6 +3835,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CLiftBelt.h"
+				>
+			</File>
+			<File
 				RelativePath="CLiquid.h"
 				>
 			</File>
@@ -3871,6 +3888,10 @@
 			</File>
 			<File
 				RelativePath="Collider.h"
+				>
+			</File>
+			<File
+				RelativePath=".\COverlay.h"
 				>
 			</File>
 			<File
@@ -3966,11 +3987,11 @@
 				>
 			</File>
 			<File
-				RelativePath="EffManager.h"
+				RelativePath=".\CWindGenerator.h"
 				>
 			</File>
 			<File
-				RelativePath="FreeImage.h"
+				RelativePath="EffManager.h"
 				>
 			</File>
 			<File
@@ -4006,6 +4027,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RGFScriptMethods.h"
+				>
+			</File>
+			<File
 				RelativePath="RGFStatus.h"
 				>
 			</File>
@@ -4027,7 +4052,11 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="mjbeesticklesRF.ico"
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rficon.ico"
 				>
 			</File>
 		</Filter>

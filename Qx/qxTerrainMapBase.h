@@ -144,8 +144,8 @@ protected:
 	int					m_nPolyCount;
 	int					m_nDesiredPolyCount;
 	int					m_nMinPolyCount;
-	string				m_strTextureFile;
-	string				m_strAlphaFile;
+	std::string			m_strTextureFile;
+	std::string			m_strAlphaFile;
 
 
 	bool				m_bUpdate;

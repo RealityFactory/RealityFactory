@@ -19,12 +19,14 @@ typedef struct TraceData
 
 } TraceData;
 
-
+/**
+ * @brief Collider class for collision and contents checking
+ */
 class Collider
 {
 public:
-  Collider();						// Default constructor
-	~Collider();					// Default destructor
+	Collider();						///< Default constructor
+	~Collider();					///< Default destructor
 
 /* 07/15/2004 Wendell Buckner
     BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
@@ -45,13 +47,17 @@ public:
 	void IgnoreContents(bool bFlag);
 	void CheckLevel(int nLevel);
 
-	// GetContentsOf gets the contents of an ExtBox zone
+	/**
+	 * @brief GetContentsOf gets the contents of an ExtBox zone
+	 */
 	int GetContentsOf(const geVec3d &Position, geExtBox *theBox, GE_Contents *theContents);
 	int GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 				geActor *theActor, GE_Contents *theContents);
 
-	// CheckActorCollision performs a detailed collision check on the actor
-	// ..at its current position to see if its in collision with anything.
+	/**
+	 * @brief CheckActorCollision performs a detailed collision check on the actor
+	 * at its current position to see if its in collision with anything.
+	 */
 	bool CheckActorCollision(geActor *theActor);
 	bool CheckActorCollision(geVec3d *Position, geActor *theActor);
 	bool CheckActorCollision(const geVec3d &Start, const geVec3d &End, geActor *theActor);
@@ -112,11 +118,15 @@ public:
 	void GetMoveBox(const geVec3d *Mins, const geVec3d *Maxs, const geVec3d *Front, const geVec3d *Back, geVec3d *OMins, geVec3d *OMaxs);
 	geBoolean CheckBoneCollision(geWorld *World, geActor *StaticActor, const geVec3d *Position, geVec3d *Min, geVec3d *Max);
 
-	// Probe allows collision look-ahead to a certain extent, point to point.
+	/**
+	 * @brief Probe allows collision look-ahead to a certain extent, point to point.
+	 */
 	geBoolean Probe(const geXForm3d &theXForm, float fDistance, GE_Collision *theCollision);
 	geBoolean Probe(const geXForm3d &theXForm, float fDistance, GE_Collision *theCollision, geActor *theActor);
 
-	// ProcessCollision handles dispatching collisions to entities
+	/**
+	 * @brief ProcessCollision handles dispatching collisions to entities
+	 */
 	int ProcessCollision(const GE_Collision &theCollision, geActor *theActor, bool Gravity);
 	int GetLastCollisionCause() { return LastCollisionReason;};
 
@@ -143,10 +153,10 @@ private:
 								geWorld *World, GE_Collision *Collision);
 
 private:
-	int LastCollisionReason;		// Reason for last collision
-	int m_CheckLevel;				// Collision check level
-	bool m_IgnoreContents;			// Ignore collision zone contents
-	char szLastBoneCollision[256];	// Name of last bone collided, if any
+	int LastCollisionReason;		///< Reason for last collision
+	int m_CheckLevel;				///< Collision check level
+	bool m_IgnoreContents;			///< Ignore collision zone contents
+	char szLastBoneCollision[256];	///< Name of last bone collided, if any
 	// Debug Variables
 	char Flag1[256];
 	int Flag2, Flag3;

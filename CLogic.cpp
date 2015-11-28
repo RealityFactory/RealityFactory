@@ -70,7 +70,7 @@ CLogic::~CLogic()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CLogic::Tick(float dwTicks)
+void CLogic::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -403,7 +403,7 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CLogic::LocateEntity(char *szName, void **pEntityData)
+int CLogic::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -459,7 +459,7 @@ void CLogic::SetState()
 	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
-		return;									// No 3D audio sources
+		return;									// No LogicGates
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -492,7 +492,7 @@ void CLogic::SetState()
 /* ------------------------------------------------------------------------------------ */
 //	GetLTriggerState
 /* ------------------------------------------------------------------------------------ */
-bool CLogic::GetLTriggerState(char *Name)
+bool CLogic::GetLTriggerState(const char *Name)
 {
 	LState *pool;
 
@@ -513,7 +513,7 @@ bool CLogic::GetLTriggerState(char *Name)
 			}
 
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: Invalid Trigger Name '%s'\n",
+			sprintf(szError, "[WARNING] File %s - Line %d: Invalid Trigger Name '%s'\n",
 					__FILE__, __LINE__, Name);
 			CCD->ReportError(szError, false);
 			return false;

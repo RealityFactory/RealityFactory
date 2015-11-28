@@ -14,23 +14,25 @@
 #ifndef __CAUDIO_MANAGER__
 #define __CAUDIO_MANAGER__
 
-//	This struct holds information for each instance of an audio effect
+/**
+ * @brief This struct holds information for each instance of an audio effect
+ */
 struct AudioInstance
 {
-	geVec3d SpatialPosition;	// Transform of audio source
-	geFloat Volume;				// Volume of instance
-	geFloat Pan;				// Pan of instance, if not 3D audio;
-	bool	bUpdated;			// Need to update due to state change
-	bool	bRemovedWhenDone;	// TRUE if entity removed when playback completes
-	int		theHandle;			// Handle for this entity
+	geVec3d SpatialPosition;	///< Transform of audio source
+	geFloat Volume;				///< Volume of instance
+	geFloat Pan;				///< Pan of instance, if not 3D audio;
+	bool	bUpdated;			///< Need to update due to state change
+	bool	bRemovedWhenDone;	///< TRUE if entity removed when playback completes
+	int		theHandle;			///< Handle for this entity
 };
 
 
 struct AudioInstanceList
 {
-	char szAudioName[512];		// Filename for audio entity
-	int AudioType;				// Type of audio entity this is
-	AudioInstance *IList;		// List of instances, this audio
+	char szAudioName[512];		///< Filename for audio entity
+	int AudioType;				///< Type of audio entity this is
+	AudioInstance *IList;		///< List of instances, this audio
 };
 
 
@@ -69,7 +71,7 @@ private:
 	int ChannelFromHandle(int nHandle);		// Handle lookup
 
 private:
-	//	Private member variables
+	// Private member variables
 	AudioInstanceList *MainList[512];		// Database of managed audio
 	int PlayingChannels[32][2];				// 32 concurrent playing audio entities
 	int m_InstanceCount;					// Global instance counter

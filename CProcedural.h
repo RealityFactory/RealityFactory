@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CProcedural.h
  * @brief Procedural handler
@@ -13,14 +12,16 @@
 #ifndef __RGF_CProcedural_H__
 #define __RGF_CProcedural_H__
 
-
+/**
+ * @brief CProcedural class
+ */
 class CProcedural : public CRGFComponent
 {
 public:
-	CProcedural();				// Constructor
-	~CProcedural();				// Destructor
+	CProcedural();				///< Constructor
+	~CProcedural();				///< Destructor
 
-	void Tick(geFloat dwTicks);	// Update video textures
+	void Tick(geFloat dwTicks);	///< Update procedural textures
 	int ReSynchronize();
 private:
 };

@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CVideoTexture.h
  * @brief Video surface texture handler
@@ -13,19 +12,21 @@
 #ifndef __RGF_CVideoTexture_H__
 #define __RGF_CVideoTexture_H__
 
-
+/**
+ * @brief CVideoTexture handles VideoTextureReplacer entities
+ */
 class CVideoTexture : public CRGFComponent
 {
 public:
-	CVideoTexture();				// Constructor
-	~CVideoTexture();				// Destructor
+	CVideoTexture();				///< Constructor
+	~CVideoTexture();				///< Destructor
 
-	void Tick(geFloat dwTick);		// Update video textures
+	void Tick(geFloat dwTick);		///< Update video textures
 	int ReSynchronize();
 
 private:
-	int m_TextureCount;				// Count of doors in world
-	CAVIPlayer *m_VidList[40];		// Up to 40 concurrent video textures
+	int m_TextureCount;				///< Count of VideoTextureReplacers in world
+	CAVIPlayer *m_VidList[40];		///< Up to 40 concurrent video textures
 	CAnimGif *m_GifList[40];
 };
 

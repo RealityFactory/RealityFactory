@@ -13,41 +13,38 @@
 #ifndef __RGF_ACTMATERIAL_H_
 #define __RGF_ACTMATERIAL_H_
 
-// changed QD 12/15/05
-/*
-typedef struct MaterialList
-{
-	MaterialList *next;
-	MaterialList *prev;
-	char Entity[64];
-	char Material[64];
-	bool ChangeLighting;
-	GE_RGBA FillColor;
-	GE_RGBA AmbientColor;
-// changed QD 07/21/04
-	geBoolean AmbientLightFromFloor;
-// end change
-} MaterialList;
-*/
-// end change
-
+/**
+ * @brief CActMaterial handler
+ *
+ * ActMaterial entities change materials of actors
+ */
 class CActMaterial : public CRGFComponent
 {
 public:
+	/**
+	 * @brief Default constructor
+	 */
 	CActMaterial();
+
+	/**
+	 * @brief Destructor
+	 */
 	~CActMaterial();
 
-	void Tick(float dwTicks);
-	int SaveTo(FILE *SaveFD, bool type);
-	int RestoreFrom(FILE *RestoreFD, bool type);
+	/**
+	 * @brief Update ActMaterial entities
+	 */
+	void Tick(geFloat dwTicks);
 
-// changed QD 12/15/05
-/*
-private:
-	MaterialList *Bottom;
-	MaterialList *Top;
-*/
-// end change
+	/**
+	 * @brief Save state of ActMaterial entities to a file
+	 */
+	int SaveTo(FILE *SaveFD, bool type);
+
+	/**
+	 * @brief Restore state of ActMaterial entities from a file
+	 */
+	int RestoreFrom(FILE *RestoreFD, bool type);
 };
 
 #endif

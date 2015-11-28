@@ -7,16 +7,19 @@
 #ifndef __RGF_CCOUNT_H_
 #define __RGF_CCOUNT_H_
 
+/**
+ * @brief CCountDown handles CountDown entities
+ */
 class CCountDown : public CRGFComponent
 {
 public:
 	CCountDown();
 	~CCountDown();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 };
 
 #endif

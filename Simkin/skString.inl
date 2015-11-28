@@ -24,6 +24,9 @@
 
 #include "skString.h"
 #ifndef __SYMBIAN32__
+// changed QD 02/01/07
+//#include <string.h>
+// end change
 #include <ctype.h>
 #endif
 
@@ -64,7 +67,7 @@ public:
 #if defined __GNUC__
 #define STRCMPI strcasecmp
 #else
-#define STRCMPI strcmpi
+#define STRCMPI _strcmpi
 #endif
 #define STRCPY strcpy
 #define STRCAT strcat

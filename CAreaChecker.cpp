@@ -28,16 +28,10 @@ CAreaChecker::~CAreaChecker()
 /* ------------------------------------------------------------------------------------ */
 bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float diameter)
 {
-	// float distsquared;
 	geVec3d B;
 
 	geVec3d_Subtract(&Pos1, &Pos2, &B);
-	/*distsquared = geVec3d_DotProduct(&B, &B);
 
-	if(distsquared < diameter * diameter)
-		return true;
-
-	return false;*/
 	return (geVec3d_DotProduct(&B, &B) < diameter*diameter);
 }
 // end change
@@ -45,7 +39,7 @@ bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CAreaChecker::Tick(float dwTicks)
+void CAreaChecker::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

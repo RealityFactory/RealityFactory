@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CTeleporter.h
  * @brief Teleporter class handler
@@ -12,23 +11,26 @@
 #ifndef __RGF_CTELEPORTER_H_
 #define __RGF_CTELEPORTER_H_
 
+/**
+ * @brief CTeleporter handles Teleporter and TeleportTarget entities
+ */
 class CTeleporter : public CRGFComponent
 {
 public:
 	CTeleporter();
 	~CTeleporter();
 
-	bool HandleCollision(geWorld_Model *pModel, geActor *theActor);
-	void Tick(geFloat dwTicks);						// Do any animation
-	int SaveTo(FILE *SaveFD, bool type);			// Save teleporters & targets to file
-	int RestoreFrom(FILE *RestoreFD, bool type);	// Restore teleporters & targets from file
-	int BindToPath(char *szName);					// Bind TeleportTarget to motion path
-	int LocateEntity(char *szName, void **pEntityData);
+	bool HandleCollision(const geWorld_Model *pModel, geActor *theActor); ///< Handle collision with teleporters
+	void Tick(geFloat dwTicks);						///< Update teleporters & target, do teleporter effect
+	int SaveTo(FILE *SaveFD, bool type);			///< Save teleporters & targets to file
+	int RestoreFrom(FILE *RestoreFD, bool type);	///< Restore teleporters & targets from file
+	int BindToPath(const char *szName);				///< Bind TeleportTarget to motion path
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 	void DoFade(void);
 
 private:
-	int m_TeleporterCount;							// Count of teleporters
+	int m_TeleporterCount;							///< Count of teleporters
 };
 
 #endif

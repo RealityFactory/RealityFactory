@@ -1,17 +1,16 @@
 //Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
-#include "windows.h"
-#ifndef IDC_STATIC
-#define IDC_STATIC	(-1)
-#endif
-
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -24,7 +23,6 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -39,7 +37,7 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-	"#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
     "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "\r\n"
@@ -54,27 +52,34 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST MOVEABLE PURE "RealityFactory.exe.manifest"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_DRIVERDIALOG DIALOGEX 0, 0, 320, 180
+IDD_DRIVERDIALOG DIALOGEX 0, 0, 320, 175
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LISTBOX         IDC_DRIVERLIST,0,49,239,82,LBS_NOINTEGRALHEIGHT | 
+    LISTBOX         IDC_DRIVERLIST,7,49,212,82,LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,WS_EX_TRANSPARENT
-    LISTBOX         IDC_DRIVERLIST2,239,49,103,82,LBS_NOINTEGRALHEIGHT | 
+    LISTBOX         IDC_DRIVERLIST2,222,49,91,82,LBS_NOINTEGRALHEIGHT | 
                     WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,WS_EX_TRANSPARENT
-    DEFPUSHBUTTON   "Use Selected",IDOK,55,150,92,17,0,WS_EX_TRANSPARENT
-    PUSHBUTTON      "Pick something for Me !",IDCANCEL,196,151,116,17,0,
-                    WS_EX_TRANSPARENT
+    DEFPUSHBUTTON   "Use Selected",IDOK,55,150,92,17
+    PUSHBUTTON      "Pick something for Me !",IDCANCEL,196,151,116,17
     LTEXT           "Please Select a Driver and Mode from the List Below. Then Click 'Use Selected'",
-                    IDC_STATIC,0,9,361,10,0,WS_EX_TRANSPARENT
-    LTEXT           "DRIVER",IDC_STATIC,61,36,37,10,0,WS_EX_TRANSPARENT
-    LTEXT           "MODE",IDC_STATIC,275,37,29,10,0,WS_EX_TRANSPARENT
+                    IDC_STATIC,7,7,279,10,0,WS_EX_TRANSPARENT
+    LTEXT           "DRIVER",IDC_STATIC,95,36,31,10,0,WS_EX_TRANSPARENT
+    LTEXT           "MODE",IDC_STATIC,253,36,24,10,0,WS_EX_TRANSPARENT
 END
 
 
@@ -91,13 +96,13 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 313
         TOPMARGIN, 7
-        BOTTOMMARGIN, 173
+        BOTTOMMARGIN, 168
     END
 END
 #endif    // APSTUDIO_INVOKED
 
-#ifndef _MAC
 
+#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -125,7 +130,7 @@ BEGIN
             VALUE "FileDescription", "RealityFactory\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "RealityFactory\0"
-            VALUE "LegalCopyright", "Copyright © 2007\0"
+            VALUE "LegalCopyright", "Copyright © 2008\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RealityFactory.exe\0"
             VALUE "PrivateBuild", "\0"
@@ -150,7 +155,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "mjbeesticklesRF.ico"
+IDI_ICON1               ICON    DISCARDABLE     "rficon.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

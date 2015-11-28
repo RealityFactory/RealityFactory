@@ -15,7 +15,7 @@
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CAnimGif::CAnimGif(char *szFile, int fileformat)
+CAnimGif::CAnimGif(const char *szFile, int fileformat)
 {
 	long Size;
 
@@ -208,7 +208,7 @@ geBitmap *CAnimGif::NextFrame(bool repeat)
 /* ------------------------------------------------------------------------------------ */
 //	DisplayNextFrameTexture
 /* ------------------------------------------------------------------------------------ */
-bool CAnimGif::DisplayNextFrameTexture(char *szTextureName, bool FFrame)
+bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 {
 	if(!Active)
 		return false;
@@ -224,7 +224,7 @@ bool CAnimGif::DisplayNextFrameTexture(char *szTextureName, bool FFrame)
 			return false;
 		}
 
-		geBitmap_GetInfo(theBitmap,&Info,NULL);
+		geBitmap_GetInfo(theBitmap, &Info, NULL);
 
 		if(nWidth!=Info.Width || nHeight!=Info.Height)
 		{

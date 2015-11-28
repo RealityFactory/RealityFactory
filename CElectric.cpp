@@ -12,8 +12,9 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 // Prototypes
 Electric_BoltEffect* Electric_BoltEffectCreate(
@@ -437,7 +438,7 @@ CElectric::CElectric()
 
 	// Ok, we have electric bolts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBolt *pBolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
 
@@ -455,28 +456,28 @@ CElectric::CElectric()
 		if(pBolt->Model)
 		{
 			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pBolt->Model, &ModelOrigin);
+			geWorld_GetModelRotationalCenter(CCD->World(), pBolt->Model, &ModelOrigin);
 			geVec3d_Subtract(&pBolt->origin, &ModelOrigin, &pBolt->OriginOffset);
-  		}
+		}
 
 		pBolt->effect		= (int *)malloc(sizeof(int));// * 1);
 		pBolt->effect[0]	= -1;
 		pBolt->active		= false;
-		pBolt->Bitmap		= TPool_Bitmap("Bolt.Bmp", "Bolt.Bmp", pBolt->BmpName, pBolt->AlphaName);
+		pBolt->Bitmap		= TPool_Bitmap("bolt.bmp", "bolt.bmp", pBolt->BmpName, pBolt->AlphaName);
 
 		if(!pBolt->Bitmap)
 		{
 			char szBug[256];
-   			sprintf(szBug, "*WARNING* File %s - Line %d: %s: Failed to create Bolt bitmap : %s %s\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to create Bolt bitmap : %s %s\n",
 					__FILE__, __LINE__, pBolt->szEntityName, pBolt->BmpName, pBolt->AlphaName);
 			CCD->ReportError(szBug, false);
-    		continue;
+			continue;
 		}
 
 		if(!pBolt->Terminus)
 		{
 			char szBug[256];
-			sprintf(szBug, "*WARNING* File %s - Line %d: ElectricBolt entity '%s' has no terminus.\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: ElectricBolt entity '%s' has no terminus.\n",
 					__FILE__, __LINE__, pBolt->szEntityName);
 			CCD->ReportError(szBug, false);
 			continue;
@@ -490,10 +491,10 @@ CElectric::CElectric()
 		if(!pBolt->Bolt)
 		{
 			char szBug[256];
-   			sprintf(szBug, "*WARNING* File %s - Line %d: %s: Failed to create Bolt\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to create Bolt\n",
 					__FILE__, __LINE__, pBolt->szEntityName);
 			CCD->ReportError(szBug, false);
-    		continue;
+			continue;
 		}
 
 		Electric_BoltEffectSetColorInfo(pBolt->Bolt, &pBolt->Color, pBolt->DominantColor);
@@ -514,7 +515,7 @@ CElectric::CElectric()
 
 	// Ok, we have bolt terminuses somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBoltTerminus *pTerminus = (ElectricBoltTerminus*)geEntity_GetUserData(pEntity);
 
@@ -568,7 +569,7 @@ int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 		CCD->ReportError(szError, false);
 	}
 	if(Sound.SoundDef!=NULL)
-        	effect = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
+		effect = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
 	*/
 	// end cell division
 	return effect;
@@ -585,11 +586,11 @@ CElectric::~CElectric()
 	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
-	  return;
+		return;
 
 	// Ok, we have electric bolts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBolt *pBolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
 		free(pBolt->effect);
@@ -617,7 +618,7 @@ static geFloat frand(geFloat Low, geFloat High)
 /* ------------------------------------------------------------------------------------ */
 // Tick - do time based actions
 /* ------------------------------------------------------------------------------------ */
-geBoolean CElectric::Tick(float dwTicks)
+geBoolean CElectric::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -635,7 +636,7 @@ geBoolean CElectric::Tick(float dwTicks)
 
 	// Ok, we have bolt terminuses somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBoltTerminus *pTerminus = (ElectricBoltTerminus*)geEntity_GetUserData(pEntity);
 		pTerminus->origin = pTerminus->OriginOffset;
@@ -797,7 +798,7 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CElectric::LocateEntity(char *szName, void **pEntityData)
+int CElectric::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -887,7 +888,7 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
 
@@ -926,7 +927,7 @@ int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &pSource->bState,		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->DTime,			sizeof(geFloat),	1, RestoreFD);
 		READDATA(type, &pSource->DoingDamage,	sizeof(geBoolean),	1, RestoreFD);
-    }
+	}
 
 	return RGF_SUCCESS;
 }

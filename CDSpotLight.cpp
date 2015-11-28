@@ -61,7 +61,7 @@ CDSpotLight::CDSpotLight()
 
 		if(pLight->NumFunctionValues == 0)
 		{
-			CCD->ReportError("*WARNING* DSpotLight has no RadiusFunction string\n", false);
+			CCD->ReportError("[WARNING] DSpotLight has no RadiusFunction string\n", false);
 			continue;
 		}
 
@@ -79,7 +79,7 @@ CDSpotLight::~CDSpotLight()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-geBoolean CDSpotLight::Tick(float dwTicks)
+geBoolean CDSpotLight::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -262,7 +262,7 @@ geBoolean CDSpotLight::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CDSpotLight::LocateEntity(char *szName, void **pEntityData)
+int CDSpotLight::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

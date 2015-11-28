@@ -11,7 +11,8 @@
 #include "qxColor.h"
 #include "QxUser.h" //genesis
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -50,12 +51,12 @@ bool qxStarField::InitStarsMajor()
 
 	float Scale = (CCD->TerrainMgr()->GetLandscapeSize())/1000.0f;
 
-	// Random stars. We should in the end use actual star coordinates for 
+	// Random stars. We should in the end use actual star coordinates for
 	// reality's sake
-	geBitmap* pBmp1 = TPool_Bitmap("terrain\\star1.bmp", "terrain\\a_star2.bmp", NULL, NULL);
-	geBitmap* pBmp2 = TPool_Bitmap("terrain\\star2.bmp", "terrain\\a_star2.bmp", NULL, NULL);
-	geBitmap* pBmp3 = TPool_Bitmap("terrain\\white64.bmp", "terrain\\a_starfield64.bmp", NULL, NULL);
-	geBitmap* pBmp4 = TPool_Bitmap("terrain\\white128.bmp", "terrain\\a_starfield128.bmp", NULL, NULL);
+	geBitmap* pBmp1 = TPool_Bitmap("terrain\\star1.bmp",	"terrain\\a_star2.bmp",			NULL, NULL);
+	geBitmap* pBmp2 = TPool_Bitmap("terrain\\star2.bmp",	"terrain\\a_star2.bmp",			NULL, NULL);
+	geBitmap* pBmp3 = TPool_Bitmap("terrain\\white64.bmp",	"terrain\\a_starfield64.bmp",	NULL, NULL);
+	geBitmap* pBmp4 = TPool_Bitmap("terrain\\white128.bmp", "terrain\\a_starfield128.bmp",	NULL, NULL);
 
 	geBitmap* pCurBmp = pBmp1;
 

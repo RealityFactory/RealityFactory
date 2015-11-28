@@ -60,7 +60,7 @@ CDynalite::CDynalite()
 
 		if(pLight->NumFunctionValues == 0)
 		{
-			CCD->ReportError("*WARNING* DynamicLight has no RadiusFunction string\n", false);
+			CCD->ReportError("[WARNING] DynamicLight has no RadiusFunction string\n", false);
 			continue;
 		}
 
@@ -81,7 +81,7 @@ CDynalite::~CDynalite()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-geBoolean CDynalite::Tick(float dwTicks)
+geBoolean CDynalite::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -197,7 +197,7 @@ geBoolean CDynalite::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CDynalite::LocateEntity(char *szName, void **pEntityData)
+int CDynalite::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

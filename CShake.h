@@ -12,6 +12,9 @@
 #ifndef __RGF_SHAKE_H_
 #define __RGF_SHAKE_H_
 
+/**
+ * @brief CShake class handles Screenshake entities
+ */
 class CShake : public CRGFComponent
 {
 public:

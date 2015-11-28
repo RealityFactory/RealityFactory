@@ -11,8 +11,6 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
-#include "CCommonData.h"
-
 
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
@@ -22,7 +20,7 @@
 #include "Simkin\\skBoundsException.h"
 #include "Simkin\\skTreeNode.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 
 /* ------------------------------------------------------------------------------------ */
@@ -521,13 +519,13 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "random"))
 	{
 		PARMCHECK(2);
-		float param1 = arguments[0].floatValue();
-		float param3 = arguments[1].floatValue();
+		int param1 = arguments[0].intValue();
+		int param3 = arguments[1].intValue();
 
-		if(param1 <= param3)
-			returnValue = (int)EffectC_Frand(param1, param3);
+		if(param1 < param3)
+			returnValue = EffectC_rand(param1, param3);
 		else
-			returnValue = (int)EffectC_Frand(param3, param1);
+			returnValue = EffectC_rand(param3, param1);
 
 		return true;
 	}
@@ -1148,7 +1146,7 @@ CLevelController::~CLevelController()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CLevelController::Tick(geFloat TimeTicks)
+void CLevelController::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -1203,8 +1201,8 @@ void CLevelController::Tick(geFloat TimeTicks)
 					ConsoleBlock += 1;
 				}
 
-				Object->ElapseTime += (TimeTicks*0.001f);
-				Object->ThinkTime  -= (TimeTicks*0.001f);
+				Object->ElapseTime += (dwTicks*0.001f);
+				Object->ThinkTime  -= (dwTicks*0.001f);
 
 				if(Object->ThinkTime > 0.0f)
 					continue;

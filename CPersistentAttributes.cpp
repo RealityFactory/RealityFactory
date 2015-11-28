@@ -76,7 +76,7 @@ int CPersistentAttributes::Clear()
 //
 //	Set LOW and HIGH limits for attribute values
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetValueLimits(char *szTag, int Low, int High)
+int CPersistentAttributes::SetValueLimits(const char *szTag, int Low, int High)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -95,7 +95,7 @@ int CPersistentAttributes::SetValueLimits(char *szTag, int Low, int High)
 //
 //	Set HIGH limit for attribute values
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetHighLimit(char *szTag, int HighLimit)
+int CPersistentAttributes::SetHighLimit(const char *szTag, int HighLimit)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -115,7 +115,7 @@ int CPersistentAttributes::SetHighLimit(char *szTag, int HighLimit)
 //	Locate the attribute identified by the tag and set its value to the desired value.
 //	If the attribute doesn't exist, create it and set the value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Set(char *szTag, int nValue)
+int CPersistentAttributes::Set(const char *szTag, int nValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -136,7 +136,7 @@ int CPersistentAttributes::Set(char *szTag, int nValue)
 //	..an eror.  If it DOES exist, perform the test indicated by 'nHow'
 //	..and if the result is TRUE, set the attributes value to the desired value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetIf(char *szTag, int nHow, int nCompareValue, int nValue)
+int CPersistentAttributes::SetIf(const char *szTag, int nHow, int nCompareValue, int nValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -157,7 +157,7 @@ int CPersistentAttributes::SetIf(char *szTag, int nHow, int nCompareValue, int n
 //	Locate the attribute identified by the tag.  If it doesn't exist, return
 //	..an error.  If it DOES exist, add 'nValue' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Modify(char *szTag, int nValue)
+int CPersistentAttributes::Modify(const char *szTag, int nValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -182,7 +182,7 @@ int CPersistentAttributes::Modify(char *szTag, int nValue)
 //	..an error.  If it does exist, perform the comparison indicated by
 //	..'nHow' and if true modify the value by adding 'nValue' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::ModifyIf(char *szTag, int nHow, int nCompareValue, int nValue)
+int CPersistentAttributes::ModifyIf(const char *szTag, int nHow, int nCompareValue, int nValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -203,7 +203,7 @@ int CPersistentAttributes::ModifyIf(char *szTag, int nHow, int nCompareValue, in
 //	Add a new attribute to the attribute list.  If the attribute already exists,
 //	..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Add(char *szTag)
+int CPersistentAttributes::Add(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -224,7 +224,7 @@ int CPersistentAttributes::Add(char *szTag)
 //	Add a new attribute to the attribute list.  If the attribute already exists,
 //	..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AddAndSet(char *szTag, int nValue)
+int CPersistentAttributes::AddAndSet(const char *szTag, int nValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -247,7 +247,7 @@ int CPersistentAttributes::AddAndSet(char *szTag, int nValue)
 //	..with the value of attribute 'szWhat' and 'nCompareValue' is true.
 //	..If the attribute already exists, take no action but return no error.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AddIf(char *szTag, int nHow, int nCompareValue, char *szWhat)
+int CPersistentAttributes::AddIf(const char *szTag, int nHow, int nCompareValue, const char *szWhat)
 {
 	PersistAttribute *pAttr = Locate(szWhat);
 
@@ -273,7 +273,7 @@ int CPersistentAttributes::AddIf(char *szTag, int nHow, int nCompareValue, char 
 //	Remove an instance of the attribute 'szTag' from the list.  If the last
 //	..instance is removed, delete the attribute from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Remove(char *szTag)
+int CPersistentAttributes::Remove(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -295,7 +295,7 @@ int CPersistentAttributes::Remove(char *szTag)
 //	..by 'nHow' and 'nCompareValue' is true.  If the last instance is
 //	..removed, delete the attribute from the attribute list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::RemoveIf(char *szTag, int nHow, int nCompareValue)
+int CPersistentAttributes::RemoveIf(const char *szTag, int nHow, int nCompareValue)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -318,7 +318,7 @@ int CPersistentAttributes::RemoveIf(char *szTag, int nHow, int nCompareValue)
 //
 //	Delete all instances of the indicated attribute from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::RemoveAll(char *szTag)
+int CPersistentAttributes::RemoveAll(const char *szTag)
 {
 	return Delete(szTag);
 }
@@ -328,7 +328,7 @@ int CPersistentAttributes::RemoveAll(char *szTag)
 //
 //	Return true if the list has at least one instance of the attribute.
 /* ------------------------------------------------------------------------------------ */
-bool CPersistentAttributes::Has(char *szTag)
+bool CPersistentAttributes::Has(const char *szTag)
 {
 	if(Locate(szTag) != NULL)
 		return true;
@@ -341,7 +341,7 @@ bool CPersistentAttributes::Has(char *szTag)
 //
 //	Return the value of an attribute, if it exists, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Value(char *szTag)
+int CPersistentAttributes::Value(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -354,7 +354,7 @@ int CPersistentAttributes::Value(char *szTag)
 // changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::GetModifyAmt(char *szTag)
+int CPersistentAttributes::GetModifyAmt(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -371,7 +371,7 @@ int CPersistentAttributes::GetModifyAmt(char *szTag)
 //
 //	Get number of highlimit changes (PowerUp Level)
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::GetPowerUpLevel(char *szTag)
+int CPersistentAttributes::GetPowerUpLevel(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -385,7 +385,7 @@ int CPersistentAttributes::GetPowerUpLevel(char *szTag)
 /* ------------------------------------------------------------------------------------ */
 //	Low
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Low(char *szTag)
+int CPersistentAttributes::Low(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -398,7 +398,7 @@ int CPersistentAttributes::Low(char *szTag)
 /* ------------------------------------------------------------------------------------ */
 //	High
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::High(char *szTag)
+int CPersistentAttributes::High(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -413,7 +413,7 @@ int CPersistentAttributes::High(char *szTag)
 //
 //	Return the count of instance of an attribute, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Count(char *szTag)
+int CPersistentAttributes::Count(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -430,7 +430,7 @@ int CPersistentAttributes::Count(char *szTag)
 //	..'nCompareValue' of the type indicated by 'nHow'.  Return the status
 //	..of the compare, true or false.
 /* ------------------------------------------------------------------------------------ */
-bool CPersistentAttributes::Compare(char *szTag, int nHow, int nCompareValue)
+bool CPersistentAttributes::Compare(const char *szTag, int nHow, int nCompareValue)
 {
 	bool bResult = false;
 	PersistAttribute *pAttr = Locate(szTag);
@@ -460,7 +460,7 @@ PersistAttribute *CPersistentAttributes::GetAttribute(PersistAttribute *pPreviou
 //
 //	Allocate user data to be associated with an attribute
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AllocateUserData(char *szTag, int nDataSize)
+int CPersistentAttributes::AllocateUserData(const char *szTag, int nDataSize)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -481,7 +481,7 @@ int CPersistentAttributes::AllocateUserData(char *szTag, int nDataSize)
 //
 //	Delete the user data associated with an attribute.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::DeleteUserData(char *szTag)
+int CPersistentAttributes::DeleteUserData(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -500,7 +500,7 @@ int CPersistentAttributes::DeleteUserData(char *szTag)
 //
 //	Return a pointer to the user data associated with an attribute
 /* ------------------------------------------------------------------------------------ */
-unsigned char *CPersistentAttributes::UserData(char *szTag)
+unsigned char *CPersistentAttributes::UserData(const char *szTag)
 {
 	PersistAttribute *pAttr = Locate(szTag);
 
@@ -652,7 +652,7 @@ void CPersistentAttributes::ClampValue(PersistAttribute *pAttr)
 //	Search our internal list of a specific attribute, and return a
 //	..pointer to it if it exists.
 /* ------------------------------------------------------------------------------------ */
-PersistAttribute *CPersistentAttributes::Locate(char *szTag)
+PersistAttribute *CPersistentAttributes::Locate(const char *szTag)
 {
 	PersistAttribute *pTemp = theList;
 
@@ -672,7 +672,7 @@ PersistAttribute *CPersistentAttributes::Locate(char *szTag)
 //
 //	Add a new attribute on to the end of the list
 /* ------------------------------------------------------------------------------------ */
-PersistAttribute *CPersistentAttributes::AddNew(char *szTag, int nValue)
+PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
 {
 	PersistAttribute *pTemp = theList;
 
@@ -718,7 +718,7 @@ PersistAttribute *CPersistentAttributes::AddNew(char *szTag, int nValue)
 //
 //	Locate an attribute and delete it from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Delete(char *szTag)
+int CPersistentAttributes::Delete(const char *szTag)
 {
 	PersistAttribute *pTemp = theList;
 	PersistAttribute *pPrev = NULL;

@@ -6,11 +6,9 @@
 #ifndef __RGF_CSPOUT_H_
 #define __RGF_CSPOUT_H_
 
-#pragma warning( disable : 4068 )
-
-#include "genesis.h"
-
-// class declaration for CSpout
+/**
+ * @brief Class declaration for CSpout
+ */
 class CSpout : public CRGFComponent
 {
 public:
@@ -18,14 +16,16 @@ public:
 	~CSpout();
 
 	int Create(Spout *S);
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 private:
 };
 
 
-// class declaration for CActorSpout
+/**
+ * @brief Class declaration for CActorSpout
+ */
 class CActorSpout : public CRGFComponent
 {
 public:
@@ -33,8 +33,8 @@ public:
 	~CActorSpout();
 
 	int Create(ActorSpout *S);
-	void Tick(float dwTicks);
-	int LocateEntity(char *szName, void **pEntityData);
+	void Tick(geFloat dwTicks);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
 private:
 };

@@ -20,27 +20,6 @@ CViewSwitch::CViewSwitch()
 {
 	ViewActive = false;
 	pViewSwitch = NULL;
-
-// changed QD 12/15/05 - code does nothing
-/*	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	// Ok, check to see if there are FixedCameras in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ViewSwitch");
-
-	if(!pSet)
-		return;
-
-	// Ok, we have ViewSwitchs somewhere.  Dig through 'em all.
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		ViewSwitch *pSource = (ViewSwitch*)geEntity_GetUserData(pEntity);
-	}
-
-	return;
-*/
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -50,7 +29,6 @@ CViewSwitch::CViewSwitch()
 /* ------------------------------------------------------------------------------------ */
 CViewSwitch::~CViewSwitch()
 {
-
 }
 
 /* ------------------------------------------------------------------------------------ */

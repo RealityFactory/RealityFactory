@@ -49,7 +49,7 @@ CChangeAttribute::~CChangeAttribute()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CChangeAttribute::Tick(float dwTicks)
+void CChangeAttribute::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

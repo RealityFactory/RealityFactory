@@ -20,16 +20,13 @@ CActMaterial::CActMaterial()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are ActMaterial entities in this world
+	// Ok, check to see if there are ActMaterial entities in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
-
-// changed QD 12/15/05
-//	Bottom = Top = NULL;
 
 	if(!pSet)
 		return;
 
-	//	Ok, we have ActMaterials somewhere.  Dig through 'em all.
+	// Ok, we have ActMaterials somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -42,7 +39,7 @@ CActMaterial::CActMaterial()
 			pMaterial->szEntityName = szName;
 		}
 
-		//	Ok, put this entity into the Global Entity Registry
+		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pMaterial->szEntityName, "ActMaterial");
 
 		pMaterial->active = GE_FALSE;
@@ -57,7 +54,7 @@ CActMaterial::CActMaterial()
 		if(pMaterial->Actor == NULL)
 		{
 			char szError[256];
-			sprintf(szError,"*WARNING* File %s - Line %d: %s: Missing actor '%s'\n",
+			sprintf(szError,"[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 					__FILE__, __LINE__, pMaterial->szEntityName, pMaterial->EntityName);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06 - make missing actor not a fatal error
@@ -78,31 +75,12 @@ CActMaterial::CActMaterial()
 /* ------------------------------------------------------------------------------------ */
 CActMaterial::~CActMaterial()
 {
-// changed QD 12/15/05
-/*
-	if(Bottom)
-	{
-		MaterialList *pool, *temp;
-
-		pool = Bottom;
-
-		while(pool!= NULL)
-		{
-			temp = pool->next;
-			delete pool;
-			pool = temp;
-		}
-
-		Bottom = NULL;
-	}
-*/
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CActMaterial::Tick(float dwTicks)
+void CActMaterial::Tick(geFloat dwTicks)
 {
 
 	geEntity_EntitySet *pSet;
@@ -113,7 +91,7 @@ void CActMaterial::Tick(float dwTicks)
 	if(!pSet)
 		return;         //	Not on this level.
 
-	//  Ok, we have ActorMaterial entities somewhere. Dig through 'em all.
+	// Ok, we have ActorMaterial entities somewhere. Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -154,30 +132,9 @@ void CActMaterial::Tick(float dwTicks)
 
 		if(pMaterial->active == GE_TRUE)
 		{
-// changed QD 12/15/05
-/*
-			MaterialList *pool;
-
-			pool = new MaterialList;
-			pool->next = NULL;
-			pool->prev = Top;
-
-			if(!Bottom)
-				Bottom = pool;
-
-			Top = pool;
-
-			if(pool->prev)
-				pool->prev->next = pool;
-
-			strcpy(pool->Entity, pMaterial->EntityName);
-			strcpy(pool->Material, pMaterial->ChangeMaterial);
-			pool->ChangeLighting = pMaterial->ChangeLighting;
-*/
-// end change
 			pMaterial->Time += dwTicks;
 
-			if(pMaterial->Time >= (1000.0f/pMaterial->Speed)) //(1000.0f*(1.0f/pMaterial->Speed))) // changed QD 12/15/05
+			if(pMaterial->Time >= (1000.0f/pMaterial->Speed))
 			{
 				pMaterial->Time = 0.0f;
 				switch(pMaterial->Style)
@@ -209,7 +166,7 @@ void CActMaterial::Tick(float dwTicks)
 
 			char MaterialName[256];
 
-			//	build material  name
+			// build material  name
 			sprintf(MaterialName, "%s%d", pMaterial->ChangeMaterial, pMaterial->CurMat);
 
 			if(pMaterial->Style != 0)
@@ -219,14 +176,8 @@ void CActMaterial::Tick(float dwTicks)
 
 			if(pMaterial->ChangeLighting)
 			{
-// changed QD 12/15/05
-//				pool->FillColor = pMaterial->FillColor;
-//				pool->AmbientColor = pMaterial->AmbientColor;
-// changed QD 07/21/04
-//				pool->AmbientLightFromFloor = pMaterial->AmbientLightFromFloor;
 				CCD->ActorManager()->SetActorDynamicLighting(pMaterial->Actor, pMaterial->FillColor,
 					pMaterial->AmbientColor, pMaterial->AmbientLightFromFloor);
-// end change
 			}
 		}
 	}
@@ -241,46 +192,6 @@ void CActMaterial::Tick(float dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 {
-// changed QD 12/15/05
-/*	bool Any = false;
-
-	if(Bottom)
-		Any = true;
-
-	WRITEDATA(type, &Any, sizeof(bool), 1, SaveFD);
-
-	if(Any)
-	{
-		MaterialList *pool, *temp;
-		int count = 0;
-
-		pool = Bottom;
-
-		while	(pool!= NULL)
-		{
-			temp = pool->next;
-			count += 1;
-			pool = temp;
-		}
-
-		WRITEDATA(type, &count, sizeof(int), 1, SaveFD);
-		pool = Bottom;
-
-		while(pool!= NULL)
-		{
-			temp = pool->next;
-			WRITEDATA(type, pool->Entity,					sizeof(char),	64, SaveFD);
-			WRITEDATA(type, pool->Material,				sizeof(char),	64, SaveFD);
-			WRITEDATA(type, &pool->ChangeLighting,		sizeof(bool),	1,	SaveFD);
-			WRITEDATA(type, &pool->AmbientColor,			sizeof(GE_RGBA),1,	SaveFD);
-			WRITEDATA(type, &pool->FillColor,				sizeof(GE_RGBA),1,	SaveFD);
-// changed QD 07/21/04
-			WRITEDATA(type, &pool->AmbientLightFromFloor, sizeof(bool),	1,	SaveFD);
-// end change
-			pool = temp;
-		}
-	}
-*/
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
@@ -300,7 +211,6 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 		WRITEDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, SaveFD);
 		WRITEDATA(type, &(pMaterial->CycleDir),	sizeof(int),		1, SaveFD);
 	}
-// end change
 
 	return RGF_SUCCESS;
 }
@@ -312,52 +222,6 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 {
-// changed QD 12/15/05
-/*
-	bool Any;
-	int count;
-
-	Bottom = Top = NULL;
-
-	READDATA(type, &Any, sizeof(bool), 1, RestoreFD);
-
-	if(Any)
-	{
-		READDATA(type, &count, sizeof(int), 1, RestoreFD);
-
-		for(int i=0; i<count; i++)
-		{
-			MaterialList *pool;
-			pool = new MaterialList;
-			pool->next = NULL;
-			pool->prev = Top;
-
-			if(!Bottom)
-				Bottom = pool;
-
-			Top = pool;
-
-			if(pool->prev)
-				pool->prev->next = pool;
-
-			READDATA(type, pool->Entity,					sizeof(char),	64, RestoreFD);
-			READDATA(type, pool->Material,				sizeof(char),	64, RestoreFD);
-			READDATA(type, &pool->ChangeLighting,			sizeof(bool),	1,	RestoreFD);
-			READDATA(type, &pool->AmbientColor,			sizeof(GE_RGBA),1,	RestoreFD);
-			READDATA(type, &pool->FillColor,				sizeof(GE_RGBA),1,	RestoreFD);
-// changed QD 07/21/04
-			READDATA(type, &pool->AmbientLightFromFloor, sizeof(bool),	1,	RestoreFD);
-// end change
-			geActor *Actor = GetEntityActor(pool->Entity);
-			CCD->ActorManager()->ChangeMaterial(Actor, pool->Material);
-
-			if(pool->ChangeLighting)
-// changed QD 07/21/04
-				CCD->ActorManager()->SetActorDynamicLighting(Actor, pool->FillColor, pool->AmbientColor, pool->AmbientLightFromFloor);
-// end change
-		}
-	}
-*/
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
@@ -377,7 +241,6 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, RestoreFD);
 		READDATA(type, &(pMaterial->CycleDir),	sizeof(int),		1, RestoreFD);
 	}
-// end change
 
 	return RGF_SUCCESS;
 }

@@ -13,6 +13,8 @@
  * But please send me your code so that I can update the collection.
  * Comments and bug reports: lamer2000@usa.net
  ****************************************************************************************/
+#include <windows.h>
+#include <mmsystem.h>
 #include "Mixer.h"
 
 #ifdef _DEBUG
@@ -189,7 +191,8 @@ DWORD CMixer::GetControlValue()
 
 	mxcd.cbStruct		= sizeof(mxcd);
 	mxcd.dwControlID	= m_iMixerControlID;
-	mxcd.cChannels		= m_dwChannels;
+	//mxcd.cChannels	= m_dwChannels; // after removing MFC from RF this code crashes on some systems
+	mxcd.cChannels		= 1; // is this the correct fix?
 	mxcd.cMultipleItems = 0;
 	mxcd.cbDetails		= sizeof(mxcd_u);
 	mxcd.paDetails		= &mxcd_u;
@@ -217,7 +220,8 @@ BOOL CMixer::SetControlValue(DWORD dw)
 
 	mxcd.cbStruct		= sizeof(mxcd);
 	mxcd.dwControlID	= m_iMixerControlID;
-	mxcd.cChannels		= m_dwChannels;
+	//mxcd.cChannels	= m_dwChannels; // after removing MFC from RF this code crashes on some systems
+	mxcd.cChannels		= 1; // is this the correct fix?
 	mxcd.cMultipleItems = 0;
 	mxcd.cbDetails		= sizeof(mxcd_u);
 	mxcd.paDetails		= &mxcd_u;

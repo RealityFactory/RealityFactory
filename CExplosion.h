@@ -14,6 +14,9 @@
 
 #define MAXEXP 50
 
+/**
+ * @brief Predefined explosion
+ */
 typedef struct preExplosion
 {
 	geBoolean	Active;
@@ -42,18 +45,20 @@ typedef struct DelayExp
 
 } DelayExp;
 
-
+/**
+ * @brief CExplosionInit handles predefined explosion effects
+ */
 class CExplosionInit : public CRGFComponent
 {
 public:
 	CExplosionInit();
 	~CExplosionInit();
 
-	void AddExplosion(char *Name, const geVec3d &Position, geActor *theActor, char *theBone);
-	void AddExplosion(char *Name, const geVec3d &Position, geActor *theActor, char *theBone, bool Tilt);
-	void AddExplosion(char *Name, const geVec3d &Position);
+	void AddExplosion(const char *Name, const geVec3d &Position, geActor *theActor, const char *theBone);
+	void AddExplosion(const char *Name, const geVec3d &Position, geActor *theActor, const char *theBone, bool Tilt);
+	void AddExplosion(const char *Name, const geVec3d &Position);
 	void Tick(geFloat dwTicks);
-	void UnAttach(geActor *Actor);
+	void UnAttach(const geActor *Actor);
 
 private:
 
@@ -61,6 +66,9 @@ private:
 	DelayExp *Bottom;
 };
 
+/**
+ * @brief CExplosion handles Explosion entities
+ */
 class CExplosion : public CRGFComponent
 {
 public:

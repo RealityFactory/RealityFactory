@@ -69,7 +69,7 @@ int CRGFComponent::Execute(char *szName, int nCommand, void *pArgs, int *pArgTyp
 //	..used internally to the component, although it could be called
 //	..to determine if a name is of this entities type.
 /* ------------------------------------------------------------------------------------ */
-int CRGFComponent::LocateEntity(char *szName, void **pEntityData)
+int CRGFComponent::LocateEntity(const char *szName, void **pEntityData)
 {
 	OutputDebugString("Unimplemented LocateEntity called\n");
 

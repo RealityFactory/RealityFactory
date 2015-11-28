@@ -18,7 +18,7 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CAutoDoors
@@ -37,13 +37,13 @@ CAutoDoors::CAutoDoors()
 
 	m_DoorCount = 0;					// No doors
 
-	//	Ok, check to see if there are automatic doors in this world
+	// Ok, check to see if there are automatic doors in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return;									// No doors, how odd...
 
-	//	Ok, we have doors somewhere.  Dig through 'em all.
+	// Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -59,7 +59,7 @@ CAutoDoors::CAutoDoors()
 		if(!pDoor->Model)
 		{
 			char szError[256];
-			sprintf(szError,"*WARNING* File %s - Line %d: '%s': Missing Model\n",
+			sprintf(szError,"[WARNING] File %s - Line %d: '%s': Missing Model\n",
 					__FILE__, __LINE__, pDoor->szEntityName);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06
@@ -184,7 +184,7 @@ CAutoDoors::CAutoDoors()
 			if(!pDoor->theSound)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to open audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
 						__FILE__, __LINE__, pDoor->szEntityName, pDoor->szSoundFile);
 				CCD->ReportError(szError, false);
 			}
@@ -204,32 +204,6 @@ CAutoDoors::CAutoDoors()
 /* ------------------------------------------------------------------------------------ */
 CAutoDoors::~CAutoDoors()
 {
-// changed QD 12/15/05 - code does nothing
-/*
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	if(m_DoorCount == 0)
-		return;											// No need to waste time here.
-
-	//	Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
-
-	if(!pSet)
-		return;									// No doors, how odd...
-
-	//	Ok, we have doors somewhere.  Dig through 'em all and release
-	//	..the audio (if any).
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-
-	}
-
-	//	Doors cleaned up.  Bail this mess.
-	return;
-*/
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -258,7 +232,7 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		//	Get the door data so we can compare models
+		// Get the door data so we can compare models
 		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
 
 		// changed QD 07/15/06
@@ -475,7 +449,7 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 //	..doors that are colliding, preventing odd skips and jumps in
 //	..the entities animation.
 /* ------------------------------------------------------------------------------------ */
-void CAutoDoors::Tick(float dwTicks)
+void CAutoDoors::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -722,7 +696,7 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CAutoDoors::LocateEntity(char *szName, void **pEntityData)
+int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

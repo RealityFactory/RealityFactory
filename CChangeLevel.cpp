@@ -54,7 +54,7 @@ CChangeLevel::~CChangeLevel()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CChangeLevel::Tick(float dwTicks)
+void CChangeLevel::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -163,7 +163,7 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CChangeLevel::LocateEntity(char *szName, void **pEntityData)
+int CChangeLevel::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

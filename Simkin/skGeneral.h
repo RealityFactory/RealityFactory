@@ -16,14 +16,17 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skGeneral.h,v 1.35 2003/11/20 16:24:22 sdw Exp $
+  $Id: skGeneral.h,v 1.36 2004/01/30 21:22:18 sdw Exp $
 */
 #ifndef skGENERAL_H
 #define skGENERAL_H
 
 #if defined(_MSC_VER)
 #if (_MSC_VER<=1300)
+#ifndef STL_STREAMS
+// STL streams introduce STL versions of new and delete
 //#define USE_DEBUG_NEW
+#endif
 #endif
 #endif
 
@@ -179,7 +182,7 @@ inline void ExitSystem()
 }
 #else
 #define STREAMS_ENABLED
-#if (_MSC_VER>=1200)
+#if (_MSC_VER>1300)
 #define STL_STREAMS 1
 #endif
 #define EXCEPTIONS_DEFINED

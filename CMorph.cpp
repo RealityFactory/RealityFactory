@@ -22,7 +22,8 @@
 // Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -73,7 +74,7 @@ CMorph::CMorph()
 		if(!pMorph->CStartBmp)
 		{
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to create StartBmp\n",
+			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create StartBmp\n",
 					__FILE__, __LINE__, pMorph->szEntityName);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06
@@ -102,7 +103,7 @@ CMorph::CMorph()
 		if(!pMorph->CEndBmp)
 		{
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to create EndBmp\n",
+			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create EndBmp\n",
 					__FILE__, __LINE__, pMorph->szEntityName);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06
@@ -135,7 +136,7 @@ CMorph::CMorph()
 			if(pMorph->Actor == NULL)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing actor '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->EntityName);
 				CCD->ReportError(szError, false);
 				// changed QD
@@ -195,7 +196,7 @@ CMorph::CMorph()
 			if(i == MaterialCount)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing ActorMaterial '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial '%s'\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				CCD->ReportError(szError, false);
 				/*
@@ -215,7 +216,7 @@ CMorph::CMorph()
 			if(pMorph->CMorphBmp == NULL)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Missing bitmap '%s' in level\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing bitmap '%s' in level\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				CCD->ReportError(szError, false);
 				/*
@@ -267,7 +268,7 @@ CMorph::~CMorph()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CMorph::Tick(float dwTicks)
+void CMorph::Tick(geFloat dwTicks)
 {
 	// locals
 	geBitmap		*StartLocked = NULL;

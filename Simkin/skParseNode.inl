@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  * $Id: skParseNode.inl,v 1.6 2003/04/19 13:22:24 simkin_cvs Exp $
+  * $Id: skParseNode.inl,v 1.7 2004/12/17 21:31:17 sdw Exp $
   */
 #include "skParseNode.h"
 #ifndef EXECUTE_PARSENODES
@@ -279,6 +279,12 @@ inline void skReturnNode::compile(skCompiledCode& compiled_code)
   compiled_code.addInstruction(skCompiledCode::b_Return,(m_Expr!=0),m_LineNum);
   if (m_Expr)
     m_Expr->compile(compiled_code);
+}
+//---------------------------------------------------
+inline void skBreakNode::compile(skCompiledCode& compiled_code)
+//---------------------------------------------------
+{
+  compiled_code.addInstruction(skCompiledCode::b_Break,0,m_LineNum);
 }
 //---------------------------------------------------
 inline void skWhileNode::compile(skCompiledCode& compiled_code)

@@ -16,40 +16,41 @@
 #ifndef __RGF_CAUDIOSTREAM_H__
 #define __RGF_CAUDIOSTREAM_H__
 
-//	CAudioStream aggregates StreamingAudio objects.
-
 #include "StreamingAudio.h"
 
+/**
+ * @brief CAudioStream aggregates StreamingAudio objects.
+ */
 class CAudioStream : public CRGFComponent
 {
 public:
 	CAudioStream();
 	~CAudioStream();
 
-	int Play(char *szFilename, bool fLoopIt, bool fProxy);	// Stream a file
-	int Pause(char *szFilename);							// Pause/unpause a stream
-	int Stop(char *szFilename);								// Shut down & delete a stream
+	int Play(const char *szFilename, bool fLoopIt, bool fProxy);///< Stream a file
+	int Pause(const char *szFilename);							///< Pause/unpause a stream
+	int Stop(const char *szFilename);							///< Shut down & delete a stream
 	void PauseAll();
 	void StopAll();
 
-	bool IsPlaying(char *szFilename);						// Is file streaming?
+	bool IsPlaying(const char *szFilename);						///< Is file streaming?
 	int ReSynchronize();
 	void SetVolume(LONG nVolume);
-	void Tick(geFloat dwTicks);								// Time-based action
+	void Tick(geFloat dwTicks);									///< Time-based action
 
 private:
 
-	int FindFreeSlot();						// Find free entry in table
-	int FindInList(char *szFile);			// Find streaming file in list
-	void Sweep();							// Clean up any stopped streams
+	int FindFreeSlot();						///< Find free entry in table
+	int FindInList(const char *szFile);		///< Find streaming file in list
+	void Sweep();							///< Clean up any stopped streams
 
 private:
 
-	int				m_nStreamerCount;		// Count of streaming audio entities
-	char			*m_FileList[32];		// Up to 32 files can stream
-	StreamingAudio	*m_Streams[32];			// Up to 32 streaming audio objects
-	LPDIRECTSOUND	m_dsPtr;				// Pointer to Genesis3D DirectSound object
-	int				m_LoopingProxy;			// ONLY ONE ALLOWED!
+	int				m_nStreamerCount;		///< Count of streaming audio entities
+	char			*m_FileList[32];		///< Up to 32 files can stream
+	StreamingAudio	*m_Streams[32];			///< Up to 32 streaming audio objects
+	LPDIRECTSOUND	m_dsPtr;				///< Pointer to Genesis3D DirectSound object
+	int				m_LoopingProxy;			///< ONLY ONE ALLOWED!
 };
 
 #endif

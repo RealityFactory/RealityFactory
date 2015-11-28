@@ -8,10 +8,9 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
-// changed QD 12/15/05
-// #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	FastDistance
@@ -143,7 +142,7 @@ CFlipTree::~CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFlipTree::Tick(float dwTicksIn)
+void CFlipTree::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

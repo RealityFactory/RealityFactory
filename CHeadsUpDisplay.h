@@ -38,18 +38,21 @@ typedef enum
 };
 // end change RF064
 
+/**
+ * @brief HUD element
+ */
 struct HUDEntry
 {
 	bool		active;
-	char		szAttributeName[64];	// Attribute name to display
-	geBitmap	*Identifier;			// Identifier bitmap
-	geBitmap	*Indicator;				// Indicator (level) bitmap
+	char		szAttributeName[64];	///< Attribute name to display
+	geBitmap	*Identifier;			///< Identifier bitmap
+	geBitmap	*Indicator;				///< Indicator (level) bitmap
 // changed RF063
 	geBitmap	*Indicator2;
-	int			nTop, nLeft;			// Top/left point of HUD display element
+	int			nTop, nLeft;			///< Top/left point of HUD display element
 	int			iTopOffset, iLeftOffset;
 	int			iHeight;
-	geFloat		PixelsPerIncrement;		// # of pixels per unit of measure
+	geFloat		PixelsPerIncrement;		///< # of pixels per unit of measure
 	HUDTYPE		Type;
 	char		format[16];
 	bool		display;
@@ -62,37 +65,39 @@ struct HUDEntry
 	int			Style;
 // end change RF064
 // changed QD 07/15/06
-	bool		flipindicator;					// flip the indicator scaling
+	bool		flipindicator;			///< flip the indicator scaling
 // end change QD 07/15/06
 // changed Nout 12/15/05
 	CAnimGif	*GifData;
 // end change
 };
 
-
+/**
+ * @brief CHeadsUpDisplay handles player status display
+ */
 class CHeadsUpDisplay : public CRGFComponent
 {
 public:
-	CHeadsUpDisplay();							// Default constructor
-	~CHeadsUpDisplay();							// Default destructor
+	CHeadsUpDisplay();							///< Default constructor
+	~CHeadsUpDisplay();							///< Default destructor
 
-	int LoadConfiguration();					// Load configuration from PlayerSetup entity
-	int Activate();								// Turn HUD on
-	int Deactivate();							// Turn HUD off
-	int RemoveElement(char *szAttributeName);	// Remove element from HUD
-	int ActivateElement(char *szAttributeName, bool activate);
-	int Render();								// Render the HUD out
+	int LoadConfiguration();					///< Load configuration from PlayerSetup entity
+	int Activate();								///< Turn HUD on
+	int Deactivate();							///< Turn HUD off
+	int RemoveElement(const char *szAttributeName);	///< Remove element from HUD
+	int ActivateElement(const char *szAttributeName, bool activate);
+	int Render();								///< Render the HUD out
 	void Tick(geFloat dwTick);
 	bool GetActive() { return m_bHUDActive; }
 // changed Nout 12/15/05
-	int SetElementLeftTop(char *szAttributeName, int nLeft, int nTop);
-	int SetElementILeftTop(char *szAttributeName, int iLeftOffset, int iTopOffset);
-	int SetElementDisplayTime(char *szAttributeName, float DisplayTime);
+	int SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop);
+	int SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset);
+	int SetElementDisplayTime(const char *szAttributeName, float DisplayTime);
 // end change
 
 private:
-	bool m_bHUDActive;							// HUD displayed flag
-	HUDEntry m_theHUD[MAXHUD];					// HUD display array, up to 12 items
+	bool m_bHUDActive;							///< HUD displayed flag
+	HUDEntry m_theHUD[MAXHUD];					///< HUD display array, up to 100 items
 };
 
 #endif

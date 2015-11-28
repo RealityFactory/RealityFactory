@@ -11,13 +11,16 @@
 #ifndef __RGF_CATTRIBUTE_H_
 #define __RGF_CATTRIBUTE_H_
 
+/**
+ * @brief CAttribute handles all Attribute ModifyAttribute entities
+ */
 class CAttribute : public CRGFComponent
 {
 public:
 	CAttribute();
 	~CAttribute();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 // changed QD 08/13/03 added UseKey
 	bool HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey);
 // end change 08/13/03
@@ -26,7 +29,15 @@ public:
 	int RestoreFrom(FILE *RestoreFD, bool type);
 // end change RF063
 	int ReSynchronize();
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
+
+	void AddAttributeEntity(Attribute *pAttribute);
+
+private:
+	bool InitAttribute(Attribute *pAttribute);
+
+	int DynamicAttributes;
+	geEntity *DynamicAttribute1;
 };
 
 #endif

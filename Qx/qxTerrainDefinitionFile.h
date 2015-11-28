@@ -50,9 +50,9 @@ public:
 	float			m_fLatitude;
 	float			m_fLongitude;
 	eTerrainType	m_eType;
-	string			m_strHeightmap;
-	string			m_strBmp;
-	string			m_strAlpha;
+	std::string		m_strHeightmap;
+	std::string		m_strBmp;
+	std::string		m_strAlpha;
 	int				m_nFarPlane;
 
 	eHeightFieldSourceType m_eHeightFieldSourceType;
@@ -82,7 +82,7 @@ public:
 	void CheckWorldBounds();
 	qxTerrainDefinition* m_pTerrainDef;
 
-	string m_strCurrent;
+	std::string m_strCurrent;
 
 };
 

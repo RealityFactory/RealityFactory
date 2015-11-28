@@ -16,7 +16,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skInterpreterByte.cpp,v 1.11 2003/04/24 10:19:43 simkin_cvs Exp $
+  $Id: skInterpreterByte.cpp,v 1.12 2004/12/17 21:31:17 sdw Exp $
 */
 #include "skInterpreter.h"
 #include "skRValueArray.h"
@@ -562,25 +562,31 @@ skRValue  skInterpreter::evalMethod(skStackFrame& frame,skCompiledCode& code,USi
   return ret;
 }
 //---------------------------------------------------
-bool skInterpreter::executeReturnStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_expr)
+skInterpreter::StatementReturnCode skInterpreter::executeReturnStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_expr)
   //---------------------------------------------------
 {
   if (has_expr)
     r=evaluate(frame,code,pc);
-  return true;
+  return SRC_RETURN;
 }
 //---------------------------------------------------
-bool skInterpreter::executeWhileStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeBreakStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  return SRC_BREAK;
+}
+//---------------------------------------------------
+skInterpreter::StatementReturnCode skInterpreter::executeWhileStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r)
+  //---------------------------------------------------
+{
+  StatementReturnCode bRet=SRC_CONTINUE;
   int num_bytes=0;
   int dummy;
   skCompiledCode::skInstruction ins;
   code.getInstruction(pc++,ins,dummy,num_bytes);
   assert(ins==skCompiledCode::b_StatsSize);
   USize start_pc=pc;
-  while(bRet==false){
+  while(bRet==SRC_CONTINUE){
     // reset the PC
     pc=start_pc;
 #ifndef EXCEPTIONS_DEFINED
@@ -596,13 +602,16 @@ bool skInterpreter::executeWhileStat(skStackFrame& frame,skCompiledCode& code,US
       break;
     }
   }
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeIfStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_else)
+skInterpreter::StatementReturnCode  skInterpreter::executeIfStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_else)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   int num_bytes;
   skRValue rExpr;
   SAVE_VARIABLE(rExpr);
@@ -626,10 +635,10 @@ bool skInterpreter::executeIfStat(skStackFrame& frame,skCompiledCode& code,USize
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeSwitchStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_default)
+skInterpreter::StatementReturnCode skInterpreter::executeSwitchStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_default)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skRValue expr;
   SAVE_VARIABLE(expr);
   expr=evaluate(frame,code,pc);
@@ -676,10 +685,10 @@ bool skInterpreter::executeSwitchStat(skStackFrame& frame,skCompiledCode& code,U
   return bRet;
 }
 //---------------------------------------------------
-bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,USize id_index)
+skInterpreter::StatementReturnCode skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,USize id_index)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   int num_bytes=0;
   skString checked_id;
   SAVE_VARIABLE(checked_id);
@@ -705,7 +714,7 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,
       skRValue value;
       SAVE_VARIABLE(value);
       USize loop_pc=pc;
-      while ((iterator->next(value) && bRet==false)){
+      while ((iterator->next(value) && bRet==SRC_CONTINUE)){
 #ifndef EXCEPTIONS_DEFINED
         if (frame.getContext().getError().getErrorCode()!=skScriptError::NONE)
           break;
@@ -727,13 +736,16 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,
   RELEASE_VARIABLE(expr);
   RELEASE_VARIABLE(qualifier);
   RELEASE_VARIABLE(checked_id);
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------
- bool skInterpreter::executeForStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_step)
+skInterpreter::StatementReturnCode  skInterpreter::executeForStat(skStackFrame& frame,skCompiledCode& code,USize& pc,skRValue& r,bool has_step)
   //---------------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   int num_bytes=0;
   int dummy;
   skCompiledCode::skInstruction ins;
@@ -775,7 +787,7 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,
           // reset pc to start of the loop
           pc=loop_pc;
           bRet=executeStats(frame,code,pc,num_bytes,true,r);
-          if (bRet)
+          if (bRet!=SRC_CONTINUE)
             break;
         }
         // advance beyond the statements
@@ -795,7 +807,7 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,
             // reset pc to start of the loop
             pc=loop_pc;
             bRet=executeStats(frame,code,pc,num_bytes,true,r);
-            if (bRet)
+            if (bRet!=SRC_CONTINUE)
               break;
           }
           // advance beyond the statements
@@ -809,6 +821,9 @@ bool skInterpreter::executeForEachStat(skStackFrame& frame,skCompiledCode& code,
   RELEASE_VARIABLE(end_expr);
   RELEASE_VARIABLE(start_expr);
   RELEASE_VARIABLE(checked_id);
+  // once broken out, can continue executing
+  if (bRet==SRC_BREAK)
+    bRet=SRC_CONTINUE;
   return bRet;
 }
 //---------------------------------------------------
@@ -896,10 +911,10 @@ void skInterpreter::executeAssignStat(skStackFrame& frame,skCompiledCode& code,U
   RELEASE_VARIABLE(value);
 }
 //------------------------------------------
-bool skInterpreter::executeStats(skStackFrame& frame,skCompiledCode& code,USize& pc,int& num_bytes,bool execute_stats,skRValue& r)
+skInterpreter::StatementReturnCode skInterpreter::executeStats(skStackFrame& frame,skCompiledCode& code,USize& pc,int& num_bytes,bool execute_stats,skRValue& r)
 //------------------------------------------
 {
-  bool bRet=false;
+  StatementReturnCode bRet=SRC_CONTINUE;
   skCompiledCode::skInstruction instruction;
   int num_stats;
   if (execute_stats){
@@ -911,19 +926,23 @@ bool skInterpreter::executeStats(skStackFrame& frame,skCompiledCode& code,USize&
       code.getInstruction(pc++,instruction,param1,line_num);
       frame.setLineNum(line_num);
       if (m_StatementStepper)
-        bRet=(m_StatementStepper->statementExecuted(frame,(int)instruction)==false);
+        if (m_StatementStepper->statementExecuted(frame,(int)instruction)==false)
+          bRet=SRC_RETURN;
       if (bRet==false){
         switch(instruction){
         case skCompiledCode::b_NullStat:        // param1 = 0                 param2 = line
           break;
         case skCompiledCode::b_Switch:          // param1 = has default       param2 = line
-          bRet=executeSwitchStat(frame,code,pc,r,(bool)param1);
+          bRet=executeSwitchStat(frame,code,pc,r,param1==1);
           break;
         case skCompiledCode::b_If:              // param1 = has else          param2 = line
-          bRet=executeIfStat(frame,code,pc,r,(bool)param1);
+          bRet=executeIfStat(frame,code,pc,r,param1==1);
           break;
         case skCompiledCode::b_Return:          // param1 = has return expr   param2 = line
-          bRet=executeReturnStat(frame,code,pc,r,(bool)param1);
+          bRet=executeReturnStat(frame,code,pc,r,param1==1);
+          break;
+        case skCompiledCode::b_Break:          // param1 = 0
+          bRet=executeBreakStat(frame,code,pc,r);
           break;
         case skCompiledCode::b_While:           // param1 = 0                 param2 = line
           bRet=executeWhileStat(frame,code,pc,r);
@@ -932,7 +951,7 @@ bool skInterpreter::executeStats(skStackFrame& frame,skCompiledCode& code,USize&
           bRet=executeForEachStat(frame,code,pc,r,param1);
           break;
         case skCompiledCode::b_For:             // param1 = has step expr     param2 = line
-          bRet=executeForStat(frame,code,pc,r,(bool)param1);
+          bRet=executeForStat(frame,code,pc,r,param1==1);
           break;
         case skCompiledCode::b_Assign:          // param1 = 0                 param2 = line
           executeAssignStat(frame,code,pc,r);
@@ -945,7 +964,7 @@ bool skInterpreter::executeStats(skStackFrame& frame,skCompiledCode& code,USize&
           break;
         }
         // break out if stop has been passed back
-        if (bRet)
+        if (bRet!=SRC_CONTINUE)
           break;
       }
     }

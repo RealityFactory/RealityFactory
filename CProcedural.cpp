@@ -12,7 +12,6 @@
 // You only need the one, master include file.
 #include "RabidFramework.h"
 
-
 extern Procedural *Water_Create(char *TextureName, geWorld  *World);
 extern void Water_Destroy(Procedural *Water);
 extern geBoolean Water_Animate(Procedural *Water, geFloat ElapsedTime);

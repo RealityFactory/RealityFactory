@@ -21,16 +21,15 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
-
+/**
+ * @brief CIniFile class for parsing INI files
+ */
 class CIniFile
 {
-	//all private variables
+	// all private variables
 private:
 
-	//stores pathname of ini file to read/write
-	string path;
+	std::string path;	///< stores pathname of ini file to read/write
 
 	unsigned int numkey;
 // changed RF064
@@ -38,104 +37,126 @@ private:
 	unsigned int keyindex;
 // end change RF064
 
-	//all keys are of this time
+	/**
+	 * @brief all keys are of this time
+	 */
 	struct key
 	{
-		//list of values in key
-		vector<string> values;
-
-		//corresponding list of value names
-		vector<string> names;
+		std::vector<std::string> values;	///< list of values in key
+		std::vector<std::string> names;		///< corresponding list of value names
 	};
 
-	//list of keys in ini
-	vector<key> keys;
-
-	//corresponding list of keynames
-	vector<string> names;
+	std::vector<key> keys;			///< list of keys in ini
+	std::vector<std::string> names;	///< corresponding list of keynames
 
 
-	//all private functions
+	// all private functions
 private:
-	//overloaded to take CString
+	/**
+	 * returns index of specified value, in the specified key, or -1 if not found
+	 */
+	int FindValue(int keynum, std::string valuename);
 
-	//returns index of specified value, in the specified key, or -1 if not found
-	int FindValue(int keynum, string valuename);
+	/**
+	 * returns index of specified key, or -1 if not found
+	 */
+	int FindKey(std::string keyname);
 
-	//returns index of specified key, or -1 if not found
-	int FindKey(string keyname);
-
-	//public variables
+	// public variables
 public:
+	/**
+	 * will contain error info if one occurs
+	 * ended up not using much, just in ReadFile and GetValue
+	 */
+	std::string error;
 
-	//will contain error info if one occurs
-	//ended up not using much, just in ReadFile and GetValue
-	string error;
-
-
-	//public functions
+	// public functions
 public:
-	//default constructor
+	/**
+	 * default constructor
+	 */
 	CIniFile();
 
-	//constructor, can specify pathname here instead of using SetPath later
-	CIniFile(string inipath);
+	/**
+	 * constructor, can specify pathname here instead of using SetPath later
+	 */
+	CIniFile(std::string inipath);
 
-	//default destructor
+	/**
+	 * default destructor
+	 */
 	virtual ~CIniFile();
 
-	//sets path of ini file to read and write from
-	void SetPath(string newpath);
+	/**
+	 * sets path of ini file to read and write from
+	 */
+	void SetPath(std::string newpath);
 
-	//reads ini file specified using CIniFile::SetPath()
-	//returns true if successful, false otherwise
+	/**
+	 * reads ini file specified using CIniFile::SetPath()
+	 * returns true if successful, false otherwise
+	 */
 	bool ReadFile();
 
-	//writes data stored in class to ini file
+	/**
+	 * writes data stored in class to ini file
+	 */
 	void WriteFile();
 
-	//deletes all stored ini data
+	/**
+	 * deletes all stored ini data
+	 */
 	void Reset();
 
-	//returns number of keys currently in the ini
+	/**
+	 * returns number of keys currently in the ini
+	 */
 	int GetNumKeys();
 
-	//returns number of values stored for specified key
-	int GetNumValues(string keyname);
+	/**
+	 * returns number of values stored for specified key
+	 */
+	int GetNumValues(std::string keyname);
 
-	//gets value of [keyname] valuename =
-	//overloaded to return CString, int, and double,
-	//returns "", or 0 if key/value not found.  Sets error member to show problem
-	string GetValue(string keyname, string valuename);
-	int GetValueI(string keyname, string valuename);
-	double GetValueF(string keyname, string valuename);
+	/**
+	 * gets value of [keyname] valuename =
+	 * overloaded to return std::string, int, and double,
+	 * returns "", or 0 if key/value not found. Sets error member to show problem
+	 */
+	std::string GetValue(std::string keyname, std::string valuename);
+	int GetValueI(std::string keyname, std::string valuename);
+	double GetValueF(std::string keyname, std::string valuename);
 
-	//sets value of [keyname] valuename =.
-	//specify the optional paramter as false (0) if you do not want it to create
-	//the key if it doesn't exist. Returns true if data entered, false otherwise
-	//overloaded to accept CString, int, and double
-	bool SetValue(string key, string valuename, string value, bool create = 1);
-	bool SetValueI(string key, string valuename, int value, bool create = 1);
-	bool SetValueF(string key, string valuename, double value, bool create = 1);
+	/**
+	 * sets value of [keyname] valuename =.
+	 * specify the optional paramter as false (0) if you do not want it to create
+	 * the key if it doesn't exist. Returns true if data entered, false otherwise
+	 * overloaded to accept CString, int, and double
+	 */
+	bool SetValue(std::string key, std::string valuename, std::string value, bool create = 1);
+	bool SetValueI(std::string key, std::string valuename, int value, bool create = 1);
+	bool SetValueF(std::string key, std::string valuename, double value, bool create = 1);
 
-	//deletes specified value
-	//returns true if value existed and deleted, false otherwise
-	bool DeleteValue(string keyname, string valuename);
+	/**
+	 * deletes specified value
+	 * returns true if value existed and deleted, false otherwise
+	 */
+	bool DeleteValue(std::string keyname, std::string valuename);
 
-	//deletes specified key and all values contained within
-	//returns true if key existed and deleted, false otherwise
-	bool DeleteKey(string keyname);
+	/**
+	 * deletes specified key and all values contained within
+	 * returns true if key existed and deleted, false otherwise
+	 */
+	bool DeleteKey(std::string keyname);
 
-// changed RF064
-// end change RF064
-	string FindFirstKey();
-	string FindNextKey();
-	string FindFirstName(string keyname);
-	string FindFirstValue();
-	string FindNextName();
-	string FindNextValue();
+	std::string FindFirstKey();
+	std::string FindNextKey();
+	std::string FindFirstName(std::string keyname);
+	std::string FindFirstValue();
+	std::string FindNextName();
+	std::string FindNextValue();
 };
 
-#endif // !defined(AFX_INIFILE_H__D6BE0D97_13A8_11D4_A5D2_002078B03530__INCLUDED_)
+#endif // !defined(__RGF_INIFILE_H_)
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

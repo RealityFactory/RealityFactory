@@ -57,7 +57,7 @@ OggAudio::~OggAudio()
 //
 //	Creates a new audio stream and sets up a timer for it.
 /* ------------------------------------------------------------------------------------ */
-int OggAudio::Load(char *szFileName)
+int OggAudio::Load(const char *szFileName)
 {
 	int nError = 0;
 
@@ -80,13 +80,13 @@ int OggAudio::Load(char *szFileName)
 	{
 		if(ov_open(vf, &ovf, NULL, 0) < 0)
 		{
-			CCD->ReportError("*WARNING* [OggAudio::Load]: ov_open failed", false);
+			CCD->ReportError("[WARNING] [OggAudio::Load]: ov_open failed", false);
 			return RGF_FAILURE;
 		}
 	}
 	else
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Load]:unable to find file", false);
+		CCD->ReportError("[WARNING] [OggAudio::Load]:unable to find file", false);
 		return RGF_FAILURE;
 	}
 
@@ -119,7 +119,7 @@ int OggAudio::Load(char *szFileName)
 
 	if(nError != 0)							// Error!  Sic out.
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Load]: Error while creating soundbuffer", false);
+		CCD->ReportError("[WARNING] [OggAudio::Load]: Error while creating soundbuffer", false);
 		ov_clear(&ovf);
 		fclose(vf);
 		vf = NULL;
@@ -139,7 +139,7 @@ int OggAudio::Load(char *szFileName)
 
 	if(nTimer == 0)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Load]: Timer startup failure", false);
+		CCD->ReportError("[WARNING] [OggAudio::Load]: Timer startup failure", false);
 		return RGF_FAILURE;					// Timer startup failed.
 	}
 
@@ -157,7 +157,7 @@ int OggAudio::Play(bool bLooping)
 	//	Check for stream availability
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Play]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Play]: no stream", false);
 		return RGF_FAILURE;						// no stream
 	}
 
@@ -178,7 +178,7 @@ int OggAudio::Stop()
 	//	Check for stream availability
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Stop]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Stop]: no stream", false);
 		return RGF_FAILURE;							// No stream
 	}
 
@@ -199,7 +199,7 @@ int OggAudio::Pause()
 	//	Check for stream availability
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Pause]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Pause]: no stream", false);
 		return RGF_FAILURE;							// No stream
 	}
 
@@ -221,7 +221,7 @@ int OggAudio::Delete()
 	//	Check for stream availability
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Delete]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Delete]: no stream", false);
 		return RGF_FAILURE;							// No stream
 	}
 
@@ -245,14 +245,14 @@ int OggAudio::Rewind()
 	//	Check for stream availability
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Rewind]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Rewind]: no stream", false);
 		return RGF_FAILURE;								// No stream
 	}
 
 	//	Check to be sure it's active
 	if(m_fActive == false)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::Rewind]: attempting to rewind an inactive stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::Rewind]: attempting to rewind an inactive stream", false);
 		return RGF_FAILURE;								// Not an active stream
 	}
 
@@ -295,7 +295,7 @@ int OggAudio::SetVolume(int nVolume)
 	//	Sanity check parameter
 	if(m_pStream == NULL)
 	{
-		CCD->ReportError("*WARNING* [OggAudio::SetVolume]: no stream", false);
+		CCD->ReportError("[WARNING] [OggAudio::SetVolume]: no stream", false);
 		return RGF_FAILURE;						// Bad parameter
 	}
 

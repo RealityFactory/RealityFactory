@@ -12,7 +12,7 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -74,7 +74,7 @@ CFirePoint::~CFirePoint()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFirePoint::Tick(float dwTicks)
+void CFirePoint::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -173,7 +173,7 @@ void CFirePoint::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CFirePoint::LocateEntity(char *szName, void **pEntityData)
+int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

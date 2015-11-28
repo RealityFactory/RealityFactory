@@ -4,9 +4,6 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
-#include "CNetwork.h"
-#include "HawkNL\\nl.h"
-#include "CNetBuffer.h"
 
 #include <crtdbg.h>
 #define DEBUG_NW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -40,6 +37,7 @@ NetPlayer::~NetPlayer()
 	{
 		CCD->ActorManager()->RemoveActor(Actor);
 		geActor_Destroy(&Actor);
+		Actor = NULL;
 	}
 }
 
@@ -206,7 +204,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			if(serversock == NL_INVALID)
 			{
 				serverstop = true;
-				CCD->ReportError("*WARNING* Server Error - Open Socket Failed", false);
+				CCD->ReportError("[WARNING] Server Error - Open Socket Failed", false);
 				return false;
 			}
 
@@ -214,7 +212,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			{
 				nlClose(serversock);
 				serverstop = true;
-				CCD->ReportError("*WARNING* Server Error - Listen on Socket Failed", false);
+				CCD->ReportError("[WARNING] Server Error - Listen on Socket Failed", false);
 				return false;
 			}
 
@@ -343,7 +341,7 @@ int NetPlayerMgr::ReadBuffer(NetBuffer *Buff, NLsocket socket)
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void NetPlayerMgr::Tick(float dwTicks)
+void NetPlayerMgr::Tick(geFloat dwTicks)
 {
 
 }
@@ -377,7 +375,7 @@ void NetPlayerMgr::ServerClientCycle()
 				outbuffer->Add(1);
 				outbuffer->Add((unsigned char)CONNECTIONACCEPT);
 				outbuffer->Add(newsock);
-				char *level = CCD->MenuManager()->GetLevelName();
+				const char *level = CCD->MenuManager()->GetLevelName();
 				outbuffer->AddString(level, strlen(level));
 				outbuffer->AddLen();
 				nlWrite(newsock, outbuffer->Data, outbuffer->Size);

@@ -14,8 +14,8 @@
 
 typedef struct MessageText
 {
-	string Text;
-	string Name;
+	std::string Text;
+	std::string Name;
 
 } MessageText;
 
@@ -64,17 +64,17 @@ public:
 	CMessage();
 	~CMessage();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	void Display();
-	int LocateEntity(char *szName, void **pEntityData);
+	int LocateEntity(const char *szName, void **pEntityData);
 	int ReSynchronize();
-	void LoadText(char *messagetxt);
+	void LoadText(const char *messagetxt);
 
 private:
-	string GetText(char *Name);
+	std::string GetText(const char *Name);
 
 private:
-	vector<MessageText> Text;
+	std::vector<MessageText> Text;
 	CIniFile AttrFile;
 	bool active;
 };

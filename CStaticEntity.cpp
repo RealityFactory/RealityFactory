@@ -14,9 +14,10 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 // changed QD 06/26/04
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change
 
 /* ------------------------------------------------------------------------------------ */
@@ -67,7 +68,7 @@ CStaticEntity::CStaticEntity()
 		if(!pProxy->Actor)
 		{
 			char szError[256];
-			sprintf(szError, "*WARNING* File %s - Line %d: %s : Missing Actor '%s'",
+			sprintf(szError, "[WARNING] File %s - Line %d: %s : Missing Actor '%s'",
 					__FILE__, __LINE__, pProxy->szEntityName, pProxy->szActorFile);
 			CCD->ReportError(szError, false);
 			// changed QD 07/15/06
@@ -220,6 +221,7 @@ CStaticEntity::~CStaticEntity()
 			}
 
 			geActor_Destroy(&pProxy->Actor);
+			pProxy->Actor = NULL;
 		}
 	}
 
@@ -247,8 +249,7 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 	if(!pSet)
 		return;									// All gone?  How odd.
 
-	// Ok, we have static entities s somewhere.  Dig through 'em all and release
-	// ..the audio (if any) and the actors we loaded.
+	// Ok, we have static entities s somewhere.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -287,7 +288,7 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 //	..execution.
 /* ------------------------------------------------------------------------------------ */
 // changed RF063
-int CStaticEntity::HandleCollision(geActor *pActor, geActor *theActor, bool Gravity, bool UseKey)
+int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity, bool UseKey)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -736,7 +737,7 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 //
 //	Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
-int CStaticEntity::BindToPath(char *szName)
+int CStaticEntity::BindToPath(const char *szName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -766,7 +767,7 @@ int CStaticEntity::BindToPath(char *szName)
 /* ------------------------------------------------------------------------------------ */
 //	GetEntity
 /* ------------------------------------------------------------------------------------ */
-int CStaticEntity::GetEntity(geActor *Actor, void **pEntityData)
+int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -810,7 +811,7 @@ int CStaticEntity::GetEntity(geActor *Actor, void **pEntityData)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CStaticEntity::LocateEntity(char *szName, void **pEntityData)
+int CStaticEntity::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

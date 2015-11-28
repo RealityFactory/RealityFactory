@@ -12,6 +12,9 @@
 #define MAXARMOUR 20
 #define MAXDAMAGEBY 10
 
+/**
+ * @brief Armour type definition
+ */
 typedef struct ArmourType
 {
 	char	*Name;
@@ -22,37 +25,23 @@ typedef struct ArmourType
 
 } ArmourType;
 
-
+/**
+ * @brief CArmour handles armour of player
+ *
+ * Adjust damage done to player and armour HUD elements
+ */
 class CArmour : public CRGFComponent
 {
 public:
 	CArmour();
 	~CArmour();
 
-	void DisableHud(char *Attr);
-	int AdjustDamage(int Amount, char *name, char *Attr);
+	void DisableHud(const char *Attr);
+	int AdjustDamage(int Amount, const char *name, const char *Attr);
 
 private:
 	ArmourType List[MAXARMOUR];
 	int ListPtr;
-};
-
-
-
-class CLiftBelt : public CRGFComponent
-{
-public:
-	CLiftBelt();
-	~CLiftBelt();
-
-	void Tick(float dwTicks);
-	void ChangeLift(bool increase);
-	void DisableHud(char *Attr);
-	int	LocateEntity(char *szName, void **pEntityData);
-
-private:
-	bool Change;
-	bool Increase;
 };
 
 #endif

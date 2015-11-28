@@ -39,7 +39,7 @@ public:
 	virtual bool	Init();
 
 
-	string&			GetName()				{ return m_strName; };
+	std::string&	GetName()				{ return m_strName; };
 	geBitmap*		GetBitmap() { return m_pBmp; }
 
 	virtual void	SetPause( bool b);
@@ -78,7 +78,7 @@ protected:
 	bool			m_bPaused;
 	bool			m_bSelfDelete;
 
-	string			m_strName;
+	std::string		m_strName;
 	bool			m_bTriggered;
 	geBitmap*		m_pBmp;
 

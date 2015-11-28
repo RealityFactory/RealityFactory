@@ -52,7 +52,7 @@ CVideoTexture::CVideoTexture()
 		// ..we're going to initialize it and get the first frame
 		// ..loaded.  This prevents a short (but noticable!) delay from
 		// ..happening if we need to initialize the texture later.
-		string File = pTex->szVideoName;
+		std::string File = pTex->szVideoName;
 		MakeLower(File);
 		int i = File.find(".gif");
 
@@ -62,7 +62,7 @@ CVideoTexture::CVideoTexture()
 
 			if((m_GifList[m_TextureCount-1] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
 			{
-				CCD->ReportError("*WARNING* Failed to create new CAnimGif", false);
+				CCD->ReportError("[WARNING] Failed to create new CAnimGif", false);
 				continue;
 			}
 
@@ -74,14 +74,14 @@ CVideoTexture::CVideoTexture()
 
 			if((m_VidList[m_TextureCount-1] = new CAVIPlayer()) == NULL)
 			{
-				CCD->ReportError("*WARNING* Failed to create new CAVIPlayer", false);
+				CCD->ReportError("[WARNING] Failed to create new CAVIPlayer", false);
 				continue;
 			}
 
 			if(m_VidList[m_TextureCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
 			{
 				char szBug[256];
-				sprintf(szBug, "*WARNING* File %s - Line %d: Failed to open video texture '%s'",
+				sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open video texture '%s'",
 						__FILE__, __LINE__, pTex->szVideoName);
 				CCD->ReportError(szBug, false);
 				delete m_VidList[m_TextureCount-1];
@@ -186,7 +186,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					// Set up for texture playback
 					if((m_VidList[nSlot] = new CAVIPlayer()) == NULL)
 					{
-						CCD->ReportError("*WARNING* Vidtex start: Failed to make new CAVIPlayer", false);
+						CCD->ReportError("[WARNING] Vidtex start: Failed to make new CAVIPlayer", false);
 						//return;
 						nSlot++;
 						continue;
@@ -195,7 +195,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					if(m_VidList[nSlot]->Open(pTex->szVideoName) != RGF_SUCCESS)
 					{
 						char szBug[256];
-						sprintf(szBug, "*WARNING* File %s - Line %d: Failed to open range texture '%s'",
+						sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open range texture '%s'",
 								__FILE__, __LINE__, pTex->szVideoName);
 						CCD->ReportError(szBug, false);
 						//return;

@@ -10,7 +10,7 @@
 
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CTeleporter
@@ -74,7 +74,7 @@ CTeleporter::CTeleporter()
 			if(!pTeleporter->theSound)
 			{
 				char szError[256];
-				sprintf(szError, "*WARNING* File %s - Line %d: %s: Failed to open audio file '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
 						__FILE__, __LINE__, pTeleporter->szEntityName, pTeleporter->szSoundFile);
 				CCD->ReportError(szError, false);
 			}
@@ -156,7 +156,7 @@ CTeleporter::~CTeleporter()
 //
 //	Handle a collision with a teleport trigger.
 /* ------------------------------------------------------------------------------------ */
-bool CTeleporter::HandleCollision(geWorld_Model *pModel, geActor *theActor)
+bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor)
 {
 	geEntity_EntitySet *pSet, *pSet2;
 	geEntity *pEntity, *pEntity2;
@@ -667,7 +667,7 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 //
 //	Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
-int CTeleporter::BindToPath(char *szName)
+int CTeleporter::BindToPath(const char *szName)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -702,7 +702,7 @@ int CTeleporter::BindToPath(char *szName)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CTeleporter::LocateEntity(char *szName, void **pEntityData)
+int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

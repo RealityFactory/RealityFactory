@@ -6,13 +6,12 @@
 #ifndef __RGF_CNETWORK_H_
 #define __RGF_CNETWORK_H_
 
-#include "RabidFramework.h"
 #include "HawkNL\\nl.h"
 #include "CNetBuffer.h"
 
-#define TIMERINTERVAL  50 // # of milliseconds between calls to server/client cycle
+#define TIMERINTERVAL  50		///< # of milliseconds between calls to server/client cycle
 
-#define CONNECTIONPACKETS  4 // # of packets sent during connection handshake
+#define CONNECTIONPACKETS  4	///< # of packets sent during connection handshake
 
 // changed QD 02/01/07
 #define WRITEDATA(type, a, b, c, d) CCD->NetPlayerManager()->WriteData(type, (void*)a, b, c, d)
@@ -44,9 +43,9 @@ typedef enum
 	ENDCMD
 };
 
-//
-// client states during connection to server
-//
+/**
+ * client states during connection to server
+ */
 typedef enum
 {
 	ACCEPTED = 0,
@@ -55,7 +54,9 @@ typedef enum
 	FINISHED
 };
 
-
+/**
+ * @brief NetPlayer class
+ */
 class NetPlayer
 {
 public:
@@ -96,7 +97,7 @@ public:
 	~NetPlayerMgr();
 
 	bool Initialize(bool server, char *serverip);
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 	void ServerClientCycle();
 	int AddNewPlayer(NetBuffer *Buff);
 	void SendWorldInfo(NetBuffer *Buff, NLsocket sock);

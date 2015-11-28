@@ -12,7 +12,8 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -22,7 +23,7 @@ CMessage::CMessage()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are Messages in this world
+	// Ok, check to see if there are Messages in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
@@ -39,7 +40,7 @@ CMessage::CMessage()
 		return;
 	}
 
-	//	Ok, we have Messages somewhere.  Dig through 'em all.
+	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -68,8 +69,8 @@ CMessage::CMessage()
 			// end change
 
 			pSource->Data = (void*)Data;
-			string KeyName = AttrFile.FindFirstKey();
-			string Type;
+			std::string KeyName = AttrFile.FindFirstKey();
+			std::string Type;
 
 			char szName[64], szAlpha[64];
 
@@ -144,7 +145,6 @@ CMessage::CMessage()
 
 							Data->graphicfadeintime = (float)AttrFile.GetValueF(KeyName, "graphicfadeintime");
 							Data->graphicfadeouttime = (float)AttrFile.GetValueF(KeyName, "graphicfadeouttime");
-							//Data->graphic = (geBitmap**)geRam_AllocateClear(sizeof(*(Data->graphic)) * Data->graphicframes);
 							Data->graphic = (geBitmap**)geRam_AllocateClear(sizeof(geBitmap*)*(Data->graphicframes));
 
 							if(Data->graphic)
@@ -199,7 +199,7 @@ CMessage::~CMessage()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are Messages in this world
+	// Ok, check to see if there are Messages in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
@@ -229,12 +229,12 @@ CMessage::~CMessage()
 /* ------------------------------------------------------------------------------------ */
 //  Tick
 /* ------------------------------------------------------------------------------------ */
-void CMessage::Tick(float dwTicks)
+void CMessage::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are Messages in this world
+	// Ok, check to see if there are Messages in this world
 	if(!active)
 		return;
 
@@ -243,7 +243,7 @@ void CMessage::Tick(float dwTicks)
 	if(!pSet)
 		return;
 
-	//	Ok, we have Messages somewhere.  Dig through 'em all.
+	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -444,13 +444,13 @@ void CMessage::Display()
 	if(!active)
 		return;
 
-	//	Ok, check to see if there are Messages in this world
+	// Ok, check to see if there are Messages in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
 		return;
 
-	//	Ok, we have Messages somewhere.  Dig through 'em all.
+	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -461,7 +461,7 @@ void CMessage::Display()
 		{
 			if(!EffectC_IsStringNull(pSource->TextName))
 			{
-				string Textt = GetText(pSource->TextName);
+				std::string Textt = GetText(pSource->TextName);
 
 				// static type message
 				if(Data->type == 0)
@@ -556,18 +556,18 @@ void CMessage::Display()
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CMessage::LocateEntity(char *szName, void **pEntityData)
+int CMessage::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are Messages in this world
+	// Ok, check to see if there are Messages in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
-		return RGF_NOT_FOUND;									// No 3D audio sources
+		return RGF_NOT_FOUND;									// No Messages
 
-	//	Ok, we have Messages somewhere.  Dig through 'em all.
+	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -598,11 +598,11 @@ int CMessage::ReSynchronize()
 //	LoadText
 /* ------------------------------------------------------------------------------------ */
 // changed QD Language Menu
-void CMessage::LoadText(char *messagetxt)
+void CMessage::LoadText(const char *messagetxt)
 {
 	geVFile *MainFS;
 	char szInputLine[256];
-	string readinfo, keyname, text;
+	std::string readinfo, keyname, text;
 
 	Text.resize(0);
 
@@ -682,7 +682,7 @@ void CMessage::LoadText(char *messagetxt)
 /* ------------------------------------------------------------------------------------ */
 //	GetText
 /* ------------------------------------------------------------------------------------ */
-string CMessage::GetText(char *Name)
+std::string CMessage::GetText(const char *Name)
 {
 	int size = Text.size();
 

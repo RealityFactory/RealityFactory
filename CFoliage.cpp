@@ -10,7 +10,8 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	GetFastDistance
@@ -109,7 +110,7 @@ CFoliage::~CFoliage()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFoliage::Tick(float dwTicksIn)
+void CFoliage::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -141,7 +142,7 @@ void CFoliage::Tick(float dwTicksIn)
 			int sc;
 			float scale;
 
-			//Randomize using specified Seed
+			// Randomize using specified Seed
 			srand(S->Seed);
 
 			// set poly color
@@ -185,7 +186,7 @@ void CFoliage::Tick(float dwTicksIn)
 				tPos.Y -= test; //10000.0f; // set test point to 10000 texels below/above origin
 				// end change
 
-				//perform BSP collision test only
+				// perform BSP collision test only
 				geWorld_Collision(CCD->World(), NULL, NULL,
 					&fPos, &tPos, GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW,
 					GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision);
@@ -218,7 +219,7 @@ void CFoliage::Tick(float dwTicksIn)
 				else
 					Vertex.a = 255.f;
 
-				//check that texture matches allowable texture
+				// check that texture matches allowable texture
 				if(!EffectC_IsStringNull(S->Texture))
 				{
 					getSingleTextureNameByTrace(CCD->World(), &fPos, &tPos, Texture);
@@ -229,7 +230,7 @@ void CFoliage::Tick(float dwTicksIn)
 				// only draw if visible
 				if(Vertex.a > 0.f)
 				{
-					//draw poly facing camera
+					// draw poly facing camera
 					geWorld_AddPolyOnce(CCD->World(), &Vertex, 1,
 						S->Bitmap, GE_TEXTURED_POINT,
 						GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
@@ -240,7 +241,7 @@ void CFoliage::Tick(float dwTicksIn)
 	}
 
 // added by pickles 08.14.2004
-	srand(int(dwTicksIn * 1000.f));
+	srand(int(dwTicks * 1000.f));
 }
 
 

@@ -162,17 +162,10 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 
 		strncpy(DriverName,DriverNamePtr, MODELIST_MAX_NAME);
 		DriverName[MODELIST_MAX_NAME-1] = 0;		// just in case
-		strupr(DriverName);
+		_strupr(DriverName);
 
-		if(strstr(DriverName,"D3D") != NULL)
+		if(strstr(DriverName, "D3D") != NULL)
 		{
-			/*
-			if (  (strstr(DriverName,"3DFX")!= NULL) || (strstr(DriverName,"VOODOO")!=NULL) )
-			{
-				DriverType = MODELIST_TYPE_D3D_3DFX;
-			}
-			else
-			*/
 			{
 				if(strstr(DriverName, "PRIMARY") != NULL)
 					DriverType = MODELIST_TYPE_D3D_PRIMARY;
@@ -180,16 +173,6 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 					DriverType = MODELIST_TYPE_D3D_SECONDARY;
 			}
 		}
-		/*
-		else if(strstr(DriverName, "GLIDE")!=NULL)
-		{
-			DriverType = MODELIST_TYPE_GLIDE;
-		}
-		else if (strstr(DriverName, "SOFT") != NULL)
-		{
-			DriverType = MODELIST_TYPE_SOFTWARE;
-		}
-		*/
 		else
 		{
 			DriverType = MODELIST_TYPE_UNKNOWN;
@@ -202,7 +185,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 		{
 			if(geDriver_ModeGetName(m_Mode, &ModeNamePtr) == GE_FALSE)
 			{
-				geErrorLog_AddString(-1,"AutoSelect: Failed to get mode name",NULL);
+				geErrorLog_AddString(-1, "AutoSelect: Failed to get mode name", NULL);
 				goto ModeList_Exit;
 			}
 
@@ -215,7 +198,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 
 				if(NewDriverList == NULL)
 				{
-					geErrorLog_AddString(-1,"AutoSelect: Memory allocation failed",NULL);
+					geErrorLog_AddString(-1, "AutoSelect: Memory allocation failed", NULL);
 					goto ModeList_Exit;
 				}
 
@@ -319,7 +302,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 			{
 				strncpy(ModeName,ModeNamePtr, MODELIST_MAX_NAME);
 				ModeName[MODELIST_MAX_NAME-1] = 0;		// just in case
-				strupr(ModeName);
+				_strupr(ModeName);
 
 				if(strstr(ModeName, "WIN") != NULL)
 				{
@@ -482,7 +465,6 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 			DrvList_FillModeList(hwndDlg,0,DL);
 
-			// changed QD 02/01/07
 			// position the dialog in the center of the desktop and set it as topmost window
 			{
 				RECT	ScreenRect, DlgRect;
@@ -498,7 +480,6 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 				);
 				UpdateWindow(hwndDlg);
 			}
-			// end change
 
 			return TRUE;
 		}
@@ -565,7 +546,7 @@ geBoolean DrvList_PickDriver(HANDLE hInstance, HWND hwndParent,
 
 	assert(hInstance != 0);
 	assert(List  != NULL);
-	assert(ListLength >=0);
+	assert(ListLength >= 0);
 	assert(ListSelection != NULL);
 
 
@@ -599,27 +580,9 @@ void ResetMainWindow(HWND hWnd, int32 Width, int32 Height)
 {
 	RECT ScreenRect;
 
+	ShowWindow(hWnd, SW_SHOWNORMAL);
+
 	GetWindowRect(GetDesktopWindow(), &ScreenRect);
-
-	SetWindowLong(hWnd,
-                 GWL_STYLE,
-                 GetWindowLong(hWnd, GWL_STYLE) & ~WS_POPUP);
-
-	SetWindowLong(hWnd,
-                 GWL_STYLE,
-                 GetWindowLong(hWnd, GWL_STYLE) | (WS_OVERLAPPED  |
-                                                   WS_CAPTION     |
-                                                   WS_SYSMENU     |
-                                                   WS_MINIMIZEBOX));
-
-	SetWindowLong(hWnd,
-                  GWL_STYLE,
-                  GetWindowLong(hWnd, GWL_STYLE) | WS_THICKFRAME |
-                                                     WS_MAXIMIZEBOX);
-
-	//	SetWindowLong(hWnd,
-    //              GWL_EXSTYLE,
-    //              GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_TOPMOST);
 
 	{
 		RECT ClientRect;
@@ -638,15 +601,14 @@ void ResetMainWindow(HWND hWnd, int32 Width, int32 Height)
 			SetWindowPos
 			(
 				hWnd, HWND_TOP,
-				(ScreenRect.right+ScreenRect.left)/2 - WindowWidth/2,
-				(ScreenRect.bottom+ScreenRect.top)/2 - WindowHeight/2,
+				(ScreenRect.right-ScreenRect.left)/2 - WindowWidth/2,
+				(ScreenRect.bottom-ScreenRect.top)/2 - WindowHeight/2,
 				WindowWidth, WindowHeight,
 				SWP_NOCOPYBITS | SWP_NOZORDER
 			);
 		}
 	}
 
-	ShowWindow(hWnd, SW_SHOWNORMAL);
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
 }

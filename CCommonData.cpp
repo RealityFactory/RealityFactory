@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "RGFScriptMethods.h"
 
 // changed RF063
 extern geVFile *PassWord(char *m_VirtualFile, bool encrypt);
@@ -78,6 +79,7 @@ CCommonData::CCommonData()
 	theArmour			= NULL;
 	theLiftBelt			= NULL;
 // end change RF064
+	theWindGenerator	= NULL;
 	theFloat			= NULL;		// Ralph Deane's Floating Effect
 	theChaos			= NULL;		// Ralph Deane's Chaos Procedural
 	theFlame			= NULL;		// Ralph Deane's Flame Effect
@@ -132,7 +134,8 @@ CCommonData::CCommonData()
 
 	FreeImage_Initialise();
 
-	FillHashCommands_LowLevel();//change scripting
+	MethodHash = new CLongHashTable(RGF_SM_MAXMETHODS);
+	FillHashMethods();	//change scripting
 
 	//	Initialize game state data
 	m_InGameLoop = true;					// We start in the game loop
@@ -153,6 +156,9 @@ CCommonData::CCommonData()
 	strcpy(m_VirtualFile,			"Pack.vfs"		);
 	strcpy(m_SplashScreen,			"rflogo.bmp"	);
 	strcpy(m_SplashAudio,			"startup.wav"	);
+// changed JRW 02/20/07
+	strcpy(m_PlayerName,			"Unnamed"		);
+// end change
 
 	m_CutScene[0]		= '\0';
 	m_CutScene1[0]		= '\0';
@@ -216,7 +222,7 @@ CCommonData::CCommonData()
 	m_Language = 0;
 	Logging = false;
 
-	//	Debug tracing time
+	// Debug tracing time
 	if(m_DebugLevel == kHighDebugOutput)
 		OutputDebugString("CCommonData initialized\n");
 
@@ -262,8 +268,9 @@ CCommonData::~CCommonData()
 	FreeImage_DeInitialise();
 
 // changed QD 08/15/06 - fix memory leaks
-	ClearHashCommands_LowLevel();
+	ClearHashMethods();
 // end change QD 08/15/06
+	SAFE_DELETE(MethodHash);
 
 // start multiplayer
 	if(network)
@@ -299,10 +306,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	bool bFullScreen	= false;	// Default to windowed
 	bool bSoftware		= false;	// Default to hardware acceleration
 	char chTheDriver	= '(';		// Default to Direct3D
-	int nHeight			= 800;		// Default to 800 high - begin change gekido - upped the default to 800x600
-	int nWidth			= 600;		// Default to 600 wide - end change gekido
+	int nHeight			= 800;		// Default to 800 high
+	int nWidth			= 600;		// Default to 600 wide
 	FILE *fd;						// Used for prefs file
-	char szTitle[80];				// Game title
+// changed JRW 02/20/07
+	char szTitle[80]	= "Game";	// Game title
+// end change
 	geFloat fGamma		= 1.5f;
 // changed QD 12/15/05 - turned into member variable
 	// bool UseDialog	= false;
@@ -593,7 +602,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					else
 					{
 						// changed QD 07/15/06
-						ReportError("*WARNING* Bad driver selection in RealityFactory.ini\n", false);
+						ReportError("[WARNING] Bad driver selection in RealityFactory.ini\n", false);
 						chTheDriver = 'P';
 					}
 				}
@@ -644,7 +653,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			}
 // end change
 			else
-				ReportError("*WARNING* Unknown command in RealityFactory.ini\n", false);
+				ReportError("[WARNING] Unknown command in RealityFactory.ini\n", false);
 		}
 
 		fclose(fd);
@@ -684,7 +693,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	{
 		// changed QD 12/15/05
 		//theGameEngine->ReportError("Can't create Genesis3d Graphics engine!\n", true);
-		ReportError("*ERROR* Failed to create Genesis3D Graphics engine!\n", true);
+		ReportError("[ERROR] Failed to create Genesis3D Graphics engine!\n", true);
 		// end change
 		return -1;
 	}
@@ -693,14 +702,14 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		theGameEngine->SetDebugging(true);			// Activate engine debugging
 
 // 08.05.2004 - begin change gekido
-	// need to update with each version
-	ReportError("\nInitializing Game Shell...",				false);
-	ReportError("--------------------------------------",	false);
-	ReportError("--- Reality Factory 0.75C          ---",	false);
-	ReportError("--- For more Information, visit:   ---",	false);
-	ReportError("---    www.realityfactory.info     ---",	false);
-	ReportError("--------------------------------------",	false);
-	ReportError("\nParsed RealityFactory.ini file",			false);
+	ReportError("\nInitializing Game Shell...",										false);
+	ReportError("-----------------------------------------------",					false);
+	ReportError("--- Reality Factory "RF_VMAJS"."RF_VMINS"                 ---",	false);
+	ReportError("--- Build Date: "__DATE__", Time: "__TIME__" ---",					false);
+	ReportError("--- For more Information, visit:            ---",					false);
+	ReportError("---    www.realityfactory.info              ---",					false);
+	ReportError("-----------------------------------------------",					false);
+	ReportError("\nParsed RealityFactory.ini file",									false);
 	//	First, initialize the Genesis3D game engine
 	ReportError("\nGenesis3D Initialized", false);
 // 08.05.2004 - end change gekido
@@ -712,7 +721,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	{
 		VFS = NULL;
 		// changed Nout 12/15/05
-		ReportError("\n*INFO* No VFS - Reading from Real File System...", false);
+		ReportError("\n[INFO] No VFS - Reading from Real File System...", false);
 		// end change
 	}
 	else
@@ -723,12 +732,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		if(memcmp(szInputString, "CF00", 4) == 0)
 		{
 			VFS = PassWord(m_VirtualFile, true);
-			ReportError("\n*INFO* VFS detected (encrypted)...", false);
+			ReportError("\n[INFO] VFS detected (encrypted)...", false);
 		}
 		else
 		{
 			VFS = PassWord(m_VirtualFile, false);
-			ReportError("\n*INFO* VFS detected (not encrypted)...", false);
+			ReportError("\n[INFO] VFS detected (not encrypted)...", false);
 		}
 	}
 
@@ -738,7 +747,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theCameraManager == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Camera Manager", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Camera Manager", false);
 		return -93;
 	}
 // end change RF063
@@ -751,7 +760,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theUserInput == NULL)
 	{
-		ReportError("*ERROR* Failed to create input subsystem", false);
+		ReportError("[ERROR] Failed to create input subsystem", false);
 		return -2;
 	}
 
@@ -761,7 +770,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theAudioManager == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Audio Manager", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Audio Manager", false);
 		return -92;
 	}
 
@@ -772,7 +781,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	theCDPlayer = new CCDAudio();
 
 	if(theCDPlayer == NULL)
-		theGameEngine->ReportError("*ERROR* CD Player failed to instantiate", false);
+		theGameEngine->ReportError("[ERROR] CD Player failed to instantiate", false);
 
 	//	Fire up the MIDI playback system.  Again, as with the CD Player, failure
 	//	..to instantiate is not grounds for aborting game play, although I'd
@@ -781,7 +790,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	theMIDIPlayer = new CMIDIAudio();
 
 	if(theMIDIPlayer == NULL)
-		theGameEngine->ReportError("*ERROR* MIDI Player failed to instantiate", false);
+		theGameEngine->ReportError("[ERROR] MIDI Player failed to instantiate", false);
 
 	ReportError("Initializing RF Menu Manager Subsystem...", false);
 // changed QD 12/15/05
@@ -790,7 +799,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theMenu == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Menu subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Menu subsystem", false);
 		return -2;
 	}
 
@@ -799,7 +808,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theCollider == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Collider subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Collider subsystem", false);
 		return -100;
 	}
 
@@ -809,7 +818,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(theNetPlayerMgr == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create NetPlayerMgr subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create NetPlayerMgr subsystem", false);
 		return -100;
 	}
 // end multiplayer
@@ -838,7 +847,7 @@ void CCommonData::ShutDownNetWork()
 
 	if(theNetPlayerMgr == NULL)
 	{
-		theGameEngine->ReportError("*WARNING* Failed to create NetPlayerMgr subsystem", false);
+		theGameEngine->ReportError("[WARNING] Failed to create NetPlayerMgr subsystem", false);
 		return;
 	}
 }
@@ -883,7 +892,7 @@ bool CCommonData::ConsoleRender()
 /* ------------------------------------------------------------------------------------ */
 //	ConsolePrint
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsolePrint(char *szMsg, bool *bBox)
+bool CCommonData::ConsolePrint(const char *szMsg, bool bBox)
 {
 	// print to console
 	return false;
@@ -892,7 +901,7 @@ bool CCommonData::ConsolePrint(char *szMsg, bool *bBox)
 /* ------------------------------------------------------------------------------------ */
 //	ShowConsole
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::ShowConsole (bool bConsoleFlag, int nTransition)
+bool CCommonData::ShowConsole(bool bConsoleFlag, int nTransition)
 {
 	// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out
 	// ..transition when showing the console
@@ -904,7 +913,7 @@ bool CCommonData::ShowConsole (bool bConsoleFlag, int nTransition)
 //
 //	still not sure on the parameters for this, may change
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsoleExec(char *szMsg, bool *bBox)
+bool CCommonData::ConsoleExec(const char *szMsg, bool bBox)
 {
 	// execute console command
 	return false;
@@ -935,7 +944,7 @@ skExecutableContext CCommonData::GetskContext()
 /* ------------------------------------------------------------------------------------ */
 //	AddScriptedObject
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::AddScriptedObject(char *objectName, skRValue Object)
+void CCommonData::AddScriptedObject(const char *objectName, skRValue Object)
 {
 	interpreter.addGlobalVariable(objectName, Object);
 }
@@ -943,7 +952,7 @@ void CCommonData::AddScriptedObject(char *objectName, skRValue Object)
 /* ------------------------------------------------------------------------------------ */
 //	RemoveScriptedObject
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::RemoveScriptedObject(char *objectName)
+void CCommonData::RemoveScriptedObject(const char *objectName)
 {
 	interpreter.removeGlobalVariable(objectName);
 }
@@ -969,50 +978,32 @@ void CCommonData::ShutdownCommon()
 	//	..the engine is used to free sounds, etc. in many of the components.
 // start multiplayer
 	ReportError("Shutting Down Network Manager Subsystem...", false);
-	if(theNetPlayerMgr != NULL)
-		delete theNetPlayerMgr;
-	theNetPlayerMgr = NULL;
+	SAFE_DELETE(theNetPlayerMgr);
 // end multiplayer
 
 	ReportError("Shutting Down Collision Manager Subsystem...", false);
-	if(theCollider != NULL)
-		delete theCollider;
-	theCollider = NULL;
+	SAFE_DELETE(theCollider);
 
 	ReportError("Shutting Down RF Menu Manager Subsystem...", false);
-	if(theMenu != NULL)
-		delete theMenu;
-	theMenu = NULL;
+	SAFE_DELETE(theMenu);
 
 	ReportError("Shutting Down CD Audio Manager Subsystem...", false);
-	if(theCDPlayer != NULL)
-		delete theCDPlayer;
-	theCDPlayer = NULL;
+	SAFE_DELETE(theCDPlayer);
 
 	ReportError("Shutting Down Midi Audio Manager Subsystem...", false);
-	if(theMIDIPlayer != NULL)
-		delete theMIDIPlayer;
-	theMIDIPlayer = NULL;
+	SAFE_DELETE(theMIDIPlayer);
 
 	ReportError("Shutting Down Audio Manager Subsystem...", false);
-	if(theAudioManager != NULL)
-		delete theAudioManager;
-	theAudioManager = NULL;
+	SAFE_DELETE(theAudioManager);
 
 	ReportError("Shutting Down User Input Manager Subsystem...", false);
-	if(theUserInput != NULL)
-		delete theUserInput;
-	theUserInput = NULL;
+	SAFE_DELETE(theUserInput);
 
 	ReportError("Shutting Down Camera Manager Subsystem...", false);
-	if(theCameraManager != NULL)
-		delete theCameraManager;
-	theCameraManager = NULL;
+	SAFE_DELETE(theCameraManager);
 
 	ReportError("Shutting Down Graphics Subsystem...", false);
-	if(theGameEngine != NULL)
-		delete theGameEngine;
-	theGameEngine = NULL;
+	SAFE_DELETE(theGameEngine);
 
 	ReportError("Restoring Mouse Cursor...", false);
 	ShowCursor(TRUE);
@@ -1033,7 +1024,7 @@ void CCommonData::ShutdownCommon()
 //	..handler classes that deal with the various level-specific
 //	..entities.
 /* ------------------------------------------------------------------------------------ */
-int CCommonData::InitializeLevel(char *szLevelName)
+int CCommonData::InitializeLevel(const char *szLevelName)
 {
 	kAudibleRadius = 360.0f;
 
@@ -1047,7 +1038,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	if(theGameEngine->LoadLevel(szLevelName) == FALSE)
 	{
 		char szBug[200];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Level [%s] failed to load!",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Level [%s] failed to load!",
 				__FILE__, __LINE__, szLevelName);
 		theGameEngine->ReportError(szBug, false);
 		return -3;
@@ -1060,7 +1051,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theRegistry = new CEntityRegistry();
 	if(theRegistry == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to initialize entity registry!", false);
+		theGameEngine->ReportError("[ERROR] Failed to initialize entity registry!", false);
 		return -30;
 	}
 
@@ -1069,7 +1060,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theTerrainMgr = new qxTerrainMgr();
 	if(theTerrainMgr == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create qxTerrainMgr handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create qxTerrainMgr handler", false);
 		return -26;
 	}
 // end change RF064
@@ -1078,7 +1069,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theEffect = new EffManager();
 	if(theEffect == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Effect handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Effect handler", false);
 		return -26;
 	}
 
@@ -1087,7 +1078,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theActorManager = new CActorManager();
 	if(theActorManager == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create actor manager", false);
+		theGameEngine->ReportError("[ERROR] Failed to create actor manager", false);
 		return -91;
 	}
 
@@ -1125,7 +1116,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theModelManager = new CModelManager();
 	if(theModelManager == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create model manager", false);
+		theGameEngine->ReportError("[ERROR] Failed to create model manager", false);
 		return -92;
 	}
 
@@ -1135,7 +1126,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePlayer = new CPlayer();
 	if(thePlayer == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create player avatar!", false);
+		theGameEngine->ReportError("[ERROR] Failed to create player avatar!", false);
 		return -4;
 	}
 
@@ -1143,7 +1134,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	// changed QD 12/15/05
 	if(thePlayer->LoadAvatar(m_PlayerAvatar, m_PlayerName) != RGF_SUCCESS)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to load player avatar actor!", false);
+		theGameEngine->ReportError("[ERROR] Failed to load player avatar actor!", false);
 		return -5;
 	}
 
@@ -1153,7 +1144,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theHUD = new CHeadsUpDisplay();
 	if(theHUD == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create HUD class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create HUD class", false);
 		return -3;
 	}
 // end change RF064
@@ -1162,7 +1153,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theDamage = new CDamage();
 	if(theDamage == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Damage subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Damage subsystem", false);
 		return -100;
 	}
 
@@ -1171,8 +1162,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFixedCamera = new CFixedCamera();
 	if(theFixedCamera == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create FixedCamera handling class",
-			false);
+		theGameEngine->ReportError("[ERROR] Failed to create FixedCamera handling class", false);
 		return -11;
 	}
 
@@ -1184,8 +1174,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theAutoDoors = new CAutoDoors();
 	if(theAutoDoors == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create automatic door handling class",
-			false);
+		theGameEngine->ReportError("[ERROR] Failed to create automatic door handling class", false);
 		return -6;
 	}
 
@@ -1194,8 +1183,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePlatforms = new CMovingPlatforms();
 	if(thePlatforms == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create moving platform handling class",
-			false);
+		theGameEngine->ReportError("[ERROR] Failed to create moving platform handling class", false);
 		return -8;
 	}
 
@@ -1204,8 +1192,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theTeleports = new CTeleporter();
 	if(theTeleports == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create teleporter handling class",
-			false);
+		theGameEngine->ReportError("[ERROR] Failed to create teleporter handling class", false);
 		return -10;
 	}
 
@@ -1214,7 +1201,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFields = new CMorphingFields();
 	if(theFields == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create morphing field handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create morphing field handling class", false);
 		return -11;
 	}
 
@@ -1223,7 +1210,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	the3DAudio = new C3DAudioSource();
 	if(the3DAudio == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create 3D audio source handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create 3D audio source handling class", false);
 		return -12;
 	}
 
@@ -1232,7 +1219,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theParticles = new CParticleSystem();
 	if(theParticles == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create particle system handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create particle system handler", false);
 		return -13;
 	}
 
@@ -1241,7 +1228,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theProps = new CStaticEntity();
 	if(theProps == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create static entity handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create static entity handler", false);
 		return -14;
 	}
 
@@ -1253,7 +1240,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theMeshes = new CStaticMesh();
 	if(theMeshes == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create static mesh handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create static mesh handler", false);
 		return -14;
 	}
 // end change QD
@@ -1263,7 +1250,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theSTToggles = new CSoundtrackToggle();
 	if(theSTToggles == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create soundtrack toggle handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create soundtrack toggle handler", false);
 		return -15;
 	}
 
@@ -1272,7 +1259,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theStreams = new CAudioStream();
 	if(theStreams == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create streaming audio handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create streaming audio handler", false);
 		return -16;
 	}
 
@@ -1281,7 +1268,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theVidText = new CVideoTexture();
 	if(theVidText == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create video texture handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create video texture handler", false);
 		return -17;
 	}
 
@@ -1290,7 +1277,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theCorona = new CCorona();
 	if(theCorona == NULL)
     {
-		theGameEngine->ReportError("*ERROR* Failed to create Corona handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Corona handler", false);
 		return -20;
     }
 
@@ -1299,7 +1286,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theDynalite = new CDynalite();
 	if(theDynalite == NULL)
     {
-		theGameEngine->ReportError("*ERROR* Failed to create Dynalite handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Dynalite handler", false);
 		return -21;
     }
 
@@ -1307,7 +1294,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theElectric = new CElectric();
 	if(theElectric == NULL)
     {
-		theGameEngine->ReportError("*ERROR* Failed to create Electric handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Electric handler", false);
 		return -22;
     }
 
@@ -1315,7 +1302,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theProcTexture = new CProcedural();
 	if(theProcTexture == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Procedural Texture handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Procedural Texture handler", false);
 		return -23;
 	}
 
@@ -1324,7 +1311,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePathDatabase = new CPathDatabase();
 	if(thePathDatabase == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Path database", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Path database", false);
 		return -24;
 	}
 
@@ -1333,7 +1320,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFollower = new CPathFollower();
 	if(theFollower == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Path follower", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Path follower", false);
 		return -25;
 	}
 
@@ -1343,7 +1330,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theRain = new CRain();
 	if(theRain == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Rain handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Rain handler", false);
 		return -27;
 	}
 
@@ -1351,7 +1338,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theSpout = new CSpout();
 	if(theSpout == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Spout handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Spout handler", false);
 		return -28;
 	}
 
@@ -1360,7 +1347,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theActorSpout = new CActorSpout();
 	if(theActorSpout == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ActorSpout handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ActorSpout handler", false);
 		return -28;
 	}
 // end change RF064
@@ -1369,7 +1356,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFloat = new CFloat();
 	if(theFloat == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Floating Particle handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Floating Particle handler", false);
 		return -29;
 	}
 
@@ -1377,7 +1364,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theChaos = new Chaos();
 	if(theChaos == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Chaos handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Chaos handler", false);
 		return -30;
 	}
 
@@ -1385,7 +1372,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFlame = new CFlame();
 	if(theFlame == NULL)
     {
-		theGameEngine->ReportError("*ERROR* Failed to create Flame handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Flame handler", false);
 		return -32;
     }
 
@@ -1394,7 +1381,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theScriptPoints = new CScriptPoint();
 	if(theScriptPoints == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ScriptPoint handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ScriptPoint handler", false);
 		return -40;
 	}
 
@@ -1402,7 +1389,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePawn = new CPawn();
 	if(thePawn == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Pawn handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Pawn handler", false);
 		return -40;
 	}
 
@@ -1410,7 +1397,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theChangeAttribute = new CChangeAttribute();
 	if(theChangeAttribute == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ChangeAttribute handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ChangeAttribute handler", false);
 		return -40;
 	}
 
@@ -1418,7 +1405,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theCountDownTimer = new CCountDown();
 	if(theCountDownTimer == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CountDownTimer handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CountDownTimer handler", false);
 		return -40;
 	}
 // end change RF064
@@ -1428,7 +1415,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theTriggers = new CTriggers();
 	if(theTriggers == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create trigger handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create trigger handling class", false);
 		return -41;
 	}
 
@@ -1437,7 +1424,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theLogic = new CLogic();
 	if(theLogic == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Logic handling class",
+		theGameEngine->ReportError("[ERROR] Failed to create Logic handling class",
 			false);
 		return -42;
 	}
@@ -1447,7 +1434,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theMessage = new CMessage();
 	if(theMessage == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Message handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Message handling class", false);
 		return -7;
 	}
 
@@ -1455,7 +1442,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePreEffect = new CPreEffect();
 	if(thePreEffect == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Effect subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Effect subsystem", false);
 		return -100;
 	}
 
@@ -1464,7 +1451,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theWeapon = new CWeapon();
 	if(theWeapon == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Weapon handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Weapon handling class", false);
 		return -7;
 	}
 
@@ -1472,7 +1459,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFirePoint = new CFirePoint();
 	if(theFirePoint == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create FirePoint handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create FirePoint handling class", false);
 		return -7;
 	}
 
@@ -1480,7 +1467,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFlipBook = new CFlipBook();
 	if(theFlipBook == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create FlipBook handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create FlipBook handling class", false);
 		return -7;
 	}
 
@@ -1489,7 +1476,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theAreaCheck = new CAreaChecker();
 	if(theAreaCheck == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create AreaCheck handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create AreaCheck handling class", false);
 		return -7;
 	}
 	// pwx
@@ -1499,7 +1486,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFoliage = new CFoliage();
 	if(theFoliage == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Foliage handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Foliage handling class", false);
 		return -7;
 	}
 
@@ -1507,7 +1494,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theFlipTree = new CFlipTree();
 	if(theFlipTree == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Tree handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Tree handling class", false);
 		return -7;
 	}
 // End Pickles Jul 04
@@ -1517,7 +1504,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePWXImage = new PWXImageManager();
 	if(thePWXImage == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create PWX image handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create PWX image handling class", false);
 		return -7;
 	}
 // End PWX
@@ -1527,7 +1514,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	thePolyShadow = new CPolyShadow();
 	if(thePolyShadow == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Poly Shadow handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Poly Shadow handling class", false);
 		return -7;
 	}
 // End PWX
@@ -1537,7 +1524,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theDecal = new CDecal();
 	if(theDecal == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Decal handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Decal handling class", false);
 		return -7;
 	}
 
@@ -1545,7 +1532,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theWallDecal = new CWallDecal();
 	if(theWallDecal == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create WallDecal handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create WallDecal handling class", false);
 		return -7;
 	}
 
@@ -1554,7 +1541,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theLevelController = new CLevelController();
 	if(theLevelController == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create LevelController handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create LevelController handling class", false);
 		return -7;
 	}
 // End Aug2003DCS
@@ -1564,7 +1551,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theAttribute = new CAttribute();
 	if(theAttribute == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Attribute handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Attribute handling class", false);
 		return -7;
 	}
 
@@ -1572,7 +1559,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theExplosion = new CExplosionInit();
 	if(theExplosion == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Explosion Manager subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Explosion Manager subsystem", false);
 		return -100;
 	}
 
@@ -1580,7 +1567,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theCExplosion = new CExplosion();
 	if(theCExplosion == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Explosion subsystem", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Explosion subsystem", false);
 		return -100;
 	}
 
@@ -1588,7 +1575,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theChangeLevel = new CChangeLevel();
 	if(theChangeLevel == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ChangeLevel handling class", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ChangeLevel handling class", false);
 		return -7;
 	}
 
@@ -1596,7 +1583,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theShake = new CShake();
 	if(theShake == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ScreenShake handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ScreenShake handler", false);
 		return -40;
 	}
 
@@ -1605,7 +1592,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theViewSwitch = new CViewSwitch();
 	if(theViewSwitch == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create ViewSwitch handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create ViewSwitch handler", false);
 		return -40;
 	}
 
@@ -1613,7 +1600,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theInventory = new CInventory();
 	if(theInventory == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Inventory handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Inventory handler", false);
 		return -40;
 	}
 
@@ -1621,7 +1608,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theLiquid = new CLiquid();
 	if(theLiquid == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Liquid handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Liquid handler", false);
 		return -40;
 	}
 // end change RF063
@@ -1631,7 +1618,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theOverlay = new COverlay();
 	if(theOverlay == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create Overlay handler", false);
+		theGameEngine->ReportError("[ERROR] Failed to create Overlay handler", false);
 		return -40;
 	}
 
@@ -1639,7 +1626,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theMorph = new CMorph();
 	if(theMorph == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create TextureMorph", false);
+		theGameEngine->ReportError("[ERROR] Failed to create TextureMorph", false);
 		return -7; //or something else
 	}
 
@@ -1647,7 +1634,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theCutScene = new CCutScene();
 	if(theCutScene == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CutScene", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CutScene", false);
 		return -7; //or something else
 	}
 
@@ -1655,7 +1642,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theActMaterial = new CActMaterial();
 	if(theActMaterial == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CActMaterial", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CActMaterial", false);
 		return -7; //or something else
 	}
 
@@ -1663,7 +1650,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theArmour = new CArmour();
 	if(theArmour == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CArmour", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CArmour", false);
 		return -7; //or something else
 	}
 
@@ -1671,7 +1658,7 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theLiftBelt = new CLiftBelt();
 	if(theLiftBelt == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CLiftBelt", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CLiftBelt", false);
 		return -7; //or something else
 	}
 
@@ -1679,7 +1666,15 @@ int CCommonData::InitializeLevel(char *szLevelName)
 	theCDSpot = new CDSpotLight();
 	if(theCDSpot == NULL)
 	{
-		theGameEngine->ReportError("*ERROR* Failed to create CDSpotLight", false);
+		theGameEngine->ReportError("[ERROR] Failed to create CDSpotLight", false);
+		return -7; //or something else
+	}
+
+	ReportError("Initializing WindGenerator...", false);
+	theWindGenerator = new CWindGenerator();
+	if(theWindGenerator == NULL)
+	{
+		theGameEngine->ReportError("[ERROR] Failed to create CWindGenerator", false);
 		return -7; //or something else
 	}
 
@@ -1708,300 +1703,77 @@ void CCommonData::ShutdownLevel()
 	}
 // end multiplayer
 
-// changed RF064
 	if(theMenu)
 		theMenu->UnLoadWBitmap();
 
-	if(theCDSpot != NULL)
-		delete theCDSpot;
-	theCDSpot = NULL;
-
-	if(theLiftBelt != NULL)
-		delete theLiftBelt;
-	theLiftBelt = NULL;
-
-	if(theArmour != NULL)
-		delete theArmour;
-	theArmour = NULL;
-
-	if(theActMaterial != NULL)
-		delete theActMaterial;
-	theActMaterial = NULL;
-
-	if(theCutScene != NULL)
-		delete theCutScene;
-	theCutScene = NULL;
-
-	if(theMorph != NULL)
-		delete theMorph;
-	theMorph = NULL;
-
-	if(theOverlay != NULL)
-		delete theOverlay;
-	theOverlay = NULL;
-// end change RF064
-
-// changed RF063
-	if(theLiquid != NULL)
-		delete theLiquid;
-	theLiquid = NULL;
-
-	if(theInventory != NULL)
-		delete theInventory;
-	theInventory = NULL;
-
-	if(theViewSwitch != NULL)
-		delete theViewSwitch;
-	theViewSwitch = NULL;
-// end change RF063
-
-	if(theShake != NULL)
-		delete theShake;
-	theShake = NULL;
-
-	if(theChangeLevel != NULL)
-		delete theChangeLevel;
-	theChangeLevel = NULL;
-
-	if(theCExplosion != NULL)
-		delete theCExplosion;
-	theCExplosion = NULL;
-
-	if(theExplosion != NULL)
-		delete theExplosion;
-	theExplosion = NULL;
-
-	// Attribute
-	if(theAttribute != NULL)
-		delete theAttribute;
-	theAttribute = NULL;
-
-	// Decal
-	if(theDecal != NULL)
-		delete theDecal;
-	theDecal = NULL;
-
-	if(theWallDecal != NULL)
-		delete theWallDecal;
-	theWallDecal = NULL;
-
-// Start Aug2003DCS
-	if(theLevelController != NULL)
-		delete theLevelController;
-	theLevelController = NULL;
-// End Aug2003DCS
-
-	if(theFlipBook != NULL)
-		delete theFlipBook;
-	theFlipBook = NULL;
-
-// Start pickles Jul 04
-	if(theFoliage != NULL)
-		delete theFoliage;
-	theFoliage = NULL;
-
-	if(theFlipTree != NULL)
-		delete theFlipTree;
-	theFlipTree = NULL;
-// end Pickles Jul 04
-
-// Start PWX
-	if(thePWXImage != NULL)
-		delete thePWXImage;
-	thePWXImage = NULL;
-
-	if(thePolyShadow != NULL)
-		delete thePolyShadow;
-	thePolyShadow = NULL;
-
-	if(theAreaCheck != NULL)
-		delete theAreaCheck;
-	theAreaCheck = NULL;
-// end PWX
-
-	// Weapon
-	if(theFirePoint != NULL)
-		delete theFirePoint;
-	theFirePoint = NULL;
-
-	if(theWeapon != NULL)
-		delete theWeapon;
-	theWeapon = NULL;
-
-	if(thePreEffect != NULL)
-		delete thePreEffect;
-	thePreEffect = NULL;
-
-	// Message
-	if(theMessage != NULL)
-		delete theMessage;
-	theMessage = NULL;
-
-// changed RF064
-	if(theScriptPoints != NULL)
-		delete theScriptPoints;
-	theScriptPoints = NULL;
-
-	if(thePawn != NULL)
-		delete thePawn;
-	thePawn = NULL;
-
-	if(theChangeAttribute != NULL)
-		delete theChangeAttribute;
-	theChangeAttribute = NULL;
-
-	if(theCountDownTimer != NULL)
-		delete theCountDownTimer;
-	theCountDownTimer = NULL;
-// end change RF064
-
-	if(theLogic != NULL)
-		delete theLogic;
-	theLogic = NULL;
-
-	if(theTriggers != NULL)
-		delete theTriggers;
-	theTriggers = NULL;
-
-	if(theFlame != NULL)
-		delete theFlame;
-	theFlame = NULL;
-
-	if(theChaos != NULL)
-		delete theChaos;
-	theChaos = NULL;
-
-	if(theRain != NULL)
-		delete theRain;
-	theRain = NULL;
-
-// changed RF064
-	if(theActorSpout != NULL)
-		delete theActorSpout;
-	theActorSpout = NULL;
-// end change RF064
-
-	if(theSpout != NULL)
-		delete theSpout;
-	theSpout = NULL;
-
-	if(theFloat != NULL)
-		delete theFloat;
-	theFloat = NULL;
-
-	if(theEffect != NULL)
-		delete theEffect;
-	theEffect = NULL;
-
-	if(theFollower != NULL)
-		delete theFollower;
-	theFollower = NULL;
-
-	if(thePathDatabase != NULL)
-		delete thePathDatabase;
-	thePathDatabase = NULL;
-
-	if(theProcTexture != NULL)
-		delete theProcTexture;
-	theProcTexture = NULL;
-
-	if(theCorona != NULL)
-		delete theCorona;
-	theCorona = NULL;
-
-	if(theDynalite != NULL)
-		delete theDynalite;
-	theDynalite = NULL;
-
-	if(theElectric != NULL)
-		delete theElectric;
-	theElectric = NULL;
-
-	if(theVidText != NULL)
-		delete theVidText;
-	theVidText = NULL;
-
-	if(theStreams != NULL)
-		delete theStreams;
-	theStreams = NULL;
-
-	if(theSTToggles != NULL)
-		delete theSTToggles;
-	theSTToggles = NULL;
-
-	if(theProps != NULL)
-		delete theProps;
-	theProps = NULL;
-
-// changed QD 01/2004
-	if(theMeshes != NULL)
-		delete theMeshes;
-	theMeshes = NULL;
-// end change
-
-	if(theParticles != NULL)
-		delete theParticles;
-	theParticles = NULL;
-
-	if(the3DAudio != NULL)
-		delete the3DAudio;
-	the3DAudio = NULL;
-
-	if(thePlatforms != NULL)
-		delete thePlatforms;
-	thePlatforms = NULL;
-
-	if(theFixedCamera != NULL)
-		delete theFixedCamera;
-	theFixedCamera = NULL;
-
-	if(theAutoDoors != NULL)
-		delete theAutoDoors;
-	theAutoDoors = NULL;
-
-	if(thePlayer != NULL)
-		delete thePlayer;
-	thePlayer = NULL;
-
-	if(theTeleports != NULL)
-		delete theTeleports;
-	theTeleports = NULL;
-
-	if(theFields != NULL)
-		delete theFields;
-	theFields = NULL;
-
-// changed RF064
-	if(theHUD != NULL)
-		delete theHUD;
-	theHUD = NULL;
-// end change Rf064
-
-	if(theModelManager != NULL)
-		delete theModelManager;
-	theModelManager = NULL;
-
-	if(theActorManager != NULL)
-		delete theActorManager;
-	theActorManager = NULL;
-
-	if(theRegistry != NULL)
-		delete theRegistry;
-	theRegistry = NULL;
-
-// changed RF064
-	if(theTerrainMgr != NULL)
-		delete theTerrainMgr;
-	theTerrainMgr = NULL;
-// end change RF064
-
-	if(theEffect != NULL)
-		delete theEffect;
-	theEffect = NULL;
-
-	if(theDamage != NULL)
-		delete theDamage;
-	theDamage = NULL;
+	SAFE_DELETE(theCDSpot);
+	SAFE_DELETE(theLiftBelt);
+	SAFE_DELETE(theArmour);
+	SAFE_DELETE(theActMaterial);
+	SAFE_DELETE(theCutScene);
+	SAFE_DELETE(theMorph);
+	SAFE_DELETE(theOverlay);
+	SAFE_DELETE(theLiquid);
+	SAFE_DELETE(theInventory);
+	SAFE_DELETE(theViewSwitch);
+	SAFE_DELETE(theShake);
+	SAFE_DELETE(theChangeLevel);
+	SAFE_DELETE(theCExplosion);
+	SAFE_DELETE(theExplosion);
+	SAFE_DELETE(theAttribute);
+	SAFE_DELETE(theDecal);
+	SAFE_DELETE(theWallDecal);
+	SAFE_DELETE(theLevelController);
+	SAFE_DELETE(theFlipBook);
+	SAFE_DELETE(theFoliage);
+	SAFE_DELETE(theFlipTree);
+	SAFE_DELETE(thePWXImage);
+	SAFE_DELETE(thePolyShadow);
+	SAFE_DELETE(theAreaCheck);
+	SAFE_DELETE(theFirePoint);
+	SAFE_DELETE(theWeapon);
+	SAFE_DELETE(thePreEffect);
+	SAFE_DELETE(theMessage);
+	SAFE_DELETE(theScriptPoints);
+	SAFE_DELETE(thePawn);
+	SAFE_DELETE(theChangeAttribute);
+	SAFE_DELETE(theCountDownTimer);
+	SAFE_DELETE(theLogic);
+	SAFE_DELETE(theTriggers);
+	SAFE_DELETE(theFlame);
+	SAFE_DELETE(theChaos);
+	SAFE_DELETE(theRain);
+	SAFE_DELETE(theActorSpout);
+	SAFE_DELETE(theSpout);
+	SAFE_DELETE(theFloat);
+	SAFE_DELETE(theEffect);
+	SAFE_DELETE(theFollower);
+	SAFE_DELETE(thePathDatabase);
+	SAFE_DELETE(theProcTexture);
+	SAFE_DELETE(theCorona);
+	SAFE_DELETE(theDynalite);
+	SAFE_DELETE(theElectric);
+	SAFE_DELETE(theVidText);
+	SAFE_DELETE(theStreams);
+	SAFE_DELETE(theSTToggles);
+	SAFE_DELETE(theProps);
+	SAFE_DELETE(theMeshes);
+	SAFE_DELETE(theParticles);
+	SAFE_DELETE(the3DAudio);
+	SAFE_DELETE(thePlatforms);
+	SAFE_DELETE(theFixedCamera);
+	SAFE_DELETE(theAutoDoors);
+	SAFE_DELETE(thePlayer);
+	SAFE_DELETE(theTeleports);
+	SAFE_DELETE(theFields);
+	SAFE_DELETE(theHUD);
+	SAFE_DELETE(theModelManager);
+	SAFE_DELETE(theActorManager);
+	SAFE_DELETE(theRegistry);
+	SAFE_DELETE(theTerrainMgr);
+	SAFE_DELETE(theEffect);
+	SAFE_DELETE(theDamage);
+	SAFE_DELETE(theWindGenerator);
 
 	return;
 }
@@ -2642,6 +2414,8 @@ int CCommonData::DispatchTick()
 
 	//theActorManager->Tick(dwTicksGoneBy);
 
+	theWindGenerator->Tick(dwTicksGoneBy);
+
 	//	Ok, deal out time to everyone else.
 // start multiplayer
 	theNetPlayerMgr->Tick(dwTicksGoneBy);
@@ -2758,7 +2532,7 @@ bool CCommonData::ProcessLevelChange()
 	if(Logging)
 	{
 		char szDebug[512];
-		sprintf(szDebug, "*INFO* Attempting changelevel to level '%s'", szLevelFile);
+		sprintf(szDebug, "[INFO] Attempting changelevel to level '%s'", szLevelFile);
 		CCD->ReportError(szDebug, false);
 	}
 
@@ -2777,7 +2551,7 @@ bool CCommonData::ProcessLevelChange()
 	// Numero uno, display the level-changing splash screen.
 	if(!EffectC_IsStringNull(m_SplashScreen))
 	{
-		string File = m_SplashScreen;
+		std::string File = m_SplashScreen;
 		MakeLower(File);
 
 		if(File.find(".bmp") == -1)
@@ -2787,8 +2561,8 @@ bool CCommonData::ProcessLevelChange()
 
 			if(AttrFile.ReadFile())
 			{
-				string KeyName = AttrFile.FindFirstKey();
-				string Type, Value;
+				std::string KeyName = AttrFile.FindFirstKey();
+				std::string Type, Value;
 
 				while(KeyName != "")
 				{
@@ -2882,7 +2656,7 @@ bool CCommonData::ProcessLevelChange()
 			// I regard this as a catastrophic error, so we'll log it and
 			// ..commit suicide.
 			char szBug[256];
-			sprintf(szBug, "*ERROR* File %s - Line %d: Failed to load new level %s",
+			sprintf(szBug, "[ERROR] File %s - Line %d: Failed to load new level %s",
 					__FILE__, __LINE__, szLevelFile);
 			theGameEngine->ReportError(szBug, false);
 			ShutdownLevel();
@@ -2944,19 +2718,15 @@ bool CCommonData::ProcessLevelChange()
 		pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
 // changed QD 07/15/06
-		//strcpy(m_SplashAudio, "");
-		//strcpy(m_CutScene, "");
 		m_SplashAudio[0] = '\0';
 		m_CutScene[0] = '\0';
 
 		if(EffectC_IsStringNull(pSetup->DeathMessage))
 		{
-			//strcpy(m_Message, "");
 			m_Message[0] = '\0';
 		}
 		else
 		{
-			//strcpy(m_Message, pSetup->DeathMessage);
 			strncpy(m_Message, pSetup->DeathMessage, 255);
 			m_Message[255] = '\0';
 		}
@@ -2965,7 +2735,6 @@ bool CCommonData::ProcessLevelChange()
 
 		if(!EffectC_IsStringNull(pSetup->Deathlevel))
 		{
-			//strcpy(m_NewLevel, pSetup->Deathlevel);
 			strncpy(m_NewLevel, pSetup->Deathlevel, 255);
 			m_NewLevel[255] = '\0';
 		}
@@ -2985,7 +2754,6 @@ bool CCommonData::ProcessLevelChange()
 			}
 		}
 
-		//strcpy(m_SplashScreen, "");
 		m_SplashScreen[0] = '\0';
 
 		return true;						// Level change successful!
@@ -3024,11 +2792,11 @@ void CCommonData::RenderComponents()
 
 // start change scripting
 /* ------------------------------------------------------------------------------------ */
-//	GetHashCommand
+//	GetHashMethod
 /* ------------------------------------------------------------------------------------ */
-long CCommonData::GetHashCommand(std::string key)
+long CCommonData::GetHashMethod(std::string key)
 {
-	long *value = CommandHash.GetMember(key);
+	long *value = MethodHash->GetMember(key);
 
 	if(value)
 		return *value;
@@ -3037,235 +2805,427 @@ long CCommonData::GetHashCommand(std::string key)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddHashCommand
+//	AddHashMethod
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::AddHashCommand(std::string key,long value)
+bool CCommonData::AddHashMethod(std::string key, long value)
 {
 	bool add;
 	long *vlong = new long;
 
 	*vlong = value;
-	add = CommandHash.AddKey(key, vlong);
+	add = MethodHash->AddKey(key, vlong);
 
 	return add;
 }
 
 // changed QD 08/15/06
 /* ------------------------------------------------------------------------------------ */
-//	FillHashCommands_LowLevel
+//	FillHashMethods
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::ClearHashCommands_LowLevel(void)
+void CCommonData::ClearHashMethods(void)
 {
 	// default destructor of hashtable does not free user allocated memory!
-	CommandHash.RemoveAllKey(true);
+	MethodHash->RemoveAllKey(true);
 }
 // end change QD 08/15/06
 
 /* ------------------------------------------------------------------------------------ */
-//	FillHashCommands_LowLevel
+//	FillHashMethods
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::FillHashCommands_LowLevel(void)
+void CCommonData::FillHashMethods(void)
 {
-	AddHashCommand("HighLevel",					1);		// HighLevel
-	AddHashCommand("Animate",					2);		// Animate
-	AddHashCommand("Gravity",					3);		// Gravity
-	AddHashCommand("PlaySound",					4);		// PlaySound
-	AddHashCommand("EnemyExist",				5);		// EnemyExist
-	AddHashCommand("GetEventState",				6);		// GetEventState
-	AddHashCommand("Integer",					7);		// Integer
-	AddHashCommand("GetAttribute",				8);		// GetAttribute
-	AddHashCommand("GetCurFlipBook",			9);		// GetCurFlipBook
-	AddHashCommand("ModifyAttribute",			10);	// ModifyAttribute
-	AddHashCommand("SetAttribute",				11);	// SetAttribute
-	AddHashCommand("SetPlayerWeapon",			12);	// SetPlayerWeapon
-	AddHashCommand("SetUseItem",				13);	// SetUseItem
-	AddHashCommand("ClearUseItem",				14);	// ClearUseItem
-	AddHashCommand("StringCopy",				15);	// StringCopy
-	AddHashCommand("LeftCopy",					16);	// LeftCopy
-	AddHashCommand("IsEntityVsible",			17);	// IsEntityVisible
-	AddHashCommand("DamageEntity",				18);	// DamageEntity
-	AddHashCommand("AnimateEntity",				19);	// AnimateEntity
-	AddHashCommand("AnimateHold",				20);	// AnimateHold
-	AddHashCommand("AnimateTarget",				21);	// AnimateTarget
-	AddHashCommand("GetEntityX",				22);	// GetEntityX
-	AddHashCommand("GetEntityY",				23);	// GetEntityY
-	AddHashCommand("GetEntityZ",				24);	// GetEntityZ
-	AddHashCommand("IsKeyDown",					25);	// IsKeyDown
-	AddHashCommand("GetEntityYaw",				26);	// GetEntityYaw
-	AddHashCommand("MatchEntityAngles",			27);	// MatchEntityAngles
-	AddHashCommand("FacePoint",					28);	// FacePoint
-	AddHashCommand("NewPoint",					29);	// NewPoint
-	AddHashCommand("GetPointYaw",				30);	// GetPointYaw
-	AddHashCommand("NextPoint",					31);	// NextPoint
-	AddHashCommand("SetTarget",					32);	// SetTarget
-	AddHashCommand("GetDistanceTo",				33);	// GetDistanceTo
-	AddHashCommand("TeleportEntity",			34);	// TeleportEntity
-	AddHashCommand("SaveAttributes",			35);	// SaveAttributes
-	AddHashCommand("TraceToActor",				36);	// TraceToActor
-	AddHashCommand("AnimateBlend",				37);	// AnimateBlend
-	AddHashCommand("AnimationSpeed",			38);	// AnimationSpeed
-	AddHashCommand("SetCollision",				39);	// SetCollision
-	AddHashCommand("SetNoCollision",			40);	// SetNoCollision
-	AddHashCommand("DamageArea",				41);	// DamageArea
-	AddHashCommand("PlayerMatchAngles",			42);	// PlayerMatchAngles
-	AddHashCommand("ConvertDegrees",			43);	// ConvertDegrees
-	AddHashCommand("AttachCamera",				44);	// AttachCamera
-	AddHashCommand("AttachCameraToBone",		45);	// AttachCameraToBone
-	AddHashCommand("AttachCameraToEntity",		46);	// AttachCameraToEntity
-	AddHashCommand("DetachCamera",				47);	// DetachCamera
-	AddHashCommand("TiltCamera",				48);	// TiltCamera
-	AddHashCommand("PositionToPlatform",		49);	// PositionToPlatform
-	AddHashCommand("ActivateTrigger",			50);	// ActivateTrigger
-	AddHashCommand("UpdateEnemyVis",			51);	// UpdateEnemyVis
-	AddHashCommand("TargetPlayer",				52);	// TargetPlayer
-	AddHashCommand("FireProjectileBlind",		53);	// FireProjectileBlind
-	AddHashCommand("SetTargetPoint",			54);	// SetTargetPoint
-	AddHashCommand("GetBoneX",					55);	// GetBoneX
-	AddHashCommand("GetBoneY",					56);	// GetBoneY
-	AddHashCommand("GetBoneZ",					57);	// GetBoneZ
-	AddHashCommand("GetBoneYaw",				58);	// GetBoneYaw
-	AddHashCommand("SetPosition",				59);	// SetPosition
-	AddHashCommand("IsButtonDown",				60);	// IsButtonDown
-	AddHashCommand("GetJoyAxisX",				61);	// GetJoystickAxisX
-	AddHashCommand("GetJoyAxisY",				62);	// GetJoystickAxisY
-	AddHashCommand("GetJoyAxisZ",				63);	// GetJoystickAxisZ
-	AddHashCommand("GetNumJoysticks",			64);	// GetNumJoysticks
-	AddHashCommand("SetBoundingBox",			65);	// SetBoundingBox
-	AddHashCommand("GetBoneToBone",				66);	// GetBoneToBone
-	AddHashCommand("SwitchView",				67);	// SwitchView
-	AddHashCommand("ForceEntityUp",				68);	// ForceEntityUp
-	AddHashCommand("ForceEntityDown",			69);	// ForceEntityDown
-	AddHashCommand("ForceEntityRight",			70);	// ForceEntityLeft
-	AddHashCommand("ForceEntityLeft",			71);	// ForceEntityRight
-	AddHashCommand("ForceEntityForward",		72);	// ForceEntityBackward
-	AddHashCommand("ForceEntityBackward",		73);	// ForceEntityForward
-	AddHashCommand("GetGroundTexture",			74);	// GetGroundTexture
-	AddHashCommand("GetPlayerGroundTexture",	75);	// GetPlayerGroundTexture
-	AddHashCommand("PositionToBone",			76);	// PositionToBone
-	AddHashCommand("SetWeaponMatFromFlip",		77);	// SetWeaponMatFromFlip
-	AddHashCommand("SetShadowFromFlip",			78);	// SetShadowFromFlip
-	AddHashCommand("GetCollideDistance",		79);	// GetCollideDistance
-	AddHashCommand("ResetAnimate",				80);	// ResetAnimate
-	AddHashCommand("WhereIsPlayer",				81);	// WhereIsPlayer
-	AddHashCommand("WhereIsEntity",				82);	// WhereIsEntity
-	AddHashCommand("InsertEvent",				83);	// InsertEvent
-	AddHashCommand("CheckForEvent",				84);	// CheckForEvent
-	AddHashCommand("PlayEventSound",			85);	// PlayEventSound
-	AddHashCommand("LoadAnimation",				86);	// LoadAnimation
-	AddHashCommand("StartSoundTrack",			87);	// StartSoundTrack
-	AddHashCommand("StopAllAudioStreams",		88);	// StopAllAudioStreams
-	AddHashCommand("ChangeYaw",					89);	// ChangeYaw
-	AddHashCommand("ChangePitch",				90);	// ChangePitch
-	AddHashCommand("random",					91);	// random
-	AddHashCommand("walkmove",					92);	// walkmove
-	AddHashCommand("flymove",					93);	// flymove
-	AddHashCommand("Damage",					94);	// Damage
-	AddHashCommand("DamagePlayer",				95);	// DamagePlayer
-	AddHashCommand("PositionToPlayer",			96);	// PositionToPlayer
-	AddHashCommand("PlayerToPosition",			97);	// PlayerToPosition
-	AddHashCommand("PositionToPawn",			98);	// PositionToPawn
-	AddHashCommand("SetKeyPause",				99);	// SetKeyPause
-	AddHashCommand("PlayerRender",				100);	// PlayerRender
-	AddHashCommand("PawnRender",				101);	// PawnRender
-	AddHashCommand("ChangeMaterial",			102);	// ChangeMaterial *
-	AddHashCommand("SetHoldAtEnd",				103);	// SetHoldAtEnd
-	AddHashCommand("ForceUp",					104);	// ForceUp
-	AddHashCommand("ForceDown",					105);	// ForceDown
-	AddHashCommand("ForceRight",				106);	// ForceLeft
-	AddHashCommand("ForceLeft",					107);	// ForceRight
-	AddHashCommand("ForceForward",				108);	// ForceBackward
-	AddHashCommand("ForceBackward",				109);	// ForceForward
-	AddHashCommand("UpdateTarget",				110);	// UpdateTarget
-	AddHashCommand("FireProjectile",			111);	// FireProjectile
-	AddHashCommand("AddExplosion",				112);	// AddExplosion
-	AddHashCommand("GetLastBoneHit",			113);	// GetLastBoneHit
-	AddHashCommand("debug",						114);	// debug
-	AddHashCommand("SetEventState",				115);	// SetEventState
-	AddHashCommand("GetStringLength",			116);	// GetStringLength
-	AddHashCommand("DrawText",					117);	// DrawText
-	AddHashCommand("DrawFlipBookImage",			118);	// DrawFlipBookImage
-	AddHashCommand("DrawPolyShadow",			119);	// DrawPolyShadow
-	AddHashCommand("MatchPlayerAngles",			120);	// MatchPlayerAngles
-	AddHashCommand("DamageAtBone",				121);	// DamageAtBone
-	AddHashCommand("SaveActor",					122);	// SaveActor
-	AddHashCommand("LookAtPawn",				123);	// LookAtPawn
-	AddHashCommand("AutoWalk",					124);	// AutoWalk
-	AddHashCommand("FastDistance",				125);	// FastDistance
-	AddHashCommand("StepHeight",				126);	// StepHeight
-	AddHashCommand("DrawVPoly",					127);	// DrawVPoly
-	AddHashCommand("DrawHPoly",					128);	// DrawHPoly
-	AddHashCommand("GetPitchToPoint",			129);	// GetPitchToPoint
-	AddHashCommand("GetYawToPoint",				130);	// GetYawToPoint
-	AddHashCommand("FastPointCheck",			131);	// FastPointCheck
+	// low methods
+	AddHashMethod("HighLevel",				RGF_SM_HIGHLEVEL);
+	AddHashMethod("Animate",				RGF_SM_ANIMATE);
+	AddHashMethod("Gravity",				RGF_SM_GRAVITY);
+	AddHashMethod("PlaySound",				RGF_SM_PLAYSOUND);
+	AddHashMethod("EnemyExist",				RGF_SM_ENEMYEXIST);
+	AddHashMethod("GetEventState",			RGF_SM_GETEVENTSTATE);
+	AddHashMethod("Integer",				RGF_SM_INTEGER);
+	AddHashMethod("GetAttribute",			RGF_SM_GETATTRIBUTE);
+	AddHashMethod("GetCurFlipBook",			RGF_SM_GETCURFLIPBOOK);
+	AddHashMethod("ModifyAttribute",		RGF_SM_MODIFYATTRIBUTE);
+	AddHashMethod("SetAttribute",			RGF_SM_SETATTRIBUTE);
+	AddHashMethod("SetPlayerWeapon",		RGF_SM_SETPLAYERWEAPON);
+	AddHashMethod("SetUseItem",				RGF_SM_SETUSEITEM);
+	AddHashMethod("ClearUseItem",			RGF_SM_CLEARUSEITEM);
+	AddHashMethod("StringCopy",				RGF_SM_STRINGCOPY);
+	AddHashMethod("LeftCopy",				RGF_SM_LEFTCOPY);
+	AddHashMethod("IsEntityVsible",			RGF_SM_ISENTITYVSIBLE);
+	AddHashMethod("DamageEntity",			RGF_SM_DAMAGEENTITY);
+	AddHashMethod("AnimateEntity",			RGF_SM_ANIMATEENTITY);
+	AddHashMethod("AnimateHold",			RGF_SM_ANIMATEHOLD);
+	AddHashMethod("AnimateTarget",			RGF_SM_ANIMATETARGET);
+	AddHashMethod("GetEntityX",				RGF_SM_GETENTITYX);
+	AddHashMethod("GetEntityY",				RGF_SM_GETENTITYY);
+	AddHashMethod("GetEntityZ",				RGF_SM_GETENTITYZ);
+	AddHashMethod("IsKeyDown",				RGF_SM_ISKEYDOWN);
+	AddHashMethod("GetEntityYaw",			RGF_SM_GETENTITYYAW);
+	AddHashMethod("MatchEntityAngles",		RGF_SM_MATCHENTITYANGLES);
+	AddHashMethod("FacePoint",				RGF_SM_FACEPOINT);
+	AddHashMethod("NewPoint",				RGF_SM_NEWPOINT);
+	AddHashMethod("GetPointYaw",			RGF_SM_GETPOINTYAW);
+	AddHashMethod("NextPoint",				RGF_SM_NEXTPOINT);
+	AddHashMethod("SetTarget",				RGF_SM_SETTARGET);
+	AddHashMethod("GetDistanceTo",			RGF_SM_GETDISTANCETO);
+	AddHashMethod("TeleportEntity",			RGF_SM_TELEPORTENTITY);
+	AddHashMethod("SaveAttributes",			RGF_SM_SAVEATTRIBUTES);
+	AddHashMethod("TraceToActor",			RGF_SM_TRACETOACTOR);
+	AddHashMethod("AnimateBlend",			RGF_SM_ANIMATEBLEND);
+	AddHashMethod("AnimationSpeed",			RGF_SM_ANIMATIONSPEED);
+	AddHashMethod("SetCollision",			RGF_SM_SETCOLLISION);
+	AddHashMethod("SetNoCollision",			RGF_SM_SETNOCOLLISION);
+	AddHashMethod("DamageArea",				RGF_SM_DAMAGEAREA);
+	AddHashMethod("PlayerMatchAngles",		RGF_SM_PLAYERMATCHANGLES);
+	AddHashMethod("ConvertDegrees",			RGF_SM_CONVERTDEGREES);
+	AddHashMethod("AttachCamera",			RGF_SM_ATTACHCAMERA);
+	AddHashMethod("AttachCameraToBone",		RGF_SM_ATTACHCAMERATOBONE);
+	AddHashMethod("AttachCameraToEntity",	RGF_SM_ATTACHCAMERATOENTITY);
+	AddHashMethod("DetachCamera",			RGF_SM_DETACHCAMERA);
+	AddHashMethod("TiltCamera",				RGF_SM_TILTCAMERA);
+	AddHashMethod("PositionToPlatform",		RGF_SM_POSITIONTOPLATFORM);
+	AddHashMethod("ActivateTrigger",		RGF_SM_ACTIVATETRIGGER);
+	AddHashMethod("UpdateEnemyVis",			RGF_SM_UPDATEENEMYVIS);
+	AddHashMethod("TargetPlayer",			RGF_SM_TARGETPLAYER);
+	AddHashMethod("FireProjectileBlind",	RGF_SM_FIREPROJECTILEBLIND);
+	AddHashMethod("SetTargetPoint",			RGF_SM_SETTARGETPOINT);
+	AddHashMethod("GetBoneX",				RGF_SM_GETBONEX);
+	AddHashMethod("GetBoneY",				RGF_SM_GETBONEY);
+	AddHashMethod("GetBoneZ",				RGF_SM_GETBONEZ);
+	AddHashMethod("GetBoneYaw",				RGF_SM_GETBONEYAW);
+	AddHashMethod("SetPosition",			RGF_SM_SETPOSITION);
+	AddHashMethod("IsButtonDown",			RGF_SM_ISBUTTONDOWN);
+	AddHashMethod("GetJoyAxisX",			RGF_SM_GETJOYAXISX);
+	AddHashMethod("GetJoyAxisY",			RGF_SM_GETJOYAXISY);
+	AddHashMethod("GetJoyAxisZ",			RGF_SM_GETJOYAXISZ);
+	AddHashMethod("GetNumJoysticks",		RGF_SM_GETNUMJOYSTICKS);
+	AddHashMethod("SetBoundingBox",			RGF_SM_SETBOUNDINGBOX);
+	AddHashMethod("GetBoneToBone",			RGF_SM_GETBONETOBONE);
+	AddHashMethod("SwitchView",				RGF_SM_SWITCHVIEW);
+	AddHashMethod("ForceEntityUp",			RGF_SM_FORCEENTITYUP);
+	AddHashMethod("ForceEntityDown",		RGF_SM_FORCEENTITYDOWN);
+	AddHashMethod("ForceEntityRight",		RGF_SM_FORCEENTITYRIGHT);
+	AddHashMethod("ForceEntityLeft",		RGF_SM_FORCEENTITYLEFT);
+	AddHashMethod("ForceEntityForward",		RGF_SM_FORCEENTITYFORWARD);
+	AddHashMethod("ForceEntityBackward",	RGF_SM_FORCEENTITYBACKWARD);
+	AddHashMethod("GetGroundTexture",		RGF_SM_GETGROUNDTEXTURE);
+	AddHashMethod("GetPlayerGroundTexture",	RGF_SM_GETPLAYERGROUNDTEXTURE);
+	AddHashMethod("PositionToBone",			RGF_SM_POSITIONTOBONE);
+	AddHashMethod("SetWeaponMatFromFlip",	RGF_SM_SETWEAPONMATFROMFLIP);
+	AddHashMethod("SetShadowFromFlip",		RGF_SM_SETSHADOWFROMFLIP);
+	AddHashMethod("GetCollideDistance",		RGF_SM_GETCOLLIDEDISTANCE);
+	AddHashMethod("ResetAnimate",			RGF_SM_RESETANIMATE);
+	AddHashMethod("WhereIsPlayer",			RGF_SM_WHEREISPLAYER);
+	AddHashMethod("WhereIsEntity",			RGF_SM_WHEREISENTITY);
+	AddHashMethod("InsertEvent",			RGF_SM_INSERTEVENT);
+	AddHashMethod("CheckForEvent",			RGF_SM_CHECKFOREVENT);
+	AddHashMethod("PlayEventSound",			RGF_SM_PLAYEVENTSOUND);
+	AddHashMethod("LoadAnimation",			RGF_SM_LOADANIMATION);
+	AddHashMethod("StartSoundTrack",		RGF_SM_STARTSOUNDTRACK);
+	AddHashMethod("StopAllAudioStreams",	RGF_SM_STOPALLAUDIOSTREAMS);
+	AddHashMethod("ChangeYaw",				RGF_SM_CHANGEYAW);
+	AddHashMethod("ChangePitch",			RGF_SM_CHANGEPITCH);
+	AddHashMethod("random",					RGF_SM_RANDOM);
+	AddHashMethod("walkmove",				RGF_SM_WALKMOVE);
+	AddHashMethod("flymove",				RGF_SM_FLYMOVE);
+	AddHashMethod("Damage",					RGF_SM_DAMAGE);
+	AddHashMethod("DamagePlayer",			RGF_SM_DAMAGEPLAYER);
+	AddHashMethod("PositionToPlayer",		RGF_SM_POSITIONTOPLAYER);
+	AddHashMethod("PlayerToPosition",		RGF_SM_PLAYERTOPOSITION);
+	AddHashMethod("PositionToPawn",			RGF_SM_POSITIONTOPAWN);
+	AddHashMethod("SetKeyPause",			RGF_SM_SETKEYPAUSE);
+	AddHashMethod("PlayerRender",			RGF_SM_PLAYERRENDER);
+	AddHashMethod("PawnRender",				RGF_SM_PAWNRENDER);
+	AddHashMethod("ChangeMaterial",			RGF_SM_CHANGEMATERIAL);
+	AddHashMethod("SetHoldAtEnd",			RGF_SM_SETHOLDATEND);
+	AddHashMethod("ForceUp",				RGF_SM_FORCEUP);
+	AddHashMethod("ForceDown",				RGF_SM_FORCEDOWN);
+	AddHashMethod("ForceRight",				RGF_SM_FORCERIGHT);
+	AddHashMethod("ForceLeft",				RGF_SM_FORCELEFT);
+	AddHashMethod("ForceForward",			RGF_SM_FORCEFORWARD);
+	AddHashMethod("ForceBackward",			RGF_SM_FORCEBACKWARD);
+	AddHashMethod("UpdateTarget",			RGF_SM_UPDATETARGET);
+	AddHashMethod("FireProjectile",			RGF_SM_FIREPROJECTILE);
+	AddHashMethod("AddExplosion",			RGF_SM_ADDEXPLOSION);
+	AddHashMethod("GetLastBoneHit",			RGF_SM_GETLASTBONEHIT);
+	AddHashMethod("debug",					RGF_SM_DEBUG);
+	AddHashMethod("SetEventState",			RGF_SM_SETEVENTSTATE);
+	AddHashMethod("GetStringLength",		RGF_SM_GETSTRINGLENGTH);
+	AddHashMethod("DrawText",				RGF_SM_DRAWTEXT);
+	AddHashMethod("DrawFlipBookImage",		RGF_SM_DRAWFLIPBOOKIMAGE);
+	AddHashMethod("DrawPolyShadow",			RGF_SM_DRAWPOLYSHADOW);
+	AddHashMethod("MatchPlayerAngles",		RGF_SM_MATCHPLAYERANGLES);
+	AddHashMethod("DamageAtBone",			RGF_SM_DAMAGEATBONE);
+	AddHashMethod("SaveActor",				RGF_SM_SAVEACTOR);
+	AddHashMethod("LookAtPawn",				RGF_SM_LOOKATPAWN);
+	AddHashMethod("AutoWalk",				RGF_SM_AUTOWALK);
+	AddHashMethod("FastDistance",			RGF_SM_FASTDISTANCE);
+	AddHashMethod("StepHeight",				RGF_SM_STEPHEIGHT);
+	AddHashMethod("DrawVPoly",				RGF_SM_DRAWVPOLY);
+	AddHashMethod("DrawHPoly",				RGF_SM_DRAWHPOLY);
+	AddHashMethod("GetPitchToPoint",		RGF_SM_GETPITCHTOPOINT);
+	AddHashMethod("GetYawToPoint",			RGF_SM_GETYAWTOPOINT);
+	AddHashMethod("FastPointCheck",			RGF_SM_FASTPOINTCHECK);
 // changed Nout 12/15/05
-	AddHashCommand("SetCameraWindow",			132);	// SetCameraWindow
-	AddHashCommand("SetFixedCameraPosition",	133);	// SetFixedCameraPosition
-	AddHashCommand("SetFixedCameraRotation",	134);	// SetFixedCameraRotation
-	AddHashCommand("SetFixedCameraFOV",			135);	// SetFixedCameraFOV
-	AddHashCommand("MoveFixedCamera",			136);	// MoveFixedCamera
-	AddHashCommand("RotateFixedCamera",			137);	// RotateFixedCamera
-	AddHashCommand("DistanceBetweenEntities",	138);	// DistanceBetweenEntities
-	AddHashCommand("SetEntityProperties",		139);	// SetEntityProperties
-	AddHashCommand("SetEntityLighting",			140);	// SetEntityLighting
-	AddHashCommand("UpdateScriptPoint",			141);	// UpdateScriptPoint
-	AddHashCommand("GetEntityScreenX",			142);	// GetEntityScreenX
-	AddHashCommand("GetEntityScreenY",			143);	// GetEntityScreenY
-	AddHashCommand("GetScreenWidth",			144);	// GetScreenWidth
-	AddHashCommand("GetScreenHeight",			145);	// GetScreenHeight
-	AddHashCommand("MouseSelect",				146);	// MouseSelect
-	AddHashCommand("MouseControlledPlayer",		147);	// MouseControlledPlayer
-	AddHashCommand("ShowMouse",					148);	// ShowMouse
-	AddHashCommand("GetMousePosX",				149);	// GetMousePosX
-	AddHashCommand("GetMousePosY",				150);	// GetMousePosY
-	AddHashCommand("SetMousePos",				151);	// SetMousePos
-	AddHashCommand("SetGamma",					152);	// SetGamma
-	AddHashCommand("GetGamma",					153);	// GetGamma
-	AddHashCommand("FillScreenArea",			154);	// FillScreenArea
-	AddHashCommand("RemoveScreenArea",			155);	// RemoveScreenArea
-	AddHashCommand("ShowText",					156);	// ShowText
-	AddHashCommand("RemoveText",				157);	// RemoveText
-	AddHashCommand("ShowHudPicture",			158);	// ShowHudPicture
-	AddHashCommand("SetHudDraw",				159);	// SetHudDraw
-	AddHashCommand("GetHudDraw",				160);	// GetHudDraw
-	AddHashCommand("SetAlpha",					161);	// SetAlpha
-	AddHashCommand("GetAlpha",					162);	// GetAlpha
-	AddHashCommand("SetEntityAlpha",			163);	// SetEntityAlpha
-	AddHashCommand("GetEntityAlpha",			164);	// GetEntityAlpha
-	AddHashCommand("SetScale",					165);	// SetScale
-	AddHashCommand("SetEntityScale",			166);	// SetEntityScale
-	AddHashCommand("CheckArea",					167);	// CheckArea
-	AddHashCommand("SetFlag",					168);	// SetFlag
-	AddHashCommand("GetFlag",					169);	// GetFlag
-	AddHashCommand("PowerUp",					170);	// PowerUp
-	AddHashCommand("GetPowerUpLevel",			171);	// GetPowerUpLevel
-	AddHashCommand("ActivateHudElement",		172);	// ActivateHudElement
-	AddHashCommand("MoveEntity",				173);	// MoveEntity
-	AddHashCommand("RotateEntity",				174);	// RotateEntity
-	AddHashCommand("SetEntityPosition",			175);	// SetEntityPosition
-	AddHashCommand("SetEntityRotation",			176);	// SetEntityRotation
-	AddHashCommand("AddAttribute",				177);	// AddAttribute
+	AddHashMethod("SetCameraWindow",		RGF_SM_SETCAMERAWINDOW);
+	AddHashMethod("SetFixedCameraPosition",	RGF_SM_SETFIXEDCAMERAPOSITION);
+	AddHashMethod("SetFixedCameraRotation",	RGF_SM_SETFIXEDCAMERAROTATION);
+	AddHashMethod("SetFixedCameraFOV",		RGF_SM_SETFIXEDCAMERAFOV);
+	AddHashMethod("MoveFixedCamera",		RGF_SM_MOVEFIXEDCAMERA);
+	AddHashMethod("RotateFixedCamera",		RGF_SM_ROTATEFIXEDCAMERA);
+	AddHashMethod("DistanceBetweenEntities",RGF_SM_DISTANCEBETWEENENTITIES);
+	AddHashMethod("SetEntityProperties",	RGF_SM_SETENTITYPROPERTIES);
+	AddHashMethod("SetEntityLighting",		RGF_SM_SETENTITYLIGHTING);
+	AddHashMethod("UpdateScriptPoint",		RGF_SM_UPDATESCRIPTPOINT);
+	AddHashMethod("GetEntityScreenX",		RGF_SM_GETENTITYSCREENX);
+	AddHashMethod("GetEntityScreenY",		RGF_SM_GETENTITYSCREENY);
+	AddHashMethod("GetScreenWidth",			RGF_SM_GETSCREENWIDTH);
+	AddHashMethod("GetScreenHeight",		RGF_SM_GETSCREENHEIGHT);
+	AddHashMethod("MouseSelect",			RGF_SM_MOUSESELECT);
+	AddHashMethod("MouseControlledPlayer",	RGF_SM_MOUSECONTROLLEDPLAYER);
+	AddHashMethod("ShowMouse",				RGF_SM_SHOWMOUSE);
+	AddHashMethod("GetMousePosX",			RGF_SM_GETMOUSEPOSX);
+	AddHashMethod("GetMousePosY",			RGF_SM_GETMOUSEPOSY);
+	AddHashMethod("SetMousePos",			RGF_SM_SETMOUSEPOS);
+	AddHashMethod("SetGamma",				RGF_SM_SETGAMMA);
+	AddHashMethod("GetGamma",				RGF_SM_GETGAMMA);
+	AddHashMethod("FillScreenArea",			RGF_SM_FILLSCREENAREA);
+	AddHashMethod("RemoveScreenArea",		RGF_SM_REMOVESCREENAREA);
+	AddHashMethod("ShowText",				RGF_SM_SHOWTEXT);
+	AddHashMethod("RemoveText",				RGF_SM_REMOVETEXT);
+	AddHashMethod("ShowHudPicture",			RGF_SM_SHOWHUDPICTURE);
+	AddHashMethod("SetHudDraw",				RGF_SM_SETHUDDRAW);
+	AddHashMethod("GetHudDraw",				RGF_SM_GETHUDDRAW);
+	AddHashMethod("SetAlpha",				RGF_SM_SETALPHA);
+	AddHashMethod("GetAlpha",				RGF_SM_GETALPHA);
+	AddHashMethod("SetEntityAlpha",			RGF_SM_SETENTITYALPHA);
+	AddHashMethod("GetEntityAlpha",			RGF_SM_GETENTITYALPHA);
+	AddHashMethod("SetScale",				RGF_SM_SETSCALE);
+	AddHashMethod("SetEntityScale",			RGF_SM_SETENTITYSCALE);
+	AddHashMethod("CheckArea",				RGF_SM_CHECKAREA);
+	AddHashMethod("SetFlag",				RGF_SM_SETFLAG);
+	AddHashMethod("GetFlag",				RGF_SM_GETFLAG);
+	AddHashMethod("PowerUp",				RGF_SM_POWERUP);
+	AddHashMethod("GetPowerUpLevel",		RGF_SM_GETPOWERUPLEVEL);
+	AddHashMethod("ActivateHudElement",		RGF_SM_ACTIVATEHUDELEMENT);
+	AddHashMethod("MoveEntity",				RGF_SM_MOVEENTITY);
+	AddHashMethod("RotateEntity",			RGF_SM_ROTATEENTITY);
+	AddHashMethod("SetEntityPosition",		RGF_SM_SETENTITYPOSITION);
+	AddHashMethod("SetEntityRotation",		RGF_SM_SETENTITYROTATION);
+	AddHashMethod("AddAttribute",			RGF_SM_ADDATTRIBUTE);
 // end change Nout 12/15/05
 // changed QD 07/15/06
-	AddHashCommand("SetAttributeValueLimits",	178);	// SetAttributeValueLimits
-	AddHashCommand("sin",						179);	// sin
-	AddHashCommand("cos",						180);	// cos
-	AddHashCommand("tan",						181);	// tan
-	AddHashCommand("RightCopy",					182);	// RightCopy
-	AddHashCommand("NearestPoint",				183);	// NearestPoint
-	AddHashCommand("SetFOV",					184);	// SetFOV
+	AddHashMethod("SetAttributeValueLimits",RGF_SM_SETATTRIBUTEVALUELIMITS);
+	AddHashMethod("RightCopy",				RGF_SM_RIGHTCOPY);
+	AddHashMethod("NearestPoint",			RGF_SM_NEARESTPOINT);
+	AddHashMethod("SetFOV",					RGF_SM_SETFOV);
+	AddHashMethod("sin",					RGF_SM_SIN);
+	AddHashMethod("cos",					RGF_SM_COS);
+	AddHashMethod("tan",					RGF_SM_TAN);
 // end change QD 07/15/06
 // changed QD 02/01/07
-	AddHashCommand("asin",						185);	// sin
-	AddHashCommand("acos",						186);	// cos
-	AddHashCommand("atan",						187);	// tan
+	AddHashMethod("asin",					RGF_SM_ASIN);
+	AddHashMethod("acos",					RGF_SM_ACOS);
+	AddHashMethod("atan",					RGF_SM_ATAN);
 // end change
-//	AddHashCommand("SetSlowMotion",				185);	// SetSlowMotion
-//	AddHashCommand("SetGlobal",					186);	// SetGlobal
-//	AddHashCommand("GetGlobal",					187);	// GetGlobal
-//	AddHashCommand("SaveGlobals",				188);	// SaveGlobals
-//	AddHashCommand("LoadGlobals",				189);	// LoadGlobals
-//	AddHashCommand("SetRenderHintBox",			190);	// SetRenderHintBox
+	AddHashMethod("SetGravity",				RGF_SM_SETGRAVITY);
+	AddHashMethod("GetGravityX",			RGF_SM_GETGRAVITYX);
+	AddHashMethod("GetGravityY",			RGF_SM_GETGRAVITYY);
+	AddHashMethod("GetGravityZ",			RGF_SM_GETGRAVITYZ);
+	AddHashMethod("SetWind",				RGF_SM_SETWIND);
+	AddHashMethod("GetWindX",				RGF_SM_GETWINDX);
+	AddHashMethod("GetWindY",				RGF_SM_GETWINDY);
+	AddHashMethod("GetWindZ",				RGF_SM_GETWINDZ);
+	AddHashMethod("SetWindBase",			RGF_SM_SETWINDBASE);
+	AddHashMethod("GetWindBaseX",			RGF_SM_GETWINDBASEX);
+	AddHashMethod("GetWindBaseY",			RGF_SM_GETWINDBASEY);
+	AddHashMethod("GetWindBaseZ",			RGF_SM_GETWINDBASEZ);
+	AddHashMethod("SetWindGenerator",		RGF_SM_SETWINDGENERATOR);
+	AddHashMethod("SetForceEnabled",		RGF_SM_SETFORCEENABLED);
+	AddHashMethod("IsInLiquid",				RGF_SM_ISINLIQUID);
+	AddHashMethod("GetLiquid",				RGF_SM_GETLIQUID);
+	AddHashMethod("EndScript",				RGF_SM_ENDSCRIPT);
+	//AddHashMethod("SetSlowMotion",		RGF_SM_SETSLOWMOTION);
 
+	// high methods
+	AddHashMethod("MoveToPoint",			RGF_SM_MOVETOPOINT);
+	AddHashMethod("RotateToPoint",			RGF_SM_ROTATETOPOINT);
+	AddHashMethod("NewOrder",				RGF_SM_NEWORDER);
+	AddHashMethod("NextOrder",				RGF_SM_NEXTORDER);
+	AddHashMethod("RotateToAlign",			RGF_SM_ROTATETOALIGN);
+	//AddHashMethod("NextPoint",			RGF_SM_NEXTPOINT);				// same as low method
+	AddHashMethod("Delay",					RGF_SM_DELAY);
+	AddHashMethod("PlayAnimation",			RGF_SM_PLAYANIMATION);
+	AddHashMethod("BlendToAnimation",		RGF_SM_BLENDTOANIMATION);
+	AddHashMethod("LoopAnimation",			RGF_SM_LOOPANIMATION);
+	AddHashMethod("Rotate",					RGF_SM_ROTATE);
+	AddHashMethod("RotateMoveToPoint",		RGF_SM_ROTATEMOVETOPOINT);
+	AddHashMethod("RotateMove",				RGF_SM_ROTATEMOVE);
+	AddHashMethod("NewPath",				RGF_SM_NEWPATH);
+	AddHashMethod("RestartOrder",			RGF_SM_RESTARTORDER);
+	AddHashMethod("PlayerDistOrder",		RGF_SM_PLAYERDISTORDER);
+	AddHashMethod("Console",				RGF_SM_CONSOLE);
+	AddHashMethod("AudibleRadius",			RGF_SM_AUDIBLERADIUS);
+	AddHashMethod("AddPainOrder",			RGF_SM_ADDPAINORDER);
+	AddHashMethod("FindTargetOrder",		RGF_SM_FINDTARGETORDER);
+	AddHashMethod("FindPointOrder",			RGF_SM_FINDPOINTORDER);
+	//AddHashMethod("NewPoint",				RGF_SM_NEWPOINT);				// same as low method
+	AddHashMethod("MoveForward",			RGF_SM_MOVEFORWARD);
+	AddHashMethod("MoveBackward",			RGF_SM_MOVEBACKWARD);
+	AddHashMethod("MoveLeft",				RGF_SM_MOVELEFT);
+	AddHashMethod("MoveRight",				RGF_SM_MOVERIGHT);
+	AddHashMethod("Move",					RGF_SM_MOVE);
+	AddHashMethod("AvoidOrder",				RGF_SM_AVOIDORDER);
+	AddHashMethod("Return",					RGF_SM_RETURN);
+	AddHashMethod("Align",					RGF_SM_ALIGN);
+	AddHashMethod("Jump",					RGF_SM_JUMP);
+	AddHashMethod("AddTriggerOrder",		RGF_SM_ADDTRIGGERORDER);
+	AddHashMethod("DelTriggerOrder",		RGF_SM_DELTRIGGERORDER);
+	//AddHashMethod("SetEventState",		RGF_SM_SETEVENTSTATE);			// same as low method
+	AddHashMethod("FacePlayer",				RGF_SM_FACEPLAYER);
+	AddHashMethod("RotateToPlayer",			RGF_SM_ROTATETOPLAYER);
+	AddHashMethod("RotateAroundPointLeft",	RGF_SM_ROTATEAROUNDPOINTLEFT);
+	AddHashMethod("RotateAroundPointRight",	RGF_SM_ROTATEAROUNDPOINTRIGHT);
+	AddHashMethod("TeleportToPoint",		RGF_SM_TELEPORTTOPOINT);
+	//AddHashMethod("AnimationSpeed",		RGF_SM_ANIMATIONSPEED);			// same as low method
+	//AddHashMethod("SetFlag",				RGF_SM_SETFLAG);				// same as low method
+	AddHashMethod("AddFlagOrder",			RGF_SM_ADDFLAGORDER);
+	AddHashMethod("DelFlagOrder",			RGF_SM_DELFLAGORDER);
+	//AddHashMethod("ChangeMaterial",		RGF_SM_CHANGEMATERIAL);			// same as low method
+	AddHashMethod("AddTimerOrder",			RGF_SM_ADDTIMERORDER);
+	AddHashMethod("DelTimerOrder",			RGF_SM_DELTIMERORDER);
+	AddHashMethod("AddRandomSound",			RGF_SM_ADDRANDOMSOUND);
+	AddHashMethod("DelRandomSound",			RGF_SM_DELRANDOMSOUND);
+	AddHashMethod("AddDistanceOrder",		RGF_SM_ADDDISTANCEORDER);
+	AddHashMethod("DelDistanceOrder",		RGF_SM_DELDISTANCEORDER);
+	AddHashMethod("AddCollisionOrder",		RGF_SM_ADDCOLLISIONORDER);
+	AddHashMethod("DelCollisionOrder",		RGF_SM_DELCOLLISIONORDER);
+	AddHashMethod("AnimateStop",			RGF_SM_ANIMATESTOP);
+	AddHashMethod("AttributeOrder",			RGF_SM_ATTRIBUTEORDER);
+	AddHashMethod("Remove",					RGF_SM_REMOVE);
+	//AddHashMethod("SetKeyPause",			RGF_SM_SETKEYPAUSE);			// same as low method
+	//AddHashMethod("SetNoCollision",		RGF_SM_SETNOCOLLISION);			// same as low method
+	//AddHashMethod("SetCollision",			RGF_SM_SETCOLLISION);			// same as low method
+	AddHashMethod("AllowUseKey",			RGF_SM_ALLOWUSEKEY);
+	//AddHashMethod("SetHudDraw",			RGF_SM_SETHUDDRAW);				// same as low method
+	AddHashMethod("HideFromRadar",			RGF_SM_HIDEFROMRADAR);
+	AddHashMethod("Conversation",			RGF_SM_CONVERSATION);
+	AddHashMethod("FadeIn",					RGF_SM_FADEIN);
+	AddHashMethod("FadeOut",				RGF_SM_FADEOUT);
+	//AddHashMethod("SetFOV",				RGF_SM_SETFOV);					// same as low method
+	//AddHashMethod("StepHeight",			RGF_SM_STEPHEIGHT);				// same as low method
+	AddHashMethod("SetGroup",				RGF_SM_SETGROUP);
+	AddHashMethod("HostilePlayer",			RGF_SM_HOSTILEPLAYER);
+	AddHashMethod("HostileDifferent",		RGF_SM_HOSTILEDIFFERENT);
+	AddHashMethod("HostileSame",			RGF_SM_HOSTILESAME);
+	//AddHashMethod("Gravity",				RGF_SM_GRAVITY);				// same as low method
+	AddHashMethod("SoundLoop",				RGF_SM_SOUNDLOOP);
+	AddHashMethod("IsPushable",				RGF_SM_ISPUSHABLE);
+	AddHashMethod("IsVehicle",				RGF_SM_ISVEHICLE);
+	AddHashMethod("MoveToTarget",			RGF_SM_MOVETOTARGET);
+	AddHashMethod("RotateToTarget",			RGF_SM_ROTATETOTARGET);
+	AddHashMethod("RotateMoveToTarget",		RGF_SM_ROTATEMOVETOTARGET);
+	AddHashMethod("LowLevel",				RGF_SM_LOWLEVEL);
+	AddHashMethod("BoxWidth",				RGF_SM_BOXWIDTH);
+	AddHashMethod("BoxHeight",				RGF_SM_BOXHEIGHT);
+	AddHashMethod("Scale",					RGF_SM_SCALE);
+	//AddHashMethod("SetScale",				RGF_SM_SETSCALE);				// same as low method
+	//AddHashMethod("FireProjectile",		RGF_SM_FIREPROJECTILE);			// same as low method
+	//AddHashMethod("AddExplosion",			RGF_SM_ADDEXPLOSION);			// same as low method
+	AddHashMethod("TargetGroup",			RGF_SM_TARGETGROUP);
+	AddHashMethod("TestDamageOrder",		RGF_SM_TESTDAMAGEORDER);
+	AddHashMethod("SetLODDistance",			RGF_SM_SETLODDISTANCE);
+	AddHashMethod("AttachToActor",			RGF_SM_ATTACHTOACTOR);
+	AddHashMethod("DetachFromActor",		RGF_SM_DETACHFROMACTOR);
+	AddHashMethod("AttachBlendActor",		RGF_SM_ATTACHBLENDACTOR);
+	AddHashMethod("DetachBlendActor",		RGF_SM_DETACHBLENDACTOR);
+	AddHashMethod("AttachAccessory",		RGF_SM_ATTACHACCESSORY);
+	AddHashMethod("DetachAccessory",		RGF_SM_DETACHACCESSORY);
+	AddHashMethod("SetWeapon",				RGF_SM_SETWEAPON);
+	AddHashMethod("RemoveWeapon",			RGF_SM_REMOVEWEAPON);
+	//AddHashMethod("random",				RGF_SM_RANDOM);					// same as low method
+	//AddHashMethod("debug",				RGF_SM_DEBUG);					// same as low method
+	AddHashMethod("ShowTextDelay",			RGF_SM_SHOWTEXTDELAY);
+	//AddHashMethod("ShowText",				RGF_SM_SHOWTEXT);				// same as low method
+	//AddHashMethod("RemoveText",			RGF_SM_REMOVETEXT);				// same as low method
+	AddHashMethod("GetConvReplyNr",			RGF_SM_GETCONVREPLYNR);
+	AddHashMethod("Concat",					RGF_SM_CONCAT);
+	//AddHashMethod("GetAttribute",			RGF_SM_GETATTRIBUTE);			// same as low method
+	//AddHashMethod("ModifyAttribute",		RGF_SM_MODIFYATTRIBUTE);		// same as low method
+	//AddHashMethod("SetAttribute",			RGF_SM_SETATTRIBUTE);			// same as low method
+	//AddHashMethod("AddAttribute",			RGF_SM_ADDATTRIBUTE);			// same as low method
+	//AddHashMethod("SetAttributeValueLimits",RGF_SM_SETATTRIBUTEVALUELIMITS);	// same as low method
+	//AddHashMethod("GetFlag",				RGF_SM_GETFLAG);				// same as low method
+	//AddHashMethod("MouseControlledPlayer",RGF_SM_MOUSECONTROLLEDPLAYER);	// same as low method
+	//AddHashMethod("GetEventState",		RGF_SM_GETEVENTSTATE);			// same as low method
+	//AddHashMethod("EndScript",			RGF_SM_ENDSCRIPT);				// same as low method
+
+	// readable variables
+	AddHashMethod("time",					RGF_SM_TIME);
+	AddHashMethod("ThinkTime",				RGF_SM_THINKTIME);
+	AddHashMethod("DifficultyLevel",		RGF_SM_DIFFICULTYLEVEL);
+	AddHashMethod("EntityName",				RGF_SM_ENTITYNAME);
+	AddHashMethod("health",					RGF_SM_HEALTH);
+	AddHashMethod("attack_finished",		RGF_SM_ATTACK_FINISHED);
+	AddHashMethod("attack_state",			RGF_SM_ATTACK_STATE);
+	AddHashMethod("enemy_vis",				RGF_SM_ENEMY_VIS);
+	AddHashMethod("enemy_infront",			RGF_SM_ENEMY_INFRONT);
+	AddHashMethod("enemy_range",			RGF_SM_ENEMY_RANGE);
+	AddHashMethod("player_range",			RGF_SM_PLAYER_RANGE);
+	AddHashMethod("enemy_yaw",				RGF_SM_ENEMY_YAW);
+	AddHashMethod("last_enemy_yaw",			RGF_SM_LAST_ENEMY_YAW);
+	AddHashMethod("enemy_pitch",			RGF_SM_ENEMY_PITCH);
+	AddHashMethod("last_enemy_pitch",		RGF_SM_LAST_ENEMY_PITCH);
+	AddHashMethod("last_enemy_range",		RGF_SM_LAST_ENEMY_RANGE);
+	AddHashMethod("current_yaw",			RGF_SM_CURRENT_YAW);
+	AddHashMethod("yaw_speed",				RGF_SM_YAW_SPEED);
+	AddHashMethod("ideal_yaw",				RGF_SM_IDEAL_YAW);
+	AddHashMethod("current_pitch",			RGF_SM_CURRENT_PITCH);
+	AddHashMethod("pitch_speed",			RGF_SM_PITCH_SPEED);
+	AddHashMethod("ideal_pitch",			RGF_SM_IDEAL_PITCH);
+	AddHashMethod("in_pain",				RGF_SM_IN_PAIN);
+	AddHashMethod("animate_at_end",			RGF_SM_ANIMATE_AT_END);
+	AddHashMethod("IsFalling",				RGF_SM_ISFALLING);
+	AddHashMethod("current_X",				RGF_SM_CURRENT_X);
+	AddHashMethod("current_Y",				RGF_SM_CURRENT_Y);
+	AddHashMethod("current_Z",				RGF_SM_CURRENT_Z);
+	AddHashMethod("player_X",				RGF_SM_PLAYER_X);
+	AddHashMethod("player_Y",				RGF_SM_PLAYER_Y);
+	AddHashMethod("player_Z",				RGF_SM_PLAYER_Z);
+	AddHashMethod("distancetopoint",		RGF_SM_DISTANCETOPOINT);
+	AddHashMethod("playertopoint",			RGF_SM_PLAYERTOPOINT);
+	AddHashMethod("key_pressed",			RGF_SM_KEY_PRESSED);
+	AddHashMethod("player_vis",				RGF_SM_PLAYER_VIS);
+	AddHashMethod("target_name",			RGF_SM_TARGET_NAME);
+	AddHashMethod("enemy_X",				RGF_SM_ENEMY_X);
+	AddHashMethod("enemy_Y",				RGF_SM_ENEMY_Y);
+	AddHashMethod("enemy_Z",				RGF_SM_ENEMY_Z);
+	AddHashMethod("player_yaw",				RGF_SM_PLAYER_YAW);
+	AddHashMethod("point_vis",				RGF_SM_POINT_VIS);
+	AddHashMethod("player_weapon",			RGF_SM_PLAYER_WEAPON);
+	AddHashMethod("point_name",				RGF_SM_POINT_NAME);
+	AddHashMethod("camera_pitch",			RGF_SM_CAMERA_PITCH);
+	AddHashMethod("LODLevel",				RGF_SM_LODLEVEL);
+	AddHashMethod("current_screen_X",		RGF_SM_CURRENT_SCREEN_X);
+	AddHashMethod("current_screen_Y",		RGF_SM_CURRENT_SCREEN_Y);
+	AddHashMethod("player_screen_X",		RGF_SM_PLAYER_SCREEN_X);
+	AddHashMethod("player_screen_Y",		RGF_SM_PLAYER_SCREEN_Y);
+	AddHashMethod("lbutton_pressed",		RGF_SM_LBUTTON_PRESSED);
+	AddHashMethod("rbutton_pressed",		RGF_SM_RBUTTON_PRESSED);
+	AddHashMethod("mbutton_pressed",		RGF_SM_MBUTTON_PRESSED);
+	AddHashMethod("player_animation",		RGF_SM_PLAYER_ANIMATION);
+	AddHashMethod("player_viewpoint",		RGF_SM_PLAYER_VIEWPOINT);
+
+	// writeable variables
+	AddHashMethod("lowTime",				RGF_SM_LOWTIME);
+	//AddHashMethod("ThinkTime",			RGF_SM_THINKTIME);				// same as readable
+	AddHashMethod("think",					RGF_SM_THINK);
+	//AddHashMethod("attack_finished",		RGF_SM_ATTACK_FINISHED);		// same as readable
+	//AddHashMethod("attack_state",			RGF_SM_ATTACK_STATE);			// same as readable
+	//AddHashMethod("yaw_speed",			RGF_SM_YAW_SPEED);				// same as readable
+	//AddHashMethod("ideal_yaw",			RGF_SM_IDEAL_YAW);				// same as readable
+	//AddHashMethod("pitch_speed",			RGF_SM_PITCH_SPEED);			// same as readable
+	//AddHashMethod("ideal_pitch",			RGF_SM_IDEAL_PITCH);			// same as readable
 }
 //end change scripting
 
@@ -3285,7 +3245,7 @@ void CCommonData::InitJoysticks()
 	if(Logging)
 	{
 		char Info[128];
-		sprintf(Info, "*INFO*  Found  %d joysticks", numJoysticks);
+		sprintf(Info, "[INFO]  Found  %d joysticks", numJoysticks);
 		CCD->ReportError(Info, false);
 	}
 
@@ -3315,37 +3275,28 @@ void CCommonData::InitJoysticks()
 /* ------------------------------------------------------------------------------------ */
 int CCommonData::PollJoystickAxis(int jn, int a)
 {
-// changed QD 07/15/06
 	if(!m_bUseDInput)
 		return -1;
 
-	//int ax;
-    DIJOYSTATE2 js;
-    joysticks[jn]->poll(&js);
+	DIJOYSTATE2 js;
+	joysticks[jn]->poll(&js);
 
 	if(a == 0)
 	{
-		//ax = js.lX;
-		//return ax;
 		return js.lX;
 	}
 
 	if(a == 1)
 	{
-		//ax = js.lY;
-		//return ax;
 		return js.lY;
 	}
 
 	if(a == 2)
 	{
-		//ax = js.lZ;
-		//return ax;
 		return js.lZ;
 	}
-// end change
 
-	return -1;//return error
+	return -1;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3353,14 +3304,10 @@ int CCommonData::PollJoystickAxis(int jn, int a)
 /* ------------------------------------------------------------------------------------ */
 int CCommonData::GetNumJoys()
 {
-// changed QD 07/15/06
 	if(!m_bUseDInput)
 		return 0;
-	//int jc;
-	//jc = Joystick::deviceCount();
-	//return jc;
+
 	return (int)(Joystick::deviceCount());
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3368,10 +3315,8 @@ int CCommonData::GetNumJoys()
 /* ------------------------------------------------------------------------------------ */
 bool CCommonData::CheckJoystickButton(int jn, int bn)
 {
-// changed QD 07/15/06
 	if(!m_bUseDInput)
 		return false;
-// end change
 
 	DIJOYSTATE2 js;
 	joysticks[jn]->poll(&js);
@@ -3389,10 +3334,8 @@ bool CCommonData::CheckJoystickButton(int jn, int bn)
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::CloseJoysticks()
 {
-// changed QD 07/15/06
 	if(!m_bUseDInput)
 		return;
-// end change
 
 	unsigned int i;
 	unsigned int numJoysticks = Joystick::deviceCount();
@@ -3400,14 +3343,12 @@ void CCommonData::CloseJoysticks()
     // Close the joysticks.
     for(i=0; i<numJoysticks; i++)
 	{
-		// changed QD 07/15/06
 		if(joysticks[i])
 		{
 	        joysticks[i]->close();
 			delete joysticks[i];
 			joysticks[i] = NULL;
 		}
-		// end change
     }
 
 	return;
@@ -3453,9 +3394,9 @@ void CCommonData::PlayOpeningCutScene()
 //
 // Play a .gif or .avi file
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::Play(char *szFile, int XPos, int YPos, bool Center)
+void CCommonData::Play(const char *szFile, int XPos, int YPos, bool Center)
 {
-	string File = szFile;
+	std::string File = szFile;
 	MakeLower(File);
 	int i = File.find(".gif");
 
@@ -3503,12 +3444,12 @@ void CCommonData::CheckMediaPlayers()
 //	..loaded from the RealityFactory.ini file in the same directory as
 //	..the game runner.
 /* ------------------------------------------------------------------------------------ */
-FILE *CCommonData::OpenRFFile(int nFileType, char *szFilename, char *szHow)
+FILE *CCommonData::OpenRFFile(int nFileType, const char *szFilename, const char *szHow)
 {
 	char szTemp[256];
 
-	//	Ok, based on the TYPE of file we're looking for, build a "proper"
-	//	..filename (fully qualified, more or less).
+	// Ok, based on the TYPE of file we're looking for, build a "proper"
+	// ..filename (fully qualified, more or less).
 
 	switch(nFileType)
 	{
@@ -3569,18 +3510,18 @@ FILE *CCommonData::OpenRFFile(int nFileType, char *szFilename, char *szHow)
 		strcpy(szTemp, szFilename);
 		break;
 	default:
-		sprintf(szTemp, "*WARNING* OpenRFFile: bad type '%d' for '%s'", nFileType, szFilename);
+		sprintf(szTemp, "[WARNING] OpenRFFile: bad type '%d' for '%s'", nFileType, szFilename);
 		CCD->ReportError(szTemp, false);
 		return NULL;
 	}
 
 	FILE *pTemp = fopen(szTemp, szHow);				// Open the damn thing.
 
-	//	Debug tracing time
+	// Debug tracing time
 	if(m_DebugLevel == kHighDebugOutput && !pTemp)
 	{
 		char szDebug[512];
-		sprintf(szDebug, "*WARNING* File open attempt failed on type '%d', file '%s'", nFileType, szTemp);
+		sprintf(szDebug, "[WARNING] File open attempt failed on type '%d', file '%s'", nFileType, szTemp);
 		CCD->ReportError(szDebug, false);
 	}
 
@@ -3594,7 +3535,7 @@ FILE *CCommonData::OpenRFFile(int nFileType, char *szFilename, char *szHow)
 //	..version, but uses the geVFile system to open up virtual files.  This
 //	..is provided since some of the G3D API relies on geVFiles.
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, int nHow)
+bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, const char *szFilename, int nHow)
 {
 	char szTemp[256];
 
@@ -3663,7 +3604,7 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, i
 		strcpy(szTemp, szFilename);
 		break;
 	default:
-		sprintf(szTemp, "*WARNING* OpenRFFile(V): bad type '%d' for '%s'", nFileType, szFilename);
+		sprintf(szTemp, "[WARNING] OpenRFFile(V): bad type '%d' for '%s'", nFileType, szFilename);
 		CCD->ReportError(szTemp, false);
 		return NULL;
 	}
@@ -3679,7 +3620,7 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, i
 		if(Logging)
 		{
 			char szDebug[256];
-			sprintf(szDebug, "*INFO* File '%s' not found in Real File System, searching in VFS", szTemp);
+			sprintf(szDebug, "[INFO] File '%s' not found in Real File System, searching in VFS", szTemp);
 			CCD->ReportError(szDebug, false);
 		}
 // end change
@@ -3690,7 +3631,7 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, i
 	if(m_DebugLevel == kHighDebugOutput && !(*theFp))
 	{
 		char szDebug[512];
-		sprintf(szDebug, "\n*WARNING* OpenRFFile: file open attempt failed on type '%d', file '%s'\n", nFileType, szTemp);
+		sprintf(szDebug, "\n[WARNING] OpenRFFile: file open attempt failed on type '%d', file '%s'\n", nFileType, szTemp);
 		CCD->ReportError(szDebug, false);
 	}
 
@@ -3700,7 +3641,7 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, i
 		if(Logging)
 		{
 			char szDebug[256];
-			sprintf(szDebug, "*INFO* Loaded %s", szTemp);
+			sprintf(szDebug, "[INFO] Opened file %s", szTemp);
 			CCD->ReportError(szDebug, false);
 		}
 
@@ -3713,7 +3654,7 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, char *szFilename, i
 /* ------------------------------------------------------------------------------------ */
 //	FileExist
 /* ------------------------------------------------------------------------------------ */
-bool CCommonData::FileExist(int nFileType, char *szFilename)
+bool CCommonData::FileExist(int nFileType, const char *szFilename)
 {
 	char szTemp[256];
 	geVFile *theFp = NULL;
@@ -3781,7 +3722,7 @@ bool CCommonData::FileExist(int nFileType, char *szFilename)
 		strcpy(szTemp, szFilename);
 		break;
 	default:
-		sprintf(szTemp, "*WARNING* File %s - Line %d: FileExist: bad type '%d' for '%s'",
+		sprintf(szTemp, "[WARNING] File %s - Line %d: FileExist: bad type '%d' for '%s'",
 				__FILE__, __LINE__, nFileType, szFilename);
 		CCD->ReportError(szTemp, false);
 		return false;
@@ -3855,7 +3796,7 @@ char *CCommonData::GetDirectory(int nType)
 	default:
 		{
 			char szTemp[256];
-			sprintf(szTemp, "*WARNING* File %s - Line %d: GetDirectory: bad type '%d'",
+			sprintf(szTemp, "[WARNING] File %s - Line %d: GetDirectory: bad type '%d'",
 					__FILE__, __LINE__, nType);
 			CCD->ReportError(szTemp, false);
 		}

@@ -15,12 +15,13 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include <windows.h>
-#include <mmsystem.h>
 
 // Thanks to Langis Pitre
 #define NO_SOURCE ((MIXERLINE_COMPONENTTYPE_SRC_LAST + 1))
 
+/**
+ * @brief CMixer - simple mixer control wrapper
+ */
 class CMixer
 {
 protected:

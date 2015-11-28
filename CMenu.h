@@ -17,6 +17,7 @@
 // changed QD Language Menu
 #define FNAME_LENGHT	64
 // end change QD
+#define CHAR_RANGE	224
 
 // Message
 //------------------------------
@@ -62,6 +63,9 @@ struct	MenuItem;
 //---------------------------
 // Font Structure
 //---------------------------
+/**
+ * @brief Data describing width and position of a character on a font bitmap
+ */
 typedef struct Chardat
 {
 	int width;
@@ -70,21 +74,25 @@ typedef struct Chardat
 
 } CharDat;
 
-
+/**
+ * @brief Bitmap font description
+ */
 typedef struct Font
 {
-  int		font_height;	// # of chars down bitmap
-  Chardat	dat[96];
-  geBitmap	*Bitmap;		// font bitmap
-  geBitmap	*WBitmap[96];
+  int		font_height;			// height of chars on font bitmap
+  Chardat	dat[CHAR_RANGE];		// width an position of chars on font bitmap
+  geBitmap	*Bitmap;				// font bitmap
+  geBitmap	*WBitmap[CHAR_RANGE];	// separate character bitmaps
 
 } Font;
 
-
+/**
+ * @brief Character selection
+ */
 typedef struct Selection
 {
 	char		Name[64];
-	geBitmap	*Bitmap;		// image bitmap
+	geBitmap	*Bitmap;			// image bitmap
 	char		ActorName[64];
 	float		ActorScale;
 	geVec3d		Rotation;
@@ -130,7 +138,9 @@ typedef struct	SoundList
 } SoundList;
 
 
-// class declaration for CRFMenu
+/**
+ * @brief Class declaration for CRFMenu
+ */
 class CRFMenu : public CRGFComponent
 {
 public:
@@ -140,7 +150,7 @@ public:
 // end change
 	~CRFMenu();
 
-	int DoMenu(char *levelname);
+	int DoMenu(const char *levelname);
 	int ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number);
 	void DrawBitmap(const geBitmap *Bitmap, geRect *Source, uint32 x, uint32 y);
 // changed RF063
@@ -159,11 +169,11 @@ public:
 	void DisplaySplash();
 	void LoadWBitmap();
 	void UnLoadWBitmap();
-	void WorldFontRect(char *s, int FontNumber, int x, int y, float Alpha);
+	void WorldFontRect(const char *s, int FontNumber, int x, int y, float Alpha);
 // end change RF064
 
-	void MFontRect(char *s, int FontNumber, int x, int y);
-	void FontRect(char *s, int FontNumber, int x, int y);
+	void MFontRect(const char *s, int FontNumber, int x, int y);
+	void FontRect(const char *s, int FontNumber, int x, int y);
 	void ScreenShot();
 
 	geSound *PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef, geFloat Volume, geFloat Pan, geFloat Frequency, geBoolean Loop);
@@ -174,8 +184,11 @@ public:
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
 
-	inline char *GetLevelName()					{ return LevelName;			}
-	inline void SetLevelName(char *level)		{ strcpy(LevelName, level); }
+	void DisplayCursor();
+	inline void ShowCursor(bool bShow)			{ bShowCursor = bShow;		}
+	inline bool GetShowCursor()					{ return bShowCursor;		}
+	inline const char *GetLevelName()			{ return LevelName;			}
+	inline void SetLevelName(const char *level)	{ strcpy(LevelName, level); }
 	inline void SetInGame()						{ ingame = 1;				}
 	inline int GetInGame()						{ return ingame;			}
 	inline void SetMouseSen(float value)		{ MouseSen = value;			}
@@ -203,7 +216,7 @@ public:
 // end change
 	// Message
 	int FontHeight(int FontNumber);
-	int FontWidth(int FontNumber, char *s);
+	int FontWidth(int FontNumber, const char *s);
 	inline geBitmap *GetCrossHair()				{ return Crosshair;	}
 	inline geBitmap *GetFCrossHair()			{ return FCrosshair;}
 // changed RF063
@@ -217,12 +230,12 @@ public:
 	inline bool GetUseNameSelect()			{ return usenameselect;	}
 // end change
 	inline bool GetUseSelect()				{ return useselect;		}
-	inline char *GetCurrentActor()			{ return CharSelect[CurrentSelect].ActorName;			}
-	inline char *GetCurrentName()			{ return CharSelect[CurrentSelect].Name;				}
+	inline const char *GetCurrentActor()	{ return CharSelect[CurrentSelect].ActorName;			}
+	inline const char *GetCurrentName()		{ return CharSelect[CurrentSelect].Name;				}
 	inline char *GetCurrentAttr()			{ return CharSelect[CurrentSelect].Attribute;			}
-	inline char *GetCurrentpSetup()			{ return CharSelect[CurrentSelect].pSetup;				}
-	inline char *GetCurrentEnv()			{ return CharSelect[CurrentSelect].Environment;			}
-	inline char *GetCurrentPS()				{ return CharSelect[CurrentSelect].PlayerStart;			}
+	inline const char *GetCurrentpSetup()	{ return CharSelect[CurrentSelect].pSetup;				}
+	inline const char *GetCurrentEnv()		{ return CharSelect[CurrentSelect].Environment;			}
+	inline const char *GetCurrentPS()		{ return CharSelect[CurrentSelect].PlayerStart;			}
 	inline char *GetCurrentHud()			{ return CharSelect[CurrentSelect].Hud;					}
 	inline float GetCurrentScale()			{ return CharSelect[CurrentSelect].ActorScale;			}
 	inline geVec3d GetCurrentRotation()		{ return CharSelect[CurrentSelect].Rotation;			}
@@ -234,8 +247,8 @@ public:
 	inline char *GetCurrentShadowAlphamap()	{ return CharSelect[CurrentSelect].ShadowAlphamap;		}
 	inline geBoolean GetCurrentPShadows()	{ return CharSelect[CurrentSelect].UseProjectedShadows;	}
 	inline geBoolean GetCurrentSShadows()	{ return CharSelect[CurrentSelect].UseStencilShadows;	}
-	inline char *GetCurrentStartLevel()		{ return CharSelect[CurrentSelect].StartLevel;			}
-	inline char *GetCurrentWeapon()			{ return CharSelect[CurrentSelect].Weapon;				}
+	inline const char *GetCurrentStartLevel(){ return CharSelect[CurrentSelect].StartLevel;			}
+	inline const char *GetCurrentWeapon()	{ return CharSelect[CurrentSelect].Weapon;				}
 // end change
 	inline float GetCurrentJumpSpeed()		{ return CharSelect[CurrentSelect].JumpSpeed;			}
 	inline float GetCurrentMSpeed()			{ return CharSelect[CurrentSelect].Speed;				}
@@ -248,13 +261,13 @@ public:
 
 	inline float GetCurrentSlopeSlide()		{ return CharSelect[CurrentSelect].SlopeSlide; }
 	inline float GetCurrentSlopeSpeed()		{ return CharSelect[CurrentSelect].SlopeSpeed; }
-	inline CMIDIAudio *MIDIPlayer()			{ return theMIDIPlayer;			}
-	inline float GetmVolLevel()				{ return mVolLevel;				}
+	inline CMIDIAudio *MIDIPlayer()			{ return theMIDIPlayer;	}
+	inline float GetmVolLevel()				{ return mVolLevel;		}
 // end change RF064
 // changed 12/15/05
 	// playername selection
-	inline char *GetSelectedName()			{ return SelectedName;			}
-	inline void SetSelectedName(char *Name)	{ strcpy(SelectedName, Name);	}
+	inline const char *GetSelectedName()			{ return SelectedName;			}
+	inline void SetSelectedName(const char *Name)	{ strcpy(SelectedName, Name);	}
 // end change
 
 private:
@@ -265,7 +278,7 @@ private:
 	void MusicSet();
 	void DoFade();
 // changed QD Language Menu
-	void LoadMenuIni(char *menuini);
+	void LoadMenuIni(const char *menuini);
 	void Reset();
 // end change QD
 
@@ -301,6 +314,7 @@ private:
 	char		SelectedName[255];
 	bool		usenameselect;
 // end change
+	bool		bShowCursor;
 	int			Screen;
 	bool		ScrnWait;
 	int			ingame;

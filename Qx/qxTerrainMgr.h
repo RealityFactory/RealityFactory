@@ -283,7 +283,7 @@ private:
 	qxTerrainDefinitionFile* m_pTerrainDefinitionFile;
 
 
-	vector<qxTerrainMapBase*> m_pMaps;
+	std::vector<qxTerrainMapBase*> m_pMaps;
 	bool LoadMap( int OffsetX, int OffsetZ );
 
 	//

@@ -1768,13 +1768,13 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 		if(CCD->Doors()->HandleCollision(theCollision.Model, bShoot, false, theActor))
 		{
 			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
-			return kCollideDoor; // Hit, and processed
+			return kCollideDoor;		// Hit, and processed
 		}
 
 		if(CCD->Platforms()->HandleCollision(theCollision.Model, bShoot, false, theActor))
 		{
 			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
-			return kCollidePlatform;						// Hit, and processed
+			return kCollidePlatform;	// Hit, and processed
 		}
 
 		int Result = CCD->Triggers()->HandleCollision(theCollision.Model, bShoot, false, theActor);
@@ -1799,13 +1799,13 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 			int Result1 = CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 
 			if(Result1 == RGF_SUCCESS)
-				return kCollideWorldModel;					// Hit, and processed
+				return kCollideWorldModel;	// Hit, and processed
 
 			if(Result1 == RGF_EMPTY)
 				return kNoCollision;
 		}
 
-		return kCollideNoMove;								// Model hit, but not dealt with
+		return kCollideNoMove;				// Model hit, but not dealt with
 	}
 
 	//	Ok, check to see if we hit an actor!

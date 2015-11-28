@@ -13,8 +13,9 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -33,12 +34,12 @@ CPreEffect::CPreEffect()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("*WARNING* Failed to open effect.ini file", false);
+		CCD->ReportError("[WARNING] Failed to open effect.ini file", false);
 		return;
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type;
 	int effptr = 0;
 
 // changed QD 07/15/06
@@ -54,7 +55,7 @@ CPreEffect::CPreEffect()
 		// end change QD 07/15/06
 		if(Type == "spray")
 		{
-			string Tname, Talpha, Vector;
+			std::string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			Spray *Sp;
@@ -155,7 +156,7 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "light")
 		{
-			string Vector;
+			std::string Vector;
 			char szName[64];
 			geVec3d convert;
 			Glow *Lite;
@@ -221,7 +222,7 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "sprite")
 		{
-			string Tname, Talpha, Vector;
+			std::string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			Sprite *Sp;
@@ -305,7 +306,7 @@ CPreEffect::CPreEffect()
 		else if(Type == "sound")
 		{
 			Snd *Sound;
-			string Vector;
+			std::string Vector;
 			char szName[64];
 
 			strcpy(Effects[effptr].Name, KeyName.c_str());
@@ -328,7 +329,7 @@ CPreEffect::CPreEffect()
 		else if(Type == "corona")
 		{
 			EffCorona *C;
-			string Vector;
+			std::string Vector;
 			geVec3d convert;
 			char szName[64];
 
@@ -336,7 +337,7 @@ CPreEffect::CPreEffect()
 			Effects[effptr].Type = EFF_CORONA;
 			C = GE_RAM_ALLOCATE_STRUCT(EffCorona);
 			memset(C, 0, sizeof(EffCorona));
-			C->Texture = TPool_Bitmap("Corona.Bmp", "Corona_a.Bmp", NULL, NULL);
+			C->Texture = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
 			Vector = AttrFile.GetValue(KeyName, "color");
 
 			if(Vector != "")
@@ -362,7 +363,7 @@ CPreEffect::CPreEffect()
 		}
 		else if(Type == "bolt")
 		{
-			string Tname, Talpha, Vector;
+			std::string Tname, Talpha, Vector;
 			char szName[64], szAlpha[64];
 			geVec3d convert;
 			EBolt *Bl;
@@ -432,7 +433,7 @@ CPreEffect::CPreEffect()
 // changed RF064
 		else if(Type == "actorspray")
 		{
-			string Tname, Vector;
+			std::string Tname, Vector;
 			char szName[64];
 			geVec3d convert;
 			ActorSpray *Sp;
@@ -481,7 +482,7 @@ CPreEffect::CPreEffect()
 					if(!Actor)
 					{
 						char szError[256];
-						sprintf(szError,"*WARNING* File %s - Line %d: %s : Missing Actor '%s'",
+						sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'",
 								__FILE__, __LINE__, KeyName, Name);
 						CCD->ReportError(szError, false);
 						CCD->ShutdownLevel();
@@ -493,6 +494,7 @@ CPreEffect::CPreEffect()
 
 					CCD->ActorManager()->RemoveActor(Actor);
 					geActor_Destroy(&Actor);
+					Actor = NULL;
 				}
 
 				Vector = AttrFile.GetValue(KeyName, "minrotationspeed");

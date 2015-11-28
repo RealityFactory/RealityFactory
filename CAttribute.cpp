@@ -11,10 +11,11 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
+extern geSound_Def *SPool_Sound(const char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 // changed QD 06/26/04
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 // end change
 
 /* ------------------------------------------------------------------------------------ */
@@ -22,6 +23,9 @@ extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName,
 /* ------------------------------------------------------------------------------------ */
 CAttribute::CAttribute()
 {
+	DynamicAttributes = 1000;
+	DynamicAttribute1 = NULL;
+
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
@@ -43,21 +47,6 @@ CAttribute::CAttribute()
 				pSource->szEntityName = szName;
 			}
 
-			//	Ok, put this entity into the Global Entity Registry
-			CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "Attribute");
-			pSource->OriginOffset = pSource->origin;
-
-			if(pSource->Model)
-			{
-				geVec3d ModelOrigin;
-	    		geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
-				geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
-  			}
-
-			pSource->active = GE_FALSE;
-			pSource->bState = GE_FALSE;
-			pSource->CallBack = GE_FALSE;
-			pSource->alive = GE_TRUE;
 			pSource->ActorRotation.X = GE_PIOVER180*pSource->ActorRotation.X;
 			pSource->ActorRotation.Y = GE_PIOVER180*pSource->ActorRotation.Y;
 			pSource->ActorRotation.Z = GE_PIOVER180*pSource->ActorRotation.Z;
@@ -67,45 +56,20 @@ CAttribute::CAttribute()
 			if(!pSource->Actor)
 			{
 				char szError[256];
-				sprintf(szError,"*WARNING* File %s - Line %d: %s : Missing Actor '%s'\n",
+				sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'\n",
 						__FILE__, __LINE__, pSource->szEntityName, pSource->szActorName);
 				CCD->ReportError(szError, false);
 				// changed QD 07/15/06 - make missing actor not a fatal error
 				pSource->alive = GE_FALSE;
 				pSource->ReSpawn = GE_FALSE;
 				continue;
-				/*
-				CCD->ShutdownLevel();
-				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError,"Attribute", MB_OK);
-				exit(-333);
-				*/
 				// end change
 			}
 
 			CCD->ActorManager()->RemoveActor(pSource->Actor);
 			geActor_Destroy(&pSource->Actor);
-// start multiplayer
 			pSource->Actor = NULL;
-// end multiplayer
-
-			if(!EffectC_IsStringNull(pSource->szSoundFile))
-			{
-				SPool_Sound(pSource->szSoundFile);
-			}
-
-			if(!EffectC_IsStringNull(pSource->szReSpawnSound))
-			{
-				SPool_Sound(pSource->szReSpawnSound);
-			}
-
-// changed QD 06/26/04
-			if(!EffectC_IsStringNull(pSource->ShadowBitmap))
-			{
-				pSource->Bitmap = TPool_Bitmap(pSource->ShadowBitmap, pSource->ShadowAlphamap, NULL, NULL);
-			}
-// end change
+			InitAttribute(pSource);
 		}
 	}
 
@@ -116,14 +80,79 @@ CAttribute::CAttribute()
 	if(pSet)
 	{
 		//	Ok, we have Attributes somewhere.  Dig through 'em all.
-		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-			pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
 			ModifyAttribute *pSource = (ModifyAttribute*)geEntity_GetUserData(pEntity);
 			pSource->active = GE_FALSE;
 		}
 	}
 // end change RF063
+}
+
+bool CAttribute::InitAttribute(Attribute *pAttribute)
+{
+	// Ok, put this entity into the Global Entity Registry
+	CCD->EntityRegistry()->AddEntity(pAttribute->szEntityName, "Attribute");
+	pAttribute->OriginOffset = pAttribute->origin;
+
+	if(pAttribute->Model)
+	{
+		geVec3d ModelOrigin;
+		geWorld_GetModelRotationalCenter(CCD->World(), pAttribute->Model, &ModelOrigin);
+		geVec3d_Subtract(&pAttribute->origin, &ModelOrigin, &pAttribute->OriginOffset);
+	}
+
+	pAttribute->active = GE_FALSE;
+	pAttribute->bState = GE_FALSE;
+	pAttribute->CallBack = GE_FALSE;
+	pAttribute->alive = GE_TRUE;
+
+	pAttribute->Actor = NULL;
+
+	if(!EffectC_IsStringNull(pAttribute->szSoundFile))
+	{
+		SPool_Sound(pAttribute->szSoundFile);
+	}
+
+	if(!EffectC_IsStringNull(pAttribute->szReSpawnSound))
+	{
+		SPool_Sound(pAttribute->szReSpawnSound);
+	}
+
+	if(!EffectC_IsStringNull(pAttribute->ShadowBitmap))
+	{
+		pAttribute->Bitmap = TPool_Bitmap(pAttribute->ShadowBitmap, pAttribute->ShadowAlphamap, NULL, NULL);
+	}
+
+	return true;
+}
+
+void CAttribute::AddAttributeEntity(Attribute *pAttribute)
+{
+	char DefaultName[128];
+	if(EffectC_IsStringNull(pAttribute->szEntityName))
+	{
+		sprintf(DefaultName, "Attribute%04d", DynamicAttributes);
+		pAttribute->szEntityName = DefaultName;
+		DynamicAttributes++;
+	}
+
+	pAttribute->ActorRotation.X = GE_PIOVER180*pAttribute->ActorRotation.X;
+	pAttribute->ActorRotation.Y = GE_PIOVER180*pAttribute->ActorRotation.Y;
+	pAttribute->ActorRotation.Z = GE_PIOVER180*pAttribute->ActorRotation.Z;
+
+	if(InitAttribute(pAttribute))
+	{
+		if(DynamicAttribute1 == NULL)
+		{
+			DynamicAttribute1 = geWorld_AddEntity(CCD->World(), "Attribute", pAttribute->szEntityName, (void*)pAttribute);
+		}
+		else
+		{
+			geWorld_AddEntity(CCD->World(), "Attribute", pAttribute->szEntityName, (void*)pAttribute);
+		}
+	}
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -151,6 +180,7 @@ CAttribute::~CAttribute()
 					CCD->ActorManager()->RemoveActor(pSource->Actor);
 
 				geActor_Destroy(&pSource->Actor);
+				pSource->Actor = NULL;
 			}
 		}
 	}
@@ -159,7 +189,7 @@ CAttribute::~CAttribute()
 /* ------------------------------------------------------------------------------------ */
 // Tick
 /* ------------------------------------------------------------------------------------ */
-void CAttribute::Tick(float dwTicks)
+void CAttribute::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -273,6 +303,7 @@ void CAttribute::Tick(float dwTicks)
 					{
 						CCD->ActorManager()->RemoveActor(pSource->Actor);
 						geActor_Destroy(&pSource->Actor);
+						pSource->Actor = NULL;
 						pSource->active = GE_FALSE;
 						pSource->bState = GE_FALSE;
 					}
@@ -501,6 +532,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 		{
 			CCD->ActorManager()->RemoveActor(pSource->Actor);
 			geActor_Destroy(&pSource->Actor);
+			pSource->Actor = NULL;
 
 			pSource->active = GE_FALSE;
 			pSource->bState = GE_FALSE;
@@ -548,7 +580,7 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 		return RGF_SUCCESS;									// No fields
 
 	//	Ok, we have Attributes somewhere.  Dig through 'em all.
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=DynamicAttribute1;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
@@ -643,7 +675,7 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CAttribute::LocateEntity(char *szName, void **pEntityData)
+int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

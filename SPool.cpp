@@ -3,10 +3,10 @@
  * @brief Sound pool
  ****************************************************************************************/
 
-//#include <malloc.h>
 #include <memory>
 #include "RabidFramework.h"
 #include <Ram.h>
+
 
 typedef struct	SPool
 {
@@ -31,7 +31,7 @@ void SPool_Initalize()
 /* ------------------------------------------------------------------------------------ */
 //	SPool_Sound
 /* ------------------------------------------------------------------------------------ */
-geSound_Def *SPool_Sound(char *SName)
+geSound_Def *SPool_Sound(const char *SName)
 {
 	SPool *pool;
 	geVFile *MainFS;
@@ -39,7 +39,7 @@ geSound_Def *SPool_Sound(char *SName)
 	if(EffectC_IsStringNull(SName) == GE_TRUE)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Missing Required Field from Entity - Sound File: %s\n",
+		sprintf(szError, "[WARNING] File %s - Line %d: Missing Required Field from Entity - Sound File: %s\n",
 				__FILE__, __LINE__, SName);
 		CCD->ReportError(szError, false);
 		// changed QD 07/15/06
@@ -80,7 +80,7 @@ geSound_Def *SPool_Sound(char *SName)
 	if(!pool->SoundDef)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Unable to load file, invalid path or filename: %s",
+		sprintf(szError, "[WARNING] File %s - Line %d: Unable to load file, invalid path or filename: %s",
 				__FILE__, __LINE__, SName);
 		CCD->ReportError(szError, false);
 		free(pool->Name);

@@ -11,7 +11,8 @@
 #include "qxColor.h"
 #include "QxUser.h" //genesis
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -57,41 +58,41 @@ bool qxMoon::Init()
 	{
 		case MOON_PHASE_FULL:
 		{
-			
-			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonFull.Bmp", NULL, NULL);
+
+			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonfull.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-			
+
 		}
 		case MOON_PHASE_QUARTER_WAX:
 		{
-			
-			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonq1.Bmp", NULL, NULL);
+
+			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonq1.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-			
+
 		}
 		case MOON_PHASE_NEW:
 		{
-			
-			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonNew.Bmp", NULL, NULL);
+
+			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonnew.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-			
+
 		}
 		case MOON_PHASE_QUARTER_WANE:
 		{
-			
-			m_pBmp = TPool_Bitmap("terrain\\moonFull.Bmp", "terrain\\a_moonq3.Bmp", NULL, NULL);
+
+			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonq3.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-			
+
 		}
-		default: 
+		default:
 			QXASSERT(0);
 			break;
 	}
@@ -120,15 +121,15 @@ int qxMoon::Frame()
 	geVec3d thePosition;
 	CCD->CameraManager()->GetPosition(&thePosition);
 	const geVec3d* pCam = &thePosition;
-	
+
 
 	GE_LVertex v;
 	gePoly_GetLVertex( m_pPoly, 0, &v );
 	geVec3d Translation;
-	
+
 	geXForm3d_Rotate(CCD->TerrainMgr()->GetEarthRotation(),
 						&m_vMoonOrigin, &Translation);
-	
+
 	geVec3d_Add(pCam, &Translation, (geVec3d*)&v.X);
 
 	v.a = m_fAlpha;

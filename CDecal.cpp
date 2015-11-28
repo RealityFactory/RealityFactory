@@ -11,7 +11,8 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -42,7 +43,7 @@ CDecal::CDecal()
 		if(!(pSource->Bitmap))
 		{
 			char szBug[256];
-          	sprintf(szBug, "*WARNING* File %s - Line %d: CreateFromFileAndAlphaNames failed: %s, %s\n",
+			sprintf(szBug, "[WARNING] File %s - Line %d: CreateFromFileAndAlphaNames failed: %s, %s\n",
 					__FILE__, __LINE__, pSource->BmpName, pSource->AlphaName);
 		  	CCD->ReportError(szBug, false);
 		}
@@ -75,7 +76,7 @@ CDecal::~CDecal()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CDecal::Tick(float dwTicks)
+void CDecal::Tick(geFloat dwTicks)
 {
 	Decal *d, *next;
 
@@ -88,6 +89,99 @@ void CDecal::Tick(float dwTicks)
 
 		if(d->TimeToLive > 0.0f)
 		{
+			if(d->Model)
+			{
+				// do we have to update vertices?
+				if(CCD->ModelManager()->IsRunning(d->Model))
+				{
+					geVec3d offset = d->OriginOffset;
+					geVec3d direction, right, up;
+					geXForm3d Xf1;
+
+					geWorld_GetModelXForm(CCD->World(), d->Model, &Xf1);
+					geXForm3d_Rotate(&Xf1, &(d->direction), &direction);
+
+					SetOriginOffset(0, 0, d->Model, &(offset));
+
+					geVec3d Axis[3] =
+					{
+						{-1.0f, 0.0f, 0.0f},
+						{0.0f, -1.0f, 0.0f},
+						{0.0f, 0.0f, -1.0f}
+					};
+
+					int major = 0;
+
+					#define fab(a) (a > 0 ? a : -a)
+
+					if(fab(direction.Y) > fab(direction.X))
+					{
+						major = 1;
+
+						if(fab(direction.Z) > fab(direction.Y))
+							major = 2;
+					}
+					else
+					{
+						if(fab(direction.Z) > fab(direction.X))
+							major = 2;
+					}
+
+					if(fab(direction.X) > 0.999f || fab(direction.Y) > 0.999f || fab(direction.Z) > 0.999f)
+					{
+						if((major == 0 && direction.X > 0.0f) || major == 1)
+						{
+							right.X = 0.0f;
+							right.Y = 0.0f;
+							right.Z = -1.0f;
+						}
+						else if(major == 0)
+						{
+							right.X = 0.0f;
+							right.Y = 0.0f;
+							right.Z = 1.0f;
+						}
+						else
+						{
+							right.X = direction.Z;
+							right.Y = 0.0f;
+							right.Z = 0.0f;
+						}
+					}
+					else
+					{
+						geVec3d_CrossProduct(&Axis[major], &direction, &right);
+						geVec3d_Normalize(&right);
+					}
+
+					geVec3d_CrossProduct(&direction, &right, &up);
+
+					geVec3d_Scale(&right, d->Width*0.5f, &right);
+					geVec3d_Scale(&up, d->Height*0.5f, &up);
+
+					geVec3d_MA(&offset, 0.1f, &direction, &offset);
+
+					geWorld_GetLeaf(CCD->World(), &offset, &(d->Leaf));
+
+					//calculate vertices from corners
+					d->vertex[1].X = offset.X + ((-right.X - up.X));
+					d->vertex[1].Y = offset.Y + ((-right.Y - up.Y));
+					d->vertex[1].Z = offset.Z + ((-right.Z - up.Z));
+
+					d->vertex[2].X = offset.X + ((right.X - up.X));
+					d->vertex[2].Y = offset.Y + ((right.Y - up.Y));
+					d->vertex[2].Z = offset.Z + ((right.Z - up.Z));
+
+					d->vertex[3].X = offset.X + ((right.X + up.X));
+					d->vertex[3].Y = offset.Y + ((right.Y + up.Y));
+					d->vertex[3].Z = offset.Z + ((right.Z + up.Z));
+
+					d->vertex[0].X = offset.X + ((-right.X + up.X));
+					d->vertex[0].Y = offset.Y + ((-right.Y + up.Y));
+					d->vertex[0].Z = offset.Z + ((-right.Z + up.Z));
+				}
+			}
+
 			if(geWorld_MightSeeLeaf(CCD->World(), d->Leaf) == GE_TRUE)
 			{
 				geWorld_AddPolyOnce(CCD->World(),
@@ -95,7 +189,7 @@ void CDecal::Tick(float dwTicks)
 									4,
 									d->Bitmap,
 									GE_TEXTURED_POLY,
-									GE_RENDER_DEPTH_SORT_BF ,
+									GE_RENDER_DEPTH_SORT_BF,
 									1.0f);
 			}
 		}
@@ -123,8 +217,11 @@ void CDecal::Tick(float dwTicks)
 /* ------------------------------------------------------------------------------------ */
 //	AddDecal
 /* ------------------------------------------------------------------------------------ */
-void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal)
+void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model *pModel)
 {
+	if(normal->X == 0.f && normal->Y == 0.f && normal->Z == 0.f) // invalid normal
+		return;
+
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	Decal *d;
@@ -151,7 +248,32 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal)
 			d->Bitmap = pSource->Bitmap;
 			d->TimeToLive = pSource->LifeTime*1000.0f;
 
-			//Setup vertex 1,2,3,4
+			if(CCD->ModelManager()->IsModel(pModel))
+			{
+				geXForm3d Xf1;
+				geVec3d ModelOrigin;
+
+				d->Model = pModel;
+				d->Width = pSource->Width;
+				d->Height = pSource->Height;
+
+				geWorld_GetModelXForm(CCD->World(), pModel, &Xf1);
+				geWorld_GetModelRotationalCenter(CCD->World(), pModel, &ModelOrigin);
+
+				geVec3d_Add(&ModelOrigin, &(Xf1.Translation), &ModelOrigin);
+				geVec3d_Subtract(impact, &ModelOrigin, &(d->OriginOffset));
+
+				geXForm3d_GetTranspose(&Xf1, &Xf1);
+
+				geXForm3d_Rotate(&Xf1, &(d->OriginOffset), &(d->OriginOffset));
+				geXForm3d_Rotate(&Xf1, normal, &(d->direction));
+			}
+			else
+			{
+				d->Model = (geWorld_Model*)NULL;
+			}
+
+			// Setup vertex 1,2,3,4
 			for(int i=0; i<4; i++)
 			{
 				// texture coordinates
@@ -193,7 +315,7 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal)
 					major = 2;
 			}
 
-			if(fab(normal->X) == 1.0f || fab(normal->Y) == 1.0f || fab(normal->Z) == 1.0f)
+			if(fab(normal->X) > 0.999f || fab(normal->Y) > 0.999f || fab(normal->Z) > 0.999f)
 			{
 				if((major == 0 && normal->X > 0.0f) || major == 1)
 				{
@@ -215,11 +337,13 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal)
 				}
 			}
 			else
+			{
 				geVec3d_CrossProduct(&Axis[major], normal, &right);
+				geVec3d_Normalize(&right);
+			}
 
 			geVec3d_CrossProduct(normal, &right, &up);
 			geVec3d_Normalize(&up);
-			geVec3d_Normalize(&right);
 
 			geVec3d_Scale(&right, pSource->Width*0.5f, &right);
 			geVec3d_Scale(&up, pSource->Height*0.5f, &up);

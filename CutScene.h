@@ -12,13 +12,16 @@
 #ifndef __RGF_CUTSCENE_H_
 #define __RGF_CUTSCENE_H_
 
+/**
+ * @brief CCutScene handles CutScene entities
+ */
 class CCutScene : public CRGFComponent
 {
 public:
 	CCutScene();
 	~CCutScene();
 
-	void Tick(float dwTicks);
+	void Tick(geFloat dwTicks);
 };
 
 #endif

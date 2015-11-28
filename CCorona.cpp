@@ -9,7 +9,8 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
@@ -19,7 +20,7 @@ CCorona::CCorona()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-  	Count = 0;
+	Count = 0;
 
 	// Ok, check to see if there are TEMPLATE in this world
 	pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
@@ -27,14 +28,14 @@ CCorona::CCorona()
 	if(!pSet)
 		return;
 
-  	CoronaBitmap = TPool_Bitmap("Corona.Bmp", "Corona_a.Bmp", NULL, NULL);
+	CoronaBitmap = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
 
-  	if(!CoronaBitmap)
-    		return;
+	if(!CoronaBitmap)
+		return;
 
 	// Ok, we have Coronas somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
 
@@ -54,9 +55,9 @@ CCorona::CCorona()
 		if(pSource->Model)
 		{
 			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
+			geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
 			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
-  		}
+		}
 
 		// Reset all the data for each Corona
 		pSource->effect = (int *)malloc(sizeof(int) * 1);
@@ -107,7 +108,7 @@ CCorona::~CCorona()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-  	if(Count == 0)
+	if(Count == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are Coronas in this world
@@ -132,7 +133,7 @@ CCorona::~CCorona()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CCorona::Tick(float dwTicks)
+void CCorona::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -148,7 +149,7 @@ void CCorona::Tick(float dwTicks)
 
 	// Ok, we have Coronas somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
 
@@ -166,7 +167,7 @@ void CCorona::Tick(float dwTicks)
 			{
 				if(pSource->effect[0] != -1)
 				{
-    				CCD->EffectManager()->Item_Delete(EFF_CORONA, pSource->effect[0]);
+					CCD->EffectManager()->Item_Delete(EFF_CORONA, pSource->effect[0]);
 					pSource->effect[0] = -1;
 				}
 
@@ -192,7 +193,7 @@ void CCorona::Tick(float dwTicks)
 				C.Vertex.X = pSource->origin.X;
 				C.Vertex.Y = pSource->origin.Y;
 				C.Vertex.Z = pSource->origin.Z;
-      			CCD->EffectManager()->Item_Modify(EFF_CORONA, pSource->effect[0], (void*)&C, CORONA_POS);
+				CCD->EffectManager()->Item_Modify(EFF_CORONA, pSource->effect[0], (void*)&C, CORONA_POS);
 			}
 		}
 	}
@@ -208,7 +209,7 @@ void CCorona::Tick(float dwTicks)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CCorona::LocateEntity(char *szName, void **pEntityData)
+int CCorona::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;

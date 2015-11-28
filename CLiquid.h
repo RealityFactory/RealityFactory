@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CLiquid.h
  * @brief Liquid
@@ -12,28 +11,16 @@
 #ifndef __RGF_CLIQUID_H__
 #define __RGF_CLIQUID_H__
 
+/**
+ * @brief This class implements Liquid
+ */
 class CLiquid : public CRGFComponent
 {
 public:
 	CLiquid();
 	~CLiquid();
 
-	Liquid *IsLiquid(geWorld_Model *theModel);
-
-private:
-
-};
-
-
-class COverlay : public CRGFComponent
-{
-public:
-	COverlay();
-	~COverlay();
-
-	void Tick(float dwTicks);
-	Overlay *IsOverlay(geWorld_Model *theModel);
-	void Render();
+	Liquid *IsLiquid(const geWorld_Model *theModel);
 
 private:
 

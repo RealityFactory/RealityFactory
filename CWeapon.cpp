@@ -11,8 +11,9 @@
 // Include the One True Header
 #include "RabidFramework.h"
 
-extern geSound_Def *SPool_Sound(char *SName);
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geSound_Def *SPool_Sound(const char *SName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
 /* ------------------------------------------------------------------------------------ */
@@ -68,7 +69,7 @@ CWeapon::CWeapon()
 
 	if(!pSet)
 	{
-		CCD->ReportError("*ERROR* No PlayerSetup found! Bad level", false);
+		CCD->ReportError("[ERROR] No PlayerSetup found! Bad level", false);
 		return;
 	}
 
@@ -84,7 +85,7 @@ CWeapon::CWeapon()
 	}
 	else
 	{
-		CCD->ReportError("*ERROR* Failed to locate PlayerSetup in world", false);
+		CCD->ReportError("[ERROR] Failed to locate PlayerSetup in world", false);
 		return;
 	}
 
@@ -169,7 +170,7 @@ CWeapon::~CWeapon()
 /* ------------------------------------------------------------------------------------ */
 //	ChangeWeapon
 /* ------------------------------------------------------------------------------------ */
-void CWeapon::ChangeWeapon(char *name)
+void CWeapon::ChangeWeapon(const char *name)
 {
 	int i;
 
@@ -190,7 +191,7 @@ void CWeapon::ChangeWeapon(char *name)
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CWeapon::Tick(float dwTicks)
+void CWeapon::Tick(geFloat dwTicks)
 {
 	int i;
 
@@ -253,7 +254,7 @@ void CWeapon::Tick(float dwTicks)
 		geVec3d	tempPos;
 		geVec3d	tempPos1;
 		geVec3d	Distance;
-		GE_Collision	Collision;
+		GE_Collision Collision;
 		geActor *Actor = NULL;
 		geWorld_Model *Model = NULL;
 // changed RF064
@@ -270,8 +271,8 @@ void CWeapon::Tick(float dwTicks)
 		// Movement
 		// changed QD 12/15/05
 		// geVec3d_Scale(&(d->Direction), dwTick, &Distance) ;
-		geVec3d_Scale(&(d->Direction), dwTicks, &Distance) ;
-		geVec3d_Add(&tempPos, &Distance, &tempPos1) ;
+		geVec3d_Scale(&(d->Direction), dwTicks, &Distance);
+		geVec3d_Add(&tempPos, &Distance, &tempPos1);
 
 		// LifeTime Checking
 		bool Alive = true;
@@ -379,10 +380,7 @@ void CWeapon::Tick(float dwTicks)
 
 					if(nHitType == kCollideNoMove)
 					{
-						geVec3d_AddScaled(&tempPos, &(d->Direction), 1000.0f, &tempPos1);
-						CCD->Collision()->CheckForWCollision(NULL, NULL,
-							tempPos, tempPos1, &Collision, d->Actor);
-						CCD->Decals()->AddDecal(d->Decal, &(Collision.Impact), &(Collision.Plane.Normal));
+						CCD->Decals()->AddDecal(d->Decal, &(Collision.Impact), &(Collision.Plane.Normal), Collision.Model);
 					}
 				}
 			}
@@ -557,14 +555,15 @@ void CWeapon::Display()
 
 	if(ViewPoint == FIRSTPERSON)
 	{
-		if(WeaponD[CurrentWeapon].PActor)
-			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, CCD->Player()->GetMirror());
+		int index = CurrentWeapon;
+		if(WeaponD[index].PActor)
+			geWorld_SetActorFlags(CCD->World(), WeaponD[index].PActor, CCD->Player()->GetMirror());
 
-		geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].VActor, GE_ACTOR_RENDER_NORMAL);
-		DisplayFirstPerson(CurrentWeapon);
+		geWorld_SetActorFlags(CCD->World(), WeaponD[index].VActor, GE_ACTOR_RENDER_NORMAL);
+		DisplayFirstPerson(index); // CurrentWeapon may be altered here!
 
-		if(CCD->Player()->GetMirror()!=0 && WeaponD[CurrentWeapon].PActor)
-			DisplayThirdPerson(CurrentWeapon);
+		if(CCD->Player()->GetMirror()!=0 && WeaponD[index].PActor)
+			DisplayThirdPerson(index);
 // end change RF064
 	}
 	else
@@ -996,6 +995,7 @@ void CWeapon::DisplayFirstPerson(int index)
 				theInv->Modify(WeaponD[index].Name, -1);
 				Slot[WeaponD[index].Slot] = -1;
 				dropflag = false;
+				SpawnWeaponAttribute(index);
 			}
 // end change RF064
 		}
@@ -1177,6 +1177,16 @@ void CWeapon::Holster()
 	{
 			AttackFlag = false;
 			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, 0);
+
+			if(dropflag)
+			{
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				theInv->Modify(WeaponD[CurrentWeapon].Name, -1);
+				Slot[WeaponD[CurrentWeapon].Slot] = -1;
+				dropflag = false;
+				SpawnWeaponAttribute(CurrentWeapon);
+			}
+
 			CurrentWeapon = MAX_WEAPONS;
 	}
 }
@@ -1233,7 +1243,9 @@ void CWeapon::DoAttack()
 		AttackFlag = false;
 
 		if(WeaponD[CurrentWeapon].Catagory == PROJECTILE)
+		{
 			ProjectileAttack();
+		}
 		else if(WeaponD[CurrentWeapon].Catagory == MELEE)
 		{
 			MeleeAttack();
@@ -1706,6 +1718,64 @@ void CWeapon::DropWeapon()
 	dropflag = true;
 	Holster();
 }
+
+void CWeapon::SpawnWeaponAttribute(int index)
+{
+	if(WeaponD[index].DropActor[0])
+	{
+		Attribute tmpAttr;
+		memset(&tmpAttr, 0, sizeof(Attribute));
+
+		geVec3d Dir, theRotation;
+		geVec3d Pos = CCD->Player()->Position();
+		geXForm3d Xf;
+
+		if(ViewPoint == FIRSTPERSON)
+		{
+			CCD->CameraManager()->GetRotation(&theRotation);
+		}
+		else
+		{
+			CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &theRotation);
+		}
+
+		geXForm3d_SetYRotation(&Xf, theRotation.Y);
+
+		Pos.Y += WeaponD[index].DropActorOffset.Y;
+
+		geXForm3d_GetIn(&Xf, &Dir);
+		geVec3d_AddScaled(&Pos, &Dir, WeaponD[index].DropActorOffset.Z, &Pos);
+
+		geXForm3d_GetLeft(&Xf, &Dir);
+		geVec3d_AddScaled(&Pos, &Dir, WeaponD[index].DropActorOffset.X, &Pos);
+
+		theRotation.X = WeaponD[index].DropActorRotation.X;
+		theRotation.Y = theRotation.Y*GE_180OVERPI + WeaponD[index].DropActorRotation.Y;
+		theRotation.Z = WeaponD[index].DropActorRotation.Z;
+
+		tmpAttr.origin					= Pos;
+		tmpAttr.szActorName				= WeaponD[index].DropActor;
+		tmpAttr.ActorRotation			= theRotation;
+		tmpAttr.AmbientColor.r			= WeaponD[index].DropAmbientColor.X;
+		tmpAttr.AmbientColor.g			= WeaponD[index].DropAmbientColor.Y;
+		tmpAttr.AmbientColor.b			= WeaponD[index].DropAmbientColor.Z;
+		tmpAttr.FillColor.r				= WeaponD[index].DropFillColor.X;
+		tmpAttr.FillColor.g				= WeaponD[index].DropFillColor.Y;
+		tmpAttr.FillColor.b				= WeaponD[index].DropFillColor.Z;
+		tmpAttr.AmbientLightFromFloor	= WeaponD[index].DropAmbientLightFromFloor;
+		tmpAttr.EnvironmentMapping		= WeaponD[index].DropEnvironmentMapping;
+		tmpAttr.AllMaterial				= WeaponD[index].DropAllMaterial;
+		tmpAttr.PercentMapping			= WeaponD[index].DropPercentMapping;
+		tmpAttr.PercentMaterial			= WeaponD[index].DropPercentMaterial;
+		tmpAttr.Gravity					= WeaponD[index].DropGravity;
+		tmpAttr.Scale					= WeaponD[index].DropScale;
+		tmpAttr.AttributeName			= WeaponD[index].Name;
+		tmpAttr.AttributeAmount			= 1;
+		tmpAttr.HideFromRadar			= WeaponD[index].DropHideFromRadar;
+
+		CCD->Attributes()->AddAttributeEntity(&tmpAttr);
+	}
+}
 // end change RF064
 
 /* ------------------------------------------------------------------------------------ */
@@ -1853,7 +1923,7 @@ void CWeapon::Sound(bool Attack, const geVec3d &Origin, bool Empty)
 	if(!Sound.SoundDef)
 	{
 		char szError[256];
-		sprintf(szError, "*WARNING* File %s - Line %d: Failed to open audio file for Weapon %d",
+		sprintf(szError, "[WARNING] File %s - Line %d: Failed to open audio file for Weapon %d",
 				__FILE__, __LINE__, Slot[CurrentWeapon]);
 		CCD->ReportError(szError, false);
 		return;
@@ -2000,14 +2070,9 @@ void CWeapon::ProjectileAttack()
 		CCD->CameraManager()->GetRotation(&theRotation);
 		CCD->CameraManager()->GetPosition(&thePosition);
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateZ(&Xf, theRotation.Z);
 		geXForm3d_SetZRotation(&Xf, theRotation.Z);
 		geXForm3d_RotateX(&Xf, theRotation.X);
 		geXForm3d_RotateY(&Xf, theRotation.Y);
-		//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
-		// end change
 	}
 	else
 	{
@@ -2028,14 +2093,9 @@ void CWeapon::ProjectileAttack()
 		geVec3d CRotation, CPosition;
 		CCD->CameraManager()->GetCameraOffset(&CPosition, &CRotation);
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateZ(&Xf, theRotation.Z);
 		geXForm3d_SetZRotation(&Xf, theRotation.Z);
 		geXForm3d_RotateX(&Xf, theRotation.X-CCD->CameraManager()->GetTilt());
 		geXForm3d_RotateY(&Xf, theRotation.Y);
-		//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
-		// end change
 	}
 
 	Pos = thePosition;
@@ -2249,7 +2309,7 @@ void CWeapon::ProjectileAttack()
 //	Add_Projectile
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geVec3d &Orient,
-							 char *Projectile, char *PAttribute, char *PAltAttribute)
+							 const char *Projectile, char *PAttribute, char *PAltAttribute)
 {
 	Proj *d;
 	int Type = -1;
@@ -2547,12 +2607,12 @@ void CWeapon::LoadDefaults()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("*ERROR* Failed to open weapons initialization file", false);
+		CCD->ReportError("[ERROR] Failed to open weapons initialization file", false);
 		return;
 	}
 
-	string KeyName = AttrFile.FindFirstKey();
-	string Type, Vector;
+	std::string KeyName = AttrFile.FindFirstKey();
+	std::string Type, Vector;
 	geVFile *ActorFile;
 	char szName[64], szAlpha[64];
 	int projptr = 0;
@@ -2585,6 +2645,7 @@ void CWeapon::LoadDefaults()
 							ProjD[projptr].Rotation, ProjD[projptr].Rotation, "", "", NULL);
 			CCD->ActorManager()->RemoveActor(Actor);
 			geActor_Destroy(&Actor);
+			Actor = NULL;
 
 			ProjD[projptr].Scale = (float)AttrFile.GetValueF(KeyName, "scale");
 
@@ -2832,6 +2893,94 @@ void CWeapon::LoadDefaults()
 			WeaponD[weapptr].FireRate = (float)AttrFile.GetValueF(KeyName, "firerate");
 
 			bool activeflag = false;
+
+			// ---------------------------------------------------------------------------
+			//							Drop Weapon Attribute
+			// ---------------------------------------------------------------------------
+			WeaponD[weapptr].DropActor[0] = 0;
+			Vector = AttrFile.GetValue(KeyName, "dropactor");
+			if(Vector != "")
+			{
+				strcpy(WeaponD[weapptr].DropActor, Vector.c_str());
+				geActor *Actor = CCD->ActorManager()->SpawnActor(WeaponD[weapptr].DropActor,
+					WeaponD[weapptr].DropActorOffset, WeaponD[weapptr].DropActorRotation, "", "", NULL);
+
+				if(!Actor)
+				{
+					char szError[256];
+					sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'\n",
+						__FILE__, __LINE__, KeyName.c_str(), WeaponD[weapptr].DropActor);
+					CCD->ReportError(szError, false);
+				}
+				else
+				{
+					CCD->ActorManager()->RemoveActor(Actor);
+					geActor_Destroy(&Actor);
+					Actor = NULL;
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "dropoffset");
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					WeaponD[weapptr].DropActorOffset = Extract(szName);
+				}
+
+				WeaponD[weapptr].DropScale = 1.0f;
+				if(AttrFile.GetValueF(KeyName, "dropscale"))
+					WeaponD[weapptr].DropScale = (float)AttrFile.GetValueF(KeyName, "dropscale");
+
+				geVec3d_Set(&(WeaponD[weapptr].DropFillColor), 255.0f, 255.0f, 255.0f);
+				geVec3d_Set(&(WeaponD[weapptr].DropAmbientColor), 255.0f, 255.0f, 255.0f);
+
+				Vector = AttrFile.GetValue(KeyName, "dropfillcolor");
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					WeaponD[weapptr].DropFillColor = Extract(szName);
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "dropambientcolor");
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					WeaponD[weapptr].DropAmbientColor = Extract(szName);
+				}
+
+				WeaponD[weapptr].DropAmbientLightFromFloor = GE_TRUE;
+				Vector = AttrFile.GetValue(KeyName, "dropambientlightfromfloor");
+				if(Vector == "false")
+					WeaponD[weapptr].DropAmbientLightFromFloor = GE_FALSE;
+
+				Vector = AttrFile.GetValue(KeyName, "dropenvironmentmapping");
+				if(Vector == "true")
+				{
+					WeaponD[weapptr].DropEnvironmentMapping = GE_TRUE;
+
+					Vector = AttrFile.GetValue(KeyName, "dropallmaterial");
+					if(Vector == "true")
+						WeaponD[weapptr].DropAllMaterial = GE_TRUE;
+
+					WeaponD[weapptr].DropPercentMapping = (float)AttrFile.GetValueF(KeyName, "droppercentmapping");
+					WeaponD[weapptr].DropPercentMaterial = (float)AttrFile.GetValueF(KeyName, "droppercentmaterial");
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "droprotation");
+				if(Vector != "")
+				{
+					strcpy(szName, Vector.c_str());
+					WeaponD[weapptr].DropActorRotation = Extract(szName);
+				}
+
+				Vector = AttrFile.GetValue(KeyName, "dropgravity");
+				if(Vector == "true")
+					WeaponD[weapptr].DropGravity = GE_TRUE;
+
+				Vector = AttrFile.GetValue(KeyName, "drophidefromradar");
+				if(Vector == "true")
+					WeaponD[weapptr].DropHideFromRadar = GE_TRUE;
+			}
+
 
 			// ---------------------------------------------------------------------------
 			//							1st Person Weapon

@@ -6,7 +6,8 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 
-extern geBitmap *TPool_Bitmap(char *DefaultBmp, char *DefaultAlpha, char *BName, char *AName);
+extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
+							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
 //	CSpout Constructor
@@ -53,7 +54,7 @@ CSpout::CSpout()
 		if(S->MaxPauseTime > 0.0f)
 			S->PauseTime = EffectC_Frand( S->MinPauseTime, S->MaxPauseTime );
 
-		TPool_Bitmap("lvsmoke.Bmp", "A_lvsmoke.Bmp", S->BmpName, S->AlphaName);
+		TPool_Bitmap("g_bubble.bmp", "a_bubble.bmp", S->BmpName, S->AlphaName);
 		S->active = GE_FALSE;
 		S->EffectList = -1;
 
@@ -73,103 +74,100 @@ CSpout::CSpout()
 int CSpout::Create(Spout *S)
 {
 	int effect = -1;
-    Spray	Sp;
+	Spray	Sp;
 	geVec3d	In;
-    geXForm3d	Xf;
+	geXForm3d	Xf;
 
 	memset(&Sp, 0, sizeof(Sp));
-    Sp.Texture=TPool_Bitmap("lvsmoke.Bmp", "A_lvsmoke.Bmp", S->BmpName, S->AlphaName);
+	Sp.Texture=TPool_Bitmap("g_bubble.bmp", "a_bubble.bmp", S->BmpName, S->AlphaName);
 
 	//variance
 	Sp.SourceVariance = S->SourceVariance;
-    if(Sp.SourceVariance < 0)
-      Sp.SourceVariance = 0;
-    Sp.DestVariance = S->DestVariance;
-    if(Sp.DestVariance < 0)
-      Sp.DestVariance = 0;
+	if(Sp.SourceVariance < 0)
+		Sp.SourceVariance = 0;
+	Sp.DestVariance = S->DestVariance;
+	if(Sp.DestVariance < 0)
+		Sp.DestVariance = 0;
 
 	// scale
 	Sp.MinScale = S->MinScale;
-    Sp.MaxScale = S->MaxScale;
+	Sp.MaxScale = S->MaxScale;
 	Sp.Bounce = S->Bounce;
-    if(Sp.MinScale <= 0.0f)
-      Sp.MinScale = 0.1f;
-    if(Sp.MaxScale < Sp.MinScale)
-      Sp.MaxScale = Sp.MinScale;
+	if(Sp.MinScale <= 0.0f)
+		Sp.MinScale = 0.1f;
+	if(Sp.MaxScale < Sp.MinScale)
+		Sp.MaxScale = Sp.MinScale;
 
 	// speed
 	Sp.MinSpeed = S->MinSpeed;
-    Sp.MaxSpeed = S->MaxSpeed;
-    if(Sp.MinSpeed < 0.0f)
-      Sp.MinSpeed = 0.0f;
-    if(Sp.MaxSpeed < Sp.MinSpeed)
-      Sp.MaxSpeed = Sp.MinSpeed;
+	Sp.MaxSpeed = S->MaxSpeed;
+	if(Sp.MinSpeed < 0.0f)
+		Sp.MinSpeed = 0.0f;
+	if(Sp.MaxSpeed < Sp.MinSpeed)
+		Sp.MaxSpeed = Sp.MinSpeed;
 
 	// unitlife
 	Sp.MinUnitLife = S->MinUnitLife;
-    Sp.MaxUnitLife = S->MaxUnitLife;
-    if(Sp.MinUnitLife <= 0.0f)
-      Sp.MinUnitLife = 0.1f;
-    if(Sp.MaxUnitLife < Sp.MinUnitLife)
-      Sp.MaxUnitLife = Sp.MinUnitLife;
-    Sp.ColorMin.r = S->ColorMin.r;
+	Sp.MaxUnitLife = S->MaxUnitLife;
+	if(Sp.MinUnitLife <= 0.0f)
+		Sp.MinUnitLife = 0.1f;
+	if(Sp.MaxUnitLife < Sp.MinUnitLife)
+		Sp.MaxUnitLife = Sp.MinUnitLife;
+	Sp.ColorMin.r = S->ColorMin.r;
 
 	// color
 	// red
 	if(Sp.ColorMin.r < 0.0f)
-      Sp.ColorMin.r = 0.0f;
-    if(Sp.ColorMin.r > 255.0f)
-      Sp.ColorMin.r = 255.0f;
-    Sp.ColorMax.r = S->ColorMax.r;
-    if(Sp.ColorMax.r < Sp.ColorMin.r)
-      Sp.ColorMax.r = Sp.ColorMin.r;
+		Sp.ColorMin.r = 0.0f;
+	if(Sp.ColorMin.r > 255.0f)
+		Sp.ColorMin.r = 255.0f;
+	Sp.ColorMax.r = S->ColorMax.r;
+	if(Sp.ColorMax.r < Sp.ColorMin.r)
+		Sp.ColorMax.r = Sp.ColorMin.r;
 
 	// green
 	Sp.ColorMin.g = S->ColorMin.g;
-    if(Sp.ColorMin.g < 0.0f)
-      Sp.ColorMin.g = 0.0f;
-    if(Sp.ColorMin.g > 255.0f)
-      Sp.ColorMin.g = 255.0f;
-    Sp.ColorMax.g = S->ColorMax.g;
-    if(Sp.ColorMax.g < Sp.ColorMin.g)
-      Sp.ColorMax.g = Sp.ColorMin.g;
+	if(Sp.ColorMin.g < 0.0f)
+		Sp.ColorMin.g = 0.0f;
+	if(Sp.ColorMin.g > 255.0f)
+		Sp.ColorMin.g = 255.0f;
+	Sp.ColorMax.g = S->ColorMax.g;
+	if(Sp.ColorMax.g < Sp.ColorMin.g)
+		Sp.ColorMax.g = Sp.ColorMin.g;
 
 	// blue
 	Sp.ColorMin.b = S->ColorMin.b;
-    if(Sp.ColorMin.b < 0.0f)
-      Sp.ColorMin.b = 0.0f;
-    if(Sp.ColorMin.b > 255.0f)
-      Sp.ColorMin.b = 255.0f;
-    Sp.ColorMax.b = S->ColorMax.b;
-    if(Sp.ColorMax.b < Sp.ColorMin.b)
-      Sp.ColorMax.b = Sp.ColorMin.b;
+	if(Sp.ColorMin.b < 0.0f)
+		Sp.ColorMin.b = 0.0f;
+	if(Sp.ColorMin.b > 255.0f)
+		Sp.ColorMin.b = 255.0f;
+	Sp.ColorMax.b = S->ColorMax.b;
+	if(Sp.ColorMax.b < Sp.ColorMin.b)
+		Sp.ColorMax.b = Sp.ColorMin.b;
 
 	// alpha
 	Sp.ColorMin.a = 255.0f;
-    Sp.ColorMax.a = 255.0f;
+	Sp.ColorMax.a = 255.0f;
 
 	// rate
 	Sp.Rate = S->ParticleCreateRate;
-    if(Sp.Rate < 0.0f)
-      Sp.Rate = 0.1f;
-    geVec3d_Copy(&(S->Gravity), &(Sp.Gravity));
+	if(Sp.Rate < 0.0f)
+		Sp.Rate = 0.1f;
+	geVec3d_Copy(&(S->Gravity), &(Sp.Gravity));
 
-    // setup orientation
-    // changed QD 12/15/05
-	// geXForm3d_SetIdentity(&Xf);
-	// geXForm3d_RotateX(&Xf, (S->Angles.X / 57.3f));
-	// geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) / 57.3f);
-	// geXForm3d_RotateZ(&Xf, (S->Angles.Z / 57.3f));
+	// setup orientation
 	geXForm3d_SetXRotation(&Xf, S->Angles.X);
-    geXForm3d_RotateY(&Xf, S->Angles.Y);
-    geXForm3d_RotateZ(&Xf, S->Angles.Z);
-	// end change
-    geVec3d_Copy(&(S->origin), &(Sp.Source));
-    geXForm3d_GetIn(&Xf, &In);
-    geVec3d_Inverse(&In);
-    geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
+	geXForm3d_RotateY(&Xf, S->Angles.Y);
+	geXForm3d_RotateZ(&Xf, S->Angles.Z);
 
-    effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
+	geVec3d_Copy(&(S->origin), &(Sp.Source));
+	geXForm3d_GetIn(&Xf, &In);
+	geVec3d_Inverse(&In);
+	geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
+
+	Sp.UseWind = S->UseWind;
+
+	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
 	return effect;
 }
 
@@ -184,12 +182,12 @@ CSpout::~CSpout()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CSpout::Tick(float dwTicksIn)
+void CSpout::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	float dwTicks = dwTicksIn*0.001f;
+	dwTicks *= 0.001f;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
 
@@ -248,7 +246,7 @@ void CSpout::Tick(float dwTicksIn)
 					continue;
 				}
 			}
-		    else
+			else
 			{
 				// adjust pause time
 				if(S->PauseTime > 0.0f)
@@ -262,7 +260,7 @@ void CSpout::Tick(float dwTicksIn)
 						CCD->EffectManager()->Item_Pause(EFF_SPRAY, S->EffectList, S->PauseState);
 					}
 				}
-	        }
+			}
 
 			S->origin = S->OriginOffset;
 
@@ -273,15 +271,9 @@ void CSpout::Tick(float dwTicksIn)
 				geXForm3d	Xf;
 				Spray		Sp;
 
-				// changed QD 12/15/05
-				// geXForm3d_SetIdentity(&Xf);
-				// geXForm3d_RotateX(&Xf, (S->Angles.X / 57.3f));
-				// geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) / 57.3f);
-				// geXForm3d_RotateZ(&Xf, (S->Angles.Z / 57.3f));
 				geXForm3d_SetXRotation(&Xf, S->Angles.X);
 				geXForm3d_RotateY(&Xf, S->Angles.Y);
 				geXForm3d_RotateZ(&Xf, S->Angles.Z);
-				// end change
 
 				geVec3d_Copy(&(S->origin), &(Sp.Source));
 				geXForm3d_GetIn(&Xf, &In);
@@ -303,7 +295,7 @@ void CSpout::Tick(float dwTicksIn)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CSpout::LocateEntity(char *szName, void **pEntityData)
+int CSpout::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -316,7 +308,7 @@ int CSpout::LocateEntity(char *szName, void **pEntityData)
 
 	// Ok, we have Spout somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Spout *pSource = (Spout*)geEntity_GetUserData(pEntity);
 
@@ -405,7 +397,7 @@ CActorSpout::CActorSpout()
 			if(!Actor)
 			{
 				char szError[256];
-				sprintf(szError, "*ERROR* File %s - Line %d: %s : Missing Actor '%s'",
+				sprintf(szError, "[ERROR] File %s - Line %d: %s : Missing Actor '%s'",
 						__FILE__, __LINE__, S->szEntityName, Name);
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
@@ -417,6 +409,7 @@ CActorSpout::CActorSpout()
 
 			CCD->ActorManager()->RemoveActor(Actor);
 			geActor_Destroy(&Actor);
+			Actor = NULL;
 		}
 	}
 
@@ -429,9 +422,9 @@ CActorSpout::CActorSpout()
 int CActorSpout::Create(ActorSpout *S)
 {
 	int effect = -1;
-    ActorSpray	Sp;
+	ActorSpray	Sp;
 	geVec3d	In;
-    geXForm3d	Xf;
+	geXForm3d	Xf;
 
 	memset(&Sp, 0, sizeof(Sp));
 	strcpy(Sp.BaseName, S->BaseName);
@@ -453,41 +446,41 @@ int CActorSpout::Create(ActorSpout *S)
 	Sp.MaxRotationSpeed.Z = GE_PIOVER180*S->MaxRotationSpeed.Z;
 
 	// variance
-    Sp.SourceVariance = S->SourceVariance;
-    if(Sp.SourceVariance < 0)
-      Sp.SourceVariance = 0;
-    Sp.DestVariance = S->DestVariance;
-    if(Sp.DestVariance < 0)
-      Sp.DestVariance = 0;
+	Sp.SourceVariance = S->SourceVariance;
+	if(Sp.SourceVariance < 0)
+		Sp.SourceVariance = 0;
+	Sp.DestVariance = S->DestVariance;
+	if(Sp.DestVariance < 0)
+		Sp.DestVariance = 0;
 
 	// scale
-    Sp.MinScale = S->MinScale;
-    Sp.MaxScale = S->MaxScale;
+	Sp.MinScale = S->MinScale;
+	Sp.MaxScale = S->MaxScale;
 	Sp.Bounce = S->Bounce;
 	Sp.Solid = S->Solid;
-    if(Sp.MinScale <= 0.0f)
-      Sp.MinScale = 0.1f;
-    if(Sp.MaxScale < Sp.MinScale)
-      Sp.MaxScale = Sp.MinScale;
+	if(Sp.MinScale <= 0.0f)
+		Sp.MinScale = 0.1f;
+	if(Sp.MaxScale < Sp.MinScale)
+		Sp.MaxScale = Sp.MinScale;
 
 	// speed
-    Sp.MinSpeed = S->MinSpeed;
-    Sp.MaxSpeed = S->MaxSpeed;
-    if(Sp.MinSpeed < 0.0f)
-      Sp.MinSpeed = 0.0f;
-    if(Sp.MaxSpeed < Sp.MinSpeed)
-      Sp.MaxSpeed = Sp.MinSpeed;
+	Sp.MinSpeed = S->MinSpeed;
+	Sp.MaxSpeed = S->MaxSpeed;
+	if(Sp.MinSpeed < 0.0f)
+		Sp.MinSpeed = 0.0f;
+	if(Sp.MaxSpeed < Sp.MinSpeed)
+		Sp.MaxSpeed = Sp.MinSpeed;
 
-    // unitlife
+	// unitlife
 	Sp.MinUnitLife = S->MinUnitLife;
-    Sp.MaxUnitLife = S->MaxUnitLife;
-    if(Sp.MinUnitLife <= 0.0f)
-      Sp.MinUnitLife = 0.1f;
-    if(Sp.MaxUnitLife < Sp.MinUnitLife)
-      Sp.MaxUnitLife = Sp.MinUnitLife;
+	Sp.MaxUnitLife = S->MaxUnitLife;
+	if(Sp.MinUnitLife <= 0.0f)
+		Sp.MinUnitLife = 0.1f;
+	if(Sp.MaxUnitLife < Sp.MinUnitLife)
+		Sp.MaxUnitLife = Sp.MinUnitLife;
 
 	// fillcolor
-    Sp.FillColor = S->FillColor;
+	Sp.FillColor = S->FillColor;
 	// ambientcolor
 	Sp.AmbientColor = S->AmbientColor;
 // changed QD 07/21/04
@@ -495,30 +488,26 @@ int CActorSpout::Create(ActorSpout *S)
 // end change
 
 	Sp.Rate = S->ParticleCreateRate;
-    if(Sp.Rate < 0.0f)
-      Sp.Rate = 0.1f;
+	if(Sp.Rate < 0.0f)
+		Sp.Rate = 0.1f;
 	Sp.Gravity = S->Gravity;
 	Sp.EnvironmentMapping = S->EnvironmentMapping;
 	Sp.AllMaterial = S->AllMaterial;
 	Sp.PercentMapping = S->PercentMapping;
 	Sp.PercentMaterial = S->PercentMaterial;
 
-    // setup orientation
-	// changed QD 12/15/05
-    //geXForm3d_SetIdentity(&Xf);
-    //geXForm3d_RotateZ(&Xf,  S->Angles.Z * GE_PIOVER180);
-    geXForm3d_SetZRotation(&Xf,  S->Angles.Z * GE_PIOVER180);
-    geXForm3d_RotateX(&Xf, -S->Angles.X * GE_PIOVER180);
-    geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) * GE_PIOVER180);
-    // end change
+	// setup orientation
+	geXForm3d_SetZRotation(&Xf,  S->Angles.Z * GE_PIOVER180);
+	geXForm3d_RotateX(&Xf, -S->Angles.X * GE_PIOVER180);
+	geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) * GE_PIOVER180);
 
 	geVec3d_Copy(&(S->origin), &(Sp.Source));
 
 	geXForm3d_GetIn(&Xf, &In);
-    geVec3d_Inverse(&In);
-    geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
+	geVec3d_Inverse(&In);
+	geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
 
-    effect = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, (void*)&Sp);
 	return effect;
 }
 
@@ -533,12 +522,12 @@ CActorSpout::~CActorSpout()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CActorSpout::Tick(float dwTicksIn)
+void CActorSpout::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	float dwTicks = dwTicksIn*0.001f;
+	dwTicks *= 0.001f;
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
 
@@ -597,7 +586,7 @@ void CActorSpout::Tick(float dwTicksIn)
 					continue;
 				}
 			}
-		    else
+			else
 			{
 				// adjust pause time
 				if(S->PauseTime > 0.0f)
@@ -611,7 +600,7 @@ void CActorSpout::Tick(float dwTicksIn)
 						CCD->EffectManager()->Item_Pause(EFF_ACTORSPRAY, S->EffectList, S->PauseState);
 					}
 				}
-	        }
+			}
 
 			S->origin = S->OriginOffset;
 
@@ -622,15 +611,10 @@ void CActorSpout::Tick(float dwTicksIn)
 				geXForm3d	Xf;
 				ActorSpray	Sp;
 
-				// changed QD 12/15/05
-				// geXForm3d_SetIdentity(&Xf);
-				// geXForm3d_RotateX(&Xf, (S->Angles.X / 57.3f));
-				// geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) / 57.3f);
-				// geXForm3d_RotateZ(&Xf, (S->Angles.Z / 57.3f));
 				geXForm3d_SetZRotation(&Xf,  S->Angles.Z * GE_PIOVER180);
 				geXForm3d_RotateX(&Xf, -S->Angles.X * GE_PIOVER180);
 				geXForm3d_RotateY(&Xf, (S->Angles.Y - 90.0f) * GE_PIOVER180);
-				// end change
+
 				geVec3d_Copy(&(S->origin), &(Sp.Source));
 
 				geXForm3d_GetIn(&Xf, &In);
@@ -650,7 +634,7 @@ void CActorSpout::Tick(float dwTicksIn)
 //	Given a name, locate the desired item in the currently loaded level
 //	..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
-int CActorSpout::LocateEntity(char *szName, void **pEntityData)
+int CActorSpout::LocateEntity(const char *szName, void **pEntityData)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
@@ -663,7 +647,7 @@ int CActorSpout::LocateEntity(char *szName, void **pEntityData)
 
 	// Ok, we have Spout somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ActorSpout *pSource = (ActorSpout*)geEntity_GetUserData(pEntity);
 

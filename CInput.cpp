@@ -53,8 +53,8 @@ void CInput::Default()
 	m_WindowKeys[KEY_BACK] = VK_BACK;			m_RGFKeys[KEY_BACK] = RGF_K_ZOOM_WEAPON;
 	m_WindowKeys[KEY_TAB] = VK_TAB;				m_RGFKeys[KEY_TAB] = RGF_K_HUD;
 	m_WindowKeys[KEY_Q] = 0x51;
-	m_WindowKeys[KEY_W] = 0x57;
-	m_WindowKeys[KEY_E] = 0x45;
+	m_WindowKeys[KEY_W] = 0x57;					m_RGFKeys[KEY_W] = RGF_K_FORWARD;
+	m_WindowKeys[KEY_E] = 0x45;					m_RGFKeys[KEY_E] = RGF_K_JUMP;
 // changed RF064
 	m_WindowKeys[KEY_R] = 0x52;					m_RGFKeys[KEY_R] = RGF_K_RELOAD;
 // end change RF064
@@ -69,9 +69,9 @@ void CInput::Default()
 	m_WindowKeys[KEY_P] = 0x50;					m_RGFKeys[KEY_P] = RGF_K_DROP;
 // end change RF064
 	m_WindowKeys[KEY_RETURN] = VK_RETURN;
-	m_WindowKeys[KEY_A] = 0x41;					m_RGFKeys[KEY_A] = RGF_K_CROUCH;
-	m_WindowKeys[KEY_S] = 0x53;					m_RGFKeys[KEY_S] = RGF_K_FORWARD;
-	m_WindowKeys[KEY_D] = 0x44;					m_RGFKeys[KEY_D] = RGF_K_JUMP;
+	m_WindowKeys[KEY_A] = 0x41;					m_RGFKeys[KEY_A] = RGF_K_LEFT;
+	m_WindowKeys[KEY_S] = 0x53;					m_RGFKeys[KEY_S] = RGF_K_BACKWARD;
+	m_WindowKeys[KEY_D] = 0x44;					m_RGFKeys[KEY_D] = RGF_K_RIGHT;
 	m_WindowKeys[KEY_F] = 0x46;
 	m_WindowKeys[KEY_G] = 0x47;
 	m_WindowKeys[KEY_H] = 0x48;					m_RGFKeys[KEY_H] = RGF_K_HOLSTER_WEAPON;
@@ -79,9 +79,9 @@ void CInput::Default()
 	m_WindowKeys[KEY_K] = 0x4b;
 	m_WindowKeys[KEY_L] = 0x4c;					m_RGFKeys[KEY_L] = RGF_K_LIGHT;
 	m_WindowKeys[KEY_SHIFT] = VK_SHIFT;			m_RGFKeys[KEY_SHIFT] = RGF_K_RUN;
-	m_WindowKeys[KEY_Z] = 0x5a;					m_RGFKeys[KEY_Z] = RGF_K_LEFT;
-	m_WindowKeys[KEY_X] = 0x58;					m_RGFKeys[KEY_X] = RGF_K_BACKWARD;
-	m_WindowKeys[KEY_C] = 0x43;					m_RGFKeys[KEY_C] = RGF_K_RIGHT;
+	m_WindowKeys[KEY_Z] = 0x5a;
+	m_WindowKeys[KEY_X] = 0x58;
+	m_WindowKeys[KEY_C] = 0x43;					m_RGFKeys[KEY_C] = RGF_K_CROUCH;
 	m_WindowKeys[KEY_V] = 0x56;
 	m_WindowKeys[KEY_B] = 0x42;
 	m_WindowKeys[KEY_N] = 0x4e;
@@ -160,11 +160,10 @@ CInput::~CInput()
 /* ------------------------------------------------------------------------------------ */
 //	GetFirstInput
 //
-//	This routine scans the keyboard and the mouse buttons, gathers in
-//	..the current state of the input system and returns the
-//	..FIRST key status from the input stack.  To retrieve the
-//	..rest of the keys in the input stack, use GetNextInput().
-//	..A return value of RGF_NO_INPUT means no user input.
+//	This routine scans the keyboard and the mouse buttons, gathers in the
+//	..current state of the input system and returns the FIRST key status from
+//	..the input stack.  To retrieve the rest of the keys in the input stack,
+//	..use GetNextInput(). A return value of RGF_NO_INPUT means no user input.
 /* ------------------------------------------------------------------------------------ */
 int CInput::GetFirstInput()
 {
@@ -198,12 +197,11 @@ int CInput::GetNextInput()
 /* ------------------------------------------------------------------------------------ */
 //	ScanKeyboardInput
 //
-//	Check the current state of the keyboard and return what's
-//	..happening.  All currently pressed keys are put into the
-//	..'key stack', a FIFO list of pressed keys that can be
-//	..sequentially processed by the caller.  Note that the
-//	..three modifier keys (SHIFT, CONTROL, and ALT) are always
-//	..guaranteed to appear prior to any other keypresses.
+//	Check the current state of the keyboard and return what's happening. All
+//	..currently pressed keys are put into the 'key stack', a FIFO list of
+//	..pressed keys that can be sequentially processed by the caller. Note that
+//	..the three modifier keys (SHIFT, CONTROL, and ALT) are always guaranteed
+//	..to appear prior to any other keypresses.
 /* ------------------------------------------------------------------------------------ */
 void CInput::ScanKeyboardInput()
 {
@@ -228,16 +226,15 @@ void CInput::ScanKeyboardInput()
 	//	..it's not possible to remap the modifier keys, this is
 	//	..by design.
 
-	for(int nTemp=0; nTemp<m_nMappedKeys; nTemp++)
+	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
 	{
-		if((GetAsyncKeyState(m_WindowKeys[nTemp]) & 0x8000) != 0)
-			m_KeyStack[m_KeyStackCount++] = m_RGFKeys[nTemp];
+		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
+			m_KeyStack[m_KeyStackCount++] = m_RGFKeys[nKey];
 	}
 
 	return;
 }
 
-//PWX
 /* ------------------------------------------------------------------------------------ */
 //	GetRGFKey
 /* ------------------------------------------------------------------------------------ */
@@ -247,7 +244,6 @@ int CInput::GetRGFKey(int key)
 	value = m_RGFKeys[key];
 	return value;
 }
-//PWX
 
 /* ------------------------------------------------------------------------------------ */
 //	GetKeyboardInput
@@ -256,15 +252,15 @@ int CInput::GetRGFKey(int key)
 /* ------------------------------------------------------------------------------------ */
 int CInput::GetKeyboardInput()
 {
-	for(int nTemp=0; nTemp<m_nMappedKeys; nTemp++)
+	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
 	{
-		if((GetAsyncKeyState(m_WindowKeys[nTemp]) & 0x8000) != 0)
+		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
 		{
-			while((GetAsyncKeyState(m_WindowKeys[nTemp]) & 0x8000) != 0)
+			while((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
 			{
 			}
 
-			return nTemp;
+			return nKey;
 		}
 	}
 
@@ -279,11 +275,11 @@ int CInput::GetKeyboardInput()
 /* ------------------------------------------------------------------------------------ */
 int CInput::GetKeyboardInputNoWait()
 {
-	for(int nTemp=0; nTemp<m_nMappedKeys; nTemp++)
+	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
 	{
-		if((GetAsyncKeyState(m_WindowKeys[nTemp]) & 0x8000) != 0)
+		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
 		{
-			return nTemp;
+			return nKey;
 		}
 	}
 
@@ -304,6 +300,35 @@ bool CInput::GetKeyCheck(int keytemp)
 }
 // end change RF064
 
+/* ------------------------------------------------------------------------------------ */
+//	GetAscii
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetAscii()
+{
+	for(int nKey=1; nKey<256; nKey++)
+	{
+		if( nKey==VK_MENU || nKey==VK_LMENU || nKey==VK_RMENU ||
+			nKey==VK_SHIFT || nKey==VK_LSHIFT || nKey==VK_RSHIFT ||
+			nKey==VK_CONTROL || nKey==VK_LCONTROL || nKey==VK_RCONTROL ||
+			nKey==VK_ESCAPE)
+			continue;
+
+		if((GetAsyncKeyState(nKey) & 0x8000) != 0)
+		{
+			while((GetAsyncKeyState(nKey) & 0x8000) != 0)
+			{
+			}
+
+			WORD CharValue;
+			BYTE KeyboardState[256];
+			GetKeyboardState(KeyboardState);
+			if(ToAscii(nKey, 0, KeyboardState, &CharValue, 0) > 0)
+				return (unsigned char)CharValue;
+		}
+	}
+
+	return -1;
+}
 
 /* ------------------------------------------------------------------------------------ */
 //	SaveKeymap
@@ -311,24 +336,24 @@ bool CInput::GetKeyCheck(int keytemp)
 //	Take the current Windows-keys to RGF-keys maps and save 'em
 //	..off to a file.
 /* ------------------------------------------------------------------------------------ */
-int CInput::SaveKeymap(char *szFilename)
+int CInput::SaveKeymap(const char *szFilename)
 {
 	FILE *fd = CCD->OpenRFFile(kInstallFile, szFilename, "wb");
 
 	if(!fd)
 	{
 		char szBug[256];
-		sprintf(szBug, "*ERROR* File %s - Line %d: Failed to create keymap file %s\n",
+		sprintf(szBug, "[ERROR] File %s - Line %d: Failed to create keymap file %s\n",
 			__FILE__, __LINE__, szFilename);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;										// Fatal error
 	}
 
 	// QD: why are we saving m_WindowKeys? They do not change...
-	for(int nTemp=0; nTemp<100; nTemp++)
+	for(int nKey=0; nKey<100; nKey++)
 	{
-		fwrite(&m_WindowKeys[nTemp],	sizeof(int), 1, fd);	// Window key out
-		fwrite(&m_RGFKeys[nTemp],		sizeof(int), 1, fd);	// RGF key out
+		fwrite(&m_WindowKeys[nKey],	sizeof(int), 1, fd);	// Window key out
+		fwrite(&m_RGFKeys[nKey],		sizeof(int), 1, fd);	// RGF key out
 	}
 
 	fclose(fd);
@@ -341,17 +366,17 @@ int CInput::SaveKeymap(char *szFilename)
 //
 //	Load a Windows-keys to RGF-keys map from a file into memory.
 /* ------------------------------------------------------------------------------------ */
-int CInput::LoadKeymap(char *szFilename)
+int CInput::LoadKeymap(const char *szFilename)
 {
 	FILE *fd = CCD->OpenRFFile(kInstallFile, szFilename, "rb");
 
 	if(!fd)
 		return RGF_FAILURE;
 
-	for(int nTemp=0; nTemp<100; nTemp++)
+	for(int nKey=0; nKey<100; nKey++)
 	{
-		fread(&m_WindowKeys[nTemp], sizeof(int), 1, fd);	// Window key in
-		fread(&m_RGFKeys[nTemp],	sizeof(int), 1, fd);	// RGF key in
+		fread(&m_WindowKeys[nKey], sizeof(int), 1, fd);	// Window key in
+		fread(&m_RGFKeys[nKey],	sizeof(int), 1, fd);	// RGF key in
 	}
 
 	fclose(fd);
@@ -379,10 +404,10 @@ int CInput::LoadKeymap(char *szFilename)
 /* ------------------------------------------------------------------------------------ */
 int CInput::GetCodes(int action)
 {
-	for(int nTemp=0; nTemp<m_nMappedKeys; nTemp++)
+	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
 	{
-		if(m_RGFKeys[nTemp] == action)
-			return nTemp;
+		if(m_RGFKeys[nKey] == action)
+			return nKey;
 	}
 
 	return -1;
@@ -395,11 +420,11 @@ int CInput::GetCodes(int action)
 /* ------------------------------------------------------------------------------------ */
 void CInput::ClearCodes(int action)
 {
-	for(int nTemp=0; nTemp<m_nMappedKeys; nTemp++)
+	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
 	{
-		if(m_RGFKeys[nTemp] == action)
+		if(m_RGFKeys[nKey] == action)
 		{
-			m_RGFKeys[nTemp] = 0;
+			m_RGFKeys[nKey] = 0;
 			return;
 		}
 	}

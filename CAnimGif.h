@@ -1,4 +1,3 @@
-#include "RabidFramework.h"
 /************************************************************************************//**
  * @file CAnimGif.h
  * @brief Play AnimGif file into Genesis3D engine
@@ -22,16 +21,18 @@ typedef struct
 
 } GIFTABLE;
 
-
+/**
+ * @brief Class to handle the playback of animated GIF files
+ */
 class CAnimGif : public CRGFComponent
 {
 public:
-	CAnimGif(char *szFile, int fileformat);
+	CAnimGif(const char *szFile, int fileformat);
 	~CAnimGif();
 
 	int Play(int XPos, int YPos, bool Center);
 	geBitmap *NextFrame(bool repeat);
-	bool DisplayNextFrameTexture(char *szTextureName, bool FFrame);
+	bool DisplayNextFrameTexture(const char *szTextureName, bool FFrame);
 
 private:
 
@@ -77,7 +78,6 @@ private:
 	geBitmap		*LockedBMP;
 	geBitmap_Info	Info;
 	float			VAnimTime;
-
 };
 
 #endif

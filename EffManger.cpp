@@ -20,7 +20,7 @@ extern geBoolean Particle_SystemRemoveAnchorPoint(Particle_System *ps, geVec3d	*
 extern void Particle_SystemAddParticle(Particle_System *ps, geBitmap *Texture,
 									   const GE_LVertex	*Vert, const geVec3d *AnchorPoint,
 									   geFloat Time, const geVec3d *Velocity,float Scale,
-									   const geVec3d *Gravity, geBoolean Bounce);
+									   const geVec3d *Gravity, geBoolean Bounce, geBoolean UseWind);
 
 // changed RF064
 extern ActorParticle_System*  ActorParticle_SystemCreate();
@@ -163,13 +163,13 @@ EffManager::~EffManager()
 /* ------------------------------------------------------------------------------------ */
 //	Effect Manager Tick  - Process all effects
 /* ------------------------------------------------------------------------------------ */
-void EffManager::Tick(float dwTicksIn)
+void EffManager::Tick(geFloat dwTicks)
 {
 	int i, j, L, SP, Sr, Sn, Bl, C, AS;
 	j = L = SP = Sr = Sn = Bl = C = AS = 0;
 
 	// get time in seconds since last pass
-	float dwTicks = dwTicksIn*0.001f;
+	dwTicks *= 0.001f;
 
 	for(i=0; i<MAX_EFF_ITEMS; i++)
 	{
@@ -739,7 +739,8 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 						&Velocity,
 						Scale,
 						Data->ParticleGravity,
-						Data->Bounce);
+						Data->Bounce,
+						Data->UseWind);
 	}
 
 	// all done
