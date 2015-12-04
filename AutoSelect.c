@@ -15,34 +15,35 @@
 #define MODELIST_MAX_NAME (1000)
 #define MODELIST_ALLOCATION_BLOCK_SIZE (10)
 
-static char *ModeList_640WindowString="640x480 Window";
-static char *ModeList_320WindowString="320x240 Window";
-static char *ModeList_800WindowString="800x600 Window";
+#define MODELIST_MAX_WIDTH		1920
+#define MODELIST_MAX_HEIGHT		1200
+#define MODELIST_MIN_WIDTH		640
+#define MODELIST_MIN_HEIGHT		480
 
+static char *ModeList_1024WindowString = "1024x768 Window";
+static char *ModeList_800WindowString  =  "800x600 Window";
+static char *ModeList_640WindowString  =  "640x480 Window";
 
 #include <stdlib.h>  //	qsort
 #include <assert.h>
 #include <Windows.h>
 
-
 #include "AutoSelect.h"
-
 #include "ErrorLog.h"
 #include "Ram.h"
-
 #include "resource.h"
 
 
 /* ------------------------------------------------------------------------------------ */
 //	AutoSelect_Compare
 /* ------------------------------------------------------------------------------------ */
-static int AutoSelect_Compare( const void *arg1, const void *arg2 )
+static int AutoSelect_Compare(const void *arg1, const void *arg2)
 {
 	/*	used for quicksort comparison.
 		returns <0 if arg1 is 'smaller than' arg2
 		returns >0 if arg1 is 'greater than' arg2
 		returns =0 if arg1 is 'the same as'  arg2
-		   since the list is sorted by most desirable mode/resolution first, the better mode is 'smaller than'
+		since the list is sorted by most desirable mode/resolution first, the better mode is 'smaller than'
 	*/
 	#define A1_BETTER  (-1)
 	#define A2_BETTER  ( 1)
@@ -52,33 +53,33 @@ static int AutoSelect_Compare( const void *arg1, const void *arg2 )
 	ModeList *A1,*A2;
 	assert(arg1);
 	assert(arg2);
-	A1 = (ModeList *)arg1;
-	A2 = (ModeList *)arg2;
+	A1 = (ModeList*)arg1;
+	A2 = (ModeList*)arg2;
 
-	//	sort by DriverType		 (smaller enum value first)
-	//	then by windowed
-	//	then by Width             (larger width first)
-	//	then by Height            (larger height first)
+	// sort by DriverType		(smaller enum value first)
+	// then by windowed
+	// then by Width			(larger width first)
+	// then by Height			(larger height first)
 
-	if		( A1->DriverType < A2->DriverType )
+	if		(A1->DriverType < A2->DriverType)
 		return A1_BETTER;
-	else if ( A2->DriverType < A1->DriverType )
+	else if (A2->DriverType < A1->DriverType)
 		return A2_BETTER;
 
-	if		( !A1->InAWindow && A2->InAWindow )
+	if		(!A1->InAWindow && A2->InAWindow)
 		return A1_BETTER;
 
-	if		( A1->InAWindow && !A2->InAWindow )
+	if		(A1->InAWindow && !A2->InAWindow)
 		return A2_BETTER;
 
-	if      ( A1->Width > A2->Width )
+	if      (A1->Width > A2->Width)
 		return A1_BETTER;
-	else if ( A2->Width > A1->Width )
+	else if (A2->Width > A1->Width)
 		return A2_BETTER;
 
-	if      ( A1->Height > A2->Height )
+	if      (A1->Height > A2->Height)
 		return A1_BETTER;
-	else if ( A2->Height > A1->Height )
+	else if (A2->Height > A1->Height)
 		return A2_BETTER;
 
 	return TIE;
@@ -89,7 +90,7 @@ static int AutoSelect_Compare( const void *arg1, const void *arg2 )
 /* ------------------------------------------------------------------------------------ */
 void AutoSelect_SortDriverList(ModeList *DriverList, int ListLength)
 {
-	qsort( DriverList, ListLength, sizeof(DriverList[0]), AutoSelect_Compare);
+	qsort(DriverList, ListLength, sizeof(DriverList[0]), AutoSelect_Compare);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -106,7 +107,7 @@ geBoolean AutoSelect_PickDriver(HWND hWnd, geEngine *Engine,ModeList *DriverList
 
 	for(i=0; i<ListLength; i++)
 	{
-		if (DriverList[i].Evaluation == MODELIST_EVALUATED_OK)
+		if(DriverList[i].Evaluation == MODELIST_EVALUATED_OK)
 		{
 			*Selection = i;
 			return GE_TRUE;
@@ -133,17 +134,17 @@ void ModeList_Destroy(ModeList *List)
 /* ------------------------------------------------------------------------------------ */
 //	ModeList_Create
 /* ------------------------------------------------------------------------------------ */
-ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_DrvSys,
+ModeList *ModeList_Create(geEngine *Engine, int *ListLength, geDriver_System *m_DrvSys,
 						  geDriver *m_Driver, geDriver_Mode *m_Mode)
 {
-	ModeList	*DriverList=NULL;
+	ModeList	*DriverList = NULL;
 	ModeList	*NewDriverList;
 	int			Allocated = 0;
 	int			Needed    = 0;
 	const char	*DriverNamePtr;
 	const char	*ModeNamePtr;
-	char		 DriverName[MODELIST_MAX_NAME];
-	char		 ModeName[MODELIST_MAX_NAME];
+	char		DriverName[MODELIST_MAX_NAME];
+	char		ModeName[MODELIST_MAX_NAME];
 
 	*ListLength = 0;
 
@@ -151,7 +152,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 
 	while(m_Driver != NULL)
 	{
-		ModeList *	dinfo;
+		ModeList *dinfo;
 		ModeList_DriverType DriverType;
 
 		if(geDriver_GetName(m_Driver, &DriverNamePtr) == GE_FALSE)
@@ -160,24 +161,21 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 			goto ModeList_Exit;
 		}
 
-		strncpy(DriverName,DriverNamePtr, MODELIST_MAX_NAME);
+		strncpy(DriverName, DriverNamePtr, MODELIST_MAX_NAME);
 		DriverName[MODELIST_MAX_NAME-1] = 0;		// just in case
 		_strupr(DriverName);
 
 		if(strstr(DriverName, "D3D") != NULL)
 		{
-			{
-				if(strstr(DriverName, "PRIMARY") != NULL)
-					DriverType = MODELIST_TYPE_D3D_PRIMARY;
-				else
-					DriverType = MODELIST_TYPE_D3D_SECONDARY;
-			}
+			if(strstr(DriverName, "PRIMARY") != NULL)
+				DriverType = MODELIST_TYPE_D3D_PRIMARY;
+			else
+				DriverType = MODELIST_TYPE_D3D_SECONDARY;
 		}
 		else
 		{
 			DriverType = MODELIST_TYPE_UNKNOWN;
 		}
-
 
 		m_Mode = geDriver_GetNextMode(m_Driver, NULL);
 
@@ -194,7 +192,7 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 			if(Allocated<Needed)
 			{
 				Allocated += MODELIST_ALLOCATION_BLOCK_SIZE;
-				NewDriverList = geRam_Realloc(DriverList,sizeof(ModeList) * Allocated);
+				NewDriverList = geRam_Realloc(DriverList, sizeof(ModeList) * Allocated);
 
 				if(NewDriverList == NULL)
 				{
@@ -207,18 +205,19 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 
 			dinfo = &(DriverList[Needed-1]);
 			dinfo->DriverNamePtr = DriverNamePtr;
-			dinfo->ModeNamePtr   = ModeNamePtr;
+			dinfo->ModeNamePtr = ModeNamePtr;
 			dinfo->Driver = m_Driver;
 			dinfo->Mode = m_Mode;
 			dinfo->DriverType = DriverType;
 
 			if(!geDriver_ModeGetWidthHeight(m_Mode, &(dinfo->Width), &(dinfo->Height)))
 			{
-				geErrorLog_AddString(-1, "AutoSelect: Failed to get mode width & height.  (recovering)", ModeNamePtr);
+				geErrorLog_AddString(-1, "AutoSelect: Failed to get mode width & height. (recovering)", ModeNamePtr);
 				dinfo->Evaluation = MODELIST_EVALUATED_TRIED_FAILED;
 			}
 
-			if((dinfo->Width <= 1024) && (dinfo->Height <= 768) && (dinfo->Width > 320) && (dinfo->Height > 240))
+			if((dinfo->Width <= MODELIST_MAX_WIDTH) && (dinfo->Height <= MODELIST_MAX_HEIGHT)
+				&& (dinfo->Width >= MODELIST_MIN_WIDTH) && (dinfo->Height >= MODELIST_MIN_HEIGHT))
 			{
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 			}
@@ -234,13 +233,13 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 
 			if((dinfo->Width == -1) && (dinfo->Height == -1))
 			{
-				//	add some 'virtual modes'  for software window preselected resolutions
+				//	add some 'virtual modes' for software window preselected resolutions
 
 				dinfo->InAWindow = GE_TRUE;
-				dinfo->ModeNamePtr   = ModeList_800WindowString;
-				dinfo->Width = 800;
-				dinfo->Height = 600;
-				dinfo->Evaluation = MODELIST_EVALUATED_UNDESIRABLE;
+				dinfo->ModeNamePtr = ModeList_1024WindowString;
+				dinfo->Width = 1024;
+				dinfo->Height = 768;
+				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 
 				Needed++;
 
@@ -256,23 +255,22 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 					}
 
 					DriverList = NewDriverList;
-
 				}
 
 				dinfo = &(DriverList[Needed-1]);
 				dinfo->InAWindow = GE_TRUE;
 				dinfo->DriverNamePtr = DriverNamePtr;
-				dinfo->ModeNamePtr   = ModeList_640WindowString;
+				dinfo->ModeNamePtr   = ModeList_800WindowString;
 				dinfo->Driver = m_Driver;
 				dinfo->Mode = m_Mode;
 				dinfo->DriverType = DriverType;
-				dinfo->Width = 640;
-				dinfo->Height = 480;
+				dinfo->Width = 800;
+				dinfo->Height = 600;
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 
 				Needed++;
 
-				if(Allocated<Needed)
+				if(Allocated < Needed)
 				{
 					Allocated += MODELIST_ALLOCATION_BLOCK_SIZE;
 					NewDriverList = geRam_Realloc(DriverList, sizeof(ModeList) * Allocated);
@@ -284,18 +282,17 @@ ModeList *ModeList_Create(geEngine *Engine,int *ListLength, geDriver_System *m_D
 					}
 
 					DriverList = NewDriverList;
-
 				}
 
 				dinfo = &(DriverList[Needed-1]);
 				dinfo->InAWindow = GE_TRUE;
 				dinfo->DriverNamePtr = DriverNamePtr;
-				dinfo->ModeNamePtr   = ModeList_320WindowString;
+				dinfo->ModeNamePtr   = ModeList_640WindowString;
 				dinfo->Driver = m_Driver;
 				dinfo->Mode = m_Mode;
 				dinfo->DriverType = DriverType;
-				dinfo->Width = 320;
-				dinfo->Height = 240;
+				dinfo->Width = 640;
+				dinfo->Height = 480;
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 			}
 			else
@@ -359,7 +356,7 @@ static DrvList_LocalStruct DrvList_Locals;
 /* ------------------------------------------------------------------------------------ */
 //	DrvList_FillModeList
 /* ------------------------------------------------------------------------------------ */
-static geBoolean DrvList_FillModeList(HWND hwndDlg,int DriverNumber,DrvList_LocalStruct *DL)
+static geBoolean DrvList_FillModeList(HWND hwndDlg, int DriverNumber, DrvList_LocalStruct *DL)
 {
 	int		i;
 	int		MaxCX = 0;
@@ -379,13 +376,16 @@ static geBoolean DrvList_FillModeList(HWND hwndDlg,int DriverNumber,DrvList_Loca
 
 	for(i=0; i<DL->ModeListLength; i++)
 	{
+		if(DL->ModeList[i].Evaluation != MODELIST_EVALUATED_OK)
+			continue;
+
 		if(DL->IndexTable[DriverNumber] == DL->ModeList[i].Driver)
 		{
 			int index;
 			index = SendDlgItemMessage(hwndDlg, IDC_DRIVERLIST2, LB_ADDSTRING, (WPARAM)0,
 										(LPARAM)(DL->ModeList[i].ModeNamePtr));
 
-			SendDlgItemMessage(hwndDlg, IDC_DRIVERLIST2, LB_SETITEMDATA, (WPARAM)index,(LPARAM)i);
+			SendDlgItemMessage(hwndDlg, IDC_DRIVERLIST2, LB_SETITEMDATA, (WPARAM)index, (LPARAM)i);
 			GetTextExtentPoint32(hDC, DL->ModeList[i].ModeNamePtr, strlen(DL->ModeList[i].ModeNamePtr), &extents);
 
 			if(extents.cx > MaxCX)
@@ -407,7 +407,7 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
 	DrvList_LocalStruct *DL = &DrvList_Locals;
 
-	switch	(uMsg)
+	switch(uMsg)
 	{
 	case WM_INITDIALOG:
 		{
@@ -416,7 +416,7 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 			int		MaxCX;
 			SIZE	extents;
 			int		DriverNumber;
-			int		i,j;
+			int		i, j;
 
 			DriverListBox = GetDlgItem(hwndDlg, IDC_DRIVERLIST);
 			hDC = GetDC(DriverListBox);
@@ -425,11 +425,11 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 			DriverNumber = 0;
 
-			for(i=0; i<DL->ModeListLength; i++)
+			for(i=0; i<DL->ModeListLength; ++i)
 			{
 				int AlreadyAdded=0;
 
-				for(j=0; j<i; j++)
+				for(j=0; j<i; ++j)
 				{
 					if(DL->ModeList[j].Driver == DL->ModeList[i].Driver)	// only add one entry for each driver.
 						AlreadyAdded = 1;
@@ -448,8 +448,7 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 						MaxCX = extents.cx;
 
 					DL->IndexTable[DriverNumber] = DL->ModeList[i].Driver;
-					DriverNumber ++;
-
+					++DriverNumber;
 				}
 
 				if(DriverNumber >= DRVLIST_MAX_DISPLAY_MODES)
@@ -463,11 +462,11 @@ static BOOL	CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 			ReleaseDC(DriverListBox, hDC);
 
-			DrvList_FillModeList(hwndDlg,0,DL);
+			DrvList_FillModeList(hwndDlg, 0, DL);
 
 			// position the dialog in the center of the desktop and set it as topmost window
 			{
-				RECT	ScreenRect, DlgRect;
+				RECT ScreenRect, DlgRect;
 				GetWindowRect(GetDesktopWindow(), &ScreenRect);
 				GetWindowRect(hwndDlg, &DlgRect);
 
@@ -545,10 +544,9 @@ geBoolean DrvList_PickDriver(HANDLE hInstance, HWND hwndParent,
 	DrvList_LocalStruct *DL = &DrvList_Locals;
 
 	assert(hInstance != 0);
-	assert(List  != NULL);
+	assert(List != NULL);
 	assert(ListLength >= 0);
 	assert(ListSelection != NULL);
-
 
 	DL->ModeList			= List;
 	DL->ModeListLength		= ListLength;
@@ -574,8 +572,7 @@ geBoolean DrvList_PickDriver(HANDLE hInstance, HWND hwndParent,
 /* ------------------------------------------------------------------------------------ */
 //	ResetMainWindow
 /* ------------------------------------------------------------------------------------ */
-// Dee 12-07-00
-// Add to support driver and mode changes on the fly
+// Support driver and mode changes on the fly
 void ResetMainWindow(HWND hWnd, int32 Width, int32 Height)
 {
 	RECT ScreenRect;
@@ -592,7 +589,7 @@ void ResetMainWindow(HWND hWnd, int32 Width, int32 Height)
 		ClientRect.top = 0;
 		ClientRect.right = Width - 1;
 		ClientRect.bottom = Height - 1;
-		AdjustWindowRect (&ClientRect, Style, FALSE);	// FALSE == No menu
+		AdjustWindowRect(&ClientRect, Style, FALSE);	// FALSE == No menu
 
 		{
 			int WindowWidth = ClientRect.right - ClientRect.left + 1;
@@ -612,6 +609,5 @@ void ResetMainWindow(HWND hWnd, int32 Width, int32 Height)
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
 }
-// End Dee
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
