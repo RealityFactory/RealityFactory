@@ -28,11 +28,11 @@ typedef enum
 	ENTITY_VEHICLE,				///< Vehicle entity
 	ENTITY_ATTRIBUTE_MOD,		///< Attribute modifier (powerup/ammo/health)
 	ENTITY_LIQUID,
-// changed RF064
 	ENTITY_OVERLAY,
-// end change RF064
 	ENTITY_GENERIC				///< Generic "thing"
 } RGFEntityTypes;
+
+typedef unsigned char utf8;
 
 #endif
 
