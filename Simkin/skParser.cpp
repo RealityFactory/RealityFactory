@@ -262,12 +262,7 @@ int skParser::lex(void * lvalp,void * llocp)
     if (c=='"'){
       while(!eof()){
         c=nextChar();
-		////////////////////////////////////////////////////
-		// This mod allows for backslashes in a string
-		/////////////////////////////////////////////////////
-       // RF MOD - Pickles Oct 04
-		//////////////////////////////////////////////
-	/*	if (c=='\\'){
+        if (c=='\\'){
           c=nextChar();
           if (c=='n')
             c='\n';
@@ -275,8 +270,6 @@ int skParser::lex(void * lvalp,void * llocp)
             if (c=='t')
               c='\t';
         }else
-		*/
-		/////////////////////////////////////////
           if (c=='"')
             break;
         if (yypos<MAXYYTEXT-2)
@@ -291,7 +284,7 @@ int skParser::lex(void * lvalp,void * llocp)
       *s=m_LexBuffer;
       yylval->string=s;
       DBN("string",*yylval->string);
-      break;    
+      break;
     }
     // Integer or float----------------------------------
     if (ISDIGIT(c)){
@@ -308,21 +301,21 @@ int skParser::lex(void * lvalp,void * llocp)
       bool floating=false;
 #endif
       state = NUM_INTEGER;
-      while (state != NUM_END) {
-        switch (state) {
+      while (state != NUM_END){
+        switch (state){
         case NUM_INTEGER:
-          if (ISDIGIT(c)) 
+          if (ISDIGIT(c))
             m_LexBuffer[yypos++]=c;
 #ifndef USE_FLOATING_POINT
-	  else
-	    state=NUM_END;
-	  break;
+          else
+            state=NUM_END;
+          break;
 #else
-          else if (c == '.') {
+          else if (c == '.'){
             m_LexBuffer[yypos++]=c;
             state = NUM_FRACTION;
             floating=true;
-          } else if (c == 'e' || c == 'E') {
+          } else if (c == 'e' || c == 'E'){
             floating=true;
             m_LexBuffer[yypos++]=c;
             state = NUM_EXPONENT_SIGN;
@@ -330,16 +323,16 @@ int skParser::lex(void * lvalp,void * llocp)
             state = NUM_END;
           break;
         case NUM_FRACTION:
-          if (ISDIGIT(c)) 
+          if (ISDIGIT(c))
             m_LexBuffer[yypos++]=c;
-          else if (c == 'e' || c == 'E') {
+          else if (c == 'e' || c == 'E'){
             m_LexBuffer[yypos++]=c;
             state = NUM_EXPONENT_SIGN;
           } else
             state = NUM_END;
           break;
         case NUM_EXPONENT_SIGN:
-          if (c == '+' || c == '-' || ISDIGIT(c)) {
+          if (c == '+' || c == '-' || ISDIGIT(c)){
             m_LexBuffer[yypos++]=c;
             state = NUM_EXPONENT;
           }else
@@ -399,8 +392,8 @@ int skParser::lex(void * lvalp,void * llocp)
           }while (!eof());
           yylloc->first_line=m_LineNum;
           continue;
-        }else
-          putbackchar(c1);
+      }else
+        putbackchar(c1);
       break;
     }
     // Default case
@@ -580,7 +573,7 @@ int yylex(YYSTYPE * lvalp, void * yylloc,void* context)
 //------------------------------------------
 void real_yyerror(Char *  msg, void* context)
 //------------------------------------------
-{ 
+{
   // this global function is called by the generated yyparse() function if there is an error
   ((skParser *)context)->appendError(skSTR("Parse error"));
 }

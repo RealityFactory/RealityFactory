@@ -142,11 +142,11 @@ inline void skRValue::deRef()
     m_Value.m_ObjectRef->m_RefCount--;
     if (m_Value.m_ObjectRef->m_RefCount==0){
       if (m_Value.m_ObjectRef->m_Created)
-	delete m_Value.m_ObjectRef->m_Object;
-      delete m_Value.m_ObjectRef;	
+        delete m_Value.m_ObjectRef->m_Object;
+      delete m_Value.m_ObjectRef;
       m_Value.m_ObjectRef=0;
-    }	
-  }	
+    }
+  }
 }
 #ifdef __SYMBIAN32__
 //-------------------------------------------------------------------------

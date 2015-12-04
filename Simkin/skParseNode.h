@@ -610,7 +610,7 @@ class  skCaseListNode : public skParseNode {
     m_Cases.append(expr);
   }
   inline int numCases(){
-    return m_Cases.entries();;
+    return m_Cases.entries();
   }
   inline void clear(){
     m_Cases.clear();

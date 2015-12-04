@@ -35,10 +35,8 @@
 #endif
 
 #endif
-// changed QD 02/01/07
-//#include <string.h>
+
 #include <string>
-// end change
 
 #ifdef UNICODE_STRINGS
 typedef wchar_t Char;

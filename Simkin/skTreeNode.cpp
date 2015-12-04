@@ -1,5 +1,5 @@
 /*
-  copyright 1996-2003
+  copyright 1996-2007
   Simon Whiteside
 
   This library is free software; you can redistribute it and/or
@@ -16,13 +16,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-  $Id: skTreeNode.cpp,v 1.43 2003/11/20 16:24:22 sdw Exp $
+  $Id: skTreeNode.cpp,v 1.1.1.1 2007/05/02 21:08:29 swhiteside Exp $
 */
 
-// changed QD 02/01/07
-//#include <string.h>
 #include <string>
-// end change
 #include "skTreeNode.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -394,13 +391,6 @@ EXPORT_C void skTreeNode::write(skOutputDestination& out,USize tabstops,bool inc
   skString data=m_Data;
   if (data.length()){
     SAVE_VARIABLE(data);
-    // make sure the special characters \ [ and ] are escaped
-    if (data.indexOf('\\')!=-1)
-      data=m_Data.replace(skSTR("\\"),skSTR("\\\\"));
-    if (data.indexOf(']')!=-1)
-      data=data.replace(skSTR("]"),skSTR("\\]"));
-    if (data.indexOf('[')!=-1)
-      data=data.replace(skSTR("["),skSTR("\\["));
     out.write(s_left_bracket);
     out.write(data);
     out.write(s_right_bracket);
@@ -840,13 +830,8 @@ skTreeNodeReader::Lexeme skTreeNodeReader::lex()
           switch(c){
           case EOF:
             m_LastLexeme=L_ERROR;
-            error(skSTR("Expected EOF in text string"));
+            error(skSTR("Unexpected EOF in text string"));
             textloop=false;
-            break;
-          case '\\':
-            // let any character through
-            c=m_In->get();
-            addToLexText(c);
             break;
           case '[':
             num_braces++;
@@ -867,28 +852,52 @@ skTreeNodeReader::Lexeme skTreeNodeReader::lex()
         break;  
       }
       case '/':
-      case '.':
-      case '\\':
-      case '~':
       case '_':
-      case '-':
-      case ':':
       default:
-        if (c==':' || c=='-' || c=='.' || c=='/' || c=='\\' || c=='_' || c=='~' || ISALNUM(c)){
-          m_LastLexeme=L_IDENT;
-          addToLexText(c);
-          int identloop=true;
-          while (identloop && !m_In->eof()){
-            int peeked=m_In->peek();
-            if (ISALNUM(peeked) || peeked=='\\' 
-                || peeked=='_' || peeked=='~' || peeked=='-' 
-                || peeked=='/' || peeked=='.' || peeked==':'){
-              c=m_In->get();
-              addToLexText(c);
-            }else
-              identloop=false;
+        if (c=='$' || c=='@' || c=='/' || c=='_' || ISALNUM(c)){
+          // comment
+          if (c=='/' && m_In->peek()=='/'){
+            while (c != '\n' && !m_In->eof())
+              c = m_In->get();
+            m_LineNum++;
+          }else
+            if (c=='/' && m_In->peek()=='*'){
+              m_In->get();
+              int commentloop=true;
+              while (commentloop && !m_In->eof()){
+                c = m_In->get();
+                switch (c){
+                case EOF:
+                  m_LastLexeme = L_ERROR;
+                  error(skSTR("Unexpected EOF in comment"));
+                  commentloop=false;
+                  break;
+                case '\n':
+                  m_LineNum++;
+                  break;
+                case '*':
+                  if (m_In->peek()=='/'){
+                    c=m_In->get();
+                    commentloop=false;
+                  }
+                  break;
+                }
+              }
+          }else{
+            m_LastLexeme=L_IDENT;
+            addToLexText(c);
+            int identloop=true;
+            while (identloop && !m_In->eof()){
+              int peeked=m_In->peek();
+              if (ISALNUM(peeked) || peeked=='@'
+                  || peeked=='_' || peeked=='$'){
+                c=m_In->get();
+                addToLexText(c);
+              }else
+                identloop=false;
+            }
+            loop=false;
           }
-          loop=false;   
         }else
           if (!ISSPACE(c)){
             m_LastLexeme=L_ERROR;

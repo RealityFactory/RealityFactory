@@ -24,9 +24,6 @@
 
 #include "skString.h"
 #ifndef __SYMBIAN32__
-// changed QD 02/01/07
-//#include <string.h>
-// end change
 #include <ctype.h>
 #endif
 

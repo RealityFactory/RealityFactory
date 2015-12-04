@@ -19,13 +19,11 @@
   $Id: skRValue.cpp,v 1.23 2004/05/13 14:41:26 sdw Exp $
 */
 #ifdef STREAMS_ENABLED
-// changed QD 02/01/07
 #ifdef STL_STREAMS
 #include <ostream>
 #else
 #include <ostream.h>
 #endif
-// end change
 #endif
 #include "skRValue.h"
 #include "skExecutable.h"
