@@ -2817,9 +2817,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// SetCameraWindow(float FOV, bool UseWidhtHeight, Left, Top, Width/Right, Height/Bottom);
 			// Sets the size + zoom factor of the real engine camera
 
-			if(arguments.entries() > 1)
+			PARMCHECK(1);
+
+			if(arguments.entries() > 5)
 			{
-				PARMCHECK(6);
 				geRect Rect;
 				Rect.Left = arguments[2].intValue();
 				Rect.Top = arguments[3].intValue();
@@ -2839,7 +2840,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			else
 			{
-				PARMCHECK(1);
 				CCD->CameraManager()->SetFOV(arguments[0].floatValue());
 			}
 

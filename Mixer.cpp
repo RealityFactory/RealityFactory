@@ -23,24 +23,17 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-/* ------------------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------------------ */
-void CMixer::ZeroAll()
-{
-	m_HMixer = NULL;
-	m_iMixerControlID = 0;
-	mmr = MMSYSERR_NOERROR;
-	m_dwChannels = 0;
-	m_bSuccess = FALSE;
-}
 
 /* ------------------------------------------------------------------------------------ */
 //	Construction/Destruction
 /* ------------------------------------------------------------------------------------ */
-CMixer::CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType)
+CMixer::CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType) :
+	m_HMixer(NULL),
+	m_iMixerControlID(0),
+	mmr(MMSYSERR_NOERROR),
+	m_dwChannels(0),
+	m_bSuccess(FALSE)
 {
-	ZeroAll();
-
 	if(mixerGetNumDevs() < 1)
 		return;
 
@@ -56,7 +49,7 @@ CMixer::CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType)
 	// DstType
 	mxl.dwComponentType = DstType;
 
-	if(mixerGetLineInfo((HMIXEROBJ)m_HMixer, &mxl, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
+	if(mixerGetLineInfo(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxl, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
 		return;
 
 	// SrcType
@@ -65,13 +58,13 @@ CMixer::CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType)
 		UINT nconn = mxl.cConnections;
 		DWORD DstIndex = mxl.dwDestination;
 
-		for(UINT j=0; j<nconn; j++)
+		for(UINT j=0; j<nconn; ++j)
 		{
 			mxl.cbStruct = sizeof(MIXERLINE);
 			mxl.dwSource = j;
 			mxl.dwDestination = DstIndex;
 
-			if(mixerGetLineInfo((HMIXEROBJ)m_HMixer, &mxl, MIXER_GETLINEINFOF_SOURCE) != MMSYSERR_NOERROR)
+			if(mixerGetLineInfo(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxl, MIXER_GETLINEINFOF_SOURCE) != MMSYSERR_NOERROR)
 				return;
 
 			if(mxl.dwComponentType == SrcType)
@@ -90,28 +83,31 @@ CMixer::CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType)
 	mxlc.cbmxctrl		= sizeof(MIXERCONTROL);
 	mxlc.pamxctrl		= &mxc;
 
-	if(mixerGetLineControls((HMIXEROBJ)m_HMixer, &mxlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
+	if(mixerGetLineControls(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
 		return;
 
 	m_iMixerControlID = mxc.dwControlID;
 	m_dwChannels = mxl.cChannels;
 
-	if(m_dwChannels > 0)
-		m_dwChannels--;
+	if(MIXERCONTROL_CONTROLF_UNIFORM & mxc.fdwControl)
+		m_dwChannels = 1;
 
 	m_bSuccess = TRUE;
 }
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-CMixer::CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType)
+CMixer::CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType) :
+	m_HMixer(NULL),
+	m_iMixerControlID(0),
+	mmr(MMSYSERR_NOERROR),
+	m_dwChannels(0),
+	m_bSuccess(FALSE)
 {
-	ZeroAll();
-
 	if(mixerGetNumDevs() < 1)
 		return;
 
-	mmr = mixerOpen(&m_HMixer, 0, (DWORD)hwnd, 0L, CALLBACK_WINDOW);
+	mmr = mixerOpen(&m_HMixer, 0, reinterpret_cast<DWORD>(hwnd), 0L, CALLBACK_WINDOW);
 
 	if(mmr != MMSYSERR_NOERROR)
 		return;
@@ -123,7 +119,7 @@ CMixer::CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType)
 	// DstType
 	mxl.dwComponentType = DstType;
 
-	if(mixerGetLineInfo((HMIXEROBJ)m_HMixer, &mxl, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
+	if(mixerGetLineInfo(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxl, MIXER_OBJECTF_HMIXER | MIXER_GETLINEINFOF_COMPONENTTYPE) != MMSYSERR_NOERROR)
 		return;
 
 	// SrcType
@@ -132,13 +128,13 @@ CMixer::CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType)
 		UINT nconn = mxl.cConnections;
 		DWORD DstIndex = mxl.dwDestination;
 
-		for(UINT j=0; j<nconn; j++)
+		for(UINT j=0; j<nconn; ++j)
 		{
 			mxl.cbStruct = sizeof(MIXERLINE);
 			mxl.dwSource = j;
 			mxl.dwDestination = DstIndex;
 
-			if(mixerGetLineInfo((HMIXEROBJ)m_HMixer, &mxl, MIXER_GETLINEINFOF_SOURCE) != MMSYSERR_NOERROR)
+			if(mixerGetLineInfo(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxl, MIXER_GETLINEINFOF_SOURCE) != MMSYSERR_NOERROR)
 				return;
 
 			if(mxl.dwComponentType == SrcType)
@@ -157,14 +153,14 @@ CMixer::CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType)
 	mxlc.cbmxctrl		= sizeof(MIXERCONTROL);
 	mxlc.pamxctrl		= &mxc;
 
-	if(mixerGetLineControls((HMIXEROBJ)m_HMixer, &mxlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
+	if(mixerGetLineControls(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxlc, MIXER_OBJECTF_HMIXER | MIXER_GETLINECONTROLSF_ONEBYTYPE) != MMSYSERR_NOERROR)
 		return;
 
 	m_iMixerControlID = mxc.dwControlID;
 	m_dwChannels = mxl.cChannels;
 
-	if(m_dwChannels > 0)
-		m_dwChannels--;
+	if(MIXERCONTROL_CONTROLF_UNIFORM & mxc.fdwControl)
+		m_dwChannels = 1;
 
 	m_bSuccess = TRUE;
 }
@@ -191,13 +187,12 @@ DWORD CMixer::GetControlValue()
 
 	mxcd.cbStruct		= sizeof(mxcd);
 	mxcd.dwControlID	= m_iMixerControlID;
-	//mxcd.cChannels	= m_dwChannels; // after removing MFC from RF this code crashes on some systems
-	mxcd.cChannels		= 1; // is this the correct fix?
+	mxcd.cChannels		= m_dwChannels;
 	mxcd.cMultipleItems = 0;
 	mxcd.cbDetails		= sizeof(mxcd_u);
 	mxcd.paDetails		= &mxcd_u;
 
-	mmr = mixerGetControlDetails((HMIXEROBJ)m_HMixer, &mxcd, 0L);
+	mmr = mixerGetControlDetails(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxcd, 0L);
 
 	if(MMSYSERR_NOERROR != mmr)
 		return 0;
@@ -220,18 +215,17 @@ BOOL CMixer::SetControlValue(DWORD dw)
 
 	mxcd.cbStruct		= sizeof(mxcd);
 	mxcd.dwControlID	= m_iMixerControlID;
-	//mxcd.cChannels	= m_dwChannels; // after removing MFC from RF this code crashes on some systems
-	mxcd.cChannels		= 1; // is this the correct fix?
+	mxcd.cChannels		= m_dwChannels;
 	mxcd.cMultipleItems = 0;
 	mxcd.cbDetails		= sizeof(mxcd_u);
 	mxcd.paDetails		= &mxcd_u;
 
-	mmr = mixerGetControlDetails((HMIXEROBJ)m_HMixer, &mxcd, 0L);
+	mmr = mixerGetControlDetails(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxcd, 0L);
 
 	if(MMSYSERR_NOERROR != mmr) return m_bSuccess;
 
 	mxcd_u.dwValue  = dw;
-	mmr = mixerSetControlDetails((HMIXEROBJ)m_HMixer, &mxcd, 0L);
+	mmr = mixerSetControlDetails(reinterpret_cast<HMIXEROBJ>(m_HMixer), &mxcd, 0L);
 
 	if(MMSYSERR_NOERROR != mmr)
 		return m_bSuccess;

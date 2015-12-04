@@ -24,24 +24,28 @@
  */
 class CMixer
 {
+public:
+	CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType);
+	CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType);
+	virtual ~CMixer();
+
+	BOOL IsOk() { return m_bSuccess; }
+
+	BOOL On();
+
+	BOOL Off();
+
+	DWORD GetControlValue();
+
+	BOOL SetControlValue(DWORD dw);
+
 protected:
 	HMIXER m_HMixer;
 	INT m_iMixerControlID;
 	MMRESULT mmr;
 	DWORD m_dwChannels;
 	BOOL m_bSuccess;
-	void ZeroAll();
 
-public:
-	BOOL IsOk() {return m_bSuccess;};
-	BOOL On();
-	BOOL Off();
-	DWORD GetControlValue();
-	BOOL SetControlValue(DWORD dw);
-
-	CMixer(DWORD DstType, DWORD SrcType, DWORD ControlType);
-	CMixer(HWND hwnd, DWORD DstType, DWORD SrcType, DWORD ControlType);
-	virtual ~CMixer();
 };
 
 #endif // !defined(__RGF_MIXER_H_)
