@@ -43,7 +43,7 @@ CMorph::CMorph()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		EM_Morph *pMorph = (EM_Morph*)geEntity_GetUserData(pEntity);
+		EM_Morph *pMorph = static_cast<EM_Morph*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pMorph->szEntityName))
 		{
@@ -293,7 +293,7 @@ void CMorph::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		EM_Morph *pMorph = (EM_Morph*)geEntity_GetUserData(pEntity);
+		EM_Morph *pMorph = static_cast<EM_Morph*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pMorph->CStartBmp || !pMorph->CEndBmp|| !pMorph->CMorphBmp)
@@ -352,7 +352,7 @@ void CMorph::Tick(geFloat dwTicks)
 			pMorph->First = GE_FALSE;
 
 			// setup frac
-			EndFrac = (float)pMorph->CurStage / ((float)pMorph->MorphStages - 1.0f);
+			EndFrac = static_cast<float>(pMorph->CurStage) / static_cast<float>(pMorph->MorphStages - 1);
 
 			// lock start bitmap for reading
 			if(geBitmap_LockForRead(pMorph->CStartBmp, &StartLocked, 0, 0, GE_PIXELFORMAT_24BIT_RGB, GE_FALSE, 255) == GE_FALSE)
@@ -361,7 +361,7 @@ void CMorph::Tick(geFloat dwTicks)
 			if(geBitmap_GetInfo(StartLocked, &StartInfo, NULL) == GE_FALSE)
 				goto ALLDONE;
 
-			Start = (unsigned char*)geBitmap_GetBits(StartLocked);
+			Start = static_cast<uint8*>(geBitmap_GetBits(StartLocked));
 
 			if(!Start)	goto ALLDONE;
 
@@ -372,7 +372,7 @@ void CMorph::Tick(geFloat dwTicks)
 			if(geBitmap_GetInfo(EndLocked, &EndInfo, NULL) == GE_FALSE)
 				goto ALLDONE;
 
-			End = (unsigned char*)geBitmap_GetBits(EndLocked);
+			End = static_cast<uint8*>(geBitmap_GetBits(EndLocked));
 
 			if(!End)	goto ALLDONE;
 
@@ -383,7 +383,7 @@ void CMorph::Tick(geFloat dwTicks)
 			if(geBitmap_GetInfo(MorphLocked, &MorphInfo, NULL) == GE_FALSE)
 				goto ALLDONE;
 
-			Morph = (unsigned char*)geBitmap_GetBits(MorphLocked);
+			Morph = static_cast<uint8*>(geBitmap_GetBits(MorphLocked));
 
 			if(!Morph)	goto ALLDONE;
 
@@ -404,9 +404,9 @@ void CMorph::Tick(geFloat dwTicks)
 				for(Col=0; Col<MorphInfo.Width; Col++)
 				{
 					// adjust pixel
-					CurMorph[0] = CurStart[0] + (char)((float)(CurEnd[0] - CurStart[0]) * EndFrac);
-					CurMorph[1] = CurStart[1] + (char)((float)(CurEnd[1] - CurStart[1]) * EndFrac);
-					CurMorph[2] = CurStart[2] + (char)((float)(CurEnd[2] - CurStart[2]) * EndFrac);
+					CurMorph[0] = CurStart[0] + static_cast<uint8>(static_cast<float>(CurEnd[0] - CurStart[0]) * EndFrac);
+					CurMorph[1] = CurStart[1] + static_cast<uint8>(static_cast<float>(CurEnd[1] - CurStart[1]) * EndFrac);
+					CurMorph[2] = CurStart[2] + static_cast<uint8>(static_cast<float>(CurEnd[2] - CurStart[2]) * EndFrac);
 
 					// adjust pointers
 					CurMorph += 3;
@@ -449,7 +449,7 @@ ALLDONE:	// unlock all bitmaps
 				if(geBitmap_LockForRead(AlphaStart, &StartLocked, 0, 0, GE_PIXELFORMAT_8BIT_GRAY, GE_FALSE, 255) == GE_FALSE)
 					goto ALPHADONE;
 
-				Start = (unsigned char*)geBitmap_GetBits(StartLocked);
+				Start = static_cast<uint8*>(geBitmap_GetBits(StartLocked));
 
 				if(!Start)	goto ALPHADONE;
 
@@ -457,7 +457,7 @@ ALLDONE:	// unlock all bitmaps
 				if(geBitmap_LockForRead(AlphaEnd, &EndLocked, 0, 0, GE_PIXELFORMAT_8BIT_GRAY, GE_FALSE, 255) == GE_FALSE)
 					goto ALPHADONE;
 
-				End = (unsigned char*)geBitmap_GetBits(EndLocked);
+				End = static_cast<uint8*>(geBitmap_GetBits(EndLocked));
 
 				if(!End)	goto ALPHADONE;
 
@@ -468,7 +468,7 @@ ALLDONE:	// unlock all bitmaps
 				if(geBitmap_GetInfo(MorphLocked, &MorphInfo, NULL) == GE_FALSE)
 					goto ALPHADONE;
 
-				Morph = (unsigned char*)geBitmap_GetBits(MorphLocked);
+				Morph = static_cast<uint8*>(geBitmap_GetBits(MorphLocked));
 
 				if(!Morph)	goto ALPHADONE;
 
@@ -483,7 +483,7 @@ ALLDONE:	// unlock all bitmaps
 					for(Col=0; Col<MorphInfo.Width; Col++)
 					{
 						// adjust pixel
-						*CurMorph = *CurStart + (char)((float)(*CurEnd - *CurStart) * EndFrac);
+						*CurMorph = *CurStart + static_cast<uint8>(static_cast<float>(*CurEnd - *CurStart) * EndFrac);
 
 						// adjust pointers
 						CurMorph++;

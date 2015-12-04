@@ -43,7 +43,7 @@ CStaticEntity::CStaticEntity()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 		pProxy->bFollower = GE_FALSE;
 
 		if(EffectC_IsStringNull(pProxy->szEntityName))
@@ -93,7 +93,7 @@ CStaticEntity::CStaticEntity()
 		if(pProxy->StepHeight != 0.0f)
 			CCD->ActorManager()->SetStepHeight(pProxy->Actor, pProxy->StepHeight);
 
-		CCD->ActorManager()->SetAlpha(pProxy->Actor, (geFloat)pProxy->InitialAlpha);	// Set alpha
+		CCD->ActorManager()->SetAlpha(pProxy->Actor, pProxy->InitialAlpha);	// Set alpha
 		CCD->ActorManager()->SetColDetLevel(pProxy->Actor, RGF_COLLISIONLEVEL_2);
 
 		if(pProxy->IsAVehicle)
@@ -167,13 +167,13 @@ CStaticEntity::CStaticEntity()
 
 			if(EffectC_IsStringNull(pProxy->DamageAttribute))
 			{
-				theInv->AddAndSet("health",(int)pProxy->AttributeAmt);
-				theInv->SetValueLimits("health", 0, (int)pProxy->AttributeAmt);
+				theInv->AddAndSet("health", static_cast<int>(pProxy->AttributeAmt));
+				theInv->SetValueLimits("health", 0, static_cast<int>(pProxy->AttributeAmt));
 			}
 			else
 			{
-				theInv->AddAndSet(pProxy->DamageAttribute,(int)pProxy->AttributeAmt);
-				theInv->SetValueLimits(pProxy->DamageAttribute, 0, (int)pProxy->AttributeAmt);
+				theInv->AddAndSet(pProxy->DamageAttribute, static_cast<int>(pProxy->AttributeAmt));
+				theInv->SetValueLimits(pProxy->DamageAttribute, 0, static_cast<int>(pProxy->AttributeAmt));
 			}
 		}
 
@@ -211,7 +211,7 @@ CStaticEntity::~CStaticEntity()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		if(pProxy->Actor)
 		{
@@ -253,7 +253,7 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pProxy->Actor)
@@ -305,7 +305,7 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pProxy->Actor)
@@ -385,7 +385,7 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 					Sound.Min = CCD->GetAudibleRadius();
 					Sound.Loop = GE_FALSE;
 					Sound.SoundDef = SPool_Sound(pProxy->szSoundFile);
-					pProxy->index = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					pProxy->index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 				}
 			}
 			// End of sound checking
@@ -458,7 +458,7 @@ void CStaticEntity::ClearHit()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 		pProxy->IsHit = GE_FALSE;
 	}
 }
@@ -488,7 +488,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pProxy->Actor)
@@ -631,8 +631,7 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-// changed RF063
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pProxy->Actor)
@@ -664,7 +663,6 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 
 			WRITEDATA(type, &health, sizeof(int), 1, SaveFD);
 		}
-// end change RF063
 	}
 
 	return RGF_SUCCESS;
@@ -693,8 +691,7 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-// changed RF063
-		StaticEntityProxy *pProxy = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pProxy->Actor)
@@ -726,7 +723,6 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 		}
 		else
 			CCD->ActorManager()->RemoveActor(pProxy->Actor);
-// end change RF063
 	}
 
 	return RGF_SUCCESS;
@@ -752,7 +748,7 @@ int CStaticEntity::BindToPath(const char *szName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pSource = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pSource = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
@@ -782,7 +778,7 @@ int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pTheEntity = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pTheEntity = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTheEntity->Actor)
@@ -791,7 +787,7 @@ int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 
 		if(pTheEntity->Actor == Actor)
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
@@ -826,11 +822,11 @@ int CStaticEntity::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticEntityProxy *pTheEntity = (StaticEntityProxy*)geEntity_GetUserData(pEntity);
+		StaticEntityProxy *pTheEntity = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

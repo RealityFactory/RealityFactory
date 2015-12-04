@@ -34,7 +34,7 @@ CFixedCamera::CFixedCamera()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 		Number += 1;
 
@@ -92,7 +92,8 @@ void CFixedCamera::Tick()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
+
 		pSource->origin = pSource->OriginOffset;
 		SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
 
@@ -116,7 +117,7 @@ void CFixedCamera::Tick()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pSource->ForceTrigger))
 		{
@@ -145,7 +146,7 @@ void CFixedCamera::Tick()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+			FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 			if(!EffectC_IsStringNull(pSource->TriggerName))
 			{
@@ -179,7 +180,7 @@ bool CFixedCamera::GetFirstCamera()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 		pSource->origin = pSource->OriginOffset;
 		SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
@@ -203,7 +204,7 @@ bool CFixedCamera::GetFirstCamera()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->UseFirst)
 		{
@@ -218,7 +219,7 @@ bool CFixedCamera::GetFirstCamera()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FixedCamera *pSource = (FixedCamera*)geEntity_GetUserData(pEntity);
+		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 		if(CheckFieldofView(pSource))
 		{

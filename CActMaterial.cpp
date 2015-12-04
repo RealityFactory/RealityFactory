@@ -30,7 +30,7 @@ CActMaterial::CActMaterial()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
+		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pMaterial->szEntityName))
 		{
@@ -95,7 +95,7 @@ void CActMaterial::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
+		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06 - make missing actor not a fatal error
 		if(pMaterial->Actor == NULL)
@@ -205,7 +205,7 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
+		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &(pMaterial->active),	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, SaveFD);
@@ -235,7 +235,7 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActMaterial *pMaterial = (ActMaterial*)geEntity_GetUserData(pEntity);
+		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &(pMaterial->active),	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pMaterial->CurMat),	sizeof(int),		1, RestoreFD);

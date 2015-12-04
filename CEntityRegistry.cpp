@@ -64,7 +64,7 @@ int CEntityRegistry::AddEntity(const char *szName, const char *szType)
 	{
 		m_pList->Add(szName);
 		m_pList->AllocateUserData(szName, strlen(szType)+1);
-		char *szTemp = (char *)m_pList->UserData(szName);
+		char *szTemp = reinterpret_cast<char*>(m_pList->UserData(szName));
 		strcpy(szTemp, szType);						// Save item type off
 	}
 
@@ -94,7 +94,7 @@ char *CEntityRegistry::GetEntityType(const char *szName)
 	if(!m_pList->Has(szName))
 		return NULL;							// No such entity?
 
-	return (char *)m_pList->UserData(szName);
+	return reinterpret_cast<char*>(m_pList->UserData(szName));
 }
 
 /* ------------------------------------------------------------------------------------ */

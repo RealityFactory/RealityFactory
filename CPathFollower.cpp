@@ -33,7 +33,7 @@ CPathFollower::CPathFollower()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		pFollower->bMoving		= GE_FALSE;			// Not moving
 		pFollower->bReady		= GE_TRUE;			// Ready for action!
@@ -81,16 +81,16 @@ CPathFollower::CPathFollower()
 			srand(CCD->FreeRunningCounter());
 			geVec3d RandomPosition;
 
-			RandomPosition.X = (geFloat)(rand() % (int)pFollower->PointRange);
-			if(rand()%2 == 1)
+			RandomPosition.X = static_cast<geFloat>(rand() % static_cast<int>(pFollower->PointRange));
+			if(rand()&1)
 				RandomPosition.X = -(RandomPosition.X);
 
-			RandomPosition.Y = (geFloat)(rand() % (int)pFollower->PointRange);
-			if(rand()%2 == 1)
+			RandomPosition.Y = static_cast<geFloat>(rand() % static_cast<int>(pFollower->PointRange));
+			if(rand()&1)
 				RandomPosition.Y = -(RandomPosition.Y);
 
-			RandomPosition.Z = (geFloat)(rand() % (int)pFollower->PointRange);
-			if(rand()%2 == 1)
+			RandomPosition.Z = static_cast<geFloat>(rand() % static_cast<int>(pFollower->PointRange));
+			if(rand()&1)
 				RandomPosition.Z = -(RandomPosition.Z);
 
 			pFollower->CurrentTarget = RandomPosition;
@@ -190,7 +190,7 @@ int CPathFollower::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(pFollower->bReady == GE_FALSE)
 			continue;												// Disabled entity
@@ -242,7 +242,7 @@ bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(pFollower->Trigger != Model)
 			continue;												// Keep looking
@@ -302,7 +302,7 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(strcmp(pFollower->EntityName, szEntityName) != 0)
 			continue;										// Keep looking
@@ -504,7 +504,7 @@ int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(strcmp(pFollower->EntityName, szEntityName) != 0)
 			continue;										// Keep looking
@@ -549,7 +549,7 @@ int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(strcmp(pFollower->EntityName, szEntityName) != 0)
 			continue;										// Keep looking
@@ -586,7 +586,7 @@ geFloat CPathFollower::GetSpeed(const char *szEntityName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathFollower *pFollower = (PathFollower*)geEntity_GetUserData(pEntity);
+		PathFollower *pFollower = static_cast<PathFollower*>(geEntity_GetUserData(pEntity));
 
 		if(strcmp(pFollower->EntityName, szEntityName) != 0)
 			continue;										// Keep looking
@@ -657,10 +657,8 @@ int CPathFollower::GetRotationToFacePoint(const geVec3d &LookFrom, const geVec3d
 	{
 		x = LookRotation->X;
 
-		// changed QD 12/15/05
-		// LookRotation->X = (geFloat)(GE_PI*0.5f) - (geFloat)acos(LookRotation->Y / l);
-		LookRotation->X = GE_PIOVER2 - (geFloat)acos(LookRotation->Y / l);
-		LookRotation->Y = (geFloat)atan2(x, LookRotation->Z) + GE_PI;
+		LookRotation->X = GE_PIOVER2 - acos(LookRotation->Y / l);
+		LookRotation->Y = atan2(x, LookRotation->Z) + GE_PI;
 		LookRotation->Z = 0.0f;	// roll is zero - always!!?
 	}
 

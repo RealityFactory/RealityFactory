@@ -42,8 +42,8 @@ CMovingPlatforms::CMovingPlatforms()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
-		// EFFECT
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
+
 		if(EffectC_IsStringNull(pPlatform->szEntityName))
 		{
 			char szName[128];
@@ -206,7 +206,7 @@ CMovingPlatforms::CMovingPlatforms()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform= (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pPlatform->Model)
@@ -240,7 +240,7 @@ CMovingPlatforms::CMovingPlatforms()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDoor->Model)
@@ -292,7 +292,7 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bo
 	Sound.Loop = SoundLoop;
 // end change RF064
 	Sound.SoundDef = theSound;
-	int index = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 
 	if(SoundLoop)
 		return index;
@@ -325,7 +325,7 @@ bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTrigge
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the platform data so we can compare models
-		MovingPlatform *pPlatform= (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pPlatform->Model)
@@ -437,8 +437,8 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		// Get the door data so we can compare models
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		// Get the platform data so we can compare models
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pPlatform->Model)
@@ -519,7 +519,7 @@ bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pPlatform->Model)
@@ -554,7 +554,7 @@ void CMovingPlatforms::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		if(!pPlatform->Model)
 			continue;
@@ -641,7 +641,7 @@ void CMovingPlatforms::Tick(geFloat dwTicks)
 				CCD->ModelManager()->GetPosition(pPlatform->Model, &thePosition);
 				Snd Sound;
 				geVec3d_Copy(&thePosition, &(Sound.Pos));
-				CCD->EffectManager()->Item_Modify(EFF_SND, pPlatform->SoundHandle, (void*)&Sound, SND_POS);
+				CCD->EffectManager()->Item_Modify(EFF_SND, pPlatform->SoundHandle, static_cast<void*>(&Sound), SND_POS);
 			}
 		}
 
@@ -704,7 +704,7 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pPlatform->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pPlatform->bTrigger,		sizeof(geBoolean),	1, SaveFD);
@@ -740,7 +740,7 @@ int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pPlatform = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pPlatform = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pPlatform->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pPlatform->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
@@ -783,11 +783,11 @@ int CMovingPlatforms::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MovingPlatform *pTheEntity = (MovingPlatform*)geEntity_GetUserData(pEntity);
+		MovingPlatform *pTheEntity = static_cast<MovingPlatform*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

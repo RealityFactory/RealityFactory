@@ -53,7 +53,7 @@ void CAreaChecker::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-	    AreaSwitch *S = (AreaSwitch*)geEntity_GetUserData(pEntity);
+		AreaSwitch *S = static_cast<AreaSwitch*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(S->Entity))
 		{

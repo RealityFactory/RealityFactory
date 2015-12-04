@@ -44,11 +44,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 
 	if(!Water)
 	{
-// changed QD 12/15/05
-	//	if(Water)
-	//	    Water_Destroy(Water);
-// end change
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	memset(Water, 0, sizeof(*Water));
@@ -62,7 +58,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 		    Water_Destroy(Water);
 // end change
 
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	geBitmap_CreateRef(Water->Bitmap);
@@ -73,7 +69,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 		if(Water)
 			Water_Destroy(Water);
 
-		return (Procedural*)NULL;
+		return NULL;
 	}
 	else
 	{
@@ -84,20 +80,20 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 
 		Format = GE_PIXELFORMAT_16BIT_565_RGB;
 
-		if(!geBitmap_SetFormat(Water->Bitmap, Format, GE_FALSE, 0, (geBitmap_Palette*)NULL))
+		if(!geBitmap_SetFormat(Water->Bitmap, Format, GE_FALSE, 0, NULL))
 		{
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
-		if(!geBitmap_GetInfo(Water->Bitmap, &Info, (geBitmap_Info *)NULL))
+		if(!geBitmap_GetInfo(Water->Bitmap, &Info, NULL))
 		{
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
 		Water->Width = Info.Width;
@@ -111,7 +107,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
 		for(i=0; i<2; i++)
@@ -123,8 +119,8 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 				if (Water)
 					Water_Destroy(Water);
 
-				return (Procedural*)NULL;
-	        }
+				return NULL;
+			}
 
 			memset(Water->WaterData[i], 0, sizeof(int16)*Water->Size);
 		}
@@ -138,12 +134,12 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 		int32			i;
 		geBitmap_Info	Info;
 
-		if(!geBitmap_GetInfo(Water->Bitmap, &Info, (geBitmap_Info*)NULL))
+		if(!geBitmap_GetInfo(Water->Bitmap, &Info, NULL))
 		{
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
 		if(!geBitmap_LockForRead(Water->Bitmap, &Src, 0, 0, Info.Format, GE_TRUE, 255))
@@ -151,10 +147,10 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
-		pSrc16 = (unsigned short*)geBitmap_GetBits(Src);
+		pSrc16 = static_cast<uint16*>(geBitmap_GetBits(Src));
 
 		for(i=0; i<Water->Size; i++)
 			Water->OriginalBits[i] = pSrc16[i];
@@ -164,7 +160,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 			if(Water)
 				Water_Destroy(Water);
 
-			return (Procedural*)NULL;
+			return NULL;
 		}
 	}
 
@@ -182,20 +178,20 @@ void Water_Destroy(Procedural *Water)
 	if(Water->Bitmap)
 	{
 		geBitmap_Destroy(&(Water->Bitmap));
-		Water->Bitmap = (geBitmap*)NULL;
+		Water->Bitmap = NULL;
 	}
 
 	if(Water->OriginalBits)
 		geRam_Free(Water->OriginalBits);
-	Water->OriginalBits = (unsigned short*)NULL;
+	Water->OriginalBits = NULL;
 
 	if(Water->WaterData[0])
 		geRam_Free(Water->WaterData[0]);
-	Water->WaterData[0] = (short*)NULL;
+	Water->WaterData[0] = NULL;
 
 	if(Water->WaterData[1])
 		geRam_Free(Water->WaterData[1]);
-	Water->WaterData[1] = (short*)NULL;
+	Water->WaterData[1] = NULL;
 
 	geRam_Free(Water);
 }
@@ -220,7 +216,7 @@ static void Water_BuildRGBLuts(Procedural *Water, geFloat RScale, geFloat GScale
 			if(Val > 31)
 				Val = 31;
 
-			Water->BlendLut[i][j] = (uint8)Val;
+			Water->BlendLut[i][j] = static_cast<uint8>(Val);
 		}
 	}
 }
@@ -250,8 +246,8 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water)
 
 	if(!geBitmap_LockForWriteFormat(Water->Bitmap, &Dest, 0, 0, GE_PIXELFORMAT_16BIT_565_RGB))
 	{
-		geBitmap_SetFormat(Water->Bitmap, GE_PIXELFORMAT_16BIT_565_RGB,GE_TRUE, 0, (geBitmap_Palette*)NULL);
-		geBitmap_LockForWriteFormat(Water->Bitmap,&Dest, 0, 0, GE_PIXELFORMAT_16BIT_565_RGB);
+		geBitmap_SetFormat(Water->Bitmap, GE_PIXELFORMAT_16BIT_565_RGB,GE_TRUE, 0, NULL);
+		geBitmap_LockForWriteFormat(Water->Bitmap, &Dest, 0, 0, GE_PIXELFORMAT_16BIT_565_RGB);
 
 		if(!Dest)
 			return GE_FALSE;
@@ -265,7 +261,7 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water)
 		int32			w, h, Extra, WMask, HMask;
 		geBitmap_Info	Info;
 
-		if(!geBitmap_GetInfo(Dest, &Info, (geBitmap_Info*)NULL))
+		if(!geBitmap_GetInfo(Dest, &Info, NULL))
 			return GE_FALSE;
 
 		Extra = Info.Stride - Info.Width;
@@ -275,7 +271,7 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water)
 
 		pSrc16 = Water->OriginalBits;
 		pOriginalWSrc16 = pWSrc16 = Water->WaterData[Water->NPage];
-		pDest16 = (unsigned short *)geBitmap_GetBits(Dest);
+		pDest16 = static_cast<uint16*>(geBitmap_GetBits(Dest));
 
 		// For the love of God, write this in assembly
 		for(h=0; h<Info.Height; h++)
@@ -309,9 +305,9 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water)
 
 				Color = pSrc16[((h+y)&HMask)*Info.Stride + ((w+x)&WMask)];
 
-				r = (uint16)pBlendLut[Val+((Color>>11)&31)];
-				g = (uint16)pBlendLut[Val+((Color>>6)&31)];
-				b = (uint16)pBlendLut[Val+(Color&31)];
+				r = static_cast<uint16>(pBlendLut[Val + ((Color >> 11) & 31)]);
+				g = static_cast<uint16>(pBlendLut[Val + ((Color >>  6) & 31)]);
+				b = static_cast<uint16>(pBlendLut[Val + ( Color        & 31)]);
 
 				*pDest16++ = (r<<11) | (g<<6) | b;
 			}
@@ -376,7 +372,7 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 /* ------------------------------------------------------------------------------------ */
 static geFloat FloatMod(geFloat In, geFloat Wrap)
 {
-	Wrap = (geFloat)floor(fabs(In)/Wrap)*Wrap - Wrap;
+	Wrap = floor(fabs(In)/Wrap)*Wrap - Wrap;
 
 	if(In > 0)
 		In -= Wrap;

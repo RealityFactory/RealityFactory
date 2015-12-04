@@ -33,7 +33,7 @@ CLiquid::CLiquid()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Liquid *pItem = (Liquid*)geEntity_GetUserData(pEntity);
+		Liquid *pItem = static_cast<Liquid*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
@@ -83,7 +83,7 @@ Liquid *CLiquid::IsLiquid(const geWorld_Model *theModel)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Liquid *pItem = (Liquid*)geEntity_GetUserData(pEntity);
+		Liquid *pItem = static_cast<Liquid*>(geEntity_GetUserData(pEntity));
 
 		if(pItem->Model == theModel)
 		{

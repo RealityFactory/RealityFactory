@@ -42,7 +42,7 @@ CParticleSystem::CParticleSystem()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ParticleSystemProxy *pProxy = (ParticleSystemProxy*)geEntity_GetUserData(pEntity);
+		ParticleSystemProxy *pProxy = static_cast<ParticleSystemProxy*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pProxy->szEntityName))
 		{
@@ -171,7 +171,9 @@ int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, f
 		CCD->ReportError(szError, false);
 	}
 	else
-       	effect = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+	{
+		effect = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
+	}
 
 	return effect;
 }
@@ -1036,7 +1038,7 @@ void CParticleSystem::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ParticleSystemProxy *pProxy = (ParticleSystemProxy*)geEntity_GetUserData(pEntity);
+		ParticleSystemProxy *pProxy = static_cast<ParticleSystemProxy*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pProxy->TriggerName))
 		{
@@ -1416,8 +1418,8 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 	{
 		// Ok, we're allowed to spawn additional particles to fill in from
 		// ..those that have Dropped Down Dead.
-		float fTemp = (float)theList[nHandle]->SpawnSpeed * 0.001f * (float)dwMsec;
-		int nNewCount = (int)fTemp;
+		float fTemp = static_cast<float>(theList[nHandle]->SpawnSpeed) * 0.001f * dwMsec;
+		int nNewCount = static_cast<int>(fTemp);
 
 		if(nNewCount == 0)
 			nNewCount = 1;									// Check for at least 1 new birth
@@ -1630,7 +1632,7 @@ void CParticleSystem::SetupShockwave(int nHandle)
 		AddShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -1688,7 +1690,7 @@ void CParticleSystem::SetupSpiralArm(int nHandle)
 		AddSpiralArmParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / static_cast<float>(theList[nHandle]->Lifetime);
 
 	return;
 }
@@ -1744,7 +1746,7 @@ void CParticleSystem::SetupFountain(int nHandle)
 		AddFountainParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -1790,7 +1792,7 @@ void CParticleSystem::SetupRain(int nHandle)
 		AddRainParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -1810,19 +1812,19 @@ void CParticleSystem::AddRainParticle(int nHandle)
 	thePos = theList[nHandle]->Emitter;
 
 	srand(CCD->FreeRunningCounter());			// Spin random number generator
-	nX = rand() % (int)theList[nHandle]->EffectRadius;
+	nX = rand() % static_cast<int>(theList[nHandle]->EffectRadius);
 	srand(CCD->FreeRunningCounter());			// Spin random number generator
-	nZ = rand() % (int)theList[nHandle]->EffectRadius;
+	nZ = rand() % static_cast<int>(theList[nHandle]->EffectRadius);
 
 	if(((rand()%33) & 0x01) != 0)
-		thePos.X += (float)nX;
+		thePos.X += static_cast<float>(nX);
 	else
-		thePos.X -= (float)nX;
+		thePos.X -= static_cast<float>(nX);
 
 	if(((rand()%33) & 0x01) != 0)
-		thePos.Z += (float)nZ;
+		thePos.Z += static_cast<float>(nZ);
 	else
-		thePos.Z -= (float)nZ;
+		thePos.Z -= static_cast<float>(nZ);
 
 	Spawn(nHandle, theList[nHandle]->Color, thePos,
 			vRot, theList[nHandle]->InitialVelocity);
@@ -1845,7 +1847,7 @@ void CParticleSystem::SetupSphere(int nHandle)
 		AddSphereParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -1903,7 +1905,7 @@ void CParticleSystem::SetupTrail(int nHandle)
 		AddTrailParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -1923,28 +1925,28 @@ void CParticleSystem::AddTrailParticle(int nHandle)
 
 	// Perturb the particle rotation on all axes to fake Brownian motion
 	srand(CCD->FreeRunningCounter());			// Spin random number generator
-	nX = rand() % (int)theList[nHandle]->EffectRadius;
+	nX = rand() % static_cast<int>(theList[nHandle]->EffectRadius);
 
 	srand(CCD->FreeRunningCounter());			// Spin random number generator
-	nY = rand() % (int)theList[nHandle]->EffectRadius;
+	nY = rand() % static_cast<int>(theList[nHandle]->EffectRadius);
 
 	srand(CCD->FreeRunningCounter());			// Spin random number generator
-	nZ = rand() % (int)theList[nHandle]->EffectRadius;
+	nZ = rand() % static_cast<int>(theList[nHandle]->EffectRadius);
 
 	if(((rand()%33) & 0x01) != 0)
-		vRot.X += (float)nX;
+		vRot.X += static_cast<float>(nX);
 	else
-		vRot.X -= (float)nX;
+		vRot.X -= static_cast<float>(nX);
 
 	if(((rand()%33) & 0x01) != 0)
-		vRot.Y += (float)nY;
+		vRot.Y += static_cast<float>(nY);
 	else
-		vRot.Y -= (float)nY;
+		vRot.Y -= static_cast<float>(nY);
 
 	if(((rand()%33) & 0x01) != 0)
-		vRot.Z += (float)nZ;
+		vRot.Z += static_cast<float>(nZ);
 	else
-		vRot.Z -= (float)nZ;
+		vRot.Z -= static_cast<float>(nZ);
 
 	Spawn(nHandle, theList[nHandle]->Color, theList[nHandle]->Emitter,
 			vRot, theList[nHandle]->InitialVelocity);
@@ -1967,7 +1969,7 @@ void CParticleSystem::SetupGuardian(int nHandle)
 		AddGuardianParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -2027,7 +2029,7 @@ void CParticleSystem::SetupImplodeSphere(int nHandle)
 		AddImplodeSphereParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -2089,7 +2091,7 @@ void CParticleSystem::SetupImplodeShockwave(int nHandle)
 		AddImplodeShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -2146,7 +2148,7 @@ void CParticleSystem::SetupImplodeSpiralArm(int nHandle)
 		AddImplodeSpiralArmParticle(nHandle);
 
 	// Particle alpha decay speed
-	theList[nHandle]->AlphaDecay = 255.0f / (float)theList[nHandle]->Lifetime;
+	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
 
 	return;
 }
@@ -2211,11 +2213,11 @@ int CParticleSystem::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ParticleSystemProxy *pTheEntity = (ParticleSystemProxy*)geEntity_GetUserData(pEntity);
+		ParticleSystemProxy *pTheEntity = static_cast<ParticleSystemProxy*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

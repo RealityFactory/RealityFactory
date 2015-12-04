@@ -74,7 +74,7 @@ void *NetBuffer::AddLen()
 	int value = Size - sizeof(int);
 	memcpy(Data, &value, sizeof(int));
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -85,13 +85,13 @@ void *NetBuffer::AddLen()
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Add(int value)
 {
-	if((Size + (int32)sizeof(int)) >= MaxSize)
+	if((Size + static_cast<int>(sizeof(int))) >= MaxSize)
 		Expand(1000);
 
 	memcpy(&(Data[Size]), &value, sizeof(int));
 	Size += sizeof(int);
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -99,13 +99,13 @@ void *NetBuffer::Add(int value)
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Add(unsigned char value)
 {
-	if((Size + (int32)sizeof(unsigned char)) >= MaxSize)
+	if((Size + static_cast<int>(sizeof(unsigned char))) >= MaxSize)
 		Expand(1000);
 
 	memcpy(&(Data[Size]), &value, sizeof(unsigned char));
 	Size += sizeof(unsigned char);
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -119,7 +119,7 @@ void *NetBuffer::AddRaw(void *data, int len)
 	memcpy(&(Data[Size]), data, len);
 	Size += len;
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -130,14 +130,14 @@ void *NetBuffer::AddRaw(void *data, int len)
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Expand(int addsize)
 {
-	Data = (uint8*)realloc(Data, MaxSize+(addsize*sizeof(uint8)));
+	Data = static_cast<uint8*>(realloc(Data, MaxSize + (addsize * sizeof(uint8))));
 
-	if (Data)
+	if(Data)
 		MaxSize += addsize;
 	else
 		MaxSize = 0;
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -146,16 +146,16 @@ void *NetBuffer::Expand(int addsize)
 void *NetBuffer::CheckSize(int size)
 {
 	if(MaxSize > size)
-		return (void*)Data;
+		return static_cast<void*>(Data);
 
-	Data = (uint8*)realloc(Data, size*sizeof(uint8));
+	Data = static_cast<uint8*>(realloc(Data, size * sizeof(uint8)));
 
 	if(Data)
 		MaxSize = size;
 	else
 		MaxSize = 0;
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -170,7 +170,7 @@ void *NetBuffer::Add(geVec3d vect3d)
 	Add(vect3d.Y);
 	Add(vect3d.Z);
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -194,7 +194,7 @@ void* NetBuffer::Add(geXForm3d xform)
 	Add(xform.Translation.Y);
 	Add(xform.Translation.Z);
 
-	return (void *)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -205,12 +205,13 @@ void* NetBuffer::Add(geXForm3d xform)
 /* ------------------------------------------------------------------------------------ */
 void* NetBuffer::Add(geFloat value)
 {
-	if((Size + (int32)sizeof(geFloat)) >= MaxSize)
+	if((Size + static_cast<int>(sizeof(geFloat))) >= MaxSize)
 		Expand(1000);
 
 	memcpy(&(Data[Size]), &value, sizeof(geFloat));
 	Size += sizeof(geFloat);
-	return (void*)Data;
+
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -279,9 +280,9 @@ geVec3d NetBuffer::GetVec3d()
 {
 	geVec3d Vec3d;
 
-	Vec3d.X = (geFloat)GetFloat();
-	Vec3d.Y = (geFloat)GetFloat();
-	Vec3d.Z = (geFloat)GetFloat();
+	Vec3d.X = GetFloat();
+	Vec3d.Y = GetFloat();
+	Vec3d.Z = GetFloat();
 
 	return Vec3d;
 }
@@ -295,18 +296,18 @@ geXForm3d NetBuffer::GetXForm3d()
 {
 	geXForm3d XForm3d;
 
-	XForm3d.AX = (geFloat)GetFloat();
-	XForm3d.AY = (geFloat)GetFloat();
-	XForm3d.AZ = (geFloat)GetFloat();
-	XForm3d.BX = (geFloat)GetFloat();
-	XForm3d.BY = (geFloat)GetFloat();
-	XForm3d.BZ = (geFloat)GetFloat();
-	XForm3d.CX = (geFloat)GetFloat();
-	XForm3d.CY = (geFloat)GetFloat();
-	XForm3d.CZ = (geFloat)GetFloat();
-	XForm3d.Translation.X = (geFloat)GetFloat();
-	XForm3d.Translation.Y = (geFloat)GetFloat();
-	XForm3d.Translation.Z = (geFloat)GetFloat();
+	XForm3d.AX = GetFloat();
+	XForm3d.AY = GetFloat();
+	XForm3d.AZ = GetFloat();
+	XForm3d.BX = GetFloat();
+	XForm3d.BY = GetFloat();
+	XForm3d.BZ = GetFloat();
+	XForm3d.CX = GetFloat();
+	XForm3d.CY = GetFloat();
+	XForm3d.CZ = GetFloat();
+	XForm3d.Translation.X = GetFloat();
+	XForm3d.Translation.Y = GetFloat();
+	XForm3d.Translation.Z = GetFloat();
 
 	return XForm3d;
 }
@@ -320,14 +321,14 @@ geXForm3d NetBuffer::GetXForm3d()
 /* ------------------------------------------------------------------------------------ */
 void* NetBuffer::AddString(const char *message, int len)
 {
-	if((Size + (int32)(len+4)) >= MaxSize)
+	if((Size + (len + 4)) >= MaxSize)
 		Expand(len);
 
 	Add(len);
 	memcpy(&(Data[Size]), message, len);
 	Size += len;
 
-	return (void*)Data;
+	return static_cast<void*>(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */

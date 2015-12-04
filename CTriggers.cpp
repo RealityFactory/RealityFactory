@@ -36,7 +36,7 @@ CTriggers::CTriggers()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		if(pTrigger->Model == NULL)
 		{
@@ -143,7 +143,7 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the  data so we can compare models
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTrigger->Model)
@@ -240,7 +240,7 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the  data so we can compare models
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTrigger->Model)
@@ -302,7 +302,7 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
     Sound.Min = CCD->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
-	int index = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 
 	if(SoundLoop)
 		return index;
@@ -333,7 +333,7 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTrigger->Model)
@@ -371,7 +371,7 @@ void CTriggers::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		if(!pTrigger->Model)
 			continue;
@@ -458,7 +458,7 @@ int CTriggers::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTrigger->Model)
@@ -502,7 +502,7 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTrigger = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pTrigger->Model)
@@ -553,11 +553,11 @@ int CTriggers::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pTheEntity = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pTheEntity = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
@@ -585,7 +585,7 @@ void CTriggers::SetState()
 	geEntity *pEntity;
 	TState *pool;
 
-	Bottom = (TState *)NULL;
+	Bottom = NULL;
 
 	if(m_TriggerCount == 0)
 		return;						// Don't waste CPU cycles
@@ -600,7 +600,7 @@ void CTriggers::SetState()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Trigger *pSource = (Trigger*)geEntity_GetUserData(pEntity);
+		Trigger *pSource = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{

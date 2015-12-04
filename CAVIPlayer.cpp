@@ -293,8 +293,9 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 					return RGF_FAILURE;
 			}
 
-			wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-			pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+			wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+			pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+
 			// The following weirdness is required because the DIB
 			// ..coming in from the AVI file is INVERTED, so we have
 			// ..to copy it to the target bitmap from the bottom
@@ -562,8 +563,8 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 				return RGF_FAILURE;
 		}
 
-		wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-		pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -730,8 +731,9 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 				return RGF_FAILURE;
 		}
 
-		wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-		pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -941,8 +943,9 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 				return RGF_FAILURE;
 		}
 
-		wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-		pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -1129,8 +1132,9 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 				return RGF_FAILURE;
 		}
 
-		wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-		pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -1333,8 +1337,7 @@ bool CAVIPlayer::DetermineAudioFormats()
 		if(AVIStreamReadFormat(pStream, AVIStreamStart(pStream), pChunk, &lSize))
 			return false;
 
-		m_pAudioFormats[n] = (LPWAVEFORMATEX)pChunk;
-		//		m_pAudioFormats[n]->cbSize = lSize;
+		m_pAudioFormats[n] = reinterpret_cast<LPWAVEFORMATEX>(pChunk);
 	}
 
 	return true;
@@ -1408,7 +1411,7 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 
 	nSamplePos += nSamplesIn;
 
-	return (int)nReadIn;
+	return static_cast<int>(nReadIn);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1563,8 +1566,7 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 	// Fetch DirectSound interface we want
 	LPDIRECTSOUND pDSIF;
 
-	m_pDS->QueryInterface(IID_IDirectSound,
-		(LPVOID *)&pDSIF);
+	m_pDS->QueryInterface(IID_IDirectSound, reinterpret_cast<LPVOID*>(&pDSIF));
 
 	//	Create a DSound buffer to stream into
 	DSBUFFERDESC theDesc;
@@ -1601,10 +1603,12 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 	if(GetAudioFormat(nAudioStreamID)->wBitsPerSample == 8)
 		nSilence = 0x80;										// In case wave is 8-bit
 
-	//	Ok, try to lock <n>K of the buffer.  If it fails, just bail this
-	//	..function.
-	HRESULT hr = m_pStream->Lock(0, m_nBufSize, &lpbuf1,
-		(DWORD*)&dwsize1, &lpbuf2, (DWORD*)&dwsize2, DSBLOCK_ENTIREBUFFER);
+	// Ok, try to lock <n>K of the buffer.  If it fails, just bail this
+	// ..function.
+	HRESULT hr = m_pStream->Lock(0, m_nBufSize,
+								&lpbuf1, reinterpret_cast<DWORD*>(&dwsize1),
+								&lpbuf2, reinterpret_cast<DWORD*>(&dwsize2),
+								DSBLOCK_ENTIREBUFFER);
 
 	if(hr != DS_OK)
 	{
@@ -1676,8 +1680,10 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 	//	..audio, so lock it and LOAD!
 	if(ForceLoad)
 	{
-		hr = m_pStream->Lock(0, m_nBufSize, &lpbuf1,
-			(DWORD*)&dwsize1, &lpbuf2, (DWORD*)&dwsize2, 0);
+		hr = m_pStream->Lock(0, m_nBufSize,
+								&lpbuf1, reinterpret_cast<DWORD*>(&dwsize1),
+								&lpbuf2, reinterpret_cast<DWORD*>(&dwsize2),
+								0);
 		m_nOffset = (m_nOffset + dwsize1 + dwsize2) % m_nBufSize;
 		nBytesRead = ExtractAudioStream(nAudioStreamID, dwsize1 / nBlockSize, (LPBYTE)lpbuf1);
 
@@ -1693,6 +1699,7 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 // changed RF064
 		m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
+
 // end change RF064
 		return;
 	}
@@ -1702,10 +1709,12 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 	nSize = GetMaxWriteSize() / nBlockSize;	// Samples in whole buffer
 
-	//	Ok, try to lock <n>K of the buffer.  If it fails, just bail this
-	//	..function.
-	hr = m_pStream->Lock(m_nOffset, nSize * nBlockSize, &lpbuf1,
-		(DWORD*)&dwsize1, &lpbuf2, (DWORD*)&dwsize2, 0);
+	// Ok, try to lock <n>K of the buffer.  If it fails, just bail this
+	// ..function.
+	hr = m_pStream->Lock(m_nOffset, nSize * nBlockSize,
+							&lpbuf1, reinterpret_cast<DWORD*>(&dwsize1),
+							&lpbuf2, reinterpret_cast<DWORD*>(&dwsize2),
+							0);
 
 	if(hr != DS_OK)
 	{

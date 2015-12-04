@@ -25,7 +25,7 @@ CDSpotLight::CDSpotLight()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DSpotLight *pLight = (DSpotLight*)geEntity_GetUserData(pEntity);
+		DSpotLight *pLight = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 		pLight->RadiusSpeed *= 1000.0f;			// From SECONDS to MILLISECONDS
 
 		if(EffectC_IsStringNull(pLight->szEntityName))
@@ -65,7 +65,7 @@ CDSpotLight::CDSpotLight()
 			continue;
 		}
 
-		pLight->IntervalWidth = pLight->RadiusSpeed / (geFloat)pLight->NumFunctionValues;
+		pLight->IntervalWidth = pLight->RadiusSpeed / static_cast<geFloat>(pLight->NumFunctionValues);
 	}
 }
 
@@ -102,7 +102,7 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 		geVec3d		Pos;
 		int32		Leaf;
 
-		Light = (DSpotLight*)geEntity_GetUserData(pEntity);
+		Light = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(Light->TriggerName))
 		{
@@ -203,10 +203,9 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 				}
 			}
 
-
 			Percentage = Light->LastTime / Light->RadiusSpeed;
 
-			Index = (int)(Percentage * Light->NumFunctionValues);
+			Index = static_cast<int>(Percentage * Light->NumFunctionValues);
 
 			if(Light->InterpolateValues && Index < Light->NumFunctionValues - 1)
 			{
@@ -215,14 +214,14 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 				int		DeltaValue;
 				geFloat	Value;
 
-				Remainder = (geFloat)fmod(Light->LastTime, Light->IntervalWidth);
+				Remainder = fmod(Light->LastTime, Light->IntervalWidth);
 				InterpolationPercentage = Remainder / Light->IntervalWidth;
 				DeltaValue = Light->RadiusFunction[Index + 1] - Light->RadiusFunction[Index];
 				Value = Light->RadiusFunction[Index] + DeltaValue * InterpolationPercentage;
-				Percentage = ((geFloat)(Value - 'a')) / ((geFloat)('z' - 'a'));
+				Percentage = (Value - static_cast<geFloat>('a')) / (static_cast<geFloat>('z' - 'a'));
 			}
 			else
-				Percentage = ((geFloat)(Light->RadiusFunction[Index] - 'a')) / ((geFloat)('z' - 'a'));
+				Percentage = (static_cast<geFloat>(Light->RadiusFunction[Index] - 'a')) / (static_cast<geFloat>('z' - 'a'));
 
 			Radius = Percentage * (Light->MaxRadius - Light->MinRadius) + Light->MinRadius;
 
@@ -237,7 +236,7 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 										   Light->style,
 										   Light->CastShadows);
 
-			Light->LastTime = (geFloat)fmod(Light->LastTime + dwTicks, Light->RadiusSpeed);
+			Light->LastTime = fmod(Light->LastTime + dwTicks, Light->RadiusSpeed);
 
 			if(EffectC_IsPointVisible(CCD->World(),
 					CCD->CameraManager()->Camera(),
@@ -277,11 +276,11 @@ int CDSpotLight::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DSpotLight *pTheEntity = (DSpotLight*)geEntity_GetUserData(pEntity);
+		DSpotLight *pTheEntity = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

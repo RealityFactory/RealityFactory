@@ -34,8 +34,8 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 		{
 			uint8 *pSrc, *pDst;
 
-			pSrc = (unsigned char*)FmBits;
-			pDst = (unsigned char*)ToBits;
+			pSrc = static_cast<uint8*>(FmBits);
+			pDst = static_cast<uint8*>(ToBits);
 
 			if(wrap)
 			{
@@ -54,7 +54,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 						}
 						else if(y == (h-1))
 						{
-							pSrcN = (unsigned char*)FmBits;
+							pSrcN = static_cast<uint8*>(FmBits);
 						}
 
 						//first pel
@@ -94,7 +94,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 						}
 						else if(y == (h-1))
 						{
-							pSrcN = (unsigned char*)FmBits;
+							pSrcN = static_cast<uint8*>(FmBits);
 						}
 
 						//first pel
@@ -299,7 +299,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 /* ------------------------------------------------------------------------------------ */
 geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 {
-	geBitmap *Lock=(geBitmap *)NULL;
+	geBitmap *Lock = NULL;
 	geBitmap_Info Info;
 	void *Bits;
 	int w, h, s, bpp, x;
@@ -307,7 +307,7 @@ geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 	if(!geBitmap_LockForWrite(Bmp, &Lock, 0, 0))
 		goto fail;
 
-	if(!geBitmap_GetInfo(Lock, &Info, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Lock, &Info, NULL))
 		goto fail;
 
 	Bits = geBitmap_GetBits(Lock);
@@ -327,9 +327,9 @@ geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 		goto fail;
 	case 1:
 		{
-			uint8 *pBits,Pixel;
-			pBits = (unsigned char *)Bits;
-			Pixel = (R+G+B)/3;
+			uint8 *pBits, Pixel;
+			pBits = static_cast<uint8*>(Bits);
+			Pixel = (R + G + B) / 3;
 
 			while(h--)
 			{
@@ -345,9 +345,9 @@ geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 		}
 	case 2:
 		{
-			uint16 * pBits,Pixel;
-			pBits = (unsigned short *)Bits;
-			Pixel = (uint16)gePixelFormat_ComposePixel(Info.Format, R, G, B, A);
+			uint16 *pBits, Pixel;
+			pBits = static_cast<uint16*>(Bits);
+			Pixel = static_cast<uint16>(gePixelFormat_ComposePixel(Info.Format, R, G, B, A));
 
 			while(h--)
 			{
@@ -363,9 +363,9 @@ geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 		}
 	case 4:
 		{
-			uint32 * pBits,Pixel;
-			pBits = (unsigned long *)Bits;
-			Pixel = (uint32)gePixelFormat_ComposePixel(Info.Format, R, G, B, A);
+			uint32 *pBits,Pixel;
+			pBits = static_cast<uint32*>(Bits);
+			Pixel = static_cast<uint32>(gePixelFormat_ComposePixel(Info.Format, R, G, B, A));
 
 			while(h--)
 			{
@@ -383,11 +383,11 @@ geBoolean geBitmapUtil_SetColor(geBitmap *Bmp, int R, int G, int B, int A)
 		{
 			uint8 * pBits,b1,b2,b3;
 			uint32 Pixel;
-			pBits = (unsigned char *)Bits;
-			Pixel = (uint32)gePixelFormat_ComposePixel(Info.Format, R, G, B, A);
-			b1 = (uint8)((Pixel>>16)&0xFF);
-			b2 = (uint8)((Pixel>>8 )&0xFF);
-			b3 = (uint8)((Pixel>>0 )&0xFF);
+			pBits = static_cast<uint8*>(Bits);
+			Pixel = static_cast<uint32>(gePixelFormat_ComposePixel(Info.Format, R, G, B, A));
+			b1 = static_cast<uint8>((Pixel >> 16) & 0xFF);
+			b2 = static_cast<uint8>((Pixel >>  8) & 0xFF);
+			b3 = static_cast<uint8>((Pixel >>  0) & 0xFF);
 
 			while(h--)
 			{
@@ -459,7 +459,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 
 	geBitmap_Palette_Destroy(&Pal);
 
-	geBitmap_GetInfo(Bitmap, &Info, (geBitmap_Info*)NULL);
+	geBitmap_GetInfo(Bitmap, &Info, NULL);
 
 	if(!(Pal = geBitmap_GetPalette(Bitmap)))
 		goto fail;
@@ -485,13 +485,13 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 		if(NumColors == 0)
 		{
 			*pParams += (int)(pstr - ParamWork);
-			pParams = (char **)NULL;
-			strcpy(ParamWork,"list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
+			pParams = NULL;
+			strcpy(ParamWork, "list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
 		}
 		else if( NumColors < 2)
 			goto fail;
 
-		cstep = 256.0 / (NumColors - 1);
+		cstep = 256.0 / static_cast<double>(NumColors - 1);
 		nextc = 0.0;
 		icstep = 1.0 / cstep;
 
@@ -501,11 +501,11 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 		nb = getint();
 		na = getint();
 
-		PalPtr = (unsigned char*)PalData;
+		PalPtr = static_cast<uint8*>(PalData);
 
 		for(p=0; p<256; p++)
 		{
-			if(p >= (int)nextc)
+			if(p >= static_cast<int>(nextc))
 			{
 				pr = nr;
 				pg = ng;
@@ -555,7 +555,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 			pr = pg = pb = pa = 0.5;
 		}
 
-		PalPtr = (unsigned char*)PalData;
+		PalPtr = static_cast<uint8*>(PalData);
 
 		for(p=0; p<256; p++)
 		{
@@ -593,11 +593,11 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 		b_base = getfloat(); b_base *= TWO_PI;
 		a_base = getfloat(); a_base *= TWO_PI;
 
-		PalPtr = (unsigned char*)PalData;
+		PalPtr = static_cast<uint8*>(PalData);
 
 		for(p=0; p<256; p++)
 		{
-			frac = (geFloat)p * (TWO_PI/256.0f);
+			frac = static_cast<geFloat>(p) * (TWO_PI/256.0f);
 			r = (int)( r_mult * (cos( r_freq * frac + r_base ) + 1.0) );
 			g = (int)( g_mult * (cos( g_freq * frac + g_base ) + 1.0) );
 			b = (int)( b_mult * (cos( b_freq * frac + b_base ) + 1.0) );

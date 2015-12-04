@@ -36,7 +36,7 @@ CDecal::CDecal()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DecalDefine *pSource = (DecalDefine*)geEntity_GetUserData(pEntity);
+		DecalDefine *pSource = static_cast<DecalDefine*>(geEntity_GetUserData(pEntity));
 
 		pSource->Bitmap = TPool_Bitmap(pSource->BmpName, pSource->AlphaName, NULL, NULL);
 
@@ -70,7 +70,7 @@ CDecal::~CDecal()
 		d = next;
 	}
 
-	Bottom = (Decal*)NULL;
+	Bottom = NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -237,7 +237,7 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DecalDefine *pSource = (DecalDefine*)geEntity_GetUserData(pEntity);
+		DecalDefine *pSource = static_cast<DecalDefine*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->Type == type)
 		{
@@ -270,7 +270,7 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 			}
 			else
 			{
-				d->Model = (geWorld_Model*)NULL;
+				d->Model = NULL;
 			}
 
 			// Setup vertex 1,2,3,4

@@ -143,8 +143,8 @@ static const char * strbreakers = " ,`\t\n\r\034\009";
 #define nextparam(pstr)		do{ pstr = strtok((char *)NULL,strbreakers); if ( ! pstr ) { Particles_Destroy(Proc);  return (Procedural *)NULL; } } while(0)
 #define getint(pstr)		atol(pstr); nextparam(pstr);
 #define getbool(pstr)		(toupper(*pstr) == 'T' ? GE_TRUE : (toupper(*pstr) == 'F' ? GE_FALSE : (atol(pstr)) ) ); nextparam(pstr);
-#define getfloat(pstr)		(geFloat)atof(pstr); nextparam(pstr);
 #define getvec(pstr,pvec)	do{ ((geVec3d *)pvec)->X = getfloat(pstr); ((geVec3d *)pvec)->Y = getfloat(pstr); ((geVec3d *)pvec)->Z = getfloat(pstr); } while(0)
+#define getfloat(pstr)		static_cast<float>(atof(pstr)); nextparam(pstr);
 #define scalevec(pvec)		do{ ((geVec3d *)pvec)->X *= Proc->SizeX; ((geVec3d *)pvec)->Y *= Proc->SizeY; ((geVec3d *)pvec)->Z *= Proc->SizeZ; } while(0)
 #define absvec(pvec)		do{ ((geVec3d *)pvec)->X = ABS(((geVec3d *)pvec)->X); ((geVec3d *)pvec)->Y = ABS(((geVec3d *)pvec)->Y); ((geVec3d *)pvec)->Z = ABS(((geVec3d *)pvec)->Z); } while(0)
 #define matchstr(str,vs)	(strnicmp(str, vs, strlen(vs)) == 0)
@@ -161,7 +161,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 	Proc = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
 	if(!Proc)
-		return (Procedural*)NULL;
+		return NULL;
 
 	memset(Proc, 0, sizeof(Procedural));
 
@@ -206,12 +206,12 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 
 	Proc->SizeX  = geBitmap_Width(Proc->Bitmap);
 	Proc->SizeY = geBitmap_Height(Proc->Bitmap);
-	geBitmap_GetInfo(Proc->Bitmap, &(Proc->BmInfo), (geBitmap_Info*)NULL);
+	geBitmap_GetInfo(Proc->Bitmap, &(Proc->BmInfo), NULL);
 	Proc->SizeZ = min(Proc->SizeX, Proc->SizeY);
 
 	/**** make Particles *****/
 
-	Proc->Particles = (Particle*)geRam_AllocateClear(Proc->NumParticles * sizeof(Particle));
+	Proc->Particles = static_cast<Particle*>(geRam_AllocateClear(Proc->NumParticles * sizeof(Particle)));
 
 	if(!(Proc->Particles))
 		goto fail;
@@ -225,7 +225,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 
 	/**** make Sources *****/
 
-	Proc->Sources = (ParticleSource*)geRam_AllocateClear(Proc->NumSources * sizeof(ParticleSource));
+	Proc->Sources = static_cast<ParticleSource*>(geRam_AllocateClear(Proc->NumSources * sizeof(ParticleSource)));
 
 	if(!(Proc->Sources))
 		goto fail;
@@ -368,7 +368,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 		pParticle->shade = getint(pstr);
 		pParticle->CurDeathTime = 0.0f;
 
-		pSource->RandomVMagnitude = geVec3d_Normalize((geVec3d*)(pParticle->v));
+		pSource->RandomVMagnitude = geVec3d_Normalize(reinterpret_cast<geVec3d*>(pParticle->v)); // bad cast!
 
 		pSource->Delay = getfloat(pstr); // seconds
 		pSource->Base.Drag = getfloat(pstr);
@@ -380,7 +380,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 fail:
 
 	Particles_Destroy(Proc);
-	return (Procedural*)NULL;
+	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -433,8 +433,8 @@ static Particle* Particles_NewParticle(Procedural *Proc)
 		}
 	}
 
-	pP = (Particle*)NULL;
-    return pP;
+	pP = NULL;
+	return pP;
 }
 
 
@@ -532,7 +532,7 @@ static void Particles_MoveParticles(Procedural *Proc, geFloat time)
 		pP->p[2] += pP->v[2] * time;
 		Proc->Capper(pP->p + 2, pP->v + 2, Proc->SizeZ);
 
-		vsqr = geVec3d_LengthSquared((geVec3d*)pP->v);
+		vsqr = geVec3d_LengthSquared(reinterpret_cast<geVec3d*>(pP->v)); // bad cast!
 
 		if(vsqr > 100.0f)
 			vsqr = 100.0f;
@@ -594,7 +594,7 @@ static void Particles_MoveParticles(Procedural *Proc, geFloat time)
 /* ------------------------------------------------------------------------------------ */
 static geBoolean Particles_Draw(Procedural *Proc)
 {
-	geBitmap *Lock = (geBitmap*)NULL;
+	geBitmap *Lock = NULL;
 	uint8 *Bits;
 	int w, h, s, cnt, x, y;
 	Particle *pP;
@@ -604,20 +604,20 @@ static geBoolean Particles_Draw(Procedural *Proc)
 
 	if(!geBitmap_LockForWriteFormat(Proc->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
-		geBitmap_SetFormat(Proc->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
+		geBitmap_SetFormat(Proc->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(Proc->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(!Lock)
 			goto fail;
 	}
 
-	if(!geBitmap_GetInfo(Lock, &(Proc->BmInfo), (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Lock, &(Proc->BmInfo), NULL))
 		goto fail;
 
 	if(Proc->BmInfo.Format != GE_PIXELFORMAT_8BIT_PAL)
 		goto fail;
 
-	Bits = (unsigned char*)geBitmap_GetBits(Lock);
+	Bits = static_cast<uint8*>(geBitmap_GetBits(Lock));
 
 	if(!Bits)
 		goto fail;
@@ -687,7 +687,7 @@ static geBoolean Particles_InitBitmap(geBitmap *ppBitmap)
 		geBitmap_CreateRef(ppBitmap);
 	}
 
-	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL,GE_FALSE, 0, (geBitmap_Palette*)NULL))
+	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL,GE_FALSE, 0, NULL))
 		return GE_FALSE;
 
 	if(!geBitmap_ClearMips(ppBitmap))
@@ -722,7 +722,7 @@ static geBoolean Particles_InitPalette(Procedural *Proc)
 
 	geBitmap_Palette_Destroy(&Pal);
 
-	if(!geBitmap_GetInfo(Proc->Bitmap, &Info, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Proc->Bitmap, &Info, NULL))
 		goto fail;
 
 	if(Info.Format != GE_PIXELFORMAT_8BIT_PAL)
@@ -749,7 +749,7 @@ static geBoolean Particles_InitPalette(Procedural *Proc)
 			{
 				p = PIXEL_INDEX(c, s, Proc->NumColors);
 				Proc->PixelRGBA(Proc, c, s, &R, &G, &B, &A);
-				PalPtr = ((uint8*)PalData) + p * gePixelFormat_BytesPerPel(PalFormat);
+				PalPtr = (static_cast<uint8*>(PalData)) + p * gePixelFormat_BytesPerPel(PalFormat);
 				gePixelFormat_PutColor(PalFormat, &PalPtr, R, G, B, A);
 			}
 		}
@@ -794,7 +794,7 @@ static void Capper_Hard(geFloat *x, geFloat *v, int size)
 	}
 	else if (*x >= size)
 	{
-		*x = (geFloat)(size - 1);
+		*x = static_cast<geFloat>(size - 1);
 	}
 }
 
@@ -809,7 +809,7 @@ static void Capper_Bounce(geFloat *x,geFloat *v, int size)
 	}
 	else if(*x >= size)
 	{
-		*x = (geFloat)(size - 1);
+		*x = static_cast<geFloat>(size - 1);
 		*v *= -1;
 	}
 }
@@ -829,50 +829,50 @@ static void PixelRGBA_OilColor(Procedural *Proc, int c, int s, int *R, int *G, i
 	if(*A > 200)
 		*A = 255;
 	else
-		*A = (int)(300 * pow((*A)/255.0,0.7));
+		*A = static_cast<int>(300.f * pow(static_cast<float>(*A) / 255.0f, 0.7f));
 }
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_FireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	double sfrac;
+	float sfrac;
 
-	sfrac = (double)s / (Proc->NumShades - 1);
+	sfrac = static_cast<float>(s) / static_cast<float>(Proc->NumShades - 1);
 
-	*R = (int)(255 * pow(sfrac, 0.3));
-	*G = (int)(255 * pow(sfrac, 0.7));
-	*B = (int)(128 * pow(sfrac, 3.0));
+	*R = static_cast<int>(255.f * pow(sfrac, 0.3f));
+	*G = static_cast<int>(255.f * pow(sfrac, 0.7f));
+	*B = static_cast<int>(128.f * pow(sfrac, 3.0f));
 
 	if(sfrac > 0.4f)
 		*A = 255;
 	else
-		*A = (int)(530 * pow(sfrac, 0.8));
+		*A = static_cast<int>(530.f * pow(sfrac, 0.8f));
 }
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_OpaqueFireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	double sfrac;
+	float sfrac;
 
-	sfrac = (double)s / (Proc->NumShades - 1);
+	sfrac = static_cast<float>(s) / static_cast<float>(Proc->NumShades - 1);
 
-	*R = (int)(255 * pow(sfrac, 0.3));
-	*G = (int)(255 * pow(sfrac, 0.7));
-	*B = (int)(128 * pow(sfrac, 3.0));
-	*A = min((int)(400 * pow(sfrac, 0.3)),255);
+	*R = static_cast<int>(255 * pow(sfrac, 0.3f));
+	*G = static_cast<int>(255 * pow(sfrac, 0.7f));
+	*B = static_cast<int>(128 * pow(sfrac, 3.0f));
+	*A = min(static_cast<int>(400.f * pow(sfrac, 0.3f)), 255);
 }
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 static void PixelRGBA_SteamColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A)
 {
-	double sfrac;
+	float sfrac;
 
-	sfrac = (double)s / (Proc->NumShades - 1);
+	sfrac = static_cast<float>(s) / static_cast<float>(Proc->NumShades - 1);
 
-	*A = (int)(255 * pow(sfrac, 0.5));
+	*A = static_cast<int>(255.f * pow(sfrac, 0.5f));
 	*R = *G = *B = *A;
 }
 

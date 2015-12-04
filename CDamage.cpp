@@ -30,7 +30,7 @@ CDamage::CDamage()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pDestroy->szEntityName))
 		{
@@ -112,7 +112,7 @@ void CDamage::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDestroy->Model)
@@ -365,7 +365,7 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
 	}
@@ -392,7 +392,7 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
     }
@@ -488,7 +488,7 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy= (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDestroy->Model)
@@ -543,7 +543,7 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy= (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDestroy->Model)
@@ -660,7 +660,7 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pDestroy= (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDestroy->Model)
@@ -704,11 +704,11 @@ int CDamage::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DestroyableModel *pTheEntity = (DestroyableModel*)geEntity_GetUserData(pEntity);
+		DestroyableModel *pTheEntity = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

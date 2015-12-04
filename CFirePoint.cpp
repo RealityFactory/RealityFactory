@@ -31,7 +31,7 @@ CFirePoint::CFirePoint()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FirePoint *pFire = (FirePoint*)geEntity_GetUserData(pEntity);
+		FirePoint *pFire = static_cast<FirePoint*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pFire->szEntityName))
 		{
@@ -90,7 +90,7 @@ void CFirePoint::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FirePoint *Fire = (FirePoint*)geEntity_GetUserData(pEntity);
+		FirePoint *Fire = static_cast<FirePoint*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(Fire->TriggerName))
 		{
@@ -156,7 +156,7 @@ void CFirePoint::Tick(geFloat dwTicks)
 					Sound.Min = CCD->GetAudibleRadius();
 					Sound.Loop = GE_FALSE;
 					Sound.SoundDef = SPool_Sound(Fire->szSoundFile);
-					CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 				}
 			}
 		}
@@ -188,11 +188,11 @@ int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FirePoint *pTheEntity = (FirePoint*)geEntity_GetUserData(pEntity);
+		FirePoint *pTheEntity = static_cast<FirePoint*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

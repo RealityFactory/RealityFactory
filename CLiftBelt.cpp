@@ -25,12 +25,8 @@ CLiftBelt::CLiftBelt()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-// changed QD 12/15/05
-// causes and endless loop if there are more than 1 LiftBelt entities...
-// allow only 1 entity per level?
-			// pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-// end change
-			LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+			// allow only 1 entity per level?
+			LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 
 			if(EffectC_IsStringNull(pSource->szEntityName))
 			{
@@ -73,10 +69,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-// changed QD 12/15/05
-			// pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-// end change
-			LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+			LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
@@ -90,7 +83,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 					{
 						if(!EffectC_IsStringNull(pSource->PowerAttr))
 						{
-							pSource->Fuel = (float)theInv->Value(pSource->PowerAttr);
+							pSource->Fuel = static_cast<float>(theInv->Value(pSource->PowerAttr));
 							CCD->HUD()->ActivateElement(pSource->PowerAttr, true);
 
 							if(pSource->Fuel > 0.0f)
@@ -125,7 +118,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 								if(pSource->Fuel < 0.0f)
 									pSource->Fuel = 0.0f;
 
-								theInv->Set(pSource->PowerAttr, (int)pSource->Fuel);
+								theInv->Set(pSource->PowerAttr, static_cast<int>(pSource->Fuel));
 							}
 						}
 
@@ -207,10 +200,7 @@ void CLiftBelt::DisableHud(const char *Attr)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-// changed QD 12/15/05
-			// pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-// end change
-			LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+			LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 
 			if(!EffectC_IsStringNull(pSource->EnableAttr))
 			{
@@ -226,10 +216,7 @@ void CLiftBelt::DisableHud(const char *Attr)
 			for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 				pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 			{
-// changed QD 12/15/05
-				// pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-// end change
-				LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+				LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 
 				if(!EffectC_IsStringNull(pSource->EnableAttr))
 				{
@@ -271,11 +258,11 @@ int CLiftBelt::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LiftBelt *pSource = (LiftBelt*)geEntity_GetUserData(pEntity);
+		LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

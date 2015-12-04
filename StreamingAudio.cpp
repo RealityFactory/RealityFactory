@@ -124,7 +124,7 @@ int StreamingAudio::Create(char *szFileName)
 
 		// start a timer for this stream.
 
-		MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, (DWORD)this,
+		MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, reinterpret_cast<DWORD>(this),
 										TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
 		if(nTimer == NULL)
@@ -153,8 +153,8 @@ int StreamingAudio::Create(char *szFileName)
 
 	ogg = false;
 
-	//	start a timer for this stream.
-	MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, (DWORD)this,
+	// start a timer for this stream.
+	MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, reinterpret_cast<DWORD>(this),
 						TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
 	if(nTimer == NULL)
@@ -189,7 +189,7 @@ int StreamingAudio::Create(char *szFileName)
 
 	// Fetch DirectSound interface we want
 	LPDIRECTSOUND pDSIF;
-	nError = m_pDS->QueryInterface(IID_IDirectSound, (LPVOID *)&pDSIF);
+	nError = m_pDS->QueryInterface(IID_IDirectSound, reinterpret_cast<LPVOID*>(&pDSIF));
 
 	// Create a DSound buffer to stream into
 	DSBUFFERDESC theDesc;

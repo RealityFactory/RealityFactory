@@ -64,7 +64,7 @@ CStaticMesh::CStaticMesh()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pMesh->szEntityName))
 		{
@@ -182,7 +182,7 @@ CStaticMesh::CStaticMesh()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		bSunLight =	bLight = bSpotlight	= bAmbientLight = GE_FALSE;
 
@@ -857,14 +857,14 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 
 		if(LType == LIGHT_SUNLIGHT)
 		{
-			geVec3d_Copy(&(((SunLight*)pLight)->angles), &Angles);
-			Color = &(((SunLight*)pLight)->color);
+			geVec3d_Copy(&(static_cast<SunLight*>(pLight)->angles), &Angles);
+			Color = &(static_cast<SunLight*>(pLight)->color);
 		}
 		else if(LType == LIGHT_SPOTLIGHT)
 		{
-			geVec3d_Copy(&(((spotlight*)pLight)->angles), &Angles);
-			arc = (geFloat)cos(((spotlight*)pLight)->arc/360.0f*GE_PI); // we just need half of the arc...
-			Color = &(((spotlight*)pLight)->color);
+			geVec3d_Copy(&(static_cast<spotlight*>(pLight)->angles), &Angles);
+			arc = cos(static_cast<spotlight*>(pLight)->arc/360.0f*GE_PI); // we just need half of the arc...
+			Color = &(static_cast<spotlight*>(pLight)->color);
 		}
 
 		// get the direction of the light
@@ -877,7 +877,8 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 		geXForm3d_Rotate(&temp, &LDirection, &LDirection);
 	}
 	else if(LType == LIGHT_POINTLIGHT)
-		Color = &(((light*)pLight)->color);
+	{
+		Color = &(static_cast<light*>(pLight)->color);
 
 	// prepare the transformation matrix
 	geXForm3d_SetScaling(&thePosition, pMesh->Scale, pMesh->Scale, pMesh->Scale);
@@ -1093,7 +1094,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		if(!pMesh->StaticShadowCaster)
 			continue;
@@ -1252,7 +1253,7 @@ void CStaticMesh::CleanUp()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		if(pMesh->ColorLOD0)
 			free(pMesh->ColorLOD0);
@@ -1337,7 +1338,7 @@ void CStaticMesh::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		int LOD = 0;
 
@@ -1869,7 +1870,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		/*
 		ColCheckLevel:
@@ -2464,7 +2465,7 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pMesh->origin,		sizeof(geVec3d), 1, SaveFD);
 		WRITEDATA(type, &pMesh->Rotation,	sizeof(geVec3d), 1, SaveFD);
@@ -2493,7 +2494,7 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pMesh = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 		READDATA(type, &pMesh->origin,		sizeof(geVec3d), 1, RestoreFD);
 		READDATA(type, &pMesh->Rotation,	sizeof(geVec3d), 1, RestoreFD);
 	}
@@ -2518,11 +2519,11 @@ int CStaticMesh::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StaticMesh *pTheEntity = (StaticMesh*)geEntity_GetUserData(pEntity);
+		StaticMesh *pTheEntity = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

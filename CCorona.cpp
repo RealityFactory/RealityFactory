@@ -37,7 +37,7 @@ CCorona::CCorona()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
+		Corona *pSource = static_cast<Corona*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{
@@ -92,7 +92,7 @@ int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 	C.Vertex.g = pCorona->Color.g;
 	C.Vertex.b = pCorona->Color.b;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_CORONA, (void*)&C);
+	effect = CCD->EffectManager()->Item_Add(EFF_CORONA, static_cast<void*>(&C));
 
 	return effect;
 }
@@ -151,7 +151,7 @@ void CCorona::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
+		Corona *pSource = static_cast<Corona*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pSource->TriggerName))
 		{
@@ -224,11 +224,11 @@ int CCorona::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
+		Corona *pSource = static_cast<Corona*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

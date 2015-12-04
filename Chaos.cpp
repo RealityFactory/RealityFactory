@@ -30,7 +30,7 @@ Chaos::Chaos()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-			EChaos *pTex = (EChaos*)geEntity_GetUserData(pEntity);
+		EChaos *pTex = static_cast<EChaos*>(geEntity_GetUserData(pEntity));
 
 			pTex->SegmentSize = 1;
 
@@ -191,7 +191,7 @@ Chaos::~Chaos()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		EChaos *pTex = (EChaos*)geEntity_GetUserData(pEntity);
+		EChaos *pTex = static_cast<EChaos*>(geEntity_GetUserData(pEntity));
 
 		if((pTex->OriginalBmp != NULL) && (pTex->CAttachBmp != NULL))
 			geBitmap_BlitBitmap(pTex->OriginalBmp, pTex->CAttachBmp );
@@ -230,7 +230,7 @@ void Chaos::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		EChaos *pTex = (EChaos*)geEntity_GetUserData(pEntity);
+		EChaos *pTex = static_cast<EChaos*>(geEntity_GetUserData(pEntity));
 
 		if(!pTex->CAttachBmp)
 			continue;
@@ -261,13 +261,12 @@ void Chaos::Tick(geFloat dwTicks)
 
 
 		// compute vertical offset
-		// changed QD 12/15/05
-		pTex->YOffset += (geFloat)pTex->YStep * dwTicks;
+		pTex->YOffset += pTex->YStep * dwTicks;
 
 		if(pTex->YOffset > GE_2PI)
 			pTex->YOffset = 0.0f;
 
-		CosStep = GE_2PI / (geFloat)pTex->SegmentCount;
+		CosStep = GE_2PI / static_cast<geFloat>(pTex->SegmentCount);
 		CurYOffset = pTex->YOffset;
 
 		// adjust vertically
@@ -290,7 +289,7 @@ void Chaos::Tick(geFloat dwTicks)
 
 			// compute positions
 			XPos = Col * pTex->SegmentSize;
-			YPos = (int)(((geFloat)cos(CurYOffset) + 1.0f) * ((geFloat)pTex->MaxYSway*0.5f));
+			YPos = static_cast<int>((cos(CurYOffset) + 1.0f) * pTex->MaxYSway * 0.5f);
 
 			// adjust bitmap
 			geBitmap_Blit(pTex->OriginalBmp, XPos, 0, pTex->WorkBmp, XPos, YPos, pTex->SegmentSize, AttachInfo.Height - YPos );
@@ -298,13 +297,12 @@ void Chaos::Tick(geFloat dwTicks)
 		}
 
 		// compute horizontal offset
-		// changed QD 12/15/05
-		pTex->XOffset += (geFloat)pTex->XStep * dwTicks;
+		pTex->XOffset += pTex->XStep * dwTicks;
 
 		if(pTex->XOffset > GE_2PI)
 			pTex->XOffset = 0.0f;
 
-		CosStep = GE_2PI/(geFloat)pTex->SegmentCount;
+		CosStep = GE_2PI/static_cast<geFloat>(pTex->SegmentCount);
 		CurXOffset = pTex->XOffset;
 
 		// adjust horizontally
@@ -326,7 +324,7 @@ void Chaos::Tick(geFloat dwTicks)
 			}
 
 			// compute positions
-			XPos = (int)(((geFloat)cos(CurXOffset) + 1.0f) * ((geFloat)pTex->MaxXSway*0.5f));
+			XPos = static_cast<int>((cos(CurXOffset) + 1.0f) * pTex->MaxXSway * 0.5f);
 			YPos = Row * pTex->SegmentSize;
 
 			// adjust bitmap

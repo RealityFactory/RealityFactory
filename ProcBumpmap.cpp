@@ -31,12 +31,12 @@ Procedural *BumpMap_Create(char *TextureName, geWorld  *World, const char *ParmS
 	ppBitmap = geWorld_GetBitmapByName(World, TextureName);
 
 	if(!ppBitmap)
-	  return (Procedural*)NULL;
+		return NULL;
 
 	P = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
 	if(!P)
-	  return (Procedural*)NULL;
+		return NULL;
 
 	memset(P, 0, sizeof(Procedural));
 
@@ -67,7 +67,7 @@ Procedural *BumpMap_Create(char *TextureName, geWorld  *World, const char *ParmS
 	}
 
 	geRam_Free(P);
-	return (Procedural*)NULL;
+	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -101,8 +101,8 @@ geBoolean BumpMap_Animate(Procedural *P,geFloat time)
 	Pos.Y = 0.0f;
 	Pos.Z = 0.0f;
 
-	LightPos.X = (geFloat)(100.0f * cos(P->Frame * 0.05f));
-	LightPos.Y = (geFloat)(100.0f * sin(P->Frame * 0.05f));
+	LightPos.X = 100.0f * cos(P->Frame * 0.05f);
+	LightPos.Y = 100.0f * sin(P->Frame * 0.05f);
 	LightPos.Z = 100.0f;
 
 	Ret = BumpMap_ComputePalette(P->Bitmap, &Horizontal,&Vertical, &Pos, &LightPos );
@@ -114,11 +114,9 @@ geBoolean BumpMap_Animate(Procedural *P,geFloat time)
 
 /*****************************************************************/
 
-#define	PI		((double)3.14159265358979323846)
-// changed QD 12/15/05
-#define TWOPI	((double)6.28318530717958647693)//(2.0*PI)
-#define PIOVER2	((double)1.57079632679489661923)//(PI*0.5)
-// end change
+#define	PI		(3.14159265358979323846f)
+#define TWOPI	(6.28318530717958647693f)//(2.0*PI)
+#define PIOVER2	(1.57079632679489661923f)//(PI*0.5)
 
 static int BumpTableInited = 0;
 static geFloat BumpTableX[256];
@@ -130,21 +128,21 @@ static geFloat BumpTableZ[256];
 static geBoolean BumpMap_InitTables(void)
 {
 	int p;
-	double theta, phi;
+	float theta, phi;
 
 	if(BumpTableInited)
 		return GE_TRUE;
 
 	BumpTableInited = 1;
 
-	for(p=0; p<256; p++)
+	for(p=0; p<256; ++p)
 	{
-		theta = ((double)(p>>4) + 0.5)*PIOVER2/16.0;
-		phi   = ((double)(p&0x0F) + 0.5)*TWOPI/16.0;
+		theta = (static_cast<float>(p >> 4)   + 0.5f)*PIOVER2/16.0f;
+		phi   = (static_cast<float>(p & 0x0F) + 0.5f)*TWOPI/16.0f;
 
-		BumpTableX[p] = (geFloat)( sin(theta) * cos(phi));
-		BumpTableY[p] = (geFloat)( sin(theta) * sin(phi));
-		BumpTableZ[p] = (geFloat) cos(theta);
+		BumpTableX[p] = sin(theta) * cos(phi);
+		BumpTableY[p] = sin(theta) * sin(phi);
+		BumpTableZ[p] = cos(theta);
 	}
 
 	return GE_TRUE;
@@ -154,18 +152,18 @@ static geBoolean BumpMap_InitTables(void)
 /* ------------------------------------------------------------------------------------ */
 static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpMap)
 {
-	geBitmap *HeightLock = (geBitmap*)NULL, *BumpLock = (geBitmap*)NULL;
+	geBitmap *HeightLock = NULL, *BumpLock = NULL;
 	uint8 *HeightBits, *BumpBits;
 	geBitmap_Info HeightInfo, BumpInfo;
 	int w, h;
 
-	if(!geBitmap_SetFormat(BumpMap, GE_PIXELFORMAT_8BIT_PAL,GE_TRUE, 255, (geBitmap_Palette*)NULL))
+	if(!geBitmap_SetFormat(BumpMap, GE_PIXELFORMAT_8BIT_PAL,GE_TRUE, 255, NULL))
 		goto fail;
 
 	if(!geBitmap_LockForRead(HeightMap, &HeightLock, 0, 0, GE_PIXELFORMAT_8BIT_GRAY, 0, 0))
 		goto fail;
 
-	if(!geBitmap_GetInfo(HeightLock, &HeightInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(HeightLock, &HeightInfo, NULL))
 		goto fail;
 
 	w = HeightInfo.Width;
@@ -186,18 +184,18 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 
 	if(!geBitmap_LockForWriteFormat(BumpMap, &BumpLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
-		geBitmap_SetFormat(BumpMap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
+		geBitmap_SetFormat(BumpMap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(BumpMap, &BumpLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(BumpLock == NULL)
 			goto fail;
-    }
+	}
 
-	if(!geBitmap_GetInfo(BumpLock, &BumpInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(BumpLock, &BumpInfo, NULL))
 		goto fail;
 
-	HeightBits	= (unsigned char*)geBitmap_GetBits(HeightLock);
-	BumpBits	= (unsigned char*)geBitmap_GetBits(BumpLock);
+	HeightBits	= static_cast<uint8*>(geBitmap_GetBits(HeightLock));
+	BumpBits	= static_cast<uint8*>(geBitmap_GetBits(BumpLock));
 
 	if(!HeightBits || !BumpBits)
 		goto fail;
@@ -216,8 +214,8 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 			for(x=0; x<(w-1); x++)
 			{
 				int NW, SW, NE, SE, vx, vy;
-				double scale, nX, nY, nZ;
-				double theta, phi;
+				float scale, nX, nY, nZ;
+				float theta, phi;
 				int _theta, _phi;
 
 				NW = hp[0];
@@ -229,7 +227,7 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 				vx = ((NW - NE) + (SW - SE) + 1)>>1;
 				vy = ((NW - SW) + (NE - SE) + 1)>>1;
 
-				scale = 1.0/(1 + vx*vx + vy*vy );
+				scale = 1.0f/static_cast<float>(1 + vx*vx + vy*vy );
 				scale = sqrt(scale);
 
 				nX = scale*vx;
@@ -240,7 +238,7 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 
 				if(fabs(nX) > fabs(nY))
 				{
-					double cosphi;
+					float cosphi;
 					cosphi = nX / sin(theta);
 
 					if(cosphi > 1.0)
@@ -256,7 +254,7 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 				}
 				else
 				{
-					double sinphi;
+					float sinphi;
 					sinphi = nY / sin(theta);
 
 					if(sinphi > 1.0)
@@ -274,12 +272,12 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 						phi += TWOPI;
 				}
 
-				theta	= theta * 16.0 / (PIOVER2);
-				phi		= phi	* 16.0 / (TWOPI);
+				theta	= theta * 16.0f / (PIOVER2);
+				phi		= phi	* 16.0f / (TWOPI);
 
 				// we add 0.5 when we go backwards, so don't do it here
-				_theta	= (int)theta;
-				_phi	= (int)phi;
+				_theta	= static_cast<int>(theta);
+				_phi	= static_cast<int>(phi);
 
 				*bp++ = (_theta << 4) | _phi;
 			}
@@ -364,11 +362,11 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 		LightY = geVec3d_DotProduct(&LightRelPos,pPlaneY) * 250.0f;
 		LightZ = geVec3d_DotProduct(&LightRelPos,&PlaneZ) * 250.0f;
 
-		PalPtr = (unsigned char*)PalData;
+		PalPtr = static_cast<uint8*>(PalData);
 
 		for(p=0; p<256; p++)
 		{
-			c = (int)(LightX * BumpTableX[p] + LightY * BumpTableY[p] + LightZ * BumpTableZ[p]);
+			c = static_cast<int>(LightX * BumpTableX[p] + LightY * BumpTableY[p] + LightZ * BumpTableZ[p]);
 
 			if(c < 0)
 				c = 0;

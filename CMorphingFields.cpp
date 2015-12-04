@@ -35,7 +35,7 @@ CMorphingFields::CMorphingFields()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pField = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pField = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 		pField->bFollower = GE_FALSE;
 
 		if(EffectC_IsStringNull(pField->szEntityName))
@@ -55,7 +55,7 @@ CMorphingFields::CMorphingFields()
 		pField->theFog		= NULL;							// No fog sphere...yet
 		pField->bForward	= GE_TRUE;							// Animation direction
 		pField->fRadius		= pField->fogRadiusStart;		// Start fog radius
-		pField->tElapsed	= (geFloat)pField->fogSpeed;
+		pField->tElapsed	= static_cast<geFloat>(pField->fogSpeed);
 		pField->clrCurrent	= pField->clrStart;				// Current color
 		pField->SoundHandle = -1;							// No sound yet
 		pField->active		= GE_FALSE;
@@ -80,12 +80,11 @@ CMorphingFields::CMorphingFields()
 
 		// Ok, now we precompute deltas for the various attributes of our
 		// ..morphing field.
-		pField->fDepthDelta = pField->fogVariance / (geFloat)pField->fogSpeed;
-		pField->fRadiusDelta = (pField->fogRadiusEnd - pField->fogRadiusStart) /
-			(geFloat)pField->fogSpeed;
-		pField->cDelta.r = (pField->clrEnd.r - pField->clrStart.r) / (geFloat)pField->fogSpeed;
-		pField->cDelta.g = (pField->clrEnd.g - pField->clrStart.g) / (geFloat)pField->fogSpeed;
-		pField->cDelta.b = (pField->clrEnd.b - pField->clrStart.b) / (geFloat)pField->fogSpeed;
+		pField->fDepthDelta = pField->fogVariance / static_cast<geFloat>(pField->fogSpeed);
+		pField->fRadiusDelta = (pField->fogRadiusEnd - pField->fogRadiusStart) / static_cast<geFloat>(pField->fogSpeed);
+		pField->cDelta.r = (pField->clrEnd.r - pField->clrStart.r) / static_cast<geFloat>(pField->fogSpeed);
+		pField->cDelta.g = (pField->clrEnd.g - pField->clrStart.g) / static_cast<geFloat>(pField->fogSpeed);
+		pField->cDelta.b = (pField->clrEnd.b - pField->clrStart.b) / static_cast<geFloat>(pField->fogSpeed);
 		pField->OriginOffset = pField->origin;
 
 		if(pField->Model)
@@ -93,7 +92,7 @@ CMorphingFields::CMorphingFields()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), pField->Model, &ModelOrigin);
 			geVec3d_Subtract(&pField->origin, &ModelOrigin, &pField->OriginOffset);
-  		}
+		}
 	}
 
 	return;
@@ -123,7 +122,7 @@ CMorphingFields::~CMorphingFields()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pField = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pField = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		if(pField->theFog != NULL)
 			geWorld_RemoveFog(CCD->World(), pField->theFog);
@@ -160,7 +159,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pField = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pField = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pField->TriggerName))
 		{
@@ -176,7 +175,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 						Sound.Min = CCD->GetAudibleRadius();
 						Sound.Loop = GE_TRUE;
 						Sound.SoundDef = pField->theSound;
-						pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+						pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 					}
 
 					pField->active = GE_TRUE;
@@ -213,7 +212,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 					Sound.Min = CCD->GetAudibleRadius();
 					Sound.Loop = GE_TRUE;
 					Sound.SoundDef = pField->theSound;
-					pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 				}
 
 				pField->active = GE_TRUE;
@@ -300,7 +299,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 					if(pField->tElapsed <= 0)
 					{
 						pField->bForward = GE_FALSE;								// Switch direction
-						pField->tElapsed = (geFloat)pField->fogSpeed;
+						pField->tElapsed = static_cast<geFloat>(pField->fogSpeed);
 						pField->clrCurrent = pField->clrEnd;
 					}
 					break;
@@ -325,7 +324,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 					if(pField->tElapsed <= 0)
 					{
 						pField->bForward = GE_TRUE;									// Switch direction
-						pField->tElapsed = (geFloat)pField->fogSpeed;
+						pField->tElapsed = static_cast<geFloat>(pField->fogSpeed);
 						pField->clrCurrent = pField->clrStart;
 					}
 
@@ -361,7 +360,7 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pField = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pField = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		fwrite(&pField->bForward,	sizeof(geBoolean),	1, SaveFD);
 		fwrite(&pField->fRadius,	sizeof(geFloat),	1, SaveFD);
@@ -396,7 +395,7 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pField = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pField = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		fread(&pField->bForward,	sizeof(geBoolean),	1, RestoreFD);
 		fread(&pField->fRadius,		sizeof(geFloat),	1, RestoreFD);
@@ -428,7 +427,7 @@ int CMorphingFields::BindToPath(const char *szName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pSource = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pSource = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
@@ -463,11 +462,11 @@ int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		MorphingField *pTheEntity = (MorphingField*)geEntity_GetUserData(pEntity);
+		MorphingField *pTheEntity = static_cast<MorphingField*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

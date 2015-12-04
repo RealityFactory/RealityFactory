@@ -26,7 +26,7 @@ CFlame::CFlame()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Flame *S = (Flame*)geEntity_GetUserData(pEntity);
+		Flame *S = static_cast<Flame*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -73,12 +73,12 @@ int CFlame::CreateS(Flame *S)
 	Sp.Texture = TPool_Bitmap("flame03.Bmp", "a_flame.bmp", S->BmpName, S->AlphaName);
 
 	// variance
-	Sp.SourceVariance = S->SourceVariance * (int)S->Scale;
+	Sp.SourceVariance = static_cast<int>(static_cast<geFloat>(S->SourceVariance) * S->Scale);
 
 	if(Sp.SourceVariance < 0)
 		Sp.SourceVariance = 0;
 
-    Sp.DestVariance = S->DestVariance * (int)S->Scale;
+	Sp.DestVariance = static_cast<int>(static_cast<geFloat>(S->DestVariance) * S->Scale);
 
 	if(Sp.DestVariance < 0)
 		Sp.DestVariance = 0;
@@ -180,7 +180,7 @@ int CFlame::CreateS(Flame *S)
 	geVec3d_Inverse(&In);
 	geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
 
-	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, static_cast<void*>(&Sp));
 
 	return effect;
 }
@@ -249,7 +249,7 @@ int CFlame::CreateG(Flame *S)
 	Gl.Spot			= false;
 
 	// add the light to the manager
-    effect = CCD->EffectManager()->Item_Add(EFF_LIGHT, (void*)&Gl);
+	effect = CCD->EffectManager()->Item_Add(EFF_LIGHT, static_cast<void*>(&Gl));
 
 	return effect;
 }
@@ -278,7 +278,7 @@ void CFlame::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Flame *S = (Flame*)geEntity_GetUserData(pEntity);
+		Flame *S = static_cast<Flame*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(S->TriggerName))
 		{
@@ -363,12 +363,18 @@ void CFlame::Tick(geFloat dwTicks)
 				geVec3d_Inverse(&In);
 				geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
 
-				CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList0, (void*)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
+				CCD->EffectManager()->Item_Modify(	EFF_SPRAY,
+													S->EffectList0,
+													static_cast<void*>(&Sp),
+													SPRAY_SOURCE | SPRAY_ACTUALDEST);
 
 				if(S->EffectList1 != -1)
 				{
 					geVec3d_Copy(&(Sp.Dest), &(Gl.Pos));
-					CCD->EffectManager()->Item_Modify(EFF_LIGHT, S->EffectList1, (void*)&Gl, GLOW_POS);
+					CCD->EffectManager()->Item_Modify(	EFF_LIGHT,
+														S->EffectList1,
+														static_cast<void*>(&Gl),
+														GLOW_POS);
 				}
 			}
 		}
@@ -399,11 +405,11 @@ int CFlame::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Flame *pSource = (Flame*)geEntity_GetUserData(pEntity);
+		Flame *pSource = static_cast<Flame*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

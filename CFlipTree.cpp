@@ -38,7 +38,7 @@ CFlipTree::CFlipTree()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FlipTree *S = (FlipTree*)geEntity_GetUserData(pEntity);
+		FlipTree *S = static_cast<FlipTree*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -55,9 +55,6 @@ CFlipTree::CFlipTree()
 
 		if(!EffectC_IsStringNull(S->BitmapName))
 		{
-			// changed QD 12/15/05 - TPool handles bitmap stuff...
-			// S->Bitmap = (geBitmap*)geRam_AllocateClear(sizeof(S->Bitmap));
-
 			if(!EffectC_IsStringNull(S->AlphamapName))
 				S->Bitmap = TPool_Bitmap(S->BitmapName, S->AlphamapName, NULL, NULL);
 			else
@@ -69,16 +66,13 @@ CFlipTree::CFlipTree()
 		//shadow image
 		if(!EffectC_IsStringNull(S->ShadowMapName))
 		{
-			// changed QD 12/15/05 - TPool handles bitmap stuff...
-			// S->Shadow = (geBitmap*)geRam_AllocateClear(sizeof(S->Shadow));
-
 			if(!EffectC_IsStringNull(S->ShadowAlphaName))
 				S->Shadow = TPool_Bitmap(S->ShadowMapName, S->ShadowAlphaName, NULL, NULL);
 			else
 				S->Shadow = TPool_Bitmap(S->ShadowMapName, S->ShadowMapName, NULL, NULL);
 		}
 
-		S->fActor=NULL;
+		S->fActor = NULL;
 
 		//load the actor
 		if(!EffectC_IsStringNull(S->ActorName))
@@ -122,13 +116,8 @@ CFlipTree::~CFlipTree()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-	    FlipTree *S = (FlipTree*)geEntity_GetUserData(pEntity);
+		FlipTree *S = static_cast<FlipTree*>(geEntity_GetUserData(pEntity));
 
-// changed QD 12/15/05
-/*		if(S->Bitmap)
-			geRam_Free(S->Bitmap);
-*/
-// end change QD 12/15/05
 		if(S->fActor)
 		{
 			CCD->ActorManager()->RemoveActor(S->fActor);
@@ -163,7 +152,7 @@ void CFlipTree::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-	    FlipTree *S = (FlipTree*)geEntity_GetUserData(pEntity);
+		FlipTree *S = static_cast<FlipTree*>(geEntity_GetUserData(pEntity));
 
 		if(!S->fActor)
 			continue;

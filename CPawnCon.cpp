@@ -2678,7 +2678,7 @@ bool CPawn::Converse(const geActor *pActor)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			Pawn *pSource = (Pawn*)geEntity_GetUserData(pEntity);
+			Pawn *pSource = static_cast<Pawn*>(geEntity_GetUserData(pEntity));
 
 			if(pSource->Data)
 			{

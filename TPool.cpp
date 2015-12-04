@@ -25,7 +25,7 @@ TPool *Bottom;
 /* ------------------------------------------------------------------------------------ */
 void TPool_Initalize()
 {
-	Bottom = (TPool*)NULL;
+	Bottom = NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -87,14 +87,7 @@ geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 		free(pool->BmpName);
 		free(pool->AlphaName);
 		geRam_Free(pool);
-		return (geBitmap*)NULL;
-		/*
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError, "Bitmap Manager", MB_OK);
-		exit(-333);
-		*/
+		return NULL;
 	}
 
 	if(!geWorld_AddBitmap(CCD->World(), pool->Bitmap))
@@ -103,7 +96,7 @@ geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 		free(pool->BmpName);
 		free(pool->AlphaName);
 		geRam_Free(pool);
-		return (geBitmap*)NULL;
+		return NULL;
 	}
 
 	pool->next = Bottom;

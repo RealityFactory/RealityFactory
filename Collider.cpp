@@ -25,7 +25,7 @@ geBoolean CBExclusion(geWorld_Model *Model, geActor *Actor, void *Context)
 	if(Actor == NULL)
 		return GE_FALSE;				// NULL actor?
 
-	geActor *thePtr = (geActor*)Context;
+	geActor *thePtr = static_cast<geActor*>(Context);
 
 	if(Actor == thePtr)
 		return GE_FALSE;

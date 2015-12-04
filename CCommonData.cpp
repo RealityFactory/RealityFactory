@@ -2715,9 +2715,9 @@ bool CCommonData::ProcessLevelChange()
 		geEntity *pEntity;
 
 		pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
-		pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
-// changed QD 07/15/06
+		pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
+		PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
+
 		m_SplashAudio[0] = '\0';
 		m_CutScene[0] = '\0';
 
@@ -3376,7 +3376,7 @@ void CCommonData::PlayOpeningCutScene()
 	//	Ok, get the setup information.  There should only be one, so
 	//	..we'll just take the first one we run into.
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
+	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	if((pSetup->OpeningCutScene != NULL) && (strlen(pSetup->OpeningCutScene) != 0))
 	{
@@ -3813,7 +3813,7 @@ char *CCommonData::GetDirectory(int nType)
 void CALLBACK CCommonData::TimerFunction(UINT uID, UINT uMsg,
 										 DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	CCommonData *thePointer = (CCommonData*)dwUser;
+	CCommonData *thePointer = reinterpret_cast<CCommonData*>(dwUser);
 
 	if(thePointer->HasFocus)
 		thePointer->TimeCounter += 1;
@@ -3993,7 +3993,7 @@ void CCommonData::SetLevelData()
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
+	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	if(!EffectC_IsStringNull(pSetup->Deathlevel))
 		strcpy(m_NewLevel, pSetup->Deathlevel);

@@ -36,9 +36,9 @@ CAudioStream::CAudioStream()
 		m_Streams[nTemp] = NULL;
 	}
 
-	//	Ok, get the DirectSound object from the Genesis3D audio system so
-	//	..we can fiddle around behind its back...
-	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
+	// Ok, get the DirectSound object from the Genesis3D audio system so
+	// ..we can fiddle around behind its back...
+	m_dsPtr = static_cast<LPDIRECTSOUND>(geSound_GetDSound());
 
 	//	Now scan for StreamingAudioProxy entities
 	pSet = geWorld_GetEntitySet(CCD->World(), "StreamingAudioProxy");
@@ -51,7 +51,7 @@ CAudioStream::CAudioStream()
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		m_nStreamerCount++;
-		StreamingAudioProxy *pProxy = (StreamingAudioProxy*)geEntity_GetUserData(pEntity);
+		StreamingAudioProxy *pProxy = static_cast<StreamingAudioProxy*>(geEntity_GetUserData(pEntity));
 		pProxy->bActive = true;						// Trigger is active
 		pProxy->LastTimeTriggered = 0;				// Ready immediately
 	}
@@ -295,7 +295,7 @@ void CAudioStream::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		StreamingAudioProxy *pProxy = (StreamingAudioProxy*)geEntity_GetUserData(pEntity);
+		StreamingAudioProxy *pProxy = static_cast<StreamingAudioProxy*>(geEntity_GetUserData(pEntity));
 
 		if(pProxy->bActive == false)
 			continue;								// Not active, ignore it
@@ -312,7 +312,7 @@ void CAudioStream::Tick(geFloat dwTicks)
 
 		// Check to see if we've waited long enough before triggering this
 		// ..from the last time.
-		if(CCD->FreeRunningCounter() < (DWORD)(pProxy->LastTimeTriggered + (pProxy->SleepTime*1000)))
+		if(CCD->FreeRunningCounter() < static_cast<DWORD>(pProxy->LastTimeTriggered + (pProxy->SleepTime*1000)))
 			continue;								// No more often than every <n> seconds.
 
 		// Ok, we're close enough and it's time.  Trigger it!

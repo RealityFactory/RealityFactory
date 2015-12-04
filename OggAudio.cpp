@@ -92,7 +92,7 @@ int OggAudio::Load(const char *szFileName)
 
 	// Fetch DirectSound interface we want
 	LPDIRECTSOUND pDSIF;
-	nError = m_pDS->QueryInterface(IID_IDirectSound, (LPVOID*)&pDSIF);
+	nError = m_pDS->QueryInterface(IID_IDirectSound, reinterpret_cast<LPVOID*>(&pDSIF));
 
 	//	Create a DSound buffer to stream into
 	DSBUFFERDESC theDesc;
@@ -376,7 +376,7 @@ int OggAudio::PumpWave(int nSize)
 	if((lpbuf2 != NULL) && (!m_fEOF))
 	{
 		nBytesRead = 0;
-		lpb = (char*)lpbuf2;
+		lpb = static_cast<char*>(lpbuf2);
 
 		while(nBytesRead<dwsize2 && !m_fEOF)
 		{
@@ -446,7 +446,8 @@ DWORD OggAudio::GetMaxWriteSize()
 void CALLBACK OggAudio::TimerFunction(UINT uID, UINT uMsg,
 									  DWORD dwUser, DWORD dw1, DWORD dw2)
 {
-	OggAudio *thePointer = (OggAudio*)dwUser;
+	OggAudio *thePointer = reinterpret_cast<OggAudio*>(dwUser);
+
 	if(!thePointer->Pumping)
 	{
 		thePointer->Pumping = true;

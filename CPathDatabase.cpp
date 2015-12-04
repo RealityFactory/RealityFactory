@@ -43,7 +43,7 @@ CPathDatabase::CPathDatabase()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathPoint *pPoint = (PathPoint*)geEntity_GetUserData(pEntity);
+		PathPoint *pPoint = static_cast<PathPoint*>(geEntity_GetUserData(pEntity));
 
 		if(pPoint->PointType != 0)
 			continue;							// Not a head-of-list point
@@ -370,7 +370,7 @@ PathPoint *CPathDatabase::FindPathPoint(const char *szPointName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		PathPoint *pPoint = (PathPoint*)geEntity_GetUserData(pEntity);
+		PathPoint *pPoint = static_cast<PathPoint*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(szPointName, pPoint->PointName))
 			return pPoint;			// Found it!

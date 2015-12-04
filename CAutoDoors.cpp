@@ -47,7 +47,7 @@ CAutoDoors::CAutoDoors()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pDoor->szEntityName))
 		{
@@ -233,7 +233,7 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDoor->Model)
@@ -333,7 +333,7 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
     Sound.Min = CCD->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
-	int index = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 
 	if(SoundLoop)
 		return index;
@@ -371,7 +371,7 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDoor->Model)
@@ -467,7 +467,7 @@ void CAutoDoors::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor= (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor= static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		if(!pDoor->Model)
 			continue;
@@ -598,7 +598,7 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		// changed QD 07/15/06
 		if(!pDoor->Model)
@@ -633,7 +633,7 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pDoor->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pDoor->bTrigger,		sizeof(geBoolean),	1, SaveFD);
@@ -669,7 +669,7 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pDoor = (Door*)geEntity_GetUserData(pEntity);
+		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pDoor->bInAnimation,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pDoor->bTrigger,		sizeof(geBoolean),	1, RestoreFD);
@@ -711,11 +711,11 @@ int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Door *pTheEntity = (Door*)geEntity_GetUserData(pEntity);
+		Door *pTheEntity = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

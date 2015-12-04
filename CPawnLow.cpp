@@ -365,7 +365,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			geVec3d Pos, ScreenPos;
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			value = (int)ScreenPos.X;
+			value = static_cast<int>(ScreenPos.X);
 			return true;
 		}
 	case RGF_SM_CURRENT_SCREEN_Y:
@@ -374,7 +374,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			geVec3d Pos, ScreenPos;
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			value = (int)ScreenPos.Y;
+			value = static_cast<int>(ScreenPos.Y);
 			return true;
 		}
 
@@ -384,7 +384,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			geVec3d Pos, ScreenPos;
 			Pos = CCD->Player()->Position();
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			value = (int)ScreenPos.X;
+			value = static_cast<int>(ScreenPos.X);
 			return true;
 		}
 
@@ -394,7 +394,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			geVec3d Pos, ScreenPos;
 			Pos = CCD->Player()->Position();
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			value = (int)ScreenPos.Y;
+			value = static_cast<int>(ScreenPos.Y);
 			return true;
 		}
 	case RGF_SM_LBUTTON_PRESSED:
@@ -617,13 +617,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_GETEVENTSTATE:
 		{
 			PARMCHECK(1);
-			returnValue = (bool)GetTriggerState(arguments[0].str().c_str());
+			returnValue = GetTriggerState(arguments[0].str().c_str());
 			return true;
 		}
 	case RGF_SM_INTEGER:
 		{
+			// deprecated - use built-in toInt method
 			PARMCHECK(1);
-			returnValue = (int)arguments[0].intValue();
+			returnValue = arguments[0].intValue();
 			return true;
 		}
 	case RGF_SM_GETATTRIBUTE:
@@ -712,7 +713,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change
 
-			returnValue = (int)theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
+			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
 	case RGF_SM_SETPLAYERWEAPON:
@@ -743,8 +744,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_STRINGCOPY:
 		{
-			// PARMCHECK(1);
-			returnValue = skString(arguments[0].str());
+			PARMCHECK(1);
+			// DEPRECATED - use x = toString(y) instead
+			returnValue = arguments[0].str();
 			return true;
 		}
 	case RGF_SM_LEFTCOPY:
@@ -4487,7 +4489,7 @@ void ScriptedObject::NewChaseDir(float dist)
 	{
 		for(int ttdir=0; ttdir<=315; ttdir+=45)
 		{
-			tdir = (float)ttdir;
+			tdir = static_cast<float>(ttdir);
 
 			if(tdir != turnaround && StepDirection(tdir, dist))
 				return;
@@ -4497,7 +4499,7 @@ void ScriptedObject::NewChaseDir(float dist)
 	{
 		for(int ttdir=315; ttdir >=0; ttdir-=45)
 		{
-			tdir = (float)ttdir;
+			tdir = static_cast<float>(ttdir);
 
 			if(tdir != turnaround && StepDirection(tdir, dist))
 				return;
@@ -4515,7 +4517,7 @@ void ScriptedObject::NewChaseDir(float dist)
 /* ------------------------------------------------------------------------------------ */
 float ScriptedObject::anglemod(float a)
 {
-	a = (360.0f/65536.0f) * ((int)(a*(65536.0f/360.0f)) & 65535);
+	a = (360.0f/65536.0f) * (static_cast<int>(a*(65536.0f/360.0f)) & 65535);
 	return a;
 }
 

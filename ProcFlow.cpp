@@ -66,7 +66,7 @@ static uint8 Flow_FindBestColorMatch(
 		if((Color == 0) || (BestAverageDiff > AverageDiff))
 		{
 			BestAverageDiff = AverageDiff;
-			BestMatch = (uint8)Color;
+			BestMatch = static_cast<uint8>(Color);
 		}
 	}
 
@@ -145,13 +145,13 @@ Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Paramete
 	ppBitmap = geWorld_GetBitmapByName(World, TextureName);
 
 	if(!ppBitmap)
-		return (Procedural*)NULL;
+		return NULL;
 
 	// allocate memory for procedural struct
 	P = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
 	if(!P)
-		return (Procedural*)NULL;
+		return NULL;
 
 	memset(P,0,sizeof(Procedural));
 
@@ -172,20 +172,20 @@ Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Paramete
 
 		// extract x offset rate
 		pstr = strtok(ParmWork, " ,\n\r\r");
-		P->XOffset = (geFloat)atof(pstr);
+		P->XOffset = static_cast<float>(atof(pstr));
 
 		// extract y offset rate
-		pstr = strtok((char*)NULL, " ,\n\r\r");
-		P->YOffset = (geFloat)atof( pstr );
+		pstr = strtok(NULL, " ,\n\r\r");
+		P->YOffset = static_cast<float>(atof(pstr));
 	}
 
 	// save bitmap info
 	P->Bitmap = ppBitmap;
 
-	if(geBitmap_GetInfo(P->Bitmap, &DestInfo, (geBitmap_Info*)NULL) == GE_FALSE)
+	if(geBitmap_GetInfo(P->Bitmap, &DestInfo, NULL) == GE_FALSE)
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	if(gePixelFormat_HasPalette(DestInfo.Format))
@@ -204,7 +204,7 @@ Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Paramete
 	if(Result != GE_TRUE)
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	geBitmap_ClearMips(P->Bitmap);
@@ -216,7 +216,7 @@ Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Paramete
 	if(P->Original == NULL)
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	geBitmap_ClearMips(P->Original);
@@ -230,7 +230,7 @@ Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Paramete
 		if(Result == GE_FALSE)
 		{
 			geRam_Free(P);
-			return (Procedural*)NULL;
+			return NULL;
 		}
 	}
 
@@ -280,7 +280,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	// locals
 	geBoolean		Result;
 	geBoolean		Success = GE_TRUE;
-	geBitmap		*DestLocked = (geBitmap *)NULL, *SrcLocked = (geBitmap *)NULL;
+	geBitmap		*DestLocked = NULL, *SrcLocked = NULL;
 	geBitmap_Info	DestInfo, SrcInfo;
 	uint8			*DestBits_8, *SrcBits_8;
 	uint8			*CurDestBits_8, *CurSrcBits1_8, *CurSrcBits2_8;
@@ -292,7 +292,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	// perform preprocessing on mips of required
 	if((P->MipsChecked == GE_FALSE) && (P->PixelFormat == GE_PIXELFORMAT_8BIT))
 	{
-		if(geBitmap_GetInfo(P->Bitmap, &DestInfo, (geBitmap_Info*)NULL) == GE_FALSE)
+		if(geBitmap_GetInfo(P->Bitmap, &DestInfo, NULL) == GE_FALSE)
 		{
 			return GE_FALSE;
 		}
@@ -308,13 +308,13 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 		goto ALLDONE;
 	}
 
-	if(geBitmap_GetInfo(SrcLocked, &SrcInfo, (geBitmap_Info*)NULL) == GE_FALSE)
+	if(geBitmap_GetInfo(SrcLocked, &SrcInfo, NULL) == GE_FALSE)
 	{
 		Success = GE_FALSE;
 		goto ALLDONE;
 	}
 
-	SrcBits_8 = (unsigned char *)geBitmap_GetBits( SrcLocked );
+	SrcBits_8 = static_cast<uint8*>(geBitmap_GetBits(SrcLocked));
 
 	if(!SrcBits_8)
 	{
@@ -329,13 +329,13 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 		goto ALLDONE;
 	}
 
-	if(geBitmap_GetInfo(DestLocked, &DestInfo, (geBitmap_Info*)NULL) == GE_FALSE)
+	if(geBitmap_GetInfo(DestLocked, &DestInfo, NULL) == GE_FALSE)
 	{
 		Success = GE_FALSE;
 		goto ALLDONE;
 	}
 
-	DestBits_8 = (unsigned char*)geBitmap_GetBits(DestLocked);
+	DestBits_8 = static_cast<uint8*>(geBitmap_GetBits(DestLocked));
 
 	if(!DestBits_8)
 	{
@@ -352,7 +352,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurDestBits_8 = DestBits_8 + (DestInfo.Stride * Row);
 
 			// set source pointer 1
-			SrcRow = (int32)P->Y + Row;
+			SrcRow = static_cast<int>(P->Y) + Row;
 
 			if(SrcRow >= SrcInfo.Height)
 			{
@@ -362,7 +362,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurSrcBits1_8 = SrcBits_8 + (SrcInfo.Stride * SrcRow);
 
 			// set source pointer 2
-			SrcCol = (int32)P->X;
+			SrcCol = static_cast<int>(P->X);
 			CurSrcBits2_8 = SrcBits_8 + (SrcInfo.Stride * Row);
 
 			// copy data
@@ -390,8 +390,8 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	// ...or in 555 format
 	else
 	{
-		DestBits_16 = (uint16*)DestBits_8;
-		SrcBits_16 = (uint16*)SrcBits_8;
+		DestBits_16 = reinterpret_cast<uint16*>(DestBits_8);
+		SrcBits_16 = reinterpret_cast<uint16*>(SrcBits_8);
 
 		for(Row=0; Row<DestInfo.Height; Row++)
 		{
@@ -399,7 +399,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurDestBits_16 = DestBits_16 + (DestInfo.Stride * Row);
 
 			// set source pointer 1
-			SrcRow = (int32)P->Y + Row;
+			SrcRow = static_cast<int>(P->Y) + Row;
 
 			if(SrcRow >= SrcInfo.Height)
 			{
@@ -409,14 +409,14 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurSrcBits1_16 = SrcBits_16 + (SrcInfo.Stride * SrcRow);
 
 			// set source pointer 2
-			SrcCol = (int32)P->X;
+			SrcCol = static_cast<int>(P->X);
 			CurSrcBits2_16 = SrcBits_16 + (SrcInfo.Stride * Row);
 
 			// copy data
 			for(Col=0; Col<DestInfo.Width; Col++)
 			{
 				// adjust current pixel
-				*CurDestBits_16 = (uint16)((((*CurSrcBits1_16 & 0xF81F) + (*(CurSrcBits2_16 + SrcCol) & 0xF81F)) >> 1) & 0xF81F);
+				*CurDestBits_16 = static_cast<uint16>((((*CurSrcBits1_16 & 0xF81F) + (*(CurSrcBits2_16 + SrcCol) & 0xF81F)) >> 1) & 0xF81F);
 				*CurDestBits_16 |= ((((*CurSrcBits1_16 & 0x3E0) + (*(CurSrcBits2_16 + SrcCol) & 0x3E0)) >> 1) & 0x3E0);
 
 				// adjust first src pointer
@@ -443,10 +443,9 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	{
 		P->X = 0.0f;
 	}
-// changed RF064 by QD
 	else if(P->X < 0.0f)
 	{
-		P->X = (geFloat)SrcInfo.Width;
+		P->X = static_cast<float>(SrcInfo.Width);
 	}
 
 	P->Y += (Time * P->YOffset);
@@ -457,9 +456,8 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	}
 	else if(P->Y < 0.0f)
 	{
-		P->Y = (geFloat)SrcInfo.Height;
+		P->Y = static_cast<float>(SrcInfo.Height);
 	}
-// end change RF064
 
 	// unlock all bitmaps
 ALLDONE:

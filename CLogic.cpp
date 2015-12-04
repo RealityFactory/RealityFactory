@@ -34,7 +34,7 @@ CLogic::CLogic()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{
@@ -91,7 +91,8 @@ void CLogic::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
+
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
 		switch(pSource->Type)
@@ -352,7 +353,7 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pSource->active,	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pSource->bState,	sizeof(geBoolean),	1, SaveFD);
@@ -383,7 +384,7 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pSource->active,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->bState,	sizeof(geBoolean),	1, RestoreFD);
@@ -418,11 +419,11 @@ int CLogic::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void *)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}
@@ -465,7 +466,7 @@ void CLogic::SetState()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LogicGate *pSource = (LogicGate*)geEntity_GetUserData(pEntity);
+		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{

@@ -38,7 +38,7 @@ CAttribute::CAttribute()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+			Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 			if(EffectC_IsStringNull(pSource->szEntityName))
 			{
@@ -83,7 +83,7 @@ CAttribute::CAttribute()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ModifyAttribute *pSource = (ModifyAttribute*)geEntity_GetUserData(pEntity);
+			ModifyAttribute *pSource = static_cast<ModifyAttribute*>(geEntity_GetUserData(pEntity));
 			pSource->active = GE_FALSE;
 		}
 	}
@@ -172,7 +172,7 @@ CAttribute::~CAttribute()
 		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+			Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 			if(pSource->Actor)
 			{
@@ -203,7 +203,7 @@ void CAttribute::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+			Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 			if(pSource->CallBack == GE_TRUE)
 			{
@@ -234,7 +234,7 @@ void CAttribute::Tick(geFloat dwTicks)
 							Sound.SoundDef = SPool_Sound(pSource->szReSpawnSound);
 
 							if(Sound.SoundDef != NULL)
-								CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+								CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 						}
 					}
 				}
@@ -367,7 +367,7 @@ void CAttribute::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ModifyAttribute *pSource = (ModifyAttribute*)geEntity_GetUserData(pEntity);
+			ModifyAttribute *pSource = static_cast<ModifyAttribute*>(geEntity_GetUserData(pEntity));
 
 			if(!EffectC_IsStringNull(pSource->TriggerName))
 			{
@@ -432,7 +432,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->Actor != pActor)
 			continue;	  // Not this one, keep looking
@@ -551,7 +551,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 				Sound.SoundDef = SPool_Sound(pSource->szSoundFile);
 
 				if(Sound.SoundDef != NULL)
-					CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 			}
 
 			return true;
@@ -583,7 +583,7 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=DynamicAttribute1;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &(pSource->alive),			sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &(pSource->active),			sizeof(geBoolean),	1, SaveFD);
@@ -616,7 +616,7 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Attribute *pSource = (Attribute*)geEntity_GetUserData(pEntity);
+		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &(pSource->alive),		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
@@ -690,11 +690,11 @@ int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Attribute *pTheEntity = (Attribute*)geEntity_GetUserData(pEntity);
+		Attribute *pTheEntity = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}

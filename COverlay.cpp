@@ -32,7 +32,7 @@ COverlay::COverlay()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		Overlay *pItem = static_cast<Overlay*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
@@ -56,7 +56,7 @@ COverlay::COverlay()
 		}
 		else
 		{
-			pItem->FBitmap = (geBitmap **)geRam_AllocateClear(sizeof(*(pItem->FBitmap))*pItem->BitmapCount);
+			pItem->FBitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(*(pItem->FBitmap))*pItem->BitmapCount));
 
 			for(int i=0; i<pItem->BitmapCount; i++)
 			{
@@ -104,7 +104,7 @@ COverlay::~COverlay()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		Overlay *pItem = static_cast<Overlay*>(geEntity_GetUserData(pEntity));
 
 		if(pItem->FBitmap)
 			geRam_Free(pItem->FBitmap);
@@ -129,7 +129,7 @@ Overlay *COverlay::IsOverlay(const geWorld_Model *theModel)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		Overlay *pItem = static_cast<Overlay*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{
@@ -167,7 +167,7 @@ void COverlay::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		Overlay *pItem = static_cast<Overlay*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{
@@ -246,7 +246,7 @@ void COverlay::Render()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Overlay *pItem = (Overlay*)geEntity_GetUserData(pEntity);
+		Overlay *pItem = static_cast<Overlay*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pItem->TriggerName))
 		{

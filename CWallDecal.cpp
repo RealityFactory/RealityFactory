@@ -35,7 +35,7 @@ CWallDecal::CWallDecal()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		WallDecal *pSource = (WallDecal*)geEntity_GetUserData(pEntity);
+		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
 // Start Aug2003DCS - Added szEntityName
 		if(EffectC_IsStringNull(pSource->szEntityName))
@@ -51,11 +51,13 @@ CWallDecal::CWallDecal()
 		pSource->vertex = NULL;
 
 		if(!pSource->Animated)
+		{
 			pSource->Bitmap = TPool_Bitmap(pSource->BmpName, pSource->AlphaName, NULL, NULL);
+		}
 		else
 		{
-			pSource->vertex = (void*)geRam_AllocateClear(sizeof(GE_LVertex) * 4);
-			pSource->FBitmap = (geBitmap**)geRam_AllocateClear(sizeof(*(pSource->FBitmap)) * pSource->BitmapCount);
+			pSource->vertex = static_cast<void*>(geRam_AllocateClear(sizeof(GE_LVertex) * 4));
+			pSource->FBitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(geBitmap*) * pSource->BitmapCount));
 
 			for(int i=0; i<pSource->BitmapCount; i++)
 			{
@@ -132,7 +134,7 @@ CWallDecal::~CWallDecal()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		WallDecal *pSource = (WallDecal*)geEntity_GetUserData(pEntity);
+		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->FBitmap)
 			geRam_Free(pSource->FBitmap);
@@ -162,7 +164,7 @@ void CWallDecal::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		WallDecal *pSource = (WallDecal*)geEntity_GetUserData(pEntity);
+		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
 // Start Aug2003DCS  Moved this section up AND modified it
 // changed RF064
@@ -490,15 +492,13 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	else
 	{
 		memcpy(pSource->vertex, vertex, sizeof(GE_LVertex)*4);
-// Start Aug2003DCS
 		pSource->Poly = geWorld_AddPoly(CCD->World(),
-// End Aug2003DCS
-							(GE_LVertex*)pSource->vertex,
-							4,
-							pSource->FBitmap[pSource->CurTex],
-							GE_TEXTURED_POLY,
-							GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-							1.0f);
+										static_cast<GE_LVertex*>(pSource->vertex),
+										4,
+										pSource->FBitmap[pSource->CurTex],
+										GE_TEXTURED_POLY,
+										GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF,
+										1.0f);
 	}
 // end change RF064
 }
@@ -591,12 +591,12 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 	{
 		memcpy(pSource->vertex, vertex, sizeof(GE_LVertex)*4);
 		pSource->Poly = geWorld_AddPoly(CCD->World(),
-						(GE_LVertex*)pSource->vertex,
-						4,
-						pSource->FBitmap[pSource->CurTex],
-						GE_TEXTURED_POLY,
-						GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-						1.0f);
+										static_cast<GE_LVertex*>(pSource->vertex),
+										4,
+										pSource->FBitmap[pSource->CurTex],
+										GE_TEXTURED_POLY,
+										GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
+										1.0f);
 	}
 }
 
@@ -621,7 +621,7 @@ int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity))
 	{
-		WallDecal *pTheEntity = (WallDecal*)geEntity_GetUserData(pEntity);
+		WallDecal *pTheEntity = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
@@ -654,7 +654,7 @@ int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity))
 	{
-		WallDecal *pTheEntity = (WallDecal*)geEntity_GetUserData(pEntity);
+		WallDecal *pTheEntity = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{

@@ -37,7 +37,7 @@ CSoundtrackToggle::CSoundtrackToggle()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		SoundtrackToggle *pToggle = (SoundtrackToggle*)geEntity_GetUserData(pEntity);
+		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 		m_SoundtrackToggleCount++;
 
 		pToggle->bActive = GE_TRUE;					// Toggle is active
@@ -115,7 +115,7 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		SoundtrackToggle *pToggle = (SoundtrackToggle*)geEntity_GetUserData(pEntity);
+		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 
 		if(geVec3d_DistanceBetween(&(pToggle->origin), &PlayerPos) > pToggle->Range)
 			continue;														// Too far away
@@ -126,7 +126,7 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 		// ..some possible anomolies (the right soundtrack might not always
 		// ..play if the player is doing something perverse) you'll always end
 		// ..up with one or the other playing.
-		if(CCD->FreeRunningCounter() < (unsigned long)(pToggle->LastTimeToggled + (pToggle->SleepTime*1000)))
+		if(CCD->FreeRunningCounter() < static_cast<unsigned long>(pToggle->LastTimeToggled + (pToggle->SleepTime*1000)))
 			continue;									// No more often than every <n> seconds.
 
 		if(!pToggle->bActive)
@@ -199,7 +199,7 @@ void CSoundtrackToggle::StopStreaming()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		SoundtrackToggle *pToggle = (SoundtrackToggle*)geEntity_GetUserData(pEntity);
+		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 
 		if((pToggle->szStreamFileOne != NULL) && (strlen(pToggle->szStreamFileOne) > 0))
 			  CCD->AudioStreams()->Stop(pToggle->szStreamFileOne);

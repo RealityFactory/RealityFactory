@@ -26,7 +26,7 @@ CFlipBook::CFlipBook()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FlipBook *S = (FlipBook*)geEntity_GetUserData(pEntity);
+		FlipBook *S = static_cast<FlipBook*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -56,7 +56,7 @@ CFlipBook::CFlipBook()
 
 		if(!EffectC_IsStringNull(S->BmpNameBase))
 		{
-			S->Bitmap = (geBitmap**)geRam_AllocateClear(sizeof(*(S->Bitmap))*S->BitmapCount);
+			S->Bitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(*(S->Bitmap))*S->BitmapCount));
 
 			for(int i=0; i<S->BitmapCount; i++)
 			{
@@ -119,7 +119,7 @@ int CFlipBook::CreateS(FlipBook *S)
 	Sp.Style			= (Sprite_CycleStyle)S->Style;
 	Sp.Color.a			= S->Alpha;
 
-    effect = CCD->EffectManager()->Item_Add(EFF_SPRITE, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_SPRITE, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -139,7 +139,7 @@ CFlipBook::~CFlipBook()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FlipBook *S = (FlipBook*)geEntity_GetUserData(pEntity);
+		FlipBook *S = static_cast<FlipBook*>(geEntity_GetUserData(pEntity));
 
 		if(S->Bitmap)
 			geRam_Free(S->Bitmap);
@@ -162,7 +162,7 @@ void CFlipBook::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FlipBook *S = (FlipBook*)geEntity_GetUserData(pEntity);
+		FlipBook *S = static_cast<FlipBook*>(geEntity_GetUserData(pEntity));
 
 		if(S->changed)
 			continue;
@@ -219,7 +219,7 @@ void CFlipBook::Tick(geFloat dwTicks)
 				{
 					Sprite Sp;
 					geVec3d_Copy(&(S->origin), &(Sp.Pos));
-					CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList, (void*)&Sp, SPRITE_POS);
+					CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList, static_cast<void*>(&Sp), SPRITE_POS);
 				}
 			}
 			else
@@ -285,11 +285,11 @@ int CFlipBook::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FlipBook *pSource = (FlipBook*)geEntity_GetUserData(pEntity);
+		FlipBook *pSource = static_cast<FlipBook*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

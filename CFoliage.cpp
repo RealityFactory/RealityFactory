@@ -39,7 +39,7 @@ CFoliage::CFoliage()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Foliage *S = (Foliage*)geEntity_GetUserData(pEntity);
+		Foliage *S = static_cast<Foliage*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -126,7 +126,7 @@ void CFoliage::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-	    Foliage *S = (Foliage*)geEntity_GetUserData(pEntity);
+		Foliage *S = static_cast<Foliage*>(geEntity_GetUserData(pEntity));
 
 		// check distance from camera
 		CCD->CameraManager()->GetPosition(&cPos);
@@ -174,7 +174,7 @@ void CFoliage::Tick(geFloat dwTicks)
 				if(sl == 0.f)
 					sl = 1.0;
 				else
-					scale = (float)((rand() % 10) * (sl/10.0f)) + S->sMin;
+					scale = static_cast<float>((rand() % 10) * (sl/10.0f)) + S->sMin;
 
 				fPos.X = S->origin.X +((rand() % (S->Diameter * 2)) - S->Diameter);
 				fPos.Z = S->origin.Z +((rand() % (S->Diameter * 2)) - S->Diameter);
@@ -240,8 +240,7 @@ void CFoliage::Tick(geFloat dwTicks)
 		}
 	}
 
-// added by pickles 08.14.2004
-	srand(int(dwTicks * 1000.f));
+	srand(static_cast<unsigned int>(dwTicks * 1000.f));
 }
 
 

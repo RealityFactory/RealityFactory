@@ -26,7 +26,7 @@ CCountDown::CCountDown()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CountDownTimer *pItem = (CountDownTimer*)geEntity_GetUserData(pEntity);
+		CountDownTimer *pItem = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
@@ -50,7 +50,7 @@ CCountDown::CCountDown()
 			if(theInv->Has(pItem->Attribute))
 			{
 				pItem->alive = GE_TRUE;
-				theInv->SetValueLimits(pItem->Attribute, 0, (int)pItem->TimeAmt);
+				theInv->SetValueLimits(pItem->Attribute, 0, static_cast<int>(pItem->TimeAmt));
 				theInv->Set(pItem->Attribute, 0);
 			}
 		}
@@ -87,7 +87,8 @@ void CCountDown::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CountDownTimer *pItem = (CountDownTimer*)geEntity_GetUserData(pEntity);
+		CountDownTimer *pItem = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
+
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
 		if(!EffectC_IsStringNull(pItem->StopTrigger))
@@ -121,7 +122,7 @@ void CCountDown::Tick(geFloat dwTicks)
 						pItem->bState = GE_FALSE;
 
 						if(pItem->alive)
-							theInv->Set(pItem->Attribute, (int)pItem->Time);
+							theInv->Set(pItem->Attribute, static_cast<int>(pItem->Time));
 
 						if(!EffectC_IsStringNull(pItem->SoundFile))
 						{
@@ -131,7 +132,7 @@ void CCountDown::Tick(geFloat dwTicks)
 							Sound.Min=CCD->GetAudibleRadius();
 							Sound.Loop = GE_TRUE;
 							Sound.SoundDef = SPool_Sound(pItem->SoundFile);
-							pItem->index = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+							pItem->index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 						}
 					}
 				}
@@ -156,7 +157,7 @@ void CCountDown::Tick(geFloat dwTicks)
 			}
 
 			if(pItem->alive)
-				theInv->Set(pItem->Attribute, (int)pItem->Time);
+				theInv->Set(pItem->Attribute, static_cast<int>(pItem->Time));
 		}
 	}
 }
@@ -185,11 +186,11 @@ int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CountDownTimer *pTheEntity = (CountDownTimer*)geEntity_GetUserData(pEntity);
+		CountDownTimer *pTheEntity = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
@@ -218,7 +219,7 @@ int CCountDown::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CountDownTimer *pSource = (CountDownTimer*)geEntity_GetUserData(pEntity);
+		CountDownTimer *pSource = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pSource->active,	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pSource->bState,	sizeof(geBoolean),	1, SaveFD);
@@ -249,7 +250,7 @@ int CCountDown::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CountDownTimer *pSource = (CountDownTimer*)geEntity_GetUserData(pEntity);
+		CountDownTimer *pSource = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pSource->active,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->bState,	sizeof(geBoolean),	1, RestoreFD);

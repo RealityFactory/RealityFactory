@@ -25,7 +25,7 @@ CSpout::CSpout()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Spout *S = (Spout*)geEntity_GetUserData(pEntity);
+		Spout *S = static_cast<Spout*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -167,7 +167,7 @@ int CSpout::Create(Spout *S)
 
 	Sp.UseWind = S->UseWind;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -197,7 +197,7 @@ void CSpout::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Spout *S = (Spout*)geEntity_GetUserData(pEntity);
+		Spout *S = static_cast<Spout*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(S->TriggerName))
 		{
@@ -280,7 +280,7 @@ void CSpout::Tick(geFloat dwTicks)
 				geVec3d_Inverse(&In);
 				geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
 
-				CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList, (void*)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
+				CCD->EffectManager()->Item_Modify(EFF_SPRAY, S->EffectList, static_cast<void*>(&Sp), SPRAY_SOURCE | SPRAY_ACTUALDEST);
 			}
 		}
 	}
@@ -310,11 +310,11 @@ int CSpout::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Spout *pSource = (Spout*)geEntity_GetUserData(pEntity);
+		Spout *pSource = static_cast<Spout*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}
@@ -354,7 +354,7 @@ CActorSpout::CActorSpout()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActorSpout *S = (ActorSpout*)geEntity_GetUserData(pEntity);
+		ActorSpout *S = static_cast<ActorSpout*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -507,7 +507,7 @@ int CActorSpout::Create(ActorSpout *S)
 	geVec3d_Inverse(&In);
 	geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
 
-	effect = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -537,7 +537,7 @@ void CActorSpout::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActorSpout *S = (ActorSpout*)geEntity_GetUserData(pEntity);
+		ActorSpout *S = static_cast<ActorSpout*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(S->TriggerName))
 		{
@@ -620,7 +620,7 @@ void CActorSpout::Tick(geFloat dwTicks)
 				geXForm3d_GetIn(&Xf, &In);
 				geVec3d_Inverse(&In);
 				geVec3d_AddScaled(&(Sp.Source), &In, 50.0f, &(Sp.Dest));
-				CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, S->EffectList, (void*)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
+				CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, S->EffectList, static_cast<void*>(&Sp), SPRAY_SOURCE | SPRAY_ACTUALDEST);
 			}
 		}
 	}
@@ -649,11 +649,11 @@ int CActorSpout::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ActorSpout *pSource = (ActorSpout*)geEntity_GetUserData(pEntity);
+		ActorSpout *pSource = static_cast<ActorSpout*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

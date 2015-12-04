@@ -64,7 +64,7 @@ void CViewSwitch::Tick()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ViewSwitch *pSource = (ViewSwitch*)geEntity_GetUserData(pEntity);
+		ViewSwitch *pSource = static_cast<ViewSwitch*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pSource->TriggerName))
 		{

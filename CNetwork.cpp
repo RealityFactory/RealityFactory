@@ -273,7 +273,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 				// wait for acceptance packet from server
 				if(ReadBuffer(Buffer, sock)==NL_TRUE)
 				{
-					if(Buffer->GetChar() == (unsigned char)CONNECTIONACCEPT)
+					if(Buffer->GetChar() == static_cast<unsigned char>(CONNECTIONACCEPT))
 					{
 						// get your Id#
 						PlayerId = Buffer->GetInt();
@@ -288,7 +288,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 				}
 
 				// wait for 30 secs for acceptance then abort
-				float deltaTime = 0.001f * (geFloat)(CCD->FreeRunningCounter() - Time);
+				float deltaTime = 0.001f * (static_cast<float>(CCD->FreeRunningCounter()) - Time);
 
 				if(deltaTime > 30.0f)
 				{
@@ -373,7 +373,7 @@ void NetPlayerMgr::ServerClientCycle()
 				// packet has ID# and level name
 				outbuffer->PosBack(0);
 				outbuffer->Add(1);
-				outbuffer->Add((unsigned char)CONNECTIONACCEPT);
+				outbuffer->Add(static_cast<unsigned char>(CONNECTIONACCEPT));
 				outbuffer->Add(newsock);
 				const char *level = CCD->MenuManager()->GetLevelName();
 				outbuffer->AddString(level, strlen(level));
@@ -405,7 +405,7 @@ void NetPlayerMgr::ServerClientCycle()
 			// initalize client update buffer for possible use later
 			updatebuffer->PosBack(0);
 			updatebuffer->Add(1);
-			updatebuffer->Add((unsigned char)CLIENTUPDATE);
+			updatebuffer->Add(static_cast<unsigned char>(CLIENTUPDATE));
 
 			// loop through all packets
 			for(i=0; i<count; i++)
@@ -434,7 +434,7 @@ void NetPlayerMgr::ServerClientCycle()
 						{
 							outbuffer->PosBack(0);
 							outbuffer->Add(1);
-							outbuffer->Add((unsigned char)CLIENTADD);
+							outbuffer->Add(static_cast<unsigned char>(CLIENTADD));
 							BuildPlayer(outbuffer, index, Player[index]->GetId());
 							nlWrite(group, outbuffer->Data, outbuffer->Size);
 						}
@@ -449,7 +449,7 @@ void NetPlayerMgr::ServerClientCycle()
 					case PLAYERDELETE:
 						outbuffer->PosBack(0);
 						outbuffer->Add(1);
-						outbuffer->Add((unsigned char)DELETECLIENT);
+						outbuffer->Add(static_cast<unsigned char>(DELETECLIENT));
 						outbuffer->Add(s[i]);
 						outbuffer->AddLen();
 
@@ -473,7 +473,7 @@ void NetPlayerMgr::ServerClientCycle()
 					{
 						outbuffer->PosBack(0);
 						outbuffer->Add(1);
-						outbuffer->Add((unsigned char)DELETECLIENT);
+						outbuffer->Add(static_cast<unsigned char>(DELETECLIENT));
 						outbuffer->Add(s[i]);
 						outbuffer->AddLen();
 
@@ -506,7 +506,7 @@ void NetPlayerMgr::ServerClientCycle()
 		// get acceptance packet from server to get ID#
 		if(ReadBuffer(Buffer, sock)==NL_TRUE)
 		{
-			if(Buffer->GetChar() == (unsigned char)CONNECTIONACCEPT)
+			if(Buffer->GetChar() == static_cast<unsigned char>(CONNECTIONACCEPT))
 			{
 				PlayerId = Buffer->GetInt();
 				clientready = true;
@@ -561,7 +561,7 @@ void NetPlayerMgr::ServerClientCycle()
 			int index = GetIndexFromId(PlayerId);
 			Buffer->PosBack(0);
 			Buffer->Add(1);
-			Buffer->Add((unsigned char)PLAYERINFO);
+			Buffer->Add(static_cast<unsigned char>(PLAYERINFO));
 			BuildPlayer(Buffer, index, PlayerId);
 			nlWrite(sock, Buffer->Data, Buffer->Size);
 
@@ -721,7 +721,7 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	// send info about clients
 	Buff->PosBack(0);
 	Buff->Add(1);
-	Buff->Add((unsigned char)CLIENTLIST);
+	Buff->Add(static_cast<unsigned char>(CLIENTLIST));
 
 	for(int i=0; i<MAXPLAYERS; i++)
 	{
@@ -739,7 +739,7 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	// send info about rest of world here
 	outbuffer->PosBack(0);
 	outbuffer->Add(1);
-	outbuffer->Add((unsigned char)WORLDLIST1);
+	outbuffer->Add(static_cast<unsigned char>(WORLDLIST1));
 
 	CCD->Doors()->SaveTo(NULL, true);
 	CCD->Platforms()->SaveTo(NULL, true);
@@ -754,7 +754,7 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 
 	outbuffer->PosBack(0);
 	outbuffer->Add(1);
-	outbuffer->Add((unsigned char)WORLDLIST2);
+	outbuffer->Add(static_cast<unsigned char>(WORLDLIST2));
 
 	CCD->Attributes()->SaveTo(NULL, true);
 	CCD->Damage()->SaveTo(NULL, true);
@@ -770,7 +770,7 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	// send done connecting command
 	Buff->PosBack(0);
 	Buff->Add(1);
-	Buff->Add((unsigned char)DONECONNECT);
+	Buff->Add(static_cast<unsigned char>(DONECONNECT));
 	Buff->AddLen();
 	nlWrite(sock, Buff->Data, Buff->Size);
 }
@@ -822,13 +822,13 @@ void NetPlayerMgr::ClientUpdate()
 		// sent update of changed data
 		Buffer->PosBack(0);
 		Buffer->Add(1);
-		Buffer->Add((unsigned char)PLAYERUPDATE);
+		Buffer->Add(static_cast<unsigned char>(PLAYERUPDATE));
 		Buffer->Add(PlayerId);
 
 		// rotation has changed
 		if(!flag1)
 		{
-			Buffer->Add((unsigned char)ROTATION);
+			Buffer->Add(static_cast<unsigned char>(ROTATION));
 			Buffer->Add(Player[index]->localRotation);
 			Player[index]->oldRotation = Player[index]->localRotation;
 		}
@@ -836,7 +836,7 @@ void NetPlayerMgr::ClientUpdate()
 		// position has changed
 		if(!flag2)
 		{
-			Buffer->Add((unsigned char)TRANSLATION);
+			Buffer->Add(static_cast<unsigned char>(TRANSLATION));
 			Buffer->Add(Player[index]->localTranslation);
 			Player[index]->oldTranslation = Player[index]->localTranslation;
 		}
@@ -846,13 +846,13 @@ void NetPlayerMgr::ClientUpdate()
 		{
 			strcpy(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
 			Player[index]->AnimTime = CCD->ActorManager()->GetAnimationTime(CCD->Player()->GetActor());
-			Buffer->Add((unsigned char)ANIMATION);
+			Buffer->Add(static_cast<unsigned char>(ANIMATION));
 			Buffer->AddString(Player[index]->Animation, strlen(Player[index]->Animation));
 			Buffer->Add(Player[index]->AnimTime);
 		}
 
 		// end of changes so send to server
-		Buffer->Add((unsigned char)ENDCMD);
+		Buffer->Add(static_cast<unsigned char>(ENDCMD));
 		Buffer->AddLen();
 		nlWrite(sock, Buffer->Data, Buffer->Size);
 	}
@@ -882,22 +882,22 @@ void NetPlayerMgr::ServerUpdateClient(NetBuffer *Buff)
 		updatebuffer->Add(cmd);
 		// end of change data
 
-		if(cmd == (unsigned char)ENDCMD)
+		if(cmd == static_cast<unsigned char>(ENDCMD))
 			break;
 
-		if(cmd == (unsigned char)ROTATION)
+		if(cmd == static_cast<unsigned char>(ROTATION))
 		{
 			Rotation = Buff->GetVec3d();
 			updatebuffer->Add(Rotation);
 		}
 
-		if(cmd == (unsigned char)TRANSLATION)
+		if(cmd == static_cast<unsigned char>(TRANSLATION))
 		{
 			Translation = Buff->GetVec3d();
 			updatebuffer->Add(Translation);
 		}
 
-		if(cmd == (unsigned char)ANIMATION)
+		if(cmd == static_cast<unsigned char>(ANIMATION))
 		{
 			animname = Buff->GetString();
 			animtime = Buff->GetFloat();
@@ -939,10 +939,10 @@ void NetPlayerMgr::ProcessClientUpdate(NetBuffer *Buff)
 			cmd = Buff->GetChar();
 
 			// end current client data
-			if(cmd == (unsigned char)ENDCMD)
+			if(cmd == static_cast<unsigned char>(ENDCMD))
 				break;
 
-			if(cmd == (unsigned char)ROTATION)
+			if(cmd == static_cast<unsigned char>(ROTATION))
 			{
 				Rotation = Buff->GetVec3d();
 
@@ -955,7 +955,7 @@ void NetPlayerMgr::ProcessClientUpdate(NetBuffer *Buff)
 				}
 			}
 
-			if(cmd == (unsigned char)TRANSLATION)
+			if(cmd == static_cast<unsigned char>(TRANSLATION))
 			{
 				Translation = Buff->GetVec3d();
 
@@ -968,7 +968,7 @@ void NetPlayerMgr::ProcessClientUpdate(NetBuffer *Buff)
 				}
 			}
 
-			if(cmd == (unsigned char)ANIMATION)
+			if(cmd == static_cast<unsigned char>(ANIMATION))
 			{
 				animname = Buff->GetString();
 				animtime = Buff->GetFloat();
@@ -1017,7 +1017,7 @@ void NetPlayerMgr::SendDelete()
 	{
 		Buffer->PosBack(0);
 		Buffer->Add(1);
-		Buffer->Add((unsigned char)PLAYERDELETE);
+		Buffer->Add(static_cast<unsigned char>(PLAYERDELETE));
 		Buffer->AddLen();
 		nlWrite(sock, Buffer->Data, Buffer->Size);
 		nlClose(sock);

@@ -33,7 +33,7 @@ CRain::CRain()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Rain *R = (Rain*)geEntity_GetUserData(pEntity);
+		Rain *R = static_cast<Rain*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(R->szEntityName))
 		{
@@ -51,10 +51,10 @@ CRain::CRain()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), R->Model, &ModelOrigin);
 			geVec3d_Subtract(&(R->origin), &ModelOrigin, &(R->OriginOffset));
-  		}
+		}
 
 		// calculate number of Sprays needed
-		R->EffectCount = (int)R->Radius / RAINM_RADIUSTOEFFECTRATIO;
+		R->EffectCount = static_cast<int>(R->Radius) / RAINM_RADIUSTOEFFECTRATIO;
 
 		// create dynamic array to hold effect indexes
 		R->EffectList = (int*)malloc(sizeof(int)*R->EffectCount);
@@ -97,14 +97,14 @@ int CRain::Create(Rain *R)
     geVec3d_Copy(&(R->Gravity), &(Sp.Gravity));
 
 	// set source position
-    geVec3d_Copy(&(R->origin), &(Sp.Source));
-	Sp.SourceVariance	= (int)(R->Radius*0.5f);
-    Sp.MinUnitLife		= R->DropLife;
-    Sp.MaxUnitLife		= R->DropLife;
+	geVec3d_Copy(&(R->origin), &(Sp.Source));
+	Sp.SourceVariance	= static_cast<int>(R->Radius*0.5f);
+	Sp.MinUnitLife		= R->DropLife;
+	Sp.MaxUnitLife		= R->DropLife;
 
 	// set destination position
-    geVec3d_AddScaled(&(Sp.Source), &(Sp.Gravity), Sp.MinUnitLife, &(Sp.Dest));
-    Sp.DestVariance = (int)(R->Radius*0.5f);
+	geVec3d_AddScaled(&(Sp.Source), &(Sp.Gravity), Sp.MinUnitLife, &(Sp.Dest));
+	Sp.DestVariance = static_cast<int>(R->Radius*0.5f);
 
 	memcpy(&(Sp.ColorMin), &(R->ColorMin), sizeof(Sp.ColorMin));
     memcpy(&(Sp.ColorMax), &(R->ColorMax), sizeof(Sp.ColorMax));
@@ -113,7 +113,7 @@ int CRain::Create(Rain *R)
 
 	Sp.UseWind = R->UseWind;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, (void*)&Sp);
+	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -133,7 +133,7 @@ CRain::~CRain()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Rain *R = (Rain*)geEntity_GetUserData(pEntity);
+		Rain *R = static_cast<Rain*>(geEntity_GetUserData(pEntity));
 
 		// free dynamic array
 		if(R->EffectList)	// changed QD 07/15/06
@@ -159,7 +159,7 @@ void CRain::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Rain *R = (Rain*)geEntity_GetUserData(pEntity);
+		Rain *R = static_cast<Rain*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(R->TriggerName))
 		{
@@ -205,10 +205,10 @@ void CRain::Tick(geFloat dwTicks)
 				geVec3d_AddScaled(&(Sp.Source), &(Sp.Gravity), Sp.MinUnitLife, &(Sp.Dest));
 
 				// adjust position
-				for(i=0; i<R->EffectCount; i++)
-					CCD->EffectManager()->Item_Modify(EFF_SPRAY, R->EffectList[i], (void *)&Sp, SPRAY_SOURCE | SPRAY_ACTUALDEST);
+				for(int i=0; i<R->EffectCount; i++)
+					CCD->EffectManager()->Item_Modify(EFF_SPRAY, R->EffectList[i], static_cast<void*>(&Sp), SPRAY_SOURCE | SPRAY_ACTUALDEST);
 			}
-	    }
+		}
 	}
 }
 
@@ -236,11 +236,11 @@ int CRain::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Rain *pSource = (Rain*)geEntity_GetUserData(pEntity);
+		Rain *pSource = static_cast<Rain*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

@@ -30,7 +30,7 @@ CShake::CShake()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ScreenShake *pSource = (ScreenShake*)geEntity_GetUserData(pEntity);
+		ScreenShake *pSource = static_cast<ScreenShake*>(geEntity_GetUserData(pEntity));
 
 		pSource->OriginOffset = pSource->origin;
 
@@ -70,7 +70,7 @@ void CShake::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ScreenShake *pSource = (ScreenShake*)geEntity_GetUserData(pEntity);
+		ScreenShake *pSource = static_cast<ScreenShake*>(geEntity_GetUserData(pEntity));
 
 		pSource->origin = pSource->OriginOffset;
 		SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));

@@ -38,7 +38,7 @@ CFloat::CFloat()
 		Sprite Spr;
 
 		// get data
-		S = (FloatingParticles*)geEntity_GetUserData(pEntity);
+		S = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -122,7 +122,7 @@ CFloat::CFloat()
 			S->Speed[i] = EffectC_Frand(S->MinSpeed, S->MaxSpeed);
 
 			// add effect to manager
-	        S->EffectList[i] = CCD->EffectManager()->Item_Add(EFF_SPRITE, (void*)&Spr);
+			S->EffectList[i] = CCD->EffectManager()->Item_Add(EFF_SPRITE, static_cast<void*>(&Spr));
 		}
 	}
 
@@ -145,7 +145,7 @@ CFloat::~CFloat()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FloatingParticles *R = (FloatingParticles*)geEntity_GetUserData(pEntity);
+		FloatingParticles *R = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
 		// free any dynamic arrays
 		if(R->EffectList != NULL)	// changed QD 12/15/05
@@ -190,7 +190,7 @@ void CFloat::Tick(geFloat dwTicks)
 		Sprite  Spr;
 
 		// get data
-		S = (FloatingParticles*)geEntity_GetUserData(pEntity);
+		S = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(S->TriggerName))
 			S->active = GetTriggerState(S->TriggerName);
@@ -244,13 +244,13 @@ void CFloat::Tick(geFloat dwTicks)
 
 				// modify sprite in effect manager
 				Spr.Pause = GE_FALSE;
-				CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList[i], (void*)&Spr, SPRITE_POS | SPRITE_PAUSE);
+				CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList[i], static_cast<void*>(&Spr), SPRITE_POS | SPRITE_PAUSE);
 			}
 			else
 			{
 				Spr.Pause = GE_TRUE;
 				// modify sprite in effect manager
-				CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList[i], (void*)&Spr, SPRITE_PAUSE);
+				CCD->EffectManager()->Item_Modify(EFF_SPRITE, S->EffectList[i], static_cast<void*>(&Spr), SPRITE_PAUSE);
 			}
 		}
 	}
@@ -280,11 +280,11 @@ int CFloat::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FloatingParticles *pSource = (FloatingParticles*)geEntity_GetUserData(pEntity);
+		FloatingParticles *pSource = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

@@ -250,7 +250,9 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 				{
 					geVec3d temppos, temppos1;
 					GE_Collision Collision;
-					geVec3d_Copy((geVec3d*)&(ptcl->ptclVertex.X), &temppos);
+					temppos.X = ptcl->ptclVertex.X;
+					temppos.Y = ptcl->ptclVertex.Y;
+					temppos.Z = ptcl->ptclVertex.Z;
 					geVec3d_Add(&temppos, &DeltaPos, &temppos1);
 
 					if(ptcl->Bounce)
@@ -296,14 +298,16 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 						}
 					}
 
-					geVec3d_Copy(&temppos1, (geVec3d *)&(ptcl->ptclVertex.X));
+					geVec3d_Copy(&temppos1, reinterpret_cast<geVec3d*>(&(ptcl->ptclVertex.X)));
 				}
 
 				// make the particle follow its anchor point if it has one
-				if(ptcl->AnchorPoint != (const geVec3d*)NULL)
+				if(ptcl->AnchorPoint != NULL)
 				{
 					geVec3d_Subtract(ptcl->AnchorPoint, &(ptcl->CurrentAnchorPoint), &AnchorDelta);
-					geVec3d_Add((geVec3d*)&(ptcl->ptclVertex.X), &AnchorDelta, (geVec3d*)&(ptcl->ptclVertex.X));
+					ptcl->ptclVertex.X += AnchorDelta.X;
+					ptcl->ptclVertex.Y += AnchorDelta.Y;
+					ptcl->ptclVertex.Z += AnchorDelta.Z;
 					geVec3d_Copy(ptcl->AnchorPoint, &(ptcl->CurrentAnchorPoint));
 				}
 			}
@@ -375,9 +379,9 @@ geBoolean Particle_SystemRemoveAnchorPoint(Particle_System *ps, geVec3d	*AnchorP
 
 	while(ptcl != NULL)
 	{
-		if(ptcl->AnchorPoint == AnchorPoint )
+		if(ptcl->AnchorPoint == AnchorPoint)
 		{
-			ptcl->AnchorPoint = (const geVec3d*)NULL;
+			ptcl->AnchorPoint = NULL;
 			AtLeastOneFound = GE_TRUE;
 		}
 
@@ -412,14 +416,14 @@ void Particle_SystemAddParticle(Particle_System		*ps,
 	}
 
 	// setup gravity
-	if(Gravity != (const geVec3d*)NULL)
+	if(Gravity != NULL)
 	{
 		geVec3d_Copy(Gravity, &(ptcl->Gravity));
 		ptcl->ptclFlags |= PARTICLE_HASGRAVITY;
 	}
 
 	// setup velocity
-	if(Velocity != (const geVec3d*)NULL)
+	if(Velocity != NULL)
 	{
 		geVec3d_Copy(Velocity, &(ptcl->ptclVelocity));
 		ptcl->ptclFlags |= PARTICLE_HASVELOCITY;
@@ -432,7 +436,7 @@ void Particle_SystemAddParticle(Particle_System		*ps,
 	}
 
 	// setup the anchor point
-	if(AnchorPoint != (const geVec3d*)NULL)
+	if(AnchorPoint != NULL)
 	{
 		geVec3d_Copy(AnchorPoint, &(ptcl->CurrentAnchorPoint));
 		ptcl->AnchorPoint = AnchorPoint;
@@ -794,7 +798,7 @@ void ActorParticle_SystemAddParticle(ActorParticle_System	*ps,
 		return;
 
 	// setup velocity
-	if(Velocity != (const geVec3d*)NULL)
+	if(Velocity != NULL)
 	{
 		geVec3d_Copy(Velocity, &(ptcl->ptclVelocity));
 		ptcl->ptclFlags |= PARTICLE_HASVELOCITY;

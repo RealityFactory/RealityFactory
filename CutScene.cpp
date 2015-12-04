@@ -30,7 +30,7 @@ CCutScene::CCutScene()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CutScene *pCutScene = (CutScene*)geEntity_GetUserData(pEntity);
+		CutScene *pCutScene = static_cast<CutScene*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pCutScene->szCutScene))
 			continue;
@@ -77,7 +77,7 @@ void CCutScene::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		CutScene *pCutScene = (CutScene*)geEntity_GetUserData(pEntity);
+		CutScene *pCutScene = static_cast<CutScene*>(geEntity_GetUserData(pEntity));
 
 		if(pCutScene->played)
 			continue;

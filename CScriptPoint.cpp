@@ -26,7 +26,7 @@ CScriptPoint::CScriptPoint()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+		ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{
@@ -70,11 +70,11 @@ int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ScriptPoint *pTheEntity = (ScriptPoint*)geEntity_GetUserData(pEntity);
+		ScriptPoint *pTheEntity = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
@@ -106,9 +106,9 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 
 	for(i=0; i<4; i++)
 	{
-		v[i].r = (geFloat)r;
-		v[i].g = (geFloat)g;
-		v[i].b = (geFloat)b;
+		v[i].r = static_cast<float>(r);
+		v[i].g = static_cast<float>(g);
+		v[i].b = static_cast<float>(b);
 		v[i].a = 255.0f;
 	}
 
@@ -136,21 +136,21 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 	v[3].Y = p1->Y - perp.Y;
 	v[3].Z = p1->Z - perp.Z;
 
-	v[0].r = (float)r1;
-	v[0].g = (float)g1;
-	v[0].b = (float)b1;
+	v[0].r = static_cast<float>(r1);
+	v[0].g = static_cast<float>(g1);
+	v[0].b = static_cast<float>(b1);
 
-	v[1].r = (float)r1;
-	v[1].g = (float)g1;
-	v[1].b = (float)b1;
+	v[1].r = static_cast<float>(r1);
+	v[1].g = static_cast<float>(g1);
+	v[1].b = static_cast<float>(b1);
 
-	v[2].r = (float)r1;
-	v[2].g = (float)g1;
-	v[2].b = (float)b1;
+	v[2].r = static_cast<float>(r1);
+	v[2].g = static_cast<float>(g1);
+	v[2].b = static_cast<float>(b1);
 
-	v[3].r = (float)r1;
-	v[3].g = (float)g1;
-	v[3].b = (float)b1;
+	v[3].r = static_cast<float>(r1);
+	v[3].g = static_cast<float>(g1);
+	v[3].b = static_cast<float>(b1);
 
 	geWorld_AddPolyOnce(CCD->World(),
 		v,
@@ -184,7 +184,8 @@ void CScriptPoint::Render()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+			ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
+
 			char *EntityName = pSource->NextPoint;
 			sp = pSource->origin;
 
@@ -251,7 +252,7 @@ void CScriptPoint::SetOrigin()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+		ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{

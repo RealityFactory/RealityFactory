@@ -46,8 +46,8 @@ CModelManager::CModelManager()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
-		// AddModel(pMod->theModel, ENTITY_ATTRIBUTE_MOD);
+		ModelStateModifier *pMod = static_cast<ModelStateModifier*>(geEntity_GetUserData(pEntity));
+
 		pMod->DoForce	= false;
 		pMod->DoDamage	= false;
 		pMod->DTime		= 0.0f;
@@ -1929,7 +1929,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
+		ModelStateModifier *pMod = static_cast<ModelStateModifier*>(geEntity_GetUserData(pEntity));
 
 		if(pMod->theModel != theModel)
 			continue;								// Not this one
@@ -2044,7 +2044,7 @@ ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
+		ModelStateModifier *pMod = static_cast<ModelStateModifier*>(geEntity_GetUserData(pEntity));
 
 		if(pMod->theModel != theModel)
 			continue;								// Not this one
@@ -2079,7 +2079,7 @@ ModelAttributes *CModelManager::GetAttributes(const geWorld_Model *theModel)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
-		ModelAttributes *pMod = (ModelAttributes*)geEntity_GetUserData(pEntity);
+		ModelAttributes *pMod = static_cast<ModelAttributes*>(geEntity_GetUserData(pEntity));
 
 		if(pMod->theModel != theModel)
 			continue;								// Not this one
@@ -2472,26 +2472,26 @@ void CModelManager::GetEulerAngles(const geXForm3d *M, geVec3d *Angles)
 	if(BZ < -1.0f)
 		BZ = -1.0f;
 
-	Angles->X = -(geFloat)asin(BZ);
+	Angles->X = -asin(BZ);
 
 	if(cos(Angles->X) != 0)
 	{
-		Angles->Y = -(geFloat)atan2(-M->AZ, M->CZ);
-		Angles->Z = -(geFloat)atan2(-M->BX, M->BY);
+		Angles->Y = -atan2(-M->AZ, M->CZ);
+		Angles->Z = -atan2(-M->BX, M->BY);
 	}
 	else
 	{
-		Angles->Y = -(geFloat)atan2(M->BX, -M->BY / sin(Angles->X));
+		Angles->Y = -atan2(M->BX, -M->BY / sin(Angles->X));
 		Angles->Z = 0.0f;
 	}
 
 	if(cos(Angles->Y) != 0.0f)
 	{
-		Angles->X = -(geFloat)atan2(BZ, M->CZ / cos(Angles->Y));
+		Angles->X = -atan2(BZ, M->CZ / cos(Angles->Y));
 	}
 	else
 	{
-		Angles->Y = -(geFloat)atan2(BZ, -M->AZ / sin(Angles->Y));
+		Angles->Y = -atan2(BZ, -M->AZ / sin(Angles->Y));
 	}
 
 	assert( geVec3d_IsValid(Angles) != GE_FALSE);

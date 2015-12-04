@@ -56,7 +56,7 @@ CWindGenerator::CWindGenerator()
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 
 	// get EntityData
-	WindGenerator *pWG = (WindGenerator*)geEntity_GetUserData(pEntity);
+	WindGenerator *pWG = static_cast<WindGenerator*>(geEntity_GetUserData(pEntity));
 
 	// copy the relevant data
 	m_ThinkTime = pWG->ThinkTime*1000.f;

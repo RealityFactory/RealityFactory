@@ -31,7 +31,7 @@ CChangeAttribute::CChangeAttribute()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
+			ChangeAttribute *pSource = static_cast<ChangeAttribute*>(geEntity_GetUserData(pEntity));
 
 			pSource->active = GE_FALSE;
 			pSource->OldState = GE_FALSE;
@@ -67,7 +67,7 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
+			ChangeAttribute *pSource = static_cast<ChangeAttribute*>(geEntity_GetUserData(pEntity));
 
 			if(!EffectC_IsStringNull(pSource->StopTrigger))
 			{
@@ -98,9 +98,9 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 								pSource->Total = 0.0f;
 
 								if(pSource->Percentage)
-									pSource->Increment = (((float)pSource->Amount*(float)theInv->Value(pSource->Attribute))*0.01f)/pSource->Count;
+									pSource->Increment = static_cast<float>(pSource->Amount)*static_cast<float>(theInv->Value(pSource->Attribute))*0.01f/pSource->Count;
 								else
-									pSource->Increment = (float)pSource->Amount/pSource->Count;
+									pSource->Increment = static_cast<float>(pSource->Amount)/pSource->Count;
 							}
 
 							continue;
@@ -114,8 +114,8 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 			if(pSource->active)
 			{
 				pSource->Total += ((0.001f*dwTicks)*pSource->Increment);
-				theInv->Modify(pSource->Attribute, (int)pSource->Total);
-				pSource->Total -= (int)pSource->Total;
+				theInv->Modify(pSource->Attribute, static_cast<int>(pSource->Total));
+				pSource->Total -= static_cast<int>(pSource->Total);
 				pSource->Count -= (0.001f*dwTicks);
 
 				if(pSource->Increment < 0.0f && !strcmp(pSource->Attribute, "health"))
@@ -152,7 +152,7 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
+		ChangeAttribute *pSource = static_cast<ChangeAttribute*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &(pSource->active),		sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &(pSource->Count),		sizeof(geFloat),	1, SaveFD);
@@ -183,7 +183,7 @@ int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeAttribute *pSource = (ChangeAttribute*)geEntity_GetUserData(pEntity);
+		ChangeAttribute *pSource = static_cast<ChangeAttribute*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pSource->Count),		sizeof(geFloat),	1, RestoreFD);

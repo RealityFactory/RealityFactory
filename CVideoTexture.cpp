@@ -41,7 +41,7 @@ CVideoTexture::CVideoTexture()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		VideoTextureReplacer *pTex = (VideoTextureReplacer*)geEntity_GetUserData(pEntity);
+		VideoTextureReplacer *pTex = static_cast<VideoTextureReplacer*>(geEntity_GetUserData(pEntity));
 		m_TextureCount++;							// Kick door count
 		pTex->Playing = GE_FALSE;
 
@@ -56,7 +56,7 @@ CVideoTexture::CVideoTexture()
 		MakeLower(File);
 		int i = File.find(".gif");
 
-		if(i>=0 && i<(int)File.length())
+		if(i>=0 && i<static_cast<int>(File.length()))
 		{
 			pTex->Gif = GE_TRUE;
 
@@ -146,7 +146,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		VideoTextureReplacer *pTex = (VideoTextureReplacer*)geEntity_GetUserData(pEntity);
+		VideoTextureReplacer *pTex = static_cast<VideoTextureReplacer*>(geEntity_GetUserData(pEntity));
 
 		if(pTex->Radius == 0.0f || (pTex->OnlyPlayInRadius == GE_FALSE))
 		{

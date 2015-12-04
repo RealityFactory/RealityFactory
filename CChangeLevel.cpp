@@ -29,7 +29,7 @@ CChangeLevel::CChangeLevel()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pItem->szEntityName))
 		{
@@ -70,7 +70,7 @@ void CChangeLevel::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 // change RF063
 		if(!EffectC_IsStringNull(pItem->TriggerChange))
@@ -116,7 +116,7 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		if(pItem->Model == theModel)
 		{
@@ -178,11 +178,11 @@ int CChangeLevel::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pTheEntity = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pTheEntity = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
@@ -211,7 +211,7 @@ int CChangeLevel::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pItem->CallBack,		sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pItem->CallBackCount,	sizeof(int),		1, SaveFD);
@@ -240,7 +240,7 @@ int CChangeLevel::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ChangeLevel *pItem = (ChangeLevel*)geEntity_GetUserData(pEntity);
+		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pItem->CallBack,		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pItem->CallBackCount,	sizeof(int),		1, RestoreFD);

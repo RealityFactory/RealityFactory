@@ -129,7 +129,7 @@ Procedural *ElectricFx_Create(char *TextureName, geWorld  *World, const char *St
 
 		Proc->PalIndex = ElectricFx_GetPalIndexFromString(Token);
 
-		Token = strtok((char *)NULL, TOKEN_SEPERATOR);
+		Token = strtok(NULL, TOKEN_SEPERATOR);
 
 		while(Token)
 		{
@@ -148,7 +148,7 @@ Procedural *ElectricFx_Create(char *TextureName, geWorld  *World, const char *St
 			if(!ElectricFx_FxParseData(Fx))
 				goto ExitWithError;
 
-			Token = strtok((char*)NULL, TOKEN_SEPERATOR);
+			Token = strtok(NULL, TOKEN_SEPERATOR);
 		}
 	}
 
@@ -166,7 +166,7 @@ ExitWithError:
 	if(Proc)
 		ElectricFx_Destroy(Proc);
 
-	return (Procedural*)NULL;
+	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -177,13 +177,13 @@ void ElectricFx_Destroy(Procedural *Proc)
 	if(Proc->ZBuffer)
 	{
 		geRam_Free(Proc->ZBuffer);
-		Proc->ZBuffer = (unsigned char*)NULL;
+		Proc->ZBuffer = NULL;
 	}
 
 	if(Proc->Bitmap)
 	{
 		geBitmap_Destroy(&Proc->Bitmap);
-		Proc->Bitmap = (geBitmap*)NULL;
+		Proc->Bitmap = NULL;
 	}
 
 	geRam_Free(Proc);
@@ -224,10 +224,10 @@ static int sgn (long a)
 /* ------------------------------------------------------------------------------------ */
 static int round (geFloat a)
 {
-	if((a - (int)a) < 0.5f)
-		return (int)floor(a);
+	if((a - static_cast<int>(a)) < 0.5f)
+		return static_cast<int>(floor(a));
 	else
-		return (int)ceil(a);
+		return static_cast<int>(ceil(a));
 }
 
 
@@ -263,7 +263,7 @@ static void ElectricFx_ZLine(Procedural *Fx, int a, int b, int c, int d, int32 Z
 		n   = abs(u);	// n is the distance between x1 and x2
 	}
 
-	s = (int)(m>>1);						// s is the m distance (either x or y) divided by 2
+	s = static_cast<int>(m >> 1);			// s is the m distance (either x or y) divided by 2
 
 	// repeat this loop until it is = to m (y or x distance)
 	for(i=m; i>0; i--)
@@ -335,8 +335,8 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 
 	if((xlength != 0) && (ylength != 0))
 	{
-		xslope = (geFloat)xlength/(geFloat)ylength;
-		yslope = (geFloat)ylength/(geFloat)xlength;
+		xslope = static_cast<geFloat>(xlength)/static_cast<geFloat>(ylength);
+		yslope = static_cast<geFloat>(ylength)/static_cast<geFloat>(xlength);
 	}
 	else
 	{
@@ -350,7 +350,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(x=x1; x<x2+1; x++)
 			{
-				y = round(yslope*x);
+				y = round(yslope * static_cast<geFloat>(x));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -358,7 +358,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(x=x2; x<x1+1; x++)
 			{
-				y = round(yslope*x);
+				y = round(yslope * static_cast<geFloat>(x));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -369,7 +369,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(y=x1; y<x2+1; y++)
 			{
-				x = round(xslope*y);
+				x = round(xslope * static_cast<geFloat>(y));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -377,7 +377,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		{
 			for(y=x2; y<x1+1; y++)
 			{
-				x = round(xslope*y);
+				x = round(xslope * static_cast<geFloat>(y));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
 			}
 		}
@@ -434,20 +434,20 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 
 	if(!geBitmap_LockForWriteFormat(Fx->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
-		geBitmap_SetFormat(Fx->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
-		geBitmap_LockForWriteFormat(Fx->Bitmap,&Lock,0,0, GE_PIXELFORMAT_8BIT_PAL);
+		geBitmap_SetFormat(Fx->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
+		geBitmap_LockForWriteFormat(Fx->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(!Lock)
 			return GE_FALSE;
 	}
 
-	if(!geBitmap_GetInfo(Lock, &(Fx->BitmapInfo),(geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Lock, &(Fx->BitmapInfo), NULL))
 		goto Fail;
 
 	if(Fx->BitmapInfo.Format != GE_PIXELFORMAT_8BIT_PAL)
 		goto Fail;
 
-	Bits = (unsigned char*)geBitmap_GetBits(Lock);
+	Bits = static_cast<uint8*>(geBitmap_GetBits(Lock));
 	ZBuffer = Fx->ZBuffer;
 
 	// Shade the data for the Fx using the z buffer to provide
@@ -460,11 +460,11 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 		if(*ZBuffer == 0)
 			continue;
 
-		Val = (int32)*ZBuffer;
+		Val = static_cast<int32>(*ZBuffer);
 
-		Result = Val;// - *(ZBuffer-1);
+		Result = Val;
 
-		Bits[i] = (uint8)min(Result + Bits[i], 255);
+		Bits[i] = static_cast<uint8>(min(Result + Bits[i], 255));
 
 		if(Val > ZBuffer[1])
 			Bits[i+1] = max(Bits[i+1]-3, 0);
@@ -535,13 +535,12 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 					int32		x, y;
 					geFloat		r;
 
-					// changed QD 12/15/05
-					r = ((geFloat)i/6.0f)*GE_2PI; //PI_2;
+					r = (static_cast<geFloat>(i)/6.0f)*GE_2PI;
 
-					r += 2.0f - ((geFloat)rand()/RAND_MAX)*4.0f;
+					r += 2.0f - (static_cast<geFloat>(rand())/static_cast<geFloat>(RAND_MAX))*4.0f;
 
-					x = (int32)(cos(r)*60.0f);
-					y = (int32)(sin(r)*60.0f);
+					x = static_cast<int32>(cos(r)*60.0f);
+					y = static_cast<int32>(sin(r)*60.0f);
 
 					x += Fx->Vecs[0].x;
 					y += Fx->Vecs[0].y;
@@ -569,13 +568,12 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 
 						r = Fx->Rotation;
 
-						// changed QD 12/15/05
-						Val = ((geFloat)i/3)*GE_2PI; //PI_2;
+						Val = (static_cast<geFloat>(i)/3.f)*GE_2PI;
 
 						r += Val;
 
-						x = (int32)(cos(r)*63.0f);
-						y = (int32)(sin(r)*63.0f);
+						x = static_cast<int32>(cos(r)*63.0f);
+						y = static_cast<int32>(sin(r)*63.0f);
 
 						x += pVec->x;
 						y += pVec->y;
@@ -650,7 +648,7 @@ static uint16 LerpColor(geFloat c1, geFloat c2, geFloat Ratio)
 	if(Val > 255.0f)
 		Val = 255.0f;
 
-	return (uint16)Val;
+	return static_cast<uint16>(Val);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -682,7 +680,7 @@ static ElectricFx_TypeData	*ElectricFx_GetFxTypeDataFromString(const char *Str)
 			return &FxTypeDataTable[i];
 	}
 
-	return (ElectricFx_TypeData*)NULL;
+	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -698,7 +696,7 @@ static geBoolean ElectricFx_FxParseData(ElectricFx_Fx *Fx)
 	while(1)
 	{
 		// Parse the first token
-		Token = strtok((char*)NULL, TOKEN_SEPERATOR);
+		Token = strtok(NULL, TOKEN_SEPERATOR);
 
 		if(!Token)
 			return GE_FALSE;
@@ -706,7 +704,7 @@ static geBoolean ElectricFx_FxParseData(ElectricFx_Fx *Fx)
 		Fx->Vecs[VecNum].x = atoi(Token);
 
 		// Parse the second token
-		Token = strtok((char*)NULL, TOKEN_SEPERATOR);
+		Token = strtok(NULL, TOKEN_SEPERATOR);
 
 		if(!Token)
 			return GE_FALSE;
@@ -738,7 +736,7 @@ static geBoolean ElectricFx_InitBitmap(Procedural *Fx, geBitmap *ppBitmap)
 		geBitmap_CreateRef(ppBitmap);
 	}
 
-	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL,GE_TRUE, 255, (geBitmap_Palette*)NULL))
+	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 255, NULL))
 		return GE_FALSE;
 
 	if(!geBitmap_ClearMips(ppBitmap))
@@ -750,7 +748,7 @@ static geBoolean ElectricFx_InitBitmap(Procedural *Fx, geBitmap *ppBitmap)
 	if(!geBitmapUtil_SetColor(ppBitmap, 0, 0, 0, 0))
 		return GE_FALSE;
 
-	if(!geBitmap_GetInfo(ppBitmap, &Fx->BitmapInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(ppBitmap, &Fx->BitmapInfo, NULL))
 		return GE_FALSE;
 
 	Fx->Bitmap = ppBitmap;
@@ -796,7 +794,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 
 	geBitmap_Palette_Destroy(&Pal);
 
-	if(!geBitmap_GetInfo(Proc->Bitmap,&Info,(geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Proc->Bitmap, &Info, NULL))
 		goto fail;
 
 	if(Info.Format != GE_PIXELFORMAT_8BIT_PAL)
@@ -835,14 +833,14 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 			if(Next > NumControlPoints-1)
 				Next = NumControlPoints-1;
 
-			Ratio = (geFloat)(i-pPoint[Current].f)/pPoint[Next].f;
+			Ratio = (static_cast<geFloat>(i) - pPoint[Current].f)/pPoint[Next].f;
 
 			if(Ratio > 1.0f)
 				Ratio = 1.0f;
 			else if(Ratio < 0.0f)
 				Ratio = 0.0f;
 
-			PalPtr = ((uint8 *)PalData) + i * gePixelFormat_BytesPerPel(PalFormat);
+			PalPtr = (static_cast<uint8*>(PalData)) + i * gePixelFormat_BytesPerPel(PalFormat);
 
 			A = (uint32)LerpColor(pPoint[Current].a, pPoint[Next].a, Ratio);
 			R = (uint32)LerpColor(pPoint[Current].r, pPoint[Next].r, Ratio);
@@ -851,7 +849,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 
 			gePixelFormat_PutColor(PalFormat, &PalPtr, R, G, B, A);
 
-			if((geFloat)i >= pPoint[Next].f)
+			if(static_cast<geFloat>(i) >= pPoint[Next].f)
 			{
 				Current++;
 

@@ -84,7 +84,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 		// ..we'll just take the first one we run into.
 		pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 
-		PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
+		PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSetup->HUDInfoFile))
 			return RGF_FAILURE;								// No HUD initialization?
@@ -433,7 +433,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 				modify = true;
 			}
 
-			DisplayTime = (float)AttrFile.GetValueF(KeyName, "displaytime");
+			DisplayTime = static_cast<float>(AttrFile.GetValueF(KeyName, "displaytime"));
 
 			if(AttrFile.GetValue(KeyName, "modifydirection") == "down")
 				direction = 1;
@@ -841,24 +841,21 @@ int CHeadsUpDisplay::Render()
 					nHigh = CCD->Player()->LightLife();
 				}
 
-				m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)nHigh - (float)nLow);
-// end change RF063
+				m_theHUD[nItem].PixelsPerIncrement = static_cast<float>(m_theHUD[nItem].iHeight) / static_cast<float>(nHigh - nLow);
 
 				// Compute the rectangle to draw for the level indicator
 				if(m_theHUD[nItem].Indicator)
 				{
-// changed QD 07/15/06
 					if(m_theHUD[nItem].flipindicator)
 					{
 						theRect.Top = 0;
-						theRect.Bottom = (int)(m_theHUD[nItem].PixelsPerIncrement * (geFloat)nValue)-1;
+						theRect.Bottom = static_cast<int>(m_theHUD[nItem].PixelsPerIncrement * nValue) - 1;
 					}
 					else
 					{
-						theRect.Top = m_theHUD[nItem].iHeight-((int)(m_theHUD[nItem].PixelsPerIncrement * (geFloat)nValue)-1);
+						theRect.Top = m_theHUD[nItem].iHeight - (static_cast<int>(m_theHUD[nItem].PixelsPerIncrement * nValue) - 1);
 						theRect.Bottom = m_theHUD[nItem].iHeight;
 					}
-// end change
 
 					theRect.Left = 0;
 					theRect.Right =  geBitmap_Width(m_theHUD[nItem].Indicator);
@@ -941,31 +938,28 @@ int CHeadsUpDisplay::Render()
 					nHigh = CCD->Player()->LightLife();
 				}
 
-				m_theHUD[nItem].PixelsPerIncrement = (float)m_theHUD[nItem].iHeight / ((float)nHigh - (float)nLow);
-// end change RF063
+				m_theHUD[nItem].PixelsPerIncrement = static_cast<float>(m_theHUD[nItem].iHeight) / static_cast<float>(nHigh - nLow);
 
 				// Compute the rectangle to draw for the level indicator
 				if(m_theHUD[nItem].Indicator)
 				{
 					theRect.Top = 0;
 					theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator);
-// changed QD 07/15/06
+
 					if(m_theHUD[nItem].flipindicator)
 					{
-						theRect.Left = m_theHUD[nItem].iHeight-((int)(m_theHUD[nItem].PixelsPerIncrement * (geFloat)nValue)-1);
+						theRect.Left = m_theHUD[nItem].iHeight - (static_cast<int>(m_theHUD[nItem].PixelsPerIncrement * nValue) - 1);
 						theRect.Right = m_theHUD[nItem].iHeight;
 					}
 					else
 					{
 						theRect.Left = 0;
-						theRect.Right = (int)((m_theHUD[nItem].PixelsPerIncrement * (geFloat)nValue))-1;
+						theRect.Right = static_cast<int>((m_theHUD[nItem].PixelsPerIncrement * nValue)) - 1;
 					}
-// changed RF064
+
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 						m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset+theRect.Left,
 						m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, ZDEPTH1);
-// end change RF064
-// end change QD 07/15/06
 				}
 
 				break;
@@ -1068,7 +1062,7 @@ int CHeadsUpDisplay::Render()
 
 				if(nActorCount != 0 && m_theHUD[nItem].Indicator)
 				{
-					float scale = ((float)geBitmap_Height(m_theHUD[nItem].Identifier)*0.5f)/m_theHUD[nItem].PixelsPerIncrement;
+					float scale = (static_cast<float>(geBitmap_Height(m_theHUD[nItem].Identifier)) * 0.5f) / m_theHUD[nItem].PixelsPerIncrement;
 					CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &RPos);
 
 					while(RPos.Y < 0.0f)
@@ -1127,22 +1121,20 @@ int CHeadsUpDisplay::Render()
 									if(angle < 0.0f)
 										mulx = 1.0f;
 
-									// changed QD 12/15/05
-									if((float)fabs(angle) > GE_PIOVER2)//(GE_PI/2.0f))
+									if(fabs(angle) > GE_PIOVER2)
 										muly = -1.0f;
 
-									if((float)fabs(angle) == 0.0f || (float)fabs(angle) == GE_PI)
+									if(fabs(angle) == 0.0f || fabs(angle) == GE_PI)
 									{
-										offy += (int)(muly*dist);
+										offy += static_cast<int>(muly * dist);
 									}
-									// changed QD 12/15/05
-									else if((float)fabs(angle) == GE_PIOVER2)//(GE_PI/2.0f))
+									else if(fabs(angle) == GE_PIOVER2)
 									{
-										offx += (int)(mulx*dist);
+										offx += static_cast<int>(mulx * dist);
 									}
 									else
 									{
-										angle = (float)fabs(angle);
+										angle = fabs(angle);
 
 										if(muly == -1.0f)
 										{
@@ -1153,19 +1145,17 @@ int CHeadsUpDisplay::Render()
 										{
 											if(!flag)
 											{
-												// changed RF064
 												CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
-																			offx-(int)(sin(angle)*dist*mulx),
-																			offy-(int)(cos(angle)*dist*muly), ZDEPTH11);
-												// end change RF064
+																			offx - static_cast<int>(sin(angle) * dist * mulx),
+																			offy - static_cast<int>(cos(angle) * dist * muly),
+																			ZDEPTH11);
 											}
 											else
 											{
-												// changed RF064
 												CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
-																			offx-(int)(sin(angle)*dist*mulx),
-																			offy-(int)(cos(angle)*dist*muly), ZDEPTH11);
-												// end change RF064
+																			offx - static_cast<int>(sin(angle) * dist * mulx),
+																			offy - static_cast<int>(cos(angle) * dist * muly),
+																			ZDEPTH11);
 											}
 										}
 										else
@@ -1175,19 +1165,17 @@ int CHeadsUpDisplay::Render()
 
 											if(!flag)
 											{
-												// changed RF064
 												CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, NULL,
-																			offx-(int)(cos(angle)*dist*mulx),
-																			offy-(int)(sin(angle)*dist*muly), ZDEPTH11);
-												// end change RF064
+																			offx - static_cast<int>(cos(angle) * dist * mulx),
+																			offy - static_cast<int>(sin(angle) * dist * muly),
+																			ZDEPTH11);
 											}
 											else
 											{
-												// changed RF064
 												CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator2, NULL,
-																			offx-(int)(cos(angle)*dist*mulx),
-																			offy-(int)(sin(angle)*dist*muly), ZDEPTH11);
-												// end change RF064
+																			offx - static_cast<int>(cos(angle) *dist * mulx),
+																			offy - static_cast<int>(sin(angle) *dist * muly),
+																			ZDEPTH11);
 											}
 										}
 									}
@@ -1229,10 +1217,10 @@ int CHeadsUpDisplay::Render()
 					Pos.Y /=3.0f;
 
 					theRect.Top = 0;
-					theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator)-1;
-					theRect.Left = (int)Pos.Y;
-					theRect.Right =  theRect.Left+40;
-// changed RF064
+					theRect.Bottom = geBitmap_Height(m_theHUD[nItem].Indicator) - 1;
+					theRect.Left = static_cast<int>(Pos.Y);
+					theRect.Right =  theRect.Left + 40;
+
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 						m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
 						m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, ZDEPTH11);

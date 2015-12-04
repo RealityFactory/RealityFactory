@@ -34,7 +34,7 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 	P = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
 	if(!P)
-		return (Procedural*)NULL;
+		return NULL;
 
 	memset(P, 0, sizeof(Procedural));
 	ProcUtil_Randomize();
@@ -42,7 +42,7 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 	ppBitmap = geWorld_GetBitmapByName(World, TextureName);
 
 	if(!ppBitmap)
-		return (Procedural*)NULL;
+		return NULL;
 
 	P->Frame = 0;
 
@@ -58,7 +58,7 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 		if(!ppBitmap)
 		{
 			geRam_Free(P);
-			return (Procedural*)NULL;
+			return NULL;
 		}
 	}
 	else
@@ -66,10 +66,10 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 		geBitmap_CreateRef(ppBitmap);
 	}
 
-	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL,GE_TRUE, 255, (geBitmap_Palette*)NULL))
+	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 255, NULL))
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	geBitmap_ClearMips(ppBitmap);
@@ -91,15 +91,15 @@ Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStar
 		else
 			P->DoJets = atol(ptr);
 
-		ptr = strtok((char *)NULL," \t\n\r,");
-		len = (int)(ptr - ParmWork);
+		ptr = strtok(NULL," \t\n\r,");
+		len = static_cast<int>(ptr - ParmWork);
 		ParmStart += len;
 	}
 
-	if(!ProcUtil_SetPaletteFromString(P->Bitmap, (char**)&ParmStart))
+	if(!ProcUtil_SetPaletteFromString(P->Bitmap, const_cast<char**>(&ParmStart)))
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	return P;
@@ -134,8 +134,8 @@ geBoolean Fire_Animate(Procedural *P, geFloat time)
 /* ------------------------------------------------------------------------------------ */
 static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 {
-	geBitmap *FireLock = (geBitmap*)NULL;
-	 geBitmap_Info FireInfo;
+	geBitmap *FireLock = NULL;
+	geBitmap_Info FireInfo;
 	uint8 *FireBits, *bPtr;
 	int x, y, w, h, s;
 	geBitmap *Bitmap;
@@ -145,18 +145,18 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 	geBitmap_SetGammaCorrection(Bitmap, 1.0f, GE_FALSE);
 
 	if(!geBitmap_LockForWriteFormat(Bitmap, &FireLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
-    {
-		geBitmap_SetFormat(Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
+	{
+		geBitmap_SetFormat(Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(Bitmap, &FireLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(!FireLock)
 			return GE_FALSE;
-    }
+	}
 
-	if(!geBitmap_GetInfo(FireLock, &FireInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(FireLock, &FireInfo, NULL))
 		goto fail;
 
-	FireBits = (unsigned char*)geBitmap_GetBits(FireLock);
+	FireBits = static_cast<uint8*>(geBitmap_GetBits(FireLock));
 
 	if(!FireBits)
 		goto fail;

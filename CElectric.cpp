@@ -144,7 +144,7 @@ static geFloat GaussRand(void)
 	for(i=0; i<6; i++)
 		r = r + rand() - rand();
 
-	return (geFloat)r / ((geFloat)RAND_MAX * 6.0f);
+	return static_cast<geFloat>(r)/(static_cast<geFloat>(RAND_MAX)*6.0f);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -188,9 +188,7 @@ static void genLightning(Electric_BoltEffect	*be,
 	int		seed;
 
 	/* Manhattan length is good enough for this */
-	length = (geFloat)(fabs(start->X - end->X) +
-						fabs(start->Y - end->Y) +
-						fabs(start->Z - end->Z));
+	length = fabs(start->X - end->X) + fabs(start->Y - end->Y) + fabs(start->Z - end->Z);
 
 	seed = rand();
 
@@ -245,7 +243,7 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 	{
 		int	DecayRate;
 		int	Spike;
-		int Mod = (int)(Effect->beBaseColors[dominant] - Effect->beBaseColors[nonDominant1]);
+		int Mod = static_cast<int>(Effect->beBaseColors[dominant] - Effect->beBaseColors[nonDominant1]);
 
 		if(Mod <= 0)
 			Mod = 1;
@@ -255,7 +253,7 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 		Effect->beDecayRate = DecayRate;
 
 		if(Effect->beBaseColors[nonDominant1] >= 1.0f)
-			Spike = rand() % (int)(Effect->beBaseColors[nonDominant1]);
+			Spike = rand() % static_cast<int>(Effect->beBaseColors[nonDominant1]);
 		else
 			Spike = 0;
 
@@ -440,7 +438,7 @@ CElectric::CElectric()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBolt *pBolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		ElectricBolt *pBolt = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pBolt->szEntityName))
 		{
@@ -517,7 +515,7 @@ CElectric::CElectric()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBoltTerminus *pTerminus = (ElectricBoltTerminus*)geEntity_GetUserData(pEntity);
+		ElectricBoltTerminus *pTerminus = static_cast<ElectricBoltTerminus*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pTerminus->szEntityName))
 		{
@@ -638,7 +636,7 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBoltTerminus *pTerminus = (ElectricBoltTerminus*)geEntity_GetUserData(pEntity);
+		ElectricBoltTerminus *pTerminus = static_cast<ElectricBoltTerminus*>(geEntity_GetUserData(pEntity));
 		pTerminus->origin = pTerminus->OriginOffset;
 		SetOriginOffset(pTerminus->EntityName, pTerminus->BoneName, pTerminus->Model, &(pTerminus->origin));
 	}
@@ -655,7 +653,7 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 		geVec3d			MidPoint;
 		int32			Leaf;
 
-		Bolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		Bolt = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 		if(Bolt->DoingDamage)
 		{
@@ -820,11 +818,11 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ElectricBolt *pTheEntity = (ElectricBolt*)geEntity_GetUserData(pEntity);
+			ElectricBolt *pTheEntity = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 			if(!strcmp(pTheEntity->szEntityName, szName))
 			{
-				*pEntityData = (void*)pTheEntity;
+				*pEntityData = static_cast<void*>(pTheEntity);
 				return RGF_SUCCESS;
 			}
 		}
@@ -843,11 +841,11 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			ElectricBoltTerminus *pTheEntity = (ElectricBoltTerminus*)geEntity_GetUserData(pEntity);
+			ElectricBoltTerminus *pTheEntity = static_cast<ElectricBoltTerminus*>(geEntity_GetUserData(pEntity));
 
 			if(!strcmp(pTheEntity->szEntityName, szName))
 			{
-				*pEntityData = (void*)pTheEntity;
+				*pEntityData = static_cast<void*>(pTheEntity);
 				return RGF_SUCCESS;
 			}
 		}
@@ -890,7 +888,7 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		ElectricBolt *pSource = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &pSource->active,		sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pSource->bState,		sizeof(geBoolean),	1, SaveFD);
@@ -921,7 +919,7 @@ int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBolt *pSource = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		ElectricBolt *pSource = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pSource->active,		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->bState,		sizeof(geBoolean),	1, RestoreFD);

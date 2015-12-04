@@ -36,7 +36,7 @@ C3DAudioSource::C3DAudioSource()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		AudioSource3D *pSource = static_cast<AudioSource3D*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{
@@ -112,9 +112,10 @@ int C3DAudioSource::Create(const geVec3d &Origin, const char *SoundFile, float r
 				__FILE__, __LINE__, SoundFile);
 		CCD->ReportError(szError, false);
 	}
-
-	if(Sound.SoundDef != NULL)
-		effect = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+	else
+	{
+		effect = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
+	}
 
 	return effect;
 }
@@ -175,7 +176,7 @@ void C3DAudioSource::Tick(geFloat dwTicks)
 	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		AudioSource3D *pSource = static_cast<AudioSource3D*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pSource->TriggerName))
 		{
@@ -259,7 +260,7 @@ int C3DAudioSource::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity))
 	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		AudioSource3D *pSource = static_cast<AudioSource3D*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
@@ -292,7 +293,7 @@ geBoolean C3DAudioSource::IsPlaying(const char *szName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet,pEntity))
 	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		AudioSource3D *pSource = static_cast<AudioSource3D*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
@@ -331,11 +332,11 @@ int C3DAudioSource::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
+		AudioSource3D *pSource = static_cast<AudioSource3D*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

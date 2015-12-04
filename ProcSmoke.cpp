@@ -87,7 +87,7 @@ Procedural *Smoke_Create(char *TextureName, geWorld *World, const char *StrParms
 	Bitmap = geWorld_GetBitmapByName(World, TextureName);
 
 	if(!Bitmap)
-	  return (Procedural*)NULL;
+		return NULL;
 
 	{
 		char	*Token;
@@ -123,22 +123,22 @@ Procedural *Smoke_Create(char *TextureName, geWorld *World, const char *StrParms
 				Proc->NumParticles = atoi(Token);
 				break;
 			case 2:
-				Proc->x = (geFloat)atof(Token);
+				Proc->x = static_cast<geFloat>(atof(Token));
 				break;
 			case 3:
-				Proc->y = (geFloat)atof(Token);
+				Proc->y = static_cast<geFloat>(atof(Token));
 				break;
 			case 4:
-				Proc->z = (geFloat)atof(Token);
+				Proc->z = static_cast<geFloat>(atof(Token));
 				break;
 			case 5:
-				Proc->vx = (geFloat)atof(Token);
+				Proc->vx = static_cast<geFloat>(atof(Token));
 				break;
 			case 6:
-				Proc->vy = (geFloat)atof(Token);
+				Proc->vy = static_cast<geFloat>(atof(Token));
 				break;
 			case 7:
-				Proc->vz = (geFloat)atof(Token);
+				Proc->vz = static_cast<geFloat>(atof(Token));
 				break;
 			}
 
@@ -147,24 +147,22 @@ Procedural *Smoke_Create(char *TextureName, geWorld *World, const char *StrParms
 			if(TokenNum >= 8)
 				break;
 
-			Token = strtok((char *)NULL," \t,+\n\r");
+			Token = strtok(NULL, " \t,+\n\r");
 		}
 	}
 
 	if(!Smoke_InitBitmap(Proc, Bitmap))
 		goto ExitWithError;
 
-//changed QD 12/15/05
 	if(Proc->x < 0.0f)
 		Proc->x = 0.0f;
-	else if(Proc->x > Proc->Width-1)
-		Proc->x = (geFloat)Proc->Width-1;
+	else if(Proc->x > Proc->Width - 1)
+		Proc->x = static_cast<geFloat>(Proc->Width - 1);
 
 	if(Proc->y < 0.0f)
 		Proc->y = 0.0f;
-	else if(Proc->y > Proc->Height-1)
-		Proc->y = (geFloat)Proc->Height-1;
-// end change
+	else if(Proc->y > Proc->Height - 1)
+		Proc->y = static_cast<geFloat>(Proc->Height - 1);
 
 	if(!Smoke_Animate(Proc, 0.1f))
 	{
@@ -178,7 +176,7 @@ ExitWithError:
 	if(Proc)
 	  Smoke_Destroy(Proc);
 
-	return (Procedural*)NULL;
+	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -189,19 +187,19 @@ void Smoke_Destroy(Procedural *Proc)
 	if(Proc->ZBuffer)
 	{
 		geRam_Free(Proc->ZBuffer);
-		Proc->ZBuffer = (long*)NULL;
+		Proc->ZBuffer = NULL;
 	}
 
 	if(Proc->ZAge)
 	{
 		geRam_Free(Proc->ZAge);
-		Proc->ZAge = (geFloat*)NULL;
+		Proc->ZAge = NULL;
 	}
 
 	if(Proc->Bitmap)
 	{
 		geBitmap_Destroy(&Proc->Bitmap);
-		Proc->Bitmap = (geBitmap*)NULL;
+		Proc->Bitmap = NULL;
 	}
 
 	geRam_Free(Proc);
@@ -275,20 +273,20 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 
 	if(!geBitmap_LockForWriteFormat(Smoke->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
-		geBitmap_SetFormat(Smoke->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
+		geBitmap_SetFormat(Smoke->Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(Smoke->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(Lock == NULL)
 			return GE_FALSE;
 	}
 
-	if(!geBitmap_GetInfo(Lock, &(Smoke->BitmapInfo), (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Lock, &(Smoke->BitmapInfo), NULL))
 		goto Fail;
 
 	if(Smoke->BitmapInfo.Format != GE_PIXELFORMAT_8BIT_PAL)
 		goto Fail;
 
-	Bits = (unsigned char*)geBitmap_GetBits(Lock);
+	Bits = static_cast<uint8*>(geBitmap_GetBits(Lock));
 	ZBuffer = Smoke->ZBuffer;
 	ZAge = Smoke->ZAge;
 
@@ -317,7 +315,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 		// Age the smoke particle
 		Result *= (int32)*ZAge;
 
-		Bits[i] = (uint8)min(Result + Bits[i], 255);
+		Bits[i] = static_cast<uint8>(min(Result + Bits[i], 255));
 
 		if(Val > ZBuffer[1])
 			Bits[i+1] = max(Bits[i+1]-3,0);
@@ -475,7 +473,7 @@ static uint16 Smoke_LerpColor(geFloat c1, geFloat c2, geFloat Ratio)
 	if(Val > 255.0f)
 		Val = 255.0f;
 
-	return (uint16)Val;
+	return static_cast<uint16>(Val);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -511,7 +509,7 @@ static geBoolean Smoke_InitBitmap(Procedural *Proc, geBitmap *ppBitmap)
 		geBitmap_SetColorKey(ppBitmap,GE_FALSE,0,0);
 	}
 
-	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_FALSE, 0, (geBitmap_Palette*)NULL))
+	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_FALSE, 0, NULL))
 		return GE_FALSE;
 
 	if(!geBitmap_ClearMips(ppBitmap))
@@ -523,7 +521,7 @@ static geBoolean Smoke_InitBitmap(Procedural *Proc, geBitmap *ppBitmap)
 	if(!geBitmapUtil_SetColor(ppBitmap, 0, 0, 0, 0))
 		return GE_FALSE;
 
-	if(!geBitmap_GetInfo(ppBitmap, &Proc->BitmapInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(ppBitmap, &Proc->BitmapInfo, NULL))
 		return GE_FALSE;
 
 	Proc->Bitmap = ppBitmap;
@@ -557,13 +555,13 @@ ExitWithError:
 	if(Proc->ZBuffer)
 	{
 		geRam_Free(Proc->ZBuffer);
-		Proc->ZBuffer = (long*)NULL;
+		Proc->ZBuffer = NULL;
 	}
 
 	if(Proc->ZAge)
 	{
 		geRam_Free(Proc->ZAge);
-		Proc->ZAge = (geFloat*)NULL;
+		Proc->ZAge = NULL;
 	}
 
 	return GE_FALSE;
@@ -589,7 +587,7 @@ static geBoolean Smoke_InitPalette(Procedural *Proc)
 
 	geBitmap_Palette_Destroy(&Pal);
 
-	if(!geBitmap_GetInfo(Proc->Bitmap, &Info, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(Proc->Bitmap, &Info, NULL))
 		goto fail;
 
 	if(Info.Format != GE_PIXELFORMAT_8BIT_PAL)
@@ -628,19 +626,19 @@ static geBoolean Smoke_InitPalette(Procedural *Proc)
 			if(Next > NumControlPoints-1)
 				Next = NumControlPoints-1;
 
-			Ratio = (geFloat)(i-pPoint[Current].f)/pPoint[Next].f;
+			Ratio = (static_cast<geFloat>(i) - pPoint[Current].f) / pPoint[Next].f;
 
 			if(Ratio > 1.0f)
 				Ratio = 1.0f;
 			else if(Ratio < 0.0f)
 				Ratio = 0.0f;
 
-			PalPtr = ((uint8 *)PalData) + i * gePixelFormat_BytesPerPel(PalFormat);
+			PalPtr = static_cast<uint8*>(PalData) + i * gePixelFormat_BytesPerPel(PalFormat);
 
-			A = (uint32)Smoke_LerpColor(pPoint[Current].a, pPoint[Next].a, Ratio);
-			R = (uint32)Smoke_LerpColor(pPoint[Current].r, pPoint[Next].r, Ratio);
-			G = (uint32)Smoke_LerpColor(pPoint[Current].g, pPoint[Next].g, Ratio);
-			B = (uint32)Smoke_LerpColor(pPoint[Current].b, pPoint[Next].b, Ratio);
+			A = static_cast<uint32>(Smoke_LerpColor(pPoint[Current].a, pPoint[Next].a, Ratio));
+			R = static_cast<uint32>(Smoke_LerpColor(pPoint[Current].r, pPoint[Next].r, Ratio));
+			G = static_cast<uint32>(Smoke_LerpColor(pPoint[Current].g, pPoint[Next].g, Ratio));
+			B = static_cast<uint32>(Smoke_LerpColor(pPoint[Current].b, pPoint[Next].b, Ratio));
 
 			gePixelFormat_PutColor(PalFormat,&PalPtr,R,G,B,A);
 

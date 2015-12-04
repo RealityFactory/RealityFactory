@@ -58,7 +58,7 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 	P = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
 	if(!P)
-		return (Procedural*)NULL;
+		return NULL;
 
 	memset(P, 0, sizeof(Procedural));
 
@@ -71,15 +71,15 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 		if(!ppBitmap)
 		{
 			geRam_Free(P);
-			return (Procedural*)NULL;
+			return NULL;
 		}
 	}
 	else
 	{
-		if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_FALSE, 0, (geBitmap_Palette*)NULL))
+		if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_FALSE, 0, NULL))
 		{
 			geRam_Free(P);
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
 		geBitmap_ClearMips(ppBitmap);
@@ -92,7 +92,7 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 		geBitmap_Height(ppBitmap) < BM_MIN_HEIGHT )
 	{
 		geRam_Free(P);
-		return (Procedural*)NULL;
+		return NULL;
 	}
 
 	P->Bitmap = ppBitmap;
@@ -104,7 +104,7 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 		if(!PlasmaAnimator_CreatePalette(P, 0.0))
 		{
 			geRam_Free(P);
-			return (Procedural *)NULL;
+			return NULL;
 		}
 
 		P->CircleScale = 1.0;
@@ -124,26 +124,26 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 		pstr = strtok(ParmWork," ,\n\r\r");
 
 		P->CircleScale = atof(pstr);
-		pstr = strtok((char*)NULL," ,\n\r\r");
+		pstr = strtok(NULL, " ,\n\r\r");
 
 		P->RollStep = atof(pstr);
-		pstr = strtok((char*)NULL," ,\n\r\r");
+		pstr = strtok(NULL, " ,\n\r\r");
 
 		DoAlpha = ((toupper(*pstr) == 'T') ? GE_TRUE : atol(pstr));
-		pstr = strtok((char*)NULL," ,\n\r\r");
+		pstr = strtok(NULL, " ,\n\r\r");
 
 		P->Displacer = ((toupper(*pstr) == 'T') ? GE_TRUE : atol(pstr));
-		pstr = strtok((char*)NULL," ,\n\r\r");
+		pstr = strtok(NULL, " ,\n\r\r");
 
 		if(!(P->Displacer))
 		{
 			ParmStart += (int)(pstr - ParmWork);
 
-			if(!ProcUtil_SetPaletteFromString(P->Bitmap,(char**)&ParmStart))
+			if(!ProcUtil_SetPaletteFromString(P->Bitmap, const_cast<char**>(&ParmStart)))
 			{
 				geBitmap_Destroy(&(P->Bitmap));
 				geRam_Free(P);
-				return (Procedural*)NULL;
+				return NULL;
 			}
 		}
 	}
@@ -156,7 +156,7 @@ Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmSta
 		{
 			geBitmap_Destroy(&(P->Bitmap));
 			geRam_Free(P);
-			return (Procedural*)NULL;
+			return NULL;
 		}
 
 		geBitmap_BlitBitmap(P->Bitmap,P->DisplaceOriginal);
@@ -256,13 +256,13 @@ static geBoolean PlasmaAnimator_CreatePalette(Procedural *P, double time)
 		G = P->G;
 		B = P->B;
 
-		PalPtr = (unsigned char*)PalData;
+		PalPtr = static_cast<uint8*>(PalData);
 
 		for(p=0; p<256; p++)
 		{
-			u = (geFloat)((PI/128.0) * p);
+			u = (PI / 128.f) * static_cast<geFloat>(p);
 
-			#define mycol(u,a) (int)((cos((u)+(a))+1)*127.0)
+			#define mycol(u, a) static_cast<int>((cos((u) + (a)) + 1.0) * 127.0)
 
 			r = mycol(u,R);
 			g = mycol(u,G);
@@ -329,8 +329,8 @@ static void CalculateTables(Procedural * Proc)
 
 	for(x=0; x<256; x++)
 	{
-		sintab1[x] = (uint8)((sin(x/(5.0*9.5))+1.0)*90.0 + 0.5);
-		dtable[x] = (signed char)(sin(x*2.0*PI/256) * 16.0);
+		sintab1[x] = static_cast<uint8>((sin(x / (5.0 * 9.5)) + 1.0) * 90.0 + 0.5);
+		dtable[x] = static_cast<signed char>(sin(x * 2.0 * PI / 256) * 16.0);
 	}
 }
 
@@ -340,7 +340,7 @@ static int DoCircle(double *pCircle, double step, int w, int doCos);
 /* ------------------------------------------------------------------------------------ */
 static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 {
-	geBitmap *PlasmaLock = (geBitmap*)NULL;
+	geBitmap *PlasmaLock = NULL;
 	geBitmap_Info PlasmaInfo;
 	uint8 *Bits, *bptr;
 	int x, y, w, h, s;
@@ -353,17 +353,17 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 
 	if(!geBitmap_LockForWriteFormat(Bitmap,&PlasmaLock,0,0,GE_PIXELFORMAT_8BIT_PAL))
 	{
-		geBitmap_SetFormat(Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, (geBitmap_Palette*)NULL);
+		geBitmap_SetFormat(Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(Bitmap, &PlasmaLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(PlasmaLock == NULL)
 		goto fail;
 	}
 
-	if(!geBitmap_GetInfo(PlasmaLock, &PlasmaInfo, (geBitmap_Info*)NULL))
+	if(!geBitmap_GetInfo(PlasmaLock, &PlasmaInfo, NULL))
 		goto fail;
 
-	Bits = (unsigned char*)geBitmap_GetBits(PlasmaLock);
+	Bits = static_cast<uint8*>(geBitmap_GetBits(PlasmaLock));
 
 	if(!Bits)
 		goto fail;
@@ -424,7 +424,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 			if(!geBitmap_LockForReadNative(Source, &SourceLock, 0, 0))
 				goto fail;
 
-			if(!geBitmap_GetInfo(SourceLock, &SourceInfo, (geBitmap_Info*)NULL))
+			if(!geBitmap_GetInfo(SourceLock, &SourceInfo, NULL))
 				goto fail;
 
 			if(!(SourceBits = geBitmap_GetBits(SourceLock)))
@@ -432,8 +432,8 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 
 			ss = SourceInfo.Stride;
 
-			bptr = (unsigned char*)Bits;
-			sptr = (unsigned char*)SourceBits;
+			bptr = static_cast<uint8*>(Bits);
+			sptr = static_cast<uint8*>(SourceBits);
 
 			for(y=0; y<h; y++)
 			{
@@ -583,8 +583,8 @@ static int DoCircle(double *pCircle, double step, int w, int doCos)
 		xn = w*0.5*(1.0 + sin(cn));
 	}
 
-	ixn = (int)xn;
-	ixp = (int)xp;
+	ixn = static_cast<int>(xn);
+	ixp = static_cast<int>(xp);
 
 	if(ixp == ixn)
 	{
@@ -593,7 +593,7 @@ static int DoCircle(double *pCircle, double step, int w, int doCos)
 	else
 	{
 		x += ( rand() % 50 ) * 0.01;
-		ix = (int)((x + ixp + ixn)*(1.0/3.0));
+		ix = static_cast<int>((x + ixp + ixn) * (1.0 / 3.0));
 	}
 
 	return ix;

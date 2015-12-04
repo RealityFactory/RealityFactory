@@ -37,7 +37,7 @@ CTeleporter::CTeleporter()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleporter = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleporter = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if((pTeleporter->szEntityName == NULL) || (strlen(pTeleporter->szEntityName) <= 0))
 		{
@@ -87,7 +87,7 @@ CTeleporter::CTeleporter()
 		{
 			pTeleporter->fDensity = kFogDensity;		// Basic teleport field density
 			pTeleporter->cColor.a = 255.0f;
-			pTeleporter->fDelta = pTeleporter->fogVariance / (geFloat)pTeleporter->fogSpeed;
+			pTeleporter->fDelta = pTeleporter->fogVariance / static_cast<geFloat>(pTeleporter->fogSpeed);
 		}
 	}
 
@@ -99,7 +99,7 @@ CTeleporter::CTeleporter()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
+			TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 			pTarget->bFollower = GE_FALSE;
 			CCD->EntityRegistry()->AddEntity(pTarget->Name, "TeleportTarget");
 		}
@@ -134,7 +134,7 @@ CTeleporter::~CTeleporter()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if(pTeleport->theSound != NULL)
 			geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), pTeleport->theSound);
@@ -177,7 +177,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the teleporter data so we can compare models
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if(pTeleport->Model == pModel)
 		{
@@ -205,7 +205,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 			for(pEntity2=geEntity_EntitySetGetNextEntity(pSet2, NULL); pEntity2;
 				pEntity2=geEntity_EntitySetGetNextEntity(pSet2, pEntity2))
 			{
-				TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity2);
+				TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity2));
 
 				if(!strcmp(pTeleport->Target, pTarget->Name))
 				{
@@ -225,7 +225,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 						Sound.Min = CCD->GetAudibleRadius();
 						Sound.Loop = GE_FALSE;
 						Sound.SoundDef = pTeleport->theSound;
-						CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+						CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 					}
 
 					// Do a "teleporter" effect.  Note that this causes all
@@ -238,8 +238,11 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 						for(int nTemp=1000; nTemp<6000; nTemp+=100)
 						{
 							CCD->Engine()->BeginFrame();
-							geFog_SetAttributes(pTeleport->theFog, &pTeleport->origin, &pTeleport->cColor,
-								0.0f, (geFloat)nTemp+500, pTeleport->fogRadius+(geFloat)(nTemp/400));
+							geFog_SetAttributes(pTeleport->theFog,
+												&pTeleport->origin,
+												&pTeleport->cColor,
+												0.0f, static_cast<geFloat>(nTemp+500),
+												pTeleport->fogRadius+static_cast<geFloat>(nTemp/400));
 							CCD->Engine()->RenderWorld();
 							CCD->Engine()->EndFrame();
 // changed Nout 12/15/05
@@ -329,7 +332,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
+			TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 
 			if(pTarget->bFollower)
 				CCD->PathFollower()->GetNextPosition(pTarget->Name, &pTarget->origin,	false);
@@ -346,7 +349,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pTeleport->TriggerName))
 		{
@@ -455,7 +458,7 @@ void CTeleporter::DoFade(void)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if(pTeleport->bDoFade)
 		{
@@ -516,7 +519,7 @@ void CTeleporter::DoFade(void)
 				for(pEntity2=geEntity_EntitySetGetNextEntity(pSet2, NULL); pEntity2;
 					pEntity2=geEntity_EntitySetGetNextEntity(pSet2, pEntity2))
 				{
-					TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity2);
+					TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity2));
 
 					if(!strcmp(pTeleport->Target, pTarget->Name))
 					{
@@ -580,7 +583,7 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &(pTeleport->bActive),		sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &(pTeleport->bForward),		sizeof(geBoolean),	1, SaveFD);
@@ -602,7 +605,7 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
+		TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 
 		WRITEDATA(type, &(pTarget->origin), sizeof(geVec3d), 1, SaveFD);
 	}
@@ -632,7 +635,7 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTeleport = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTeleport = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &(pTeleport->bActive),		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pTeleport->bForward),		sizeof(geBoolean),	1, RestoreFD);
@@ -654,7 +657,7 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
+		TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &(pTarget->origin), sizeof(geVec3d), 1, RestoreFD);
 	}
@@ -682,7 +685,7 @@ int CTeleporter::BindToPath(const char *szName)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TeleportTarget *pTarget = (TeleportTarget*)geEntity_GetUserData(pEntity);
+		TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTarget->Name, szName))
 		{
@@ -717,11 +720,11 @@ int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Teleporter *pTheEntity = (Teleporter*)geEntity_GetUserData(pEntity);
+		Teleporter *pTheEntity = static_cast<Teleporter*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pTheEntity->szEntityName, szName))
 		{
-			*pEntityData = (void*)pTheEntity;
+			*pEntityData = static_cast<void*>(pTheEntity);
 			return RGF_SUCCESS;
 		}
 	}
