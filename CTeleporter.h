@@ -21,12 +21,27 @@ public:
 	~CTeleporter();
 
 	bool HandleCollision(const geWorld_Model *pModel, geActor *theActor); ///< Handle collision with teleporters
+
 	void Tick(geFloat dwTicks);						///< Update teleporters & target, do teleporter effect
+
 	int SaveTo(FILE *SaveFD, bool type);			///< Save teleporters & targets to file
+
 	int RestoreFrom(FILE *RestoreFD, bool type);	///< Restore teleporters & targets from file
+
 	int BindToPath(const char *szName);				///< Bind TeleportTarget to motion path
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
+
 	void DoFade(void);
 
 private:

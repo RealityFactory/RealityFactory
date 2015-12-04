@@ -21,11 +21,23 @@ public:
 	~CMorphingFields();
 
 	void Tick(geFloat dwTicks);				///< Do any animation
+
 	int BindToPath(const char *szName);		///< Bind entity to motion path
-	int SaveTo(FILE *SaveFD);
-											///< Save state to a file
+
+	int SaveTo(FILE *SaveFD);				///< Save state to a file
+
 	int RestoreFrom(FILE *RestoreFD);		///< Restore state from a file
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:

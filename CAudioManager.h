@@ -39,42 +39,53 @@ struct AudioInstanceList
 class CAudioManager : public CRGFComponent
 {
 public:
-	CAudioManager();									// Default constructor
-	~CAudioManager();									// Default destructor
+	CAudioManager();									///< Default constructor
+	~CAudioManager();									///< Default destructor
 
-	int Add(char *szFilename, int nType, int *nHandle);	// Add audio
-	int Remove(int nHandle);							// Remove instance
-	int RemoveOnCompletion(int nHandle);				// Set audio removal on completion
+	int Add(char *szFilename, int nType, int *nHandle);	///< Add audio
 
-	int Start(int nHandle);								// Start audio playing
-	int Stop(int nHandle);								// Stop audio
-	int Pause(int nHandle);								// Pause audio
-	int Rewind(int nHandle);							// Rewind audio
+	int Remove(int nHandle);							///< Remove instance
 
-	bool IsPlaying(int nHandle);						// Is audio playing
-	int SetLooping(int nHandle, bool bLoops);			// Set looping/not looping
-	int Status(int nHandle);							// Return audio playback status
-	int MoveEmitter(int nHandle, geVec3d Position);		// Change spatial position
+	int RemoveOnCompletion(int nHandle);				///< Set audio removal on completion
 
-	int SetVolume(int nHandle, geFloat fVolume);		// Set volume
-	geFloat GetVolume(int nHandle);						// Get volume
+	int Start(int nHandle);								///< Start audio playing
 
-	int SetPan(int nHandle, geFloat fPan);				// Set pan position
-	geFloat GetPan(int nHandle);						// Get pan position
+	int Stop(int nHandle);								///< Stop audio
 
-	void Tick(geFloat dwTicks);							// Process passage of time
+	int Pause(int nHandle);								///< Pause audio
+
+	int Rewind(int nHandle);							///< Rewind audio
+
+	bool IsPlaying(int nHandle);						///< Is audio playing
+
+	int SetLooping(int nHandle, bool bLoops);			///< Set looping/not looping
+
+	int Status(int nHandle);							///< Return audio playback status
+
+	int MoveEmitter(int nHandle, geVec3d Position);		///< Change spatial position
+
+	int SetVolume(int nHandle, geFloat fVolume);		///< Set volume
+
+	geFloat GetVolume(int nHandle);						///< Get volume
+
+	int SetPan(int nHandle, geFloat fPan);				///< Set pan position
+
+	geFloat GetPan(int nHandle);						///< Get pan position
+
+	void Tick(geFloat dwTicks);							///< Process passage of time
 
 private:
+	int FindFreeChannel();					///< Find a free playback channel
 
-	int FindFreeChannel();					// Find a free playback channel
-	int GetPlaybackChannel(int nHandle);	// audio handle -> playback channel
-	int ChannelFromHandle(int nHandle);		// Handle lookup
+	int GetPlaybackChannel(int nHandle);	///< audio handle -> playback channel
+
+	int ChannelFromHandle(int nHandle);		///< Handle lookup
 
 private:
 	// Private member variables
 	AudioInstanceList *MainList[512];		// Database of managed audio
 	int PlayingChannels[32][2];				// 32 concurrent playing audio entities
-	int m_InstanceCount;					// Global instance counter
+	int m_InstanceCount;					///< Global instance counter
 };
 
 #endif

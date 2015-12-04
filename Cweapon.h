@@ -251,9 +251,17 @@ public:
 	~CWeapon();
 
 	void Tick(geFloat dwTicks);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
+
 	void Display();
+
 	void Holster();
+
 	void DoAttack();
 
 	// changed RF063

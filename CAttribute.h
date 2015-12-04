@@ -21,15 +21,24 @@ public:
 	~CAttribute();
 
 	void Tick(geFloat dwTicks);
-// changed QD 08/13/03 added UseKey
+
 	bool HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey);
-// end change 08/13/03
-// changed RF063
+
 	int SaveTo(FILE *SaveFD, bool type);
+
 	int RestoreFrom(FILE *RestoreFD, bool type);
-// end change RF063
-	int ReSynchronize();
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
+	int ReSynchronize();
 
 	void AddAttributeEntity(Attribute *pAttribute);
 

@@ -26,14 +26,29 @@ public:
 	~CRGFComponent();									///< Default destructor
 
 	int Execute(char *szName, int nCommand, void *pArgs, int *pArgTypes); ///< Execute command
-	int LocateEntity(const char *szName, void **pEntityData);	///< Locate an entity
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
+	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
+	int ReSynchronize();
+
 	int SetComponentTime(DWORD dwTime);					///< Set components internal time
+
 	int ClearTimeCounter();								///< Clear components time counter
-	int ReSynchronize();								///< Force component clock resynchronization
+
 	int DispatchEvent(char *szName, int EventID, void *pArgs, int *pArgTypes);	///< Dispatch event to entity
 
 	inline bool IsValid()		{ return m_Initialized;	}
+
 	inline void MarkValid()		{ m_Initialized = true;	}
+
 	inline void MarkInvalid()	{ m_Initialized = false;}
 
 private:

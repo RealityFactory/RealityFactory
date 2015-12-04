@@ -98,82 +98,138 @@ public:
 	CParticleSystem();				///< Default constructor
 	~CParticleSystem();				///< Default destructor
 
-	// Load bitmap for particles
+	/**
+	 * @brief Load bitmap for particles
+	 */
 	int LoadParticleMap(int *pmHandle, const char *szPrimary, const char *szAlpha);
-	// Create particle system
+
+	/**
+	 * @brief Create particle system
+	 */
 	int Create(int *psHandle, int kSystemType, int nTexHandle,
 				const geVec3d &emitterPos, float Scale, const char *szName);
 
 	int CreateSound(const geVec3d &Origin, const char *SoundFile, float radius);
 
 	int Rewind(int psHandle);					///< Restart from beginning
+
 	int Pause(int psHandle, bool bPause);		///< Pause/unpause particle system
+
 	int Hide(int psHandle, bool bShowIt);		///< Hide/unhide particle system
+
 	int Destroy(int psHandle);					///< Destroy a particle system
 
 	int SetColor(int psHandle, const GE_RGBA &clrColor, bool bChangeExisting);	///< Set particle color
+
 	int SetEmitter(int psHandle, const geVec3d &emitterPos);					///< Set emitter position
+
 	int SetTexture(int psHandle, int pmHandle, bool bChangeExisting);			///< Set particle texture
+
 	int SetVelocity(int psHandle, float fVelocity, bool bChangeExisting);		///< Set initial velocity
+
 	int SetParticleLife(int psHandle, int nLifeInMsec);							///< Set particle life
+
 	int SetEffectRadius(int psHandle, float fRadius);							///< Set effect radius
+
 	int SetSystemLife(int psHandle, int nLife);									///< Set system lifetime
+
 	int SetBirthRate(int psHandle, int nBirthRate);								///< Set particle birth rate
+
 	int SetMaxSize(int psHandle, int nMaxParticles);							///< Set max. # of particles in system
 
 	void Tick(geFloat dwTicks);													///< Step time in all particle systems
 
-	int Render();								///< Render all particle systems in range
+	/**
+	 * @brief Render all particle systems in range
+	 */
+	int Render();
 
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:
 	int Allocate();								///< Allocate particle system
+
 	int Remove(int nHandle);					///< Remove particle system
+
 	int Clear(int nHandle);						///< Clear all particles from system
+
+	/**
+	 * @brief Add new particle to system
+	 */
 	theParticle *Spawn(int nHandle, const GE_RGBA &theColor,
 						const geVec3d &Pos,	const geVec3d &Rotation,
-						float fVelocity);							///< Add new particle to system
+						float fVelocity);
+
+	/**
+	 * @brief Add new imploding particle to system
+	 */
 	theParticle *ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 						const geVec3d &Pos,	const geVec3d &Rotation,
-						float fVelocity);							///< Add new imploding particle to system
+						float fVelocity);
 
-	void Sweep(int nHandle, float dwMsec);							///< Update particle system
+	/**
+	 * @brief Update particle system
+	 */
+	void Sweep(int nHandle, float dwMsec);
+
 	void ApplyGravity(int nHandle, theParticle *theParticle);
-	void RenderSystem(int nHandle, const geVec3d &PlayerPos);		///< Render particle system
+
+	/**
+	 * @brief Render particle system
+	 */
+	void RenderSystem(int nHandle, const geVec3d &PlayerPos);
 
 	void SetupShockwave(int nHandle);				///< Load initial shockwave particles
+
 	void AddShockwaveParticle(int nHandle);			///< Add new shockwave particle
 
 	void SetupSpiralArm(int nHandle);				///< Load initial spiral arm particles
+
 	void AddSpiralArmParticle(int nHandle);			///< Add new spiral arm particle
 
 	void SetupFountain(int nHandle);				///< Load initial fountain particles
+
 	void AddFountainParticle(int nHandle);			///< Add new fountain particle
 
 	void SetupRain(int nHandle);					///< Load initial rain particles
+
 	void AddRainParticle(int nHandle);				///< Add new rain particle
 
 	void SetupSphere(int nHandle);					///< Load initial sphere particles
+
 	void AddSphereParticle(int nHandle);			///< Add new sphere particle
 
 	void SetupTrail(int nHandle);					///< Load initial trail particles
+
 	void AddTrailParticle(int nHandle);				///< Add new trail particle
 
 	void SetupGuardian(int nHandle);				///< Load initial guardian-effect particles
+
 	void AddGuardianParticle(int nHandle);			///< Add new guardian-effect particle
 
 	void SetupImplodeSphere(int nHandle);			///< Load initial imploding sphere particles
+
 	void AddImplodeSphereParticle(int nHandle);		///< Add new imploding sphere particle
 
 	void SetupImplodeShockwave(int nHandle);		///< Load initial shockwave particles
+
 	void AddImplodeShockwaveParticle(int nHandle);	///< Add new shockwave particle
 
 	void SetupImplodeSpiralArm(int nHandle);		///< Load initial spiral arm particles
+
 	void AddImplodeSpiralArmParticle(int nHandle);	///< Add new spiral arm particle
+
 private:
-	//	Member variables
 	ParticleSystem *theList[50];		///< Up to 50 simultaneous particle systems active
 	geBitmap *bmpList[50];				///< Up to 50 bitmaps for particle systems
 };

@@ -19,6 +19,7 @@ public:
 	~CPolyShadow();
 
 	bool DrawShadow(const geActor *Actor);
+
 private:
 	GE_LVertex m_Vertex[3];
 };

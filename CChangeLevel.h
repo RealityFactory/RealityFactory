@@ -21,11 +21,17 @@ public:
 	~CChangeLevel();
 
 	void Tick(geFloat dwTicks);
+
 	bool CheckChangeLevel(geWorld_Model *theModel, bool UseKey);
 
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
 
 	int SaveTo(FILE *SaveFD, bool type);
+
 	int RestoreFrom(FILE *RestoreFD, bool type);
 };
 

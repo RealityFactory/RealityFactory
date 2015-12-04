@@ -32,13 +32,26 @@ public:
 	~CLogic();
 
 	void Tick(geFloat dwTicks);
+
 	int SaveTo(FILE *SaveFD, bool type);
+
 	int RestoreFrom(FILE *RestoreFD, bool type);
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:
 	void SetState();
+
 	bool GetLTriggerState(const char *Name);
 
 private:

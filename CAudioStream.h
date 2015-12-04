@@ -28,20 +28,32 @@ public:
 	~CAudioStream();
 
 	int Play(const char *szFilename, bool fLoopIt, bool fProxy);///< Stream a file
+
 	int Pause(const char *szFilename);							///< Pause/unpause a stream
+
 	int Stop(const char *szFilename);							///< Shut down & delete a stream
+
 	void PauseAll();
+
 	void StopAll();
 
 	bool IsPlaying(const char *szFilename);						///< Is file streaming?
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
+
 	void SetVolume(LONG nVolume);
+
 	void Tick(geFloat dwTicks);									///< Time-based action
 
 private:
-
 	int FindFreeSlot();						///< Find free entry in table
+
 	int FindInList(const char *szFile);		///< Find streaming file in list
+
 	void Sweep();							///< Clean up any stopped streams
 
 private:

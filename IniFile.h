@@ -32,10 +32,8 @@ private:
 	std::string path;	///< stores pathname of ini file to read/write
 
 	unsigned int numkey;
-// changed RF064
 	unsigned int entrykey;
 	unsigned int keyindex;
-// end change RF064
 
 	/**
 	 * @brief all keys are of this time
@@ -46,26 +44,25 @@ private:
 		std::vector<std::string> names;		///< corresponding list of value names
 	};
 
-	std::vector<key> keys;			///< list of keys in ini
-	std::vector<std::string> names;	///< corresponding list of keynames
-
+	std::vector<key> keys;				///< list of keys in ini
+	std::vector<std::string> names;		///< corresponding list of keynames
 
 	// all private functions
 private:
 	/**
-	 * returns index of specified value, in the specified key, or -1 if not found
+	 * @brief returns index of specified value, in the specified key, or -1 if not found
 	 */
 	int FindValue(int keynum, std::string valuename);
 
 	/**
-	 * returns index of specified key, or -1 if not found
+	 * @brief returns index of specified key, or -1 if not found
 	 */
 	int FindKey(std::string keyname);
 
 	// public variables
 public:
 	/**
-	 * will contain error info if one occurs
+	 * @brief will contain error info if one occurs
 	 * ended up not using much, just in ReadFile and GetValue
 	 */
 	std::string error;
@@ -73,53 +70,53 @@ public:
 	// public functions
 public:
 	/**
-	 * default constructor
+	 * @brief default constructor
 	 */
 	CIniFile();
 
 	/**
-	 * constructor, can specify pathname here instead of using SetPath later
+	 * @brief constructor, can specify pathname here instead of using SetPath later
 	 */
 	CIniFile(std::string inipath);
 
 	/**
-	 * default destructor
+	 * @brief default destructor
 	 */
 	virtual ~CIniFile();
 
 	/**
-	 * sets path of ini file to read and write from
+	 * @brief sets path of ini file to read and write from
 	 */
 	void SetPath(std::string newpath);
 
 	/**
-	 * reads ini file specified using CIniFile::SetPath()
+	 * @brief reads ini file specified using CIniFile::SetPath()
 	 * returns true if successful, false otherwise
 	 */
 	bool ReadFile();
 
 	/**
-	 * writes data stored in class to ini file
+	 * @brief writes data stored in class to ini file
 	 */
 	void WriteFile();
 
 	/**
-	 * deletes all stored ini data
+	 * @brief deletes all stored ini data
 	 */
 	void Reset();
 
 	/**
-	 * returns number of keys currently in the ini
+	 * @brief returns number of keys currently in the ini
 	 */
 	int GetNumKeys();
 
 	/**
-	 * returns number of values stored for specified key
+	 * @brief returns number of values stored for specified key
 	 */
 	int GetNumValues(std::string keyname);
 
 	/**
-	 * gets value of [keyname] valuename =
+	 * @brief gets value of [keyname] valuename =
 	 * overloaded to return std::string, int, and double,
 	 * returns "", or 0 if key/value not found. Sets error member to show problem
 	 */
@@ -128,7 +125,7 @@ public:
 	double GetValueF(std::string keyname, std::string valuename);
 
 	/**
-	 * sets value of [keyname] valuename =.
+	 * @brief sets value of [keyname] valuename =.
 	 * specify the optional paramter as false (0) if you do not want it to create
 	 * the key if it doesn't exist. Returns true if data entered, false otherwise
 	 * overloaded to accept CString, int, and double
@@ -138,13 +135,13 @@ public:
 	bool SetValueF(std::string key, std::string valuename, double value, bool create = 1);
 
 	/**
-	 * deletes specified value
+	 * @brief deletes specified value
 	 * returns true if value existed and deleted, false otherwise
 	 */
 	bool DeleteValue(std::string keyname, std::string valuename);
 
 	/**
-	 * deletes specified key and all values contained within
+	 * @brief deletes specified key and all values contained within
 	 * returns true if key existed and deleted, false otherwise
 	 */
 	bool DeleteKey(std::string keyname);

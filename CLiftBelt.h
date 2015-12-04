@@ -21,6 +21,11 @@ public:
 	void Tick(geFloat dwTicks);
 	void ChangeLift(bool increase);
 	void DisableHud(const char *Attr);
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int	LocateEntity(const char *szName, void **pEntityData);
 
 private:

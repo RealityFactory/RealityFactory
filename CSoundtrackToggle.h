@@ -30,7 +30,13 @@ public:
 	~CSoundtrackToggle();			///< Default destructor
 
 	void Tick(geFloat dwTicks);		///< Handle time-based action, if any
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
+
 	void SetVolume(LONG nVolume);
 
 private:

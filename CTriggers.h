@@ -35,20 +35,37 @@ public:
 	CTriggers();				///< Constructor
 	~CTriggers();				///< Destructor
 
-	bool HandleTriggerEvent(const char *TName);		// MOD010122 - This line added
-	// changed RF063
+	bool HandleTriggerEvent(const char *TName);
+
 	int HandleCollision(const geWorld_Model *pModel, bool HitType, bool UseKey, const geActor *theActor);
-	bool IsATrigger(const geWorld_Model *theModel);		///< Is this model a trigger?
+
+	bool IsATrigger(const geWorld_Model *theModel);	///< Is this model a trigger?
+
 	void Tick(geFloat dwTicks);						///< Increment animation time
+
 	int SaveTo(FILE *SaveFD, bool type);			///< Save triggers to file
+
 	int RestoreFrom(FILE *RestoreFD, bool type);	///< Restore triggers from file
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
+
 	void SetState();
+
 	bool GetTTriggerState(const char *Name);
+
 	void FreeState();
 
 private:

@@ -37,7 +37,7 @@ struct PersistAttribute
 };
 
 /**
- * @brief CPersistentAttributes handles persitent attributes
+ * @brief CPersistentAttributes handles persistent attributes
  *
  * The concept here is that attribute lists can be associate with ANYTHING,
  * and maintained at a higher level than the individual	object in case things

@@ -22,10 +22,18 @@ public:
 	~CDynalite();
 
 	geBoolean Tick(geFloat dwTicks);
-	int LocateEntity(const char *szName, void **pEntityData);
-	int ReSynchronize();
-private:
 
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
+	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
+	int ReSynchronize();
 };
 
 #endif

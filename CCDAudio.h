@@ -21,16 +21,23 @@ public:
 	~CCDAudio();									///< Clean up
 
 	int Play(int nTrack, bool bLoop);				///< Play a single track with or w/o looping
+
 	int Stop();										///< Stop CD Audio playback
+
 	bool IsPlaying();								///< See if the CD is playing
+
 	int PlaySequence(int nCount, int *nTrackList);	///< Play sequence of tracks
+
 	void Check();									///< Called to handle CD state processing
 
 	int SaveTo(FILE *SaveFD);						///< Save state to a file
+
 	int RestoreFrom(FILE *RestoreFD);				///< Restore state from a file
 
 	bool GetCdOn()				{ return m_cdon; }
+
 	void SetCdOn(bool state)	{ m_cdon = state; }
+
 	int Restore()				{ return Play(m_savetrack, m_saveloop); }
 
 private:

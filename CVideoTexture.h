@@ -22,6 +22,11 @@ public:
 	~CVideoTexture();				///< Destructor
 
 	void Tick(geFloat dwTick);		///< Update video textures
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:

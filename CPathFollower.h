@@ -23,17 +23,49 @@ public:
 	CPathFollower();							///< Default constructor
 	~CPathFollower();							///< Default destructor
 
-	int Tick(geFloat dwTicks);					///< Check range-based motion triggers
+	/**
+	 * @brief Check range-based motion triggers
+	 */
+	int Tick(geFloat dwTicks);
+
 	bool HandleCollision(const geWorld_Model *Model);
-	// Find next position for entity
+
+	/**
+	 * @brief Find next position for entity
+	 */
 	int GetNextPosition(const char *szEntityName, geVec3d *NextPosition, bool YLocked);
-	int GetTarget(const char *szEntityName, geVec3d *Target);			///< Get target point for entity
-	int GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin);	///< Get path origin for entity
-	geFloat GetSpeed(const char *szEntityName);							///< Get speed of entity
+
+	/**
+	 * @brief Get target point for entity
+	 */
+	int GetTarget(const char *szEntityName, geVec3d *Target);
+
+	/**
+	 * @brief Get path origin for entity
+	 */
+	int GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin);
+
+	/**
+	 * @brief Get speed of entity
+	 */
+	geFloat GetSpeed(const char *szEntityName);
+
+	/**
+	 * @brief Get normalized direction vector
+	 */
 	int GetDirectionVector(const geVec3d &LookFrom, const geVec3d &LookAt,
-							geVec3d *theDirectionVector);				///< Get normalized direction vector
+							geVec3d *theDirectionVector);
+
+	/**
+	 * @brief Get rotation needed to face a point
+	 */
 	int GetRotationToFacePoint(const geVec3d &LookFrom, const geVec3d &LookAt,
-							geVec3d *LookRotation);						///< Get rotation needed to face a point
+							geVec3d *LookRotation);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:

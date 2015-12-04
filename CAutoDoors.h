@@ -22,15 +22,35 @@ public:
 	~CAutoDoors();										///< Destructor
 
 	void Render(geXForm3d ViewPoint, DWORD  dwTime);	///< Render all doors
-	// changed RF063
+
+	/**
+	 * @brief Handle collisions with doors
+	 */
 	bool HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor);
+
+	/**
+	 * @brief Follow door trigger chain
+	 */
 	void TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall);
-														///< Follow door trigger chain
+
 	bool IsADoor(geWorld_Model *theModel);				///< Is this model a door?
+
 	void Tick(geFloat dwTicks);							///< Increment animation time
+
 	int SaveTo(FILE *SaveFD, bool type);				///< Save all doors to a file
+
 	int RestoreFrom(FILE *RestoreFD, bool type);		///< Restore all doors from a file
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
 	int LocateEntity(const char *szName, void **pEntityData);
+
+	/**
+	 * @brief Correct internal timing to match current time, to make up for time
+	 * lost when outside the game loop (typically in "menu mode").
+	 */
 	int ReSynchronize();
 
 private:

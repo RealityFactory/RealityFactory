@@ -9,8 +9,8 @@
 
 typedef struct	SPOrigin
 {
-	SPOrigin    *next;
-	SPOrigin    *prev;
+	SPOrigin	*next;
+	SPOrigin	*prev;
 	char		*Name;
 	geVec3d		origin;
 
@@ -25,13 +25,21 @@ public:
 	CScriptPoint();
 	~CScriptPoint();
 
-	int LocateEntity(const char *szName, void **pEntityData);
 	void Render();
+
+	/**
+	 * @brief Given a name, locate the desired entity in the currently loaded
+	 * level and return its user data.
+	 */
+	int LocateEntity(const char *szName, void **pEntityData);
 
 private:
 	void DrawLine3d(const geVec3d *p1, const geVec3d *p2, int r, int g, int b, int r1, int g1, int b1);
+
 	void SetOrigin();
+
 	void FreeOrigin();
+
 	geVec3d GetOrigin(const char *Name);
 
 private:

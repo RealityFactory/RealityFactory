@@ -28,16 +28,25 @@ public:
 	int SetVolume(int nVolume);			///< Set volume on audio
 
 private:
-//	Private member functions
-	DWORD GetMaxWriteSize();			///< Get max. buffer write size
-	int PumpWave(int nSize);			///< Pump wave data to stream
+	// Private member functions
+
+	/**
+	 * @brief Get max. buffer write size
+	 */
+	DWORD GetMaxWriteSize();
+
+	/**
+	 * @brief Pump wave data to stream
+	 */
+	int PumpWave(int nSize);
+
 	/**
 	 * @brief Static timer callback
 	 */
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
 
 private:
-	//	Private member variables
+	// Private member variables
 	LPDIRECTSOUND m_pDS;				///< DirectSound bject
 	OggVorbis_File ovf;					///< Handle to Ogg file
 	FILE *vf;							///< the file
