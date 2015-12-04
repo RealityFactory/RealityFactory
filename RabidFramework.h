@@ -74,9 +74,9 @@ enum
 #define RF_VMAJS			"0"
 #define RF_VMINS			"76   "
 
-#define SAFE_DELETE(p)		{ if((p)!=NULL) { delete (p);	(p)=NULL; } }
-#define SAFE_DELETE_A(p)	{ if((p)!=NULL) { delete [] (p);(p)=NULL; } }
-#define SAFE_FREE(p)		{ if((p)!=NULL) { free(p);		(p)=NULL; } }
+#define SAFE_DELETE(p)		{ delete (p);	(p)=NULL; }
+#define SAFE_DELETE_A(p)	{ delete[] (p);	(p)=NULL; }
+#define SAFE_FREE(p)		{ free(p);		(p)=NULL; }
 
 #include <windows.h>
 #include <stdlib.h>
