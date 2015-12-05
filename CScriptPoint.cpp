@@ -236,7 +236,7 @@ void CScriptPoint::SetOrigin()
 	geEntity *pEntity;
 	SPOrigin *pool;
 
-	Bottom = (SPOrigin*)NULL;
+	Bottom = NULL;
 
 	// Ok, check to see if there are ScriptPoints in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");

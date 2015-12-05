@@ -245,7 +245,7 @@ void CMessage::Tick(geFloat dwTicks)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Message *pSource = (Message*)geEntity_GetUserData(pEntity);
+		Message *pSource = static_cast<Message*>(geEntity_GetUserData(pEntity));
 		MessageData *Data = (MessageData*)pSource->Data;
 
 		if(!EffectC_IsStringNull(pSource->TriggerName))
@@ -568,11 +568,11 @@ int CMessage::LocateEntity(const char *szName, void **pEntityData)
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Message *pSource = (Message*)geEntity_GetUserData(pEntity);
+		Message *pSource = static_cast<Message*>(geEntity_GetUserData(pEntity));
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			*pEntityData = (void*)pSource;
+			*pEntityData = static_cast<void*>(pSource);
 			return RGF_SUCCESS;
 		}
 	}

@@ -991,7 +991,7 @@ CLevelController::CLevelController()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		LevelController *pLC = (LevelController*)geEntity_GetUserData(pEntity);
+		LevelController *pLC = static_cast<LevelController*>(geEntity_GetUserData(pEntity));
 
 		// Check for entity name
 		if(EffectC_IsStringNull(pLC->szEntityName))
@@ -1059,7 +1059,7 @@ CLevelController::CLevelController()
 			}
 
 			ControllerObject *Object;
-			Object = (ControllerObject*)pLC->Data;
+			Object = static_cast<ControllerObject*>(pLC->Data);
 
 			strcpy(Object->szName, pLC->szEntityName);
 
@@ -1129,11 +1129,11 @@ CLevelController::~CLevelController()
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			LevelController *pSource = (LevelController*)geEntity_GetUserData(pEntity);
+			LevelController *pSource = static_cast<LevelController*>(geEntity_GetUserData(pEntity));
 
 			if(pSource->Data)
 			{
-				ControllerObject *Object = (ControllerObject *)pSource->Data;
+				ControllerObject *Object = static_cast<ControllerObject*>(pSource->Data);
 				delete Object;
 				pSource->Data = NULL;
 			}
@@ -1157,7 +1157,7 @@ void CLevelController::Tick(geFloat dwTicks)
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			LevelController *pLC = (LevelController*)geEntity_GetUserData(pEntity);
+			LevelController *pLC = static_cast<LevelController*>(geEntity_GetUserData(pEntity));
 
 			ControllerObject *Object = static_cast<ControllerObject*>(pLC->Data);
 

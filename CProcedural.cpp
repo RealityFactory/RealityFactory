@@ -64,7 +64,7 @@ CProcedural::CProcedural()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TextureProc *pTex = (TextureProc*)geEntity_GetUserData(pEntity);
+		TextureProc *pTex = static_cast<TextureProc*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pTex->szTextureName) && !EffectC_IsStringNull(pTex->szProcName))
 		{
@@ -133,7 +133,7 @@ CProcedural::~CProcedural()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TextureProc *pTex = (TextureProc*)geEntity_GetUserData(pEntity);
+		TextureProc *pTex = static_cast<TextureProc*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(pTex->szTextureName) && !EffectC_IsStringNull(pTex->szProcName))
 		{
@@ -198,13 +198,13 @@ void CProcedural::Tick(geFloat dwTicksIn)
 	if(!pSet)
 		return;
 
-	geFloat dwTicks = (geFloat)(dwTicksIn)*0.001f;
+	geFloat dwTicks = dwTicksIn * 0.001f;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		TextureProc *pTex = (TextureProc*)geEntity_GetUserData(pEntity);
+		TextureProc *pTex = static_cast<TextureProc*>(geEntity_GetUserData(pEntity));
 
 		if(pTex->DistanceFlag)
 		{

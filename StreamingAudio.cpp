@@ -592,7 +592,7 @@ int StreamingAudio::PumpWave(int nSize)
 	//	Fine, read data into the circular buffer directly from the
 	//	..wave file if there's anything there.
 	// Fill block #1
-	hr = WaveRead(m_hWaveFile, dwsize1, (BYTE*)lpbuf1, &m_rRiffData, &nBytesRead);
+	hr = WaveRead(m_hWaveFile, dwsize1, static_cast<BYTE*>(lpbuf1), &m_rRiffData, &nBytesRead);
 
 	if(nBytesRead != dwsize1)								// End of wave file
 	{
@@ -604,7 +604,7 @@ int StreamingAudio::PumpWave(int nSize)
 	if((lpbuf2 != NULL) && (!m_fEOF))
 	{
 		// Fill block #2
-		hr = WaveRead(m_hWaveFile, dwsize2, (BYTE*)lpbuf2, &m_rRiffData, &nBytesRead);
+		hr = WaveRead(m_hWaveFile, dwsize2, static_cast<BYTE*>(lpbuf2), &m_rRiffData, &nBytesRead);
 
 		if(nBytesRead != dwsize2)							// End of wave file
 			m_fEOF = true;
@@ -633,8 +633,8 @@ DWORD StreamingAudio::GetMaxWriteSize()
 
 	// Get current play position
 	if(m_pStream->GetCurrentPosition(&dwPlayCursor, &dwWriteCursor) == DS_OK)
-    {
-		if((UINT)m_nOffset <= dwPlayCursor)
+	{
+		if(static_cast<DWORD>(m_nOffset) <= dwPlayCursor)
 		{
 			// Our write position trails play cursor
 			dwMaxSize = dwPlayCursor - m_nOffset;
@@ -644,9 +644,11 @@ DWORD StreamingAudio::GetMaxWriteSize()
 			// Play cursor has wrapped
 			dwMaxSize = kBufferSize - m_nOffset + dwPlayCursor;
 		}
-    }
+	}
 	else
+	{
 		dwMaxSize = 0;
+	}
 
 	return (dwMaxSize & 0xfffffffe);
 }
@@ -818,10 +820,10 @@ int StreamingAudio::WaveRead(HMMIO hmmioIn, int nSizeToRead, BYTE *pDestination,
 	if(pckIn->cksize <= 0)
 		return -1;							// No data bytes left!
 
-	if((UINT)nSizeToRead > pckIn->cksize)
+	if(static_cast<DWORD>(nSizeToRead) > pckIn->cksize)
 		nSizeToRead = pckIn->cksize;		// Only read what's left
 
-	int nRead = mmioRead(hmmioIn, (char *)pDestination, (long)nSizeToRead);
+	LONG nRead = mmioRead(hmmioIn, reinterpret_cast<HPSTR>(pDestination), static_cast<LONG>(nSizeToRead));
 	pckIn->cksize -= nRead;					// Decrement count
 
 	*nBytesRead = nRead;					// Save byte count.

@@ -402,7 +402,6 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	geVec3d impact = Collision.Impact;
 	geVec3d normal = Collision.Plane.Normal;
 
-// Start Aug2003DCS
 //	int major = 0;
 //
 //#define fab(a) (a > 0 ? a : -a)
@@ -443,10 +442,9 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 //	else
 //		geVec3d_CrossProduct(&Axis[major], &normal, &right);
 
-	right.X = (float)(( normal.Z * cos(GE_PIOVER180*pSource->Angle.Z)) + ( normal.Y * cos(GE_PIOVER180*pSource->Angle.Z)));
-	right.Y = (float)(( normal.Z * sin(GE_PIOVER180*pSource->Angle.Z)) + ( normal.X * sin(GE_PIOVER180*pSource->Angle.Z)));
-	right.Z = (float)((-normal.X * cos(GE_PIOVER180*pSource->Angle.Z)) + (-normal.Y * sin(GE_PIOVER180*pSource->Angle.Z)));
-// End Aug2003DCS
+	right.X = ( normal.Z * cos(GE_PIOVER180*pSource->Angle.Z)) + ( normal.Y * cos(GE_PIOVER180*pSource->Angle.Z));
+	right.Y = ( normal.Z * sin(GE_PIOVER180*pSource->Angle.Z)) + ( normal.X * sin(GE_PIOVER180*pSource->Angle.Z));
+	right.Z = (-normal.X * cos(GE_PIOVER180*pSource->Angle.Z)) + (-normal.Y * sin(GE_PIOVER180*pSource->Angle.Z));
 
 	geVec3d_CrossProduct(&normal, &right, &up);
 	geVec3d_Normalize(&up);

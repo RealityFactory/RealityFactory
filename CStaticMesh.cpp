@@ -1674,12 +1674,15 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		}
 		else // material without bitmap
 		{
-			geWorld_AddPolyOnce(CCD->World(), Vertex, 3, NULL, GE_GOURAUD_POLY,
-								(uint32)pMesh->RenderFlags, 1.f);
+			geWorld_AddPolyOnce(CCD->World(),
+								Vertex,
+								3,
+								NULL,
+								GE_GOURAUD_POLY,
+								static_cast<uint32>(pMesh->RenderFlags),
+								1.f);
 		}
 	}
-
-
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2124,7 +2127,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 						for(j=0; j<3; j++)
 						{
-							R += HalfAxisLength[j]*(geFloat)fabs(V.X*axis[j].X+V.Y*axis[j].Y+V.Z*axis[j].Z);
+							R += HalfAxisLength[j]*fabs(V.X*axis[j].X + V.Y*axis[j].Y + V.Z*axis[j].Z);
 						}
 
 						Min1 = DP-R;
@@ -2197,7 +2200,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 								for(int m=0; m<3; m++)
 								{
-									R += HalfAxisLength[m]*(geFloat)fabs(V.X*axis[m].X+V.Y*axis[m].Y+V.Z*axis[m].Z);
+									R += HalfAxisLength[m]*fabs(V.X*axis[m].X + V.Y*axis[m].Y + V.Z*axis[m].Z);
 								}
 
 								Min1 = DP-R;
@@ -2342,17 +2345,17 @@ void CStaticMesh::AABBofOBB(geVec3d *Min, geVec3d *Max, const geVec3d *AxisLengt
 {
 	geVec3d A0, A1, A2;
 
-	A0.X = (geFloat)fabs(Axis0->X*AxisLength->X);
-	A0.Y = (geFloat)fabs(Axis0->Y*AxisLength->X);
-	A0.Z = (geFloat)fabs(Axis0->Z*AxisLength->X);
+	A0.X = fabs(Axis0->X*AxisLength->X);
+	A0.Y = fabs(Axis0->Y*AxisLength->X);
+	A0.Z = fabs(Axis0->Z*AxisLength->X);
 
-	A1.X = (geFloat)fabs(Axis1->X*AxisLength->Y);
-	A1.Y = (geFloat)fabs(Axis1->Y*AxisLength->Y);
-	A1.Z = (geFloat)fabs(Axis1->Z*AxisLength->Y);
+	A1.X = fabs(Axis1->X*AxisLength->Y);
+	A1.Y = fabs(Axis1->Y*AxisLength->Y);
+	A1.Z = fabs(Axis1->Z*AxisLength->Y);
 
-	A2.X = (geFloat)fabs(Axis2->X*AxisLength->Z);
-	A2.Y = (geFloat)fabs(Axis2->Y*AxisLength->Z);
-	A2.Z = (geFloat)fabs(Axis2->Z*AxisLength->Z);
+	A2.X = fabs(Axis2->X*AxisLength->Z);
+	A2.Y = fabs(Axis2->Y*AxisLength->Z);
+	A2.Z = fabs(Axis2->Z*AxisLength->Z);
 
 	// MinX, MaxX
 	if(A0.X > A1.X)

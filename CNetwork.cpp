@@ -255,7 +255,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 		nlSetAddrPort(&addr, 25000);
 
 		if(!nlConnect(sock, &addr))
-        {
+		{
 			nlClose(sock);
 			return false;
 		}
@@ -266,7 +266,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 		// used by join game client only to get ID # and level name
 		if(!isServer)
 		{
-			float Time = (float)CCD->FreeRunningCounter();
+			float Time = CCD->FreeRunningCounter_F();
 
 			while(1)
 			{

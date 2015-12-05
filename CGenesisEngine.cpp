@@ -189,7 +189,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	wc.hIcon			= LoadIcon(theInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wc.hCursor			= LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wc.lpszMenuName		= (const char*)NULL;
+	wc.lpszMenuName		= NULL;
 	wc.lpszClassName	= szName;
 	RegisterClass(&wc);
 
@@ -634,8 +634,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	else
 		TempInfo.Height = TempInfo.Width = 8;
 
-	fWidthBmp = (geFloat)TempInfo.Width;
-	fHeightBmp = (geFloat)TempInfo.Height;
+	fWidthBmp = static_cast<geFloat>(TempInfo.Width);
+	fHeightBmp = static_cast<geFloat>(TempInfo.Height);
 
 	//
 	// Clip 2d viewport
@@ -657,10 +657,10 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 
 	if(PixelRect)
 	{
-		UseRect.Top		= int32(PixelRect->Top		+ ClipRect.Top);
-		UseRect.Left	= int32(PixelRect->Left		+ ClipRect.Left);
-		UseRect.Bottom	= int32(PixelRect->Bottom	+ ClipRect.Top);
-		UseRect.Right	= int32(PixelRect->Right	+ ClipRect.Left);
+		UseRect.Top		= static_cast<int32>(PixelRect->Top)	+ ClipRect.Top;
+		UseRect.Left	= static_cast<int32>(PixelRect->Left)	+ ClipRect.Left;
+		UseRect.Bottom	= static_cast<int32>(PixelRect->Bottom)	+ ClipRect.Top;
+		UseRect.Right	= static_cast<int32>(PixelRect->Right)	+ ClipRect.Left;
 	}
 	else
 	{
@@ -680,9 +680,9 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	}
 
 	geFloat UVbreak = 0.0f;
-	vertex[0].x = (geFloat)UseRect.Left;
-	vertex[0].y = (geFloat)UseRect.Top;
-	vertex[0].z = zdepth; //1.0f; //0.05f;
+	vertex[0].x = static_cast<geFloat>(UseRect.Left);
+	vertex[0].y = static_cast<geFloat>(UseRect.Top);
+	vertex[0].z = zdepth;
 	vertex[0].r = RGBA_Array[0].r;
 	vertex[0].g = RGBA_Array[0].g;
 	vertex[0].b = RGBA_Array[0].b;
@@ -690,8 +690,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[0].u = VertUVArray[0].X + UVbreak/fWidthBmp;
 	vertex[0].v = VertUVArray[0].Y + UVbreak/fHeightBmp;
 
-	vertex[1].x = (geFloat)UseRect.Right;
-	vertex[1].y = (geFloat)UseRect.Top;
+	vertex[1].x = static_cast<geFloat>(UseRect.Right);
+	vertex[1].y = static_cast<geFloat>(UseRect.Top);
 	vertex[1].z = vertex[0].z;
 	vertex[1].r = RGBA_Array[1].r;
 	vertex[1].g = RGBA_Array[1].g;
@@ -700,8 +700,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[1].u = VertUVArray[1].X - UVbreak/fWidthBmp;
 	vertex[1].v = VertUVArray[1].Y + UVbreak/fHeightBmp;
 
-	vertex[2].x = (geFloat)UseRect.Right;
-	vertex[2].y = (geFloat)UseRect.Bottom;
+	vertex[2].x = static_cast<geFloat>(UseRect.Right);
+	vertex[2].y = static_cast<geFloat>(UseRect.Bottom);
 	vertex[2].z = vertex[0].z;
 	vertex[2].r = RGBA_Array[2].r;
 	vertex[2].g = RGBA_Array[2].g;
@@ -710,8 +710,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[2].u = VertUVArray[2].X - UVbreak/fWidthBmp;
 	vertex[2].v = VertUVArray[2].Y - UVbreak/fHeightBmp;
 
-	vertex[3].x = (geFloat)UseRect.Left;
-	vertex[3].y = (geFloat)UseRect.Bottom;
+	vertex[3].x = static_cast<geFloat>(UseRect.Left);
+	vertex[3].y = static_cast<geFloat>(UseRect.Bottom);
 	vertex[3].z = vertex[0].z;
 	vertex[3].r = RGBA_Array[3].r;
 	vertex[3].g = RGBA_Array[3].g;
@@ -733,7 +733,7 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 		fWidthBmp -= ( ClipRect.Left - vertex[0].x );
 		vertex[0].u += fUVAdd;
 		vertex[3].u = vertex[0].u;
-		vertex[0].x = (geFloat)ClipRect.Left;
+		vertex[0].x = static_cast<geFloat>(ClipRect.Left);
 		vertex[3].x = vertex[0].x;
     }
 
@@ -750,7 +750,7 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 		fHeightBmp -= ( ClipRect.Top - vertex[0].y );
 		vertex[0].v += fUVAdd;
 		vertex[1].v = vertex[0].v;
-		vertex[0].y = (geFloat)ClipRect.Top;
+		vertex[0].y = static_cast<geFloat>(ClipRect.Top);
 		vertex[1].y = vertex[0].y;
     }
 
@@ -766,7 +766,7 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 		fUVAdd *= (vertex[1].u-vertex[0].u);
 		vertex[1].u -= fUVAdd;
 		vertex[2].u = vertex[1].u;
-		vertex[1].x = (geFloat)ClipRect.Right - 1;
+		vertex[1].x = static_cast<geFloat>(ClipRect.Right - 1);
 		vertex[2].x = vertex[1].x;
     }
 
@@ -782,7 +782,7 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 		fUVAdd *= (vertex[3].v-vertex[0].v);
 		vertex[2].v -= fUVAdd;
 		vertex[3].v = vertex[2].v;
-		vertex[2].y = (geFloat)ClipRect.Bottom - 1;
+		vertex[2].y = static_cast<geFloat>(ClipRect.Bottom - 1);
 		vertex[3].y = vertex[2].y;
     }
 
@@ -823,14 +823,14 @@ bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap	*pBitmap,
 		BitmapRect->Bottom = (TempInfo.Height-1);
 	}
 
-	UVArray[0].X = (geFloat)BitmapRect->Left / (TempInfo.Width-1);
-	UVArray[0].Y = (geFloat)BitmapRect->Top / (TempInfo.Height-1);
-	UVArray[1].X = (geFloat)BitmapRect->Right / (TempInfo.Width-1);
-	UVArray[1].Y = (geFloat)BitmapRect->Top / (TempInfo.Height-1);
-	UVArray[2].X = (geFloat)BitmapRect->Right / (TempInfo.Width-1);
-	UVArray[2].Y = (geFloat)BitmapRect->Bottom / (TempInfo.Height-1);
-	UVArray[3].X = (geFloat)BitmapRect->Left / (TempInfo.Width-1);
-	UVArray[3].Y = (geFloat)BitmapRect->Bottom / (TempInfo.Height-1);
+	UVArray[0].X = static_cast<geFloat>(BitmapRect->Left  ) / static_cast<geFloat>(TempInfo.Width  - 1);
+	UVArray[0].Y = static_cast<geFloat>(BitmapRect->Top   ) / static_cast<geFloat>(TempInfo.Height - 1);
+	UVArray[1].X = static_cast<geFloat>(BitmapRect->Right ) / static_cast<geFloat>(TempInfo.Width  - 1);
+	UVArray[1].Y = static_cast<geFloat>(BitmapRect->Top   ) / static_cast<geFloat>(TempInfo.Height - 1);
+	UVArray[2].X = static_cast<geFloat>(BitmapRect->Right ) / static_cast<geFloat>(TempInfo.Width  - 1);
+	UVArray[2].Y = static_cast<geFloat>(BitmapRect->Bottom) / static_cast<geFloat>(TempInfo.Height - 1);
+	UVArray[3].X = static_cast<geFloat>(BitmapRect->Left  ) / static_cast<geFloat>(TempInfo.Width  - 1);
+	UVArray[3].Y = static_cast<geFloat>(BitmapRect->Bottom) / static_cast<geFloat>(TempInfo.Height - 1);
 
 	return DrawAlphaBitmap(pBitmap, UVArray, ClipCamera, PixelRect, PercentRect, Alpha, RGBA_Array, zdepth);
 }
@@ -1004,8 +1004,8 @@ void CGenesisEngine::DrawComplete(const CompleteTexture &cp, int x, int y)
 {
 	FloatRect ScreenRect;
 
-	ScreenRect.Left		= (float)x;
-	ScreenRect.Top		= (float)y;
+	ScreenRect.Left		= static_cast<float>(x);
+	ScreenRect.Top		= static_cast<float>(y);
 	ScreenRect.Right	= ScreenRect.Left + cp.TotalWidth;
 	ScreenRect.Bottom	= ScreenRect.Top + cp.TotalHeight;
 
@@ -1127,13 +1127,13 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 	bool ret;
 	geRect Rect;
 
-	PixelRect.Top = (float)y;
-	PixelRect.Left = (float)x;
+	PixelRect.Top = static_cast<float>(y);
+	PixelRect.Left = static_cast<float>(x);
 
 	if(BitmapRect)
 	{
-		PixelRect.Bottom = PixelRect.Top  + (float)(BitmapRect->Bottom-BitmapRect->Top);
-		PixelRect.Right  = PixelRect.Left + (float)(BitmapRect->Right-BitmapRect->Left);
+		PixelRect.Bottom = PixelRect.Top  + static_cast<float>(BitmapRect->Bottom - BitmapRect->Top);
+		PixelRect.Right  = PixelRect.Left + static_cast<float>(BitmapRect->Right - BitmapRect->Left);
 
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect,
 								 CCD->CameraManager()->Camera(), &PixelRect,
@@ -1146,8 +1146,8 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		Rect.Bottom = geBitmap_Height(pBitmap)-1;
 		Rect.Right	= geBitmap_Width(pBitmap)-1;
 
-		PixelRect.Bottom = PixelRect.Top  + (float)(Rect.Bottom);
-		PixelRect.Right	 = PixelRect.Left + (float)(Rect.Right);
+		PixelRect.Bottom = PixelRect.Top  + static_cast<float>(Rect.Bottom);
+		PixelRect.Right	 = PixelRect.Left + static_cast<float>(Rect.Right);
 
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect,
 								 CCD->CameraManager()->Camera(), &PixelRect,
@@ -1165,13 +1165,13 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 	bool ret;
 	geRect Rect;
 
-	PixelRect.Top	= (float)y;
-	PixelRect.Left	= (float)x;
+	PixelRect.Top	= static_cast<float>(y);
+	PixelRect.Left	= static_cast<float>(x);
 
 	if(BitmapRect)
 	{
-		PixelRect.Bottom = PixelRect.Top  + (float)(BitmapRect->Bottom-BitmapRect->Top);
-		PixelRect.Right  = PixelRect.Left + (float)(BitmapRect->Right-BitmapRect->Left);
+		PixelRect.Bottom = PixelRect.Top  + static_cast<float>(BitmapRect->Bottom - BitmapRect->Top);
+		PixelRect.Right  = PixelRect.Left + static_cast<float>(BitmapRect->Right - BitmapRect->Left);
 
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect,
 								 CCD->CameraManager()->Camera(), &PixelRect,
@@ -1184,8 +1184,8 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		Rect.Bottom = geBitmap_Height(pBitmap)-1;
 		Rect.Right	= geBitmap_Width(pBitmap)-1;
 
-		PixelRect.Bottom = PixelRect.Top  + (float)(Rect.Bottom);
-		PixelRect.Right  = PixelRect.Left + (float)(Rect.Right);
+		PixelRect.Bottom = PixelRect.Top  + static_cast<float>(Rect.Bottom);
+		PixelRect.Right  = PixelRect.Left + static_cast<float>(Rect.Right);
 
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect,
 								 CCD->CameraManager()->Camera(), &PixelRect,

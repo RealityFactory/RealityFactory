@@ -688,7 +688,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 // end change
 
-			returnValue = (int)theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
+			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
 // Added By Pickles to RF07D --------------------------
@@ -1318,8 +1318,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(l > 0.0f)
 			{
 				float x = Orient.X;
-				Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-				Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+				Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+				Orient.Y = atan2(x, Orient.Z) + GE_PI;
 				Orient.Z = 0.0f;	// roll is zero - always!!?
 
 				CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, param4, param5, param5);
@@ -1623,7 +1623,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				// find frame time of animation and set the proper bitmap
 				geActor *wActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 				tm = CCD->ActorManager()->GetAnimationTime(wActor)*30.f;
-				tb = (int)(tm-1);
+				tb = static_cast<int>(tm - 1.f);
 
 				if((tb > (pEntityData->BitmapCount - 1)) || tb < 0)
 					tb = 0;
@@ -2538,8 +2538,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				if(l > 0.0f)
 				{
 					x = Orient.X;
-					Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-					Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+					Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+					Orient.Y = atan2(x, Orient.Z) + GE_PI;
 					Orient.Z = 0.0f;	// roll is zero - always!!?
 
 					CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, arguments[0].str().c_str(), DamageAttr, DamageAttr);
@@ -2630,8 +2630,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_GETSTRINGLENGTH:
 		{
+			///< @deprecated
 			PARMCHECK(1);
-			returnValue = (int)arguments[0].str().length();
+			returnValue = static_cast<int>(arguments[0].str().length());
 			return true;
 		}
 	case RGF_SM_DRAWTEXT:
@@ -3096,7 +3097,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
 
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			returnValue = (int)ScreenPos.X;
+			returnValue = static_cast<int>(ScreenPos.X);
 
 			return true;
 		}
@@ -3122,24 +3123,22 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
 
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-			returnValue = (int)ScreenPos.Y;
+			returnValue = static_cast<int>(ScreenPos.Y);
 
 			return true;
 		}
 	case RGF_SM_GETSCREENWIDTH:
 		{
-			// USAGE:
-			// int = GetScreenWidth()
+			// USAGE: int = GetScreenWidth()
 			// Gets the width of the screen in pixels
-			returnValue = int(CCD->Engine()->Width());
+			returnValue = CCD->Engine()->Width();
 			return true;
 		}
 	case RGF_SM_GETSCREENHEIGHT:
 		{
-			// USAGE:
-			// int = GetScreenHeight()
+			// USAGE: int = GetScreenHeight()
 			// Gets the height of the screen in pixels
-			returnValue = int(CCD->Engine()->Height());
+			returnValue = CCD->Engine()->Height();
 			return true;
 		}
 	case RGF_SM_MOUSESELECT:
@@ -3888,7 +3887,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 				pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 			{
-				ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
+				ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
 
 				//calc new dist
 				geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
@@ -3937,42 +3936,42 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SIN:
 		{
 			PARMCHECK(1);
-			returnValue = (float)sin((double)arguments[0].floatValue());
+			returnValue = sin(arguments[0].floatValue());
 
 			return true;
 		}
 	case RGF_SM_COS:
 		{
 			PARMCHECK(1);
-			returnValue = (float)cos((double)arguments[0].floatValue());
+			returnValue = cos(arguments[0].floatValue());
 
 			return true;
 		}
 	case RGF_SM_TAN:
 		{
 			PARMCHECK(1);
-			returnValue = (float)tan((double)arguments[0].floatValue());
+			returnValue = tan(arguments[0].floatValue());
 
 			return true;
 		}
 	case RGF_SM_ASIN:
 		{
 			PARMCHECK(1);
-			returnValue = (float)asin((double)arguments[0].floatValue());
+			returnValue = asin(arguments[0].floatValue());
 
 			return true;
 		}
 	case RGF_SM_ACOS:
 		{
 			PARMCHECK(1);
-			returnValue = (float)acos((double)arguments[0].floatValue());
+			returnValue = acos(arguments[0].floatValue());
 
 			return true;
 		}
 	case RGF_SM_ATAN:
 		{
 			PARMCHECK(1);
-			returnValue = (float)atan((double)arguments[0].floatValue());
+			returnValue = atan(arguments[0].floatValue());
 
 			return true;
 		}
@@ -4108,10 +4107,8 @@ void ScriptedObject::GetAngles(bool flag)
 	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		// changed QD 12/15/05
-		// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
-		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
+		Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+		Orient.Y = atan2(x, Orient.Z) + GE_PI;
 	}
 	// changed QD 12/15/05
 	{

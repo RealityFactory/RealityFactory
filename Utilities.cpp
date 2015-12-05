@@ -789,14 +789,14 @@ geBitmap *CreateFromFileName(const char *BmName)
 		io.write_proc = NULL;
 		io.seek_proc = VFS_Seek;
 		io.tell_proc = VFS_Tell;
-		FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromHandle(&io, (fi_handle)File, 16);
+		FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromHandle(&io, static_cast<fi_handle>(File), 16);
 
 		if(fif >= 0)
 		{
-			FIBITMAP *Fbmp = FreeImage_LoadFromHandle(fif, &io, (fi_handle)File, 0);
-			bpp = (int)FreeImage_GetBPP(Fbmp);
-			width = (int)FreeImage_GetWidth(Fbmp);
-			height = (int)FreeImage_GetHeight(Fbmp);
+			FIBITMAP *Fbmp = FreeImage_LoadFromHandle(fif, &io, static_cast<fi_handle>(File), 0);
+			bpp = static_cast<int>(FreeImage_GetBPP(Fbmp));
+			width = static_cast<int>(FreeImage_GetWidth(Fbmp));
+			height = static_cast<int>(FreeImage_GetHeight(Fbmp));
 
 			if(bpp == 32)
 			{
@@ -822,14 +822,14 @@ geBitmap *CreateFromFileName(const char *BmName)
 
 				if(LockedBMP == NULL)
 				{
-					geBitmap_SetFormat(Bmp,(gePixelFormat)nFormat,GE_TRUE,0,NULL);
-					geBitmap_LockForWriteFormat(Bmp, &LockedBMP, 0, 0, (gePixelFormat)nFormat);
+					geBitmap_SetFormat(Bmp, static_cast<gePixelFormat>(nFormat), GE_TRUE, 0, NULL);
+					geBitmap_LockForWriteFormat(Bmp, &LockedBMP, 0, 0, static_cast<gePixelFormat>(nFormat));
 				}
 
 				if(LockedBMP)
 				{
-					FStride = (int)FreeImage_GetPitch(Fbmp32);
-					gptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
+					FStride = static_cast<int>(FreeImage_GetPitch(Fbmp32));
+					gptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
 
 					if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
 						gptr += (height-1)*(Info.Stride*4);
@@ -896,7 +896,7 @@ geBitmap *CreateFromFileName(const char *BmName)
 long DLL_CALLCONV VFS_Tell(fi_handle handle)
 {
 	long position;
-	geVFile *File = (geVFile *)handle;
+	geVFile *File = static_cast<geVFile*>(handle);
 	geVFile_Tell(File, &position);
 	return position;
 }
@@ -905,7 +905,7 @@ long DLL_CALLCONV VFS_Tell(fi_handle handle)
 /* ------------------------------------------------------------------------------------ */
 int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin)
 {
-	geVFile *File = (geVFile *)handle;
+	geVFile *File = static_cast<geVFile*>(handle);
 	geVFile_Whence whence;
 
 	if(origin == SEEK_SET)
@@ -915,7 +915,7 @@ int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin)
 	else
 		whence = GE_VFILE_SEEKEND;
 
-	if(geVFile_Seek(File, (int)offset, whence) == GE_TRUE)
+	if(geVFile_Seek(File, static_cast<int>(offset), whence) == GE_TRUE)
 		return 0;
 	else
 		return 1;
@@ -925,9 +925,9 @@ int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin)
 /* ------------------------------------------------------------------------------------ */
 unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_handle handle)
 {
-	geVFile *File = (geVFile *)handle;
-	unsigned csize = size*count;
-	geVFile_Read(File, buffer, (int)csize);
+	geVFile *File = static_cast<geVFile*>(handle);
+	unsigned csize = size * count;
+	geVFile_Read(File, buffer, static_cast<int>(csize));
 	return csize;
 }
 
@@ -1063,8 +1063,8 @@ geVec3d Extract(char *Vector)
 /* ------------------------------------------------------------------------------------ */
 void Ang2Vec(float ang, geVec3d *vec)
 {
-	vec->X = (float)cos(ang);
-	vec->Z = (float)sin(ang);
+	vec->X = cos(ang);
+	vec->Z = sin(ang);
 	vec->Y = 0.0f;
 
 	SqueezeVector(vec, 0.0001f);

@@ -829,7 +829,7 @@ int CPlayer::LoadConfiguration()
 	//	Ok, get the setup information.  There should only be one, so
 	//	we'll just take the first one we run into.
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
+	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 // 08.05.2004 - begin change gekido
 //	CCD->ReportError("Set LevelViewpoint", false);
@@ -2402,9 +2402,9 @@ void CPlayer::SwitchCamera(int mode)
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-	PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
 
 	int nFlags = 0;
+	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	// Mode
 // Start Nov2003DCS
@@ -2766,7 +2766,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Sound.Min = CCD->GetAudibleRadius();
 				Sound.Loop = GE_FALSE;
 				Sound.SoundDef = LandSound[rand()%LandSoundAmt];
-				CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+				CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 			}
 
 			if(FallDamage > 0.0f && distance >= MinFallDist)

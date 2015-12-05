@@ -934,7 +934,7 @@ int CParticleSystem::SetParticleLife(int psHandle, int nLifeInMsec)
 	if(theList[psHandle] == NULL)
 		return RGF_FAILURE;						// Try again, luser!
 
-	theList[psHandle]->Lifetime = (float)nLifeInMsec;
+	theList[psHandle]->Lifetime = static_cast<float>(nLifeInMsec);
 
 	return RGF_SUCCESS;
 }
@@ -968,7 +968,7 @@ int CParticleSystem::SetSystemLife(int psHandle, int nLife)
 	if(theList[psHandle] == NULL)
 		return RGF_FAILURE;							// Rotten code!
 
-	theList[psHandle]->SystemLife = (float)nLife;
+	theList[psHandle]->SystemLife = static_cast<float>(nLife);
 
 	if(nLife < 0)
 	  theList[psHandle]->bForever = true;
@@ -1407,7 +1407,7 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		ApplyGravity(nHandle, myParticle);
 
 		// Decay the alpha of the particle based on it's life
-		myParticle->Vertex.a -= theList[nHandle]->AlphaDecay * (float)dwMsec;
+		myParticle->Vertex.a -= theList[nHandle]->AlphaDecay * dwMsec;
 		myParticle = myParticle->Next;						// Next victim!
 	}
 

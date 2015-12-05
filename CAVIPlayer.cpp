@@ -136,8 +136,9 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
     }
 
 	GetVideoFrameAtTime(0, 0, &pBmp);
-	wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-	pptr = ((LPBYTE)pBmp) + pBmp->biSize;
+	wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+	pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+
 	// The following weirdness is required because the DIB
 	// ..coming in from the AVI file is INVERTED, so we have
 	// ..to copy it to the target bitmap from the bottom
@@ -249,9 +250,8 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 
 		if(!CCD->GetHasFocus())
 			continue;
-// changed RF064
-		ElapsedTime = (DWORD)((float)(CCD->FreeRunningCounter() - OldTime)*1.0f);
-// end change RF064
+
+		ElapsedTime = CCD->FreeRunningCounter() - OldTime;
 
 		if(ElapsedTime > 30)
 		{
