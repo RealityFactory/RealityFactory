@@ -71,14 +71,14 @@ CWindGenerator::CWindGenerator()
 
 	m_bInitialized = true;
 	m_bEnabled = true;
-};
+}
 
 /* ------------------------------------------------------------------------------------ */
 //	Destructor
 /* ------------------------------------------------------------------------------------ */
 CWindGenerator::~CWindGenerator()
 {
-};
+}
 
 /* ------------------------------------------------------------------------------------ */
 //	Tick(): Update Wind value when ThinkTime is reached
@@ -151,10 +151,11 @@ void CWindGenerator::Tick(geFloat dwTicks)
 
 		m_CurrentTime = 0;
 	}
-};
+}
+
 
 void CWindGenerator::SetEnabled(bool enable)
 {
 	if(m_bInitialized)
 		m_bEnabled = enable;
-};
+}

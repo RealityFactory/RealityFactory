@@ -30,7 +30,7 @@ public:
 	virtual ~qxEffectParticleChamber();
 
 	virtual int Frame();
-	virtual void Draw() { };
+	virtual void Draw() {}
 
 	static const char* GetQXTypeName() { return "qxEffectParticleChamber"; }
 

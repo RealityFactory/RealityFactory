@@ -43,7 +43,7 @@ public:
 	,m_nWaterLevel(0)
 	{};
 
-	~qxTerrainDefinition(){};
+	~qxTerrainDefinition(){}
 
 	int				MapOffsetIndexX;
 	int				MapOffsetIndexZ;

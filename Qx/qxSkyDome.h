@@ -71,7 +71,7 @@ protected:
 	geBitmap*	GetTexture(int i) ;
 	void		CenterOnCamera();
 	void		MoveWithCamera();
-	void		ShadeTexture() {};
+	void		ShadeTexture() {}
 	bool		LoadHeightMap();
 	float		m_fScale;
 	float		m_fMaxHeight;

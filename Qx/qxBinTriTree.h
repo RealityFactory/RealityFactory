@@ -21,7 +21,7 @@ class qxBinTriTree
 {
 public:
 
-	qxBinTriTree(){};
+	qxBinTriTree() {}
 	
 	// left, right, top verts of the base tri.
 	qxBinTriTree(	qxTerrainMapBase* newOwner, 

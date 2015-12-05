@@ -17,7 +17,7 @@ class qxTerrainVert
 {
 public:
 	qxTerrainVert();
-	~qxTerrainVert(){};
+	~qxTerrainVert() {}
 
 	GE_LVertex		CurrentVert;		// this vert will be the one rendered
 	geVec3d			ProjectedVert;		// T&P'd camera-space location

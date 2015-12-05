@@ -150,20 +150,20 @@ public:
 	  mooncolor.b = b;
 	  mooncolor.a = a;}
 	void SetMoonPhase(int value)		{MoonPhase = value; }
-	int GetMoonPhase()  { return MoonPhase; };
+	int GetMoonPhase()  { return MoonPhase; }
 
 	GE_RGBA Getrgba()  { return rgba; }
-	float GetMinBlueSkyColor()  { return m_fMinBlueSkyColor; };
-	float GetDistanceFromSunFactor()  { return m_fDistanceFromSunFactor; };
-	GE_RGBA Getcolor()  { return color; };
-	GE_RGBA GetSuncolor()  { return suncolor; };
-	GE_RGBA GetMooncolor()  { return mooncolor; };
-	float GetColorUpdateTime()  { return m_fColorUpdateTime; };
-	bool GetTextureFlow()  { return TextureFlow; };
+	float GetMinBlueSkyColor()  { return m_fMinBlueSkyColor; }
+	float GetDistanceFromSunFactor()  { return m_fDistanceFromSunFactor; }
+	GE_RGBA Getcolor()  { return color; }
+	GE_RGBA GetSuncolor()  { return suncolor; }
+	GE_RGBA GetMooncolor()  { return mooncolor; }
+	float GetColorUpdateTime()  { return m_fColorUpdateTime; }
+	bool GetTextureFlow()  { return TextureFlow; }
 	float GetElapsedTime() { return ElapsedTime; }
 	float GetTerrainTime() { return TerrainTime; }
-	eDirection	GetWindDir() { return WindDir; };
-	void SetWindDir(eDirection	Dir) { WindDir = Dir; };
+	eDirection	GetWindDir() { return WindDir; }
+	void SetWindDir(eDirection	Dir) { WindDir = Dir; }
 
 	void SetNormalDistanceToCamera( float f );
 	float GetNormalDistanceToCamera() { return m_fNormalDistanceToCamera; }

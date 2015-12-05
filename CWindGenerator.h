@@ -23,7 +23,9 @@ public:
 	~CWindGenerator();
 	void Tick(geFloat dwTicks);	///< Sets CCD->Player()->m_Wind for every frame
 	void SetEnabled(bool enable);
-	bool GetEnabled() { return m_bEnabled; };
+
+	bool GetEnabled() { return m_bEnabled; }
+
 private:
 	bool	m_bEnabled;
 	bool	m_bInitialized;

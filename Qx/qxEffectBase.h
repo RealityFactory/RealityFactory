@@ -31,15 +31,15 @@ class qxEffectBase
 {
 public:
 
-	qxEffectBase(){};
+	qxEffectBase() {}
 	qxEffectBase(char* strName);
 	virtual			~qxEffectBase();
 	virtual int		Frame();
-	virtual void	Draw(){};
+	virtual void	Draw() {}
 	virtual bool	Init();
 
 
-	std::string&	GetName()				{ return m_strName; };
+	std::string&	GetName()	{ return m_strName; }
 	geBitmap*		GetBitmap() { return m_pBmp; }
 
 	virtual void	SetPause( bool b);

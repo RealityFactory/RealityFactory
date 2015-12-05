@@ -37,7 +37,7 @@ class qxTerrainMapBase
 
 public:
 
-	qxTerrainMapBase(){};
+	qxTerrainMapBase() {}
 	qxTerrainMapBase( qxTerrainDefinition& TerrainDef );
 	virtual ~qxTerrainMapBase();
 
@@ -102,8 +102,8 @@ public:
 
 	void		SetNormalDistanceToCamera(float f) { m_fNormalDistanceToCamera = f;}
 
-	virtual void	RebuildAllTextures() {};
-	virtual void	ShadeTexture(){};
+	virtual void	RebuildAllTextures() {}
+	virtual void	ShadeTexture(){}
 
 	void			Dump();
 

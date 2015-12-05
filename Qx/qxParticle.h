@@ -63,7 +63,7 @@ class qxParticleQuad : public qxParticleBase
 public:
 
 	qxParticleQuad();
-	~qxParticleQuad(){};
+	~qxParticleQuad() {}
 
 	GE_LVertex				m_vQuadVerts[4];
 	geVec3d					m_vRotateRads;

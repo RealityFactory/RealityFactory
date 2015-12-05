@@ -56,8 +56,8 @@ class qxSplitQueueNode
 {
 public:
 
-	qxSplitQueueNode(){};
-	~qxSplitQueueNode(){};
+	qxSplitQueueNode() {}
+	~qxSplitQueueNode() {}
 	void UpdatePriority(int nNearestIsHighest=0);
 	
 
@@ -113,8 +113,8 @@ class qxMergeQueueNode
 
 public:
 
-	qxMergeQueueNode(){};
-	~qxMergeQueueNode(){};
+	qxMergeQueueNode() {}
+	~qxMergeQueueNode() {}
 	void UpdatePriority(int nNearestIsHighest=0);
 
 private:
