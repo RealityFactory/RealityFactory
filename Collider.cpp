@@ -68,11 +68,12 @@ int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 {
 	memset(theContents, 0, sizeof(GE_Contents));
 
-	int Result = GE_FALSE;
 
-	Result = geWorld_GetContents(CCD->World(),
-		&Position, &(theBox->Min), &(theBox->Max), GE_COLLIDE_MODELS,
-		0xffffffff, NULL, NULL, theContents);
+	int Result = geWorld_GetContents(CCD->World(), &Position,
+										&(theBox->Min), &(theBox->Max),
+										GE_COLLIDE_MODELS, 0xffffffff,
+										NULL, NULL,
+										theContents);
 
 	if(Result == GE_TRUE)
 		return RGF_SUCCESS;								// SOMETHING was there...

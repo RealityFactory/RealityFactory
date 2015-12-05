@@ -22,10 +22,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CRain::CRain()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
@@ -122,10 +121,9 @@ int CRain::Create(Rain *R)
 /* ------------------------------------------------------------------------------------ */
 CRain::~CRain()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
@@ -146,12 +144,11 @@ CRain::~CRain()
 /* ------------------------------------------------------------------------------------ */
 void CRain::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	int i;
 	Spray Sp;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
@@ -223,11 +220,10 @@ void CRain::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CRain::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Rain in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

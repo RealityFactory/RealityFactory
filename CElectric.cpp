@@ -423,10 +423,9 @@ void Electric_BoltEffectRender(Electric_BoltEffect	*be,
 /* ------------------------------------------------------------------------------------ */
 CElectric::CElectric()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return;
@@ -578,10 +577,9 @@ int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 /* ------------------------------------------------------------------------------------ */
 CElectric::~CElectric()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return;
@@ -618,7 +616,6 @@ static geFloat frand(geFloat Low, geFloat High)
 /* ------------------------------------------------------------------------------------ */
 geBoolean CElectric::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Mode
@@ -627,7 +624,7 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 	if(CCD->World() == NULL)
 		return GE_TRUE;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
 
 	if(!pSet)
 		return GE_TRUE;					// Bogus, but there it is...
@@ -798,7 +795,6 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 /* ------------------------------------------------------------------------------------ */
 int CElectric::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	This is a SPECIAL CASE due to electric bolt and terminus pairing.
@@ -809,7 +805,7 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 	if(*pEntityData == 0)
 	{
 		// Ok, check to see if there are electric bolts in this world
-		pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+		geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 		if(!pSet)
 			return RGF_NOT_FOUND;									// No electric bolts
@@ -832,7 +828,7 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 	else
 	{
 		// Ok, check to see if there are electric bolt terminii in this world
-		pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
+		geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
 
 		if(!pSet)
 			return RGF_NOT_FOUND;					// No electric bolts
@@ -875,11 +871,10 @@ int CElectric::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 int CElectric::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are  ElectricBolt in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -907,11 +902,10 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are  ElectricBolt in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No gates, whatever...

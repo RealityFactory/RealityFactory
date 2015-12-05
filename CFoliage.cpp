@@ -28,10 +28,9 @@ float GetFastDistance(geVec3d Pos1, geVec3d Pos2)
 /* ------------------------------------------------------------------------------------ */
 CFoliage::CFoliage()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
 
 	if(!pSet)
 	    return;
@@ -112,16 +111,15 @@ CFoliage::~CFoliage()
 /* ------------------------------------------------------------------------------------ */
 void CFoliage::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
+
+	if(!pSet)
+		return;
+
 	geEntity *pEntity;
 	geFloat rng, test, half; // changed Nout 12/15/05
 	geVec3d cPos;
 	char Texture[32];
-
-	pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
-
-	if(!pSet)
-	    return;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))

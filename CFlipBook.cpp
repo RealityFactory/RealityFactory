@@ -15,10 +15,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CFlipBook::CFlipBook()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
@@ -128,10 +127,9 @@ int CFlipBook::CreateS(FlipBook *S)
 /* ------------------------------------------------------------------------------------ */
 CFlipBook::~CFlipBook()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
@@ -151,10 +149,9 @@ CFlipBook::~CFlipBook()
 /* ------------------------------------------------------------------------------------ */
 void CFlipBook::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
@@ -272,11 +269,10 @@ void CFlipBook::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFlipBook::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are FlipBooks in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

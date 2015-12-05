@@ -20,12 +20,11 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CFloat::CFloat()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	int i;
 
 	// test for any floating particle entities
-	pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
 	// there is none
 	if(!pSet)
@@ -134,10 +133,9 @@ CFloat::CFloat()
 /* ------------------------------------------------------------------------------------ */
 CFloat::~CFloat()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
 	if(!pSet)
 		return;
@@ -166,17 +164,16 @@ CFloat::~CFloat()
 /* ------------------------------------------------------------------------------------ */
 void CFloat::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
+
+	if(!pSet)
+		return;
 	geEntity *pEntity;
 	int i;
 
 	// get amount of time since last call
 	dwTicks *= 0.001f;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
-
-	if(!pSet)
-		return;
 
 	// wade thru all entities
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -267,11 +264,10 @@ void CFloat::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFloat::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Floating Particles in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

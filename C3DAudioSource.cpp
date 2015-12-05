@@ -21,13 +21,12 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 C3DAudioSource::C3DAudioSource()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
   	Count = 0;
 
-	//	Ok, check to see if there are 3D audio sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
+	// Ok, check to see if there are 3D audio sources in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
 	if(!pSet)
 		return;		//	No 3D audio sources
@@ -160,14 +159,13 @@ C3DAudioSource::~C3DAudioSource()
 /* ------------------------------------------------------------------------------------ */
 void C3DAudioSource::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(Count == 0)
 		return;		//	Don't waste CPU cycles
 
-	//	Ok, check to see if there are 3D audio sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
+	// Ok, check to see if there are 3D audio sources in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
 	if(!pSet)
 		return;		//	No sources
@@ -247,11 +245,10 @@ void C3DAudioSource::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int C3DAudioSource::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are 3D Audio Sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
+	// Ok, check to see if there are 3D Audio Sources in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							//	No 3D audio sources
@@ -280,11 +277,10 @@ int C3DAudioSource::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 /* ------------------------------------------------------------------------------------ */
 geBoolean C3DAudioSource::IsPlaying(const char *szName)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are 3D Audio Sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
+	// Ok, check to see if there are 3D Audio Sources in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
 	if(!pSet)
 		return GE_FALSE;							//	No 3D audio sources
@@ -319,11 +315,10 @@ geBoolean C3DAudioSource::IsPlaying(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int C3DAudioSource::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are 3D audio sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
+	// Ok, check to see if there are 3D audio sources in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;						//	No 3D audio sources

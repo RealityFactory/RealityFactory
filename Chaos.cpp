@@ -18,10 +18,9 @@
 Chaos::Chaos()
 {
 	geBitmap_Info		AttachInfo;
-	geEntity_EntitySet	*pSet;
 	geEntity			*pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
 	if(!pSet)
 		return;	// Not on this level.
@@ -179,10 +178,9 @@ Chaos::Chaos()
 /* ------------------------------------------------------------------------------------ */
 Chaos::~Chaos()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
 	if(!pSet)
 		return;	// Not on this level.
@@ -209,22 +207,20 @@ Chaos::~Chaos()
 /* ------------------------------------------------------------------------------------ */
 void Chaos::Tick(geFloat dwTicks)
 {
+	geEntity_EntitySet	*pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
+
+	if(!pSet)
+		return;	// Not on this level.
+
 	geBitmap_Info AttachInfo, OriginalInfo;
 	int	Row, Col;
 	int	XPos, YPos;
 	geFloat	CosStep;
 	geFloat	CurYOffset;
 	geFloat	CurXOffset;
-
-	geEntity_EntitySet	*pSet;
-	geEntity			*pEntity;
+	geEntity *pEntity;
 
 	dwTicks *= 0.001f;
-
-	pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
-
-	if(!pSet)
-		return;	// Not on this level.
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

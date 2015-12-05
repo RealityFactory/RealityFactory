@@ -46,7 +46,6 @@ typedef struct	tag_spotlight
 /* ------------------------------------------------------------------------------------ */
 CStaticMesh::CStaticMesh()
 {
-	geEntity_EntitySet	*pSet;
 	geEntity			*pEntity;
 
 	m_MeshCount = 0;
@@ -55,7 +54,7 @@ CStaticMesh::CStaticMesh()
 		MeshList[nTemp] = NULL;
 
 	// Ok, see if we have any static entity proxies we need to set up.
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return;				// Don't waste CPU time.
@@ -1071,11 +1070,10 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 	if(m_MeshCount==0) // don't waste precious time
 		return GE_FALSE;
 
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any static meshes we need check
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static meshes we need check
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return GE_FALSE;
@@ -1240,11 +1238,10 @@ CStaticMesh::~CStaticMesh()
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::CleanUp()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any static entity proxies we need to set up.
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static entity proxies we need to set up.
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return;									// Don't waste CPU time.
@@ -1326,11 +1323,10 @@ void CStaticMesh::Tick(geFloat dwTicks)
 	if(m_MeshCount == 0) // don't waste precious time
 		return;
 
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any static meshes we need to set up.
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static meshes we need to set up.
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return;
@@ -1464,7 +1460,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 // changed QD 04/23/2004
 	geXForm3d CameraXf;
-	geFloat clipsq;
+	geFloat clipsq = 10000.f;
 	//if(!pMesh->Backfaced || CCD->CameraManager()->GetClipEnable())
 	//	CameraXf = CCD->CameraManager()->ViewPoint();
 	if(CCD->CameraManager()->GetClipEnable())
@@ -1766,15 +1762,13 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Collision *Collision)
 {
-
 	if(m_MeshCount == 0) // don't waste precious time
 		return GE_FALSE;
 
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any static meshes we need check
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static meshes we need check
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return GE_FALSE;
@@ -2449,14 +2443,13 @@ void CStaticMesh::AABBofOBB(geVec3d *Min, geVec3d *Max, const geVec3d *AxisLengt
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MeshCount == 0)
 		return RGF_SUCCESS;							// No meshes in world, bail early
 
-	//	Ok, see if we have any static mesh entities
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static mesh entities
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -2478,14 +2471,13 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MeshCount == 0)
 		return RGF_SUCCESS;							// No meshes in world, bail early
 
-	//	Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, see if we have any static entity proxies
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -2506,11 +2498,10 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are static mesh entities in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+	// Ok, check to see if there are static mesh entities in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No static entity proxies

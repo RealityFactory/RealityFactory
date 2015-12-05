@@ -13,10 +13,9 @@
 /* ------------------------------------------------------------------------------------ */
 CDSpotLight::CDSpotLight()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
 
 	if(!pSet)
 		return;						// None there.
@@ -81,13 +80,12 @@ CDSpotLight::~CDSpotLight()
 /* ------------------------------------------------------------------------------------ */
 geBoolean CDSpotLight::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(CCD->World() == NULL)
 		return GE_TRUE;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
 
 	if(!pSet)
 		return GE_TRUE;
@@ -263,11 +261,10 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CDSpotLight::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are dynamic lights in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No dynamic lights

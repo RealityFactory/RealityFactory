@@ -19,13 +19,12 @@
 /* ------------------------------------------------------------------------------------ */
 CLogic::CLogic()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
   	Count = 0;
 
 	// Ok, check to see if there are logic gates in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return;									// No 3D audio sources
@@ -72,7 +71,6 @@ CLogic::~CLogic()
 /* ------------------------------------------------------------------------------------ */
 void CLogic::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geBoolean state, state2;
 
@@ -82,7 +80,7 @@ void CLogic::Tick(geFloat dwTicks)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are logic gates in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return;									// No sources
@@ -340,11 +338,10 @@ void CLogic::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CLogic::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	// Ok, check to see if there are  triggers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	// Ok, check to see if there are logic gates in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No gates, whatever...
@@ -372,11 +369,10 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	// Ok, check to see if there are  triggers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	// Ok, check to see if there are logic gates in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return RGF_SUCCESS;					// No gates, whatever...
@@ -406,11 +402,10 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CLogic::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are logic gates in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;			// No logic gates
@@ -447,7 +442,6 @@ int CLogic::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 void CLogic::SetState()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	LState *pool;
 
@@ -457,7 +451,7 @@ void CLogic::SetState()
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are logic gates in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
 		return;									// No LogicGates

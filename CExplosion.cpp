@@ -720,11 +720,10 @@ CExplosion::~CExplosion()
 /* ------------------------------------------------------------------------------------ */
 void CExplosion::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are Explosions in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Explosion");
+	// Check to see if there are Explosions in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Explosion");
 
 	if(pSet)
 	{

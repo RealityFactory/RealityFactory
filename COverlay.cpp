@@ -19,11 +19,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 COverlay::COverlay()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Overlay entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
@@ -91,11 +90,10 @@ COverlay::COverlay()
 /* ------------------------------------------------------------------------------------ */
 COverlay::~COverlay()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Overlay entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
@@ -116,11 +114,10 @@ COverlay::~COverlay()
 /* ------------------------------------------------------------------------------------ */
 Overlay *COverlay::IsOverlay(const geWorld_Model *theModel)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Overlay entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return NULL;
@@ -154,11 +151,10 @@ Overlay *COverlay::IsOverlay(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 void COverlay::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Overlay entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
@@ -233,11 +229,10 @@ void COverlay::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void COverlay::Render()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Overlay entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;

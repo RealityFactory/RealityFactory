@@ -16,11 +16,10 @@
 /* ------------------------------------------------------------------------------------ */
 CChangeLevel::CChangeLevel()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, see if we have any changelevel entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return;
@@ -56,11 +55,10 @@ CChangeLevel::~CChangeLevel()
 /* ------------------------------------------------------------------------------------ */
 void CChangeLevel::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, see if we have any changelevel entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return;
@@ -102,11 +100,10 @@ void CChangeLevel::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, see if we have any changelevel entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return false;				// This model is no exit
@@ -165,11 +162,10 @@ bool CChangeLevel::CheckChangeLevel(geWorld_Model *theModel, bool UseKey)
 /* ------------------------------------------------------------------------------------ */
 int CChangeLevel::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, check to see if there are ChangeLevels in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
@@ -198,11 +194,10 @@ int CChangeLevel::LocateEntity(const char *szName, void **pEntityData)
 /* ------------------------------------------------------------------------------------ */
 int CChangeLevel::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, check to see if there are ChangeLevel in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
@@ -228,11 +223,10 @@ int CChangeLevel::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CChangeLevel::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	//	Ok, check to see if there are ChangeLevel in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...

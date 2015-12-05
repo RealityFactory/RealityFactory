@@ -19,10 +19,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CFirePoint::CFirePoint()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
 
 	if(!pSet)
 		return;						// None there.
@@ -76,13 +75,12 @@ CFirePoint::~CFirePoint()
 /* ------------------------------------------------------------------------------------ */
 void CFirePoint::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(CCD->World() == NULL)
 		return;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
 
 	if(!pSet)
 		return;
@@ -175,11 +173,10 @@ void CFirePoint::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are FirePoints in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FirePoint");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

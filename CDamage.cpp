@@ -19,10 +19,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CDamage::CDamage()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
@@ -101,10 +100,9 @@ CDamage::~CDamage()
 /* ------------------------------------------------------------------------------------ */
 void CDamage::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
@@ -352,11 +350,10 @@ void CDamage::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are DestroyableModel in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	// Ok, check to see if there are DestroyableModel in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -380,11 +377,10 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are DestroyableModel in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	// Ok, check to see if there are DestroyableModel in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
@@ -477,10 +473,9 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 						  float amount, const char *Attr,
 						  float Altamount, const char *AltAttr)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
@@ -529,10 +524,9 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 								 float amount, const char *Attr,
 								 float Altamount, const char *AltAttr)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
@@ -649,10 +643,9 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 /* ------------------------------------------------------------------------------------ */
 bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return false;
@@ -691,11 +684,10 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are DestroyableModel in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
+	// Ok, check to see if there are DestroyableModel in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

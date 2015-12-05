@@ -17,13 +17,12 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CCorona::CCorona()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	Count = 0;
 
 	// Ok, check to see if there are TEMPLATE in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
 
 	if(!pSet)
 		return;
@@ -135,14 +134,13 @@ CCorona::~CCorona()
 /* ------------------------------------------------------------------------------------ */
 void CCorona::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(Count == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are Coronas in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
 
 	if(!pSet)
 		return;									// No sources
@@ -211,11 +209,10 @@ void CCorona::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CCorona::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Corona in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No 3D audio sources

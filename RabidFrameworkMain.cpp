@@ -73,10 +73,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
 	CommandLine = false;
 	MultiplayerLaunch = false;
 
-
-	FILE *fd;
 	bool vidsetup = false;
-	fd = fopen("D3D24.ini","r");
+	FILE *fd = fopen("D3D24.ini", "r");
 
 	if(!fd)
 	{

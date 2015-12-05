@@ -24,7 +24,6 @@
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::CAudioStream()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_nStreamerCount = 0;
@@ -40,8 +39,8 @@ CAudioStream::CAudioStream()
 	// ..we can fiddle around behind its back...
 	m_dsPtr = static_cast<LPDIRECTSOUND>(geSound_GetDSound());
 
-	//	Now scan for StreamingAudioProxy entities
-	pSet = geWorld_GetEntitySet(CCD->World(), "StreamingAudioProxy");
+	// Now scan for StreamingAudioProxy entities
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StreamingAudioProxy");
 
 	if(!pSet)
 		return;										// Don't waste CPU time.
@@ -273,7 +272,6 @@ int CAudioStream::Stop(const char *szFilename)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geVec3d PlayerPos;
 
@@ -281,7 +279,7 @@ void CAudioStream::Tick(geFloat dwTicks)
 		return;										// No streamers in world, bail early
 
 	// Now scan for StreamingAudioProxy entities
-	pSet = geWorld_GetEntitySet(CCD->World(), "StreamingAudioProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StreamingAudioProxy");
 
 	if(!pSet)
 		return;										// Don't waste CPU time.

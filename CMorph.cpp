@@ -31,10 +31,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 CMorph::CMorph()
 {
 	geBitmap_Info StartInfo, EndInfo, MorphInfo;
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "EM_Morph");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EM_Morph");
 
 	if(!pSet)
 		return;	// Not on this level.
@@ -270,6 +269,11 @@ CMorph::~CMorph()
 /* ------------------------------------------------------------------------------------ */
 void CMorph::Tick(geFloat dwTicks)
 {
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EM_Morph");
+
+	if(!pSet)
+		return;	// Not on this level.
+
 	// locals
 	geBitmap		*StartLocked = NULL;
 	geBitmap		*EndLocked = NULL;
@@ -280,14 +284,7 @@ void CMorph::Tick(geFloat dwTicks)
 	int				Row, Col;
 	geBoolean		Result;
 	float			EndFrac;
-
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	pSet = geWorld_GetEntitySet(CCD->World(), "EM_Morph");
-
-	if(!pSet)
-		return;	// Not on this level.
+	geEntity		*pEntity;
 
 	// Ok, we have Morph textures somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

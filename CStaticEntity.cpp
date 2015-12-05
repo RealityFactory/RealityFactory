@@ -28,13 +28,12 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CStaticEntity::CStaticEntity()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_StaticEntityCount = 0;
 
 	// Ok, see if we have any static entity proxies we need to set up.
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return;													// Don't waste CPU time.
@@ -195,13 +194,12 @@ CStaticEntity::CStaticEntity()
 /* ------------------------------------------------------------------------------------ */
 CStaticEntity::~CStaticEntity()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return;									// Don't waste time here
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return;									// All gone?  How odd.
@@ -238,13 +236,12 @@ extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *
 /* ------------------------------------------------------------------------------------ */
 void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return;									// Don't waste time here
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return;									// All gone?  How odd.
@@ -290,14 +287,13 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 // changed RF063
 int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity, bool UseKey)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return RGF_FAILURE;							// No props in world, bail early
 
 	// Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_FAILURE;													// Don't waste CPU time.
@@ -443,14 +439,13 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 /* ------------------------------------------------------------------------------------ */
 void CStaticEntity::ClearHit()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return;							// No props in world, bail early
 
 	// Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return;													// Don't waste CPU time.
@@ -472,14 +467,13 @@ void CStaticEntity::ClearHit()
 /* ------------------------------------------------------------------------------------ */
 void CStaticEntity::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return;							// No props in world, bail early
 
 	// Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return;													// Don't waste CPU time.
@@ -615,14 +609,13 @@ void CStaticEntity::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return RGF_SUCCESS;							// No props in world, bail early
 
 	// Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -675,14 +668,13 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_StaticEntityCount == 0)
 		return RGF_SUCCESS;							// No props in world, bail early
 
 	// Ok, see if we have any static entity proxies
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -735,11 +727,10 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::BindToPath(const char *szName)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are static entities in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_FAILURE;						// No props
@@ -765,11 +756,10 @@ int CStaticEntity::BindToPath(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are static entity proxies in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No static entity proxies
@@ -809,11 +799,10 @@ int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are static entity proxies in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No static entity proxies

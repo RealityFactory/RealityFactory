@@ -20,7 +20,6 @@
 /* ------------------------------------------------------------------------------------ */
 CVideoTexture::CVideoTexture()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_TextureCount = 0;					// No video textures
@@ -32,7 +31,7 @@ CVideoTexture::CVideoTexture()
 	}
 
 	// Ok, check to see if there are video textures in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "VideoTextureReplacer");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "VideoTextureReplacer");
 
 	if(!pSet)
 		return;									// Not on this level.
@@ -132,12 +131,11 @@ CVideoTexture::~CVideoTexture()
 /* ------------------------------------------------------------------------------------ */
 void CVideoTexture::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	int nSlot = 0;
 
 	// Ok, check to see if there are video textures in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "VideoTextureReplacer");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "VideoTextureReplacer");
 
 	if(!pSet)
 		return;									// Not on this level.

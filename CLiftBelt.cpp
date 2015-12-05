@@ -13,12 +13,11 @@
 /* ------------------------------------------------------------------------------------ */
 CLiftBelt::CLiftBelt()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	Change = false;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
@@ -58,11 +57,10 @@ CLiftBelt::~CLiftBelt()
 /* ------------------------------------------------------------------------------------ */
 void CLiftBelt::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geVec3d fVector = {0.0f, 1.0f, 0.0f};
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
@@ -189,11 +187,10 @@ void CLiftBelt::ChangeLift(bool increase)
 /* ------------------------------------------------------------------------------------ */
 void CLiftBelt::DisableHud(const char *Attr)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	bool IsLift = false;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
@@ -245,11 +242,10 @@ void CLiftBelt::DisableHud(const char *Attr)
 /* ------------------------------------------------------------------------------------ */
 int CLiftBelt::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are liftbelts in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No LiftBelt entities

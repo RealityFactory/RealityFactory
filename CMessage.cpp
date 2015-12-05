@@ -20,11 +20,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CMessage::CMessage()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Messages in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
 		return;
@@ -231,14 +230,13 @@ CMessage::~CMessage()
 /* ------------------------------------------------------------------------------------ */
 void CMessage::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Messages in this world
 	if(!active)
 		return;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
 		return;
@@ -558,11 +556,10 @@ void CMessage::Display()
 /* ------------------------------------------------------------------------------------ */
 int CMessage::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Messages in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No Messages

@@ -33,10 +33,9 @@ CModelManager::CModelManager()
 	ManagedModels = 0;
 // End Aug2003DCS
 
-	geEntity_EntitySet	*pSet;
 	geEntity			*pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(!pSet)
 		return;
@@ -804,10 +803,9 @@ void CModelManager::Tick(geFloat dwTicks)
 	memset(&ModelState[0], NOT_PROCESSED, MODEL_LIST_SIZE * sizeof(int));
 // End Aug2003DCS
 
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(pSet)
 	{
@@ -1913,13 +1911,10 @@ geBoolean CModelManager::ContentModel(const geVec3d &thePoint, geExtBox theBox,
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor *theActor)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-// changed RF064
 	geVec3d Direction;
-// end change RF064
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(!pSet)
 		return RGF_FAILURE;
@@ -2031,10 +2026,9 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 /* ------------------------------------------------------------------------------------ */
 ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(!pSet)
 		return false;
@@ -2066,10 +2060,9 @@ ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 ModelAttributes *CModelManager::GetAttributes(const geWorld_Model *theModel)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ModelAttributes");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelAttributes");
 
 	if(!pSet)
 		return NULL;

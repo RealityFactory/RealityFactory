@@ -27,10 +27,9 @@ float FastDistance(geVec3d Pos1, geVec3d Pos2)
 /* ------------------------------------------------------------------------------------ */
 CFlipTree::CFlipTree()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;
@@ -104,11 +103,9 @@ CFlipTree::CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 CFlipTree::~CFlipTree()
 {
-// changed QD 08/15/06
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;
@@ -125,7 +122,6 @@ CFlipTree::~CFlipTree()
 			S->fActor = NULL;
 		}
 	}
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -133,10 +129,9 @@ CFlipTree::~CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 void CFlipTree::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;

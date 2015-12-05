@@ -20,11 +20,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CLiquid::CLiquid()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Liquid entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
 
 	if(!pSet)
 		return;
@@ -70,11 +69,10 @@ CLiquid::~CLiquid()
 /* ------------------------------------------------------------------------------------ */
 Liquid *CLiquid::IsLiquid(const geWorld_Model *theModel)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any Liquid entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Liquid");
 
 	if(!pSet)
 		return NULL;

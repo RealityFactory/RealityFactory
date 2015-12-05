@@ -17,13 +17,12 @@
 /* ------------------------------------------------------------------------------------ */
 CChangeAttribute::CChangeAttribute()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	Active = false;
 
-	//	Ok, check to see if there are ChangeAttributes in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
+	// Ok, check to see if there are ChangeAttributes in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(pSet)
 	{
@@ -51,13 +50,12 @@ CChangeAttribute::~CChangeAttribute()
 /* ------------------------------------------------------------------------------------ */
 void CChangeAttribute::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	Active = false;
 
-	//	Ok, check to see if there are ChangeAttributes in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
+	// Ok, check to see if there are ChangeAttributes in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(pSet)
 	{
@@ -139,11 +137,10 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are  ChangeAttributes in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
+	// Ok, check to see if there are ChangeAttributes in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -171,11 +168,10 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are ChangeAttributes in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
+	// Ok, check to see if there are ChangeAttributes in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;

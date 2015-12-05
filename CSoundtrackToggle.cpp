@@ -17,18 +17,16 @@
 /* ------------------------------------------------------------------------------------ */
 CSoundtrackToggle::CSoundtrackToggle()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_SoundtrackToggleCount = 0;
-	theMIDIPlayer = NULL;
 	m_Streams = NULL;
 	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();;
 	theMIDIPlayer = new CMIDIAudio();
 	m_Streams = new StreamingAudio(m_dsPtr);
 
 	// Ok, see if we have any soundtrack toggles we need to set up.
-	pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
 
 	if(!pSet)
 		return;										// Don't waste CPU time.
@@ -97,20 +95,18 @@ CSoundtrackToggle::~CSoundtrackToggle()
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	geVec3d PlayerPos;
 
 	if(m_SoundtrackToggleCount == 0)
 		return;							// No toggles in world, bail early
 
 	// Ok, see if we have any soundtrack toggles
-	pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
 
 	if(!pSet)
 		return;												// Don't waste CPU time.
 
-	PlayerPos = CCD->Player()->Position();					// Get player position
+	geVec3d PlayerPos = CCD->Player()->Position();					// Get player position
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -187,11 +183,10 @@ int CSoundtrackToggle::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::StopStreaming()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, see if we have any soundtrack toggles
-	pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
 
 	if(!pSet)
 		return;													// Don't waste CPU time.

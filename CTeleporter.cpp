@@ -22,13 +22,12 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::CTeleporter()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_TeleporterCount = 0;					// No teleports
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return;									// No teleporters
@@ -117,14 +116,13 @@ CTeleporter::CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::~CTeleporter()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_TeleporterCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return;											// No teleporters
@@ -158,13 +156,12 @@ CTeleporter::~CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor)
 {
-	geEntity_EntitySet *pSet, *pSet2;
 	geEntity *pEntity, *pEntity2;
 
 	if(m_TeleporterCount == 0)
 		return false;									// None here, ignore call.
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 	{
@@ -192,7 +189,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 			// Ok, now we search the list of teleport targets, looking for one
 			// ..with the name we're shooting for.  Once we do, we'll relocate
 			// ..our unsuspecting player to that location.
-			pSet2 = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
+			geEntity_EntitySet *pSet2 = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 			if(pSet2 == NULL)
 			{
@@ -317,7 +314,6 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 /* ------------------------------------------------------------------------------------ */
 void CTeleporter::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_TeleporterCount == 0)
@@ -325,7 +321,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 
 	// First, we're going to scrounge through all the TeleportTargets
 	// ..and see if any of them are bound to a motion path.
-	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 	if(pSet != NULL)
 	{
@@ -446,11 +442,10 @@ void CTeleporter::DoFade(void)
 	if(m_TeleporterCount == 0)
 		return;						// Don't waste CPU cycles
 
-	geEntity_EntitySet *pSet, *pSet2;
 	geEntity *pEntity, *pEntity2;
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return;									// No teleporters
@@ -470,9 +465,7 @@ void CTeleporter::DoFade(void)
 			// fade out
 			if(pTeleport->bFadeOut)
 			{
-				float ElapsedTime;
-
-				ElapsedTime = (CCD->FreeRunningCounter_F() - pTeleport->fOldTime);
+				float ElapsedTime = (CCD->FreeRunningCounter_F() - pTeleport->fOldTime);
 
 				if(ElapsedTime > (pTeleport->fFadeTime/255.0f))
 				{
@@ -511,7 +504,7 @@ void CTeleporter::DoFade(void)
 
 			if(pTeleport->cFadeColor.a >= 255.0f)
 			{
-				pSet2 = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
+				geEntity_EntitySet *pSet2 = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 				if(!pSet2)
 					continue;
@@ -568,14 +561,13 @@ void CTeleporter::DoFade(void)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_TeleporterCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No teleporters
@@ -620,14 +612,13 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_TeleporterCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No teleporters
@@ -672,11 +663,10 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::BindToPath(const char *szName)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are teleport targets in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No targets
@@ -707,11 +697,10 @@ int CTeleporter::BindToPath(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are teleporters in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No teleporters

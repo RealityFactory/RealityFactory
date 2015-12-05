@@ -13,11 +13,10 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CCountDown::CCountDown()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any CountDownTimer entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
+	// Ok, see if we have any CountDownTimer entities at all
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
 
 	if(!pSet)
 		return;
@@ -74,11 +73,10 @@ CCountDown::~CCountDown()
 /* ------------------------------------------------------------------------------------ */
 void CCountDown::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, see if we have any CountDownTimer entities at all
-	pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
+	// Ok, see if we have any CountDownTimer entities at all
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
 
 	if(!pSet)
 		return;
@@ -172,12 +170,10 @@ void CCountDown::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are CountDownTimers in this world
-
-	pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
+	// Ok, check to see if there are CountDownTimers in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
@@ -206,11 +202,10 @@ int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are  CountDownTimers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
+	// Ok, check to see if there are  CountDownTimers in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -238,11 +233,10 @@ int CCountDown::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are CountDownTimers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
+	// Ok, check to see if there are CountDownTimers in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CountDownTimer");
 
 	if(!pSet)
 		return RGF_SUCCESS;

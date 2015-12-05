@@ -17,11 +17,10 @@
 /* ------------------------------------------------------------------------------------ */
 CActMaterial::CActMaterial()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are ActMaterial entities in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return;
@@ -82,11 +81,9 @@ CActMaterial::~CActMaterial()
 /* ------------------------------------------------------------------------------------ */
 void CActMaterial::Tick(geFloat dwTicks)
 {
-
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return;         //	Not on this level.
@@ -192,11 +189,10 @@ void CActMaterial::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are ActMaterial entities in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return RGF_SUCCESS;
@@ -222,11 +218,10 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	// Ok, check to see if there are  ElectricBolt in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
+	// Ok, check to see if there are ActMaterial entities in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return RGF_SUCCESS;

@@ -41,11 +41,10 @@ bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float
 /* ------------------------------------------------------------------------------------ */
 void CAreaChecker::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geVec3d cPos;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "AreaSwitch");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AreaSwitch");
 
 	if(!pSet)
 	    return;

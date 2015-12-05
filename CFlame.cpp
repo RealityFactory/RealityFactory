@@ -15,10 +15,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CFlame::CFlame()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
 
 	if(!pSet)
 		return;
@@ -267,10 +266,9 @@ CFlame::~CFlame()
 /* ------------------------------------------------------------------------------------ */
 void CFlame::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
 
 	if(!pSet)
 		return;
@@ -392,11 +390,10 @@ void CFlame::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFlame::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Flames in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Flame");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

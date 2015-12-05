@@ -14,10 +14,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CSpout::CSpout()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
 
 	if(!pSet)
 		return;
@@ -184,12 +183,11 @@ CSpout::~CSpout()
 /* ------------------------------------------------------------------------------------ */
 void CSpout::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	dwTicks *= 0.001f;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
 
 	if(!pSet)
 		return;
@@ -297,11 +295,10 @@ void CSpout::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CSpout::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Spout in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Spout");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
@@ -343,10 +340,9 @@ int CSpout::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 CActorSpout::CActorSpout()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
 
 	if(!pSet)
 		return;
@@ -524,12 +520,11 @@ CActorSpout::~CActorSpout()
 /* ------------------------------------------------------------------------------------ */
 void CActorSpout::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	dwTicks *= 0.001f;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
 
 	if(!pSet)
 		return;
@@ -636,11 +631,10 @@ void CActorSpout::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CActorSpout::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Spout in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActorSpout");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;

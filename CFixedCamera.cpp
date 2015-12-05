@@ -18,14 +18,13 @@
 /* ------------------------------------------------------------------------------------ */
 CFixedCamera::CFixedCamera()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	Number = 0;
 	Camera = NULL;
 
 	//	Ok, check to see if there are FixedCameras in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
 	if(!pSet)
 		return;
@@ -80,10 +79,9 @@ CFixedCamera::~CFixedCamera()
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::Tick()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
 	if(!pSet || !Camera)
 		return;
@@ -168,10 +166,9 @@ void CFixedCamera::Tick()
 /* ------------------------------------------------------------------------------------ */
 bool CFixedCamera::GetFirstCamera()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
 	if(!pSet)
 		return false;

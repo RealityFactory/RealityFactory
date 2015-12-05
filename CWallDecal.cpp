@@ -22,11 +22,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CWallDecal::CWallDecal()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Decals in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
@@ -121,11 +120,10 @@ CWallDecal::CWallDecal()
 CWallDecal::~CWallDecal()
 {
 // changed RF064
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Decals in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
@@ -151,11 +149,10 @@ CWallDecal::~CWallDecal()
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are Decals in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
@@ -372,7 +369,7 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	pSource->origin = pSource->OriginOffset;
 	SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
 
-	geVec3d impact, normal, Direction;//, Pos;
+	geVec3d  Direction;
 	geVec3d Front, Back;
 	GE_Collision Collision;
 
@@ -402,8 +399,8 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
 		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
 
-	impact = Collision.Impact;
-	normal = Collision.Plane.Normal;
+	geVec3d impact = Collision.Impact;
+	geVec3d normal = Collision.Plane.Normal;
 
 // Start Aug2003DCS
 //	int major = 0;
@@ -536,7 +533,6 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 		{0.0f, 0.0f, 1.0f}
 	};
 
-	geVec3d impact, normal;
 	geVec3d Front, Back, Right;
 	GE_Collision Collision;
 
@@ -547,8 +543,9 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 
 	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
 		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
-	impact = Collision.Impact;
-	normal = Collision.Plane.Normal;
+
+	geVec3d impact = Collision.Impact;
+	geVec3d normal = Collision.Plane.Normal;
 
 	geVec3d_CrossProduct(&normal, RightVec, &up);
 	geVec3d_Normalize(&up);
@@ -608,11 +605,10 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are  triggers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No WallDecals
@@ -641,11 +637,10 @@ int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are  triggers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No WallDecals

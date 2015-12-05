@@ -20,13 +20,12 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::CMorphingFields()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	m_MorphingFieldCount = 0;
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return;									// No morphing fields
@@ -105,14 +104,13 @@ CMorphingFields::CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::~CMorphingFields()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MorphingFieldCount == 0)
 		return;						// Don't waste CPU cycles
 
-	//	Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	// Ok, check to see if there are morphing fields in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return;									// No fields
@@ -144,14 +142,13 @@ CMorphingFields::~CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 void CMorphingFields::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MorphingFieldCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return;									// No fields
@@ -344,14 +341,13 @@ void CMorphingFields::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::SaveTo(FILE *SaveFD)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MorphingFieldCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No fields
@@ -379,14 +375,13 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_MorphingFieldCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No fields
@@ -414,11 +409,10 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::BindToPath(const char *szName)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No fields
@@ -449,11 +443,10 @@ int CMorphingFields::BindToPath(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are morphing fields in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No morphing fields

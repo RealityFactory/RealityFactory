@@ -36,7 +36,6 @@ CViewSwitch::~CViewSwitch()
 /* ------------------------------------------------------------------------------------ */
 void CViewSwitch::Tick()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(ViewActive)
@@ -56,7 +55,7 @@ void CViewSwitch::Tick()
 		return;
 	}
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "ViewSwitch");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ViewSwitch");
 
 	if(!pSet)
 		return;

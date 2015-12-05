@@ -13,11 +13,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CScriptPoint::CScriptPoint()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are ScriptPoints in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(!pSet)
 		return;
@@ -57,11 +56,10 @@ CScriptPoint::~CScriptPoint()
 /* ------------------------------------------------------------------------------------ */
 int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are ScriptPoints in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
@@ -166,7 +164,6 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::Render()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geVec3d sp, ep;
 	GE_Collision	Collision;
@@ -176,7 +173,7 @@ void CScriptPoint::Render()
 	SetOrigin();
 
 	// Ok, check to see if there are ScriptPoints in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(pSet)
 	{
@@ -236,14 +233,13 @@ void CScriptPoint::Render()
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::SetOrigin()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	SPOrigin *pool;
 
 	Bottom = (SPOrigin*)NULL;
 
 	// Ok, check to see if there are ScriptPoints in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(!pSet)
 		return;

@@ -17,11 +17,10 @@
 /* ------------------------------------------------------------------------------------ */
 CCutScene::CCutScene()
 {
-	geEntity_EntitySet	*pSet;
 	geEntity			*pEntity;
 
 	// Ok, check to see if there are Messages in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "CutScene");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CutScene");
 
 	if(!pSet)
 		return;
@@ -64,11 +63,9 @@ CCutScene::~CCutScene()
 /* ------------------------------------------------------------------------------------ */
 void CCutScene::Tick(geFloat dwTicks)
 {
-
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "CutScene");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CutScene");
 
 	if(!pSet)
 		return;   // Not on this level.

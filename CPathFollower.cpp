@@ -20,11 +20,10 @@ CPathFollower::CPathFollower()
 {
 	m_PathFollowerCount = 0;
 
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return;										// No path followers
@@ -174,17 +173,15 @@ CPathFollower::~CPathFollower()
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
-	geVec3d PlayerPos;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;											// No path followers
 
-	PlayerPos = CCD->Player()->Position();
+	geVec3d PlayerPos = CCD->Player()->Position();
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -229,11 +226,10 @@ int CPathFollower::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;											// No path followers
@@ -287,13 +283,12 @@ bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPosition,
 								   bool YLocked)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	int nResult;
 	geVec3d thePos, temp, DirectionVector;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
@@ -491,11 +486,10 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
@@ -536,11 +530,10 @@ int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
@@ -573,11 +566,10 @@ int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 /* ------------------------------------------------------------------------------------ */
 geFloat CPathFollower::GetSpeed(const char *szEntityName)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
@@ -646,16 +638,14 @@ int CPathFollower::GetDirectionVector(const geVec3d &LookFrom, const geVec3d &Lo
 int CPathFollower::GetRotationToFacePoint(const geVec3d &LookFrom, const geVec3d &LookAt,
 										  geVec3d *LookRotation)
 {
-	geFloat x, l;
-
 	geVec3d_Subtract(&LookAt, &LookFrom, LookRotation);
 
-	l = geVec3d_Length(LookRotation);
+	geFloat l = geVec3d_Length(LookRotation);
 
 	// protect from Div by Zero
 	if(l > 0.0f)
 	{
-		x = LookRotation->X;
+		geFloat x = LookRotation->X;
 
 		LookRotation->X = GE_PIOVER2 - acos(LookRotation->Y / l);
 		LookRotation->Y = atan2(x, LookRotation->Z) + GE_PI;

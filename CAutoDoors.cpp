@@ -28,17 +28,15 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CAutoDoors::CAutoDoors()
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 	geFloat  TList[TIME_LIST_MAX], tStart, tEnd;
 	int      i;
-	geMotion *pMotion;
 	const char     *Eventstring;
 
 	m_DoorCount = 0;					// No doors
 
 	// Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return;									// No doors, how odd...
@@ -114,7 +112,7 @@ CAutoDoors::CAutoDoors()
 
 		if(pDoor->bRunToNextEvent)
 		{
-			pMotion = geWorld_ModelGetMotion(pDoor->Model);
+			geMotion *pMotion = geWorld_ModelGetMotion(pDoor->Model);
 
 			// Have motion data?
 			if(pMotion)
@@ -214,13 +212,12 @@ CAutoDoors::~CAutoDoors()
 // changed RF063
 bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_DoorCount == 0)
 		return false;									// None here, ignore call.
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 	{
@@ -352,13 +349,12 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_DoorCount == 0)
 		return;									// None here, ignore call.
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 	{
@@ -451,14 +447,13 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::Tick(geFloat dwTicks)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_DoorCount == 0)
 		return;											// No need to waste time here.
 
-	//	Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	// Ok, check to see if there are automatic doors in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return;									// No doors, how odd...
@@ -582,14 +577,13 @@ void CAutoDoors::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CAutoDoors::IsADoor(geWorld_Model *theModel)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	if(m_DoorCount == 0)
 		return false;								// No need to waste time here.
 
-	//	Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	// Ok, check to see if there are automatic doors in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return false;								// No doors, how odd...
@@ -620,11 +614,10 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	// Ok, check to see if there are automatic doors in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
@@ -657,11 +650,10 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are automatic doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	// Ok, check to see if there are automatic doors in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
@@ -698,11 +690,10 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Ok, check to see if there are doors in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Door");
+	// Ok, check to see if there are doors in this world
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No doors

@@ -33,11 +33,9 @@ CCDAudio::CCDAudio()
 	//	Ok, let's open up a channel to MCI so we can communicate with the CD
 	//	..Audio device.
 	MCI_OPEN_PARMS mciOpen;
-	MCIERROR theError;
 
 	mciOpen.lpstrDeviceType = "cdaudio";	// We want CD Audio
-	theError = mciSendCommand(NULL, MCI_OPEN,
-		MCI_OPEN_TYPE, (DWORD)&mciOpen);
+	MCIERROR theError = mciSendCommand(NULL, MCI_OPEN, MCI_OPEN_TYPE, (DWORD)&mciOpen);
 
 	if(theError != 0)
 	{

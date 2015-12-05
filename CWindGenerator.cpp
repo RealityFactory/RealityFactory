@@ -45,15 +45,14 @@ CWindGenerator::CWindGenerator()
 	geVec3d_Clear(&m_AnchorValue);
 	geVec3d_Clear(&m_ChangeSpeed);
 
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
 	// get EntitySet and Entity (i assume there is only one Entity in the world)
 	// also check if Entity is there, if not, then abort
-	pSet = geWorld_GetEntitySet(CCD->World(), "WindGenerator");
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WindGenerator");
+
 	if(!pSet) //Entity does not exist
 		return;
-	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
+
+	geEntity *pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 
 	// get EntityData
 	WindGenerator *pWG = static_cast<WindGenerator*>(geEntity_GetUserData(pEntity));
