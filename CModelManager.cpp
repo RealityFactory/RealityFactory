@@ -2009,7 +2009,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 			}
 		}
 
-		if(EmptyContent(pMod->theModel))
+		if(EmptyContent(pMod->theModel) == RGF_SUCCESS)
 			return RGF_EMPTY;
 
 		return RGF_SUCCESS;							// We handled it.
