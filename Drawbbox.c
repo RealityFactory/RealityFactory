@@ -16,7 +16,7 @@ static void DrawFace(geWorld *World, const geVec3d **Verts)
 	GE_LVertex	LVerts[4];
 	int	i;
 
-	for(i=0; i<4; i++)
+	for(i=0; i<4; ++i)
 	{
 		LVerts[i].r = 40.0f;
 		LVerts[i].g = 40.0f;
@@ -51,7 +51,7 @@ void DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const 
 
 	int	i;
 
-	for(i=0; i<8; i++)
+	for(i=0; i<8; ++i)
 		geVec3d_Add(Pos, Min, &Verts[i]);
 
 	dx = Max->X - Min->X;
@@ -73,7 +73,7 @@ void DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const 
 	Verts[2].Y += dy;
 	Verts[2].Z += dz;
 
-	for(i=0; i<6; i++)
+	for(i=0; i<6; ++i)
 		DrawFace(World, &Faces[i][0]);
 }
 

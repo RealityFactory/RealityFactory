@@ -384,7 +384,7 @@ CActorSpout::CActorSpout()
 
 		char Name[64];
 
-		for(int i=0; i<S->NumActors; i++)
+		for(int i=0; i<S->NumActors; ++i)
 		{
 			sprintf(Name, "%s%d%s", S->BaseName, i, ".act");
 			geActor *Actor = CCD->ActorManager()->SpawnActor(Name,

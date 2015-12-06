@@ -272,7 +272,7 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 			}
 
 			// Setup vertex 1,2,3,4
-			for(int i=0; i<4; i++)
+			for(int i=0; i<4; ++i)
 			{
 				// texture coordinates
 				d->vertex[i].u = 0.0f;

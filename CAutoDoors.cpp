@@ -30,7 +30,6 @@ CAutoDoors::CAutoDoors()
 {
 	geEntity *pEntity;
 	geFloat  TList[TIME_LIST_MAX], tStart, tEnd;
-	int      i;
 	const char     *Eventstring;
 
 	m_DoorCount = 0;					// No doors
@@ -95,7 +94,7 @@ CAutoDoors::CAutoDoors()
 		{
 			CCD->ModelManager()->SetRunFromList(pDoor->Model, GE_TRUE);
 
-			for(i=0; i<TIME_LIST_MAX; i++)
+			for(int i=0; i<TIME_LIST_MAX; ++i)
 			{
 				TList[i] = -1.0f;
 			}
@@ -119,7 +118,7 @@ CAutoDoors::CAutoDoors()
 			{
 				CCD->ModelManager()->SetRunFromList(pDoor->Model, GE_TRUE);
 
-				for(i=0; i<TIME_LIST_MAX; i++)
+				for(int i=0; i<TIME_LIST_MAX; ++i)
 				{
 					TList[i] = -1.0f;
 				}
@@ -127,7 +126,7 @@ CAutoDoors::CAutoDoors()
 				geMotion_GetTimeExtents(pMotion, &tStart, &tEnd);
 				geMotion_SetupEventIterator(pMotion, tStart, tEnd);
 
-				i = 0;
+				int i = 0;
 
 				while(geMotion_GetNextEvent(pMotion, &tStart, &Eventstring) && (i < TIME_LIST_MAX))
 				{
@@ -144,7 +143,7 @@ CAutoDoors::CAutoDoors()
 					}
 
 					TList[i] = tStart;
-					i++;
+					++i;
 				}
 
 				CCD->ModelManager()->SetTimeList(pDoor->Model, TList);

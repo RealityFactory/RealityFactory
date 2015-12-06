@@ -63,7 +63,7 @@ void NetPlayer::Create(char *actorname)
 /* ------------------------------------------------------------------------------------ */
 NetPlayerMgr::NetPlayerMgr()
 {
-	for(int i=0; i<MAXPLAYERS; i++)
+	for(int i=0; i<MAXPLAYERS; ++i)
 		Player[i] = NULL;
 
 	Buffer			= NULL;
@@ -117,7 +117,7 @@ NetPlayerMgr::~NetPlayerMgr()
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::DeletePlayers()
 {
-	for(int i=0; i<MAXPLAYERS; i++)
+	for(int i=0; i<MAXPLAYERS; ++i)
 	{
 		if(Player[i])
 		{
@@ -136,7 +136,7 @@ bool NetPlayerMgr::CreatePlayer(int Id)
 {
 	int i;
 
-	for(i=0; i<MAXPLAYERS; i++)
+	for(i=0; i<MAXPLAYERS; ++i)
 	{
 		if(Player[i])
 		{
@@ -146,7 +146,7 @@ bool NetPlayerMgr::CreatePlayer(int Id)
 		}
 	}
 
-	for(i=0; i<MAXPLAYERS; i++)
+	for(i=0; i<MAXPLAYERS; ++i)
 	{
 		if(!Player[i])
 		{
@@ -169,7 +169,7 @@ int NetPlayerMgr::GetIndexFromId(int Id)
 {
 	int i;
 
-	for(i=0; i<MAXPLAYERS; i++)
+	for(i=0; i<MAXPLAYERS; ++i)
 	{
 		if(Player[i])
 		{
@@ -366,8 +366,8 @@ void NetPlayerMgr::ServerClientCycle()
 			if(newsock != NL_INVALID)
 			{
 				// add client to group
-	            nlGroupAddSocket(group, newsock);
-	            clientnum++;
+				nlGroupAddSocket(group, newsock);
+				++clientnum;
 
 				// send acceptance packet to new client only
 				// packet has ID# and level name
@@ -408,7 +408,7 @@ void NetPlayerMgr::ServerClientCycle()
 			updatebuffer->Add(static_cast<unsigned char>(CLIENTUPDATE));
 
 			// loop through all packets
-			for(i=0; i<count; i++)
+			for(i=0; i<count; ++i)
 			{
 				// read packet for socket s[] which is Client ID#
 				int readlen;
@@ -457,7 +457,7 @@ void NetPlayerMgr::ServerClientCycle()
 						nlClose(s[i]);
 						// send to all other players
 						nlWrite(group, outbuffer->Data, outbuffer->Size);
-						clientnum--;
+						--clientnum;
 						break;
 					default:
 						break;
@@ -482,7 +482,7 @@ void NetPlayerMgr::ServerClientCycle()
 
 						nlWrite(group, outbuffer->Data, outbuffer->Size);
 
-						clientnum--;
+						--clientnum;
 					}
 				}
 			}
@@ -723,12 +723,12 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	Buff->Add(1);
 	Buff->Add(static_cast<unsigned char>(CLIENTLIST));
 
-	for(int i=0; i<MAXPLAYERS; i++)
+	for(int i=0; i<MAXPLAYERS; ++i)
 	{
 		if(Player[i])
 		{
 			BuildPlayer(Buff, i, Player[i]->GetId());
-			j++;
+			++j;
 		}
 	}
 

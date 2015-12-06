@@ -258,7 +258,7 @@ static geBoolean PlasmaAnimator_CreatePalette(Procedural *P, double time)
 
 		PalPtr = static_cast<uint8*>(PalData);
 
-		for(p=0; p<256; p++)
+		for(p=0; p<256; ++p)
 		{
 			u = (PI / 128.f) * static_cast<geFloat>(p);
 
@@ -310,9 +310,9 @@ static void CalculateTables(Procedural * Proc)
 	ptab1 = tab1;
 	ptab2 = tab2;
 
-	for(y=0; y<TAB_HEIGHT; y++)
+	for(y=0; y<TAB_HEIGHT; ++y)
 	{
-		for(x=0; x<TAB_WIDTH; x++)
+		for(x=0; x<TAB_WIDTH; ++x)
 		{
 			double d_to_center, r, dx, dy;
 
@@ -327,7 +327,7 @@ static void CalculateTables(Procedural * Proc)
 		}
 	}
 
-	for(x=0; x<256; x++)
+	for(x=0; x<256; ++x)
 	{
 		sintab1[x] = static_cast<uint8>((sin(x / (5.0 * 9.5)) + 1.0) * 90.0 + 0.5);
 		dtable[x] = static_cast<signed char>(sin(x * 2.0 * PI / 256) * 16.0);
@@ -435,12 +435,12 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 			bptr = static_cast<uint8*>(Bits);
 			sptr = static_cast<uint8*>(SourceBits);
 
-			for(y=0; y<h; y++)
+			for(y=0; y<h; ++y)
 			{
 				ptab1 =	tab1 + TAB_WIDTH*y;
 				ptab2 =	tab2 + TAB_WIDTH*y;
 
-				for(x=0; x<w; x++)
+				for(x=0; x<w; ++x)
 				{
 					int o, sx;
 
@@ -448,8 +448,8 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 					o = (o + roll)&0xFF;
 					o = dtable[o];
 
-					ptab1++;
-					ptab2++;
+					++ptab1;
+					++ptab2;
 
 					sx = x + o;
 
@@ -479,7 +479,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 
 				if(CK > 200)
 				{
-					for(y=0; y<h; y++)
+					for(y=0; y<h; ++y)
 					{
 						ptab1 =	tab1 + TAB_WIDTH*y;
 						ptab2 =	tab2 + TAB_WIDTH*y;
@@ -489,8 +489,8 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 							pel = roll + ptab1[o1] + ptab2[o2] + ptab2[o3] + ptab2[o4];
 
 							*bptr++ = pel%CK;
-							ptab1++;
-							ptab2++;
+							++ptab1;
+							++ptab2;
 						}
 
 						bptr += (s-w);
@@ -498,7 +498,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 				}
 				else
 				{
-					for(y=0; y<h; y++)
+					for(y=0; y<h; ++y)
 					{
 						ptab1 =	tab1 + TAB_WIDTH*y;
 						ptab2 =	tab2 + TAB_WIDTH*y;
@@ -511,8 +511,8 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 								pel ^= 1;
 
 							*bptr++ = pel;
-							ptab1++;
-							ptab2++;
+							++ptab1;
+							++ptab2;
 						}
 
 						bptr += (s-w);
@@ -521,7 +521,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 			}
 			else
 			{
-				for(y=0; y<h; y++)
+				for(y=0; y<h; ++y)
 				{
 					ptab1 =	tab1 + TAB_WIDTH*y;
 					ptab2 =	tab2 + TAB_WIDTH*y;
@@ -529,8 +529,8 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 					for(x=w; x--;)
 					{
 						*bptr++ = roll + ptab1[o1] + ptab2[o2] + ptab2[o3] + ptab2[o4];
-						ptab1++;
-						ptab2++;
+						++ptab1;
+						++ptab2;
 					}
 
 					bptr += (s-w);
@@ -560,7 +560,7 @@ static int DoCircle(double *pCircle, double step, int w, int doCos)
 	double xp, x, xn;
 	int ix, ixp, ixn;
 
-	w--;
+	--w;
 
 	// try to do temporal anti-aliasing
 	// <> doesn't seem to help

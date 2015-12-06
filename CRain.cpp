@@ -145,7 +145,6 @@ CRain::~CRain()
 void CRain::Tick(geFloat dwTicks)
 {
 	geEntity *pEntity;
-	int i;
 	Spray Sp;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
@@ -164,7 +163,7 @@ void CRain::Tick(geFloat dwTicks)
 			{
 				if(R->active == GE_FALSE)
 				{
-					for(i=0; i<R->EffectCount; i++)
+					for(int i=0; i<R->EffectCount; ++i)
 						R->EffectList[i] = Create(R);
 
 					R->active = GE_TRUE;
@@ -174,7 +173,7 @@ void CRain::Tick(geFloat dwTicks)
 			{
 				if(R->active == GE_TRUE)
 				{
-					for(i=0; i<R->EffectCount; i++)
+					for(int i=0; i<R->EffectCount; ++i)
 						CCD->EffectManager()->Item_Delete(EFF_SPRAY, R->EffectList[i]);
 
 					R->active = GE_FALSE;
@@ -185,7 +184,7 @@ void CRain::Tick(geFloat dwTicks)
 		{
 			if(R->active == GE_FALSE)
 			{
-				for(i=0; i<R->EffectCount; i++)
+				for(int i=0; i<R->EffectCount; ++i)
 					R->EffectList[i] = Create(R);
 
 				R->active = GE_TRUE;
@@ -202,7 +201,7 @@ void CRain::Tick(geFloat dwTicks)
 				geVec3d_AddScaled(&(Sp.Source), &(Sp.Gravity), Sp.MinUnitLife, &(Sp.Dest));
 
 				// adjust position
-				for(int i=0; i<R->EffectCount; i++)
+				for(int i=0; i<R->EffectCount; ++i)
 					CCD->EffectManager()->Item_Modify(EFF_SPRAY, R->EffectList[i], static_cast<void*>(&Sp), SPRAY_SOURCE | SPRAY_ACTUALDEST);
 			}
 		}

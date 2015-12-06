@@ -57,7 +57,7 @@ COverlay::COverlay()
 		{
 			pItem->FBitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(*(pItem->FBitmap))*pItem->BitmapCount));
 
-			for(int i=0; i<pItem->BitmapCount; i++)
+			for(int i=0; i<pItem->BitmapCount; ++i)
 			{
 				char BmpName[256];
 				char AlphaName[256];

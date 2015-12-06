@@ -26,7 +26,7 @@ int     ModelState[MODEL_LIST_SIZE];
 /* ------------------------------------------------------------------------------------ */
 CModelManager::CModelManager()
 {
-	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; nTemp++)
+	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 		MainList[nTemp] = NULL;
 
 // Start Aug2003DCS
@@ -70,7 +70,7 @@ CModelManager::CModelManager()
 /* ------------------------------------------------------------------------------------ */
 CModelManager::~CModelManager()
 {
-	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; nTemp++)
+	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
 		if(MainList[nTemp] == NULL)
 			continue;					// Empty slot, ignore
@@ -701,7 +701,7 @@ int CModelManager::SetTimeList(const geWorld_Model *theModel, const geFloat *fTL
 
 	memcpy(pEntry->TimeList, fTL, sizeof(pEntry->TimeList)); // Set TimeList values
 
-	for(int i=0; i<(sizeof(pEntry->TimeList)/sizeof(pEntry->TimeList[0])); i++)
+	for(int i=0; i<(sizeof(pEntry->TimeList)/sizeof(pEntry->TimeList[0])); ++i)
 	{
 		pEntry->TimeList[i] *= 1000.0f;			// Scale values for model manager
 	}
@@ -734,7 +734,7 @@ int CModelManager::SetAnimationSpeed(const geWorld_Model *theModel, geFloat fSpe
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SaveTo(FILE *SaveFD, bool type)
 {
-	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; nEntry++)
+	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; ++nEntry)
 	{
 		if(MainList[nEntry] != NULL)
 		{
@@ -761,7 +761,7 @@ int CModelManager::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; nEntry++)
+	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; ++nEntry)
 	{
 		if(MainList[nEntry] != NULL)
 		{
@@ -859,7 +859,7 @@ void CModelManager::Tick(geFloat dwTicks)
 						}
 
 						// This model family group can't move, undo any actor motion induced
-						for(int i=0; i<=UndoIndex; i++)
+						for(int i=0; i<=UndoIndex; ++i)
 						{
 							UndoActorPos[i].X = -UndoActorPos[i].X;
 							UndoActorPos[i].Y = -UndoActorPos[i].Y;
@@ -953,7 +953,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				int	i;
 				geFloat dx, dy, dz;
 
-				for(i=0; i<8; i++)
+				for(i=0; i<8; ++i)
 					Verts[i] = MainList[nEntry]->Mins;
 
 				dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
@@ -979,7 +979,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 				Result.Min = Result.Max = Verts[0];
 
-				for(i=1; i<8; i++)
+				for(i=1; i<8; ++i)
 				{
 					if(Verts[i].X < Result.Min.X)
 						Result.Min.X = Verts[i].X;
@@ -1379,7 +1379,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					int		 i;
 					geFloat	 dx, dy, dz;
 
-					for(i=0; i<8; i++)
+					for(i=0; i<8; ++i)
 						Verts[i] = MainList[nEntry]->Mins;
 
 					dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
@@ -1405,7 +1405,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 					Result.Min = Result.Max = Verts[0];
 
-					for(i=1; i<8; i++)
+					for(i=1; i<8; ++i)
 					{
 						if(Verts[i].X < Result.Min.X)
 							Result.Min.X = Verts[i].X;
@@ -1603,7 +1603,7 @@ int CModelManager::AddPassenger(const geWorld_Model *theModel, geActor *theActor
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Model not managed by us...
 
-	for(int nX=0; nX<MAX_PASSENGERS; nX++)
+	for(int nX=0; nX<MAX_PASSENGERS; ++nX)
 	{
 		if(pEntry->Passengers[nX] == NULL)
 		{
@@ -1627,7 +1627,7 @@ int CModelManager::RemovePassenger(const geWorld_Model *theModel, const geActor 
 	if(pEntry == NULL)
 		return RGF_NOT_FOUND;					// Model not managed by us...
 
-	for(int nX=0; nX<MAX_PASSENGERS; nX++)
+	for(int nX=0; nX<MAX_PASSENGERS; ++nX)
 	{
 		if(pEntry->Passengers[nX] == theActor)
 		{
@@ -1652,7 +1652,7 @@ geBoolean CModelManager::IsAPassenger(const geWorld_Model *theModel, const geAct
 	if(pEntry == NULL)
 		return GE_FALSE;					// Model not managed by us...
 
-	for(int nX=0; nX<MAX_PASSENGERS; nX++)
+	for(int nX=0; nX<MAX_PASSENGERS; ++nX)
 	{
 		if(pEntry->Passengers[nX] == theActor)
 			return GE_TRUE;
@@ -1725,8 +1725,8 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 		if(MainList[nTemp]->bAllowInside)
 			continue;
 
+		for(i=0; i<8; ++i)
 // Start Nov2003DCS
-		for(i=0; i<8; i++)
 			Verts[i] = MainList[nTemp]->Mins;
 
 		dx = MainList[nTemp]->Maxs.X - MainList[nTemp]->Mins.X;
@@ -1752,7 +1752,7 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 		geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 		Result.Min = Result.Max = Verts[0];
 
-		for(i=1; i<8; i++)
+		for(i=1; i<8; ++i)
 		{
 			if(Verts[i].X < Result.Min.X)
 				Result.Min.X = Verts[i].X;
@@ -2096,7 +2096,7 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 {
 	int i;  // MOD010122 - Used for index
 
-	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; nTemp++)
+	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
 		// Let's find a free entry
 		if(MainList[nTemp] == NULL)
@@ -2122,7 +2122,7 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 			MainList[nTemp]->TimeEachTrig			= 1.0f;
 			MainList[nTemp]->bRunFromList			= false;
 
-			for(i=0; i<TIME_LIST_MAX; i++)
+			for(i=0; i<TIME_LIST_MAX; ++i)
 			{
 				MainList[nTemp]->TimeList[i] = 0.0f;
 			}
@@ -2150,7 +2150,7 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 			geWorld_GetModelXForm(CCD->World(), theModel, &MainList[nTemp]->Xf);
 			geWorld_ModelSetFlags(theModel, GE_MODEL_RENDER_NORMAL | GE_MODEL_RENDER_MIRRORS | GE_MODEL_COLLIDE);
 
-			for(int iPassenger=0; iPassenger<MAX_PASSENGERS; iPassenger++)
+			for(int iPassenger=0; iPassenger<MAX_PASSENGERS; ++iPassenger)
 				MainList[nTemp]->Passengers[iPassenger] = NULL;
 
 // Start Aug2003DCS
@@ -2316,7 +2316,7 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	bool    InitDataForPassengers = true;
 	int     nTemp;
 
-	for(nTemp=0; nTemp<nActorCount; nTemp++)
+	for(nTemp=0; nTemp<nActorCount; ++nTemp)
 	{
 		ActorsInRangeDeltaTranslation[nTemp].X = 0.0f;
 		ActorsInRangeDeltaTranslation[nTemp].Y = 0.0f;
@@ -2397,11 +2397,11 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	}
 
 	// If we made it this far the model CAN move so let's move the affected actors
-	for(nTemp=0; nTemp<nActorCount; nTemp++)
+	for(nTemp=0; nTemp<nActorCount; ++nTemp)
 	{
 		CCD->ActorManager()->AddTranslation(ActorsInRange[nTemp], ActorsInRangeDeltaTranslation[nTemp]);
 		CCD->ActorManager()->AddRotation(ActorsInRange[nTemp], ActorsInRangeDeltaRotation[nTemp]);
-		UndoIndex++;
+		++UndoIndex;
 
 		if(UndoIndex < 512)
 		{

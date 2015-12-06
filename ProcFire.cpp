@@ -189,7 +189,7 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 		int r;
 		uint8 * bPtr;
 
-		for(y=0; y<h; y++)
+		for(y=0; y<h; ++y)
 		{
 			bPtr = FireBits + y*s;
 
@@ -249,16 +249,16 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 					}
 
 					randval >>= 1;
-					randbits --;
+					--randbits;
 				}
 				else
 				{
 					*bPtr = 0;
 				}
 
-				bPtr++;
-				pbPtr++;
-				ppbPtr++;
+				++bPtr;
+				++pbPtr;
+				++ppbPtr;
 			}
 
 			bPtr += s - w;
@@ -286,21 +286,21 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 
 		while(passes--)
 		{
-			for(y=1; y<=MaxY; y++)
+			for(y=1; y<=MaxY; ++y)
 			{
 				bPtr = FireBits + (h-y)*s;
 				sPtr = bPtr - s;
 				*bPtr++ = (bPtr[0] + bPtr[1] + sPtr[0] + sPtr[1])>>2;
-				sPtr++;
+				++sPtr;
 
 				for(x=w-2; x--;)
 				{
 					*bPtr++ = (bPtr[0] + bPtr[1] + bPtr[-1] + sPtr[0] + sPtr[1] + sPtr[-1] + sPtr[-2] + sPtr[2])>>3;
-					sPtr++;
+					++sPtr;
 				}
 
 				*bPtr++ = (bPtr[0] + bPtr[-1] + sPtr[0] + sPtr[-1])>>2;
-				sPtr++;
+				++sPtr;
 			}
 		}
 	}

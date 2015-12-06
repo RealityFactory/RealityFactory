@@ -57,7 +57,7 @@ CFlipBook::CFlipBook()
 		{
 			S->Bitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(*(S->Bitmap))*S->BitmapCount));
 
-			for(int i=0; i<S->BitmapCount; i++)
+			for(int i=0; i<S->BitmapCount; ++i)
 			{
 				char BmpName[256];
 				char AlphaName[256];

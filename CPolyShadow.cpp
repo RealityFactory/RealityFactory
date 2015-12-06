@@ -77,10 +77,10 @@ bool CPolyShadow::DrawShadow(const geActor *Actor)
 
 	// draw shadow
 	// cycle through faces
-	for(i=0; i<NumFace; i++)
+	for(i=0; i<NumFace; ++i)
 	{
 		// cycle through the vertices of each face
-		for(x=0; x<3; x++)
+		for(x=0; x<3; ++x)
 		{
 			// get vertex pos and bone index for vertex
 			fc = pBody->SkinFaces[0].FaceArray[i].VtxIndex[x];

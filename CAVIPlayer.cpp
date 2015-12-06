@@ -154,7 +154,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	case GE_PIXELFORMAT_16BIT_555_RGB:
 		nTemp2 = Info.Stride * 2;
 
-		for(y=0; y<Info.Height; y++)
+		for(y=0; y<Info.Height; ++y)
 		{
 			__asm
 			{
@@ -172,7 +172,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		nTemp = nWidth * 3;
 		nTemp2 = Info.Stride * 3;
 
-		for(y=0; y<Info.Height; y++)
+		for(y=0; y<Info.Height; ++y)
 		{
 			__asm
 			{
@@ -189,7 +189,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	case GE_PIXELFORMAT_32BIT_XBGR:
 		nTemp2 = Info.Stride * 4;
 
-		for(y=0; y<Info.Height; y++)
+		for(y=0; y<Info.Height; ++y)
 		{
 			__asm
 			{
@@ -256,7 +256,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		if(ElapsedTime > 30)
 		{
 			OldTime = CCD->FreeRunningCounter();					// Prepare for next loop
-			nFrameTotal++;
+			++nFrameTotal;
 
 			if(bAudioStreamPlaying)
 				PumpBuffer(0, false);				// Pump audio if we have any
@@ -312,7 +312,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			case GE_PIXELFORMAT_16BIT_555_RGB:
 				nTemp2 = Info.Stride * 2;
 
-				for(y=0; y<Info.Height; y++)
+				for(y=0; y<Info.Height; ++y)
 				{
 					__asm
 					{
@@ -330,7 +330,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 				nTemp = nWidth * 3;
 				nTemp2 = Info.Stride * 3;
 
-				for(y=0; y<Info.Height; y++)
+				for(y=0; y<Info.Height; ++y)
 				{
 					__asm
 					{
@@ -347,7 +347,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			case GE_PIXELFORMAT_32BIT_XBGR:
 				nTemp2 = Info.Stride * 4;
 
-				for(y=0; y<Info.Height; y++)
+				for(y=0; y<Info.Height; ++y)
 				{
 					__asm
 					{
@@ -400,7 +400,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	//	..and then wait the max. time (1 second) for the buffer to clear.
 	if(bAudioStreamPlaying)
 	{
-		for(int nTemp=0; nTemp<10; nTemp++)
+		for(int nTemp=0; nTemp<10; ++nTemp)
 		{
 			PumpBuffer(0, false);					// Make sure nothing but silence
 			Sleep(50);							// Let audio buffer play out
@@ -580,7 +580,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		case GE_PIXELFORMAT_16BIT_555_RGB:
 			nTemp2 = Info.Stride * 2;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -598,7 +598,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 			nTemp = nWidth * 3;
 			nTemp2 = Info.Stride * 3;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -615,7 +615,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		case GE_PIXELFORMAT_32BIT_XBGR:
 			nTemp2 = Info.Stride * 4;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -749,7 +749,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		case GE_PIXELFORMAT_16BIT_555_RGB:
 			nTemp2 = Info.Stride * 2;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -767,7 +767,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 			nTemp = nWidth * 3;
 			nTemp2 = Info.Stride * 3;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -784,7 +784,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		case GE_PIXELFORMAT_32BIT_XBGR:
 			nTemp2 = Info.Stride * 4;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -961,7 +961,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		case GE_PIXELFORMAT_16BIT_555_RGB:
 			nTemp2 = Info.Stride * 2;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -979,7 +979,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 			nTemp = nWidth * 3;
 			nTemp2 = Info.Stride * 3;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -996,7 +996,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		case GE_PIXELFORMAT_32BIT_XBGR:
 			nTemp2 = Info.Stride * 4;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -1150,7 +1150,7 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		case GE_PIXELFORMAT_16BIT_555_RGB:
 			nTemp2 = Info.Stride * 2;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -1168,7 +1168,7 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 			nTemp = nWidth * 3;
 			nTemp2 = Info.Stride * 3;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -1185,7 +1185,7 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		case GE_PIXELFORMAT_32BIT_XBGR:
 			nTemp2 = Info.Stride * 4;
 
-			for(y=0; y<Info.Height; y++)
+			for(y=0; y<Info.Height; ++y)
 			{
 				__asm
 				{
@@ -1231,14 +1231,14 @@ void CAVIPlayer::Init()
 
 	int n;
 
-	for(n=0; n<MAX_AUDIO_STREAMS; n++)
+	for(n=0; n<MAX_AUDIO_STREAMS; ++n)
 	{
 		m_pAudioStreams[n] = NULL;
 		m_pAudioFormats[n] = NULL;
 		m_pAudioData[n] = NULL;
 	}
 
-	for(n=0; n<MAX_VIDEO_STREAMS; n++)
+	for(n=0; n<MAX_VIDEO_STREAMS; ++n)
 	{
 		m_pVideoStreams[n] = NULL;
 		m_pVideoFormats[n] = NULL;
@@ -1262,7 +1262,7 @@ void CAVIPlayer::Release()
 	EndVideoRetrieve(0);
 
 	int n;
-	for(n=0; n<m_nNumAudioStreams; n++)
+	for(n=0; n<m_nNumAudioStreams; ++n)
 	{
 		if(m_pAudioStreams[n])
 			AVIStreamRelease(m_pAudioStreams[n]);
@@ -1274,7 +1274,7 @@ void CAVIPlayer::Release()
 			delete [] m_pAudioData[n];
 	}
 
-	for(n=0; n<m_nNumVideoStreams; n++)
+	for(n=0; n<m_nNumVideoStreams; ++n)
 	{
 		if(m_pVideoStreams[n])
 			AVIStreamRelease(m_pVideoStreams[n]);
@@ -1321,7 +1321,7 @@ void CAVIPlayer::FindStreams()
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::DetermineAudioFormats()
 {
-	for(int n=0; n<m_nNumAudioStreams; n++)
+	for(int n=0; n<m_nNumAudioStreams; ++n)
 	{
 		PAVISTREAM pStream = m_pAudioStreams[n];
 		LONG lSize;
@@ -1351,7 +1351,7 @@ bool CAVIPlayer::DetermineAudioFormats()
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::DetermineVideoFormats()
 {
-	for(int n=0; n<m_nNumVideoStreams; n++)
+	for(int n=0; n<m_nNumVideoStreams; ++n)
 	{
 		PAVISTREAM pStream = m_pVideoStreams[n];
 		LONG lSize;

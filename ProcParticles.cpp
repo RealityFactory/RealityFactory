@@ -216,7 +216,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 	if(!(Proc->Particles))
 		goto fail;
 
-	for(i=0; i<Proc->NumParticles; i++)
+	for(i=0; i<Proc->NumParticles; ++i)
 	{
 		Proc->Particles[i].shade = -1;
 	}
@@ -330,7 +330,7 @@ Procedural* Particles_Create(char *TextureName, geWorld *World, const char *Inpu
 	if(!Particles_InitPalette(Proc))
 		goto fail;
 
-	for(i=0; i<Proc->NumSources; i++)
+	for(i=0; i<Proc->NumSources; ++i)
 	{
 		ParticleSource *pSource;
 		Particle *pParticle;
@@ -424,7 +424,7 @@ static Particle* Particles_NewParticle(Procedural *Proc)
 
 	pP = Proc->Particles;
 
-	for(p=Proc->NumParticles; p--; pP++)
+	for(p=Proc->NumParticles; p--; ++pP)
 	{
 		if(pP->shade < 0)
 		{
@@ -463,7 +463,7 @@ static void Particles_EmitSources(Procedural *Proc, geFloat time)
 
 	pSource = Proc->Sources;
 
-	for(cnt=Proc->NumSources; cnt--; pSource++)
+	for(cnt=Proc->NumSources; cnt--; ++pSource)
 	{
 		pSource->CurTime += time;
 
@@ -503,7 +503,7 @@ static void Particles_MoveParticles(Procedural *Proc, geFloat time)
 
 	pP = Proc->Particles;
 
-	for(cnt=0; cnt<Proc->NumActiveParticles; cnt++, pP++)
+	for(cnt=0; cnt<Proc->NumActiveParticles; ++cnt, ++pP)
 	{
 		geFloat mul, vsqr;
 
@@ -640,7 +640,7 @@ static geBoolean Particles_Draw(Procedural *Proc)
 		*pBits = PIXEL_INDEX(color,shade,nc);
 	}
 
-	for(cnt=Proc->NumActiveParticles, pP = Proc->Particles; cnt>0; pP++)
+	for(cnt=Proc->NumActiveParticles, pP = Proc->Particles; cnt>0; ++pP)
 	{
 		x = (int)(pP->p[0]);
 		y = (int)(pP->p[1]);
@@ -650,7 +650,7 @@ static geBoolean Particles_Draw(Procedural *Proc)
 		pel = PIXEL_INDEX(pP->color,pP->shade,Proc->NumColors);
 		pBits[0] = pBits[1] = pBits[-1] = pBits[s] = pBits[-s] = pel;
 
-		cnt--;
+		--cnt;
 	}
 
 	for(cnt=Proc->NumSmoothes; cnt--;)
@@ -743,9 +743,9 @@ static geBoolean Particles_InitPalette(Procedural *Proc)
 		int R,G,B,A;
 		int c,s;
 
-		for(c=0; c<(Proc->NumColors); c++)
+		for(c=0; c<(Proc->NumColors); ++c)
 		{
-			for(s=0; s<(Proc->NumShades); s++)
+			for(s=0; s<(Proc->NumShades); ++s)
 			{
 				p = PIXEL_INDEX(c, s, Proc->NumColors);
 				Proc->PixelRGBA(Proc, c, s, &R, &G, &B, &A);

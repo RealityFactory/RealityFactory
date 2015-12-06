@@ -150,7 +150,7 @@ CPathFollower::CPathFollower()
 			pFollower->bMoving = GE_TRUE;
 		}
 
-		m_PathFollowerCount++;
+		++m_PathFollowerCount;
 	}
 
 	return;

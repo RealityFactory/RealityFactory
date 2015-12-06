@@ -164,7 +164,7 @@ void CFoliage::Tick(geFloat dwTicks)
 			}
 			// end change
 
-			for(sc=0; sc<S->Density; sc++)
+			for(sc=0; sc<S->Density; ++sc)
 			{
 				// Create random position and scale
 				float sl = S->sMax - S->sMin;

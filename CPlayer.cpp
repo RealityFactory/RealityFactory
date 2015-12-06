@@ -646,9 +646,9 @@ CPlayer::~CPlayer()
 	if(DefaultMotion[2] != NULL)
 		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[2]);
 
-	for(int nTemp=0; nTemp<16; nTemp++)
+	for(int nTemp=0; nTemp<16; ++nTemp)
 	{
-		for(int j=0; j<3; j++)
+		for(int j=0; j<3; ++j)
 		{
 			if(Contents[nTemp][j] != NULL)
 				geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), Contents[nTemp][j]);
@@ -1251,9 +1251,9 @@ int CPlayer::LoadEnvironmentalAudio()
 	DefaultMotion[2] = NULL;
 	DefaultMotionHandle = NULL;
 
-	for(int nTemp=0; nTemp<16; nTemp++)
+	for(int nTemp=0; nTemp<16; ++nTemp)
 	{
-		for(int j=0; j<3; j++)
+		for(int j=0; j<3; ++j)
 			Contents[nTemp][j] = NULL;
 
 		ContentsHandles[nTemp] = NULL;
@@ -2835,7 +2835,7 @@ void CPlayer::Tick(geFloat dwTicks)
 	}
 
 // changed RF064
-	for(int sn=0; sn<20; sn++)
+	for(int sn=0; sn<20; ++sn)
 	{
 		if(!strcmp(StaminaName1[sn], "LightValue"))
 		{
@@ -4995,7 +4995,7 @@ int CPlayer::SaveTo(FILE *SaveFD)
 	fwrite(&restoreoxy, sizeof(bool), 1, SaveFD);
 	geFloat Level, Decay;
 
-	for(i=0; i<4; i++)
+	for(i=0; i<4; ++i)
 	{
 		CCD->ActorManager()->GetForce(Actor, i, &position, &Level, &Decay);
 		fwrite(&position, sizeof(geVec3d), 1, SaveFD);
@@ -5076,7 +5076,7 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 	fread(&restoreoxy, sizeof(bool), 1, RestoreFD);
 	geFloat Level, Decay;
 
-	for(i=0;i<4;i++)
+	for(i=0; i<4; ++i)
 	{
 		fread(&position, sizeof(geVec3d), 1, RestoreFD);
 		fread(&Level, sizeof(geFloat), 1, RestoreFD);
@@ -5251,7 +5251,7 @@ int CPlayer::LoadAttributes(const char *szSaveFile)
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::Backtrack()
 {
-	m_PositionHistoryPtr--;
+	--m_PositionHistoryPtr;
 
 	if(m_PositionHistoryPtr < 0)
 		m_PositionHistoryPtr = 49;
@@ -5273,7 +5273,7 @@ void CPlayer::AddPosition()
 	if(geVec3d_Compare(&m_PositionHistory[m_PositionHistoryPtr], &m_Translation, 0.0f))
 		return;
 
-	m_PositionHistoryPtr++;
+	++m_PositionHistoryPtr;
 
 	if(m_PositionHistoryPtr >= 50)
 		m_PositionHistoryPtr = 0;
@@ -5594,7 +5594,7 @@ bool CPlayer::GetUseAttribute(const char *Attr)
 {
 	int i;
 
-	for(i=0; i<10; i++)
+	for(i=0; i<10; ++i)
 	{
 		if(!strcmp(Attr, UseAttribute[i]))
 			return true;
@@ -5612,7 +5612,7 @@ bool CPlayer::SetUseAttribute(const char *Attr)
 	CCD->Armours()->DisableHud(Attr);
 	CCD->LiftBelts()->DisableHud(Attr);
 
-	for(i=0; i<10; i++)
+	for(i=0; i<10; ++i)
 	{
 		if(EffectC_IsStringNull(UseAttribute[i]))
 		{
@@ -5630,7 +5630,7 @@ bool CPlayer::DelUseAttribute(const char *Attr)
 {
 	int i;
 
-	for(i=0; i<10; i++)
+	for(i=0; i<10; ++i)
 	{
 		if(!strcmp(Attr, UseAttribute[i]))
 		{

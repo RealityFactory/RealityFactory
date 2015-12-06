@@ -489,7 +489,7 @@ geActor *CActorManager::LoadActor(const char *szFilename, geActor *OldActor)
 	LodName[len-4] = '\0';
 	strcat(LodName, "_LOD");
 
-	for(int j=1; j<4; j++)
+	for(int j=1; j<4; ++j)
 	{
 		sprintf(Name, "%s%d.act", LodName, j);
 
@@ -1620,7 +1620,7 @@ int CActorManager::SetActorDynamicLighting(const geActor *theActor,
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
 	geActor_SetStaticLightingOptions(pEntry->Actor, AmbientLightFromFloor, GE_TRUE, 6);
 
-	for(int j=0; j<3; j++)
+	for(int j=0; j<3; ++j)
 	{
 		if(pEntry->LODActor[j])
 			geActor_SetStaticLightingOptions(pEntry->LODActor[j], AmbientLightFromFloor, GE_TRUE, 6);
@@ -1694,7 +1694,7 @@ int CActorManager::ResetActorDynamicLighting(const geActor *theActor)
 // must be set to GE_FALSE to make the engine use the specified AmbientColor
 	geActor_SetStaticLightingOptions(pEntry->Actor, pEntry->AmbientLightFromFloor, GE_TRUE, 6);
 
-	for(int j=0; j<3; j++)
+	for(int j=0; j<3; ++j)
 	{
 		if(pEntry->LODActor[j])
 			geActor_SetStaticLightingOptions(pEntry->LODActor[j], pEntry->AmbientLightFromFloor, GE_TRUE, 6);
@@ -2286,7 +2286,7 @@ int CActorManager::SetScale(const geActor *theActor, geFloat Scale)
 
 	geActor_SetScale(pEntry->Actor, Scale, Scale, Scale);		// Scale the actor
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], Scale, Scale, Scale);
@@ -2366,7 +2366,7 @@ int CActorManager::SetScaleX(const geActor *theActor, geFloat Scale)
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2410,7 +2410,7 @@ int CActorManager::SetScaleY(const geActor *theActor, geFloat Scale)
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2454,7 +2454,7 @@ int CActorManager::SetScaleZ(const geActor *theActor, geFloat Scale)
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -2498,7 +2498,7 @@ int CActorManager::SetScaleXYZ(const geActor *theActor, const geVec3d &Scale)
 	// Scale the actor
 	geActor_SetScale(pEntry->Actor, pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		if(pEntry->LODActor[i])
 			geActor_SetScale(pEntry->LODActor[i], pEntry->Scale.X, pEntry->Scale.Y, pEntry->Scale.Z);
@@ -3842,7 +3842,7 @@ geActor *CActorManager::AddNewInstance(LoadedActorList *theEntry, geActor *OldAc
 
 	geActor_SetStaticLightingOptions(NewEntry->Actor, GE_TRUE, GE_TRUE, 6);
 
-	for(int i=0; i<3; i++)
+	for(int i=0; i<3; ++i)
 	{
 		NewEntry->theLODDef[i] = theEntry->theActorDef[i+1];
 		NewEntry->LODActor[i] = NULL;
@@ -4045,7 +4045,7 @@ int CActorManager::RemoveInstance(const geActor *theActor)
 			{
 				geWorld_RemoveActor(CCD->World(), pTemp->Actor);
 
-				for(int i=0; i<3; i++)
+				for(int i=0; i<3; ++i)
 				{
 					if(pTemp->LODActor[i])
 					{
@@ -4263,7 +4263,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 	float dist = (geVec3d_DistanceBetween(&CamPosition, &theEntry->localTranslation)
 		/ CCD->CameraManager()->AmtZoom());
 
-	for(int k=0; k<3; k++)
+	for(int k=0; k<3; ++k)
 	{
 		if(theEntry->LODActor[k])
 			geWorld_SetActorFlags(CCD->World(), theEntry->LODActor[k], 0);
@@ -4700,7 +4700,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 
 			if(dist<(theEntry->ShadowSize*2.0f))
 			{
-				for(i=0; i<4; i++)
+				for(i=0; i<4; ++i)
 				{
 					// texture coordinates
 					vertex[i].u = 0.0f;
@@ -4722,7 +4722,7 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 				vertex[2].v = 1.0f;
 				vertex[1].v = 1.0f;
 
-				for(i=0; i<3; i++)
+				for(i=0; i<3; ++i)
 				{
 					Axis[i].X = 0.0f;
 					Axis[i].Y = 0.0f;
@@ -5726,7 +5726,7 @@ int CActorManager::GetCurrentZone(ActorInstanceList *pEntry)
 	{
 		unsigned int Mask = 0x00010000;
 
-		for(int i=0; i<16; i++)
+		for(int i=0; i<16; ++i)
 		{
 			switch(ZoneContents.Contents & (Mask<<i))
 			{

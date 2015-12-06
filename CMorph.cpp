@@ -179,7 +179,7 @@ CMorph::CMorph()
 			// get bitmap pointer
 			Length = strlen(pMorph->BitmapToAttachTo);
 
-			for(i=0; i<MaterialCount; i++)
+			for(i=0; i<MaterialCount; ++i)
 			{
 				if(geBody_GetMaterial(Body, i, &MaterialName, &(pMorph->CMorphBmp), &R, &G, &B) == GE_FALSE)
 				{
@@ -390,7 +390,7 @@ void CMorph::Tick(geFloat dwTicks)
 			assert(EndInfo.Height   >= MorphInfo.Height);
 			assert(EndInfo.Width    >= MorphInfo.Width );
 
-			for(Row=0; Row<MorphInfo.Height; Row++)
+			for(Row=0; Row<MorphInfo.Height; ++Row)
 			{
 				// setup pointers
 				CurMorph = Morph + (MorphInfo.Stride * Row * 3);
@@ -398,7 +398,7 @@ void CMorph::Tick(geFloat dwTicks)
 				CurEnd = End + (EndInfo.Stride * Row * 3);
 
 				// copy data
-				for(Col=0; Col<MorphInfo.Width; Col++)
+				for(Col=0; Col<MorphInfo.Width; ++Col)
 				{
 					// adjust pixel
 					CurMorph[0] = CurStart[0] + static_cast<uint8>(static_cast<float>(CurEnd[0] - CurStart[0]) * EndFrac);
@@ -469,7 +469,7 @@ ALLDONE:	// unlock all bitmaps
 
 				if(!Morph)	goto ALPHADONE;
 
-				for(Row=0; Row<MorphInfo.Height; Row++)
+				for(Row=0; Row<MorphInfo.Height; ++Row)
 				{
 					// setup pointers
 					CurMorph = Morph + (MorphInfo.Stride * Row);
@@ -477,15 +477,15 @@ ALLDONE:	// unlock all bitmaps
 					CurEnd = End + (EndInfo.Stride * Row);
 
 					// copy data
-					for(Col=0; Col<MorphInfo.Width; Col++)
+					for(Col=0; Col<MorphInfo.Width; ++Col)
 					{
 						// adjust pixel
 						*CurMorph = *CurStart + static_cast<uint8>(static_cast<float>(*CurEnd - *CurStart) * EndFrac);
 
 						// adjust pointers
-						CurMorph++;
-						CurStart++;
-						CurEnd++;
+						++CurMorph;
+						++CurStart;
+						++CurEnd;
 					}
 				}
 

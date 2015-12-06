@@ -52,7 +52,7 @@ ControllerObject::~ControllerObject()
 	if(ConsoleError)
 		free(ConsoleError);
 
-	for(int i=0; i<DEBUGLINES; i++)
+	for(int i=0; i<DEBUGLINES; ++i)
 	{
 		if(ConsoleDebug[i])
 			free(ConsoleDebug[i]);
@@ -490,7 +490,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			int index = -1;
 			int i;
 
-			for(i=0; i<DEBUGLINES; i++)
+			for(i=0; i<DEBUGLINES; ++i)
 			{
 				if(EffectC_IsStringNull(ConsoleDebug[i]))
 				{
@@ -505,7 +505,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			}
 			else
 			{
-				for(i=1; i<DEBUGLINES; i++)
+				for(i=1; i<DEBUGLINES; ++i)
 				{
 					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
 				}
@@ -1186,7 +1186,7 @@ void CLevelController::Tick(geFloat dwTicks)
 					if(!EffectC_IsStringNull(Object->ConsoleError))
 						geEngine_Printf(CCD->Engine()->Engine(), x, y,"%s", Object->ConsoleError);
 
-					for(int i=0; i<DEBUGLINES; i++)
+					for(int i=0; i<DEBUGLINES; ++i)
 					{
 						y += 10;
 

@@ -65,10 +65,8 @@ CAudioStream::CAudioStream()
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::~CAudioStream()
 {
-	m_nStreamerCount = 0;
-
-	for(int nTemp=0; nTemp<32; nTemp++)
-    {
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
+	{
 		if(m_FileList[nTemp] != NULL)
 			delete m_FileList[nTemp];
 
@@ -331,7 +329,7 @@ void CAudioStream::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::SetVolume(LONG nVolume)
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		// If there's something in a slot, we have to check it.
 		if(m_Streams[nTemp] != NULL)
@@ -354,7 +352,7 @@ void CAudioStream::SetVolume(LONG nVolume)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::StopAll()
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		if(m_FileList[nTemp] != NULL)
 			delete m_FileList[nTemp];
@@ -377,7 +375,7 @@ void CAudioStream::StopAll()
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::PauseAll()
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		// If there's something in a slot, we have to check it.
 		if(m_Streams[nTemp] != NULL)
@@ -398,7 +396,7 @@ void CAudioStream::PauseAll()
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::FindFreeSlot()
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		if(m_FileList[nTemp] == NULL)
 			return nTemp;			// Free found, bail this!
@@ -415,7 +413,7 @@ int CAudioStream::FindFreeSlot()
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::FindInList(const char *szFile)
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		if(m_FileList[nTemp] != NULL)
 		{
@@ -437,7 +435,7 @@ int CAudioStream::FindInList(const char *szFile)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::Sweep()
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
 		// If there's something in a slot, we have to check it.
 		if(m_Streams[nTemp] != NULL)

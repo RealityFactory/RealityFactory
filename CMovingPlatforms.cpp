@@ -94,7 +94,7 @@ CMovingPlatforms::CMovingPlatforms()
 		{
 			CCD->ModelManager()->SetRunFromList(pPlatform->Model, GE_TRUE);
 
-			for(i=0; i<TIME_LIST_MAX; i++)
+			for(i=0; i<TIME_LIST_MAX; ++i)
 			{
 				TList[i] = -1.0f;
 			}
@@ -116,7 +116,7 @@ CMovingPlatforms::CMovingPlatforms()
 			{
 				CCD->ModelManager()->SetRunFromList(pPlatform->Model, GE_TRUE);
 
-				for(i=0; i<TIME_LIST_MAX; i++)
+				for(i=0; i<TIME_LIST_MAX; ++i)
 				{
 					TList[i] = -1.0f;
 				}
@@ -140,7 +140,7 @@ CMovingPlatforms::CMovingPlatforms()
 					}
 
 					TList[i] = tStart;
-					i++;
+					++i;
 				}
 
 				CCD->ModelManager()->SetTimeList(pPlatform->Model, TList);

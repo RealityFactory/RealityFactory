@@ -58,7 +58,7 @@ CWallDecal::CWallDecal()
 			pSource->vertex = static_cast<void*>(geRam_AllocateClear(sizeof(GE_LVertex) * 4));
 			pSource->FBitmap = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(geBitmap*) * pSource->BitmapCount));
 
-			for(int i=0; i<pSource->BitmapCount; i++)
+			for(int i=0; i<pSource->BitmapCount; ++i)
 			{
 				char BmpName[256];
 				char AlphaName[256];

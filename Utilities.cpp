@@ -558,9 +558,9 @@ geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geE
 	geVec3d_Subtract(&TestBox->Max, &TestBox->Min, &temp);
 	geVec3d_Scale(&temp, 0.1f, &temp);
 
-	for(int step=1;step<6;step++)
+	for(int step=1; step<6; ++step)
 	{
-		for(int i=0;i<8;i++)
+		for(int i=0; i<8; ++i)
 		{
 			// check 1
 			int32 Leaf;

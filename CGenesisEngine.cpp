@@ -875,9 +875,9 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 	int Width=0, Height=0;
 	geBitmap * Bitmap = NULL;
 
-	for(i=0; i<BitmapsHigh; i++)
+	for(i=0; i<BitmapsHigh; ++i)
 	{
-		for(j=0; j<BitmapsWide; j++)
+		for(j=0; j<BitmapsWide; ++j)
 		{
 			if(j < BitmapsWide-1)
 				Width = 256;
@@ -952,7 +952,7 @@ bool CGenesisEngine::AddCompleteTextureToWorld(const CompleteTexture &cp)
 
 	bmpcount = cp.TexturesHigh * cp.TexturesWide;
 
-	for(i=0; i<bmpcount; i++)
+	for(i=0; i<bmpcount; ++i)
 	{
 		if(!geWorld_AddBitmap(CCD->World(), cp.TextureArray[i].Bitmap))
 			retval = false;
@@ -970,7 +970,7 @@ void CGenesisEngine::DeleteCompleteTexture(CompleteTexture cp)
 
 	bmpcount = cp.TexturesHigh * cp.TexturesWide;
 
-	for(i=0; i<bmpcount; i++)
+	for(i=0; i<bmpcount; ++i)
 	{
 		geWorld_RemoveBitmap(CCD->World(), cp.TextureArray[i].Bitmap);
 		geBitmap_Destroy(&(cp.TextureArray[i].Bitmap));
@@ -1061,7 +1061,7 @@ bool CGenesisEngine::DrawCompleteTexture(const CompleteTexture	&cp,
 	high = cp.TexturesHigh;
 	i = wide * high;
 
-	for(x=0; x<i; x++)
+	for(x=0; x<i; ++x)
 	{
 		bmp = cp.TextureArray[x].Bitmap;
 

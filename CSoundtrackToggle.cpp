@@ -36,7 +36,7 @@ CSoundtrackToggle::CSoundtrackToggle()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
-		m_SoundtrackToggleCount++;
+		++m_SoundtrackToggleCount;
 
 		pToggle->bActive = GE_TRUE;					// Toggle is active
 		pToggle->LastTimeToggled = 0.0f;			// Ready right away

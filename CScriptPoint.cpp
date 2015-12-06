@@ -87,7 +87,6 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 							  int r, int g, int b, int r1, int g1, int b1)
 {
 	GE_LVertex	v[4];
-	int			i;
 	geVec3d		perp;
 	geVec3d		in;
 
@@ -102,7 +101,7 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 	v[3].u = 0.0f;
 	v[3].v = 1.0f;
 
-	for(i=0; i<4; i++)
+	for(int i=0; i<4; ++i)
 	{
 		v[i].r = static_cast<float>(r);
 		v[i].g = static_cast<float>(g);

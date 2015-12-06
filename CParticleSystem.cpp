@@ -184,7 +184,7 @@ int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, f
 /* ------------------------------------------------------------------------------------ */
 CParticleSystem::~CParticleSystem()
 {
-	for(int nTemp=0; nTemp<50; nTemp++)
+	for(int nTemp=0; nTemp<50; ++nTemp)
 	{
 		if(theList[nTemp] != NULL)
 		{
@@ -238,7 +238,7 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, const char *szPrimary, const
 // end change RF064
 
 	// Ok, first find a free handle
-	for(nTemp=0; nTemp<50; nTemp++)
+	for(nTemp=0; nTemp<50; ++nTemp)
 	{
 		if(bmpList[nTemp] == NULL)
 		{
@@ -1017,7 +1017,7 @@ int CParticleSystem::SetMaxSize(int psHandle, int nMaxParticles)
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::Tick(geFloat dwTicks)
 {
-	for(int nTemp=0; nTemp<50; nTemp++)
+	for(int nTemp=0; nTemp<50; ++nTemp)
 	{
 		if(theList[nTemp] != NULL)
 			Sweep(nTemp, dwTicks);					// Update running particle systems
@@ -1096,7 +1096,7 @@ void CParticleSystem::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Render()
 {
-	for(int nTemp=0; nTemp<50; nTemp++)
+	for(int nTemp=0; nTemp<50; ++nTemp)
 	{
 		if(theList[nTemp] != NULL)
 		{
@@ -1119,7 +1119,7 @@ int CParticleSystem::Render()
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Allocate()
 {
-	for(int nTemp=0; nTemp<50; nTemp++)
+	for(int nTemp=0; nTemp<50; ++nTemp)
 	{
 		if(theList[nTemp] == NULL)
 		{
@@ -1472,52 +1472,52 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		{
 		case kPSystem_Shockwave:
 			if(theList[nHandle]->Count==0)
-				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; nNewCount--)
+				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; --nNewCount)
 					AddShockwaveParticle(nHandle);
 			break;
 		case kPSystem_Fountain:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddFountainParticle(nHandle);
 			break;
 		case kPSystem_Rain:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddRainParticle(nHandle);
 			break;
 		case kPSystem_Sphere:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddSphereParticle(nHandle);
 			break;
 		case kPSystem_Column:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddRainParticle(nHandle);
 			break;
 		case kPSystem_ExplosiveArray:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddRainParticle(nHandle);
 			break;
 		case kPSystem_SpiralArm:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddSpiralArmParticle(nHandle);
 			break;
 		case kPSystem_Trail:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddTrailParticle(nHandle);
 			break;
 		case kPSystem_Guardian:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddGuardianParticle(nHandle);
 			break;
 		case kPSystem_ImplodeSphere:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddImplodeSphereParticle(nHandle);
 			break;
 		case kPSystem_ImplodeShockwave:
 			if(theList[nHandle]->Count==0)
-				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; nNewCount--)
+				for(nNewCount=theList[nHandle]->Maximum; nNewCount>0; --nNewCount)
 					AddImplodeShockwaveParticle(nHandle);
 			break;
 		case kPSystem_ImplodeSpiralArm:
-			for(; nNewCount>0; nNewCount--)
+			for(; nNewCount>0; --nNewCount)
 				AddImplodeSpiralArmParticle(nHandle);
 			break;
 		}
@@ -1626,7 +1626,7 @@ void CParticleSystem::SetupShockwave(int nHandle)
 	// changed QD 02/01/07
 	// 100 particles for a shockwave
 	// all particles at once for a shockwave
-	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; nFoo++)
+	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; ++nFoo)
 		AddShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1684,7 +1684,7 @@ void CParticleSystem::SetupSpiralArm(int nHandle)
 	// ..the fill-in process add to it, creating a nifty spiral
 	// ..arm effect.
 
-	for(int nFoo=0; nFoo<10; nFoo++)
+	for(int nFoo=0; nFoo<10; ++nFoo)
 		AddSpiralArmParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1740,7 +1740,7 @@ void CParticleSystem::AddSpiralArmParticle(int nHandle)
 void CParticleSystem::SetupFountain(int nHandle)
 {
 	// Start off slow, let spawning fill the fountain
-	for(int nFoo=0; nFoo<8; nFoo++)
+	for(int nFoo=0; nFoo<8; ++nFoo)
 		AddFountainParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1786,7 +1786,7 @@ void CParticleSystem::AddFountainParticle(int nHandle)
 void CParticleSystem::SetupRain(int nHandle)
 {
 	// Start off slow, let spawning make more rain
-	for(int nFoo=0; nFoo<30; nFoo++)
+	for(int nFoo=0; nFoo<30; ++nFoo)
 		AddRainParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1841,7 +1841,7 @@ void CParticleSystem::AddRainParticle(int nHandle)
 void CParticleSystem::SetupSphere(int nHandle)
 {
 	// Start off with a good sphere
-	for(int nFoo=0; nFoo<60; nFoo++)
+	for(int nFoo=0; nFoo<60; ++nFoo)
 		AddSphereParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1899,7 +1899,7 @@ void CParticleSystem::AddSphereParticle(int nHandle)
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupTrail(int nHandle)
 {
-	for(int nTemp=0; nTemp<8; nTemp++)
+	for(int nTemp=0; nTemp<8; ++nTemp)
 		AddTrailParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -1963,7 +1963,7 @@ void CParticleSystem::AddTrailParticle(int nHandle)
 void CParticleSystem::SetupGuardian(int nHandle)
 {
 	// Start off with a dense guardian
-	for(int nFoo=0; nFoo<80; nFoo++)
+	for(int nFoo=0; nFoo<80; ++nFoo)
 		AddGuardianParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -2023,7 +2023,7 @@ void CParticleSystem::AddGuardianParticle(int nHandle)
 void CParticleSystem::SetupImplodeSphere(int nHandle)
 {
 	// Start off with a good sphere
-	for(int nFoo=0; nFoo<60; nFoo++)
+	for(int nFoo=0; nFoo<60; ++nFoo)
 		AddImplodeSphereParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -2085,7 +2085,7 @@ void CParticleSystem::SetupImplodeShockwave(int nHandle)
 	// changed QD 02/01/07
 	// 100 particles for a shockwave
 	// all particles at once for a shockwave
-	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; nFoo++)
+	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; ++nFoo)
 		AddImplodeShockwaveParticle(nHandle);
 
 	// Particle alpha decay speed
@@ -2142,7 +2142,7 @@ void CParticleSystem::SetupImplodeSpiralArm(int nHandle)
 	// We start with less than the maximum particles and let
 	// ..the fill-in process add to it, creating a nifty spiral
 	// ..arm effect.
-	for(int nFoo=0; nFoo<10; nFoo++)
+	for(int nFoo=0; nFoo<10; ++nFoo)
 		AddImplodeSpiralArmParticle(nHandle);
 
 	// Particle alpha decay speed

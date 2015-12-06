@@ -29,8 +29,8 @@ CHeadsUpDisplay::CHeadsUpDisplay()
 {
 	m_bHUDActive = true;					// HUD not displayed
 
-	//	Clear the HUD array
-	for(int nTemp=0; nTemp<MAXHUD; nTemp++)
+	// Clear the HUD array
+	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 		m_theHUD[nTemp].active = false;
@@ -45,7 +45,7 @@ CHeadsUpDisplay::CHeadsUpDisplay()
 CHeadsUpDisplay::~CHeadsUpDisplay()
 {
 	// Clean up all the HUD bitmaps
-	for(int nTemp=0; nTemp<MAXHUD; nTemp++)
+	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
 // changed Nout 12/15/05
 		if(m_theHUD[nTemp].GifData)
@@ -102,7 +102,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 	}
 
 	// Something is there, so let's clean up all the HUD bitmaps to prepare
-	for(int nTemp=0; nTemp<MAXHUD; nTemp++)
+	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
 // Note QD: TPool handles these bitmaps
 /*
@@ -439,7 +439,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 			if(AttrFile.GetValue(KeyName, "modifydirection") == "both")
 				direction = 2;
 
-			for(nItem=0; nItem<MAXHUD; nItem++)
+			for(nItem=0; nItem<MAXHUD; ++nItem)
 			{
 				if(!m_theHUD[nItem].active)
 					break;
@@ -516,7 +516,7 @@ int CHeadsUpDisplay::Deactivate()
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
 {
-	for(int nItem=0; nItem<MAXHUD; nItem++)
+	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -551,7 +551,7 @@ int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 // changed RF063
 	bool flag = false;
 
-	for(int nItem=0; nItem<MAXHUD; nItem++)
+	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -574,7 +574,7 @@ int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop)
 {
-	for(int nItem = 0; nItem < MAXHUD; nItem++)
+	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -592,7 +592,7 @@ int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, i
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset)
 {
-	for(int nItem = 0; nItem < MAXHUD; nItem++)
+	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -610,7 +610,7 @@ int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOf
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float DisplayTime)
 {
-	for(int nItem = 0; nItem < MAXHUD; nItem++)
+	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
@@ -636,7 +636,7 @@ int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float Di
 /* ------------------------------------------------------------------------------------ */
 void CHeadsUpDisplay::Tick(geFloat dwTick)
 {
-	for(int nItem=0; nItem<MAXHUD; nItem++)
+	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
 		if(!m_theHUD[nItem].modify)
 			continue;
@@ -717,7 +717,7 @@ int CHeadsUpDisplay::Render()
 
 // changed Nout 12/15/05
 	// changed Nout 12/15/05
-	for(nItem = 0; nItem < MAXHUD; nItem++)
+	for(nItem = 0; nItem < MAXHUD; ++nItem)
 	{
 		if(!m_theHUD[nItem].active)
 			continue;								// No item in slot
@@ -758,9 +758,9 @@ int CHeadsUpDisplay::Render()
 		return RGF_SUCCESS;				// Ignore the call
 // end change
 
-	//	Iterate through the HUD element list, displaying each place there
-	//	..is an entry in the slot.
-	for(nItem=0; nItem<MAXHUD; nItem++)
+	// Iterate through the HUD element list, displaying each place there
+	// ..is an entry in the slot.
+	for(nItem=0; nItem<MAXHUD; ++nItem)
 	{
 		if(!m_theHUD[nItem].active)
 			continue;								// No item in slot

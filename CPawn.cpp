@@ -179,7 +179,7 @@ ScriptedObject::~ScriptedObject()
 	if(ConsoleError)
 		free(ConsoleError);
 
-	for(int i=0; i<DEBUGLINES; i++)
+	for(int i=0; i<DEBUGLINES; ++i)
 	{
 		if(ConsoleDebug[i])
 			free(ConsoleDebug[i]);

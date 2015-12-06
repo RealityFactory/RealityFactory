@@ -43,7 +43,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 				switch(radius)
 				{
 				case 1:
-					for(y=0; y<h; y++)
+					for(y=0; y<h; ++y)
 					{
 						pSrcN = pSrc+s;
 						pSrcP = pSrc-s;
@@ -59,23 +59,23 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 
 						//first pel
 						*pDst++ = (pSrc[w-1] + pSrc[1] + *pSrcN + *pSrcP)>>2;
-						pSrc++;
-						pSrcN++;
-						pSrcP++;
+						++pSrc;
+						++pSrcN;
+						++pSrcP;
 
 						for(x=w-2; x--;)
 						{
 							*pDst++ = (pSrc[-1] + pSrc[1] + *pSrcN + *pSrcP)>>2;
-							pSrc++;
-							pSrcN++;
-							pSrcP++;
+							++pSrc;
+							++pSrcN;
+							++pSrcP;
 						}
 
 						// last pel
 						*pDst++ = (pSrc[-1] + pSrc[1-w] + *pSrcN + *pSrcP)>>2;
-						pSrc++;
-						pSrcN++;
-						pSrcP++;
+						++pSrc;
+						++pSrcN;
+						++pSrcP;
 
 						pDst += (s-w);
 						pSrc += (s-w);
@@ -83,7 +83,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 					break;
 				default:
 				case 2:
-					for(y=0; y<h; y++)
+					for(y=0; y<h; ++y)
 					{
 						pSrcN = pSrc+s;
 						pSrcP = pSrc-s;
@@ -99,24 +99,24 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 
 						//first pel
 						*pDst++ = (pSrcN[-1] + pSrc[1] + *pSrcN + *pSrcP)>>2;
-						pSrc++;
-						pSrcN++;
-						pSrcP++;
+						++pSrc;
+						++pSrcN;
+						++pSrcP;
 
 						for(x=w-2; x--;)
 						{
 							*pDst++ = (pSrc[-1] + pSrc[1] + pSrcN[0] + pSrcP[0] +
 										pSrcN[1] + pSrcN[-1] + pSrcP[1] + pSrcP[-1])>>3;
-							pSrc++;
-							pSrcN++;
-							pSrcP++;
+							++pSrc;
+							++pSrcN;
+							++pSrcP;
 						}
 
 						// last pel
 						*pDst++ = (pSrc[-1] + pSrcP[1] + *pSrcN + *pSrcP)>>2;
-						pSrc++;
-						pSrcN++;
-						pSrcP++;
+						++pSrc;
+						++pSrcN;
+						++pSrcP;
 
 						pDst += (s-w);
 						pSrc += (s-w);
@@ -131,11 +131,11 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 				case 1:
 					// first line
 					*pDst++ = (pSrc[1] + pSrc[s])>>1;
-					pSrc++;
-					for(x=w-1;x--;)
+					++pSrc;
+					for(x=w-1; x--;)
 					{
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[s]+ pSrc[s-1])>>2;
-						pSrc++;
+						++pSrc;
 					}
 					pDst += (s-w);
 					pSrc += (s-w);
@@ -191,10 +191,10 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 					for(x=w-1; x--;)
 					{
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[-s]+ pSrc[-s+1])>>2;
-						pSrc++;
+						++pSrc;
 					}
 					*pDst++ = (pSrc[-1] + pSrc[-s])>>1;
-					pSrc++;
+					++pSrc;
 					pSrc += (s-w);
 					pDst += (s-w);
 					break;
@@ -202,11 +202,11 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 				case 2:
 					// first line
 					*pDst++ = (pSrc[1] + pSrc[s])>>1;
-					pSrc++;
+					++pSrc;
 					for(x=w-1; x--;)
 					{
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[s]+ pSrc[s-1])>>2;
-						pSrc++;
+						++pSrc;
 					}
 					pSrc += (s-w);
 					pDst += (s-w);
@@ -214,7 +214,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 					for(y=h-2; y--;)
 					{
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[s] + pSrc[-s])>>2;
-						pSrc++;
+						++pSrc;
 
 						x = w-2;
 
@@ -267,7 +267,7 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 						pSrc += w-2;
 
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[s] + pSrc[-s])>>2;
-						pSrc++;
+						++pSrc;
 						pSrc += (s-w);
 						pDst += (s-w);
 					}
@@ -275,10 +275,10 @@ geBoolean geBitmapUtil_SmoothBits(geBitmap_Info *pInfo, void *FmBits, void *ToBi
 					for(x=w-1;x--;)
 					{
 						*pDst++ = (pSrc[-1] + pSrc[1] + pSrc[-s]+ pSrc[-s+1])>>2;
-						pSrc++;
+						++pSrc;
 					}
 					*pDst++ = (pSrc[-1] + pSrc[-s])>>1;
-					pSrc++;
+					++pSrc;
 					pSrc += (s-w);
 					pDst += (s-w);
 					break;
@@ -495,7 +495,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 		nextc = 0.0;
 		icstep = 1.0 / cstep;
 
-		NumColors--;
+		--NumColors;
 		nr = getint();
 		ng = getint();
 		nb = getint();
@@ -503,7 +503,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 
 		PalPtr = static_cast<uint8*>(PalData);
 
-		for(p=0; p<256; p++)
+		for(p=0; p<256; ++p)
 		{
 			if(p >= static_cast<int>(nextc))
 			{
@@ -557,7 +557,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 
 		PalPtr = static_cast<uint8*>(PalData);
 
-		for(p=0; p<256; p++)
+		for(p=0; p<256; ++p)
 		{
 			frac = (double)p * (1.0/256.0);
 			r = (int)( nr * pow( frac, pr) );
@@ -595,7 +595,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 
 		PalPtr = static_cast<uint8*>(PalData);
 
-		for(p=0; p<256; p++)
+		for(p=0; p<256; ++p)
 		{
 			frac = static_cast<geFloat>(p) * (TWO_PI/256.0f);
 			r = (int)( r_mult * (cos( r_freq * frac + r_base ) + 1.0) );

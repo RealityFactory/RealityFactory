@@ -100,7 +100,7 @@ CStaticMesh::CStaticMesh()
 				}
 
 				pMesh->ListIndex = m_MeshCount;
-				m_MeshCount++;
+				++m_MeshCount;
 			}
 			// the file doesn't exist, report error and shutdown
 			else
@@ -315,7 +315,7 @@ CStaticMesh::CStaticMesh()
 /* ------------------------------------------------------------------------------------ */
 bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 {
-	for(int i=0; i<m_MeshCount; i++)
+	for(int i=0; i<m_MeshCount; ++i)
 	{
 		if(!strcmp(MeshList[i]->szFilename, szActorFile))
 		{
@@ -341,7 +341,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 	char LodName[128], Name[128];
 	geBoolean CleanUp = GE_FALSE;
 
-	for(int LOD=0; LOD<4; LOD++)
+	for(int LOD=0; LOD<4; ++LOD)
 	{
 		geVFile *ActorFile = NULL;
 		geActor *theActor = NULL;
@@ -695,7 +695,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				MeshList[m_MeshCount]->Color[LOD][i].b=B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Blue;
 				MeshList[m_MeshCount]->Color[LOD][i].a=255.0f;
 
-				for(j=0;j<3;j++)
+				for(j=0; j<3; ++j)
 				{
 					// fill in VertexIndices
 					MeshList[m_MeshCount]->FaceI[LOD][i*3+j]=B->SkinFaces[0].FaceArray[i].VtxIndex[j];
@@ -791,7 +791,7 @@ CLEAN_UP:
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 {
-	for(int LOD=0;LOD<4;LOD++)
+	for(int LOD=0; LOD<4; ++LOD)
 	{
 		if(!MeshList[pMesh->ListIndex]->Verts[LOD])
 			continue;
@@ -816,7 +816,7 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 
 		for(int iFace=0;iFace<MeshList[pMesh->ListIndex]->NumFaces[LOD];iFace++)
 		{
-			for(int j=0;j<3;j++)
+			for(int j=0; j<3; ++j)
 			{
 				pColor[iFace*3+j].r += pMesh->AmbientColor.r;
 				pColor[iFace*3+j].g += pMesh->AmbientColor.g;
@@ -894,7 +894,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 	geXForm3d_RotateX(&theRotation, pMesh->Rotation.X);
 	geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
-	for(int LOD=0;LOD<4;LOD++)
+	for(int LOD=0; LOD<4; ++LOD)
 	{
 		if(!MeshList[pMesh->ListIndex]->Verts[LOD])
 			continue;
@@ -921,7 +921,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 			geVec3d Vertex[3];
 			int j;
 
-			for(j=0;j<3;j++)
+			for(j=0; j<3; ++j)
 			{
 				int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][iFace*3+j];
 
@@ -946,7 +946,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 				geVec3d_Normalize(&Normal);
 			}
 
-			for(j=0;j<3;j++)
+			for(j=0; j<3; ++j)
 			{
 				GE_Collision Collision;
 				geVec3d LOrigin, Vect;
@@ -1047,7 +1047,7 @@ static geBoolean ColCB(geWorld_Model *Model, geActor *Actor, void *Context)
 		int NumFaces = Model->BSPModel->NumFaces;
 		GBSP_BSPData	*BSPData=&(CCD->World()->CurrentBSP->BSPData);
 
-		for(int i=0;i<NumFaces;i++)
+		for(int i=0;i<NumFaces;++i)
 		{
 			pFace = &BSPData->GFXFaces[Face+i];
 			pTexInfo = &BSPData->GFXTexInfo[pFace->TexInfo];
@@ -1145,7 +1145,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 			geVec3d Vertex[3];
 			int VertIndex, j;
 
-			for(j=0;j<3;j++)
+			for(j=0; j<3; ++j)
 			{
 				VertIndex = MeshList[pMesh->ListIndex]->FaceI[LODIndex][i*3+j];
 
@@ -1265,10 +1265,9 @@ void CStaticMesh::CleanUp()
 			free(pMesh->ColorLOD3);
 	}
 
-
-	for(int i=0; i<m_MeshCount; i++)
+	for(int i=0; i<m_MeshCount; ++i)
 	{
-		for(int LOD=0;LOD<4;LOD++)
+		for(int LOD=0; LOD<4; ++LOD)
 		{
 			free(MeshList[i]->Verts[LOD]);
 
@@ -1490,7 +1489,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
 		// transform the obb
-		for(i=0; i<3; i++)
+		for(i=0; i<3; ++i)
 			geXForm3d_Rotate(&theRotation, &(MeshList[Index]->OBBox[LOD].Axis[i]), &Axis[i]);
 
 		geXForm3d_Transform(&thePosition, &(MeshList[Index]->OBBox[LOD].Center), &Center);
@@ -1540,7 +1539,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		geVec3d temp[3];
 		int j;
 
-		for(j=0; j<3; j++)
+		for(j=0; j<3; ++j)
 		{
 			int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 			temp[j].X = MeshList[Index]->Verts[LOD][VertIndex].X;
@@ -1587,7 +1586,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		{
 			geFloat distsq[3];
 
-			for(j=0;j<3;j++)
+			for(j=0; j<3; ++j)
 			{
 				geVec3d B;
 				geVec3d_Subtract(&temp[j], &(CameraXf.Translation), &B);
@@ -1607,7 +1606,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 			Box.Max.Y = Box.Min.Y = Vertex[0].Y;
 			Box.Max.Z = Box.Min.Z = Vertex[0].Z;
 
-			for(j=1;j<3;j++)
+			for(j=1; j<3; ++j)
 			{
 				if(Box.Max.X < Vertex[j].X)
 					Box.Max.X = Vertex[j].X;
@@ -1627,7 +1626,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 				continue;
 		}
 
-		for(j=0; j<3; j++)
+		for(j=0; j<3; ++j)
 		{
 			int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 
@@ -1964,7 +1963,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_RotateX(&theRotation, pMesh->Rotation.X);
 			geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
-			for(i=0; i<3; i++)
+			for(i=0; i<3; ++i)
 				geXForm3d_Rotate(&theRotation, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Axis[i]), &Axis[i]);
 
 			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Center), &Center);
@@ -1977,9 +1976,8 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 			if(Min && Max) // there's a boundingbox, do a box-box collision
 			{
-// changed QD 10/01/2004
-// using same method as genesis actor collision now
-				for (i=0; i<3; i++)
+				// using same method as genesis actor collision now
+				for (i=0; i<3; ++i)
 				{
 					if(geVec3d_GetElement(&TestBox.Max, i) < geVec3d_GetElement(&Box.Min, i))
 						break;
@@ -2013,7 +2011,6 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					else // just want to know if we collide at all
 						return GE_TRUE;
 				}
-// end change
 			}
 			else //no boundingbox was specified, do a simple ray-box collision
 			{
@@ -2075,7 +2072,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 				int i;
 
 				// transform OBB into object space
-				for(i=0; i<3; i++)
+				for(i=0; i<3; ++i)
 				{
 					geXForm3d_Rotate(&theRotationT, &OBBaxis[i], &axis[i]);
 					HalfAxisLength[i] = OBBHalfAxisLength[i]*InvScale;
@@ -2089,7 +2086,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					int VertIndex, j;
 
 					// get the vertices of the actual triangle
-					for(j=0; j<3; j++)
+					for(j=0; j<3; ++j)
 					{
 						VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 
@@ -2125,7 +2122,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 						geFloat DP = V.X*center.X+V.Y*center.Y+V.Z*center.Z;
 						geFloat R = 0.0f;
 
-						for(j=0; j<3; j++)
+						for(j=0; j<3; ++j)
 						{
 							R += HalfAxisLength[j]*fabs(V.X*axis[j].X + V.Y*axis[j].Y + V.Z*axis[j].Z);
 						}
@@ -2139,7 +2136,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 						goto NO_COLLISION;//continue;
 
 					//direction of the OBB planes
-					for(j=0; j<3; j++)
+					for(j=0; j<3; ++j)
 					{
 						V = axis[j];
 						// TriProject
@@ -2170,9 +2167,9 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					}
 
 					geVec3d_Subtract(&edge[1], &edge[0], &edge[2]);
-					for(j=0; j<3; j++)
+					for(j=0; j<3; ++j)
 					{
-						for(int k=0; k<3; k++)
+						for(int k=0; k<3; ++k)
 						{
 							geVec3d_CrossProduct(&edge[j], &axis[k], &V);
 
@@ -2198,7 +2195,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 								geFloat DP = V.X*center.X+V.Y*center.Y+V.Z*center.Z;
 								geFloat R = 0.0f;
 
-								for(int m=0; m<3; m++)
+								for(int m=0; m<3; ++m)
 								{
 									R += HalfAxisLength[m]*fabs(V.X*axis[m].X + V.Y*axis[m].Y + V.Z*axis[m].Z);
 								}
@@ -2249,7 +2246,7 @@ NO_COLLISION:;
 					geVec3d Vertex[3];
 					int VertIndex, j;
 
-					for(j=0; j<3; j++)
+					for(j=0; j<3; ++j)
 					{
 						VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 

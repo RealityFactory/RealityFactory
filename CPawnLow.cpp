@@ -4170,9 +4170,9 @@ bool ScriptedObject::CheckBottom()
 	Stop.Y = theBox.Min.Y - 1.0f;
 	bool flag = false;
 
-	for(x=0; x<=1; x++)
+	for(x=0; x<=1; ++x)
 	{
-		for(y=0; y<=1; y++)
+		for(y=0; y<=1; ++y)
 		{
 			Start.X = x ? theBox.Max.X : theBox.Min.X;
 			Start.Z = y ? theBox.Max.Z : theBox.Min.Z;
@@ -4205,9 +4205,9 @@ bool ScriptedObject::CheckBottom()
 
 	mid = bottom = trace.endpos.Y;
 
-	for(x=0; x<=1; x++)
+	for(x=0; x<=1; ++x)
 	{
-		for(y=0; y<=1; y++)
+		for(y=0; y<=1; ++y)
 		{
 			Start.X = Stop.X = x ? theBox.Max.X : theBox.Min.X;
 			Start.Z = Stop.Z = y ? theBox.Max.Z : theBox.Min.Z;

@@ -462,7 +462,7 @@ void CWeapon::Tick(geFloat dwTicks)
 			if(d->MoveSoundEffect != -1)
 				CCD->EffectManager()->Item_Delete(EFF_SND, d->MoveSoundEffect);
 
-			for(int j=0; j<5; j++)
+			for(int j=0; j<5; ++j)
 			{
 				if(d->Effect[j] != -1)
 				{
@@ -1338,7 +1338,7 @@ void CWeapon::SetWeapon(int value)
 	char *Motion = CCD->ActorManager()->GetMotion(CCD->Player()->GetActor());
 	int index = -1;
 
-	for(int i=0; i<ANIMMAX; i++)
+	for(int i=0; i<ANIMMAX; ++i)
 	{
 		if(!strcmp(Motion, WeaponD[CurrentWeapon].Animations[i]))
 		{
@@ -1449,7 +1449,7 @@ void CWeapon::ReSetWeapon(int value)
 
 	if(!(value == -1 || value == MAX_WEAPONS))
 	{
-		for(int i=0; i<ANIMMAX; i++)
+		for(int i=0; i<ANIMMAX; ++i)
 		{
 			if(!strcmp(Motion, WeaponD[CurrentWeapon].Animations[i]))
 			{
@@ -2468,7 +2468,7 @@ void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geV
 			}
 		}
 
-		for(int i=0; i<5; i++)
+		for(int i=0; i<5; ++i)
 		{
 			d->Effect[i] = -1;
 			geXForm3d thePosition;

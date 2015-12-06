@@ -142,7 +142,7 @@ Procedural *Smoke_Create(char *TextureName, geWorld *World, const char *StrParms
 				break;
 			}
 
-			TokenNum++;
+			++TokenNum;
 
 			if(TokenNum >= 8)
 				break;
@@ -292,7 +292,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 
 	// Shade the data for the smoke using the z buffer to provide
 	// occlusion information.
-	for(i=0; i!=Smoke->Size-5; i++, ZBuffer++, ZAge++)
+	for(i=0; i!=Smoke->Size-5; ++i, ++ZBuffer, ++ZAge)
 	{
 		int32	Result;
 		int32	Val;
@@ -330,7 +330,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 	}
 
 	// Smoth the bitmap
-	for(i=0; i<2; i++)
+	for(i=0; i<2; ++i)
 	{
 		geBitmapUtil_SmoothBits(&Smoke->BitmapInfo, Bits, Bits, 1, SMOOTH_WRAP);
 	}
@@ -375,7 +375,7 @@ static geBoolean Smoke_Update(	Procedural *Smoke,
 
 	// Update Positions for all the particles in the smoke
 	// and update the data in the destination buffer
-	for(i=0; i<nparticles; i++)
+	for(i=0; i<nparticles; ++i)
 	{
 		int   x,y;
 
@@ -483,7 +483,7 @@ static int32 Smoke_GetPalIndexFromString(const char *Str)
 {
 	int32 i;
 
-	for(i=0; i<PalStrTableSize; i++)
+	for(i=0; i<PalStrTableSize; ++i)
 	{
 		if(!stricmp(Str, PalStr[i]))
 			return i;
@@ -614,7 +614,7 @@ static geBoolean Smoke_InitPalette(Procedural *Proc)
 
 		pPoint = &CPoints[Proc->PalIndex][0];
 
-		for(i=0; i<256; i++)
+		for(i=0; i<256; ++i)
 		{
 			geFloat	Ratio;
 			int32	Next;
@@ -644,7 +644,7 @@ static geBoolean Smoke_InitPalette(Procedural *Proc)
 
 			if((geFloat)i >= pPoint[Next].f)
 			{
-				Current++;
+				++Current;
 
 				if(Current > NumControlPoints-1)
 					Current = NumControlPoints-1;

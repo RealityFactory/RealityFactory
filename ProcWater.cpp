@@ -110,7 +110,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 			return NULL;
 		}
 
-		for(i=0; i<2; i++)
+		for(i=0; i<2; ++i)
 		{
 			Water->WaterData[i] = GE_RAM_ALLOCATE_ARRAY(int16, Water->Size);
 
@@ -152,7 +152,7 @@ Procedural *Water_Create(char *TextureName, geWorld *World)
 
 		pSrc16 = static_cast<uint16*>(geBitmap_GetBits(Src));
 
-		for(i=0; i<Water->Size; i++)
+		for(i=0; i<Water->Size; ++i)
 			Water->OriginalBits[i] = pSrc16[i];
 
 		if(!geBitmap_UnLock(Src))
@@ -203,9 +203,9 @@ static void Water_BuildRGBLuts(Procedural *Water, geFloat RScale, geFloat GScale
 {
 	int32		i, j;
 
-	for(i=0; i<32; i++)		// Shade
+	for(i=0; i<32; ++i)		// Shade
 	{
-		for(j=0; j<32; j++)	// Color
+		for(j=0; j<32; ++j)	// Color
 		{
 			int32	Val;
 
@@ -274,9 +274,9 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water)
 		pDest16 = static_cast<uint16*>(geBitmap_GetBits(Dest));
 
 		// For the love of God, write this in assembly
-		for(h=0; h<Info.Height; h++)
+		for(h=0; h<Info.Height; ++h)
 		{
-			for(w=0; w<Info.Width; w++)
+			for(w=0; w<Info.Width; ++w)
 			{
 				int32	x, y, Val;
 				uint16	r, g, b;
@@ -332,9 +332,9 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 	int32	i, j;
 	int16	Val;
 
-	for(i=0; i<H; i++)
+	for(i=0; i<H; ++i)
 	{
-		for(j=0; j<W; j++)
+		for(j=0; j<W; ++j)
 		{
 			if(i > 0)							// Get top
 				Val = *(Dest - W);
@@ -361,8 +361,8 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 			Val -= (Val >> Density);
 			*Src = Val;
 
-			Src++;
-			Dest++;
+			++Src;
+			++Dest;
 		}
 	}
 }
@@ -402,13 +402,13 @@ static void Water_Update(Procedural *Water, geFloat Time)
 
 		Water->TimeToSplashWater = 0.0f;
 
-		for(c=0; c<2; c++)
+		for(c=0; c<2; ++c)
 		{
 			px=(1+(rand()%(Water->Width-1-10)));
 			py=(1+(rand()%(Water->Height-1-10)));
 
-			for(cy=py; cy<(py+8); cy++)
-				for(cx=px; cx<(px+8); cx++)
+			for(cy=py; cy<(py+8); ++cy)
+				for(cx=px; cx<(px+8); ++cx)
 					Water->WaterData[!Water->NPage][cy * Water->Width + cx] = 255;
 		}
 	}

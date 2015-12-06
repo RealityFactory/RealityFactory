@@ -244,7 +244,7 @@ void CCDAudio::Check()
 	// ..track in the list (if there is one).
 	if(m_PlayCount != 0)
 	{
-		m_nPlayIndex++;
+		++m_nPlayIndex;
 
 		if(m_nPlayIndex > m_PlayCount)
 		{

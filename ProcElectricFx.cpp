@@ -266,7 +266,7 @@ static void ElectricFx_ZLine(Procedural *Fx, int a, int b, int c, int d, int32 Z
 	s = static_cast<int>(m >> 1);			// s is the m distance (either x or y) divided by 2
 
 	// repeat this loop until it is = to m (y or x distance)
-	for(i=m; i>0; i--)
+	for(i=m; i>0; --i)
 	{
 		ElectricFx_PutZ(Fx, a, b, ZVal, ZAge);// plot a pixel at the original x1, y1
 
@@ -314,23 +314,29 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 	if(dy == 0)
 	{
 		if(dx < 0)
-			for(x=x1; x<x2+1; x++)
+		{
+			for(x=x1; x<x2+1; ++x)
 				ElectricFx_PutZ(Fx, x, y1, ZVal, ZAge);
-
-		if(dx > 0)
-			for(x=x2; x<x1+1; x++)
+		}
+		else if(dx > 0)
+		{
+			for(x=x2; x<x1+1; ++x)
 				ElectricFx_PutZ(Fx, x, y1, ZVal, ZAge);
+		}
 	}
 
 	if(dx == 0)
 	{
 		if(dy < 0)
-			for(y=y1; y<y2+1; y++)
+		{
+			for(y=y1; y<y2+1; ++y)
 				ElectricFx_PutZ(Fx, x1, y, ZVal, ZAge);
-
-		if(dy > 0)
-			for(y=y2; y<y1+1; y++)
+		}
+		else if(dy > 0)
+		{
+			for(y=y2; y<y1+1; ++y)
 				ElectricFx_PutZ(Fx, x1, y, ZVal, ZAge);
+		}
 	}
 
 	if((xlength != 0) && (ylength != 0))
@@ -348,7 +354,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 	{
 		if(dx < 0)
 		{
-			for(x=x1; x<x2+1; x++)
+			for(x=x1; x<x2+1; ++x)
 			{
 				y = round(yslope * static_cast<geFloat>(x));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
@@ -356,7 +362,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		}
 		else if(dx > 0)
 		{
-			for(x=x2; x<x1+1; x++)
+			for(x=x2; x<x1+1; ++x)
 			{
 				y = round(yslope * static_cast<geFloat>(x));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
@@ -367,7 +373,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 	{
 		if(dy < 0)
 		{
-			for(y=x1; y<x2+1; y++)
+			for(y=x1; y<x2+1; ++y)
 			{
 				x = round(xslope * static_cast<geFloat>(y));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
@@ -375,7 +381,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		}
 		else if(dy > 0)
 		{
-			for(y=x2; y<x1+1; y++)
+			for(y=x2; y<x1+1; ++y)
 			{
 				x = round(xslope * static_cast<geFloat>(y));
 				ElectricFx_PutZ(Fx, x, y, ZVal, ZAge);
@@ -452,7 +458,7 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 
 	// Shade the data for the Fx using the z buffer to provide
 	// occlusion information.
-	for(i=0; i<Fx->Size-5; i++, ZBuffer++)
+	for(i=0; i<Fx->Size-5; ++i, ++ZBuffer)
 	{
 		int32	Result;
 		int32	Val;
@@ -479,7 +485,7 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 	}
 
 	// Smooth the bitmap
-	for(i=0; i<2; i++)
+	for(i=0; i<2; ++i)
 	{
 		geBitmapUtil_SmoothBits(&Fx->BitmapInfo, Bits, Bits, 1, SMOOTH_WRAP);
 	}
@@ -512,7 +518,7 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 
 	Fx = EFx->Fx;
 
-	for(i=0; i<EFx->NumFx; i++, Fx++)
+	for(i=0; i<EFx->NumFx; ++i, ++Fx)
 	{
 		switch(Fx->TypeData->Type)
 		{
@@ -530,7 +536,7 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 			{
 				int32	i;
 
-				for(i=0; i<3; i++)
+				for(i=0; i<3; ++i)
 				{
 					int32		x, y;
 					geFloat		r;
@@ -557,12 +563,12 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 
 				pVec = Fx->Vecs;
 
-				for(j=0; j<Fx->TypeData->NumVecs; j++, pVec++)
+				for(j=0; j<Fx->TypeData->NumVecs; ++j, ++pVec)
 				{
 					int32	i, x, y;
 					geFloat	r;
 
-					for(i=0; i<3; i++)
+					for(i=0; i<3; ++i)
 					{
 						geFloat	Val;
 
@@ -658,7 +664,7 @@ static int32 ElectricFx_GetPalIndexFromString(const char *Str)
 {
 	int32 i;
 
-	for(i=0; i<PalStrTableSize; i++)
+	for(i=0; i<PalStrTableSize; ++i)
 	{
 		if(!stricmp(Str, PalStr[i]))
 			return i;
@@ -674,7 +680,7 @@ static ElectricFx_TypeData	*ElectricFx_GetFxTypeDataFromString(const char *Str)
 {
 	int32 i;
 
-	for(i=0; i<FxTypeDataTableSize; i++)
+	for(i=0; i<FxTypeDataTableSize; ++i)
 	{
 		if(!stricmp(Str, FxTypeDataTable[i].Str))
 			return &FxTypeDataTable[i];
@@ -711,7 +717,7 @@ static geBoolean ElectricFx_FxParseData(ElectricFx_Fx *Fx)
 
 		Fx->Vecs[VecNum].y = atoi(Token);
 
-		VecNum++;
+		++VecNum;
 
 		if(VecNum >= Fx->TypeData->NumVecs)
 			break;
@@ -821,7 +827,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 
 		pPoint = &CPoints[Proc->PalIndex][0];
 
-		for(i=0; i<256; i++)
+		for(i=0; i<256; ++i)
 		{
 			geFloat	Ratio;
 			int32	Next;
@@ -851,7 +857,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 
 			if(static_cast<geFloat>(i) >= pPoint[Next].f)
 			{
-				Current++;
+				++Current;
 
 				if(Current > NumControlPoints-1)
 					Current = NumControlPoints-1;

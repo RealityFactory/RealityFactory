@@ -56,7 +56,7 @@ static int logBase2(int n)
 	while(!(n & 1))
 	{
 		n = n>>1;
-		i++;
+		++i;
 	}
 
 	return i;
@@ -141,7 +141,7 @@ static geFloat GaussRand(void)
 
 	r = 0;
 
-	for(i=0; i<6; i++)
+	for(i=0; i<6; ++i)
 		r = r + rand() - rand();
 
 	return static_cast<geFloat>(r)/(static_cast<geFloat>(RAND_MAX)*6.0f);
@@ -353,7 +353,7 @@ void Electric_BoltEffectRender(Electric_BoltEffect	*be,
 		do the drawing.
 	*/
 
-	for(i=0; i<be->beNumPoints-1; i++)
+	for(i=0; i<be->beNumPoints-1; ++i)
 	{
 		geVec3d	temp;
 
@@ -750,7 +750,7 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 
 	Bolt->bState = GE_FALSE;
 
-	for(int i=0; i<be->beNumPoints-1; i++)
+	for(int i=0; i<be->beNumPoints-1; ++i)
 	{
 		if(CCD->Collision()->CheckForWCollision(NULL, NULL,
 				be->beCenterPoints[i], be->beCenterPoints[i + 1], &Collision, NULL))

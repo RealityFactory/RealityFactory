@@ -394,7 +394,7 @@ bool CAnimGif::TakeIt(void)
 	memset(pcBitmap, TransparentIndex, iMaxByte);
 	pcGifTable=(GIFTABLE*)new BYTE[sizeof(GIFTABLE)*4096];
 
-	for(int i=0; i<4096; i++)
+	for(int i=0; i<4096; ++i)
 		pcGifTable[i].previouscode = pcGifTable[i].nextcode = 0;
 
 	if(cPackedField&0x80)
@@ -403,7 +403,7 @@ bool CAnimGif::TakeIt(void)
 		uLocalColorTableSize <<= (cPackedField&7)+1;
 		TotalReadByte += uLocalColorTableSize*3;
 
-		for(UINT i=0; i<uLocalColorTableSize; i++)
+		for(UINT i=0; i<uLocalColorTableSize; ++i)
 		{
 			pcColorTable[0] = *pcGifTrack++;
 			pcColorTable[1] = *pcGifTrack++;
@@ -498,7 +498,7 @@ bool CAnimGif::TakeIt(void)
 
 			pcGifTable[iTableSize].bit = (BYTE)code1;
 			pcGifTable[iTableSize].previouscode = oldcode;
-			iTableSize++;
+			++iTableSize;
 
 			if(iTableSize == (0x0001<<uBitSize))
 				uBitSize++;
@@ -538,7 +538,7 @@ bool CAnimGif::TakeIt(void)
 			Output((BYTE)code1);
 			pcGifTable[iTableSize].bit = (BYTE)code1;
 			pcGifTable[iTableSize].previouscode = oldcode;
-			iTableSize++;
+			++iTableSize;
 
 			if(iTableSize == (0x0001<<uBitSize))
 				uBitSize++;

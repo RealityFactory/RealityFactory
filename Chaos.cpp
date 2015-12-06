@@ -266,7 +266,7 @@ void Chaos::Tick(geFloat dwTicks)
 		CurYOffset = pTex->YOffset;
 
 		// adjust vertically
-		for(Col=0; Col<pTex->SegmentCount; Col++)
+		for(Col=0; Col<pTex->SegmentCount; ++Col)
 		{
 			// adjust offset
 			CurYOffset += CosStep;
@@ -302,7 +302,7 @@ void Chaos::Tick(geFloat dwTicks)
 		CurXOffset = pTex->XOffset;
 
 		// adjust horizontally
-		for(Row=0; Row<pTex->SegmentCount; Row++)
+		for(Row=0; Row<pTex->SegmentCount; ++Row)
 		{
 			// adjust offset
 			CurXOffset += CosStep;

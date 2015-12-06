@@ -82,7 +82,7 @@ CPathDatabase::~CPathDatabase()
 {
 	PathDatabaseRecord *pTemp = NULL, *pSaved = NULL;
 
-	for(int nTemp=0; nTemp<MAX_PATHS; nTemp++)
+	for(int nTemp=0; nTemp<MAX_PATHS; ++nTemp)
 	{
 		if(m_DB[nTemp] == NULL)
 			continue;						// Nothing to delete here
@@ -139,7 +139,7 @@ int CPathDatabase::OpenPath(const char *szPointName, geVec3d *Position)
 
 	int nTemp, nHandle;
 
-	for(nTemp=0; nTemp<MAX_PATHS; nTemp++)
+	for(nTemp=0; nTemp<MAX_PATHS; ++nTemp)
 	{
 		if(m_DB[nTemp] == NULL)
 			continue;									// Empty, don't bother
@@ -147,8 +147,8 @@ int CPathDatabase::OpenPath(const char *szPointName, geVec3d *Position)
 		if(strcmp(m_DB[nTemp]->szName, szPointName) != 0)
 			continue;									// Wrong name, don't bother
 
-		//	Ok, right name!  Now let's see if we have any free handles...
-		for(nHandle=0; nHandle<MAX_OPEN_PATHS; nHandle++)
+		// Ok, right name!  Now let's see if we have any free handles...
+		for(nHandle=0; nHandle<MAX_OPEN_PATHS; ++nHandle)
 			if(m_Handles[nHandle] == NULL)
 				break;
 
@@ -297,7 +297,7 @@ PathDatabaseRecord *CPathDatabase::CreateNewPath(const char *szPointName, const 
 												 int nType, geFloat Range)
 {
 	// Ok, look for a free entry in our path table
-	for(int nTemp=0; nTemp<MAX_PATHS; nTemp++)
+	for(int nTemp=0; nTemp<MAX_PATHS; ++nTemp)
 	{
 		if(m_DB[nTemp] == NULL)
 		{

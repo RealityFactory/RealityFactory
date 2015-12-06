@@ -1529,9 +1529,9 @@ void Collider::GetMoveBox(const geVec3d *Mins, const geVec3d *Maxs,
 						  const geVec3d *Front, const geVec3d *Back,
 						  geVec3d *OMins, geVec3d *OMaxs)
 {
-	int32		i;
+	int32 i;
 
-	for (i=0 ; i<3 ; i++)
+	for(i=0; i<3; ++i)
 	{
 		if (VectorToSUB(*Back, i) > VectorToSUB(*Front, i))
 		{
@@ -2389,7 +2389,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 		int TotalStaticBoneCount = geActor_GetBoneCount(Collision->Actor);
 		geExtBox theStaticBoneBox;
 
-		for(int nStatic=0; nStatic<TotalStaticBoneCount; nStatic++)
+		for(int nStatic=0; nStatic<TotalStaticBoneCount; ++nStatic)
 		{
 			// The bone bounding box comes back in worldspace coordinates...
 			if(geActor_GetBoneExtBoxByIndex(Collision->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)

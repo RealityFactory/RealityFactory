@@ -105,7 +105,7 @@ geBoolean AutoSelect_PickDriver(HWND hWnd, geEngine *Engine,ModeList *DriverList
 	assert(DriverList  != NULL);
 	assert(Selection   != NULL);
 
-	for(i=0; i<ListLength; i++)
+	for(i=0; i<ListLength; ++i)
 	{
 		if(DriverList[i].Evaluation == MODELIST_EVALUATED_OK)
 		{
@@ -187,7 +187,7 @@ ModeList *ModeList_Create(geEngine *Engine, int *ListLength, geDriver_System *m_
 				goto ModeList_Exit;
 			}
 
-			Needed++;
+			++Needed;
 
 			if(Allocated<Needed)
 			{
@@ -241,7 +241,7 @@ ModeList *ModeList_Create(geEngine *Engine, int *ListLength, geDriver_System *m_
 				dinfo->Height = 768;
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 
-				Needed++;
+				++Needed;
 
 				if(Allocated < Needed)
 				{
@@ -268,7 +268,7 @@ ModeList *ModeList_Create(geEngine *Engine, int *ListLength, geDriver_System *m_
 				dinfo->Height = 600;
 				dinfo->Evaluation = MODELIST_EVALUATED_OK;
 
-				Needed++;
+				++Needed;
 
 				if(Allocated < Needed)
 				{
@@ -374,7 +374,7 @@ static geBoolean DrvList_FillModeList(HWND hwndDlg, int DriverNumber, DrvList_Lo
 
 	SendDlgItemMessage(hwndDlg, IDC_DRIVERLIST2, LB_RESETCONTENT, (WPARAM)0, (LPARAM)0);
 
-	for(i=0; i<DL->ModeListLength; i++)
+	for(i=0; i<DL->ModeListLength; ++i)
 	{
 		if(DL->ModeList[i].Evaluation != MODELIST_EVALUATED_OK)
 			continue;

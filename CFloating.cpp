@@ -169,7 +169,6 @@ void CFloat::Tick(geFloat dwTicks)
 	if(!pSet)
 		return;
 	geEntity *pEntity;
-	int i;
 
 	// get amount of time since last call
 	dwTicks *= 0.001f;
@@ -200,7 +199,7 @@ void CFloat::Tick(geFloat dwTicks)
 		geVec3d_Copy( &(S->origin), &( S->BasePos ) );
 
 		// modify all sprites
-		for(i=0; i<S->EffectCount; i++)
+		for(int i=0; i<S->EffectCount; ++i)
 		{
 			if(S->active == GE_TRUE)
 			{

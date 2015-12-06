@@ -351,7 +351,7 @@ std::string CIniFile::FindFirstKey()
 /* ------------------------------------------------------------------------------------ */
 std::string CIniFile::FindNextKey()
 {
-	numkey +=1;
+	++numkey;
 
 	if(numkey < keys.size())
 		return names[numkey];
@@ -396,7 +396,7 @@ std::string CIniFile::FindNextName()
 	if(keyindex == -1)
 		return "";
 
-	entrykey += 1;
+	++entrykey;
 
 	if(entrykey < keys[keyindex].names.size())
 		return keys[keyindex].names[entrykey];
@@ -432,7 +432,7 @@ int CIniFile::FindKey(std::string keyname)
 	unsigned int keynum = 0;
 
 	while(keynum < keys.size() && names[keynum] != keyname)
-		keynum++;
+		++keynum;
 
 	if(keynum == keys.size())
 		return -1;
@@ -451,7 +451,7 @@ int CIniFile::FindValue(int keynum, std::string valuename)
 	unsigned int valuenum = 0;
 
 	while(valuenum < keys[keynum].names.size() && keys[keynum].names[valuenum] != valuename)
-		valuenum++;
+		++valuenum;
 
 	if(valuenum == keys[keynum].names.size())
 		return -1;

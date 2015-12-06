@@ -173,7 +173,7 @@ int32 Particle_GetCount(Particle_System *ps)
 	while(ptcl)
 	{
 		ptcl = ptcl->ptclNext;
-		TotalParticleCount++;
+		++TotalParticleCount;
 	}
 
 	// return the active count
@@ -603,7 +603,7 @@ int32 ActorParticle_GetCount(ActorParticle_System *ps)
 	while(ptcl)
 	{
 		ptcl = ptcl->ptclNext;
-		TotalParticleCount++;
+		++TotalParticleCount;
 	}
 
 	// return the active count

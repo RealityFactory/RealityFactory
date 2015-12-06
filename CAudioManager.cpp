@@ -216,7 +216,7 @@ void CAudioManager::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::FindFreeChannel()
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<32; ++nTemp)
 	{
 		if(PlayingChannels[nTemp][0] < 0)
 			return nTemp;				// A free channel!
@@ -232,7 +232,7 @@ int CAudioManager::FindFreeChannel()
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::GetPlaybackChannel(int nHandle)
 {
-	for(int nTemp=0; nTemp<512; nTemp++)
+	for(int nTemp=0; nTemp<512; ++nTemp)
 	{
 		if(MainList[nTemp] == NULL)
 			continue;						// Ignore the empty slots
@@ -256,7 +256,7 @@ int CAudioManager::GetPlaybackChannel(int nHandle)
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::ChannelFromHandle(int nHandle)
 {
-	for(int nTemp=0; nTemp<32; nTemp++)
+	for(int nTemp=0; nTemp<32; ++nTemp)
 	{
 		if(PlayingChannels[nTemp][1] == nHandle)
 			return nTemp;				// Handle is playing on this channel

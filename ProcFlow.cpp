@@ -52,7 +52,7 @@ static uint8 Flow_FindBestColorMatch(
 	uint8	BestMatch = 0;
 
 	// find best match
-	for(Color=0; Color<256; Color++)
+	for(Color=0; Color<256; ++Color)
 	{
 		// get color deltas
 		RDiff = abs(ColorTable->R[Color] - R);
@@ -97,7 +97,7 @@ static geBoolean Flow_CreateColorTable(Procedural *P)	// procedural struct
 		return GE_FALSE;
 
 	// load up all the colors
-	for(Color1=0; Color1<256; Color1++)
+	for(Color1=0; Color1<256; ++Color1)
 	{
 		Result = geBitmap_Palette_GetEntryColor(Pal, Color1,
 												&(ColorTable.R[Color1]),
@@ -110,9 +110,9 @@ static geBoolean Flow_CreateColorTable(Procedural *P)	// procedural struct
 	}
 
 	// build color table
-	for(Color1=0; Color1<256; Color1++)
+	for(Color1=0; Color1<256; ++Color1)
 	{
-		for(Color2=0; Color2<256; Color2++)
+		for(Color2=0; Color2<256; ++Color2)
 		{
 			// pick new color value
 			NewR = ((ColorTable.R[Color1] >> 1) + (ColorTable.R[Color2] >> 1));
@@ -346,7 +346,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	// process all pixels in 8bit pal format...
 	if(P->PixelFormat == GE_PIXELFORMAT_8BIT)
 	{
-		for(Row=0; Row<DestInfo.Height; Row++)
+		for(Row=0; Row<DestInfo.Height; ++Row)
 		{
 			// set destination pointer
 			CurDestBits_8 = DestBits_8 + (DestInfo.Stride * Row);
@@ -366,16 +366,16 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurSrcBits2_8 = SrcBits_8 + (SrcInfo.Stride * Row);
 
 			// copy data
-			for(Col=0; Col<DestInfo.Width; Col++)
+			for(Col=0; Col<DestInfo.Width; ++Col)
 			{
 				// adjust current pixel
 				*CurDestBits_8 = P->Table[*CurSrcBits1_8][*(CurSrcBits2_8 + SrcCol)];
 
 				// adjust first src pointer
-				CurSrcBits1_8++;
+				++CurSrcBits1_8;
 
 				// adjust second src pointer
-				SrcCol++;
+				++SrcCol;
 
 				if(SrcCol >= SrcInfo.Width)
 				{
@@ -383,7 +383,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 				}
 
 				// adjust dest pointer
-				CurDestBits_8++;
+				++CurDestBits_8;
 			}
 		}
 	}
@@ -393,7 +393,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 		DestBits_16 = reinterpret_cast<uint16*>(DestBits_8);
 		SrcBits_16 = reinterpret_cast<uint16*>(SrcBits_8);
 
-		for(Row=0; Row<DestInfo.Height; Row++)
+		for(Row=0; Row<DestInfo.Height; ++Row)
 		{
 			// set destination pointer
 			CurDestBits_16 = DestBits_16 + (DestInfo.Stride * Row);
@@ -413,17 +413,17 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 			CurSrcBits2_16 = SrcBits_16 + (SrcInfo.Stride * Row);
 
 			// copy data
-			for(Col=0; Col<DestInfo.Width; Col++)
+			for(Col=0; Col<DestInfo.Width; ++Col)
 			{
 				// adjust current pixel
 				*CurDestBits_16 = static_cast<uint16>((((*CurSrcBits1_16 & 0xF81F) + (*(CurSrcBits2_16 + SrcCol) & 0xF81F)) >> 1) & 0xF81F);
 				*CurDestBits_16 |= ((((*CurSrcBits1_16 & 0x3E0) + (*(CurSrcBits2_16 + SrcCol) & 0x3E0)) >> 1) & 0x3E0);
 
 				// adjust first src pointer
-				CurSrcBits1_16++;
+				++CurSrcBits1_16;
 
 				// adjust second src pointer
-				SrcCol++;
+				++SrcCol;
 
 				if(SrcCol >= SrcInfo.Width)
 				{
@@ -431,7 +431,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 				}
 
 				// adjust dest pointer
-				CurDestBits_16++;
+				++CurDestBits_16;
 			}
 		}
 	}

@@ -209,9 +209,9 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 		hs = HeightInfo.Stride;
 		bs = BumpInfo.Stride;
 
-		for(y=0; y<(h-1); y++)
+		for(y=0; y<(h-1); ++y)
 		{
-			for(x=0; x<(w-1); x++)
+			for(x=0; x<(w-1); ++x)
 			{
 				int NW, SW, NE, SE, vx, vy;
 				float scale, nX, nY, nZ;
@@ -220,7 +220,7 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 
 				NW = hp[0];
 				SW = hp[hs];
-				hp++;
+				++hp;
 				NE = hp[0];
 				SE = hp[hs];
 
@@ -284,15 +284,15 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 
 			// x == (w-1)
 			*bp = bp[-1];
-			bp++;
-			hp++;
+			++bp;
+			++hp;
 
 			hp += hs - w;
 			bp += bs - w;
 		}
 
-		//y == (h-1)
-		for(x=0; x<w; x++)
+		// y == (h-1)
+		for(x=0; x<w; ++x)
 		{
 			bp[x] = bp[x - bs];
 		}
@@ -364,7 +364,7 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 
 		PalPtr = static_cast<uint8*>(PalData);
 
-		for(p=0; p<256; p++)
+		for(p=0; p<256; ++p)
 		{
 			c = static_cast<int>(LightX * BumpTableX[p] + LightY * BumpTableY[p] + LightZ * BumpTableZ[p]);
 

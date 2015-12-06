@@ -24,7 +24,7 @@ CVideoTexture::CVideoTexture()
 
 	m_TextureCount = 0;					// No video textures
 
-	for(int nTemp=0; nTemp<40; nTemp++)
+	for(int nTemp=0; nTemp<40; ++nTemp)
 	{
 		m_VidList[nTemp] = NULL;	// Nothing doing right now
 		m_GifList[nTemp] = NULL;
@@ -41,7 +41,7 @@ CVideoTexture::CVideoTexture()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		VideoTextureReplacer *pTex = static_cast<VideoTextureReplacer*>(geEntity_GetUserData(pEntity));
-		m_TextureCount++;							// Kick door count
+		++m_TextureCount;						// Kick video texture count
 		pTex->Playing = GE_FALSE;
 
 		if(pTex->Radius == 0.0f)
@@ -104,7 +104,7 @@ CVideoTexture::CVideoTexture()
 /* ------------------------------------------------------------------------------------ */
 CVideoTexture::~CVideoTexture()
 {
-	for(int nTemp=0; nTemp<40; nTemp++)
+	for(int nTemp=0; nTemp<40; ++nTemp)
 	{
 		if(m_VidList[nTemp] != NULL)
 		{
@@ -169,7 +169,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 			//if(geVec3d_DistanceBetween(&(pTex->origin), &(CCD->Player()->Position())) > pTex->Radius)
 			if(geVec3d_DotProduct(&temp, &temp) > pTex->Radius*pTex->Radius)
 			{
-				nSlot++;
+				++nSlot;
 				continue;
 			}
 			// end change
@@ -186,7 +186,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					{
 						CCD->ReportError("[WARNING] Vidtex start: Failed to make new CAVIPlayer", false);
 						//return;
-						nSlot++;
+						++nSlot;
 						continue;
 					}
 
@@ -197,13 +197,13 @@ void CVideoTexture::Tick(geFloat dwTicks)
 								__FILE__, __LINE__, pTex->szVideoName);
 						CCD->ReportError(szBug, false);
 						//return;
-						nSlot++;
+						++nSlot;
 						continue;
 					}
 
 					// Feh, after all that, let's do something REAL!
 					m_VidList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, true);		// First frame out!
-					nSlot++;
+					++nSlot;
 					continue;					// Next victim
 				}
 
@@ -219,12 +219,12 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					{
 						CCD->ReportError("Failed to create new CAnimGif", false);
 						//return;
-						nSlot++;
+						++nSlot;
 						continue;
 					}
 
 					m_GifList[nSlot]->DisplayNextFrameTexture(pTex->szTextureName, true);
-					nSlot++;
+					++nSlot;
 					continue;
 				}
 
@@ -232,7 +232,7 @@ void CVideoTexture::Tick(geFloat dwTicks)
 			}
 		}
 
-		nSlot++;
+		++nSlot;
 	}
 
 	//	Whew, all done!  Let's get outta here...

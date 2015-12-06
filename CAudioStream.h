@@ -18,6 +18,8 @@
 
 #include "StreamingAudio.h"
 
+#define MAX_AUDIOSTREAMS	32
+
 /**
  * @brief CAudioStream aggregates StreamingAudio objects.
  */
@@ -59,10 +61,10 @@ private:
 private:
 
 	int				m_nStreamerCount;		///< Count of streaming audio entities
-	char			*m_FileList[32];		///< Up to 32 files can stream
-	StreamingAudio	*m_Streams[32];			///< Up to 32 streaming audio objects
-	LPDIRECTSOUND	m_dsPtr;				///< Pointer to Genesis3D DirectSound object
-	int				m_LoopingProxy;			///< ONLY ONE ALLOWED!
+	char			*m_FileList[MAX_AUDIOSTREAMS];	///< Up to 32 files can stream
+	StreamingAudio	*m_Streams[MAX_AUDIOSTREAMS];	///< Up to 32 streaming audio objects
+	LPDIRECTSOUND	m_dsPtr;						///< Pointer to Genesis3D DirectSound object
+	int				m_LoopingProxy;					///< ONLY ONE ALLOWED!
 };
 
 #endif

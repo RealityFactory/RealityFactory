@@ -54,9 +54,7 @@ CTriggers::CTriggers()
 			pTrigger->szEntityName = szName;
 		}
 
-
-
-		m_TriggerCount++;							// Kick count
+		++m_TriggerCount;							// Kick count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pTrigger->szEntityName, "Trigger");
