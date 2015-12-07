@@ -13,14 +13,6 @@
 #ifndef __RGF_CANIMGIF_H__
 #define __RGF_CANIMGIF_H__
 
-typedef struct
-{
-	BYTE bit;
-	WORD previouscode;
-	WORD nextcode;
-
-} GIFTABLE;
-
 /**
  * @brief Class to handle the playback of animated GIF files
  */
