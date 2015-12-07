@@ -49,7 +49,6 @@ static int AutoSelect_Compare(const void *arg1, const void *arg2)
 	#define A2_BETTER  ( 1)
 	#define TIE        ( 0)
 
-	int Compare = 0;
 	ModeList *A1,*A2;
 	assert(arg1);
 	assert(arg2);
