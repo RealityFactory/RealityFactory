@@ -17,8 +17,6 @@
 /* ------------------------------------------------------------------------------------ */
 CChangeAttribute::CChangeAttribute()
 {
-	geEntity *pEntity;
-
 	Active = false;
 
 	// Ok, check to see if there are ChangeAttributes in this world
@@ -26,6 +24,8 @@ CChangeAttribute::CChangeAttribute()
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+
 		//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -50,7 +50,6 @@ CChangeAttribute::~CChangeAttribute()
 /* ------------------------------------------------------------------------------------ */
 void CChangeAttribute::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
 
 	Active = false;
 
@@ -59,6 +58,7 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 
 	if(pSet)
 	{
+		geEntity *pEntity;
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
 		//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
@@ -137,13 +137,13 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ChangeAttributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -168,13 +168,13 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ChangeAttributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))

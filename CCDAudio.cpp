@@ -70,14 +70,13 @@ CCDAudio::CCDAudio()
 CCDAudio::~CCDAudio()
 {
 	MCI_GENERIC_PARMS mciClose;
-	MCIERROR theError;
 
 	mciClose.dwCallback = NULL;							// Please, no notifications
 
 	Stop();																	// Stop playback
 
-	theError = mciSendCommand(m_mciDeviceID, MCI_CLOSE,
-		MCI_WAIT, (DWORD)&mciClose);					// Shut it down!
+	MCIERROR theError = mciSendCommand(m_mciDeviceID, MCI_CLOSE,
+										MCI_WAIT, (DWORD)&mciClose);	// Shut it down!
 
 	if(theError != 0)
 		CCD->ReportError("[WARNING] CCDAudio: Failed to close MCI CD AUDIO device", false);
@@ -95,9 +94,6 @@ CCDAudio::~CCDAudio()
 /* ------------------------------------------------------------------------------------ */
 int CCDAudio::Play(int nTrack, bool bLoop)
 {
-	MCI_PLAY_PARMS mciPlay;
-	MCIERROR theError = 0;
-
 	if(nTrack == 0)
 		return RGF_SUCCESS;
 
@@ -113,13 +109,14 @@ int CCDAudio::Play(int nTrack, bool bLoop)
 		return RGF_SUCCESS;
 	}
 
+	MCI_PLAY_PARMS mciPlay;
+
 	mciPlay.dwFrom = 0L;
 	mciPlay.dwTo = 0L;
 	mciPlay.dwFrom = MCI_MAKE_TMSF(nTrack, 0, 0, 0);				// Start track
 	mciPlay.dwTo = MCI_MAKE_TMSF(nTrack+1, 0, 0, 0);				// End track
 
-	theError = mciSendCommand(m_mciDeviceID, MCI_PLAY,
-		MCI_NOTIFY, (DWORD)&mciPlay);
+	MCIERROR theError = mciSendCommand(m_mciDeviceID, MCI_PLAY, MCI_NOTIFY, (DWORD)&mciPlay);
 
 	if(theError != 0)
 	{
@@ -142,11 +139,10 @@ int CCDAudio::Play(int nTrack, bool bLoop)
 bool CCDAudio::IsPlaying()
 {
 	MCI_STATUS_PARMS mciState;
-	MCIERROR theError;
 
 	mciState.dwItem = MCI_STATUS_MODE;
 
-	theError = mciSendCommand(m_mciDeviceID, MCI_STATUS,
+	MCIERROR theError = mciSendCommand(m_mciDeviceID, MCI_STATUS,
 				MCI_WAIT | MCI_STATUS_ITEM, (DWORD)&mciState);
 
 	if(mciState.dwReturn == MCI_MODE_PLAY)
@@ -163,18 +159,17 @@ bool CCDAudio::IsPlaying()
 /* ------------------------------------------------------------------------------------ */
 int CCDAudio::Stop()
 {
-	MCI_GENERIC_PARMS mciStop;
-	MCIERROR theError;
-
 	m_bLooping = false;									// Prevent restarting
 
 	if(!IsPlaying())
 		return RGF_SUCCESS;								// Not playing, don't waste time!
 
+	MCI_GENERIC_PARMS mciStop;
+
 	mciStop.dwCallback = NULL;							// Please, no notifications
 
-	theError = mciSendCommand(m_mciDeviceID, MCI_STOP,
-		MCI_WAIT, (DWORD)&mciStop);						// Halt playback
+	// Halt playback
+	MCIERROR theError = mciSendCommand(m_mciDeviceID, MCI_STOP, MCI_WAIT, (DWORD)&mciStop);
 
 	if(theError != 0)
 	{

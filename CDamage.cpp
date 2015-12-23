@@ -19,12 +19,12 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CDamage::CDamage()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -100,12 +100,12 @@ CDamage::~CDamage()
 /* ------------------------------------------------------------------------------------ */
 void CDamage::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -350,13 +350,13 @@ void CDamage::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are DestroyableModel in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	//	Ok, we have DestroyableModel somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -377,13 +377,13 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are DestroyableModel in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -473,12 +473,12 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 						  float amount, const char *Attr,
 						  float Altamount, const char *AltAttr)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -524,8 +524,6 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 								 float amount, const char *Attr,
 								 float Altamount, const char *AltAttr)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
@@ -533,6 +531,7 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 
 // changed QD 12/15/05 - use squared distance
 	geFloat Range2 = Range*Range;
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -643,12 +642,12 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 /* ------------------------------------------------------------------------------------ */
 bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return false;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -684,13 +683,13 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 /* ------------------------------------------------------------------------------------ */
 int CDamage::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are DestroyableModel in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
+
+	geEntity *pEntity;
 
 	//	Ok, we have static entity proxies.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

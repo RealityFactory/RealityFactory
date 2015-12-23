@@ -423,13 +423,12 @@ void Electric_BoltEffectRender(Electric_BoltEffect	*be,
 /* ------------------------------------------------------------------------------------ */
 CElectric::CElectric()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return;
 
+	geEntity *pEntity;
 	// SPool_Sound("loopbzzt.wav"); //cell division
 	// SPool_Sound("onebzzt.wav"); //cell division
 
@@ -577,12 +576,12 @@ int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 /* ------------------------------------------------------------------------------------ */
 CElectric::~CElectric()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have electric bolts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -616,11 +615,6 @@ static geFloat frand(geFloat Low, geFloat High)
 /* ------------------------------------------------------------------------------------ */
 geBoolean CElectric::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
-	// Mode
-	geXForm3d XForm = CCD->CameraManager()->ViewPoint();
-
 	if(CCD->World() == NULL)
 		return GE_TRUE;
 
@@ -628,6 +622,8 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return GE_TRUE;					// Bogus, but there it is...
+
+	geEntity *pEntity;
 
 	// Ok, we have bolt terminuses somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -642,6 +638,9 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return GE_TRUE;
+
+	// Mode
+	geXForm3d XForm = CCD->CameraManager()->ViewPoint();
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -795,8 +794,6 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 /* ------------------------------------------------------------------------------------ */
 int CElectric::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	//	This is a SPECIAL CASE due to electric bolt and terminus pairing.
 	//	..If the pEntityData pointer contains the value 0, we're looking
 	//	..for an ElectricBolt, otherwise we're looking for an
@@ -809,6 +806,8 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 
 		if(!pSet)
 			return RGF_NOT_FOUND;									// No electric bolts
+
+		geEntity *pEntity;
 
 		// Ok, we have electric bolts. Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -832,6 +831,8 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 
 		if(!pSet)
 			return RGF_NOT_FOUND;					// No electric bolts
+
+		geEntity *pEntity;
 
 		// Ok, we have electric bolt termini. Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -871,13 +872,13 @@ int CElectric::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 int CElectric::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  ElectricBolt in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -902,13 +903,13 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  ElectricBolt in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBolt");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No gates, whatever...
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))

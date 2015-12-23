@@ -18,8 +18,6 @@
 /* ------------------------------------------------------------------------------------ */
 CFixedCamera::CFixedCamera()
 {
-	geEntity *pEntity;
-
 	Number = 0;
 	Camera = NULL;
 
@@ -28,6 +26,8 @@ CFixedCamera::CFixedCamera()
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	//	Ok, we have FixedCameras somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -79,12 +79,13 @@ CFixedCamera::~CFixedCamera()
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::Tick()
 {
-	geEntity *pEntity;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
 	if(!pSet || !Camera)
 		return;
+
+	geEntity *pEntity;
 
 // changed RF064
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -127,8 +128,6 @@ void CFixedCamera::Tick()
 		}
 	}
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
-
 	bool flag = true;
 
 	if(!EffectC_IsStringNull(Camera->TriggerName))
@@ -141,6 +140,8 @@ void CFixedCamera::Tick()
 		return;
 	else
 	{
+		pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
+
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -166,12 +167,12 @@ void CFixedCamera::Tick()
 /* ------------------------------------------------------------------------------------ */
 bool CFixedCamera::GetFirstCamera()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
 	if(!pSet)
 		return false;
+
+	geEntity *pEntity;
 
 // changed RF064
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -240,8 +241,6 @@ bool CFixedCamera::GetFirstCamera()
 bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 {
 	geXForm3d Xf;
-	geVec3d Pos, Direction, TgtPos, temp;
-	float dotProduct;
 
 // changed QD 12/15/05
 	//geXForm3d_SetIdentity(&Xf);
@@ -252,13 +251,16 @@ bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 	// QD: translation doesn't influence the orientation
 	//geXForm3d_Translate(&Xf, pSource->origin.X, pSource->origin.Y, pSource->origin.Z);
 
-	Pos = pSource->origin;//Xf.Translation;
+	geVec3d Pos = pSource->origin;
+
+	geVec3d Direction, TgtPos, temp;
+
 // end change
 	geXForm3d_GetIn(&Xf, &Direction);
 	TgtPos = CCD->Player()->Position();
 	geVec3d_Subtract(&TgtPos, &Pos, &temp);
 	geVec3d_Normalize(&temp);
-	dotProduct = geVec3d_DotProduct(&temp, &Direction);
+	float dotProduct = geVec3d_DotProduct(&temp, &Direction);
 
 // changed QD 12/15/05 - simplified right side, then added a CheckRange factor (0 - 1)
 	// if(dotProduct > ((90.0f-(pSource->FieldofView*28.6f))/90.0f))

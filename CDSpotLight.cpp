@@ -13,12 +13,12 @@
 /* ------------------------------------------------------------------------------------ */
 CDSpotLight::CDSpotLight()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
 
 	if(!pSet)
 		return;						// None there.
+
+	geEntity *pEntity;
 
 	// Ok, we have dynamic lights somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -80,8 +80,6 @@ CDSpotLight::~CDSpotLight()
 /* ------------------------------------------------------------------------------------ */
 geBoolean CDSpotLight::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(CCD->World() == NULL)
 		return GE_TRUE;
 
@@ -90,6 +88,7 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 	if(!pSet)
 		return GE_TRUE;
 
+	geEntity	*pEntity;
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -261,13 +260,13 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CDSpotLight::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are dynamic lights in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DSpotLight");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No dynamic lights
+
+	geEntity *pEntity;
 
 	// Ok, we have dynamic lights.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

@@ -17,12 +17,12 @@
 /* ------------------------------------------------------------------------------------ */
 CDynalite::CDynalite()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DynamicLight");
 
 	if(!pSet)
 		return;						// None there.
+
+	geEntity *pEntity;
 
 	// Ok, we have dynamic lights somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -82,8 +82,6 @@ CDynalite::~CDynalite()
 /* ------------------------------------------------------------------------------------ */
 geBoolean CDynalite::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(CCD->World() == NULL)
 		return GE_TRUE;
 
@@ -92,17 +90,12 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
 	if(!pSet)
 		return GE_TRUE;
 
+	geEntity		*pEntity;
+
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DynamicLight	*Light;
-		geFloat			Radius;
-		geFloat			Percentage;
-		int				Index;
-		geVec3d			Pos;
-		int32			Leaf;
-
-		Light = static_cast<DynamicLight*>(geEntity_GetUserData(pEntity));
+		DynamicLight *Light = static_cast<DynamicLight*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(Light->TriggerName))
 		{
@@ -137,13 +130,13 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
             //            so that the light will stay in the same position relative to the model.
             //            Also we now call SetOriginOffset instead of SetOffset in the line after.
             Light->origin = Light->OriginOffset;
+			int32 Leaf;
 			SetOriginOffset(Light->EntityName, Light->BoneName, Light->Model, &(Light->origin));
 			geWorld_GetLeaf(CCD->World(), &(Light->origin), &Leaf);
-			Pos = Light->origin;
 
-			Percentage = Light->LastTime / Light->RadiusSpeed;
+			geFloat Percentage = Light->LastTime / Light->RadiusSpeed;
 
-			Index = static_cast<int>(Percentage * Light->NumFunctionValues);
+			int Index = static_cast<int>(Percentage * Light->NumFunctionValues);
 
 			if(Light->InterpolateValues && Index < Light->NumFunctionValues - 1)
 			{
@@ -161,7 +154,8 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
 			else
 				Percentage = (static_cast<geFloat>(Light->RadiusFunction[Index] - 'a')) / (static_cast<geFloat>('z' - 'a'));
 
-			Radius = Percentage * (Light->MaxRadius - Light->MinRadius) + Light->MinRadius;
+			geFloat Radius = Percentage * (Light->MaxRadius - Light->MinRadius) + Light->MinRadius;
+			geVec3d Pos = Light->origin;
 
 			geWorld_SetLightAttributes(CCD->World(),
 									   Light->DynLight,
@@ -197,13 +191,13 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CDynalite::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are dynamic lights in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DynamicLight");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No dynamic lights
+
+	geEntity *pEntity;
 
 	// Ok, we have dynamic lights.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

@@ -3365,8 +3365,6 @@ void CCommonData::CloseJoysticks()
 void CCommonData::PlayOpeningCutScene()
 {
 	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
 	//	Ok, check to see if there's a PlayerSetup around...
 	pSet = geWorld_GetEntitySet(theGameEngine->World(), "PlayerSetup");
 
@@ -3375,7 +3373,7 @@ void CCommonData::PlayOpeningCutScene()
 
 	//	Ok, get the setup information.  There should only be one, so
 	//	..we'll just take the first one we run into.
-	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
+	geEntity *pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	if((pSetup->OpeningCutScene != NULL) && (strlen(pSetup->OpeningCutScene) != 0))

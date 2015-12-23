@@ -25,8 +25,6 @@ typedef struct
 /* ------------------------------------------------------------------------------------ */
 CAnimGif::CAnimGif(const char *szFile, int fileformat)
 {
-	long Size;
-
 	GifSize = GlobalColorSize = 0;
 	Active = false;
 	Texture = false;
@@ -35,6 +33,7 @@ CAnimGif::CAnimGif(const char *szFile, int fileformat)
 	if(!CCD->OpenRFFile(&MainFS, fileformat, szFile, GE_VFILE_OPEN_READONLY))
 		return;
 
+	long Size;
 	geVFile_Size(MainFS, &Size);
 
 	Palette = geBitmap_Palette_Create(GE_PIXELFORMAT_32BIT_XRGB, 256);
@@ -223,7 +222,6 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 
 	if(FFrame)
 	{
-		geBitmap_Info Info;
 		geBitmap *theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
 
 		if(!theBitmap)
@@ -232,6 +230,7 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 			return false;
 		}
 
+		geBitmap_Info Info;
 		geBitmap_GetInfo(theBitmap, &Info, NULL);
 
 		if(nWidth!=Info.Width || nHeight!=Info.Height)

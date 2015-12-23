@@ -28,10 +28,6 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CAutoDoors::CAutoDoors()
 {
-	geEntity *pEntity;
-	geFloat  TList[TIME_LIST_MAX], tStart, tEnd;
-	const char     *Eventstring;
-
 	m_DoorCount = 0;					// No doors
 
 	// Ok, check to see if there are automatic doors in this world
@@ -39,6 +35,9 @@ CAutoDoors::CAutoDoors()
 
 	if(!pSet)
 		return;									// No doors, how odd...
+
+	geEntity	*pEntity;
+	geFloat		TList[TIME_LIST_MAX], tStart, tEnd;
 
 	// Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -127,6 +126,7 @@ CAutoDoors::CAutoDoors()
 				geMotion_SetupEventIterator(pMotion, tStart, tEnd);
 
 				int i = 0;
+				const char	*Eventstring;
 
 				while(geMotion_GetNextEvent(pMotion, &tStart, &Eventstring) && (i < TIME_LIST_MAX))
 				{
@@ -211,8 +211,6 @@ CAutoDoors::~CAutoDoors()
 // changed RF063
 bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor)
 {
-	geEntity *pEntity;
-
 	if(m_DoorCount == 0)
 		return false;									// None here, ignore call.
 
@@ -223,6 +221,8 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 		CCD->ReportError("CAutoDoors.cpp: HandleCollision: no doors", false);
 		return false;
 	}
+
+	geEntity *pEntity;
 
 	//	Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -348,8 +348,6 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 {
-	geEntity *pEntity;
-
 	if(m_DoorCount == 0)
 		return;									// None here, ignore call.
 
@@ -360,6 +358,8 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 		CCD->ReportError("CAutoDoors.cpp: TriggerNextDoor: no doors", false);
 		return;
 	}
+
+	geEntity *pEntity;
 
 	//	Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -446,8 +446,6 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(m_DoorCount == 0)
 		return;											// No need to waste time here.
 
@@ -456,6 +454,8 @@ void CAutoDoors::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;									// No doors, how odd...
+
+	geEntity *pEntity;
 
 	//	Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -576,8 +576,6 @@ void CAutoDoors::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 {
-	geEntity *pEntity;
-
 	if(m_DoorCount == 0)
 		return false;								// No need to waste time here.
 
@@ -586,6 +584,8 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 
 	if(!pSet)
 		return false;								// No doors, how odd...
+
+	geEntity *pEntity;
 
 	//	Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -613,13 +613,13 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are automatic doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
+
+	geEntity *pEntity;
 
 	//	Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -649,13 +649,13 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are automatic doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No doors, whatever...
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -689,13 +689,13 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No doors
+
+	geEntity *pEntity;
 
 	//	Ok, we have doors.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

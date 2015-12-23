@@ -17,8 +17,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CCorona::CCorona()
 {
-	geEntity *pEntity;
-
 	Count = 0;
 
 	// Ok, check to see if there are TEMPLATE in this world
@@ -31,6 +29,8 @@ CCorona::CCorona()
 
 	if(!CoronaBitmap)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Coronas somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -73,7 +73,6 @@ CCorona::CCorona()
 /* ------------------------------------------------------------------------------------ */
 int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 {
-	int effect = -1;
 	EffCorona C;
 
 	memset( &C, 0, sizeof(C) );
@@ -91,7 +90,7 @@ int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 	C.Vertex.g = pCorona->Color.g;
 	C.Vertex.b = pCorona->Color.b;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_CORONA, static_cast<void*>(&C));
+	int effect = CCD->EffectManager()->Item_Add(EFF_CORONA, static_cast<void*>(&C));
 
 	return effect;
 }
@@ -134,8 +133,6 @@ CCorona::~CCorona()
 /* ------------------------------------------------------------------------------------ */
 void CCorona::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(Count == 0)
 		return;						// Don't waste CPU cycles
 
@@ -144,6 +141,8 @@ void CCorona::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;									// No sources
+
+	geEntity *pEntity;
 
 	// Ok, we have Coronas somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -209,13 +208,13 @@ void CCorona::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CCorona::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Corona in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No 3D audio sources
+
+	geEntity *pEntity;
 
 	// Ok, we have Corona somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

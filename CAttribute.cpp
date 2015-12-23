@@ -158,13 +158,13 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 /* ------------------------------------------------------------------------------------ */
 CAttribute::~CAttribute()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+
 		//	Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -414,13 +414,13 @@ void CAttribute::Tick(geFloat dwTicks)
 bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey)
 // end change 08/13/03
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(!pSet)
 		return false;
+
+	geEntity *pEntity;
 
 	//	Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -564,13 +564,13 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No fields
+
+	geEntity *pEntity;
 
 	//	Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=DynamicAttribute1;
@@ -596,13 +596,13 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	//	Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -669,13 +669,13 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No static entity proxies
+
+	geEntity *pEntity;
 
 	//	Ok, we have static entity proxies.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

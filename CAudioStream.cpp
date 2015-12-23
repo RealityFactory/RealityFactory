@@ -24,8 +24,6 @@
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::CAudioStream()
 {
-	geEntity *pEntity;
-
 	m_nStreamerCount = 0;
 	m_LoopingProxy = -1;							// No looping proxy yet
 
@@ -44,6 +42,8 @@ CAudioStream::CAudioStream()
 
 	if(!pSet)
 		return;										// Don't waste CPU time.
+
+	geEntity *pEntity;
 
 	//	Ok, we have soundtrack toggles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -270,9 +270,6 @@ int CAudioStream::Stop(const char *szFilename)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-	geVec3d PlayerPos;
-
 	if(m_nStreamerCount == 0)
 		return;										// No streamers in world, bail early
 
@@ -284,6 +281,9 @@ void CAudioStream::Tick(geFloat dwTicks)
 
 	// Clean up any non-playing streams
 	Sweep();
+
+	geEntity *pEntity;
+	geVec3d PlayerPos;
 
 	// Ok, go through and see if we need to trigger playback.
 	PlayerPos = CCD->Player()->Position();			// Get player position

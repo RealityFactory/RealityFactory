@@ -21,8 +21,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CDecal::CDecal()
 {
-	geEntity *pEntity;
-
 	Bottom = (Decal*)NULL;
 
 	// Ok, check to see if there are Decals in this world
@@ -30,6 +28,8 @@ CDecal::CDecal()
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -221,15 +221,15 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 	if(normal->X == 0.f && normal->Y == 0.f && normal->Z == 0.f) // invalid normal
 		return;
 
-	geEntity *pEntity;
-	Decal *d;
-	geVec3d right, up;
-
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DecalDefine");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
+	Decal *d;
+	geVec3d right, up;
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

@@ -42,11 +42,6 @@ CAVIPlayer::~CAVIPlayer()
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 {
-	DWORD ElapsedTime, OldTime, FrameTime = 0, TotalTime = 0;
-	int nFrameTotal = 0;
-	int nAlignValue = 0;
-	int nTemp, nTemp2;
-
 	//	Open the file up.
 	if(Open(szFile) != RGF_SUCCESS)
 		return RGF_FAILURE;						// AVI didn't open.
@@ -54,7 +49,6 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	StartVideoRetrieve(0);					// Start bringing it in
 
 	//	Fine, the file opened, get the bitmap info for it.
-	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
 
@@ -71,6 +65,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	}
 
 	gePixelFormat nFormat;
+	int nAlignValue = 0;
 
 	//	Here's how it shakes down: 16bit color is always RGB/555,
 	//	..24bit color is always BGR, and 32bit color is always
@@ -98,11 +93,8 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		break;
 	}
 
-	geBitmap *theBmp=NULL, *LockedBMP=NULL;
+	geBitmap *theBmp = NULL;
 	geBitmap_Info Info;
-	unsigned char *wptr ,*pptr;
-	int y;
-	bool bAudioStreamPlaying = false;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
 	geBitmap_SetPreferredFormat(theBmp, nFormat);
@@ -110,6 +102,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	geBitmap_GetInfo(theBmp,&Info,NULL);
 	geBitmap_ClearMips(theBmp);
 
+	geBitmap *LockedBMP = NULL;
 	//	**NOTE**	11/23/1999
 	//	All this is to force Genesis3D to get the bitmap loaded into
 	//	..where it needs to be so our first frame doesn't take a
@@ -135,6 +128,9 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			return RGF_FAILURE;
     }
 
+	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
+	unsigned char *wptr ,*pptr;
+
 	GetVideoFrameAtTime(0, 0, &pBmp);
 	wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
 	pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
@@ -149,6 +145,10 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	// ..copy, it's far faster than memcpy() but it's not as
 	// ..optimized as it could be.  However, for now, it does seem
 	// ..to be Good Enough.
+
+	int nTemp, nTemp2;
+	int y;
+
 	switch(nFormat)
 	{
 	case GE_PIXELFORMAT_16BIT_555_RGB:
@@ -215,13 +215,19 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	}
 
 	//	End of the force-the-bitmap-to-be-ready code.  Blech.
+
+	bool bAudioStreamPlaying = false;
+
 	if(GetAudioStreamCount() != 0)
 	{
 		if(CreateStreamingAudioBuffer(0)==RGF_SUCCESS)		// We're gonna play audio
 			bAudioStreamPlaying = true;
 	}
 
+	DWORD ElapsedTime, OldTime, FrameTime = 0;
 // changed RF064
+	int nFrameTotal = 0;
+
 	OldTime = CCD->FreeRunningCounter();				// Prime the time.
 // end change RF064
 
@@ -486,10 +492,6 @@ int CAVIPlayer::Open(const char *szFile)
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 {
-	int nStatus = RGF_FAILURE;			// Assume failure
-	int nAlignValue = 0;
-	int nTemp, nTemp2;
-
 	if(!CCD->GetHasFocus())
 		return RGF_SUCCESS;
 
@@ -504,6 +506,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
+	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
 	//	Here's how it shakes down: 16bit color is always RGB/555,
@@ -535,7 +538,6 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 	geBitmap *theBmp, *LockedBMP;
 	geBitmap_Info Info;
 	unsigned char *wptr ,*pptr;
-	int y;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
 	geBitmap_SetPreferredFormat(theBmp, nFormat);
@@ -545,6 +547,8 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 
 	pBmp = NULL;
 	GetVideoFrameAtTime(0, dwTime, &pBmp);
+
+	int nStatus = RGF_FAILURE;			// Assume failure
 
 	if(pBmp)
 	{
@@ -575,6 +579,10 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
 		// ..to be Good Enough.
+
+		int y;
+		int nTemp, nTemp2;
+
 		switch(nFormat)
 		{
 		case GE_PIXELFORMAT_16BIT_555_RGB:
@@ -654,10 +662,6 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 {
-	int nStatus = RGF_FAILURE;			// Assume failure
-	int nAlignValue = 0;
-	int nTemp, nTemp2;
-
 	if(!CCD->GetHasFocus())
 		return RGF_SUCCESS;
 
@@ -671,6 +675,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 	//	Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
+	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
 	//	Here's how it shakes down: 16bit color is always RGB/555,
@@ -703,7 +708,6 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 	geBitmap *theBmp, *LockedBMP;
 	geBitmap_Info Info;
 	unsigned char *wptr ,*pptr;
-	int y;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
 	geBitmap_SetPreferredFormat(theBmp, nFormat);
@@ -713,6 +717,8 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 
 	pBmp = NULL;
 	GetVideoFrame(0, FrameID, &pBmp);
+
+	int nStatus = RGF_FAILURE;			// Assume failure
 
 	if(pBmp)
 	{
@@ -744,6 +750,10 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
 		// ..to be Good Enough.
+
+		int y;
+		int nTemp, nTemp2;
+
 		switch(nFormat)
 		{
 		case GE_PIXELFORMAT_16BIT_555_RGB:
@@ -859,8 +869,6 @@ int CAVIPlayer::GetVideoStreamCount()
 int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 {
 	geBitmap *theBitmap;
-	int nAlignValue = 0;
-	int nTemp, nTemp2;
 
 	theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
 
@@ -875,8 +883,6 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	//	..frame into the bitmap!
 	geBitmap_ClearMips(theBitmap);
 
-	int nStatus = RGF_FAILURE;			// Assume failure
-
 	StartVideoRetrieve(0);
 
 	//	Get the bitmap info for the file
@@ -887,6 +893,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	//	Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
+	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
 	//	Here's how it shakes down: 16bit color is always RGB/555,
@@ -919,13 +926,14 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	geBitmap *LockedBMP;
 	geBitmap_Info Info;
 	unsigned char *wptr ,*pptr;
-	int y;
 
 	geBitmap_GetInfo(theBitmap,&Info,NULL);
 	geBitmap_ClearMips(theBitmap);
 
 	pBmp = NULL;
 	GetVideoFrame(0, nFrame, &pBmp);
+
+	int nStatus = RGF_FAILURE;			// Assume failure
 
 	if(pBmp)
 	{
@@ -956,6 +964,10 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
 		// ..to be Good Enough.
+
+		int y;
+		int nTemp, nTemp2;
+
 		switch(nFormat)
 		{
 		case GE_PIXELFORMAT_16BIT_555_RGB:
@@ -1046,7 +1058,6 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 	geBitmap *LockedBMP;
 	unsigned char *wptr ,*pptr;
-	int y, nTemp, nTemp2;
 
 	//	If this is the first frame, clear out all the timing variables
 	if(bFirstFrame)
@@ -1145,6 +1156,9 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
 		// ..to be Good Enough.
+
+		int y, nTemp, nTemp2;
+
 		switch(nFormat)
 		{
 		case GE_PIXELFORMAT_16BIT_555_RGB:

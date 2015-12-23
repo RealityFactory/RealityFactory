@@ -17,13 +17,13 @@
 /* ------------------------------------------------------------------------------------ */
 CActMaterial::CActMaterial()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ActMaterial entities in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have ActMaterials somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -81,12 +81,12 @@ CActMaterial::~CActMaterial()
 /* ------------------------------------------------------------------------------------ */
 void CActMaterial::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return;         //	Not on this level.
+
+	geEntity *pEntity;
 
 	// Ok, we have ActorMaterial entities somewhere. Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -189,13 +189,13 @@ void CActMaterial::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ActMaterial entities in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	// Ok, we have ActMaterial entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -218,13 +218,13 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ActMaterial entities in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
