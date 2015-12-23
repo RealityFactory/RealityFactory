@@ -30,13 +30,13 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CMorph::CMorph()
 {
-	geBitmap_Info StartInfo, EndInfo, MorphInfo;
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EM_Morph");
 
 	if(!pSet)
 		return;	// Not on this level.
+
+	geBitmap_Info StartInfo, EndInfo, MorphInfo;
+	geEntity *pEntity;
 
 	// Ok, we have Morph textures somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

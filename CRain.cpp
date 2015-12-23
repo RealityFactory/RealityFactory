@@ -22,12 +22,12 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CRain::CRain()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -78,7 +78,6 @@ CRain::CRain()
 /* ------------------------------------------------------------------------------------ */
 int CRain::Create(Rain *R)
 {
-	int effect = -1;
     Spray Sp;
 
     // clear out spray data
@@ -112,7 +111,7 @@ int CRain::Create(Rain *R)
 
 	Sp.UseWind = R->UseWind;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, static_cast<void*>(&Sp));
+	int effect = CCD->EffectManager()->Item_Add(EFF_SPRAY, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -121,12 +120,12 @@ int CRain::Create(Rain *R)
 /* ------------------------------------------------------------------------------------ */
 CRain::~CRain()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -144,13 +143,13 @@ CRain::~CRain()
 /* ------------------------------------------------------------------------------------ */
 void CRain::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-	Spray Sp;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
+	Spray Sp;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -219,13 +218,13 @@ void CRain::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CRain::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Rain in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
+
+	geEntity *pEntity;
 
 	// Ok, we have Rain somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

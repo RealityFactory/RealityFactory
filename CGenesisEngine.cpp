@@ -1025,7 +1025,6 @@ bool CGenesisEngine::DrawCompleteTexture(const CompleteTexture	&cp,
 {
 	bool retval = true;
 	int i, x, wide, high;
-	geBitmap * bmp = NULL;
 	geFloat Top, Bottom, Left, Right;
 	FloatRect RealScreenRect;
 	FloatRect UseScreenRect;
@@ -1063,7 +1062,7 @@ bool CGenesisEngine::DrawCompleteTexture(const CompleteTexture	&cp,
 
 	for(x=0; x<i; ++x)
 	{
-		bmp = cp.TextureArray[x].Bitmap;
+		geBitmap *bmp = cp.TextureArray[x].Bitmap;
 
 		BitmapRect.Left		= 0;
 		BitmapRect.Top		= 0;
@@ -1340,10 +1339,6 @@ int CGenesisEngine::RenderWorld()
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFile)
 {
-	geBitmap *theBmp;
-	geBitmap_Info	BmpInfo;
-	int x, y;
-
 	//////////////////////////////////////////////////////////////////////
 	// Dee
 	// Need to adjust window sizes postions etc. to allow for windowed mode
@@ -1356,14 +1351,15 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 	// End Dee
 	//////////////////////////////////////////////////////////////////////
 
-	theBmp = CreateFromFileName(szSplashBMP);
+	geBitmap *theBmp = CreateFromFileName(szSplashBMP);
+	geBitmap_Info BmpInfo;
 
 	if(theBmp != NULL)
 	{
 		if(geBitmap_GetInfo(theBmp, &BmpInfo, NULL) == GE_TRUE)
 		{
-			x = (m_nWidth - BmpInfo.Width) / 2;
-			y = (m_nHeight - BmpInfo.Height) / 2;
+			int x = (m_nWidth - BmpInfo.Width) / 2;
+			int y = (m_nHeight - BmpInfo.Height) / 2;
 
 			if(geEngine_AddBitmap(m_theEngine, theBmp) == GE_FALSE)
 			{

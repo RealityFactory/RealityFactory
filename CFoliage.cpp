@@ -28,12 +28,12 @@ float GetFastDistance(geVec3d Pos1, geVec3d Pos2)
 /* ------------------------------------------------------------------------------------ */
 CFoliage::CFoliage()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
 
 	if(!pSet)
 	    return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -56,7 +56,6 @@ CFoliage::CFoliage()
 			// changed QD 12/15/05 TPool handles bitmap stuff...
 			// S->Bitmap = (geBitmap*)geRam_AllocateClear( sizeof( S->Bitmap )  );
 			char BmpName[256];
-			char AlphaName[256];
 
 			// build bmp and alpha names
 			//sprintf( BmpName, "%s%d%s", S->BitmapName, i, ".bmp" );
@@ -64,6 +63,7 @@ CFoliage::CFoliage()
 
 			if(!EffectC_IsStringNull(S->AlphamapName))
 			{
+				char AlphaName[256];
 				//sprintf( AlphaName, "%s%d%s", S->AlphamapName, i, ".bmp" );
 				sprintf(AlphaName, "%s%s", S->AlphamapName, ".bmp");// Kept for future implementation of animated foliage
 				S->Bitmap = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);

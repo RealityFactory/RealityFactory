@@ -13,13 +13,13 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CScriptPoint::CScriptPoint()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ScriptPoints in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -56,13 +56,13 @@ CScriptPoint::~CScriptPoint()
 /* ------------------------------------------------------------------------------------ */
 int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ScriptPoints in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
+
+	geEntity *pEntity;
 
 	// Ok, we have ScriptPoints.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -86,11 +86,12 @@ int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 							  int r, int g, int b, int r1, int g1, int b1)
 {
-	GE_LVertex	v[4];
 	geVec3d		perp;
-	geVec3d		in;
 
 	geXForm3d M = CCD->CameraManager()->ViewPoint();
+	geVec3d in;
+
+	GE_LVertex	v[4];
 
 	v[0].u = 0.0f;
 	v[0].v = 0.0f;
@@ -163,12 +164,6 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::Render()
 {
-	geEntity *pEntity;
-	geVec3d sp, ep;
-	GE_Collision	Collision;
-	GE_LVertex	Vert;
-	geXForm3d XForm = CCD->CameraManager()->ViewPoint();
-
 	SetOrigin();
 
 	// Ok, check to see if there are ScriptPoints in this world
@@ -176,6 +171,12 @@ void CScriptPoint::Render()
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+		geVec3d sp, ep;
+		GE_Collision Collision;
+		GE_LVertex Vert;
+		geXForm3d XForm = CCD->CameraManager()->ViewPoint();
+
 		// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -232,9 +233,6 @@ void CScriptPoint::Render()
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::SetOrigin()
 {
-	geEntity *pEntity;
-	SPOrigin *pool;
-
 	Bottom = NULL;
 
 	// Ok, check to see if there are ScriptPoints in this world
@@ -242,6 +240,9 @@ void CScriptPoint::SetOrigin()
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
+	SPOrigin *pool;
 
 	// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -276,7 +277,6 @@ void CScriptPoint::SetOrigin()
 /* ------------------------------------------------------------------------------------ */
 geVec3d CScriptPoint::GetOrigin(const char *Name)
 {
-	SPOrigin *pool;
 	geVec3d zero = {0.0f, 0.0f, 0.0f};
 
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
@@ -285,6 +285,8 @@ geVec3d CScriptPoint::GetOrigin(const char *Name)
 	{
 		if(!stricmp(EntityType, "ScriptPoint"))
 		{
+			SPOrigin *pool;
+
 			pool = Bottom;
 
 			while(pool != NULL)

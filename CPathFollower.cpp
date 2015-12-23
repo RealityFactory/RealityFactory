@@ -20,13 +20,13 @@ CPathFollower::CPathFollower()
 {
 	m_PathFollowerCount = 0;
 
-	geEntity *pEntity;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return;										// No path followers
+
+	geEntity *pEntity;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -173,14 +173,13 @@ CPathFollower::~CPathFollower()
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;											// No path followers
 
+	geEntity *pEntity;
 	geVec3d PlayerPos = CCD->Player()->Position();
 
 	// Ok, dig through 'em all.
@@ -226,13 +225,13 @@ int CPathFollower::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;											// No path followers
+
+	geEntity *pEntity;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -283,15 +282,15 @@ bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPosition,
 								   bool YLocked)
 {
-	geEntity *pEntity;
-	int nResult;
-	geVec3d thePos, temp, DirectionVector;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
+
+	geEntity *pEntity;
+	int nResult;
+	geVec3d thePos, temp, DirectionVector;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -486,13 +485,13 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
+
+	geEntity *pEntity;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -530,13 +529,13 @@ int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
+
+	geEntity *pEntity;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -566,13 +565,14 @@ int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 /* ------------------------------------------------------------------------------------ */
 geFloat CPathFollower::GetSpeed(const char *szEntityName)
 {
-	geEntity *pEntity;
 
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No path followers
+
+	geEntity *pEntity;
 
 	// Ok, dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

@@ -694,15 +694,12 @@ static ElectricFx_TypeData	*ElectricFx_GetFxTypeDataFromString(const char *Str)
 /* ------------------------------------------------------------------------------------ */
 static geBoolean ElectricFx_FxParseData(ElectricFx_Fx *Fx)
 {
-	int32	VecNum;
-	char	*Token;
-
-	VecNum = 0;
+	int32 VecNum = 0;
 
 	while(1)
 	{
 		// Parse the first token
-		Token = strtok(NULL, TOKEN_SEPERATOR);
+		char *Token = strtok(NULL, TOKEN_SEPERATOR);
 
 		if(!Token)
 			return GE_FALSE;

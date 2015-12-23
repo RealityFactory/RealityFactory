@@ -20,8 +20,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CMessage::CMessage()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Messages in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
@@ -38,6 +36,8 @@ CMessage::CMessage()
 		active = false;
 		return;
 	}
+
+	geEntity *pEntity;
 
 	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -230,8 +230,6 @@ CMessage::~CMessage()
 /* ------------------------------------------------------------------------------------ */
 void CMessage::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Messages in this world
 	if(!active)
 		return;
@@ -240,6 +238,8 @@ void CMessage::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -556,13 +556,13 @@ void CMessage::Display()
 /* ------------------------------------------------------------------------------------ */
 int CMessage::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Messages in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No Messages
+
+	geEntity *pEntity;
 
 	// Ok, we have Messages somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

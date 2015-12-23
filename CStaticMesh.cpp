@@ -46,8 +46,6 @@ typedef struct	tag_spotlight
 /* ------------------------------------------------------------------------------------ */
 CStaticMesh::CStaticMesh()
 {
-	geEntity			*pEntity;
-
 	m_MeshCount = 0;
 
 	for(int nTemp = 0; nTemp < MESH_LIST_SIZE; nTemp++)
@@ -58,6 +56,8 @@ CStaticMesh::CStaticMesh()
 
 	if(!pSet)
 		return;				// Don't waste CPU time.
+
+	geEntity *pEntity;
 
 	//	Ok, we have static mesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -163,7 +163,6 @@ CStaticMesh::CStaticMesh()
 	geEntity_EntitySet *pSetLight, *pSetSpotlight, *pSetSunLight;
 	geEntity *pEntityLight, *pEntitySpotlight, *pEntitySunLight;
 
-	geBoolean bSunLight, bLight, bSpotlight, bAmbientLight;
 	// find sunlight entity for lighting computation
 	pSetSunLight = geWorld_GetEntitySet(CCD->World(), "SunLight");
 
@@ -177,6 +176,8 @@ CStaticMesh::CStaticMesh()
 	// no ambientlight is used if there's no light -> use fillcolor instead
 	if(!pSetSunLight && !pSetLight && !pSetSpotlight)
 		return;
+
+	geBoolean bSunLight, bLight, bSpotlight, bAmbientLight;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -1070,8 +1071,6 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 	if(m_MeshCount==0) // don't waste precious time
 		return GE_FALSE;
 
-	geEntity *pEntity;
-
 	// Ok, see if we have any static meshes we need check
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
@@ -1088,6 +1087,8 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 	if(geWorld_Collision(CCD->World(), NULL, NULL, &OldPosition, &NewPos, GE_VISIBLE_CONTENTS,
 						GE_COLLIDE_ALL, 0, NULL, NULL, Collision))
 		return GE_TRUE;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -1238,13 +1239,13 @@ CStaticMesh::~CStaticMesh()
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::CleanUp()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any static entity proxies we need to set up.
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return;									// Don't waste CPU time.
+
+	geEntity *pEntity;
 
 	//	Ok, we have static mesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -1322,13 +1323,13 @@ void CStaticMesh::Tick(geFloat dwTicks)
 	if(m_MeshCount == 0) // don't waste precious time
 		return;
 
-	geEntity *pEntity;
-
 	// Ok, see if we have any static meshes we need to set up.
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -1767,14 +1768,13 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 	if(m_MeshCount == 0) // don't waste precious time
 		return GE_FALSE;
 
-	geEntity *pEntity;
-
 	// Ok, see if we have any static meshes we need check
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return GE_FALSE;
 
+	geEntity *pEntity;
 	geBoolean ColResult = GE_FALSE;
 	geBoolean GColResult = GE_FALSE;
 	geFloat Gs=1.0f;
@@ -2443,8 +2443,6 @@ void CStaticMesh::AABBofOBB(geVec3d *Min, geVec3d *Max, const geVec3d *AxisLengt
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	if(m_MeshCount == 0)
 		return RGF_SUCCESS;							// No meshes in world, bail early
 
@@ -2453,6 +2451,8 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	//	Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -2471,8 +2471,6 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	if(m_MeshCount == 0)
 		return RGF_SUCCESS;							// No meshes in world, bail early
 
@@ -2481,6 +2479,8 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 
 	if(!pSet)
 		return RGF_SUCCESS;
+
+	geEntity *pEntity;
 
 	//	Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -2498,13 +2498,13 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CStaticMesh::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are static mesh entities in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No static entity proxies
+
+	geEntity *pEntity;
 
 	//	Ok, we have static meshes.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

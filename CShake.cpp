@@ -17,13 +17,13 @@
 /* ------------------------------------------------------------------------------------ */
 CShake::CShake()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any ScreenShake entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScreenShake");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Look through all of our ScreenShakes
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -56,13 +56,13 @@ CShake::~CShake()
 /* ------------------------------------------------------------------------------------ */
 void CShake::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are ScreenShakes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScreenShake");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have ScreenShakes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

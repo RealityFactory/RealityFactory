@@ -1,5 +1,5 @@
 /************************************************************************************//**
- * @file CLiquid.cpp
+ * @file COverlay.cpp
  * @brief Overlay class implementation
  *
  * This file contains the class implementation for the COverlay class.
@@ -19,13 +19,13 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 COverlay::COverlay()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any Overlay entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Look through all of our Overlays
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -60,13 +60,13 @@ COverlay::COverlay()
 			for(int i=0; i<pItem->BitmapCount; ++i)
 			{
 				char BmpName[256];
-				char AlphaName[256];
 
 				// build bmp and alpha names
 				sprintf(BmpName, "%s%d%s", pItem->Bitmap, i, ".bmp");
 
 				if(!EffectC_IsStringNull(pItem->Alphamap))
 				{
+					char AlphaName[256];
 					sprintf( AlphaName, "%s%d%s", pItem->Alphamap, i, ".bmp" );
 					pItem->FBitmap[i] = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
 				}
@@ -90,13 +90,13 @@ COverlay::COverlay()
 /* ------------------------------------------------------------------------------------ */
 COverlay::~COverlay()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any Overlay entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Look through all of our Overlays
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -114,13 +114,13 @@ COverlay::~COverlay()
 /* ------------------------------------------------------------------------------------ */
 Overlay *COverlay::IsOverlay(const geWorld_Model *theModel)
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any Overlay entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return NULL;
+
+	geEntity *pEntity;
 
 	// Look through all of our Overlays
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -151,13 +151,13 @@ Overlay *COverlay::IsOverlay(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 void COverlay::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any Overlay entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Look through all of our Overlays
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -229,13 +229,13 @@ void COverlay::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void COverlay::Render()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any Overlay entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Overlay");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Look through all of our Overlays
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

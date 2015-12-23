@@ -777,14 +777,6 @@ geBitmap *CreateFromFileName(const char *BmName)
 	if(!Bmp)
 	{
 		FreeImageIO io;
-		FIBITMAP *Fbmp32;
-		geBitmap *LockedBMP;
-		geBitmap_Info Info;
-		unsigned char *gptr ,*fptr;
-		int bpp, nFormat;
-		int FStride;
-		int width, height;
-
 		io.read_proc = VFS_Read;
 		io.write_proc = NULL;
 		io.seek_proc = VFS_Seek;
@@ -793,10 +785,12 @@ geBitmap *CreateFromFileName(const char *BmName)
 
 		if(fif >= 0)
 		{
+			int nFormat;
+			FIBITMAP *Fbmp32;
 			FIBITMAP *Fbmp = FreeImage_LoadFromHandle(fif, &io, static_cast<fi_handle>(File), 0);
-			bpp = static_cast<int>(FreeImage_GetBPP(Fbmp));
-			width = static_cast<int>(FreeImage_GetWidth(Fbmp));
-			height = static_cast<int>(FreeImage_GetHeight(Fbmp));
+			int bpp = static_cast<int>(FreeImage_GetBPP(Fbmp));
+			int width = static_cast<int>(FreeImage_GetWidth(Fbmp));
+			int height = static_cast<int>(FreeImage_GetHeight(Fbmp));
 
 			if(bpp == 32)
 			{
@@ -817,6 +811,8 @@ geBitmap *CreateFromFileName(const char *BmName)
 
 			if(Bmp)
 			{
+				geBitmap *LockedBMP;
+				geBitmap_Info Info;
 				geBitmap_GetInfo(Bmp,&Info,NULL);
 				geBitmap_LockForWriteFormat(Bmp, &LockedBMP, 0, 0, (gePixelFormat)nFormat);
 
@@ -828,15 +824,15 @@ geBitmap *CreateFromFileName(const char *BmName)
 
 				if(LockedBMP)
 				{
-					FStride = static_cast<int>(FreeImage_GetPitch(Fbmp32));
-					gptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+					int FStride = static_cast<int>(FreeImage_GetPitch(Fbmp32));
+					unsigned char *gptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
 
 					if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
 						gptr += (height-1)*(Info.Stride*4);
 					else
 						gptr += (height-1)*(Info.Stride*3);
 
-					fptr = FreeImage_GetBits(Fbmp32);
+					unsigned char *fptr = FreeImage_GetBits(Fbmp32);
 
 					for(int y=0; y<Info.Height; y++)
 					{

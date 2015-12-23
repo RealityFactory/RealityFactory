@@ -24,9 +24,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CParticleSystem::CParticleSystem()
 {
-	geEntity *pEntity;
-	int pmHandle, psHandle;
-
 	//	Clear out our containers
 	memset(&theList, 0, sizeof(ParticleSystem*) * 50);
 	memset(&bmpList, 0, sizeof(geBitmap*) * 50);
@@ -36,6 +33,9 @@ CParticleSystem::CParticleSystem()
 
 	if(!pSet)
 		return;													// Don't waste CPU time.
+
+	geEntity *pEntity;
+	int pmHandle, psHandle;
 
 	// Ok, we have particle systems somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -1024,12 +1024,12 @@ void CParticleSystem::Tick(geFloat dwTicks)
 	}
 
 	// Ok, go through all the proxies and update the 3D audio positioning
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ParticleSystemProxy");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have particle system proxies somewhere.  Dig through 'em all and
 	// ..update the audio (if any).
@@ -2198,13 +2198,13 @@ void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are particle system proxies in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ParticleSystemProxy");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No particle system proxies
+
+	geEntity *pEntity;
 
 	// Ok, we have particle system proxies.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

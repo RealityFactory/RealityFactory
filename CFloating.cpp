@@ -20,9 +20,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CFloat::CFloat()
 {
-	geEntity *pEntity;
-	int i;
-
 	// test for any floating particle entities
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
@@ -30,14 +27,13 @@ CFloat::CFloat()
 	if(!pSet)
 		return;
 
+	geEntity *pEntity;
+
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		FloatingParticles *S;
-		Sprite Spr;
-
 		// get data
-		S = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
+		FloatingParticles *S = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(S->szEntityName))
 		{
@@ -79,6 +75,7 @@ CFloat::CFloat()
 			S->Color.b = 0.0f;
 
 		// clear out sprite data
+		Sprite Spr;
 		memset(&Spr, 0, sizeof(Spr));
 
 		Spr.Texture = &(S->Bitmap);
@@ -101,7 +98,7 @@ CFloat::CFloat()
 		geVec3d_Copy(&(S->origin), &(S->BasePos));
 
 		// do for required number of sprites
-		for(i=0; i<S->EffectCount; i++ )
+		for(int i=0; i<S->EffectCount; ++i)
 		{
 			// set random direction
 			// changed QD 12/15/05
@@ -133,12 +130,12 @@ CFloat::CFloat()
 /* ------------------------------------------------------------------------------------ */
 CFloat::~CFloat()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -168,11 +165,11 @@ void CFloat::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;
-	geEntity *pEntity;
 
 	// get amount of time since last call
 	dwTicks *= 0.001f;
 
+	geEntity *pEntity;
 
 	// wade thru all entities
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -263,13 +260,13 @@ void CFloat::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFloat::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Floating Particles in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FloatingParticles");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
+
+	geEntity *pEntity;
 
 	// Ok, we have Floating Particles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

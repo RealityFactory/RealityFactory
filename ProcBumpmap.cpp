@@ -127,18 +127,15 @@ static geFloat BumpTableZ[256];
 /* ------------------------------------------------------------------------------------ */
 static geBoolean BumpMap_InitTables(void)
 {
-	int p;
-	float theta, phi;
-
 	if(BumpTableInited)
 		return GE_TRUE;
 
 	BumpTableInited = 1;
 
-	for(p=0; p<256; ++p)
+	for(int p=0; p<256; ++p)
 	{
-		theta = (static_cast<float>(p >> 4)   + 0.5f)*PIOVER2/16.0f;
-		phi   = (static_cast<float>(p & 0x0F) + 0.5f)*TWOPI/16.0f;
+		float theta = (static_cast<float>(p >> 4)   + 0.5f)*PIOVER2/16.0f;
+		float phi   = (static_cast<float>(p & 0x0F) + 0.5f)*TWOPI/16.0f;
 
 		BumpTableX[p] = sin(theta) * cos(phi);
 		BumpTableY[p] = sin(theta) * sin(phi);
@@ -354,19 +351,15 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 		goto fail;
 
 	{
-		int p,c;
-		uint8 *PalPtr;
-		geFloat LightX, LightY, LightZ;
+		geFloat LightX = geVec3d_DotProduct(&LightRelPos,pPlaneX) * 250.0f;
+		geFloat LightY = geVec3d_DotProduct(&LightRelPos,pPlaneY) * 250.0f;
+		geFloat LightZ = geVec3d_DotProduct(&LightRelPos,&PlaneZ) * 250.0f;
 
-		LightX = geVec3d_DotProduct(&LightRelPos,pPlaneX) * 250.0f;
-		LightY = geVec3d_DotProduct(&LightRelPos,pPlaneY) * 250.0f;
-		LightZ = geVec3d_DotProduct(&LightRelPos,&PlaneZ) * 250.0f;
+		uint8 *PalPtr = static_cast<uint8*>(PalData);
 
-		PalPtr = static_cast<uint8*>(PalData);
-
-		for(p=0; p<256; ++p)
+		for(int p=0; p<256; ++p)
 		{
-			c = static_cast<int>(LightX * BumpTableX[p] + LightY * BumpTableY[p] + LightZ * BumpTableZ[p]);
+			int c = static_cast<int>(LightX * BumpTableX[p] + LightY * BumpTableY[p] + LightZ * BumpTableZ[p]);
 
 			if(c < 0)
 				c = 0;

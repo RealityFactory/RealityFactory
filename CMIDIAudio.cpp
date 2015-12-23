@@ -73,10 +73,6 @@ CMIDIAudio::~CMIDIAudio()
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::Play(const char *szFile, bool bLoop)
 {
-	MCI_OPEN_PARMS mciOpen;
-	MCI_PLAY_PARMS mciPlay;
-	MCI_GENERIC_PARMS mciClose;
-
 // FIX #1
 	char szTemp[256];
 	strcpy(szTemp, CCD->GetDirectory(kMIDIFile));
@@ -86,6 +82,7 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 	//	Ok, we're opening the MIDI file as part of the sequencer open.  This
 	//	..is the simplest way to do it.  The output device that gets opened
 	//	..is the default sequencer as set in the Multimedia control panel.
+	MCI_OPEN_PARMS mciOpen;
 
 	mciOpen.lpstrDeviceType = "sequencer";
 // FIX #1
@@ -110,6 +107,7 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 
 	// Ok, the file is opened and the sequencer set up.  Let's play the file!
 
+	MCI_PLAY_PARMS mciPlay;
 	memset(&mciPlay, 0, sizeof(MCI_PLAY_PARMS));
 
 	if(mciSendCommand(m_mciDeviceID, MCI_PLAY, MCI_NOTIFY, (DWORD)(LPVOID)&mciPlay))
@@ -119,6 +117,7 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play sequence file '%s'\n",
 				__FILE__, __LINE__, szFile);
 		CCD->ReportError(szBug, false);
+		MCI_GENERIC_PARMS mciClose;
 		mciClose.dwCallback = NULL;							// Please, no notifications
 		mciSendCommand(m_mciDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)&mciClose);
 		m_mciDeviceID = (-1);

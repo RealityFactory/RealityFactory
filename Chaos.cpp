@@ -18,12 +18,12 @@
 Chaos::Chaos()
 {
 	geBitmap_Info		AttachInfo;
-	geEntity			*pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
 	if(!pSet)
 		return;	// Not on this level.
+
+	geEntity			*pEntity;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -178,12 +178,12 @@ Chaos::Chaos()
 /* ------------------------------------------------------------------------------------ */
 Chaos::~Chaos()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
 	if(!pSet)
 		return;	// Not on this level.
+
+	geEntity *pEntity;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

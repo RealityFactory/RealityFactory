@@ -979,14 +979,13 @@ bool ControllerObject::setValue(const skString& fieldName, const skString& attri
 /* ------------------------------------------------------------------------------------ */
 CLevelController::CLevelController()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there is a LevelController in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LevelController");
 
 	if(!pSet)
 		return;									// No LevelController, how odd...
 
+	geEntity *pEntity;
 	//	Ok, we have a LevelController.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -1119,13 +1118,12 @@ CLevelController::CLevelController()
 /* ------------------------------------------------------------------------------------ */
 CLevelController::~CLevelController()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are LevelControllers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LevelController");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -1146,14 +1144,13 @@ CLevelController::~CLevelController()
 /* ------------------------------------------------------------------------------------ */
 void CLevelController::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	ConsoleBlock = 0;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LevelController");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{

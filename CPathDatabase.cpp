@@ -19,9 +19,6 @@
 /* ------------------------------------------------------------------------------------ */
 CPathDatabase::CPathDatabase()
 {
-	geEntity *pEntity;
-	PathPoint *OldPoint = NULL;
-
 	m_nPathCount = 0;							// No paths yet
 	memset(&m_DB, 0, MAX_PATHS * sizeof(PathDatabaseRecord*));
 	memset(&m_Handles, 0, MAX_OPEN_PATHS * sizeof(PathDatabaseRecord*));
@@ -31,6 +28,9 @@ CPathDatabase::CPathDatabase()
 
 	if(!pSet)
 		return;									// No pathpoints
+
+	geEntity *pEntity;
+	PathPoint *OldPoint = NULL;
 
 	// Ok, scan through the pathpoints in the level.  As we hit any
 	// ..start nodes, create a new path in the database and then chase
@@ -356,13 +356,13 @@ int CPathDatabase::AddToPath(PathDatabaseRecord *pHead, const char *szPointName,
 /* ------------------------------------------------------------------------------------ */
 PathPoint *CPathDatabase::FindPathPoint(const char *szPointName)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are pathpoints in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathPoint");
 
 	if(!pSet)
 		return NULL;				// No pathpoints
+
+	geEntity *pEntity;
 
 	// Grovel through the pathpoints looking for the one we want...
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

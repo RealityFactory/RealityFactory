@@ -17,8 +17,6 @@
 /* ------------------------------------------------------------------------------------ */
 CSoundtrackToggle::CSoundtrackToggle()
 {
-	geEntity *pEntity;
-
 	m_SoundtrackToggleCount = 0;
 	m_Streams = NULL;
 	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();;
@@ -30,6 +28,8 @@ CSoundtrackToggle::CSoundtrackToggle()
 
 	if(!pSet)
 		return;										// Don't waste CPU time.
+
+	geEntity *pEntity;
 
 	// Ok, we have soundtrack toggles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -95,8 +95,6 @@ CSoundtrackToggle::~CSoundtrackToggle()
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(m_SoundtrackToggleCount == 0)
 		return;							// No toggles in world, bail early
 
@@ -107,6 +105,8 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 		return;												// Don't waste CPU time.
 
 	geVec3d PlayerPos = CCD->Player()->Position();					// Get player position
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -183,13 +183,13 @@ int CSoundtrackToggle::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::StopStreaming()
 {
-	geEntity *pEntity;
-
 	// Ok, see if we have any soundtrack toggles
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
 
 	if(!pSet)
 		return;													// Don't waste CPU time.
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))

@@ -4382,7 +4382,6 @@ void ScriptedObject::ChangePitch()
 bool ScriptedObject::StepDirection(float yaw, float dist)
 {
 	geVec3d move, oldorigin;
-	float delta;
 	geXForm3d Xform;
 	geVec3d In;
 
@@ -4407,7 +4406,7 @@ bool ScriptedObject::StepDirection(float yaw, float dist)
 		// changed QD 12/15/05
 		float selfangle = anglemod(actoryaw*GE_180OVERPI);// /0.0174532925199433f);
 		float idealangle = anglemod(ideal_yaw*GE_180OVERPI);// /0.0174532925199433f);
-		delta = anglemod(selfangle - idealangle);
+		float delta = anglemod(selfangle - idealangle);
 
 		if(!(delta > 315.f || delta < 45.f))
 		{

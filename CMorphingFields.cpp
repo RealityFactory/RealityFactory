@@ -20,8 +20,6 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::CMorphingFields()
 {
-	geEntity *pEntity;
-
 	m_MorphingFieldCount = 0;
 
 	// Ok, check to see if there are morphing fields in this world
@@ -29,6 +27,8 @@ CMorphingFields::CMorphingFields()
 
 	if(!pSet)
 		return;									// No morphing fields
+
+	geEntity *pEntity;
 
 	// Ok, we have morphing fields somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -104,8 +104,6 @@ CMorphingFields::CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::~CMorphingFields()
 {
-	geEntity *pEntity;
-
 	if(m_MorphingFieldCount == 0)
 		return;						// Don't waste CPU cycles
 
@@ -114,6 +112,8 @@ CMorphingFields::~CMorphingFields()
 
 	if(!pSet)
 		return;									// No fields
+
+	geEntity *pEntity;
 
 	//	Ok, we have morphing fields somewhere.  Dig through 'em all and release
 	//	..the audio (if any).
@@ -142,8 +142,6 @@ CMorphingFields::~CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 void CMorphingFields::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(m_MorphingFieldCount == 0)
 		return;						// Don't waste CPU cycles
 
@@ -152,6 +150,8 @@ void CMorphingFields::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;									// No fields
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -341,8 +341,6 @@ void CMorphingFields::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::SaveTo(FILE *SaveFD)
 {
-	geEntity *pEntity;
-
 	if(m_MorphingFieldCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
@@ -351,6 +349,8 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No fields
+
+	geEntity *pEntity;
 
 	// Ok, we have morphing fields somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -375,8 +375,6 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 {
-	geEntity *pEntity;
-
 	if(m_MorphingFieldCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
@@ -385,6 +383,8 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No fields
+
+	geEntity *pEntity;
 
 	// Ok, we have morphing fields somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -409,13 +409,13 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::BindToPath(const char *szName)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are morphing fields in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No fields
+
+	geEntity *pEntity;
 
 	// Ok, we have morphing fields somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -443,13 +443,13 @@ int CMorphingFields::BindToPath(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are morphing fields in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No morphing fields
+
+	geEntity *pEntity;
 
 	// Ok, we have morphing fields.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

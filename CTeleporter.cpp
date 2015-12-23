@@ -22,8 +22,6 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::CTeleporter()
 {
-	geEntity *pEntity;
-
 	m_TeleporterCount = 0;					// No teleports
 
 	// Ok, check to see if there are teleporters in this world
@@ -31,6 +29,8 @@ CTeleporter::CTeleporter()
 
 	if(!pSet)
 		return;									// No teleporters
+
+	geEntity *pEntity;
 
 	// Ok, we have teleporters somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -116,8 +116,6 @@ CTeleporter::CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::~CTeleporter()
 {
-	geEntity *pEntity;
-
 	if(m_TeleporterCount == 0)
 		return;						// Don't waste CPU cycles
 
@@ -126,6 +124,8 @@ CTeleporter::~CTeleporter()
 
 	if(!pSet)
 		return;											// No teleporters
+
+	geEntity *pEntity;
 
 	// Ok, we have teleporters somewhere.  Dig through 'em all and release
 	// ..the audio (if any).
@@ -156,8 +156,6 @@ CTeleporter::~CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor)
 {
-	geEntity *pEntity, *pEntity2;
-
 	if(m_TeleporterCount == 0)
 		return false;									// None here, ignore call.
 
@@ -168,6 +166,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 		CCD->ReportError("CTeleporter: HandleCollision: no teleporters", false);
 		return false;
 	}
+	geEntity *pEntity;
 
 	// Once more we scan the teleporter list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -196,6 +195,8 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 				CCD->ReportError("Teleporters with no targets", false);
 				return true;
 			}
+
+			geEntity *pEntity2;
 
 			// Fine, there ARE targets.  Scan until we find the one we want, then
 			// ..move the sucker...erm, PLAYER...there.
@@ -314,14 +315,14 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 /* ------------------------------------------------------------------------------------ */
 void CTeleporter::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(m_TeleporterCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// First, we're going to scrounge through all the TeleportTargets
 	// ..and see if any of them are bound to a motion path.
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
+
+	geEntity *pEntity;
 
 	if(pSet != NULL)
 	{
@@ -442,13 +443,13 @@ void CTeleporter::DoFade(void)
 	if(m_TeleporterCount == 0)
 		return;						// Don't waste CPU cycles
 
-	geEntity *pEntity, *pEntity2;
-
 	// Ok, check to see if there are teleporters in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return;									// No teleporters
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -509,6 +510,8 @@ void CTeleporter::DoFade(void)
 				if(!pSet2)
 					continue;
 
+				geEntity *pEntity2;
+
 				for(pEntity2=geEntity_EntitySetGetNextEntity(pSet2, NULL); pEntity2;
 					pEntity2=geEntity_EntitySetGetNextEntity(pSet2, pEntity2))
 				{
@@ -561,8 +564,6 @@ void CTeleporter::DoFade(void)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	if(m_TeleporterCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
@@ -571,6 +572,8 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No teleporters
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -612,8 +615,6 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	if(m_TeleporterCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
@@ -622,6 +623,8 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No teleporters
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -663,13 +666,13 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::BindToPath(const char *szName)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are teleport targets in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 	if(!pSet)
 		return RGF_FAILURE;									// No targets
+
+	geEntity *pEntity;
 
 	// Ok, we have teleport targets somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -697,13 +700,13 @@ int CTeleporter::BindToPath(const char *szName)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are teleporters in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No teleporters
+
+	geEntity *pEntity;
 
 	// Ok, we have teleporters.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

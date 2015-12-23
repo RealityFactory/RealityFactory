@@ -2666,7 +2666,6 @@ void CPawn::RunConverse(ScriptedConverse *Converse, const char *szName, geBitmap
 bool CPawn::Converse(const geActor *pActor)
 {
 	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
 	skRValueArray args;// change simkin
 	skRValue ret;
 
@@ -2675,6 +2674,7 @@ bool CPawn::Converse(const geActor *pActor)
 
 	if(pSet)
 	{
+		geEntity *pEntity;
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{

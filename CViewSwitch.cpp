@@ -36,8 +36,6 @@ CViewSwitch::~CViewSwitch()
 /* ------------------------------------------------------------------------------------ */
 void CViewSwitch::Tick()
 {
-	geEntity *pEntity;
-
 	if(ViewActive)
 	{
 		if(!GetTriggerState(pViewSwitch->TriggerName))
@@ -59,6 +57,8 @@ void CViewSwitch::Tick()
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))

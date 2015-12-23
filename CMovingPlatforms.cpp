@@ -22,13 +22,6 @@ extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *
 /* ------------------------------------------------------------------------------------ */
 CMovingPlatforms::CMovingPlatforms()
 {
-	geEntity *pEntity;
-// MOD010122 - Added next four lines of data declarations.
-	geFloat  TList[TIME_LIST_MAX], tStart, tEnd;
-	int      i;
-	geMotion *pMotion;
-	const char *Eventstring;
-
 	m_PlatformCount = 0;					// No doors
 
 	// Ok, check to see if there are platforms in this world
@@ -36,6 +29,12 @@ CMovingPlatforms::CMovingPlatforms()
 
 	if(!pSet)
 		return;									// No platforms, how odd...
+
+	geEntity *pEntity;
+	geFloat		TList[TIME_LIST_MAX], tStart, tEnd;
+	int			i;
+	geMotion	*pMotion;
+	const char	*Eventstring;
 
 	// Ok, we have platforms somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -308,8 +307,6 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bo
 bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTriggerCall,
 									   bool UseKey, const geActor *theActor)
 {
-	geEntity *pEntity;
-
 	if(m_PlatformCount == 0)
 		return false;									// None here, ignore call.
 
@@ -317,6 +314,8 @@ bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTrigge
 
 	if(!pSet)
 		return false;
+
+	geEntity *pEntity;
 
 	// Once more we scan the platform list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -417,8 +416,6 @@ bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTrigge
 /* ------------------------------------------------------------------------------------ */
 void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTriggerCall)
 {
-	geEntity *pEntity;
-
 	if(m_PlatformCount == 0)
 		return;									// None here, ignore call.
 
@@ -429,6 +426,7 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 		CCD->ReportError("CMovingPlatforms: TriggerNextPlatform: no platforms", false);
 		return;
 	}
+	geEntity *pEntity;
 
 	// Once more we scan the platform list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -500,8 +498,6 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 /* ------------------------------------------------------------------------------------ */
 bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 {
-	geEntity *pEntity;
-
 	if(m_PlatformCount == 0)
 		return false;						// Don't waste time here
 
@@ -510,6 +506,8 @@ bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 
 	if(!pSet)
 		return false;						// No platforms, how odd...
+
+	geEntity *pEntity;
 
 	// Ok, we have platforms somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -537,13 +535,13 @@ bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 void CMovingPlatforms::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
 	if(!pSet)
 		return;									// No platforms, how odd...
+
+	geEntity *pEntity;
 
 	// Ok, we have platforms somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -686,13 +684,13 @@ void CMovingPlatforms::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CMovingPlatforms::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No platforms, whatever...
+
+	geEntity *pEntity;
 
 	// Ok, we have platforms somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -722,13 +720,13 @@ int CMovingPlatforms::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No platforms, whatever...
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -763,13 +761,13 @@ int CMovingPlatforms::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CMovingPlatforms::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are moving platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No moving platforms
+
+	geEntity *pEntity;
 
 	// Ok, we have moving platforms.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

@@ -15,12 +15,12 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CFlipBook::CFlipBook()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -60,13 +60,13 @@ CFlipBook::CFlipBook()
 			for(int i=0; i<S->BitmapCount; ++i)
 			{
 				char BmpName[256];
-				char AlphaName[256];
 
 				// build bmp and alpha names
 				sprintf( BmpName, "%s%d%s", S->BmpNameBase, i, ".bmp" );
 
 				if(!EffectC_IsStringNull(S->AlphaNameBase))
 				{
+					char AlphaName[256];
 					sprintf( AlphaName, "%s%d%s", S->AlphaNameBase, i, ".bmp" );
 					S->Bitmap[i] = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
 				}
@@ -100,7 +100,6 @@ CFlipBook::CFlipBook()
 /* ------------------------------------------------------------------------------------ */
 int CFlipBook::CreateSprite(FlipBook *S)
 {
-	int effect = -1;
     Sprite	Sp;
 
 	memset(&Sp, 0, sizeof(Sp));
@@ -118,7 +117,7 @@ int CFlipBook::CreateSprite(FlipBook *S)
 	Sp.Style			= (Sprite_CycleStyle)S->Style;
 	Sp.Color.a			= S->Alpha;
 
-	effect = CCD->EffectManager()->Item_Add(EFF_SPRITE, static_cast<void*>(&Sp));
+	int effect = CCD->EffectManager()->Item_Add(EFF_SPRITE, static_cast<void*>(&Sp));
 	return effect;
 }
 
@@ -127,12 +126,12 @@ int CFlipBook::CreateSprite(FlipBook *S)
 /* ------------------------------------------------------------------------------------ */
 CFlipBook::~CFlipBook()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -149,12 +148,12 @@ CFlipBook::~CFlipBook()
 /* ------------------------------------------------------------------------------------ */
 void CFlipBook::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -269,13 +268,13 @@ void CFlipBook::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CFlipBook::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are FlipBooks in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipBook");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;
+
+	geEntity *pEntity;
 
 	// Ok, we have FlipBooks somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

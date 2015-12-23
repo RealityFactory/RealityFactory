@@ -53,12 +53,12 @@ extern geBoolean Particles_Animate(Procedural * Proc,geFloat time);
 /* ------------------------------------------------------------------------------------ */
 CProcedural::CProcedural()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TextureProc");
 
 	if(!pSet)
 		return;	// Not on this level.
+
+	geEntity *pEntity;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -122,12 +122,12 @@ CProcedural::CProcedural()
 /* ------------------------------------------------------------------------------------ */
 CProcedural::~CProcedural()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TextureProc");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -191,13 +191,12 @@ CProcedural::~CProcedural()
 /* ------------------------------------------------------------------------------------ */
 void CProcedural::Tick(geFloat dwTicksIn)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "TextureProc");
 
 	if(!pSet)
 		return;
 
+	geEntity *pEntity;
 	geFloat dwTicks = dwTicksIn * 0.001f;
 
 	// Ok, we have procedurals somewhere.  Dig through 'em all.

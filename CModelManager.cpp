@@ -33,12 +33,13 @@ CModelManager::CModelManager()
 	ManagedModels = 0;
 // End Aug2003DCS
 
-	geEntity			*pEntity;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -803,12 +804,11 @@ void CModelManager::Tick(geFloat dwTicks)
 	memset(&ModelState[0], NOT_PROCESSED, MODEL_LIST_SIZE * sizeof(int));
 // End Aug2003DCS
 
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
 		// Once more we scan the door list.  Does this get old, or what?
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -930,15 +930,14 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 	// Return Value:  RGF_SUCCESS = model moved everything ok
 	//                RGF_FAILURE = model can't move because of collision
 
-	geMotion *pMotion;
-	gePath *pPath;
-	geFloat tStart, tEnd, theTime;
-	// MOD010122 - Added variable declarations in the next two lines
-	geFloat    TempTimeDelta, NextTime, TargetTime;
-	const char *Eventstring;
-
 	if(MainList[nEntry] != NULL)
 	{
+		geMotion *pMotion;
+		gePath *pPath;
+		geFloat tStart, tEnd, theTime;
+		geFloat TempTimeDelta, NextTime, TargetTime;
+		const char *Eventstring;
+
 		// Is this model moving?
 		if(MainList[nEntry]->bMoving)
 		{
@@ -2312,7 +2311,6 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	// ..collision. Is this a pain, or what?
 
 	geVec3d ActorPosition, NewActorPosition, DeltaRotation, Delta1;
-	bool    fModelMoveOK;
 	bool    InitDataForPassengers = true;
 	int     nTemp;
 
@@ -2331,7 +2329,7 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 		// ..time back to the previous time, effectively "freezing time" for the
 		// ..model.
 		CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &ActorPosition);
-		fModelMoveOK = CCD->Collision()->CheckModelMotionActor(theEntry->Model, &ResultXfm,
+		bool fModelMoveOK = CCD->Collision()->CheckModelMotionActor(theEntry->Model, &ResultXfm,
 									ActorsInRange[nTemp], &ActorPosition, &NewActorPosition);
 
 		if(fModelMoveOK == false)

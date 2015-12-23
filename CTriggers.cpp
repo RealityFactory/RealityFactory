@@ -21,8 +21,6 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 CTriggers::CTriggers()
 {
-	geEntity *pEntity;
-
 	m_TriggerCount = 0;					// No triggers
 
 	// Ok, check to see if there are triggers in this world
@@ -30,6 +28,8 @@ CTriggers::CTriggers()
 
 	if(!pSet)
 		return;									// No triggers
+
+	geEntity *pEntity;
 
 	// Ok, we have triggers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -118,9 +118,6 @@ CTriggers::~CTriggers()
 // changed RF063
 int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool UseKey, const geActor *theActor)
 {
-	geEntity *pEntity;
-	bool state;
-
 	SetState();
 
 	if(m_TriggerCount == 0)
@@ -133,6 +130,8 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 		CCD->ReportError("CTriggers: handlecollision: no triggers", false);
 		return RGF_FAILURE;
 	}
+	geEntity *pEntity;
+	bool state;
 
 	// Once more we scan the list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -214,9 +213,6 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::HandleTriggerEvent(const char *TName)
 {
-	geEntity *pEntity;
-	bool state;
-
 	SetState();
 
 	if(m_TriggerCount == 0)
@@ -229,6 +225,9 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 		CCD->ReportError("CTriggers: handletriggerevent: no triggers", false);
 		return false;
 	}
+
+	geEntity *pEntity;
+	bool state;
 
 	//	Once more we scan the list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -312,8 +311,6 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 {
-	geEntity *pEntity;
-
 	if(m_TriggerCount == 0)
 		return false;										// Don't waste time here.
 
@@ -322,6 +319,8 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 
 	if(!pSet)
 		return false;									// No  triggers
+
+	geEntity *pEntity;
 
 	// Ok, we have  triggers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -349,8 +348,6 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	if(m_TriggerCount == 0)
 		return;									// Don't waste time here
 
@@ -359,6 +356,8 @@ void CTriggers::Tick(geFloat dwTicks)
 
 	if(!pSet)
 		return;									// No  triggers
+
+	geEntity *pEntity;
 
 	// Ok, we have triggers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -438,13 +437,13 @@ void CTriggers::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::SaveTo(FILE *SaveFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No triggers, whatever...
+
+	geEntity *pEntity;
 
 	// Ok, we have triggers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -482,13 +481,13 @@ int CTriggers::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
 	if(!pSet)
 		return RGF_SUCCESS;									// No triggers, whatever...
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -531,13 +530,13 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No triggers
+
+	geEntity *pEntity;
 
 	// Ok, we have  triggers.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -571,9 +570,6 @@ int CTriggers::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::SetState()
 {
-	geEntity *pEntity;
-	TState *pool;
-
 	Bottom = NULL;
 
 	if(m_TriggerCount == 0)
@@ -584,6 +580,9 @@ void CTriggers::SetState()
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
+	TState *pool;
 
 	// Ok, we have triggers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -618,14 +617,13 @@ void CTriggers::SetState()
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::GetTTriggerState(const char *Name)
 {
-	TState *pool;
-
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
 
 	if(EntityType)
 	{
 		if(!stricmp(EntityType, "Trigger"))
 		{
+			TState *pool;
 			pool = Bottom;
 
 			while(pool != NULL)

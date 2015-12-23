@@ -27,12 +27,12 @@ float FastDistance(geVec3d Pos1, geVec3d Pos2)
 /* ------------------------------------------------------------------------------------ */
 CFlipTree::CFlipTree()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -76,12 +76,11 @@ CFlipTree::CFlipTree()
 		//load the actor
 		if(!EffectC_IsStringNull(S->ActorName))
 		{
-			int RenderFlag = 0;
-
 			S->fActor = CCD->ActorManager()->LoadActor(S->ActorName, NULL);
 
 			if(S->fActor)
 			{
+				int RenderFlag = 0;
 				CCD->ActorManager()->SetActorFlags(S->fActor, RenderFlag);
 				CCD->ActorManager()->Position(S->fActor, S->origin);
 				CCD->ActorManager()->Rotate(S->fActor, S->Rotation);
@@ -103,12 +102,12 @@ CFlipTree::CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 CFlipTree::~CFlipTree()
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;
+
+	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -129,13 +128,12 @@ CFlipTree::~CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 void CFlipTree::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
 	    return;
 
+	geEntity *pEntity;
 	geFloat rng;
 	geVec3d Pos1;
 	GE_LVertex	Vertex;

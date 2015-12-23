@@ -13,14 +13,14 @@
 /* ------------------------------------------------------------------------------------ */
 CLiftBelt::CLiftBelt()
 {
-	geEntity *pEntity;
-
 	Change = false;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -57,13 +57,13 @@ CLiftBelt::~CLiftBelt()
 /* ------------------------------------------------------------------------------------ */
 void CLiftBelt::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-	geVec3d fVector = {0.0f, 1.0f, 0.0f};
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+		geVec3d fVector = {0.0f, 1.0f, 0.0f};
+
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -187,13 +187,13 @@ void CLiftBelt::ChangeLift(bool increase)
 /* ------------------------------------------------------------------------------------ */
 void CLiftBelt::DisableHud(const char *Attr)
 {
-	geEntity *pEntity;
-	bool IsLift = false;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
 	{
+		geEntity *pEntity;
+		bool IsLift = false;
+
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -242,13 +242,13 @@ void CLiftBelt::DisableHud(const char *Attr)
 /* ------------------------------------------------------------------------------------ */
 int CLiftBelt::LocateEntity(const char *szName, void **pEntityData)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are liftbelts in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;							// No LiftBelt entities
+
+	geEntity *pEntity;
 
 	// Ok, we have liftbelts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;

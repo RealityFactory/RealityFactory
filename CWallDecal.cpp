@@ -22,13 +22,13 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 CWallDecal::CWallDecal()
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -61,12 +61,12 @@ CWallDecal::CWallDecal()
 			for(int i=0; i<pSource->BitmapCount; ++i)
 			{
 				char BmpName[256];
-				char AlphaName[256];
 				// build bmp and alpha names
 				sprintf( BmpName, "%s%d%s", pSource->BmpName, i, ".bmp");
 
 				if(!EffectC_IsStringNull(pSource->AlphaName))
 				{
+					char AlphaName[256];
 					sprintf( AlphaName, "%s%d%s", pSource->AlphaName, i, ".bmp");
 					pSource->FBitmap[i] = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
 				}
@@ -120,13 +120,13 @@ CWallDecal::CWallDecal()
 CWallDecal::~CWallDecal()
 {
 // changed RF064
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -149,13 +149,13 @@ CWallDecal::~CWallDecal()
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::Tick(geFloat dwTicks)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return;
+
+	geEntity *pEntity;
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -338,27 +338,6 @@ void CWallDecal::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::AddDecal(WallDecal *pSource)
 {
-	geVec3d right, up;
-	GE_LVertex	vertex[4];
-
-	//Setup vertex 1,2,3,4
-	for(int i=0; i<4; i++)
-	{
-		// texture coordinates
-		vertex[i].u = 0.0f;
-		vertex[i].v = 0.0f;
-		// color
-		vertex[i].r = pSource->Color.r;	//red
-		vertex[i].g = pSource->Color.g;	//green
-		vertex[i].b = pSource->Color.b;	//blue
-		vertex[i].a = pSource->Alpha;	//alpha
-	}
-
-	vertex[3].u = 1.0f;
-	vertex[2].u = 1.0f;
-	vertex[2].v = 1.0f;
-	vertex[1].v = 1.0f;
-
 	geVec3d Axis[3] =
 	{
 		{1.0f, 0.0f, 0.0f},
@@ -370,8 +349,6 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
 
 	geVec3d  Direction;
-	geVec3d Front, Back;
-	GE_Collision Collision;
 
 	Direction.Z = GE_PIOVER180*(pSource->Angle.Z);
 	Direction.X = GE_PIOVER180*(pSource->Angle.X);
@@ -390,17 +367,21 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	//Pos = Xf.Translation;
 
 	geXForm3d_GetIn(&Xf, &Direction);
+
+	geVec3d Front, Back;
 	geVec3d_AddScaled(&(pSource->origin), &Direction, 4000.0f, &Back);
 // changed QD 12/15/05
 	//geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&(pSource->origin), &Front);
 // end change
 
+	GE_Collision Collision;
 	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
 		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
 
 	geVec3d impact = Collision.Impact;
 	geVec3d normal = Collision.Plane.Normal;
+	geVec3d right, up;
 
 //	int major = 0;
 //
@@ -454,6 +435,26 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	geVec3d_Scale(&up, pSource->Height*0.5f, &up);
 // changed RF064
 	geVec3d_MA(&impact, 0.5f, &normal, &impact);
+
+	GE_LVertex	vertex[4];
+
+	// Setup vertex 1,2,3,4
+	for(int i=0; i<4; ++i)
+	{
+		// texture coordinates
+		vertex[i].u = 0.0f;
+		vertex[i].v = 0.0f;
+		// color
+		vertex[i].r = pSource->Color.r;	//red
+		vertex[i].g = pSource->Color.g;	//green
+		vertex[i].b = pSource->Color.b;	//blue
+		vertex[i].a = pSource->Alpha;	//alpha
+	}
+
+	vertex[3].u = 1.0f;
+	vertex[2].u = 1.0f;
+	vertex[2].v = 1.0f;
+	vertex[1].v = 1.0f;
 // end change RF064
 
 	//calculate vertices from corners
@@ -503,11 +504,42 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3d *RightVec)
 {
-	geVec3d    up;
-	GE_LVertex vertex[4];
+	geVec3d Axis[3] =
+	{
+		{1.0f, 0.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f},
+		{0.0f, 0.0f, 1.0f}
+	};
+
+	geVec3d Front, Back;
+
+// changed QD 12/15/05
+	geVec3d_AddScaled(&(pSource->origin), InVec, 4000.0f, &Back);
+	geVec3d_Copy(&(pSource->origin), &Front);
+// end change
+
+	GE_Collision Collision;
+	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
+		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
+
+	geVec3d impact = Collision.Impact;
+	geVec3d normal = Collision.Plane.Normal;
+
+	geVec3d up, Right;
+	geVec3d_CrossProduct(&normal, RightVec, &up);
+	geVec3d_Normalize(&up);
+	geVec3d_Copy(RightVec, &Right);
+	geVec3d_Normalize(&Right);
+
+	geVec3d_Scale(&Right, pSource->Width*0.5f, &Right);
+	geVec3d_Scale(&up, pSource->Height*0.5f, &up);
+
+	geVec3d_MA(&impact, 0.1f, &normal, &impact);
+
+	GE_LVertex	vertex[4];
 
 	//Setup vertex 1,2,3,4
-	for(int i=0; i<4; i++)
+	for(int i=0; i<4; ++i)
 	{
 		// texture coordinates
 		vertex[i].u = 0.0f;
@@ -523,37 +555,6 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 	vertex[2].u = 1.0f;
 	vertex[2].v = 1.0f;
 	vertex[1].v = 1.0f;
-
-	geVec3d Axis[3] =
-	{
-		{1.0f, 0.0f, 0.0f},
-		{0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f}
-	};
-
-	geVec3d Front, Back, Right;
-	GE_Collision Collision;
-
-// changed QD 12/15/05
-	geVec3d_AddScaled(&(pSource->origin), InVec, 4000.0f, &Back);
-	geVec3d_Copy(&(pSource->origin), &Front);
-// end change
-
-	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
-		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
-
-	geVec3d impact = Collision.Impact;
-	geVec3d normal = Collision.Plane.Normal;
-
-	geVec3d_CrossProduct(&normal, RightVec, &up);
-	geVec3d_Normalize(&up);
-	geVec3d_Copy(RightVec, &Right);
-	geVec3d_Normalize(&Right);
-
-	geVec3d_Scale(&Right, pSource->Width*0.5f, &Right);
-	geVec3d_Scale(&up, pSource->Height*0.5f, &up);
-
-	geVec3d_MA(&impact, 0.1f, &normal, &impact);
 
 	//calculate vertices from corners
 	vertex[1].X = impact.X + (-Right.X - up.X);
@@ -603,13 +604,13 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No WallDecals
+
+	geEntity *pEntity;
 
 	// Ok, we have  triggers.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
@@ -635,13 +636,13 @@ int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 {
-	geEntity *pEntity;
-
 	// Ok, check to see if there are  triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
 	if(!pSet)
 		return RGF_NOT_FOUND;									// No WallDecals
+
+	geEntity *pEntity;
 
 	// Ok, we have  WallDecals.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet,NULL); pEntity;
