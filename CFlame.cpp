@@ -56,11 +56,11 @@ CFlame::CFlame()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreateS
+//	CreateSpray
 //
 //	Create Spray effect
 /* ------------------------------------------------------------------------------------ */
-int CFlame::CreateS(Flame *S)
+int CFlame::CreateSpray(Flame *S)
 {
 	int effect = -1;
     Spray	Sp;
@@ -185,11 +185,11 @@ int CFlame::CreateS(Flame *S)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreateG
+//	CreateGlow
 //
 //	Create Glow effect
 /* ------------------------------------------------------------------------------------ */
-int CFlame::CreateG(Flame *S)
+int CFlame::CreateGlow(Flame *S)
 {
 	int effect = -1;
     Glow Gl;

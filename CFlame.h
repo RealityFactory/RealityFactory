@@ -31,8 +31,9 @@ public:
 	int ReSynchronize();
 
 private:
-	int CreateS(Flame *S);	///< Create Spray effect
-	int CreateG(Flame *S);	///< Create Glow effect
+	int CreateSpray(Flame *S);	///< Create Spray effect
+
+	int CreateGlow(Flame *S);	///< Create Glow effect
 };
 
 #endif
