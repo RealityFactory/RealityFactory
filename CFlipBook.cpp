@@ -94,11 +94,11 @@ CFlipBook::CFlipBook()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreateS
+//	CreateSprite
 //
 //	Create Sprite effect
 /* ------------------------------------------------------------------------------------ */
-int CFlipBook::CreateS(FlipBook *S)
+int CFlipBook::CreateSprite(FlipBook *S)
 {
 	int effect = -1;
     Sprite	Sp;

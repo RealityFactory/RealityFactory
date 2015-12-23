@@ -30,7 +30,7 @@ public:
 	int ReSynchronize();
 
 private:
-	int CreateS(FlipBook *S);	///< Create Sprite effect
+	int CreateSprite(FlipBook *S);	///< Create Sprite effect
 };
 
 #endif
