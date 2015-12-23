@@ -10,6 +10,8 @@
 #ifndef __RGF_UTILITY_H_
 #define __RGF_UTILITY_H_
 
+#include "RGFConstants.h"
+
 // changed QD 02/01/07
 // utility functions for std::string replacing CString functionality
 inline void Replace(std::string &source, const std::string &strold, const std::string &strnew)
@@ -33,6 +35,13 @@ inline void TrimLeft(std::string &source)
 
 inline void TrimLeft(std::string &source, const std::string &t)
 { source.erase(0, source.find_first_not_of(t)); }
+
+inline bool EndsWith(const std::string &str, const std::string &suffix)
+{
+	return str.size() >= suffix.size() &&
+			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
 // end change
 
 bool SetOriginOffset(const char *EntityName, const char *BoneName,
