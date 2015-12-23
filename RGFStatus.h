@@ -40,11 +40,12 @@
 #define RGF_COLLISIONLEVEL_1	0x0001	// AABB, total actor only
 #define RGF_COLLISIONLEVEL_2	0x0002	// AABB, at the bone level
 
-//	RGF key codes
+//	RGF action codes
 
 typedef enum
 {
-	RGF_K_FORWARD = 1,
+	RGF_K_NOACTION = 0,
+	RGF_K_FORWARD,
 	RGF_K_BACKWARD,
 	RGF_K_TURN_LEFT,
 	RGF_K_TURN_RIGHT,
@@ -86,20 +87,14 @@ typedef enum
 	RGF_K_ZOOM_WEAPON,
 	RGF_K_HOLSTER_WEAPON,
 	RGF_K_LIGHT,
-// changed RF063
 	RGF_K_USE,
 	RGF_K_INVENTORY,
-// end change RF063
-// start multiplayer
 	RGF_K_CONSOLE,
-// end multiplayer
-// changed RF064
 	RGF_K_DROP,
 	RGF_K_RELOAD,
 	RGF_K_POWERUP,
 	RGF_K_POWERDWN,
-// end change RF064
-	RGF_K_NOACTION
+	RGF_K_MAXACTION
 } ACTIONCODES;
 
 typedef enum
