@@ -121,6 +121,7 @@ public:
 	std::string GetValue(const std::string& keyname, const std::string& valuename);
 	int GetValueI(const std::string& keyname, const std::string& valuename);
 	double GetValueF(const std::string& keyname, const std::string& valuename);
+	bool GetValueB(const std::string& keyname, const std::string& valuename);
 
 	/**
 	 * @brief sets value of [keyname] valuename =.
@@ -131,6 +132,7 @@ public:
 	bool SetValue(const std::string& key, const std::string& valuename, const std::string& value, bool create = true);
 	bool SetValueI(const std::string& key, const std::string& valuename, int value, bool create = true);
 	bool SetValueF(const std::string& key, const std::string& valuename, double value, bool create = true);
+	bool SetValueB(const std::string& key, const std::string& valuename, bool value, bool create = true);
 
 	/**
 	 * @brief deletes specified value

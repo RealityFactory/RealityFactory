@@ -244,6 +244,20 @@ double CIniFile::GetValueF(const std::string& keyname, const std::string& valuen
 }
 
 /* ------------------------------------------------------------------------------------ */
+// gets value of [keyname] valuename =
+// overloaded to return std::string, int, double, and bool
+/* ------------------------------------------------------------------------------------ */
+bool CIniFile::GetValueB(const std::string& keyname, const std::string& valuename)
+{
+	std::string bval(GetValue(keyname, valuename));
+	if(bval.empty() || bval == "false" || bval == "False" || bval == "FALSE" || bval == "0")
+		return false;
+
+	return true;
+
+}
+
+/* ------------------------------------------------------------------------------------ */
 //	sets value of [keyname] valuename =.
 //	specify the optional paramter as false (0) if you do not want it to create
 //	the key if it doesn't exist. Returns true if data entered, false otherwise
@@ -313,6 +327,20 @@ bool CIniFile::SetValueF(const std::string& keyname, const std::string& valuenam
 	temp = oss.str();
 
 	return SetValue(keyname, valuename, temp, create);
+}
+
+/* ------------------------------------------------------------------------------------ */
+// sets value of [keyname] valuename =.
+// specify the optional paramter as false (0) if you do not want it to create
+// the key if it doesn't exist. Returns true if data entered, false otherwise
+// overloaded to accept std::string, int, double, and bool
+/* ------------------------------------------------------------------------------------ */
+bool CIniFile::SetValueB(const std::string& keyname, const std::string& valuename, bool value, bool create)
+{
+	std::ostringstream oss;
+	oss << std::boolalpha << value;
+
+	return SetValue(keyname, valuename, oss.str(), create);
 }
 
 /* ------------------------------------------------------------------------------------ */
