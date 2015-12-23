@@ -171,7 +171,7 @@ void CFlipBook::Tick(geFloat dwTicks)
 				if(S->active == GE_FALSE && !EffectC_IsStringNull(S->BmpNameBase))
 				{
 					if(EffectC_IsStringNull(S->TextureName))
-						S->EffectList = CreateS(S);
+						S->EffectList = CreateSprite(S);
 
 					S->active = GE_TRUE;
 				}
@@ -197,7 +197,7 @@ void CFlipBook::Tick(geFloat dwTicks)
 			if(S->active == GE_FALSE && !EffectC_IsStringNull(S->BmpNameBase))
 			{
 				if(EffectC_IsStringNull(S->TextureName))
-					S->EffectList = CreateS(S);
+					S->EffectList = CreateSprite(S);
 
 				S->active = GE_TRUE;
 			}
