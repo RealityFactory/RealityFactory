@@ -16,8 +16,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -52,12 +50,12 @@ private:
 	/**
 	 * @brief returns index of specified value, in the specified key, or -1 if not found
 	 */
-	int FindValue(int keynum, std::string valuename);
+	int FindValue(int keynum, const std::string& valuename) const;
 
 	/**
 	 * @brief returns index of specified key, or -1 if not found
 	 */
-	int FindKey(std::string keyname);
+	int FindKey(const std::string& keyname) const;
 
 	// public variables
 public:
@@ -87,7 +85,7 @@ public:
 	/**
 	 * @brief sets path of ini file to read and write from
 	 */
-	void SetPath(std::string newpath);
+	void SetPath(const std::string& newpath);
 
 	/**
 	 * @brief reads ini file specified using CIniFile::SetPath()
@@ -98,7 +96,7 @@ public:
 	/**
 	 * @brief writes data stored in class to ini file
 	 */
-	void WriteFile();
+	void WriteFile() const;
 
 	/**
 	 * @brief deletes all stored ini data
@@ -108,21 +106,21 @@ public:
 	/**
 	 * @brief returns number of keys currently in the ini
 	 */
-	int GetNumKeys();
+	int GetNumKeys() const;
 
 	/**
 	 * @brief returns number of values stored for specified key
 	 */
-	int GetNumValues(std::string keyname);
+	int GetNumValues(const std::string& keyname) const;
 
 	/**
 	 * @brief gets value of [keyname] valuename =
 	 * overloaded to return std::string, int, and double,
 	 * returns "", or 0 if key/value not found. Sets error member to show problem
 	 */
-	std::string GetValue(std::string keyname, std::string valuename);
-	int GetValueI(std::string keyname, std::string valuename);
-	double GetValueF(std::string keyname, std::string valuename);
+	std::string GetValue(const std::string& keyname, const std::string& valuename);
+	int GetValueI(const std::string& keyname, const std::string& valuename);
+	double GetValueF(const std::string& keyname, const std::string& valuename);
 
 	/**
 	 * @brief sets value of [keyname] valuename =.
@@ -130,28 +128,28 @@ public:
 	 * the key if it doesn't exist. Returns true if data entered, false otherwise
 	 * overloaded to accept CString, int, and double
 	 */
-	bool SetValue(std::string key, std::string valuename, std::string value, bool create = 1);
-	bool SetValueI(std::string key, std::string valuename, int value, bool create = 1);
-	bool SetValueF(std::string key, std::string valuename, double value, bool create = 1);
+	bool SetValue(const std::string& key, const std::string& valuename, const std::string& value, bool create = true);
+	bool SetValueI(const std::string& key, const std::string& valuename, int value, bool create = true);
+	bool SetValueF(const std::string& key, const std::string& valuename, double value, bool create = true);
 
 	/**
 	 * @brief deletes specified value
 	 * returns true if value existed and deleted, false otherwise
 	 */
-	bool DeleteValue(std::string keyname, std::string valuename);
+	bool DeleteValue(const std::string& keyname, const std::string& valuename);
 
 	/**
 	 * @brief deletes specified key and all values contained within
 	 * returns true if key existed and deleted, false otherwise
 	 */
-	bool DeleteKey(std::string keyname);
+	bool DeleteKey(const std::string& keyname);
 
 	std::string FindFirstKey();
 	std::string FindNextKey();
-	std::string FindFirstName(std::string keyname);
-	std::string FindFirstValue();
+	std::string FindFirstName(const std::string& keyname);
+	std::string FindFirstValue() const;
 	std::string FindNextName();
-	std::string FindNextValue();
+	std::string FindNextValue() const;
 };
 
 #endif // !defined(__RGF_INIFILE_H_)
