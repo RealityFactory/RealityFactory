@@ -12,7 +12,6 @@
 #ifndef __RGF_CELECTRIC_H_
 #define __RGF_CELECTRIC_H_
 
-
 #define	ELECTRIC_BOLT_REDDOMINANT	0
 #define	ELECTRIC_BOLT_GREENDOMINANT	1
 #define	ELECTRIC_BOLT_BLUEDOMINANT	2
@@ -54,7 +53,6 @@ public:
 	CElectric();	///< Default constructor
 	~CElectric();
 
-	int Create(const geVec3d &Origin, ElectricBolt *pBolt);
 	geBoolean Tick(geFloat dwTicks);
 
 	void CheckCollision(ElectricBolt *Bolt);
@@ -76,6 +74,7 @@ public:
 	int ReSynchronize();
 
 private:
+	int Create(const geVec3d &Origin, ElectricBolt *pBolt);
 
 };
 
