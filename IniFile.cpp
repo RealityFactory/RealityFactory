@@ -24,8 +24,8 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 /* ------------------------------------------------------------------------------------ */
-//	Construction/Destruction
-//	default constructor
+// Construction/Destruction
+// default constructor
 /* ------------------------------------------------------------------------------------ */
 CIniFile::CIniFile() :
 	numkey(0),
@@ -35,7 +35,7 @@ CIniFile::CIniFile() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	constructor, can specify pathname here instead of using SetPath later
+// constructor, can specify pathname here instead of using SetPath later
 /* ------------------------------------------------------------------------------------ */
 CIniFile::CIniFile(const std::string& inipath) :
 	path(inipath),
@@ -46,11 +46,10 @@ CIniFile::CIniFile(const std::string& inipath) :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	default destructor
+// default destructor
 /* ------------------------------------------------------------------------------------ */
 CIniFile::~CIniFile()
 {
-
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -59,7 +58,7 @@ CIniFile::~CIniFile()
 
 
 /* ------------------------------------------------------------------------------------ */
-//	sets path of ini file to read and write from
+// sets path of ini file to read and write from
 /* ------------------------------------------------------------------------------------ */
 void CIniFile::SetPath(const std::string& newpath)
 {
@@ -68,12 +67,11 @@ void CIniFile::SetPath(const std::string& newpath)
 
 
 /* ------------------------------------------------------------------------------------ */
-//	reads ini file specified using CIniFile::SetPath()
-//	returns true if successful, false otherwise
+// reads ini file specified using CIniFile::SetPath()
+// returns true if successful, false otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::ReadFile()
 {
-// changed RF063
 	geVFile *MainFS;
 	char szPath[132];
 
@@ -95,7 +93,7 @@ bool CIniFile::ReadFile()
 
 		if(!readinfo.empty())
 		{
-			//if a section heading
+			// if a section heading
 			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
 				keyname = readinfo;
@@ -105,7 +103,6 @@ bool CIniFile::ReadFile()
 			else
 			{
 				// if not a comment line
-// changed RF064
 				if(readinfo[0] != ';')
 				{
 					std::string valuename, value;
@@ -124,8 +121,8 @@ bool CIniFile::ReadFile()
 					TrimLeft(valuename);
 					TrimRight(valuename);
 					TrimLeft(value);
-// end change RF064
-					SetValue(keyname,valuename,value);
+
+					SetValue(keyname, valuename, value);
 				}
 			}
 		}
@@ -134,11 +131,10 @@ bool CIniFile::ReadFile()
 	geVFile_Close(MainFS);
 
 	return true;
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	writes data stored in class to ini file
+// writes data stored in class to ini file
 /* ------------------------------------------------------------------------------------ */
 void CIniFile::WriteFile() const
 {
@@ -164,7 +160,7 @@ void CIniFile::WriteFile() const
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	deletes all stored ini data
+// deletes all stored ini data
 /* ------------------------------------------------------------------------------------ */
 void CIniFile::Reset()
 {
@@ -173,7 +169,7 @@ void CIniFile::Reset()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	returns number of keys currently in the ini
+// returns number of keys currently in the ini
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::GetNumKeys() const
 {
@@ -181,7 +177,7 @@ int CIniFile::GetNumKeys() const
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	returns number of values stored for specified key, or -1 if key found
+// returns number of values stored for specified key, or -1 if key found
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::GetNumValues(const std::string& keyname) const
 {
@@ -194,8 +190,8 @@ int CIniFile::GetNumValues(const std::string& keyname) const
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	gets value of [keyname] valuename =
-//	overloaded to return CString, int, and double
+// gets value of [keyname] valuename =
+// overloaded to return std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 std::string CIniFile::GetValue(const std::string& keyname, const std::string& valuename)
 {
@@ -219,8 +215,8 @@ std::string CIniFile::GetValue(const std::string& keyname, const std::string& va
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	gets value of [keyname] valuename =
-//	overloaded to return CString, int, and double
+// gets value of [keyname] valuename =
+// overloaded to return std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::GetValueI(const std::string& keyname, const std::string& valuename)
 {
@@ -228,8 +224,8 @@ int CIniFile::GetValueI(const std::string& keyname, const std::string& valuename
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	gets value of [keyname] valuename =
-//	overloaded to return CString, int, and double
+// gets value of [keyname] valuename =
+// overloaded to return std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 double CIniFile::GetValueF(const std::string& keyname, const std::string& valuename)
 {
@@ -247,41 +243,40 @@ bool CIniFile::GetValueB(const std::string& keyname, const std::string& valuenam
 		return false;
 
 	return true;
-
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	sets value of [keyname] valuename =.
-//	specify the optional paramter as false (0) if you do not want it to create
-//	the key if it doesn't exist. Returns true if data entered, false otherwise
-//	overloaded to accept CString, int, and double
+// sets value of [keyname] valuename =.
+// specify the optional paramter as false (0) if you do not want it to create
+// the key if it doesn't exist. Returns true if data entered, false otherwise
+// overloaded to accept std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::SetValue(const std::string& keyname, const std::string& valuename, const std::string& value, bool create)
 {
 	int keynum = FindKey(keyname), valuenum = 0;
 
-	//find key
-	if(keynum == -1)	//if key doesn't exist
+	// find key
+	if(keynum == -1)	// if key doesn't exist
 	{
-		if(!create)		//and user does not want to create it,
-			return 0;	//stop entering this key
+		if(!create)		// and user does not want to create it,
+			return 0;	// stop entering this key
 
-		names.resize(names.size()+1);
-		keys.resize(keys.size()+1);
+		names.resize(names.size() + 1);
+		keys.resize(keys.size() + 1);
 		keynum = names.size()-1;
 		names[keynum] = keyname;
 	}
 
-	//find value
-	valuenum = FindValue(keynum,valuename);
+	// find value
+	valuenum = FindValue(keynum, valuename);
 	if(valuenum == -1)
 	{
-		if (!create)
+		if(!create)
 			return 0;
 
-		keys[keynum].names.resize(keys[keynum].names.size()+1);
-		keys[keynum].values.resize(keys[keynum].names.size()+1);
-		valuenum = keys[keynum].names.size()-1;
+		keys[keynum].names.resize(keys[keynum].names.size() + 1);
+		keys[keynum].values.resize(keys[keynum].names.size() + 1);
+		valuenum = keys[keynum].names.size() - 1;
 		keys[keynum].names[valuenum] = valuename;
 	}
 
@@ -290,10 +285,10 @@ bool CIniFile::SetValue(const std::string& keyname, const std::string& valuename
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	sets value of [keyname] valuename =.
-//	specify the optional paramter as false (0) if you do not want it to create
-//	the key if it doesn't exist. Returns true if data entered, false otherwise
-//	overloaded to accept CString, int, and double
+// sets value of [keyname] valuename =.
+// specify the optional paramter as false (0) if you do not want it to create
+// the key if it doesn't exist. Returns true if data entered, false otherwise
+// overloaded to accept std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::SetValueI(const std::string& keyname, const std::string& valuename, int value, bool create)
 {
@@ -304,10 +299,10 @@ bool CIniFile::SetValueI(const std::string& keyname, const std::string& valuenam
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	sets value of [keyname] valuename =.
-//	specify the optional paramter as false (0) if you do not want it to create
-//	the key if it doesn't exist. Returns true if data entered, false otherwise
-//	overloaded to accept CString, int, and double
+// sets value of [keyname] valuename =.
+// specify the optional paramter as false (0) if you do not want it to create
+// the key if it doesn't exist. Returns true if data entered, false otherwise
+// overloaded to accept std::string, int, double, and bool
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::SetValueF(const std::string& keyname, const std::string& valuename, double value, bool create)
 {
@@ -332,8 +327,8 @@ bool CIniFile::SetValueB(const std::string& keyname, const std::string& valuenam
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	deletes specified value
-//	returns true if value existed and deleted, false otherwise
+// deletes specified value
+// returns true if value existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::DeleteValue(const std::string& keyname, const std::string& valuename)
 {
@@ -348,8 +343,8 @@ bool CIniFile::DeleteValue(const std::string& keyname, const std::string& valuen
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	deletes specified key and all values contained within
-//	returns true if key existed and deleted, false otherwise
+// deletes specified key and all values contained within
+// returns true if key existed and deleted, false otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::DeleteKey(const std::string& keyname)
 {
@@ -387,7 +382,6 @@ std::string CIniFile::FindNextKey()
 		return "";
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 std::string CIniFile::FindFirstName(const std::string& keyname)
@@ -444,7 +438,6 @@ std::string CIniFile::FindNextValue() const
 
 	return "";
 }
-// end change RF064
 
 
 /* ------------------------------------------------------------------------------------ */
@@ -453,7 +446,7 @@ std::string CIniFile::FindNextValue() const
 
 
 /* ------------------------------------------------------------------------------------ */
-//	returns index of specified key, or -1 if not found
+// returns index of specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::FindKey(const std::string& keyname) const
 {
@@ -469,7 +462,7 @@ int CIniFile::FindKey(const std::string& keyname) const
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	returns index of specified value, in the specified key, or -1 if not found
+// returns index of specified value, in the specified key, or -1 if not found
 /* ------------------------------------------------------------------------------------ */
 int CIniFile::FindValue(int keynum, const std::string& valuename) const
 {
@@ -486,16 +479,5 @@ int CIniFile::FindValue(int keynum, const std::string& valuename) const
 
 	return valuenum;
 }
-
-/* ------------------------------------------------------------------------------------ */
-//	overloaded from original getline to take CString
-/* ------------------------------------------------------------------------------------ */
-/*istream& CIniFile:: getline(istream &is, CString &str)
-{
-    char buf[2048];
-    is.getline(buf, 2048);
-    str = buf;
-    return is;
-}*/
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
