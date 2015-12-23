@@ -77,7 +77,7 @@ public:
 	/**
 	 * @brief constructor, can specify pathname here instead of using SetPath later
 	 */
-	CIniFile(std::string inipath);
+	explicit CIniFile(const std::string& inipath);
 
 	/**
 	 * @brief default destructor

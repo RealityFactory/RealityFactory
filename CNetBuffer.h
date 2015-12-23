@@ -29,7 +29,7 @@ public:
 
 public:
 	// functions
-	NetBuffer(int value);
+	explicit NetBuffer(int value);
 	virtual ~NetBuffer();
 
 	void *Expand(int addsize);

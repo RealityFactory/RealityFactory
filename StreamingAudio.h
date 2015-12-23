@@ -22,7 +22,7 @@ const int kBufferSize = 48000*4;
 class StreamingAudio
 {
 public:
-	StreamingAudio(LPDIRECTSOUND lpDS);		///< Default constructor
+	explicit StreamingAudio(LPDIRECTSOUND lpDS);	///< Constructor
 	~StreamingAudio();						///< Default destructor
 
 	int Create(char *szFileName);			///< Add playback stream

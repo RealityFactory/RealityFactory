@@ -16,8 +16,9 @@
 class OggAudio
 {
 public:
-	OggAudio(LPDIRECTSOUND lpDS);		///< Default constructor
+	explicit OggAudio(LPDIRECTSOUND lpDS);	///< Constructor
 	~OggAudio();						///< Default destructor
+
 	int Load(const char *szFileName);	///< Add playback stream
 	int Play(bool bLooping);			///< Start streaming
 	int Stop();							///< Stop streaming
