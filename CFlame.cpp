@@ -284,8 +284,8 @@ void CFlame::Tick(geFloat dwTicks)
 			{
 				if(S->active == GE_FALSE)
 				{
-					S->EffectList0	= CreateS(S);
-					S->EffectList1	= CreateG(S);
+					S->EffectList0	= CreateSpray(S);
+					S->EffectList1	= CreateGlow(S);
 					S->active		= GE_TRUE;
 				}
 			}
@@ -309,8 +309,8 @@ void CFlame::Tick(geFloat dwTicks)
 		{
 			if(S->active == GE_FALSE)
 			{
-				S->EffectList0	= CreateS(S);
-				S->EffectList1	= CreateG(S);
+				S->EffectList0	= CreateSpray(S);
+				S->EffectList1	= CreateGlow(S);
 				S->active		= GE_TRUE;
 			}
 		}
