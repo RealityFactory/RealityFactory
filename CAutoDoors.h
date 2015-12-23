@@ -33,7 +33,7 @@ public:
 	 */
 	void TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall);
 
-	bool IsADoor(geWorld_Model *theModel);				///< Is this model a door?
+	bool IsADoor(geWorld_Model *theModel) const;		///< Is this model a door?
 
 	void Tick(geFloat dwTicks);							///< Increment animation time
 

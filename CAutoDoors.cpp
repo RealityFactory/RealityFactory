@@ -574,7 +574,7 @@ void CAutoDoors::Tick(geFloat dwTicks)
 //
 //	Return TRUE if the passed-in model is a door, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
-bool CAutoDoors::IsADoor(geWorld_Model *theModel)
+bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 {
 	geEntity *pEntity;
 
