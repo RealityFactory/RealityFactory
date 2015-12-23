@@ -394,7 +394,7 @@ void CAudioStream::PauseAll()
 //
 //	Locate a free slot in the array for us to use, return -1 if none.
 /* ------------------------------------------------------------------------------------ */
-int CAudioStream::FindFreeSlot()
+int CAudioStream::FindFreeSlot() const
 {
 	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{

@@ -52,7 +52,7 @@ public:
 	void Tick(geFloat dwTicks);									///< Time-based action
 
 private:
-	int FindFreeSlot();						///< Find free entry in table
+	int FindFreeSlot() const;				///< Find free entry in table
 
 	int FindInList(const char *szFile);		///< Find streaming file in list
 
