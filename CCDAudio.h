@@ -34,7 +34,7 @@ public:
 
 	int RestoreFrom(FILE *RestoreFD);				///< Restore state from a file
 
-	bool GetCdOn()				{ return m_cdon; }
+	bool GetCdOn() const		{ return m_cdon; }
 
 	void SetCdOn(bool state)	{ m_cdon = state; }
 
