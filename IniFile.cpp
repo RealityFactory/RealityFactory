@@ -74,29 +74,26 @@ void CIniFile::SetPath(const std::string& newpath)
 bool CIniFile::ReadFile()
 {
 // changed RF063
-	std::string readinfo;
-	int curkey = -1, curval = -1;
-	std::string keyname, valuename, value;
-	std::string temp;
 	geVFile *MainFS;
 	char szPath[132];
-	char szInputLine[132];
 
 	strcpy(szPath, path.c_str());
 
+	std::string keyname;
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, szPath, GE_VFILE_OPEN_READONLY))
 		return 0;
+	char szInputLine[132];
 
 	while(geVFile_GetS(MainFS, szInputLine, 132) == GE_TRUE)
 	{
 		if(strlen(szInputLine) <= 1)
-			readinfo = "";
-		else
-			readinfo = szInputLine;
+			continue;
+
+		std::string readinfo(szInputLine);
 
 		TrimRight(readinfo);
 
-		if(readinfo != "")
+		if(!readinfo.empty())
 		{
 			//if a section heading
 			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
@@ -107,26 +104,26 @@ bool CIniFile::ReadFile()
 			}
 			else
 			{
+				// if not a comment line
 // changed RF064
 				if(readinfo[0] != ';')
 				{
-					if(readinfo.find("=") != -1)
+					std::string valuename, value;
+
+					std::size_t found = readinfo.find("=");
+					if(found != std::string::npos)
 					{
-						valuename = readinfo.substr(0, readinfo.find("="));
-						if(readinfo.size() > readinfo.find("=")+1)
-							value = readinfo.substr(readinfo.find("=")+1);
-						else
-							value = "";
+						valuename = readinfo.substr(0, found);
+						if(readinfo.size() > valuename.size() + 1)
+							value = readinfo.substr(found + 1);
 					}
 					else
 					{
 						valuename = readinfo;
-						value = "";
 					}
 					TrimLeft(valuename);
 					TrimRight(valuename);
 					TrimLeft(value);
-					TrimRight(value);
 // end change RF064
 					SetValue(keyname,valuename,value);
 				}
@@ -136,7 +133,7 @@ bool CIniFile::ReadFile()
 
 	geVFile_Close(MainFS);
 
-	return 1;
+	return true;
 // end change RF063
 }
 
@@ -148,24 +145,18 @@ void CIniFile::WriteFile() const
 	std::ofstream inifile;
 	inifile.open(path.c_str());
 
-	for(unsigned int keynum=0; keynum<names.size(); keynum++)
+	for(unsigned int keynum=0; keynum<names.size(); ++keynum)
 	{
 		if(keys[keynum].names.size() != 0)
 		{
 			inifile << '[' << names[keynum] << ']' << std::endl;
 
-			for(unsigned int valuenum=0; valuenum<keys[keynum].names.size(); valuenum++)
+			for(unsigned int valuenum=0; valuenum<keys[keynum].names.size(); ++valuenum)
 			{
-				inifile << keys[keynum].names[valuenum] << "=" << keys[keynum].values[valuenum];
-
-				if(valuenum != keys[keynum].names.size()-1)
-					inifile << std::endl;
-				else if(keynum < names.size())
-					inifile << std::endl;
+				inifile << keys[keynum].names[valuenum] << "=" << keys[keynum].values[valuenum] << std::endl;
 			}
 
-			if(keynum < names.size())
-				inifile << std::endl;
+			inifile << std::endl;
 		}
 	}
 
@@ -208,13 +199,15 @@ int CIniFile::GetNumValues(const std::string& keyname) const
 /* ------------------------------------------------------------------------------------ */
 std::string CIniFile::GetValue(const std::string& keyname, const std::string& valuename)
 {
-	int keynum = FindKey(keyname), valuenum = FindValue(keynum, valuename);
+	int keynum = FindKey(keyname);
 
 	if(keynum == -1)
 	{
 		error = "Unable to locate specified key.";
 		return "";
 	}
+
+	int valuenum = FindValue(keynum, valuename);
 
 	if(valuenum == -1)
 	{
@@ -304,12 +297,10 @@ bool CIniFile::SetValue(const std::string& keyname, const std::string& valuename
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::SetValueI(const std::string& keyname, const std::string& valuename, int value, bool create)
 {
-	std::string temp;
 	std::ostringstream oss;
 	oss << value;
-	temp = oss.str();
 
-	return SetValue(keyname, valuename, temp, create);
+	return SetValue(keyname, valuename, oss.str(), create);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -320,13 +311,10 @@ bool CIniFile::SetValueI(const std::string& keyname, const std::string& valuenam
 /* ------------------------------------------------------------------------------------ */
 bool CIniFile::SetValueF(const std::string& keyname, const std::string& valuename, double value, bool create)
 {
-{
-	std::string temp;
 	std::ostringstream oss;
 	oss << value;
-	temp = oss.str();
 
-	return SetValue(keyname, valuename, temp, create);
+	return SetValue(keyname, valuename, oss.str(), create);
 }
 
 /* ------------------------------------------------------------------------------------ */
