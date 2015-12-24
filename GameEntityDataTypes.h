@@ -1518,7 +1518,7 @@ typedef struct _ElectricBolt
 	geFloat			LastBoltTime;
 	Electric_BoltEffect	*Bolt;
 	geBoolean		active;				// is activated
-	int				*effect;			// pointer to array of effect indexs
+	int				effect;				// effect index
 	geBitmap		*Bitmap;
 	geVec3d			OriginOffset;		// Translation from model center
 	geBoolean		bState;

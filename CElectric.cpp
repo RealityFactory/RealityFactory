@@ -456,8 +456,7 @@ CElectric::CElectric()
 			geVec3d_Subtract(&pBolt->origin, &ModelOrigin, &pBolt->OriginOffset);
 		}
 
-		pBolt->effect		= (int *)malloc(sizeof(int));// * 1);
-		pBolt->effect[0]	= -1;
+		pBolt->effect	= -1;
 		pBolt->active		= false;
 		pBolt->Bitmap		= TPool_Bitmap("bolt.bmp", "bolt.bmp", pBolt->BmpName, pBolt->AlphaName);
 
@@ -588,7 +587,6 @@ CElectric::~CElectric()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ElectricBolt *pBolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
-		free(pBolt->effect);
 
 		if(pBolt->Bolt)
 			Electric_BoltEffectDestroy(pBolt->Bolt);
@@ -666,17 +664,17 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 				if(Bolt->active == GE_FALSE)
 				{
 					if(!Bolt->Intermittent)
-						Bolt->effect[0] = Create(Bolt->origin, Bolt);
+						Bolt->effect = Create(Bolt->origin, Bolt);
 
 					Bolt->active = GE_TRUE;
 				}
 			}
 			else
 			{
-				if(Bolt->effect[0] != -1)
+				if(Bolt->effect != -1)
 				{
-    				CCD->EffectManager()->Item_Delete(EFF_SND, Bolt->effect[0]);
-					Bolt->effect[0] = -1;
+					CCD->EffectManager()->Item_Delete(EFF_SND, Bolt->effect);
+					Bolt->effect = -1;
 				}
 
 				Bolt->active = GE_FALSE;
@@ -687,7 +685,7 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 			if(Bolt->active == GE_FALSE)
 			{
 				if(!Bolt->Intermittent)
-					Bolt->effect[0] = Create(Bolt->origin, Bolt);
+					Bolt->effect = Create(Bolt->origin, Bolt);
 
 				Bolt->active = GE_TRUE;
 			}
@@ -722,8 +720,8 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 				Snd Sound;
 				geVec3d_Copy(&(MidPoint), &(Sound.Pos));
 
-				if(Bolt->effect[0] != -1)
-					CCD->EffectManager()->Item_Modify(EFF_SND, Bolt->effect[0], (void*)&Sound, SND_POS);
+				if(Bolt->effect != -1)
+					CCD->EffectManager()->Item_Modify(EFF_SND, Bolt->effect, static_cast<void*>(&Sound), SND_POS);
 			}
 
 			if(Bolt->LastTime - Bolt->LastBoltTime <= LIGHTNINGSTROKEDURATION)
