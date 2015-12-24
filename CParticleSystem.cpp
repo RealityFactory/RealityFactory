@@ -128,8 +128,7 @@ CParticleSystem::CParticleSystem()
 		}
 
 		pProxy->active = GE_FALSE;
-		pProxy->effect = (int*)malloc(sizeof(int));
-		pProxy->effect[0] = -1;
+		pProxy->effect = -1;
 
 		if(!EffectC_IsStringNull(pProxy->szSoundFile))
 		{
@@ -193,27 +192,6 @@ CParticleSystem::~CParticleSystem()
 			theList[nTemp] = NULL;
 		}
 	}
-
-	// Now go through all the proxys and shut down the audio.
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	// Ok, check to see if there are particle system proxys in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "ParticleSystemProxy");
-
-	if(!pSet)
-		return;									// Nope, don't bother
-
-	// Ok, we have particle system proxys somewhere.  Dig through 'em all
-	// ..and release the audio (if any).
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		ParticleSystemProxy *pProxy = (ParticleSystemProxy*)geEntity_GetUserData(pEntity);
-		free(pProxy->effect);
-	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1048,15 +1026,15 @@ void CParticleSystem::Tick(geFloat dwTicks)
 					Pause(pProxy->psHandle, false);
 
 					if(!EffectC_IsStringNull(pProxy->szSoundFile))
-						pProxy->effect[0] = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
+						pProxy->effect = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
 
 					pProxy->active = GE_TRUE;
 				}
 			}
 			else
 			{
-				if(pProxy->effect[0] != -1)
-    				CCD->EffectManager()->Item_Delete(EFF_SND, pProxy->effect[0]);
+				if(pProxy->effect != -1)
+					CCD->EffectManager()->Item_Delete(EFF_SND, pProxy->effect);
 
 				Hide(pProxy->psHandle, true);
 				Pause(pProxy->psHandle, true);
@@ -1067,7 +1045,7 @@ void CParticleSystem::Tick(geFloat dwTicks)
 		else
 		{
 			if(!EffectC_IsStringNull(pProxy->szSoundFile))
-				pProxy->effect[0] = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
+				pProxy->effect = CreateSound(pProxy->origin, pProxy->szSoundFile, pProxy->fRadius);
 		}
 
 		if(pProxy->active == GE_TRUE)
@@ -1075,11 +1053,11 @@ void CParticleSystem::Tick(geFloat dwTicks)
 			pProxy->origin = pProxy->OriginOffset;
 			SetOriginOffset(pProxy->EntityName, pProxy->BoneName, pProxy->Model, &(pProxy->origin));
 
-			if(pProxy->effect[0] != -1)
+			if(pProxy->effect != -1)
 			{
 				Snd Sound;
 				geVec3d_Copy(&(pProxy->origin), &(Sound.Pos));
-      			CCD->EffectManager()->Item_Modify(EFF_SND, pProxy->effect[0], (void*)&Sound, SND_POS);
+				CCD->EffectManager()->Item_Modify(EFF_SND, pProxy->effect, static_cast<void*>(&Sound), SND_POS);
 			}
 
 			SetEmitter(pProxy->psHandle, pProxy->origin);

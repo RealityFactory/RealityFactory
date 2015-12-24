@@ -1015,7 +1015,7 @@ typedef struct _ParticleSystemProxy
 #pragma GE_Private
 	int				psHandle;			// Particle system handle
 	int				pmHandle;			// Particle map handle
-	int				*effect;		  	// pointer to array of effect indexs
+	int				effect;				// effect index
 	geBoolean		active;
 	geVec3d			OriginOffset;		//Translation from model center
 #pragma GE_Published
