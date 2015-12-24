@@ -21,22 +21,29 @@ public:
 	~CFixedCamera();
 
 	void Tick();
+
 	bool GetFirstCamera();
 
 	int GetNumber() const		{ return m_EntityCount; }
-	FixedCamera *GetCamera()	{ return Camera; }
+
+	FixedCamera *GetCamera()	{ return m_Camera; }
 
 	void SetPosition(const geVec3d &Position);	///< Set position of the currently active fixed camera
+
 	void Move(const geVec3d &Move);				///< Move the currently active fixed camera
+
 	void SetRotation(const geVec3d &Rotation);	///< Set rotation of the currently active fixed camera
+
 	void Rotate(const geVec3d &Rotate);			///< Rotate the currently active fixed camera
+
 	void SetFOV(float FOV);						///< Set field of view of the currently active fixed camera
 
 private:
 	bool CheckFieldofView(FixedCamera *pSource);
+
 private:
 	int m_EntityCount;
-	FixedCamera *Camera;	///< Currently active fixed camera, NULL if none
+	FixedCamera *m_Camera;	///< Currently active fixed camera, NULL if none
 };
 
 #endif

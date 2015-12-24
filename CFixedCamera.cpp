@@ -17,10 +17,9 @@
 //	Load up all FixedCameras and set the entity values.
 /* ------------------------------------------------------------------------------------ */
 CFixedCamera::CFixedCamera() :
-	m_EntityCount(0)
+	m_EntityCount(0),
+	m_Camera(NULL)
 {
-	Camera = NULL;
-
 	//	Ok, check to see if there are FixedCameras in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
@@ -79,10 +78,12 @@ CFixedCamera::~CFixedCamera()
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::Tick()
 {
+	if(!m_Camera)
+		return;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 
-	if(!pSet || !Camera)
+	if(!pSet)
 		return;
 
 	geEntity *pEntity;
@@ -122,7 +123,7 @@ void CFixedCamera::Tick()
 		{
 			if(GetTriggerState(pSource->ForceTrigger))
 			{
-				Camera = pSource;
+				m_Camera = pSource;
 				return;
 			}
 		}
@@ -130,14 +131,16 @@ void CFixedCamera::Tick()
 
 	bool flag = true;
 
-	if(!EffectC_IsStringNull(Camera->TriggerName))
+	if(!EffectC_IsStringNull(m_Camera->TriggerName))
 	{
-		if(!GetTriggerState(Camera->TriggerName))
+		if(!GetTriggerState(m_Camera->TriggerName))
 			flag = false;
 	}
 
-	if(CheckFieldofView(Camera) && flag)
+	if(CheckFieldofView(m_Camera) && flag)
+	{
 		return;
+	}
 	else
 	{
 		pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
@@ -155,7 +158,7 @@ void CFixedCamera::Tick()
 
 			if(CheckFieldofView(pSource))
 			{
-				Camera = pSource;
+				m_Camera = pSource;
 				return;
 			}
 		}
@@ -206,7 +209,7 @@ bool CFixedCamera::GetFirstCamera()
 
 		if(pSource->UseFirst)
 		{
-			Camera = pSource;
+			m_Camera = pSource;
 			return true;
 		}
 	}
@@ -221,7 +224,7 @@ bool CFixedCamera::GetFirstCamera()
 
 		if(CheckFieldofView(pSource))
 		{
-			Camera = pSource;
+			m_Camera = pSource;
 			return true;
 		}
 	}
@@ -229,7 +232,7 @@ bool CFixedCamera::GetFirstCamera()
 // changed RF063
 	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
-	Camera = (FixedCamera*)geEntity_GetUserData(pEntity);
+	m_Camera = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 	return true;
 // end change RF063
@@ -279,8 +282,8 @@ bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::SetPosition(const geVec3d &Position)
 {
-	if(Camera)
-		Camera->OriginOffset = Position;
+	if(m_Camera)
+		m_Camera->OriginOffset = Position;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -288,8 +291,8 @@ void CFixedCamera::SetPosition(const geVec3d &Position)
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::Move(const geVec3d &Move)
 {
-	if(Camera)
-		geVec3d_Add(&(Camera->OriginOffset), &Move, &(Camera->OriginOffset));
+	if(m_Camera)
+		geVec3d_Add(&(m_Camera->OriginOffset), &Move, &(m_Camera->OriginOffset));
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -297,8 +300,8 @@ void CFixedCamera::Move(const geVec3d &Move)
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::SetRotation(const geVec3d &Rotation)
 {
-	if(Camera)
-		Camera->Rotation = Rotation;
+	if(m_Camera)
+		m_Camera->Rotation = Rotation;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -306,8 +309,8 @@ void CFixedCamera::SetRotation(const geVec3d &Rotation)
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::Rotate(const geVec3d &Rotate)
 {
-	if(Camera)
-		geVec3d_Add(&(Camera->Rotation), &Rotate, &(Camera->Rotation));
+	if(m_Camera)
+		geVec3d_Add(&(m_Camera->Rotation), &Rotate, &(m_Camera->Rotation));
 
 }
 
@@ -316,8 +319,8 @@ void CFixedCamera::Rotate(const geVec3d &Rotate)
 /* ------------------------------------------------------------------------------------ */
 void CFixedCamera::SetFOV(float FOV)
 {
-	if(Camera)
-		Camera->FieldofView = FOV;
+	if(m_Camera)
+		m_Camera->FieldofView = FOV;
 }
 // end change
 
