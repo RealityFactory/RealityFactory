@@ -24,9 +24,9 @@ CCorona::CCorona() :
 	if(!pSet)
 		return;
 
-	CoronaBitmap = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
+	m_Bitmap = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
 
-	if(!CoronaBitmap)
+	if(!m_Bitmap)
 		return;
 
 	geEntity *pEntity;
@@ -74,7 +74,7 @@ int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 	EffCorona C;
 
 	memset( &C, 0, sizeof(C) );
-	C.Texture = CoronaBitmap;
+	C.Texture = m_Bitmap;
 	C.FadeTime = pCorona->FadeTime;
 	C.MinRadius = pCorona->MinRadius;
 	C.MaxRadius = pCorona->MaxRadius;

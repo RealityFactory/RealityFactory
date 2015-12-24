@@ -40,7 +40,7 @@ private:
 
 private:
 	int m_EntityCount;
-	geBitmap *CoronaBitmap;
+	geBitmap *m_Bitmap;
 };
 
 #endif
