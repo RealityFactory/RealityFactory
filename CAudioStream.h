@@ -59,8 +59,7 @@ private:
 	void Sweep();							///< Clean up any stopped streams
 
 private:
-
-	int				m_nStreamerCount;		///< Count of streaming audio entities
+	int				m_EntityCount;					///< Count of streaming audio entities
 	char			*m_FileList[MAX_AUDIOSTREAMS];	///< Up to 32 files can stream
 	StreamingAudio	*m_Streams[MAX_AUDIOSTREAMS];	///< Up to 32 streaming audio objects
 	LPDIRECTSOUND	m_dsPtr;						///< Pointer to Genesis3D DirectSound object

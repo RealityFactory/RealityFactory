@@ -22,9 +22,9 @@
 //	Clear up internal tables, and go through and locate/prepare all
 //	..StreamingAudioProxy entities to prepare for possible playback.
 /* ------------------------------------------------------------------------------------ */
-CAudioStream::CAudioStream()
+CAudioStream::CAudioStream() :
+	m_EntityCount(0)
 {
-	m_nStreamerCount = 0;
 	m_LoopingProxy = -1;							// No looping proxy yet
 
 	memset(m_FileList, 0, sizeof(char*)*MAX_AUDIOSTREAMS);
@@ -46,8 +46,8 @@ CAudioStream::CAudioStream()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		m_nStreamerCount++;
 		StreamingAudioProxy *pProxy = static_cast<StreamingAudioProxy*>(geEntity_GetUserData(pEntity));
+		++m_EntityCount;
 		pProxy->bActive = true;						// Trigger is active
 		pProxy->LastTimeTriggered = 0;				// Ready immediately
 	}
@@ -251,7 +251,7 @@ int CAudioStream::Stop(const char *szFilename)
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::Tick(geFloat dwTicks)
 {
-	if(m_nStreamerCount == 0)
+	if(m_EntityCount == 0)
 		return;										// No streamers in world, bail early
 
 	// Now scan for StreamingAudioProxy entities
