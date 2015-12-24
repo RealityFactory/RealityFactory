@@ -18,11 +18,9 @@
 /* ------------------------------------------------------------------------------------ */
 CCDAudio::CCDAudio()
 {
+	memset(m_PlayList, 0, sizeof(int)*99);	// Nothing playing
 	//	Set default values
 	m_PlayCount = 0;						// No active tracks
-
-	for(int nTemp=0; nTemp<99; nTemp++)
-		m_PlayList[nTemp] = 0;				// Nothing playing
 
 	m_nPlayIndex = 0;						// No track list active
 	m_bLooping = false;						// Nothing to play, no looping
