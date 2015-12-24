@@ -18,7 +18,7 @@ public:
 	/**
 	 * @brief This function opens and renders the specified media file.
 	 */
-	void OpenMediaFile(LPSTR szFile);
+	void OpenMediaFile(LPCSTR szFile);
 	void PlayMp3(long volume, geBoolean loop);
 	void StopMp3();
 	void Refresh();
