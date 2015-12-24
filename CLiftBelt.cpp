@@ -11,10 +11,10 @@
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CLiftBelt::CLiftBelt()
+CLiftBelt::CLiftBelt() :
+	m_Change(false),
+	m_Increase(false)
 {
-	Change = false;
-
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
 	if(pSet)
@@ -105,7 +105,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 							{
 								pSource->active = GE_FALSE;
 								CCD->ActorManager()->RemoveForce(CCD->Player()->GetActor(), 3);
-								Change = false;
+								m_Change = false;
 								return;
 							}
 
@@ -126,9 +126,9 @@ void CLiftBelt::Tick(geFloat dwTicks)
 						CCD->ActorManager()->GetForce(CCD->Player()->GetActor(), 3, NULL, &(pSource->Powerlevel), NULL);
 						// end change
 
-						if(Change)
+						if(m_Change)
 						{
-							if(Increase)
+							if(m_Increase)
 							{
 								if(pSource->Powerlevel < pSource->LiftForce)
 								{
@@ -155,7 +155,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 						// geEngine_Printf(CCD->Engine()->Engine(), 0, 30, "Force = %f", pSource->Powerlevel);
 					}
 
-					Change = false;
+					m_Change = false;
 					return;
 				}
 				else
@@ -170,7 +170,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 		}
 	}
 
-	Change = false;
+	m_Change = false;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -178,8 +178,8 @@ void CLiftBelt::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void CLiftBelt::ChangeLift(bool increase)
 {
-	Change = true;
-	Increase = increase;
+	m_Change = true;
+	m_Increase = increase;
 }
 
 /* ------------------------------------------------------------------------------------ */

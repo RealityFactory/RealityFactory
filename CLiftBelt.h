@@ -29,8 +29,8 @@ public:
 	int	LocateEntity(const char *szName, void **pEntityData);
 
 private:
-	bool Change;
-	bool Increase;
+	bool m_Change;
+	bool m_Increase;
 };
 
 #endif
