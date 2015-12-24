@@ -27,11 +27,8 @@ CAudioStream::CAudioStream()
 	m_nStreamerCount = 0;
 	m_LoopingProxy = -1;							// No looping proxy yet
 
-	for(int nTemp=0; nTemp<32; nTemp++)
-    {
-		m_FileList[nTemp] = NULL;
-		m_Streams[nTemp] = NULL;
-	}
+	memset(m_FileList, 0, sizeof(char*)*MAX_AUDIOSTREAMS);
+	memset(m_Streams,  0, sizeof(StreamingAudio*)*MAX_AUDIOSTREAMS);
 
 	// Ok, get the DirectSound object from the Genesis3D audio system so
 	// ..we can fiddle around behind its back...
