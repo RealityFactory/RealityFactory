@@ -89,17 +89,11 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 		return GE_TRUE;
 
 	geEntity	*pEntity;
+
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		DSpotLight *Light;
-		geFloat		Radius;
-		geFloat		Percentage;
-		int			Index;
-		geVec3d		Pos;
-		int32		Leaf;
-
-		Light = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
+		DSpotLight *Light = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 
 		if(!EffectC_IsStringNull(Light->TriggerName))
 		{
@@ -132,11 +126,11 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 		if(Light->active == GE_TRUE)
 		{
 			// pass the OriginOffset to SetOrigin
-            // so that the light will stay in the same position relative to the model.
-            Light->origin = Light->OriginOffset;
+			// so that the light will stay in the same position relative to the model.
+			int32 Leaf;
+			Light->origin = Light->OriginOffset;
 			SetOriginOffset(Light->EntityName, Light->BoneName, Light->Model, &(Light->origin));
 			geWorld_GetLeaf(CCD->World(), &(Light->origin), &Leaf);
-			Pos = Light->origin;
 
 			if(Light->Rotate)
 			{
@@ -200,9 +194,9 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 				}
 			}
 
-			Percentage = Light->LastTime / Light->RadiusSpeed;
+			geFloat Percentage = Light->LastTime / Light->RadiusSpeed;
 
-			Index = static_cast<int>(Percentage * Light->NumFunctionValues);
+			int Index = static_cast<int>(Percentage * Light->NumFunctionValues);
 
 			if(Light->InterpolateValues && Index < Light->NumFunctionValues - 1)
 			{
@@ -220,7 +214,8 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 			else
 				Percentage = (static_cast<geFloat>(Light->RadiusFunction[Index] - 'a')) / (static_cast<geFloat>('z' - 'a'));
 
-			Radius = Percentage * (Light->MaxRadius - Light->MinRadius) + Light->MinRadius;
+			geFloat Radius = Percentage * (Light->MaxRadius - Light->MinRadius) + Light->MinRadius;
+			geVec3d Pos = Light->origin;
 
 			// angles in degrees
 			geWorld_SetSpotLightAttributes(CCD->World(),
