@@ -20,7 +20,7 @@ CSoundtrackToggle::CSoundtrackToggle() :
 {
 	m_Streams = NULL;
 	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();;
-	theMIDIPlayer = new CMIDIAudio();
+	m_MIDIPlayer = new CMIDIAudio();
 	m_Streams = new StreamingAudio(m_dsPtr);
 
 	// Ok, see if we have any soundtrack toggles we need to set up.
@@ -51,19 +51,8 @@ CSoundtrackToggle::CSoundtrackToggle() :
 /* ------------------------------------------------------------------------------------ */
 CSoundtrackToggle::~CSoundtrackToggle()
 {
-
-	if(theMIDIPlayer)
-	{
-		delete theMIDIPlayer;
-		theMIDIPlayer = NULL;
-	}
-
-	if(m_Streams)
-	{
-		delete m_Streams;
-		m_Streams = NULL;
-	}
-
+	delete m_MIDIPlayer;
+	delete m_Streams;
 // changed QD 12/15/05 - code does nothing
 /*
 	geEntity_EntitySet *pSet;
@@ -138,10 +127,10 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 			CCD->CDPlayer()->Play(pToggle->CDTrackOne, pToggle->bCDLoops);
 		}
 
-		if(!EffectC_IsStringNull(pToggle->szMIDIFileOne) && theMIDIPlayer)
+		if(!EffectC_IsStringNull(pToggle->szMIDIFileOne) && m_MIDIPlayer)
 		{
-			theMIDIPlayer->Stop();
-			theMIDIPlayer->Play(pToggle->szMIDIFileOne, pToggle->bMIDILoops);
+			m_MIDIPlayer->Stop();
+			m_MIDIPlayer->Play(pToggle->szMIDIFileOne, pToggle->bMIDILoops);
 		}
 
 		if(!EffectC_IsStringNull(pToggle->szStreamFileOne) && m_Streams)

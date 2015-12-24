@@ -13,6 +13,7 @@
 #define __RGF_CSOUNDTRACKTOGGLE_H_
 
 class CAudioStream;
+class CMIDIAudio;
 
 /**
  * @brief CSoundtrackToggle handles SoundtrackToggle entities
@@ -44,7 +45,7 @@ private:
 
 private:
 	int m_EntityCount;	///< Count of toggle entities
-	CMIDIAudio *theMIDIPlayer;
+	CMIDIAudio *m_MIDIPlayer;
 	StreamingAudio *m_Streams;
 	LPDIRECTSOUND m_dsPtr;
 };
