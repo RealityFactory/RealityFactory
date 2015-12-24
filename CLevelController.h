@@ -34,14 +34,14 @@ public:
 
 private:
 	char	Order[64];
-	char	ThinkOrder[64];
-	float	ElapseTime;
-	float	ThinkTime;
+	char	m_ThinkOrder[64];
+	float	m_ElapseTime;
+	float	m_ThinkTime;
 	char	szName[64];
-	bool	console;
-	char	*ConsoleHeader;
-	char	*ConsoleError;
-	char	*ConsoleDebug[DEBUGLINES];
+	bool	m_Console;
+	char	*m_ConsoleHeader;
+	char	*m_ConsoleError;
+	char	*m_ConsoleDebug[DEBUGLINES];
 };
 
 /**
@@ -54,10 +54,13 @@ public:
 	~CLevelController();				///< Destructor
 
 	void Tick(geFloat dwTicks);			///< Increment animation time
+
 	int SaveTo(FILE *SaveFD);			///< Save LevelController status to a file
+
 	int RestoreFrom(FILE *RestoreFD);	///< Restore LevelController status from a file
+
 private:
-	int ConsoleBlock;
+	int m_ConsoleBlock;
 };
 
 #endif

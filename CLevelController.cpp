@@ -29,16 +29,15 @@ extern geSound_Def *SPool_Sound(const char *SName);
 ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())//change simkin
 {
 	Order[0]		= '\0';
-	ElapseTime		= 0.0f;
-	ThinkTime		= 0.0f;
-	ThinkOrder[0]	= '\0';
+	m_ThinkOrder[0]	= '\0';
+	m_ElapseTime	= 0.0f;
+	m_ThinkTime		= 0.0f;
 	szName[0]		= '\0';
-	console			= false;
-	ConsoleHeader	= NULL;
-	ConsoleError	= NULL;
+	m_Console		= false;
+	m_ConsoleHeader	= NULL;
+	m_ConsoleError	= NULL;
 
-	for(int i=0; i<DEBUGLINES; i++)
-		ConsoleDebug[i] = NULL;
+	memset(m_ConsoleDebug, 0, sizeof(char*)*DEBUGLINES);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -46,16 +45,12 @@ ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileNa
 /* ------------------------------------------------------------------------------------ */
 ControllerObject::~ControllerObject()
 {
-	if(ConsoleHeader)
-		free(ConsoleHeader);
-
-	if(ConsoleError)
-		free(ConsoleError);
+	SAFE_DELETE_A(m_ConsoleHeader);
+	SAFE_DELETE_A(m_ConsoleError);
 
 	for(int i=0; i<DEBUGLINES; ++i)
 	{
-		if(ConsoleDebug[i])
-			free(ConsoleDebug[i]);
+		SAFE_DELETE_A(m_ConsoleDebug[i]);
 	}
 }
 
@@ -448,33 +443,29 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "Console"))
 	{
 		PARMCHECK(1);
-		console = arguments[0].boolValue();
+		m_Console = arguments[0].boolValue();
 
-		if(console)
+		if(m_Console)
 		{
-			ConsoleHeader = (char*)malloc(128);
-			*ConsoleHeader = '\0';
-			ConsoleError = (char*)malloc(128);
-			*ConsoleError = '\0';
+			m_ConsoleHeader = new char[128];
+			*m_ConsoleHeader = '\0';
+			m_ConsoleError = new char[128];
+			*m_ConsoleError = '\0';
 
-			for(int i=0; i<DEBUGLINES; i++)
+			for(int i=0; i<DEBUGLINES; ++i)
 			{
-				ConsoleDebug[i] = (char*)malloc(64);
-				*ConsoleDebug[i] = '\0';
+				m_ConsoleDebug[i] = new char[64];
+				*m_ConsoleDebug[i] = '\0';
 			}
 		}
 		else
 		{
-			if(ConsoleHeader)
-				free(ConsoleHeader);
+			SAFE_DELETE_A(m_ConsoleHeader);
+			SAFE_DELETE_A(m_ConsoleError);
 
-			if(ConsoleError)
-				free(ConsoleError);
-
-			for(int i=0; i<DEBUGLINES; i++)
+			for(int i=0; i<DEBUGLINES; ++i)
 			{
-				if(ConsoleDebug[i])
-					free(ConsoleDebug[i]);
+				SAFE_DELETE_A(m_ConsoleDebug[i]);
 			}
 		}
 
@@ -483,16 +474,15 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "debug"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 
-		if(console)
+		if(m_Console)
 		{
 			int index = -1;
 			int i;
 
 			for(i=0; i<DEBUGLINES; ++i)
 			{
-				if(EffectC_IsStringNull(ConsoleDebug[i]))
+				if(EffectC_IsStringNull(m_ConsoleDebug[i]))
 				{
 					index = i;
 					break;
@@ -501,16 +491,16 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			if(index != -1)
 			{
-				strcpy(ConsoleDebug[index], string1);
+				strcpy(m_ConsoleDebug[index], arguments[0].str().c_str());
 			}
 			else
 			{
 				for(i=1; i<DEBUGLINES; ++i)
 				{
-					strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
+					strcpy(m_ConsoleDebug[i-1], m_ConsoleDebug[i]);
 				}
 
-				strcpy(ConsoleDebug[DEBUGLINES-1], string1);
+				strcpy(m_ConsoleDebug[DEBUGLINES-1], arguments[0].str().c_str());
 			}
 		}
 
@@ -859,12 +849,12 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 {
 	if(fieldName == "time")
 	{
-		value = ElapseTime;
+		value = m_ElapseTime;
 		return true;
 	}
 	else if(fieldName == "ThinkTime")
 	{
-		value = ThinkTime;
+		value = m_ThinkTime;
 		return true;
 	}
 	else if(fieldName == "DifficultyLevel")
@@ -960,12 +950,12 @@ bool ControllerObject::setValue(const skString& fieldName, const skString& attri
 	}
 	else if(fieldName == "ThinkTime")
 	{
-		ThinkTime = value.floatValue();
+		m_ThinkTime = value.floatValue();
 		return true;
 	}
 	else if(fieldName == "time")
 	{
-		ElapseTime = value.floatValue();
+		m_ElapseTime = value.floatValue();
 		return true;
 	}
 	else
@@ -977,7 +967,7 @@ bool ControllerObject::setValue(const skString& fieldName, const skString& attri
 //
 //	Default constructor
 /* ------------------------------------------------------------------------------------ */
-CLevelController::CLevelController()
+CLevelController::CLevelController() : m_ConsoleBlock(0)
 {
 	// Ok, check to see if there is a LevelController in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LevelController");
@@ -1144,7 +1134,7 @@ CLevelController::~CLevelController()
 /* ------------------------------------------------------------------------------------ */
 void CLevelController::Tick(geFloat dwTicks)
 {
-	ConsoleBlock = 0;
+	m_ConsoleBlock = 0;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LevelController");
 
@@ -1163,45 +1153,45 @@ void CLevelController::Tick(geFloat dwTicks)
 				skRValueArray args;// change simkin
 				skRValue ret;
 
-				if(Object->console)
+				if(Object->m_Console)
 				{
 					char szBug[256];
 					sprintf(szBug, "%s %s",Object->szName, Object->Order);
-					strcpy(Object->ConsoleHeader, szBug);
+					strcpy(Object->m_ConsoleHeader, szBug);
 				}
 
-				if(Object->console && ConsoleBlock < 4)
+				if(Object->m_Console && m_ConsoleBlock < 4)
 				{
 					int x,y;
 
 					x = 5;
-					y= (115*ConsoleBlock)+5;
+					y = (115 * m_ConsoleBlock) + 5;
 
-					geEngine_Printf(CCD->Engine()->Engine(), x, y,"%s",Object->ConsoleHeader);
+					geEngine_Printf(CCD->Engine()->Engine(), x, y, "%s", Object->m_ConsoleHeader);
 					y += 10;
 
-					if(!EffectC_IsStringNull(Object->ConsoleError))
-						geEngine_Printf(CCD->Engine()->Engine(), x, y,"%s", Object->ConsoleError);
+					if(!EffectC_IsStringNull(Object->m_ConsoleError))
+						geEngine_Printf(CCD->Engine()->Engine(), x, y, "%s", Object->m_ConsoleError);
 
 					for(int i=0; i<DEBUGLINES; ++i)
 					{
 						y += 10;
 
-						if(!EffectC_IsStringNull(Object->ConsoleDebug[i]))
-							geEngine_Printf(CCD->Engine()->Engine(), x, y,"%s",Object->ConsoleDebug[i]);
+						if(!EffectC_IsStringNull(Object->m_ConsoleDebug[i]))
+							geEngine_Printf(CCD->Engine()->Engine(), x, y, "%s", Object->m_ConsoleDebug[i]);
 					}
 
-					ConsoleBlock += 1;
+					++m_ConsoleBlock;
 				}
 
-				Object->ElapseTime += (dwTicks*0.001f);
-				Object->ThinkTime  -= (dwTicks*0.001f);
+				Object->m_ElapseTime += (dwTicks*0.001f);
+				Object->m_ThinkTime  -= (dwTicks*0.001f);
 
-				if(Object->ThinkTime > 0.0f)
+				if(Object->m_ThinkTime > 0.0f)
 					continue;
 
-				Object->ThinkTime = 0.0;
-				strcpy(Object->ThinkOrder, Object->Order);
+				Object->m_ThinkTime = 0.0f;
+				strcpy(Object->m_ThinkOrder, Object->Order);
 
 				try
 				{
