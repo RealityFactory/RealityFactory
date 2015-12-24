@@ -32,7 +32,7 @@ bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float
 
 	geVec3d_Subtract(&Pos1, &Pos2, &B);
 
-	return (geVec3d_DotProduct(&B, &B) < diameter*diameter);
+	return (geVec3d_LengthSquared(&B) < diameter*diameter);
 }
 // end change
 
