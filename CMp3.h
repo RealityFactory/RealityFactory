@@ -25,10 +25,10 @@ public:
 	void SetVolume(long volume);
 
 private:
-	bool Active;
+	bool m_Active;
 	HWND m_Video;
-	LONG Length;
-	bool Loop;
+	LONG m_Length;
+	bool m_Loop;
 };
 #endif
 

@@ -9,11 +9,12 @@
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CMp3Manager::CMp3Manager()
+CMp3Manager::CMp3Manager() :
+	m_Active(false),
+	m_Video(NULL),
+	m_Length(0),
+	m_Loop(false)
 {
-	m_Video = NULL;
-    Active = false;
-	Loop = false;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -41,7 +42,7 @@ void CMp3Manager::OpenMediaFile(LPSTR szFile)
 	if(m_Video)
 	{
 		MCIWndUseTime(m_Video);
-		Length = MCIWndGetLength(m_Video);
+		m_Length = MCIWndGetLength(m_Video);
 	}
 } // OpenMediaFile
 
@@ -50,15 +51,15 @@ void CMp3Manager::OpenMediaFile(LPSTR szFile)
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::Refresh()
 {
-	if(Active)
+	if(m_Active)
 	{
-		if(Loop)
+		if(m_Loop)
 		{
 			LONG Pos = MCIWndGetPosition(m_Video);
 
 			if(Pos > 0)
 			{
-				if((Pos+5) >= Length)
+				if((Pos+5) >= m_Length)
 				{
 					MCIWndHome(m_Video);
 					MCIWndPlay(m_Video);
@@ -76,8 +77,8 @@ void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 	if(m_Video)
 	{
 		MCIWndPlay(m_Video);
-		Loop = loop;
-		Active = true;
+		m_Loop = loop;
+		m_Active = true;
 		SetVolume(volume);
 	}
 } // PlayMp3
@@ -87,7 +88,7 @@ void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::StopMp3()
 {
-	if(Active)
+	if(m_Active)
 		MCIWndStop(m_Video);
 
 	return ;
