@@ -89,7 +89,10 @@ void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 void CMp3Manager::StopMp3()
 {
 	if(m_Active)
+	{
 		MCIWndStop(m_Video);
+		m_Active = false;
+	}
 
 	return ;
 } //StopMp3
