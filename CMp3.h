@@ -21,7 +21,9 @@ public:
 	void OpenMediaFile(LPCSTR szFile);
 	void PlayMp3(long volume, geBoolean loop);
 	void StopMp3();
+	void Rewind();
 	void Refresh();
+	bool IsPlaying();					///< Is stream playing?
 	void SetVolume(long volume);
 
 private:
