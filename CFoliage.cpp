@@ -14,16 +14,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	GetFastDistance
-/* ------------------------------------------------------------------------------------ */
-float GetFastDistance(geVec3d Pos1, geVec3d Pos2)
-{
-	geVec3d B;
-	geVec3d_Subtract(&Pos1, &Pos2, &B);
-	return geVec3d_DotProduct(&B, &B);
-}
-
-/* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
 CFoliage::CFoliage()
@@ -117,7 +107,7 @@ void CFoliage::Tick(geFloat dwTicks)
 		return;
 
 	geEntity *pEntity;
-	geFloat rng, test, half; // changed Nout 12/15/05
+	geFloat range_squared, test, half;
 	geVec3d cPos;
 	char Texture[32];
 
@@ -129,10 +119,9 @@ void CFoliage::Tick(geFloat dwTicks)
 		// check distance from camera
 		CCD->CameraManager()->GetPosition(&cPos);
 
-		//rng = geVec3d_DistanceBetween(&S->origin,&cPos);
-		rng = GetFastDistance(S->origin,cPos);
+		range_squared = geVec3d_DistanceBetweenSquared(&S->origin, &cPos);
 
-		if(rng < (S->Range * S->Range))
+		if(range_squared < (S->Range * S->Range))
 		{
 			GE_LVertex	Vertex;
 			GE_Collision Collision;
@@ -199,11 +188,7 @@ void CFoliage::Tick(geFloat dwTicks)
 				// set vertex alpha
 				if(S->UseAlpha)
 				{
-					//float pD = geVec3d_DistanceBetween(&cPos,&Collision.Impact);
-					float pD = GetFastDistance(cPos,Collision.Impact);
-
-					if(pD < 0)
-						pD *= -1.f;
+					float pD = geVec3d_DistanceBetweenSquared(&cPos, &Collision.Impact);
 
 					Vertex.a = 255.f * (pD / ((S->Range - S->Diameter) * (S->Range - S->Diameter)));
 					Vertex.a = 255.f - Vertex.a;

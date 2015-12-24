@@ -13,16 +13,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	FastDistance
-/* ------------------------------------------------------------------------------------ */
-float FastDistance(geVec3d Pos1, geVec3d Pos2)
-{
-	geVec3d B;
-	geVec3d_Subtract(&Pos1,&Pos2,&B);
-	return geVec3d_DotProduct(&B,&B);
-}
-
-/* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
 CFlipTree::CFlipTree()
@@ -134,7 +124,7 @@ void CFlipTree::Tick(geFloat dwTicks)
 	    return;
 
 	geEntity *pEntity;
-	geFloat rng;
+	geFloat range_squared;
 	geVec3d Pos1;
 	GE_LVertex	Vertex;
 
@@ -158,16 +148,15 @@ void CFlipTree::Tick(geFloat dwTicks)
 		CCD->CameraManager()->GetPosition(&Pos1);
 
 		//check distance
-		//rng = geVec3d_DistanceBetween(&S->origin,&Pos1);
-		rng = FastDistance(S->origin, Pos1);
+		range_squared = geVec3d_DistanceBetweenSquared(&S->origin, &Pos1);
 
 		// render poly outside of range or actor inside range.
-		if(rng > (S->Range * S->Range) && S->Bitmap)
+		if(range_squared > (S->Range * S->Range) && S->Bitmap)
 		{
 			//draw a poly
 			CCD->ActorManager()->SetActorFlags(S->fActor, 0);
 
-			if(rng < (S->ClipRange * S->ClipRange))
+			if(range_squared < (S->ClipRange * S->ClipRange))
 			{
 				// set poly color
 				Vertex.r = S->BitmapColor.r;

@@ -113,7 +113,7 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 	{
 		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 
-		if(geVec3d_DistanceBetween(&(pToggle->origin), &PlayerPos) > pToggle->Range)
+		if(geVec3d_DistanceBetweenSquared(&(pToggle->origin), &PlayerPos) > pToggle->Range*pToggle->Range)
 			continue;														// Too far away
 
 		// We need to check to see if we're getting collided with "too often",

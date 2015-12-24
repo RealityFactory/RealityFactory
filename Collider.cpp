@@ -1718,9 +1718,9 @@ TraceData Collider::Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *M
 	if(ItHit)
 	{
 		Data.endpos = Collision->Impact;
-		float maxdist = geVec3d_DistanceBetween(Start, End);
-		float actdist = geVec3d_DistanceBetween(Start, &Collision->Impact);
-		Data.fraction = actdist/maxdist;
+		float maxdistsq = geVec3d_DistanceBetweenSquared(Start, End);
+		float actdistsq = geVec3d_DistanceBetweenSquared(Start, &Collision->Impact);
+		Data.fraction = sqrt(actdistsq/maxdistsq);
 	}
 
 	return Data;

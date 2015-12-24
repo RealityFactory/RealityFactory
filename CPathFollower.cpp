@@ -409,7 +409,7 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 		if(pFollower->CurrentNodeType == RGF_POINT_TYPE_RANGED)
 			return RGF_SUCCESS;						// Done all we need to do, bail this.
 
-		if(geVec3d_DistanceBetween(&pFollower->CurrentPosition, &pFollower->CurrentTarget) <= pFollower->Speed)
+		if(geVec3d_DistanceBetweenSquared(&pFollower->CurrentPosition, &pFollower->CurrentTarget) <= pFollower->Speed*pFollower->Speed)
 		{
 			// Move to the NEXT path point, based on our direction
 			if(pFollower->bForward == GE_TRUE)
