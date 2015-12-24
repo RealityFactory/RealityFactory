@@ -23,6 +23,7 @@ extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *
 CMovingPlatforms::CMovingPlatforms() :
 	m_EntityCount(0)					// No platforms
 {
+	memset(AP, 0, sizeof(ActorsOnPlatforms)*512);
 
 	// Ok, check to see if there are platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
