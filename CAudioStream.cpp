@@ -64,18 +64,9 @@ CAudioStream::~CAudioStream()
 {
 	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
-		if(m_FileList[nTemp] != NULL)
-			delete m_FileList[nTemp];
-
-		m_FileList[nTemp] = NULL;
-
-		if(m_Streams[nTemp] != NULL)
-			delete m_Streams[nTemp];
-
-		m_Streams[nTemp] = NULL;
+		delete[] m_FileList[nTemp];
+		delete m_Streams[nTemp];
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -106,15 +97,13 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 	// ..looping at one time, and this prevents accidents where
 	// ..another soundtrack is started ALONG WITH the earlier one.
 
-	if(m_LoopingProxy > 0)
-    {
+	if(m_LoopingProxy >= 0)
+	{
 		m_Streams[m_LoopingProxy]->Stop();		// Stop it.
 
-		delete m_Streams[m_LoopingProxy];		// Kill it
-		m_Streams[m_LoopingProxy] = NULL;		// Crush it
+		SAFE_DELETE(m_Streams[m_LoopingProxy]);
 
-		delete m_FileList[m_LoopingProxy];		// Smear it
-		m_FileList[m_LoopingProxy] = NULL;		// Be mean to it!
+		SAFE_DELETE_A(m_FileList[m_LoopingProxy]);
 
 		m_LoopingProxy = -1;					// ..and make it go away.
 	}
@@ -135,8 +124,7 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 
 	if(m_Streams[nSlot] == NULL)
 	{
-		delete m_FileList[nSlot];
-		m_FileList[nSlot] = NULL;
+		SAFE_DELETE_A(m_FileList[nSlot]);
 
 		return RGF_FAILURE;
 	}
@@ -151,11 +139,9 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play '%s'\n", __FILE__, __LINE__, szTemp);
 		CCD->ReportError(szBug, false);
 
-		delete m_FileList[nSlot];
-		m_FileList[nSlot] = NULL;
+		SAFE_DELETE_A(m_FileList[nSlot]);
 
-		delete m_Streams[nSlot];
-		m_Streams[nSlot] = NULL;
+		SAFE_DELETE(m_Streams[nSlot]);
 
 		return RGF_FAILURE;
 	}
@@ -249,10 +235,8 @@ int CAudioStream::Stop(const char *szFilename)
 	// Ok, stop playback, kill the stream, and clean up the table
 	int nError = m_Streams[nSlot]->Stop();
 
-	delete m_Streams[nSlot];
-	m_Streams[nSlot] = NULL;
-	delete m_FileList[nSlot];
-	m_FileList[nSlot] = NULL;
+	SAFE_DELETE(m_Streams[nSlot]);
+	SAFE_DELETE_A(m_FileList[nSlot]);
 
 	return nError;
 }
@@ -351,15 +335,8 @@ void CAudioStream::StopAll()
 {
 	for(int nTemp=0; nTemp<MAX_AUDIOSTREAMS; ++nTemp)
 	{
-		if(m_FileList[nTemp] != NULL)
-			delete m_FileList[nTemp];
-
-		m_FileList[nTemp] = NULL;
-
-		if(m_Streams[nTemp] != NULL)
-			delete m_Streams[nTemp];
-
-		m_Streams[nTemp] = NULL;
+		SAFE_DELETE_A(m_FileList[nTemp]);
+		SAFE_DELETE(m_Streams[nTemp]);
 	}
 
 	return;
@@ -443,11 +420,8 @@ void CAudioStream::Sweep()
 				// Stopped playing?  Die, then!
 				m_Streams[nTemp]->Stop();
 
-				delete m_Streams[nTemp];
-				m_Streams[nTemp] = NULL;
-
-				delete m_FileList[nTemp];
-				m_FileList[nTemp] = NULL;
+				SAFE_DELETE(m_Streams[nTemp]);
+				SAFE_DELETE_A(m_FileList[nTemp]);
 			}
 		}
 	}
