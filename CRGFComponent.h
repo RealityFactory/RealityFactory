@@ -45,7 +45,7 @@ public:
 
 	int DispatchEvent(char *szName, int EventID, void *pArgs, int *pArgTypes);	///< Dispatch event to entity
 
-	inline bool IsValid()		{ return m_Initialized;	}
+	inline bool IsValid() const	{ return m_Initialized;	}
 
 	inline void MarkValid()		{ m_Initialized = true;	}
 
