@@ -104,11 +104,14 @@ geBoolean CanSeeActorToActor(const geActor *Actor1, const geActor *Actor2);
 
 // changed RF064
 geActor *GetEntityActor(const char *EntityName);
-bool geVec3d_IsZero(geVec3d* pVect);
 geFloat Length(geVec3d &vec);
 void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
 // end change RF064
 const char *RootBoneName(const geActor *Actor);
+
+// TODO: Move to engine
+bool geVec3d_IsZero(geVec3d* pVect);
+geFloat geVec3d_DistanceBetweenSquared(const geVec3d *V1, const geVec3d *V2);
 
 #endif
 

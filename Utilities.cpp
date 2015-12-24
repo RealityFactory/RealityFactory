@@ -1201,19 +1201,6 @@ geActor *GetEntityActor(const char *EntityName)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	geVec3d_IsZero
-/* ------------------------------------------------------------------------------------ */
-bool geVec3d_IsZero(geVec3d *pVect)
-{
-	if( pVect->X < 0.0f || pVect->X > 0.0f ||
-		pVect->Y < 0.0f || pVect->Y > 0.0f ||
-		pVect->Z < 0.0f || pVect->Z > 0.0f )
-		return false;
-
-	return true;
-}
-
-/* ------------------------------------------------------------------------------------ */
 //	Length
 /* ------------------------------------------------------------------------------------ */
 geFloat Length(geVec3d &vec)
@@ -1280,5 +1267,29 @@ const char *RootBoneName(const geActor *Actor)
 	return RootBone;
 }
 
+/* ------------------------------------------------------------------------------------ */
+// geVec3d_IsZero
+/* ------------------------------------------------------------------------------------ */
+bool geVec3d_IsZero(geVec3d *pVect)
+{
+	if( pVect->X < 0.0f || pVect->X > 0.0f ||
+		pVect->Y < 0.0f || pVect->Y > 0.0f ||
+		pVect->Z < 0.0f || pVect->Z > 0.0f )
+		return false;
+
+	return true;
+}
+
+
+geFloat geVec3d_DistanceBetweenSquared(const geVec3d *V1, const geVec3d *V2) // returns squared length of V1-V2
+{
+	geVec3d B;
+
+	assert(geVec3d_IsValid(V1) != GE_FALSE);
+	assert(geVec3d_IsValid(V2) != GE_FALSE);
+
+	geVec3d_Subtract(V1, V2, &B);
+	return geVec3d_LengthSquared(&B);
+}
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
