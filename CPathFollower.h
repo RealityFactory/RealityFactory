@@ -70,7 +70,7 @@ public:
 
 private:
 	int TypeNameToIndex(const char *szName);
-	int m_PathFollowerCount;					///< # of path followers
+	int m_EntityCount;					///< # of path followers
 };
 
 #endif

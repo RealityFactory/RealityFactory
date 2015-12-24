@@ -16,9 +16,9 @@
 //
 //	Load up all FixedCameras and set the entity values.
 /* ------------------------------------------------------------------------------------ */
-CFixedCamera::CFixedCamera()
+CFixedCamera::CFixedCamera() :
+	m_EntityCount(0)
 {
-	Number = 0;
 	Camera = NULL;
 
 	//	Ok, check to see if there are FixedCameras in this world
@@ -35,7 +35,7 @@ CFixedCamera::CFixedCamera()
 	{
 		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
-		Number += 1;
+		++m_EntityCount;
 
 		pSource->Rotation.Z = GE_PIOVER180*(pSource->Angle.Z);
 		pSource->Rotation.X = GE_PIOVER180*(pSource->Angle.X);

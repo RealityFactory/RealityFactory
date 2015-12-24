@@ -69,7 +69,7 @@ private:
 	void FreeState();
 
 private:
-	int m_TriggerCount;			// Count of triggers in world
+	int m_EntityCount;			// Count of triggers in world
 	TState *Bottom;
 };
 

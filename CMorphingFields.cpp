@@ -18,10 +18,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 //	Set all morphing fields to default values, load sounds, set up fog zones.
 //	If there is audio, start it looping at zero volume.
 /* ------------------------------------------------------------------------------------ */
-CMorphingFields::CMorphingFields()
+CMorphingFields::CMorphingFields() :
+	m_EntityCount(0)
 {
-	m_MorphingFieldCount = 0;
-
 	// Ok, check to see if there are morphing fields in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MorphingField");
 
@@ -44,7 +43,7 @@ CMorphingFields::CMorphingFields()
 			pField->szEntityName = szName;
 		}
 
-		m_MorphingFieldCount++;								// Kick field count
+		++m_EntityCount;								// Kick field count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pField->szEntityName, "MorphingField");
@@ -104,7 +103,7 @@ CMorphingFields::CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::~CMorphingFields()
 {
-	if(m_MorphingFieldCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
@@ -142,7 +141,7 @@ CMorphingFields::~CMorphingFields()
 /* ------------------------------------------------------------------------------------ */
 void CMorphingFields::Tick(geFloat dwTicks)
 {
-	if(m_MorphingFieldCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
@@ -341,7 +340,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::SaveTo(FILE *SaveFD)
 {
-	if(m_MorphingFieldCount == 0)
+	if(m_EntityCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world
@@ -375,7 +374,7 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 {
-	if(m_MorphingFieldCount == 0)
+	if(m_EntityCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are morphing fields in this world

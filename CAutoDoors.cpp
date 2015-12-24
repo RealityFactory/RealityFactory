@@ -26,10 +26,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 //	Default constructor.  Go through and set the user data for each door
 //	..to their default values.
 /* ------------------------------------------------------------------------------------ */
-CAutoDoors::CAutoDoors()
+CAutoDoors::CAutoDoors() :
+  m_EntityCount(0) // no doors yet
 {
-	m_DoorCount = 0;					// No doors
-
 	// Ok, check to see if there are automatic doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
@@ -69,7 +68,7 @@ CAutoDoors::CAutoDoors()
 			*/
 		}
 
-		m_DoorCount++;							// Kick door count
+		++m_EntityCount;						// Kick door count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pDoor->szEntityName, "Door");
@@ -211,7 +210,7 @@ CAutoDoors::~CAutoDoors()
 // changed RF063
 bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor)
 {
-	if(m_DoorCount == 0)
+	if(m_EntityCount == 0)
 		return false;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
@@ -348,7 +347,7 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 {
-	if(m_DoorCount == 0)
+	if(m_EntityCount == 0)
 		return;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
@@ -446,8 +445,8 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 /* ------------------------------------------------------------------------------------ */
 void CAutoDoors::Tick(geFloat dwTicks)
 {
-	if(m_DoorCount == 0)
-		return;											// No need to waste time here.
+	if(m_EntityCount == 0)
+		return;										// No need to waste time here.
 
 	// Ok, check to see if there are automatic doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
@@ -576,7 +575,7 @@ void CAutoDoors::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 {
-	if(m_DoorCount == 0)
+	if(m_EntityCount == 0)
 		return false;								// No need to waste time here.
 
 	// Ok, check to see if there are automatic doors in this world

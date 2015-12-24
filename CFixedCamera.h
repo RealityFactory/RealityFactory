@@ -22,7 +22,8 @@ public:
 
 	void Tick();
 	bool GetFirstCamera();
-	int GetNumber()				{ return Number; }
+
+	int GetNumber() const		{ return m_EntityCount; }
 	FixedCamera *GetCamera()	{ return Camera; }
 
 	void SetPosition(const geVec3d &Position);	///< Set position of the currently active fixed camera
@@ -34,7 +35,7 @@ public:
 private:
 	bool CheckFieldofView(FixedCamera *pSource);
 private:
-	int Number;
+	int m_EntityCount;
 	FixedCamera *Camera;	///< Currently active fixed camera, NULL if none
 };
 

@@ -56,7 +56,9 @@ public:
 
 private:
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
-	int m_PlatformCount;					///< Count of moving platforms in world
+
+private:
+	int m_EntityCount;					///< Count of moving platforms in world
 	ActorsOnPlatforms AP[512];				///< No more than 512 actors on platforms at once
 };
 

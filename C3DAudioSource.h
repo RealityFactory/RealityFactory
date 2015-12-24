@@ -73,7 +73,7 @@ private:
 
 private:
 
-	int Count;		///< Count of 3D Audio Sources
+	int m_EntityCount;		///< Count of 3D Audio Sources
 };
 
 #endif

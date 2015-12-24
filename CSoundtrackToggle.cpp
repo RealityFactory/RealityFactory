@@ -15,9 +15,9 @@
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CSoundtrackToggle::CSoundtrackToggle()
+CSoundtrackToggle::CSoundtrackToggle() :
+	m_EntityCount(0)
 {
-	m_SoundtrackToggleCount = 0;
 	m_Streams = NULL;
 	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();;
 	theMIDIPlayer = new CMIDIAudio();
@@ -36,7 +36,7 @@ CSoundtrackToggle::CSoundtrackToggle()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
-		++m_SoundtrackToggleCount;
+		++m_EntityCount;
 
 		pToggle->bActive = GE_TRUE;					// Toggle is active
 		pToggle->LastTimeToggled = 0.0f;			// Ready right away
@@ -95,7 +95,7 @@ CSoundtrackToggle::~CSoundtrackToggle()
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::Tick(geFloat dwTicks)
 {
-	if(m_SoundtrackToggleCount == 0)
+	if(m_EntityCount == 0)
 		return;							// No toggles in world, bail early
 
 	// Ok, see if we have any soundtrack toggles

@@ -55,7 +55,9 @@ public:
 
 private:
 	int PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop);
-	int m_DoorCount;					///< Count of doors in world
+
+private:
+	int m_EntityCount;					///< Count of doors in world
 };
 
 #endif

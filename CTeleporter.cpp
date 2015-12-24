@@ -20,10 +20,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 //	..trigger.  Once the trigger is hit, the teleporter activates and
 //	..the player is "instantly" teleported to the destination.
 /* ------------------------------------------------------------------------------------ */
-CTeleporter::CTeleporter()
+CTeleporter::CTeleporter() :
+	m_EntityCount(0)					// No teleports
 {
-	m_TeleporterCount = 0;					// No teleports
-
 	// Ok, check to see if there are teleporters in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
@@ -45,7 +44,7 @@ CTeleporter::CTeleporter()
 			pTeleporter->szEntityName = szName;
 		}
 
-		m_TeleporterCount++;								// Kick teleporter count
+		++m_EntityCount;								// Kick teleporter count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pTeleporter->szEntityName, "Teleporter");
@@ -116,7 +115,7 @@ CTeleporter::CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::~CTeleporter()
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
@@ -156,7 +155,7 @@ CTeleporter::~CTeleporter()
 /* ------------------------------------------------------------------------------------ */
 bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor)
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return false;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
@@ -315,7 +314,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 /* ------------------------------------------------------------------------------------ */
 void CTeleporter::Tick(geFloat dwTicks)
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// First, we're going to scrounge through all the TeleportTargets
@@ -440,7 +439,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 // changed QD 12/15/05
 void CTeleporter::DoFade(void)
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
@@ -564,7 +563,7 @@ void CTeleporter::DoFade(void)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world
@@ -615,7 +614,7 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	if(m_TeleporterCount == 0)
+	if(m_EntityCount == 0)
 		return RGF_SUCCESS;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are teleporters in this world

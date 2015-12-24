@@ -18,9 +18,9 @@
 //	Default constructor.  Set up for texture replacement by scanning
 //	..for texture replacement indicators.
 /* ------------------------------------------------------------------------------------ */
-CVideoTexture::CVideoTexture()
+CVideoTexture::CVideoTexture() :
+	m_EntityCount(0)					// No video textures
 {
-	m_TextureCount = 0;					// No video textures
 
 	for(int nTemp=0; nTemp<40; ++nTemp)
 	{
@@ -41,7 +41,7 @@ CVideoTexture::CVideoTexture()
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		VideoTextureReplacer *pTex = static_cast<VideoTextureReplacer*>(geEntity_GetUserData(pEntity));
-		++m_TextureCount;						// Kick video texture count
+		++m_EntityCount;						// Kick video texture count
 		pTex->Playing = GE_FALSE;
 
 		if(pTex->Radius == 0.0f)
@@ -59,37 +59,37 @@ CVideoTexture::CVideoTexture()
 		{
 			pTex->Gif = GE_TRUE;
 
-			if((m_GifList[m_TextureCount-1] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
+			if((m_GifList[m_EntityCount-1] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
 			{
 				CCD->ReportError("[WARNING] Failed to create new CAnimGif", false);
 				continue;
 			}
 
-			m_GifList[m_TextureCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
+			m_GifList[m_EntityCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
 		}
 		else
 		{
 			pTex->Gif = GE_FALSE;
 
-			if((m_VidList[m_TextureCount-1] = new CAVIPlayer()) == NULL)
+			if((m_VidList[m_EntityCount-1] = new CAVIPlayer()) == NULL)
 			{
 				CCD->ReportError("[WARNING] Failed to create new CAVIPlayer", false);
 				continue;
 			}
 
-			if(m_VidList[m_TextureCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
+			if(m_VidList[m_EntityCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
 			{
 				char szBug[256];
 				sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open video texture '%s'",
 						__FILE__, __LINE__, pTex->szVideoName);
 				CCD->ReportError(szBug, false);
-				delete m_VidList[m_TextureCount-1];
-				m_VidList[m_TextureCount-1] = NULL;
+				delete m_VidList[m_EntityCount-1];
+				m_VidList[m_EntityCount-1] = NULL;
 				continue;
 			}
 
 			// Ok, the thing's open, initialize it
-			m_VidList[m_TextureCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
+			m_VidList[m_EntityCount-1]->DisplayNextFrameTexture(pTex->szTextureName, true);
 			// Initialize texture playback
 		}
 	}

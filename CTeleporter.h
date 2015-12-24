@@ -45,7 +45,7 @@ public:
 	void DoFade(void);
 
 private:
-	int m_TeleporterCount;							///< Count of teleporters
+	int m_EntityCount;							///< Count of teleporters
 };
 
 #endif

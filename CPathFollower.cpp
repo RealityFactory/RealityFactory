@@ -16,10 +16,9 @@
 //
 //	Initialize all path followers and set the path origin and next target points.
 /* ------------------------------------------------------------------------------------ */
-CPathFollower::CPathFollower()
+CPathFollower::CPathFollower() :
+	m_EntityCount(0)
 {
-	m_PathFollowerCount = 0;
-
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
 
@@ -150,7 +149,7 @@ CPathFollower::CPathFollower()
 			pFollower->bMoving = GE_TRUE;
 		}
 
-		++m_PathFollowerCount;
+		++m_EntityCount;
 	}
 
 	return;

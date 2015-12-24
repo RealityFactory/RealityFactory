@@ -15,10 +15,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CCorona::CCorona()
+CCorona::CCorona() :
+	m_EntityCount(0)
 {
-	Count = 0;
-
 	// Ok, check to see if there are TEMPLATE in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
 
@@ -45,7 +44,7 @@ CCorona::CCorona()
 			pSource->szEntityName = szName;
 		}
 
-		Count++;						// Kick source count
+		++m_EntityCount;					// Kick Corona count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "Corona");
@@ -109,7 +108,7 @@ CCorona::~CCorona()
 /* ------------------------------------------------------------------------------------ */
 void CCorona::Tick(geFloat dwTicks)
 {
-	if(Count == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are Coronas in this world

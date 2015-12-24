@@ -30,7 +30,7 @@ public:
 	int ReSynchronize();
 
 private:
-	int m_TextureCount;				///< Count of VideoTextureReplacers in world
+	int m_EntityCount;				///< Count of VideoTextureReplacers in world
 	CAVIPlayer *m_VidList[40];		///< Up to 40 concurrent video textures
 	CAnimGif *m_GifList[40];
 };

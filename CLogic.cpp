@@ -17,10 +17,9 @@
 //	Load up all logic gates and set the
 //	..entities to default values.
 /* ------------------------------------------------------------------------------------ */
-CLogic::CLogic()
+CLogic::CLogic() :
+	m_EntityCount(0)
 {
-  	Count = 0;
-
 	// Ok, check to see if there are logic gates in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
@@ -42,7 +41,8 @@ CLogic::CLogic()
 			pSource->szEntityName = szName;
 		}
 
-		Count++;								// Kick source count
+		++m_EntityCount;						// Kick source count
+
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "LogicGate");
 		// Reset all the data for each logic gate
@@ -73,7 +73,7 @@ void CLogic::Tick(geFloat dwTicks)
 {
 	SetState();
 
-	if(Count == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are logic gates in this world
@@ -444,7 +444,7 @@ void CLogic::SetState()
 {
 	Bottom = (LState *)NULL;
 
-	if(Count == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are logic gates in this world

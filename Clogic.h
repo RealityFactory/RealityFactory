@@ -55,7 +55,7 @@ private:
 	bool GetLTriggerState(const char *Name);
 
 private:
-	int		Count;		// Count of LogicGate entities
+	int		m_EntityCount;		// Count of LogicGate entities
 	LState	*Bottom;
 };
 

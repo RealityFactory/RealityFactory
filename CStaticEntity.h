@@ -55,7 +55,7 @@ public:
 	int ReSynchronize();
 
 private:
-	int m_StaticEntityCount;							///< Count of static entities
+	int m_EntityCount;							///< Count of static entities
 };
 
 #endif

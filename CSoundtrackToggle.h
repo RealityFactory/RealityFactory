@@ -43,7 +43,7 @@ private:
 	void StopStreaming();
 
 private:
-	int m_SoundtrackToggleCount;	///< Count of toggle entities
+	int m_EntityCount;	///< Count of toggle entities
 	CMIDIAudio *theMIDIPlayer;
 	StreamingAudio *m_Streams;
 	LPDIRECTSOUND m_dsPtr;

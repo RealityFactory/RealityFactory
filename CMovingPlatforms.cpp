@@ -20,9 +20,9 @@ extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *
 //
 //	Default constructor, clear all user data to defaults and load audio.
 /* ------------------------------------------------------------------------------------ */
-CMovingPlatforms::CMovingPlatforms()
+CMovingPlatforms::CMovingPlatforms() :
+	m_EntityCount(0)					// No platforms
 {
-	m_PlatformCount = 0;					// No doors
 
 	// Ok, check to see if there are platforms in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
@@ -66,7 +66,7 @@ CMovingPlatforms::CMovingPlatforms()
 			continue;
 		}
 
-		m_PlatformCount++;							// Kick door count
+		++m_EntityCount;							// Kick platform count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pPlatform->szEntityName, "MovingPlatform");
@@ -307,7 +307,7 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bo
 bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTriggerCall,
 									   bool UseKey, const geActor *theActor)
 {
-	if(m_PlatformCount == 0)
+	if(m_EntityCount == 0)
 		return false;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
@@ -416,7 +416,7 @@ bool CMovingPlatforms::HandleCollision(const geWorld_Model *pModel, bool bTrigge
 /* ------------------------------------------------------------------------------------ */
 void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTriggerCall)
 {
-	if(m_PlatformCount == 0)
+	if(m_EntityCount == 0)
 		return;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
@@ -498,7 +498,7 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 /* ------------------------------------------------------------------------------------ */
 bool CMovingPlatforms::IsAPlatform(const geWorld_Model *theModel)
 {
-	if(m_PlatformCount == 0)
+	if(m_EntityCount == 0)
 		return false;						// Don't waste time here
 
 	// Ok, check to see if there are platforms in this world

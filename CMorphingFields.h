@@ -41,7 +41,7 @@ public:
 	int ReSynchronize();
 
 private:
-	int m_MorphingFieldCount;				///< Count of morphing fields
+	int m_EntityCount;				///< Count of morphing fields
 };
 
 #endif

@@ -19,10 +19,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 //	Load up all 3D audio sources, load and initialize sounds and set the
 //	..entities to default values.
 /* ------------------------------------------------------------------------------------ */
-C3DAudioSource::C3DAudioSource()
+C3DAudioSource::C3DAudioSource() :
+	m_EntityCount(0)
 {
-  	Count = 0;
-
 	// Ok, check to see if there are 3D audio sources in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
 
@@ -44,7 +43,7 @@ C3DAudioSource::C3DAudioSource()
 			pSource->szEntityName = szName;
 		}
 
-		Count++;								//	Kick source count
+		++m_EntityCount;							// Kick source count
 		//	Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "AudioSource3D");
 		pSource->OriginOffset = pSource->origin;
@@ -133,7 +132,7 @@ C3DAudioSource::~C3DAudioSource()
 /* ------------------------------------------------------------------------------------ */
 void C3DAudioSource::Tick(geFloat dwTicks)
 {
-	if(Count == 0)
+	if(m_EntityCount == 0)
 		return;		//	Don't waste CPU cycles
 
 	// Ok, check to see if there are 3D audio sources in this world

@@ -19,10 +19,9 @@ extern geSound_Def *SPool_Sound(const char *SName);
 //
 //	Default constructor.  Set all triggers to default values and load any audio we need.
 /* ------------------------------------------------------------------------------------ */
-CTriggers::CTriggers()
+CTriggers::CTriggers() :
+	m_EntityCount(0)					// No triggers
 {
-	m_TriggerCount = 0;					// No triggers
-
 	// Ok, check to see if there are triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
@@ -54,7 +53,7 @@ CTriggers::CTriggers()
 			pTrigger->szEntityName = szName;
 		}
 
-		++m_TriggerCount;							// Kick count
+		++m_EntityCount;							// Kick count
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pTrigger->szEntityName, "Trigger");
@@ -120,7 +119,7 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 {
 	SetState();
 
-	if(m_TriggerCount == 0)
+	if(m_EntityCount == 0)
 		return RGF_FAILURE;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
@@ -215,7 +214,7 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 {
 	SetState();
 
-	if(m_TriggerCount == 0)
+	if(m_EntityCount == 0)
 		return false;									// None here, ignore call.
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
@@ -311,7 +310,7 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 {
-	if(m_TriggerCount == 0)
+	if(m_EntityCount == 0)
 		return false;										// Don't waste time here.
 
 	// Ok, check to see if there are  triggers in this world
@@ -348,7 +347,7 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::Tick(geFloat dwTicks)
 {
-	if(m_TriggerCount == 0)
+	if(m_EntityCount == 0)
 		return;									// Don't waste time here
 
 	// Ok, check to see if there are  triggers in this world
@@ -572,7 +571,7 @@ void CTriggers::SetState()
 {
 	Bottom = NULL;
 
-	if(m_TriggerCount == 0)
+	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
 
 	// Ok, check to see if there are triggers in this world

@@ -39,7 +39,7 @@ private:
 	int Create(const geVec3d &Origin, Corona *pCorona);
 
 private:
-	int Count;
+	int m_EntityCount;
 	geBitmap *CoronaBitmap;
 };
 
