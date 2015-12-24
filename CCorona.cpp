@@ -59,8 +59,7 @@ CCorona::CCorona()
 		}
 
 		// Reset all the data for each Corona
-		pSource->effect = (int *)malloc(sizeof(int) * 1);
-		pSource->effect[0] = -1;
+		pSource->effect = -1;
 		pSource->active = GE_FALSE;
 	}
 
@@ -103,29 +102,6 @@ int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 /* ------------------------------------------------------------------------------------ */
 CCorona::~CCorona()
 {
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	if(Count == 0)
-		return;						// Don't waste CPU cycles
-
-	// Ok, check to see if there are Coronas in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Corona");
-
-	if(!pSet)
-		return;				// No sources
-
-	// Ok, we have Coronas somewhere.  Dig through 'em all and release
-	// everything
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		Corona *pSource = (Corona*)geEntity_GetUserData(pEntity);
-		free(pSource->effect);
-	}
-
-	// Bail this mess.
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -156,16 +132,16 @@ void CCorona::Tick(geFloat dwTicks)
 			{
 				if(pSource->active == GE_FALSE)
 				{
-					pSource->effect[0] = Create(pSource->origin, pSource);
+					pSource->effect = Create(pSource->origin, pSource);
 					pSource->active = GE_TRUE;
 				}
 			}
 			else
 			{
-				if(pSource->effect[0] != -1)
+				if(pSource->effect != -1)
 				{
-					CCD->EffectManager()->Item_Delete(EFF_CORONA, pSource->effect[0]);
-					pSource->effect[0] = -1;
+					CCD->EffectManager()->Item_Delete(EFF_CORONA, pSource->effect);
+					pSource->effect = -1;
 				}
 
 				pSource->active = GE_FALSE;
@@ -175,7 +151,7 @@ void CCorona::Tick(geFloat dwTicks)
 		{
 			if(pSource->active == GE_FALSE)
 			{
-				pSource->effect[0] = Create(pSource->origin, pSource);
+				pSource->effect = Create(pSource->origin, pSource);
 				pSource->active = GE_TRUE;
 			}
 		}
@@ -190,7 +166,7 @@ void CCorona::Tick(geFloat dwTicks)
 				C.Vertex.X = pSource->origin.X;
 				C.Vertex.Y = pSource->origin.Y;
 				C.Vertex.Z = pSource->origin.Z;
-				CCD->EffectManager()->Item_Modify(EFF_CORONA, pSource->effect[0], (void*)&C, CORONA_POS);
+				CCD->EffectManager()->Item_Modify(EFF_CORONA, pSource->effect, static_cast<void*>(&C), CORONA_POS);
 			}
 		}
 	}

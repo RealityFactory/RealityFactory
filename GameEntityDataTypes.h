@@ -1383,7 +1383,7 @@ typedef struct _EnvironmentSetup
 typedef struct _Corona
 {
 #pragma	GE_Private
-	int				*effect;		// pointer to array of effect indexs
+	int				effect;			// effect index
 	geBoolean		active;			// is activated
 	geVec3d			OriginOffset;	// Translation from model center
 #pragma GE_Published
