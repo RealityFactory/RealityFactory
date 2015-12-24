@@ -21,11 +21,10 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CAttribute::CAttribute()
+CAttribute::CAttribute() :
+	m_DynamicAttributes(1000),
+	m_DynamicAttribute1(NULL)
 {
-	DynamicAttributes = 1000;
-	DynamicAttribute1 = NULL;
-
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 	geEntity *pEntity;
@@ -131,9 +130,9 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 	char DefaultName[128];
 	if(EffectC_IsStringNull(pAttribute->szEntityName))
 	{
-		sprintf(DefaultName, "Attribute%04d", DynamicAttributes);
+		sprintf(DefaultName, "Attribute%04d", m_DynamicAttributes);
 		pAttribute->szEntityName = DefaultName;
-		DynamicAttributes++;
+		++m_DynamicAttributes;
 	}
 
 	pAttribute->ActorRotation.X = GE_PIOVER180*pAttribute->ActorRotation.X;
@@ -142,9 +141,11 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 
 	if(InitAttribute(pAttribute))
 	{
-		if(DynamicAttribute1 == NULL)
+		if(m_DynamicAttribute1 == NULL)
 		{
-			DynamicAttribute1 = geWorld_AddEntity(CCD->World(), "Attribute", pAttribute->szEntityName, (void*)pAttribute);
+			m_DynamicAttribute1 = geWorld_AddEntity(CCD->World(), "Attribute",
+													pAttribute->szEntityName,
+													static_cast<void*>(pAttribute));
 		}
 		else
 		{
@@ -573,7 +574,7 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 	geEntity *pEntity;
 
 	//	Ok, we have Attributes somewhere.  Dig through 'em all.
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=DynamicAttribute1;
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=m_DynamicAttribute1;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));

@@ -45,8 +45,9 @@ public:
 private:
 	bool InitAttribute(Attribute *pAttribute);
 
-	int DynamicAttributes;
-	geEntity *DynamicAttribute1;
+private:
+	int m_DynamicAttributes;
+	geEntity *m_DynamicAttribute1;
 };
 
 #endif
