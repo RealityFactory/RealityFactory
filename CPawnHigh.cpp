@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include <Ram.h>
 #include "RGFScriptMethods.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);

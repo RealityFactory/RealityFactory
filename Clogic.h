@@ -11,8 +11,6 @@
 #ifndef __RGF_CLOGIC_H_
 #define __RGF_CLOGIC_H_
 
-#include <Ram.h>
-
 typedef struct	LState
 {
 	LState	*next;

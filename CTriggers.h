@@ -12,7 +12,6 @@
 #ifndef __RGF_CTRIGGERS_H__
 #define __RGF_CTRIGGERS_H__
 
-#include <Ram.h>
 
 /**
  * @brief Trigger state list element

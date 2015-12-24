@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"		//	The One True Include File
+#include <Ram.h>
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
