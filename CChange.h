@@ -21,13 +21,15 @@ public:
 	~CChangeAttribute();
 
 	void Tick(geFloat dwTicks);
+
 	int SaveTo(FILE *SaveFD, bool type);
+
 	int RestoreFrom(FILE *RestoreFD, bool type);
-	bool GetActive()  { return Active; }
+
+	bool GetActive() const { return m_Active; }
 
 private:
-
-	bool Active;
+	bool m_Active;
 };
 
 #endif

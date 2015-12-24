@@ -15,10 +15,9 @@
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-CChangeAttribute::CChangeAttribute()
+CChangeAttribute::CChangeAttribute() :
+	m_Active(false)
 {
-	Active = false;
-
 	// Ok, check to see if there are ChangeAttributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
 
@@ -50,8 +49,7 @@ CChangeAttribute::~CChangeAttribute()
 /* ------------------------------------------------------------------------------------ */
 void CChangeAttribute::Tick(geFloat dwTicks)
 {
-
-	Active = false;
+	m_Active = false;
 
 	// Ok, check to see if there are ChangeAttributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeAttribute");
@@ -117,7 +115,7 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 				pSource->Count -= (0.001f*dwTicks);
 
 				if(pSource->Increment < 0.0f && !strcmp(pSource->Attribute, "health"))
-					Active = true;
+					m_Active = true;
 
 				if(pSource->Count <= 0.0f)
 				{
