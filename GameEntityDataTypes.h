@@ -628,7 +628,7 @@ typedef struct _MorphingField
 typedef struct _AudioSource3D
 {
 #pragma GE_Private
-	int				*effect;		// pointer to array of effect indexs
+	int				effect;			// effect index
 	geBoolean		active;			// is activated
 	geVec3d			OriginOffset;	// Translation from model center
 // Start Aug2003DCS

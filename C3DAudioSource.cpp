@@ -57,8 +57,7 @@ C3DAudioSource::C3DAudioSource()
 		}
 
 		//	Reset all the data for each 3D audio source
-		pSource->effect = (int*)malloc(sizeof(int)*1);
-		pSource->effect[0] = -1;
+		pSource->effect = -1;
 		pSource->active = GE_FALSE;
 
 		if(!EffectC_IsStringNull(pSource->szSoundFile))
@@ -68,7 +67,7 @@ C3DAudioSource::C3DAudioSource()
 // set the entity active if there's no trigger
 			if(EffectC_IsStringNull(pSource->TriggerName))
 			{
-				pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile,
+				pSource->effect = Create(pSource->origin, pSource->szSoundFile,
 											pSource->fRadius, pSource->bLoopSound);
 				pSource->active = GE_TRUE;
 			}
@@ -127,31 +126,6 @@ int C3DAudioSource::Create(const geVec3d &Origin, const char *SoundFile, float r
 /* ------------------------------------------------------------------------------------ */
 C3DAudioSource::~C3DAudioSource()
 {
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-  	if(Count == 0)
-		return;						//	Don't waste CPU cycles
-
-	//	Ok, check to see if there are 3D audio sources in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "AudioSource3D");
-
-	if(!pSet)
-		return;						//	No sources
-
-	//	Ok, we have 3D audio sources somewhere.  Dig through 'em all and release
-	//	..the audio (if any).
-	for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		AudioSource3D *pSource = (AudioSource3D*)geEntity_GetUserData(pEntity);
-
-		if(pSource->effect)
-			free(pSource->effect);
-	}
-
-	//	3D audio sources cleaned up.  Bail this mess.
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -184,7 +158,7 @@ void C3DAudioSource::Tick(geFloat dwTicks)
 			{
 				if(pSource->active == GE_FALSE)
 				{
-					pSource->effect[0] = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius, pSource->bLoopSound);
+					pSource->effect = Create(pSource->origin, pSource->szSoundFile, pSource->fRadius, pSource->bLoopSound);
 					pSource->active = GE_TRUE;
 
 					if(!pSource->bLoopSound)
@@ -195,20 +169,20 @@ void C3DAudioSource::Tick(geFloat dwTicks)
 			{
 				if(pSource->bLoopSound)
 				{
-					if(pSource->effect[0] != -1)
+					if(pSource->effect != -1)
 					{
-    					CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect[0]);
-						pSource->effect[0] = -1;
+						CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect);
+						pSource->effect = -1;
 					}
 
 					pSource->active = GE_FALSE;
 				}
 				else
 				{
-					if((pSource->effect[0] != -1) && !CCD->EffectManager()->Item_Alive(pSource->effect[0]))
+					if((pSource->effect != -1) && !CCD->EffectManager()->Item_Alive(pSource->effect))
 					{
-    					CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect[0]);
-						pSource->effect[0] = -1;
+						CCD->EffectManager()->Item_Delete(EFF_SND, pSource->effect);
+						pSource->effect = -1;
 					}
 
 					pSource->active = GE_FALSE;
@@ -223,11 +197,11 @@ void C3DAudioSource::Tick(geFloat dwTicks)
 
 			if(SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin)))
 			{
-				if(pSource->effect[0] != -1)
+				if(pSource->effect != -1)
 				{
 					Snd Sound;
-					geVec3d_Copy(&(pSource->origin), &(Sound.Pos) );
-      				CCD->EffectManager()->Item_Modify(EFF_SND, pSource->effect[0], (void*)&Sound, SND_POS);
+					geVec3d_Copy(&(pSource->origin), &(Sound.Pos));
+					CCD->EffectManager()->Item_Modify(EFF_SND, pSource->effect, static_cast<void*>(&Sound), SND_POS);
 				}
 			}
 		}
@@ -293,7 +267,7 @@ geBoolean C3DAudioSource::IsPlaying(const char *szName)
 
 		if(!strcmp(pSource->szEntityName, szName))
 		{
-			if(pSource->effect[0] != -1)
+			if(pSource->effect != -1)
 				return GE_TRUE;
 			else
 				return GE_FALSE;
