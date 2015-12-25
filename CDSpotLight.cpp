@@ -23,7 +23,7 @@ CDSpotLight::CDSpotLight()
 
 	// Ok, we have dynamic lights somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DSpotLight *pLight = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 		pLight->RadiusSpeed *= 1000.0f;			// From SECONDS to MILLISECONDS
@@ -49,12 +49,12 @@ CDSpotLight::CDSpotLight()
 		pLight->OriginOffset = pLight->origin;
 		geVec3d_Scale(&(pLight->angles), GE_PIOVER180, &(pLight->RealAngle));
 
-        if(pLight->Model)
+		if(pLight->Model)
 		{
-            geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pLight->Model, &ModelOrigin);
-            geVec3d_Subtract(&(pLight->origin), &ModelOrigin, &(pLight->OriginOffset));
-  		}
+			geVec3d ModelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), pLight->Model, &ModelOrigin);
+			geVec3d_Subtract(&(pLight->origin), &ModelOrigin, &(pLight->OriginOffset));
+		}
 
 		pLight->active = GE_FALSE;
 		pLight->NumFunctionValues = strlen(pLight->RadiusFunction);
@@ -120,7 +120,6 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 			{
 				Light->DynLight = geWorld_AddLight(CCD->World());
 				Light->active = GE_TRUE;
-			//	CCD->ReportError("DSpotLight light added", false);
 			}
 		}
 
@@ -147,29 +146,6 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 				}
 				else if(!EffectC_IsStringNull(Light->EntityName))
 				{
-					// changed QD 07/15/06
-					/*
-					geXForm3d BoneXForm;
-					geActor	*theActor;
-
-					theActor = GetEntityActor(Light->EntityName);
-
-					if(!EffectC_IsStringNull(Light->BoneName))
-					{
-						if(geActor_GetBoneTransform(theActor, Light->BoneName, &BoneXForm) != GE_TRUE)
-							continue;					// No such bone
-					}
-					else
-					{
-						if(geActor_GetBoneTransform(theActor, RootBoneName(theActor), &BoneXForm) != GE_TRUE)
-							continue;					// No such bone
-					}
-
-					geXForm3d_RotateY(&BoneXForm, Light->RealAngle.Y);
-					geXForm3d_GetEulerAngles(&BoneXForm, &(Light->angles));
-					Light->angles.Z += Light->RealAngle.Z;
-
-					*/
 					SetAngle(Light->EntityName, Light->BoneName, &(Light->angles));
 
 					if(Light->RealAngle.X || Light->RealAngle.Y || Light->RealAngle.Z)
@@ -187,7 +163,6 @@ geBoolean CDSpotLight::Tick(geFloat dwTicks)
 						geXForm3d_Multiply(&BoneXForm, &XForm, &XForm);
 						geXForm3d_GetEulerAngles(&XForm, &(Light->angles));
 					}
-					// end change QD 07/15/06
 
 					// convert to degrees
 					geVec3d_Scale(&(Light->angles), GE_180OVERPI, &(Light->angles));
@@ -266,7 +241,7 @@ int CDSpotLight::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have dynamic lights.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DSpotLight *pTheEntity = static_cast<DSpotLight*>(geEntity_GetUserData(pEntity));
 

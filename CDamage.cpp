@@ -16,9 +16,9 @@
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Load up all logic gates and set the	entities to default values.
+// Load up all logic gates and set the	entities to default values.
 /* ------------------------------------------------------------------------------------ */
 CDamage::CDamage()
 {
@@ -51,21 +51,11 @@ CDamage::CDamage()
 					__FILE__, __LINE__, pDestroy->szEntityName);
 			CCD->ReportError(szError, false);
 			continue;
-			// changed QD 07/15/06
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "Missing Destroyable Model", MB_OK);
-			exit(-333);
-			*/
-			// end change
 		}
 
 		pDestroy->bState = GE_TRUE;
 		pDestroy->CallBack = GE_FALSE;
 		pDestroy->active = GE_FALSE;
-// changed RF064
 		pDestroy->Animating = GE_FALSE;
 		CCD->ModelManager()->AddModel(pDestroy->Model, ENTITY_GENERIC);
 
@@ -80,7 +70,6 @@ CDamage::CDamage()
 
 		if(pDestroy->Model4)
 			CCD->ModelManager()->AddModel(pDestroy->Model4, ENTITY_GENERIC);
-// end change RF064
 
 		pDestroy->OriginalAmt = pDestroy->AttributeAmt;
 
@@ -89,17 +78,19 @@ CDamage::CDamage()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up.
+// Clean up.
 /* ------------------------------------------------------------------------------------ */
 CDamage::~CDamage()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CDamage::Tick(geFloat dwTicks)
 {
@@ -115,10 +106,8 @@ void CDamage::Tick(geFloat dwTicks)
 	{
 		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDestroy->Model)
 			continue;
-		// end change
 
 		if(pDestroy->CallBack == GE_TRUE)
 		{
@@ -128,7 +117,6 @@ void CDamage::Tick(geFloat dwTicks)
 				pDestroy->CallBack = GE_FALSE;
 		}
 
-// changed RF064
 		if(pDestroy->Animating)
 		{
 			bool running = false;
@@ -340,16 +328,15 @@ void CDamage::Tick(geFloat dwTicks)
 					CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
 				}
 			}
-// end change RF064
 		}
 	}
 }
 
-// changed RF063
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state off to an open file.
+// Save the current state off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CDamage::SaveTo(FILE *SaveFD, bool type)
 {
@@ -361,7 +348,7 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have DestroyableModel somewhere.  Dig through 'em all.
+	// Ok, we have DestroyableModel somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -374,9 +361,9 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state from an open file.
+// Restore the state from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -389,18 +376,19 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
-    }
+	}
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DamageActor
+// DamageActor
 /* ------------------------------------------------------------------------------------ */
 void CDamage::DamageActor(const geActor *Actor,
 						  float amount, const char *Attr,
@@ -418,7 +406,6 @@ void CDamage::DamageActor(const geActor *Actor,
 			{
 				ActualAmount = (int)amount;
 
-// changed QD 12/15/05 - bug fix
 				if(Actor == CCD->Player()->GetActor())
 				{
 					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, Attr);
@@ -435,7 +422,6 @@ void CDamage::DamageActor(const geActor *Actor,
 			{
 				ActualAmount = (int)Altamount;
 
-// changed QD 12/15/05 - bug fix
 				if(Actor == CCD->Player()->GetActor())
 				{
 					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, AltAttr);
@@ -445,11 +431,13 @@ void CDamage::DamageActor(const geActor *Actor,
 			}
 		}
 	}
+
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DamageActorInRange
+// DamageActorInRange
 /* ------------------------------------------------------------------------------------ */
 void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
 								 float amount, const char *Attr,
@@ -459,8 +447,6 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
 
 	int nActorCount = CCD->ActorManager()->GetActorsInRange(Point, Range, 512, &ActorsInRange[0]);
 
-// changed QD 12/15/05 - if test not needed, for loop wouldn't start
-	// if(nActorCount != 0)
 	{
 		for(int nTemp=0; nTemp<nActorCount; nTemp++)
 		{
@@ -469,8 +455,9 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DamageModel
+// DamageModel
 /* ------------------------------------------------------------------------------------ */
 void CDamage::DamageModel(const geWorld_Model *Model,
 						  float amount, const char *Attr,
@@ -488,16 +475,12 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 	{
 		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDestroy->Model)
 			continue;
-		// end change
 
-// changed RF064
 		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
 			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
 			continue;
-// end change RF064
 
 		if(EffectC_IsStringNull(pDestroy->Attribute))
 		{
@@ -520,8 +503,9 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DamageModelInRange
+// DamageModelInRange
 /* ------------------------------------------------------------------------------------ */
 void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 								 float amount, const char *Attr,
@@ -532,7 +516,6 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 	if(!pSet)
 		return;
 
-// changed QD 12/15/05 - use squared distance
 	geFloat Range2 = Range*Range;
 	geEntity *pEntity;
 
@@ -541,34 +524,27 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 	{
 		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDestroy->Model)
 			continue;
-		// end change
 
 		if(pDestroy->active && pDestroy->bState)
 		{
 			geVec3d thePosition;
 
-			//float Distance, MinDistance;
 			float Distance2, MinDistance2;
 			geVec3d Temp;
 
 			geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, &thePosition);
 
-			// MinDistance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
 			geVec3d_Subtract(&Point, &thePosition, &Temp);
 			MinDistance2 = geVec3d_DotProduct(&Temp, &Temp);
 
 			if(pDestroy->Model1)
 			{
 				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model1, &thePosition);
-				// Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
 				geVec3d_Subtract(&Point, &thePosition, &Temp);
 				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
 
-				// if(Distance < MinDistance)
-				//	MinDistance = Distance;
 				if(Distance2 < MinDistance2)
 					MinDistance2 = Distance2;
 			}
@@ -576,12 +552,9 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 			if(pDestroy->Model2)
 			{
 				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model2, &thePosition);
-				// Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
 				geVec3d_Subtract(&Point, &thePosition, &Temp);
 				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
 
-				// if(Distance < MinDistance)
-				//	MinDistance = Distance;
 				if(Distance2 < MinDistance2)
 					MinDistance2 = Distance2;
 			}
@@ -589,12 +562,9 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 			if(pDestroy->Model3)
 			{
 				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model3, &thePosition);
-				// Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
 				geVec3d_Subtract(&Point, &thePosition, &Temp);
 				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
 
-				// if(Distance < MinDistance)
-				//	MinDistance = Distance;
 				if(Distance2 < MinDistance2)
 					MinDistance2 = Distance2;
 			}
@@ -602,19 +572,14 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 			if(pDestroy->Model4)
 			{
 				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model4, &thePosition);
-				// Distance = (float)fabs(geVec3d_DistanceBetween(&Point, &thePosition));
 				geVec3d_Subtract(&Point, &thePosition, &Temp);
 				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
 
-				// if(Distance < MinDistance)
-				//	MinDistance = Distance;
 				if(Distance2 < MinDistance2)
 					MinDistance2 = Distance2;
 			}
 
-			//if(MinDistance <= Range)
 			if(MinDistance2 <= Range2)
-// end change
 			{
 				if(EffectC_IsStringNull(pDestroy->Attribute))
 				{
@@ -638,10 +603,10 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 		}
 	}
 }
-// end change RF063
+
 
 /* ------------------------------------------------------------------------------------ */
-//	IsDestroyable
+// IsDestroyable
 /* ------------------------------------------------------------------------------------ */
 bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 {
@@ -657,16 +622,12 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 	{
 		DestroyableModel *pDestroy= static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDestroy->Model)
 			continue;
-		// end change
 
-// changed RF064
 		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
 			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
 			continue;
-// end change RF064
 
 		*Percentage = ((int)pDestroy->AttributeAmt * 100)/(int)pDestroy->OriginalAmt;
 
@@ -676,13 +637,14 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 	return false;
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CDamage::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -694,7 +656,7 @@ int CDamage::LocateEntity(const char *szName, void **pEntityData)
 
 	geEntity *pEntity;
 
-	//	Ok, we have static entity proxies.  Dig through 'em all.
+	// Ok, we have static entity proxies.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -710,11 +672,12 @@ int CDamage::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CDamage::ReSynchronize()
 {

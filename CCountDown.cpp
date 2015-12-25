@@ -10,7 +10,7 @@
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CCountDown::CCountDown()
 {
@@ -22,7 +22,7 @@ CCountDown::CCountDown()
 
 	geEntity *pEntity;
 
-	//	Look through all of our CountDownTimers
+	// Look through all of our CountDownTimers
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -62,15 +62,17 @@ CCountDown::CCountDown()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CCountDown::~CCountDown()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CCountDown::Tick(geFloat dwTicks)
 {
@@ -82,7 +84,7 @@ void CCountDown::Tick(geFloat dwTicks)
 
 	geEntity *pEntity;
 
-	//	Look through all of our CountDownTimers
+	// Look through all of our CountDownTimers
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -136,7 +138,9 @@ void CCountDown::Tick(geFloat dwTicks)
 					}
 				}
 				else
+				{
 					pItem->OldState = GE_FALSE;
+				}
 			}
 		}
 		else
@@ -161,13 +165,14 @@ void CCountDown::Tick(geFloat dwTicks)
 	}
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -179,7 +184,7 @@ int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 
 	geEntity *pEntity;
 
-	//	Ok, we have CountDownTimers.  Dig through 'em all.
+	// Ok, we have CountDownTimers.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -195,11 +200,12 @@ int CCountDown::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every  CountDownTimer in the current world
-//	..off to an open file.
+// Save the current state of every CountDownTimer in the current world
+// ..off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::SaveTo(FILE *SaveFD, bool type)
 {
@@ -211,9 +217,9 @@ int CCountDown::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have CountDownTimers somewhere.  Dig through 'em all.
+	// Ok, we have CountDownTimers somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		CountDownTimer *pSource = static_cast<CountDownTimer*>(geEntity_GetUserData(pEntity));
 
@@ -227,10 +233,10 @@ int CCountDown::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every CountDownTimer in the current world from an
-//	..open file.
+// Restore the state of every CountDownTimer in the current world from an
+// ..open file.
 /* ------------------------------------------------------------------------------------ */
 int CCountDown::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -251,7 +257,7 @@ int CCountDown::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &pSource->bState,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->OldState,	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pSource->Time,		sizeof(float),		1, RestoreFD);
-    }
+	}
 
 	return RGF_SUCCESS;
 }

@@ -63,8 +63,7 @@ CCorona::CCorona() :
 		pSource->active = GE_FALSE;
 	}
 
-	//  let's go!
-	return;
+	// let's go!
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -74,7 +73,7 @@ int CCorona::Create(const geVec3d &Origin, Corona *pCorona)
 {
 	EffCorona C;
 
-	memset( &C, 0, sizeof(C) );
+	memset(&C, 0, sizeof(C));
 	C.Texture = m_Bitmap;
 	C.FadeTime = pCorona->FadeTime;
 	C.MinRadius = pCorona->MinRadius;
@@ -107,7 +106,7 @@ CCorona::~CCorona()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CCorona::Tick(geFloat dwTicks)
+void CCorona::Tick(geFloat /*dwTicks*/)
 {
 	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
@@ -194,7 +193,7 @@ int CCorona::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have Corona somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Corona *pSource = static_cast<Corona*>(geEntity_GetUserData(pEntity));
 

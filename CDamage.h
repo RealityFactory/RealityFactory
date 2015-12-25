@@ -21,7 +21,6 @@ public:
 	~CDamage();
 
 	void Tick(geFloat dwTicks);
-// changed RF063
 	int SaveTo(FILE *SaveFD, bool type);
 	int RestoreFrom(FILE *RestoreFD, bool type);
 
@@ -38,7 +37,6 @@ public:
 	void DamageModelInRange(geVec3d Point, geFloat Range,
 							float amount, const char *Attr,
 							float Altamount, const char *AltAttr);
-// end change RF063
 
 	bool IsDestroyable(geWorld_Model *Model, int *Percentage);
 
