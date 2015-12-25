@@ -17,7 +17,7 @@
 typedef struct	Decal
 {
 	Decal			*next;
-	Decal    		*prev;
+	Decal			*prev;
 	float			TimeToLive;
 	geBitmap		*Bitmap;
 	GE_LVertex		vertex[4];
@@ -39,10 +39,10 @@ public:
 	~CDecal();
 
 	void Tick(geFloat dwTicks);
+
 	void AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model *pModel);
 
 private:
-
 	Decal *Bottom;	///< Linked list of decals
 };
 

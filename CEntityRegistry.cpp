@@ -8,7 +8,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 
 #ifdef _DEBUG
@@ -58,10 +57,6 @@ int CEntityRegistry::AddEntity(const char *szName, const char *szType)
 	//if(m_pList->Has(szName))
 	//{
 		//m_pList->Add(szName);
-		//char szBug[128];
-		//sprintf(szBug,"WARNING: duplicate entityname '%s' type '%s'",
-			//szName, szType);
-		//CCD->ReportError(szBug, false);
 	//}
 	//else
 	{

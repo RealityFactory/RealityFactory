@@ -27,12 +27,14 @@ public:
 	~CEntityRegistry();							///< Default destructor
 
 	int AddEntity(const char *szName, const char *szType);	///< Add entity to registry
+
 	int DeleteEntity(const char *szName);					///< Delete entity from registry
+
 	char *GetEntityType(const char *szName);				///< Get type for entity
+
 	void Dump();											///< Debug dumper
 
 private:
-
 	CPersistentAttributes *m_pList;				///< Registry list
 };
 

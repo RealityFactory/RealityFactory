@@ -8,7 +8,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CDecal.h"
 
@@ -16,9 +15,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Load up all Decals and set the entities to default values.
+// Load up all Decals and set the entities to default values.
 /* ------------------------------------------------------------------------------------ */
 CDecal::CDecal()
 {
@@ -34,7 +33,7 @@ CDecal::CDecal()
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DecalDefine *pSource = static_cast<DecalDefine*>(geEntity_GetUserData(pEntity));
 
@@ -53,9 +52,9 @@ CDecal::CDecal()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up.
+// Clean up.
 /* ------------------------------------------------------------------------------------ */
 CDecal::~CDecal()
 {
@@ -74,7 +73,7 @@ CDecal::~CDecal()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CDecal::Tick(geFloat dwTicks)
 {
@@ -215,7 +214,7 @@ void CDecal::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddDecal
+// AddDecal
 /* ------------------------------------------------------------------------------------ */
 void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model *pModel)
 {
@@ -234,18 +233,18 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DecalDefine *pSource = static_cast<DecalDefine*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->Type == type)
 		{
-			if (!(pSource->Bitmap))
+			if(!(pSource->Bitmap))
 				return;
 
 			d = new Decal;
 			d->Bitmap = pSource->Bitmap;
-			d->TimeToLive = pSource->LifeTime*1000.0f;
+			d->TimeToLive = pSource->LifeTime * 1000.0f;
 
 			if(CCD->ModelManager()->IsModel(pModel))
 			{
@@ -349,7 +348,7 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 
 			geVec3d_MA(impact, 0.1f, normal, impact);
 
-			//calculate vertices from corners
+			// Calculate vertices from corners
 			d->vertex[1].X = impact->X + ((-right.X - up.X));
 			d->vertex[1].Y = impact->Y + ((-right.Y - up.Y));
 			d->vertex[1].Z = impact->Z + ((-right.Z - up.Z));

@@ -27,7 +27,7 @@ CDynalite::CDynalite()
 
 	// Ok, we have dynamic lights somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DynamicLight *pLight = static_cast<DynamicLight*>(geEntity_GetUserData(pEntity));
 		pLight->RadiusSpeed *= 1000.0f;			// From SECONDS to MILLISECONDS
@@ -41,19 +41,19 @@ CDynalite::CDynalite()
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pLight->szEntityName, "DynamicLight");
-		//MOD010124 - Added next if block to calculate the Origin offset.  We pass it to
-        //            SetOrigin later in the tick function so that the light will stay in
-        //            the same position relative to the model.  The offset is just the
-        //            difference of the Dynamic Light's origin vector and the Model's
-        //            origin vector.
+		// Added next if block to calculate the Origin offset.  We pass it to
+		// SetOrigin later in the tick function so that the light will stay in
+		// the same position relative to the model.  The offset is just the
+		// difference of the Dynamic Light's origin vector and the Model's
+		// origin vector.
 		pLight->OriginOffset = pLight->origin;
 
 		if(pLight->Model)
 		{
-            geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pLight->Model, &ModelOrigin);
-            geVec3d_Subtract(&(pLight->origin), &ModelOrigin, &(pLight->OriginOffset));
-  		}
+			geVec3d ModelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), pLight->Model, &ModelOrigin);
+			geVec3d_Subtract(&(pLight->origin), &ModelOrigin, &(pLight->OriginOffset));
+		}
 
 		pLight->active = GE_FALSE;
 		pLight->NumFunctionValues = strlen(pLight->RadiusFunction);
@@ -125,13 +125,13 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
 			}
 		}
 
-		if(Light->active==GE_TRUE)
+		if(Light->active == GE_TRUE)
 		{
-			//MOD010124 - Added next line of code to pass the OriginOffset to SetOrigin
-            //            so that the light will stay in the same position relative to the model.
-            //            Also we now call SetOriginOffset instead of SetOffset in the line after.
-            Light->origin = Light->OriginOffset;
+			// Added next line of code to pass the OriginOffset to SetOrigin
+			// so that the light will stay in the same position relative to the model.
+			// Also we now call SetOriginOffset instead of SetOffset in the line after.
 			int32 Leaf;
+			Light->origin = Light->OriginOffset;
 			SetOriginOffset(Light->EntityName, Light->BoneName, Light->Model, &(Light->origin));
 			geWorld_GetLeaf(CCD->World(), &(Light->origin), &Leaf);
 
@@ -171,7 +171,7 @@ geBoolean CDynalite::Tick(geFloat dwTicks)
 					CCD->CameraManager()->Camera(),
 					&Pos,
 					Leaf,
-					EFFECTC_CLIP_LEAF ) == GE_FALSE )
+					EFFECTC_CLIP_LEAF ) == GE_FALSE)
 			{
 				geWorld_RemoveLight(CCD->World(), Light->DynLight);
 				Light->active = GE_FALSE;
@@ -202,7 +202,7 @@ int CDynalite::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have dynamic lights.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		DynamicLight *pTheEntity = static_cast<DynamicLight*>(geEntity_GetUserData(pEntity));
 

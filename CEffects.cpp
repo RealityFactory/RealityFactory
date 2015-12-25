@@ -43,17 +43,11 @@ CPreEffect::CPreEffect()
 	std::string Type;
 	int effptr = 0;
 
-// changed QD 07/15/06
-	//while(KeyName != "")
 	while(KeyName != "" && effptr<MAXEXPITEM)
-// end change QD 07/15/06
 	{
 		Type = AttrFile.GetValue(KeyName, "type");
-		// changed QD 07/15/06
-		//strcpy(Effects[effptr].Name, KeyName);
 		strncpy(Effects[effptr].Name, KeyName.c_str(), 63);
 		Effects[effptr].Name[63] = 0;
-		// end change QD 07/15/06
 		if(Type == "spray")
 		{
 			std::string Tname, Talpha, Vector;
@@ -190,7 +184,6 @@ CPreEffect::CPreEffect()
 				Lite->ColorMin.b = convert.Z;
 			}
 
-// change QD
 			Vector = AttrFile.GetValue(KeyName, "offsetangles");
 
 			if(Vector != "")
@@ -208,7 +201,6 @@ CPreEffect::CPreEffect()
 
 			Lite->Arc			= (float)AttrFile.GetValueF(KeyName, "arc");
 			Lite->Style			= AttrFile.GetValueI(KeyName, "style");
-// end change QD
 
 			Lite->RadiusMax		= (float)AttrFile.GetValueF(KeyName, "radiusmax");
 			Lite->RadiusMin		= (float)AttrFile.GetValueF(KeyName, "radiusmin");
@@ -277,7 +269,6 @@ CPreEffect::CPreEffect()
 					Sp->RotationRate	= GE_PIOVER180*(float)AttrFile.GetValueF(KeyName, "rotationrate");
 					Sp->Color.a			= (float)AttrFile.GetValueF(KeyName, "alpha");
 					Sp->AlphaRate		= (float)AttrFile.GetValueF(KeyName, "alpharate");
-// changed RF064
 					Sp->LifeTime		= (float)AttrFile.GetValueF(KeyName, "lifetime");
 
 					Tname = AttrFile.GetValue(KeyName, "style");
@@ -297,7 +288,6 @@ CPreEffect::CPreEffect()
 						else
 							Sp->Style = SPRITE_CYCLE_ONCE;
 					}
-// end change RF064
 					Effects[effptr].Data = Sp;
 					Effects[effptr].Active = GE_TRUE;
 					effptr +=1;
@@ -431,7 +421,6 @@ CPreEffect::CPreEffect()
 			Effects[effptr].Active = GE_TRUE;
 			effptr +=1;
 		}
-// changed RF064
 		else if(Type == "actorspray")
 		{
 			std::string Tname, Vector;
@@ -459,16 +448,9 @@ CPreEffect::CPreEffect()
 					strcpy(szName, Vector.c_str());
 					convert = Extract(szName);
 
-					// changed QD 07/15/06
-					/*
-					Sp->BaseRotation.X = convert.X;
-					Sp->BaseRotation.Y = convert.Y;
-					Sp->BaseRotation.Z = convert.Z;
-					*/
 					Sp->BaseRotation.X = GE_PIOVER180*convert.X;
 					Sp->BaseRotation.Y = GE_PIOVER180*convert.Y;
 					Sp->BaseRotation.Z = GE_PIOVER180*convert.Z;
-					// end change
 				}
 
 				char Name[64];
@@ -553,14 +535,12 @@ CPreEffect::CPreEffect()
 					Sp->AmbientColor.b = convert.Z;
 				}
 
-// changed QD 07/21/04
 				Sp->AmbientLightFromFloor = GE_TRUE;
 
 				Vector = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
 
 				if(Vector == "false")
 					Sp->AmbientLightFromFloor = GE_FALSE;
-// end change QD
 
 				Sp->EnvironmentMapping = GE_FALSE;
 
@@ -615,15 +595,15 @@ CPreEffect::CPreEffect()
 				Effects[effptr].Active = GE_TRUE;
 				effptr +=1;
 			}
-// end change RF064
 		}
 
 		KeyName = AttrFile.FindNextKey();
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CPreEffect::~CPreEffect()
 {
@@ -647,8 +627,9 @@ CPreEffect::~CPreEffect()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddEffect
+// AddEffect
 /* ------------------------------------------------------------------------------------ */
 int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 {
@@ -663,13 +644,9 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		memcpy(&Sp, Effects[k].Data, sizeof(Sp));
 		geVec3d_Copy(&Position, &(Sp.Source));
 		geVec3d_Add(&(Sp.Source ), &Offset, &(Sp.Source));
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateX(&Xf, (Sp.Angle.X * GE_PIOVER180)); // / 57.3f));
 		geXForm3d_SetXRotation(&Xf, (Sp.Angle.X * GE_PIOVER180));
 		geXForm3d_RotateY(&Xf,		(Sp.Angle.Y - 90.0f) * GE_PIOVER180); // / 57.3f);
 		geXForm3d_RotateZ(&Xf,		(Sp.Angle.Z * GE_PIOVER180)); // / 57.3f));
-		// end change
 		geXForm3d_GetIn(&Xf, &In);
 		geVec3d_Inverse(&In);
 		geVec3d_Add(&(Sp.Source), &In, &(Sp.Dest));
@@ -712,25 +689,19 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		geVec3d_Add(&(Bl.Start), &(Bl.EndOffset), &(Bl.End));
 		index = CCD->EffectManager()->Item_Add(EFF_BOLT, &Bl);
 		break;
-// changed RF064
 	case EFF_ACTORSPRAY:
 		ActorSpray aSp;
 		memcpy(&aSp, Effects[k].Data, sizeof(aSp));
 		geVec3d_Copy(&Position, &(aSp.Source));
 		geVec3d_Add(&(aSp.Source), &Offset,&(aSp.Source));
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
 		geXForm3d_SetZRotation(&Xf, (aSp.Angle.Z * GE_PIOVER180));
 		geXForm3d_RotateX(&Xf,-(aSp.Angle.X * GE_PIOVER180)); // / 57.3f);
 		geXForm3d_RotateY(&Xf, (aSp.Angle.Y - 90.0f) * GE_PIOVER180); // / 57.3f);
-		//geXForm3d_RotateZ(&Xf, (aSp.Angle.Z * GE_PIOVER180)); // / 57.3f));
-		// end change
 		geXForm3d_GetIn(&Xf, &In);
 		geVec3d_Inverse(&In);
 		geVec3d_Add(&(aSp.Source), &In, &(aSp.Dest));
 		index = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, &aSp);
 		break;
-// end change RF064
 	}
 
 	return index;

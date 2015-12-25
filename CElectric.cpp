@@ -22,9 +22,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 Electric_BoltEffect* Electric_BoltEffectCreate(
 	geBitmap				*Texture,		/* The texture we map onto the bolt			*/
 	geBitmap				*Texture2,		/* The texture we map onto the bolt			*/
-	int 					NumPolys,		/* Number of polys, must be power of 2		*/
+	int						NumPolys,		/* Number of polys, must be power of 2		*/
 	int						Width,			/* Width in world units of the bolt			*/
-	geFloat 				Wildness);		/* How wild the bolt is (0 to 1 inclusive)	*/
+	geFloat					Wildness);		/* How wild the bolt is (0 to 1 inclusive)	*/
 
 void Electric_BoltEffectDestroy(Electric_BoltEffect *Effect);
 
@@ -49,7 +49,7 @@ void Electric_BoltEffectSetColorInfo(
 /* ------------------------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------------------------ */
-//	logBase2
+// logBase2
 /* ------------------------------------------------------------------------------------ */
 static int logBase2(int n)
 {
@@ -64,8 +64,9 @@ static int logBase2(int n)
 	return i;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	IsPowerOf2
+// IsPowerOf2
 /* ------------------------------------------------------------------------------------ */
 static geBoolean IsPowerOf2(int n)
 {
@@ -81,14 +82,15 @@ static geBoolean IsPowerOf2(int n)
 	return GE_TRUE;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Electric_BoltEffectCreate
+// Electric_BoltEffectCreate
 /* ------------------------------------------------------------------------------------ */
 Electric_BoltEffect* Electric_BoltEffectCreate(geBitmap	*Bitmap,
-											   geBitmap	*Bitmap2,
-											   int			NumPolys,
-											   int			Width,
-											   geFloat		Wildness)
+											   geBitmap	* /*Bitmap2*/,
+											   int		NumPolys,
+											   int		Width,
+											   geFloat	Wildness)
 {
 	Electric_BoltEffect *be;
 	GE_RGBA				color;
@@ -124,8 +126,9 @@ Electric_BoltEffect* Electric_BoltEffectCreate(geBitmap	*Bitmap,
 	return be;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Electric_BoltEffectDestroy
+// Electric_BoltEffectDestroy
 /* ------------------------------------------------------------------------------------ */
 void Electric_BoltEffectDestroy(Electric_BoltEffect *Effect)
 {
@@ -133,8 +136,9 @@ void Electric_BoltEffectDestroy(Electric_BoltEffect *Effect)
 	free(Effect);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GaussRand
+// GaussRand
 /* ------------------------------------------------------------------------------------ */
 static geFloat GaussRand(void)
 {
@@ -149,14 +153,15 @@ static geFloat GaussRand(void)
 	return static_cast<geFloat>(r)/(static_cast<geFloat>(RAND_MAX)*6.0f);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	subdivide
+// subdivide
 /* ------------------------------------------------------------------------------------ */
 static void subdivide(Electric_BoltEffect	*be,
 					  const geVec3d			*start,
 					  const geVec3d			*end,
-					  geFloat	 			s,
-					  int	 				n)
+					  geFloat				s,
+					  int					n)
 {
 	geVec3d	tmp;
 
@@ -175,14 +180,15 @@ static void subdivide(Electric_BoltEffect	*be,
 	subdivide(be, &tmp,  end,	s * 0.5f, n - 1);
 }
 
+
 #define	LIGHTNINGWIDTH 8.0f
 
 /* ------------------------------------------------------------------------------------ */
-//	genLightning
+// genLightning
 /* ------------------------------------------------------------------------------------ */
 static void genLightning(Electric_BoltEffect	*be,
 						 int					RangeLow,
-						 int 					RangeHigh,
+						 int					RangeHigh,
 						 const geVec3d			*start,
 						 const geVec3d			*end)
 {
@@ -198,13 +204,14 @@ static void genLightning(Electric_BoltEffect	*be,
 
 	be->beCurrentPoint					= be->beCenterPoints + RangeLow;
 	be->beCenterPoints[RangeLow]		= *start;
-	be->beCenterPoints[RangeHigh] 		= *end;
+	be->beCenterPoints[RangeHigh]		= *end;
 
 	subdivide(be, start, end, length * be->beWildness, logBase2(RangeHigh - RangeLow));
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Electric_BoltEffectSetColorInfo
+// Electric_BoltEffectSetColorInfo
 /* ------------------------------------------------------------------------------------ */
 void Electric_BoltEffectSetColorInfo(Electric_BoltEffect	*Effect,
 									 GE_RGBA				*BaseColor,
@@ -216,11 +223,12 @@ void Electric_BoltEffectSetColorInfo(Electric_BoltEffect	*Effect,
 	Effect->beCurrentColors[0]	= BaseColor->r;
 	Effect->beCurrentColors[1]	= BaseColor->g;
 	Effect->beCurrentColors[2]	= BaseColor->b;
-	Effect->beDominantColor 	= DominantColor;
+	Effect->beDominantColor		= DominantColor;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Electric_BoltEffectAnimate
+// Electric_BoltEffectAnimate
 /* ------------------------------------------------------------------------------------ */
 void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 								const geVec3d		*start,
@@ -326,10 +334,11 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 	}
 }
 
-#define	LIGHTNINGALPHA	255.0f //cell division
+
+#define	LIGHTNINGALPHA	255.0f
 
 /* ------------------------------------------------------------------------------------ */
-//	Electric_BoltEffectRender
+// Electric_BoltEffectRender
 /* ------------------------------------------------------------------------------------ */
 void Electric_BoltEffectRender(Electric_BoltEffect	*be,
 							   const geXForm3d		*XForm)
@@ -403,25 +412,24 @@ void Electric_BoltEffectRender(Electric_BoltEffect	*be,
 		verts[3].b = be->beCurrentColors[2];
 		verts[3].a = LIGHTNINGALPHA;
 
-		// cell division
 		// long nLeafID;
 		// geWorld_GetLeaf(CCD->World(), &temp, &nLeafID);
 		// If the BSP leaf the entity is in might be visible,
 		// ..go ahead and add it.
 		// if(geWorld_MightSeeLeaf(CCD->World(), nLeafID) == GE_TRUE)
-		// cell division
 		geWorld_AddPolyOnce(CCD->World(),
 							verts,
 							4,
 							be->beBitmap,
 							GE_TEXTURED_POLY,
-							GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
+							GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF,
 							1.0f);
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CElectric::CElectric()
 {
@@ -431,8 +439,6 @@ CElectric::CElectric()
 		return;
 
 	geEntity *pEntity;
-	// SPool_Sound("loopbzzt.wav"); //cell division
-	// SPool_Sound("onebzzt.wav"); //cell division
 
 	// Ok, we have electric bolts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -459,8 +465,8 @@ CElectric::CElectric()
 		}
 
 		pBolt->effect	= -1;
-		pBolt->active		= false;
-		pBolt->Bitmap		= TPool_Bitmap("bolt.bmp", "bolt.bmp", pBolt->BmpName, pBolt->AlphaName);
+		pBolt->active	= false;
+		pBolt->Bitmap	= TPool_Bitmap("bolt.bmp", "bolt.bmp", pBolt->BmpName, pBolt->AlphaName);
 
 		if(!pBolt->Bitmap)
 		{
@@ -498,11 +504,8 @@ CElectric::CElectric()
 		pBolt->bState = false;
 		pBolt->DoingDamage = false;
 
-// changed RF063
 		if(!EffectC_IsStringNull(pBolt->SoundFile))
 			SPool_Sound(pBolt->SoundFile);
-// end change RF063
-
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "ElectricBoltTerminus");
@@ -530,9 +533,9 @@ CElectric::CElectric()
 		if(pTerminus->Model)
 		{
 			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pTerminus->Model, &ModelOrigin);
+			geWorld_GetModelRotationalCenter(CCD->World(), pTerminus->Model, &ModelOrigin);
 			geVec3d_Subtract(&pTerminus->origin, &ModelOrigin, &pTerminus->OriginOffset);
-  		}
+		}
 	}
 
 	return;
@@ -543,7 +546,6 @@ CElectric::CElectric()
 int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 {
 	int effect = -1;
-	//cell division - removes audio from bolts
 	/*
 	Snd Sound;
 	memset( &Sound, 0, sizeof( Sound ) );
@@ -568,12 +570,13 @@ int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 	if(Sound.SoundDef!=NULL)
 		effect = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
 	*/
-	// end cell division
+
 	return effect;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CElectric::~CElectric()
 {
@@ -739,12 +742,13 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 	return GE_TRUE;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CheckCollision
+// CheckCollision
 /* ------------------------------------------------------------------------------------ */
 void CElectric::CheckCollision(ElectricBolt *Bolt)
 {
-	GE_Collision	Collision;
+	GE_Collision Collision;
 	Electric_BoltEffect *be = Bolt->Bolt;
 
 	Bolt->bState = GE_FALSE;
@@ -769,13 +773,13 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 					{
 						Bolt->DoingDamage = GE_TRUE;
 						Bolt->DTime = 0.0f;
-// change RF063
+
 						if(Collision.Actor)
 							CCD->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute, "Bolt");
 
 						if(Collision.Model)
 							CCD->Damage()->DamageModel(Collision.Model, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
-// end change RF063
+
 						return;
 					}
 				}
@@ -784,20 +788,21 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 	}
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CElectric::LocateEntity(const char *szName, void **pEntityData)
 {
-	//	This is a SPECIAL CASE due to electric bolt and terminus pairing.
-	//	..If the pEntityData pointer contains the value 0, we're looking
-	//	..for an ElectricBolt, otherwise we're looking for an
-	//	..ElectricBoltTerminus
+	// This is a SPECIAL CASE due to electric bolt and terminus pairing.
+	// ..If the pEntityData pointer contains the value 0, we're looking
+	// ..for an ElectricBolt, otherwise we're looking for an
+	// ..ElectricBoltTerminus
 
 	if(*pEntityData == 0)
 	{
@@ -853,22 +858,24 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CElectric::ReSynchronize()
 {
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every  ElectricBolt in the current world
-//	..off to an open file.
+// Save the current state of every  ElectricBolt in the current world
+// ..off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CElectric::SaveTo(FILE *SaveFD, bool type)
 {
@@ -895,11 +902,12 @@ int CElectric::SaveTo(FILE *SaveFD, bool type)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every ElectricBolt in the current world from an
-//	..open file.
+// Restore the state of every ElectricBolt in the current world from an
+// ..open file.
 /* ------------------------------------------------------------------------------------ */
 int CElectric::RestoreFrom(FILE *RestoreFD, bool type)
 {
