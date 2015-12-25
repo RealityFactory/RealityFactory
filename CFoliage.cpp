@@ -15,14 +15,14 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CFoliage::CFoliage()
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Foliage");
 
 	if(!pSet)
-	    return;
+		return;
 
 	geEntity *pEntity;
 
@@ -39,23 +39,19 @@ CFoliage::CFoliage()
 			S->szEntityName = szName;
 		}
 
-		//Add it to Entity Registry
+		// Add it to Entity Registry
 		CCD->EntityRegistry()->AddEntity(S->szEntityName, "Foliage");
 
 		if(!EffectC_IsStringNull(S->BitmapName))
 		{
-			// changed QD 12/15/05 TPool handles bitmap stuff...
-			// S->Bitmap = (geBitmap*)geRam_AllocateClear( sizeof( S->Bitmap )  );
 			char BmpName[256];
 
 			// build bmp and alpha names
-			//sprintf( BmpName, "%s%d%s", S->BitmapName, i, ".bmp" );
 			sprintf(BmpName, "%s%s", S->BitmapName, ".bmp"); // Kept for future implementation of animated foliage
 
 			if(!EffectC_IsStringNull(S->AlphamapName))
 			{
 				char AlphaName[256];
-				//sprintf( AlphaName, "%s%d%s", S->AlphamapName, i, ".bmp" );
 				sprintf(AlphaName, "%s%s", S->AlphamapName, ".bmp");// Kept for future implementation of animated foliage
 				S->Bitmap = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
 			}
@@ -67,38 +63,17 @@ CFoliage::CFoliage()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CFoliage::~CFoliage()
 {
-// changed QD 12/15/05
-/*
-	geEntity_EntitySet	*Set;
-	geEntity			*Entity;
-
-	Set = geWorld_GetEntitySet(CCD->World(), "Foliage");
-
-	if(!Set)
-	    return;
-
-	Entity = geEntity_EntitySetGetNextEntity(Set, NULL);
-
-	while(Entity)
-	{
-	    Foliage *S = (Foliage*)geEntity_GetUserData(Entity);
-
-		if(S->Bitmap)
-			geRam_Free(S->Bitmap);
-
-		Entity = geEntity_EntitySetGetNextEntity(Set, Entity);
-	}
-*/
-// end change
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CFoliage::Tick(geFloat dwTicks)
 {
@@ -141,7 +116,6 @@ void CFoliage::Tick(geFloat dwTicks)
 			Vertex.u = 0.0f;
 			Vertex.v = 0.0f;
 
-			// changed Nout 12/15/05
 			if(S->Hanging)
 			{
 				test = -10000.0f;
@@ -152,7 +126,6 @@ void CFoliage::Tick(geFloat dwTicks)
 				test = 10000.0f;
 				half = 0.5f;
 			}
-			// end change
 
 			for(sc=0; sc<S->Density; ++sc)
 			{
@@ -170,9 +143,7 @@ void CFoliage::Tick(geFloat dwTicks)
 
 				//perform collision check
 				tPos = fPos;
-				// changed Nout 12/15/05
-				tPos.Y -= test; //10000.0f; // set test point to 10000 texels below/above origin
-				// end change
+				tPos.Y -= test; // set test point to 10000 texels below/above origin
 
 				// perform BSP collision test only
 				geWorld_Collision(CCD->World(), NULL, NULL,
@@ -181,9 +152,7 @@ void CFoliage::Tick(geFloat dwTicks)
 
 				// set new position
 				Vertex.X = Collision.Impact.X;
-				// changed Nout 12/15/05
 				Vertex.Y = Collision.Impact.Y + ((geBitmap_Height(S->Bitmap)*scale)*half); // add half height of image
-				// end change
 				Vertex.Z = Collision.Impact.Z;
 
 				// set vertex alpha
@@ -218,7 +187,7 @@ void CFoliage::Tick(geFloat dwTicks)
 					geWorld_AddPolyOnce(CCD->World(), &Vertex, 1,
 						S->Bitmap, GE_TEXTURED_POINT,
 						GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
-						scale);//replace 1 with scale
+						scale);
 				}
 			}
 		}

@@ -21,7 +21,7 @@ CFlipTree::CFlipTree()
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
-	    return;
+		return;
 
 	geEntity *pEntity;
 
@@ -96,7 +96,7 @@ CFlipTree::~CFlipTree()
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
-	    return;
+		return;
 
 	geEntity *pEntity;
 
@@ -117,12 +117,12 @@ CFlipTree::~CFlipTree()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CFlipTree::Tick(geFloat dwTicks)
+void CFlipTree::Tick(geFloat /*dwTicks*/)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "FlipTree");
 
 	if(!pSet)
-	    return;
+		return;
 
 	geEntity *pEntity;
 	geFloat range_squared;
@@ -170,7 +170,7 @@ void CFlipTree::Tick(geFloat dwTicks)
 				geWorld_AddPolyOnce(CCD->World(), &Vertex, 1,
 					S->Bitmap, GE_TEXTURED_POINT,
 					GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
-					S->Scale);//replace 1 with scale
+					S->Scale);
 			}
 		}
 		else

@@ -44,7 +44,7 @@ CFlame::CFlame()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), S->Model, &ModelOrigin);
 			geVec3d_Subtract(&(S->origin), &ModelOrigin, &(S->OriginOffset));
-  		}
+		}
 
 		S->active		= GE_FALSE;
 		S->EffectList0	= -1;
@@ -64,9 +64,9 @@ CFlame::CFlame()
 int CFlame::CreateSpray(Flame *S)
 {
 	int effect = -1;
-    Spray	Sp;
+	Spray	Sp;
 	geVec3d	In;
-    geXForm3d Xf;
+	geXForm3d Xf;
 
 	memset(&Sp, 0, sizeof(Sp));
 
@@ -85,7 +85,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	// scale
 	Sp.MinScale = S->MinScale * S->Scale;
-    Sp.MaxScale = S->MaxScale * S->Scale;
+	Sp.MaxScale = S->MaxScale * S->Scale;
 
 	if(Sp.MinScale <= 0.0f)
 		Sp.MinScale = 0.1f;
@@ -95,7 +95,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	// speed
 	Sp.MinSpeed = S->MinSpeed * S->Scale;
-    Sp.MaxSpeed = S->MaxSpeed * S->Scale;
+	Sp.MaxSpeed = S->MaxSpeed * S->Scale;
 
 	if(Sp.MinSpeed < 0.0f)
 		Sp.MinSpeed = 0.0f;
@@ -105,7 +105,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	// unitlife
 	Sp.MinUnitLife = S->MinUnitLife;
-    Sp.MaxUnitLife = S->MaxUnitLife;
+	Sp.MaxUnitLife = S->MaxUnitLife;
 
 	if(Sp.MinUnitLife <= 0.0f)
 		Sp.MinUnitLife = 0.1f;
@@ -119,7 +119,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	if(Sp.ColorMin.r < 0.0f)
 		Sp.ColorMin.r = 0.0f;
-    else if(Sp.ColorMin.r > 255.0f)
+	else if(Sp.ColorMin.r > 255.0f)
 		Sp.ColorMin.r = 255.0f;
 
 	Sp.ColorMax.r = S->ColorMax.r;
@@ -132,7 +132,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	if(Sp.ColorMin.g < 0.0f)
 		Sp.ColorMin.g = 0.0f;
-    else if(Sp.ColorMin.g > 255.0f)
+	else if(Sp.ColorMin.g > 255.0f)
 		Sp.ColorMin.g = 255.0f;
 
 	Sp.ColorMax.g = S->ColorMax.g;
@@ -145,7 +145,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	if(Sp.ColorMin.b < 0.0f)
 		Sp.ColorMin.b = 0.0f;
-    else if(Sp.ColorMin.b > 255.0f)
+	else if(Sp.ColorMin.b > 255.0f)
 		Sp.ColorMin.b = 255.0f;
 
 	Sp.ColorMax.b = S->ColorMax.b;
@@ -155,7 +155,7 @@ int CFlame::CreateSpray(Flame *S)
 
 	// alpha
 	Sp.ColorMin.a = 255.0f;
-    Sp.ColorMax.a = 255.0f;
+	Sp.ColorMax.a = 255.0f;
 
 	// rate
 	Sp.Rate = S->ParticleCreateRate;
@@ -168,13 +168,10 @@ int CFlame::CreateSpray(Flame *S)
 	Sp.UseWind = S->UseWind;
 
 	// setup orientation
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateX(&Xf,  S->Angles.X		* GE_PIOVER180);// /57.3f);
 	geXForm3d_SetXRotation(&Xf,  S->Angles.X	* GE_PIOVER180);
-	geXForm3d_RotateY(&Xf, (S->Angles.Y-90.0f)	* GE_PIOVER180);// /57.3f);
-	geXForm3d_RotateZ(&Xf,  S->Angles.Z			* GE_PIOVER180);// /57.3f);
-// end change
+	geXForm3d_RotateY(&Xf, (S->Angles.Y-90.0f)	* GE_PIOVER180);
+	geXForm3d_RotateZ(&Xf,  S->Angles.Z			* GE_PIOVER180);
+
 	geVec3d_Copy(&(S->origin), &(Sp.Source));
 	geXForm3d_GetIn(&Xf, &In);
 	geVec3d_Inverse(&In);
@@ -193,40 +190,40 @@ int CFlame::CreateSpray(Flame *S)
 int CFlame::CreateGlow(Flame *S)
 {
 	int effect = -1;
-    Glow Gl;
+	Glow Gl;
 
 	if(S->GIntensity == 0.0f)
 		return -1;
 
 	// clear out the light data
-    memset(&Gl, 0, sizeof(Gl));
+	memset(&Gl, 0, sizeof(Gl));
 
 	// copy the position
-    geVec3d_Copy(&(S->origin), &(Gl.Pos));
+	geVec3d_Copy(&(S->origin), &(Gl.Pos));
 
 	// setup light data
-    Gl.RadiusMin = S->GRadiusMin * S->Scale;
-    Gl.RadiusMax = S->GRadiusMax * S->Scale;
-    Gl.ColorMin.r = S->GColorMin.r;
-    Gl.ColorMax.r = S->GColorMax.r;
-    Gl.ColorMin.g = S->GColorMin.g;
-    Gl.ColorMax.g = S->GColorMax.g;
-    Gl.ColorMin.b = S->GColorMin.b;
-    Gl.ColorMax.b = S->GColorMax.b;
+	Gl.RadiusMin = S->GRadiusMin * S->Scale;
+	Gl.RadiusMax = S->GRadiusMax * S->Scale;
+	Gl.ColorMin.r = S->GColorMin.r;
+	Gl.ColorMax.r = S->GColorMax.r;
+	Gl.ColorMin.g = S->GColorMin.g;
+	Gl.ColorMax.g = S->GColorMax.g;
+	Gl.ColorMin.b = S->GColorMin.b;
+	Gl.ColorMax.b = S->GColorMax.b;
 
 	// red
 	if(Gl.ColorMin.r < 0.0f)
 		Gl.ColorMin.r = 0.0f;
-    else if(Gl.ColorMin.r > 255.0f)
+	else if(Gl.ColorMin.r > 255.0f)
 		Gl.ColorMin.r = 255.0f;
 
 	if(Gl.ColorMax.r < Gl.ColorMin.r)
-      Gl.ColorMax.r = Gl.ColorMin.r;
+		Gl.ColorMax.r = Gl.ColorMin.r;
 
 	// green
 	if(Gl.ColorMin.g < 0.0f)
 		Gl.ColorMin.g = 0.0f;
-    else if(Gl.ColorMin.g > 255.0f)
+	else if(Gl.ColorMin.g > 255.0f)
 		Gl.ColorMin.g = 255.0f;
 
 	if(Gl.ColorMax.g < Gl.ColorMin.g)
@@ -235,17 +232,17 @@ int CFlame::CreateGlow(Flame *S)
 	// blue
 	if(Gl.ColorMin.b < 0.0f)
 		Gl.ColorMin.b = 0.0f;
-    else if(Gl.ColorMin.b > 255.0f)
+	else if(Gl.ColorMin.b > 255.0f)
 		Gl.ColorMin.b = 255.0f;
 
 	if(Gl.ColorMax.b < Gl.ColorMin.b)
 		Gl.ColorMax.b = Gl.ColorMin.b;
 
 	Gl.ColorMin.a	= 255.0f;
-    Gl.ColorMax.a	= 255.0f;
-    Gl.Intensity	= S->GIntensity;
-    Gl.DoNotClip	= false;
-    Gl.CastShadows	= S->GCastShadows;
+	Gl.ColorMax.a	= 255.0f;
+	Gl.Intensity	= S->GIntensity;
+	Gl.DoNotClip	= false;
+	Gl.CastShadows	= S->GCastShadows;
 	Gl.Spot			= false;
 
 	// add the light to the manager
@@ -350,13 +347,10 @@ void CFlame::Tick(geFloat dwTicks)
 				Spray		Sp;
 				Glow 		Gl;
 
-				// changed QD 12/15/05
-				//geXForm3d_SetIdentity(&Xf);
-				//geXForm3d_RotateX(&Xf,  S->Angles.X			* GE_PIOVER180);// / 57.3f);
-				geXForm3d_SetXRotation(&Xf,  S->Angles.X	* GE_PIOVER180);// / 57.3f);
-				geXForm3d_RotateY(&Xf, (S->Angles.Y-90.0f)  * GE_PIOVER180);// / 57.3f);
-				geXForm3d_RotateZ(&Xf,  S->Angles.Z			* GE_PIOVER180);// / 57.3f);
-				// end change
+				geXForm3d_SetXRotation(&Xf,  S->Angles.X	* GE_PIOVER180);
+				geXForm3d_RotateY(&Xf, (S->Angles.Y-90.0f)  * GE_PIOVER180);
+				geXForm3d_RotateZ(&Xf,  S->Angles.Z			* GE_PIOVER180);
+
 				geVec3d_Copy(&(S->origin), &(Sp.Source));
 				geXForm3d_GetIn(&Xf, &In );
 				geVec3d_Inverse(&In);
@@ -401,7 +395,7 @@ int CFlame::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have Flames somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Flame *pSource = static_cast<Flame*>(geEntity_GetUserData(pEntity));
 

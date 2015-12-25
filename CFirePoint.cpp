@@ -9,14 +9,13 @@
  * Copyright (c) 1999 Ralph Deane; All rights reserved
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CFirePoint.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CFirePoint::CFirePoint()
 {
@@ -29,7 +28,7 @@ CFirePoint::CFirePoint()
 
 	// Ok, we have FirePoints somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		FirePoint *pFire = static_cast<FirePoint*>(geEntity_GetUserData(pEntity));
 
@@ -46,10 +45,10 @@ CFirePoint::CFirePoint()
 
 		if(pFire->Model)
 		{
-            geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pFire->Model, &ModelOrigin);
-            geVec3d_Subtract(&pFire->origin, &ModelOrigin, &pFire->OriginOffset);
-  		}
+			geVec3d ModelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), pFire->Model, &ModelOrigin);
+			geVec3d_Subtract(&pFire->origin, &ModelOrigin, &pFire->OriginOffset);
+		}
 
 		pFire->active		= GE_FALSE;
 		pFire->Tick			= 0.0f;
@@ -64,15 +63,17 @@ CFirePoint::CFirePoint()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CFirePoint::~CFirePoint()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CFirePoint::Tick(geFloat dwTicks)
 {
@@ -117,7 +118,7 @@ void CFirePoint::Tick(geFloat dwTicks)
 
 		if(Fire->active == GE_TRUE)
 		{
-            Fire->origin = Fire->OriginOffset;
+			Fire->origin = Fire->OriginOffset;
 			SetOriginOffset(Fire->EntityName, Fire->BoneName, Fire->Model, &(Fire->origin));
 
 			if(Fire->Model)
@@ -141,9 +142,7 @@ void CFirePoint::Tick(geFloat dwTicks)
 			{
 				Fire->Tick = 0.0f;
 
-// changed RF063
 				CCD->Weapons()->Add_Projectile(Fire->origin, Fire->origin, Fire->RealAngle, Fire->Projectile, Fire->Attribute, Fire->AltAttribute);
-// end change RF063
 
 				Fire->FireRate = EffectC_Frand(Fire->MinFireRate, Fire->MaxFireRate);
 
@@ -164,13 +163,14 @@ void CFirePoint::Tick(geFloat dwTicks)
 	return;
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -184,7 +184,7 @@ int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have FirePoints.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		FirePoint *pTheEntity = static_cast<FirePoint*>(geEntity_GetUserData(pEntity));
 
@@ -198,11 +198,12 @@ int CFirePoint::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;				// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CFirePoint::ReSynchronize()
 {

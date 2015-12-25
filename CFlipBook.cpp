@@ -44,7 +44,7 @@ CFlipBook::CFlipBook()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), S->Model, &ModelOrigin);
 			geVec3d_Subtract(&S->origin, &ModelOrigin, &S->OriginOffset);
-  		}
+		}
 
 		S->active		= GE_FALSE;
 		S->changed		= GE_FALSE;
@@ -82,9 +82,7 @@ CFlipBook::CFlipBook()
 				S->WorldBitmap = NULL;
 				S->WorldBitmap = geWorld_GetBitmapByName(CCD->World(), S->TextureName);
 
-// changed RF064
 				if(S->WorldBitmap)
-// end change Rf064
 					geBitmap_ClearMips(S->WorldBitmap );
 			}
 
@@ -101,7 +99,7 @@ CFlipBook::CFlipBook()
 /* ------------------------------------------------------------------------------------ */
 int CFlipBook::CreateSprite(FlipBook *S)
 {
-    Sprite	Sp;
+	Sprite	Sp;
 
 	memset(&Sp, 0, sizeof(Sp));
 
@@ -226,9 +224,7 @@ void CFlipBook::Tick(geFloat dwTicks)
 
 				S->Time += dwTicks;
 
-// changed RF064
 				if(S->Time >= (1000.f/S->Speed))
-// end change RF064
 				{
 					S->Time = 0.0f;
 					switch(S->Style)

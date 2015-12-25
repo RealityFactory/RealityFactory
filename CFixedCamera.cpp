@@ -31,7 +31,7 @@ CFixedCamera::CFixedCamera() :
 
 	//	Ok, we have FixedCameras somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		FixedCamera *pSource = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
@@ -42,23 +42,20 @@ CFixedCamera::CFixedCamera() :
 		pSource->Rotation.Y = GE_PIOVER180*(pSource->Angle.Y-90.0f);
 		pSource->OriginOffset = pSource->origin;
 		pSource->RealAngle = pSource->Rotation;
-// changed QD 12/15/05
+
 		if(pSource->FOVCheckRange < 0.0f)
 			pSource->FOVCheckRange = 0.0f;
 		else if(pSource->FOVCheckRange > 100.0f)
 			pSource->FOVCheckRange = 100.0f;
 
 		pSource->FOVCheckRange *= 0.01f;
-// end change
 
-// changed RF064
 		if(pSource->Model)
 		{
 			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
+			geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
 			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
-  		}
-// end change RF064
+		}
 	}
 
 	return;
@@ -71,7 +68,6 @@ CFixedCamera::CFixedCamera() :
 /* ------------------------------------------------------------------------------------ */
 CFixedCamera::~CFixedCamera()
 {
-
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -89,7 +85,6 @@ void CFixedCamera::Tick()
 
 	geEntity *pEntity;
 
-// changed RF064
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -113,7 +108,6 @@ void CFixedCamera::Tick()
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
-// end change RF064
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -178,7 +172,6 @@ bool CFixedCamera::GetFirstCamera()
 
 	geEntity *pEntity;
 
-// changed RF064
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -216,7 +209,6 @@ bool CFixedCamera::GetFirstCamera()
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
-// end change RF064
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -230,13 +222,11 @@ bool CFixedCamera::GetFirstCamera()
 		}
 	}
 
-// changed RF063
 	pSet = geWorld_GetEntitySet(CCD->World(), "FixedCamera");
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 	m_Camera = static_cast<FixedCamera*>(geEntity_GetUserData(pEntity));
 
 	return true;
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -246,29 +236,21 @@ bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 {
 	geXForm3d Xf;
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateZ(&Xf, pSource->Rotation.Z);
 	geXForm3d_SetZRotation(&Xf, pSource->Rotation.Z);
 	geXForm3d_RotateX(&Xf, pSource->Rotation.X);
 	geXForm3d_RotateY(&Xf, pSource->Rotation.Y);
-	// QD: translation doesn't influence the orientation
-	//geXForm3d_Translate(&Xf, pSource->origin.X, pSource->origin.Y, pSource->origin.Z);
 
 	geVec3d Pos = pSource->origin;
 
 	geVec3d Direction, TgtPos, temp;
 
-// end change
 	geXForm3d_GetIn(&Xf, &Direction);
 	TgtPos = CCD->Player()->Position();
 	geVec3d_Subtract(&TgtPos, &Pos, &temp);
 	geVec3d_Normalize(&temp);
 	float dotProduct = geVec3d_DotProduct(&temp, &Direction);
 
-// changed QD 12/15/05 - simplified right side, then added a CheckRange factor (0 - 1)
-	// if(dotProduct > ((90.0f-(pSource->FieldofView*28.6f))/90.0f))
-	if(dotProduct > (1.f - pSource->FieldofView*pSource->FOVCheckRange*GE_1OVERPI))
+	if(dotProduct > (1.f - pSource->FieldofView * pSource->FOVCheckRange * GE_1OVERPI))
 	{
 		if(CanSeePointToActor(&pSource->origin, CCD->Player()->GetActor()))
 			return true;
@@ -277,7 +259,6 @@ bool CFixedCamera::CheckFieldofView(FixedCamera *pSource)
 	return false;
 }
 
-// changed QD 12/15/05
 /* ------------------------------------------------------------------------------------ */
 //	SetPosition
 /* ------------------------------------------------------------------------------------ */
@@ -323,6 +304,5 @@ void CFixedCamera::SetFOV(float FOV)
 	if(m_Camera)
 		m_Camera->FieldofView = FOV;
 }
-// end change
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

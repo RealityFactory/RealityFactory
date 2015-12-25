@@ -52,12 +52,12 @@ CFloat::CFloat()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), S->Model, &ModelOrigin);
 			geVec3d_Subtract(&S->origin, &ModelOrigin, &S->OriginOffset);
-  		}
+		}
 
-	    // get total number of sprites to use
+		// get total number of sprites to use
 		S->EffectCount = S->ParticleCount;
 
-	    // create dynamic array to hold index numbers
+		// create dynamic array to hold index numbers
 		S->EffectList = (int*)malloc(sizeof(int) * S->EffectCount);
 		// create dynamic xform array
 		S->Xf = (geXForm3d*)calloc(S->ParticleCount * sizeof(*(S->Xf)) ,1);
@@ -102,11 +102,7 @@ CFloat::CFloat()
 		for(int i=0; i<S->EffectCount; ++i)
 		{
 			// set random direction
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&(S->Xf[i]));
-			//geXForm3d_RotateX(&(S->Xf[i]), EffectC_Frand(-S->XSlant, S->XSlant));
 			geXForm3d_SetXRotation(&(S->Xf[i]), EffectC_Frand(-S->XSlant, S->XSlant));
-			// end change
 			geXForm3d_RotateZ(&(S->Xf[i]), EffectC_Frand(-S->ZSlant, S->ZSlant));
 
 			// pick random start spot
@@ -179,8 +175,8 @@ void CFloat::Tick(geFloat dwTicks)
 		FloatingParticles *S;
 
 		geVec3d Movement;
-		geVec3d  Pos;
-		geVec3d  Offset;
+		geVec3d Pos;
+		geVec3d Offset;
 		Sprite  Spr;
 
 		// get data
@@ -193,8 +189,8 @@ void CFloat::Tick(geFloat dwTicks)
 
 		S->origin = S->OriginOffset;
 		SetOriginOffset(S->EntityName, S->BoneName, S->Model, &(S->origin));
-		geVec3d_Subtract( &(S->origin), &( S->BasePos ), &Movement );
-		geVec3d_Copy( &(S->origin), &( S->BasePos ) );
+		geVec3d_Subtract(&(S->origin), &(S->BasePos), &Movement);
+		geVec3d_Copy(&(S->origin), &(S->BasePos));
 
 		// modify all sprites
 		for(int i=0; i<S->EffectCount; ++i)
@@ -214,16 +210,10 @@ void CFloat::Tick(geFloat dwTicks)
 				geVec3d_Copy(&(S->Xf[i].Translation), &(Spr.Pos));
 
 				// reset particle if it has hit its height limit
-// changed RF064
 				if(fabs(S->Xf[i].Translation.Y - S->BasePos.Y) > S->Height)
-// end change RF064
 				{
   					// set random direction
-					// changed QD 12/15/05
-					//geXForm3d_SetIdentity(&(S->Xf[i]));
-					//geXForm3d_RotateX(&(S->Xf[i]), EffectC_Frand(-S->XSlant, S->XSlant));
 					geXForm3d_SetXRotation(&(S->Xf[i]), EffectC_Frand(-S->XSlant, S->XSlant));
-					// end change
 					geXForm3d_RotateZ(&(S->Xf[i]), EffectC_Frand(-S->ZSlant, S->ZSlant));
 
 					// pick random start spot
@@ -271,7 +261,7 @@ int CFloat::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have Floating Particles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		FloatingParticles *pSource = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
