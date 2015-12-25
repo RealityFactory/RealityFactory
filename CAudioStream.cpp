@@ -13,14 +13,13 @@
  * Copyright(c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header File
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Clear up internal tables, and go through and locate/prepare all
-//	..StreamingAudioProxy entities to prepare for possible playback.
+// Clear up internal tables, and go through and locate/prepare all
+// ..StreamingAudioProxy entities to prepare for possible playback.
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::CAudioStream() :
 	m_EntityCount(0)
@@ -42,9 +41,9 @@ CAudioStream::CAudioStream() :
 
 	geEntity *pEntity;
 
-	//	Ok, we have soundtrack toggles somewhere.  Dig through 'em all.
+	// Ok, we have soundtrack toggles somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		StreamingAudioProxy *pProxy = static_cast<StreamingAudioProxy*>(geEntity_GetUserData(pEntity));
 		++m_EntityCount;
@@ -55,10 +54,11 @@ CAudioStream::CAudioStream() :
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Shut down all playing streams, clean up objects.
+// Shut down all playing streams, clean up objects.
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::~CAudioStream()
 {
@@ -69,15 +69,16 @@ CAudioStream::~CAudioStream()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
-//	Play a streaming WAVE file, with looping if desired.  This will
-//	..allocate buffers and start a fill-timer thread running for the
-//	.. stream to make sure the playback buffer is always filled.  If
-//	..desired, when the playback hits end-of-file we'll rewind it and
-//	..keep it looping.  Note that there is a slight delay between when
-//	..this call is made and when the playback starts.
+// Play a streaming WAVE file, with looping if desired.  This will
+// ..allocate buffers and start a fill-timer thread running for the
+// .. stream to make sure the playback buffer is always filled.  If
+// ..desired, when the playback hits end-of-file we'll rewind it and
+// ..keep it looping.  Note that there is a slight delay between when
+// ..this call is made and when the playback starts.
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 {
@@ -108,17 +109,15 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 		m_LoopingProxy = -1;					// ..and make it go away.
 	}
 
-	//	Ok, locate a free spot in the list
+	// Ok, locate a free spot in the list
 	int nSlot = FindFreeSlot();
 
 	if(nSlot < 0)
-		return RGF_FAILURE;							// No free slots, too many streams
+		return RGF_FAILURE;						// No free slots, too many streams
 
-// FIX #1
 	m_FileList[nSlot] = new char[strlen(szTemp) + 2];
-// FIX #1
 
-	strcpy(m_FileList[nSlot], szTemp);		// Save name off
+	strcpy(m_FileList[nSlot], szTemp);			// Save name off
 
 	m_Streams[nSlot] = new StreamingAudio(m_dsPtr);
 
@@ -129,13 +128,11 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 		return RGF_FAILURE;
 	}
 
-	//	Ok, we've got the slot, filled it, constructed a StreamingAudio
-	//	..object to handle the streaming WAVE, let's PLAY IT.
-// FIX #1
+	// Ok, we've got the slot, filled it, constructed a StreamingAudio
+	// ..object to handle the streaming WAVE, let's PLAY IT.
 	if(m_Streams[nSlot]->Create(szTemp) != RGF_SUCCESS)
 	{
 		char szBug[256];
-
 		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play '%s'\n", __FILE__, __LINE__, szTemp);
 		CCD->ReportError(szBug, false);
 
@@ -156,22 +153,21 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	IsPlaying
+// IsPlaying
 //
-//	Check to see if a specific streaming WAVE file is playing.
+// Check to see if a specific streaming WAVE file is playing.
 /* ------------------------------------------------------------------------------------ */
 bool CAudioStream::IsPlaying(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
 
-// FIX #1
 	char szTemp[256];
 	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
-// FIX #1
 
 	int nSlot = FindInList(szTemp);
 
@@ -181,24 +177,23 @@ bool CAudioStream::IsPlaying(const char *szFilename)
 	return m_Streams[nSlot]->IsPlaying();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Pause
+// Pause
 //
-//	Pause the streams playback.  Playing will pause at the next read of
-//	..the stream file, so there will be some delay before playback is
-//	..actually suspended.
+// Pause the streams playback.  Playing will pause at the next read of
+// ..the stream file, so there will be some delay before playback is
+// ..actually suspended.
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::Pause(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
 
-// FIX #1
 	char szTemp[256];
 	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
-// FIX #1
 
 	int nSlot = FindInList(szTemp);
 
@@ -208,29 +203,28 @@ int CAudioStream::Pause(const char *szFilename)
 	return m_Streams[nSlot]->Pause();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop playback and remove the file from the streaming list.
-//	..Note that there is a slight delay between this call and
-//	..when the file actually stops streaming.
+// Stop playback and remove the file from the streaming list.
+// ..Note that there is a slight delay between this call and
+// ..when the file actually stops streaming.
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::Stop(const char *szFilename)
 {
 	if((szFilename == NULL) || (strlen(szFilename) <= 0))
 		return false;							// You're kidding, right?
 
-// FIX #1
 	char szTemp[256];
 	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
-// FIX #1
 
 	int nSlot = FindInList(szTemp);
 
 	if(nSlot < 0)
-	  return false;							// No such, not playing
+		return false;							// No such, not playing
 
 	// Ok, stop playback, kill the stream, and clean up the table
 	int nError = m_Streams[nSlot]->Stop();
@@ -241,15 +235,16 @@ int CAudioStream::Stop(const char *szFilename)
 	return nError;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Perform time-based work.  In this case, we watch to see if the
-//	..player has come close enough to a StreamingAudioProxy entity
-//	..to trigger it.  We also sweep through the stream list, deleting
-//	..any files that are no longer playing.
+// Perform time-based work.  In this case, we watch to see if the
+// ..player has come close enough to a StreamingAudioProxy entity
+// ..to trigger it.  We also sweep through the stream list, deleting
+// ..any files that are no longer playing.
 /* ------------------------------------------------------------------------------------ */
-void CAudioStream::Tick(geFloat dwTicks)
+void CAudioStream::Tick(geFloat /*dwTicks*/)
 {
 	if(m_EntityCount == 0)
 		return;										// No streamers in world, bail early
@@ -270,22 +265,18 @@ void CAudioStream::Tick(geFloat dwTicks)
 	PlayerPos = CCD->Player()->Position();			// Get player position
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		StreamingAudioProxy *pProxy = static_cast<StreamingAudioProxy*>(geEntity_GetUserData(pEntity));
 
 		if(pProxy->bActive == false)
 			continue;								// Not active, ignore it
 
-		// changed QD 12/15/05
-		//if(geVec3d_DistanceBetween(&pProxy->origin, &PlayerPos) > pProxy->Range)
-		//	continue;	// Too far away
 		geVec3d temp;
 		geVec3d_Subtract(&pProxy->origin, &PlayerPos, &temp);
 
 		if(geVec3d_DotProduct(&temp, &temp) > pProxy->Range*pProxy->Range)
 			continue;	// Too far away
-		// end change
 
 		// Check to see if we've waited long enough before triggering this
 		// ..from the last time.
@@ -303,10 +294,11 @@ void CAudioStream::Tick(geFloat dwTicks)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetVolume
+// SetVolume
 //
-//	Set the volume for all the streams
+// Set the volume for all the streams
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::SetVolume(LONG nVolume)
 {
@@ -326,10 +318,11 @@ void CAudioStream::SetVolume(LONG nVolume)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	StopAll
+// StopAll
 //
-//	Stop all the streams
+// Stop all the streams
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::StopAll()
 {
@@ -342,10 +335,11 @@ void CAudioStream::StopAll()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	PauseAll
+// PauseAll
 //
-//	Pause all the streams
+// Pause all the streams
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::PauseAll()
 {
@@ -361,12 +355,13 @@ void CAudioStream::PauseAll()
 	return;
 }
 
-//	**************** PRIVATE MEMBER FUNCTIONS **************
+
+// **************** PRIVATE MEMBER FUNCTIONS **************
 
 /* ------------------------------------------------------------------------------------ */
-//	FindFreeSlot
+// FindFreeSlot
 //
-//	Locate a free slot in the array for us to use, return -1 if none.
+// Locate a free slot in the array for us to use, return -1 if none.
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::FindFreeSlot() const
 {
@@ -379,11 +374,12 @@ int CAudioStream::FindFreeSlot() const
 	return -1;						// No free slots, argh!
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	FindInList
+// FindInList
 //
-//	Look through the list of streams we're playing and see if the
-//	..named file is one of 'em.
+// Look through the list of streams we're playing and see if the
+// ..named file is one of 'em.
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::FindInList(const char *szFile)
 {
@@ -396,16 +392,17 @@ int CAudioStream::FindInList(const char *szFile)
 		}
 	}
 
-	//	Nope, can't find it.
+	// Nope, can't find it.
 	return -1;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Sweep
+// Sweep
 //
-//	Go through all the playing streams and check to be sure they're
-//	..playing.  Those that are NOT playing are deleted and removed
-//	..from the list.
+// Go through all the playing streams and check to be sure they're
+// ..playing. Those that are NOT playing are deleted and removed
+// ..from the list.
 /* ------------------------------------------------------------------------------------ */
 void CAudioStream::Sweep()
 {
@@ -429,11 +426,12 @@ void CAudioStream::Sweep()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CAudioStream::ReSynchronize()
 {

@@ -11,11 +11,11 @@
  * @remarks unimplemented/unused
  ****************************************************************************************/
 
-#include "RabidFramework.h"				// The One True Header
+#include "RabidFramework.h"
 #include "CAudioManager.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CAudioManager::CAudioManager()
 {
@@ -33,7 +33,7 @@ CAudioManager::CAudioManager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Default Destructor
+// Default Destructor
 /* ------------------------------------------------------------------------------------ */
 CAudioManager::~CAudioManager()
 {
@@ -41,10 +41,10 @@ CAudioManager::~CAudioManager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Add
+// Add
 //
-//	Add a new audio entity to the pool.  If the entity is already loaded,
-//	..this creates a new instance rather than reloading it.
+// Add a new audio entity to the pool.  If the entity is already loaded,
+// ..this creates a new instance rather than reloading it.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Add(char *szFilename, int nType, int *nHandle)
 {
@@ -54,9 +54,9 @@ int CAudioManager::Add(char *szFilename, int nType, int *nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Start
+// Start
 //
-//	Start playback of the desired audio entity.
+// Start playback of the desired audio entity.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Start(int nHandle)
 {
@@ -64,9 +64,9 @@ int CAudioManager::Start(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop playback of the indicated audio entity.
+// Stop playback of the indicated audio entity.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Stop(int nHandle)
 {
@@ -74,10 +74,10 @@ int CAudioManager::Stop(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Pause
+// Pause
 //
-//	Toggle the paused state of the desired entity.  If it's playing, stop it,
-//	..if not, start it.
+// Toggle the paused state of the desired entity.  If it's playing, stop it,
+// ..if not, start it.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Pause(int nHandle)
 {
@@ -85,9 +85,9 @@ int CAudioManager::Pause(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsPlaying
+// IsPlaying
 //
-//	Returns true if audio entity is playing, false otherwise
+// Returns true if audio entity is playing, false otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CAudioManager::IsPlaying(int nHandle)
 {
@@ -95,9 +95,9 @@ bool CAudioManager::IsPlaying(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Remove
+// Remove
 //
-//	Remove the indicated audio entity from memory.
+// Remove the indicated audio entity from memory.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Remove(int nHandle)
 {
@@ -105,9 +105,9 @@ int CAudioManager::Remove(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Rewind
+// Rewind
 //
-//	Rewind the indicated audio entity.
+// Rewind the indicated audio entity.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Rewind(int nHandle)
 {
@@ -115,9 +115,9 @@ int CAudioManager::Rewind(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetLooping
+// SetLooping
 //
-//	Set the looping flag for the indicated audio entity.
+// Set the looping flag for the indicated audio entity.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::SetLooping(int nHandle, bool bLoops)
 {
@@ -125,10 +125,10 @@ int CAudioManager::SetLooping(int nHandle, bool bLoops)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemoveOnCompletion
+// RemoveOnCompletion
 //
-//	Set the flag that informs the audio manager to remove the specified
-//	..audio effect when it completes playback.
+// Set the flag that informs the audio manager to remove the specified
+// ..audio effect when it completes playback.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::RemoveOnCompletion(int nHandle)
 {
@@ -136,9 +136,9 @@ int CAudioManager::RemoveOnCompletion(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Status
+// Status
 //
-//	Return the current playback status of the desired entity.
+// Return the current playback status of the desired entity.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::Status(int nHandle)
 {
@@ -146,9 +146,9 @@ int CAudioManager::Status(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	MoveEmitter
+// MoveEmitter
 //
-//	Move the spatial position of the audio emitter.
+// Move the spatial position of the audio emitter.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::MoveEmitter(int nHandle, geVec3d Position)
 {
@@ -156,9 +156,9 @@ int CAudioManager::MoveEmitter(int nHandle, geVec3d Position)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetVolume
+// SetVolume
 //
-//	Adjust the volume of an audio entity
+// Adjust the volume of an audio entity
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::SetVolume(int nHandle, geFloat fVolume)
 {
@@ -166,9 +166,9 @@ int CAudioManager::SetVolume(int nHandle, geFloat fVolume)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetVolume
+// GetVolume
 //
-//	Get the current volume of an audio entity
+// Get the current volume of an audio entity
 /* ------------------------------------------------------------------------------------ */
 geFloat CAudioManager::GetVolume(int nHandle)
 {
@@ -176,9 +176,9 @@ geFloat CAudioManager::GetVolume(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetPan
+// SetPan
 //
-//	Set the pan position for an audio entity
+// Set the pan position for an audio entity
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::SetPan(int nHandle, geFloat fPan)
 {
@@ -186,9 +186,9 @@ int CAudioManager::SetPan(int nHandle, geFloat fPan)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetPan
+// GetPan
 //
-//	Get the pan position for an audio entity
+// Get the pan position for an audio entity
 /* ------------------------------------------------------------------------------------ */
 geFloat CAudioManager::GetPan(int nHandle)
 {
@@ -196,24 +196,24 @@ geFloat CAudioManager::GetPan(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Inform all audio entities of the passage of time.  Audio entities
-//	..bound to a physical location are updated here to adjust for
-//	..changes in audio location.
+// Inform all audio entities of the passage of time.  Audio entities
+// ..bound to a physical location are updated here to adjust for
+// ..changes in audio location.
 /* ------------------------------------------------------------------------------------ */
 void CAudioManager::Tick(geFloat dwTicks)
 {
 	return;
 }
 
-//	*** PRIVATE MEMBER FUNCTIONS ***
+// *** PRIVATE MEMBER FUNCTIONS ***
 
 /* ------------------------------------------------------------------------------------ */
-//	FindFreeChannel
+// FindFreeChannel
 //
-//	Search the hardware playback channel list and return the index # of a
-//	..free playback slot.
+// Search the hardware playback channel list and return the index # of a
+// ..free playback slot.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::FindFreeChannel()
 {
@@ -227,9 +227,9 @@ int CAudioManager::FindFreeChannel()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetPlaybackChannel
+// GetPlaybackChannel
 //
-//	Return the hardware playback channel an audio entity is using
+// Return the hardware playback channel an audio entity is using
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::GetPlaybackChannel(int nHandle)
 {
@@ -251,9 +251,9 @@ int CAudioManager::GetPlaybackChannel(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ChannelFromHandle
+// ChannelFromHandle
 //
-//	Given a playback handle, see if it's in the hardware playback list.
+// Given a playback handle, see if it's in the hardware playback list.
 /* ------------------------------------------------------------------------------------ */
 int CAudioManager::ChannelFromHandle(int nHandle)
 {

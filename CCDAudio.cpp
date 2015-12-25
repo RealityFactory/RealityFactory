@@ -12,10 +12,10 @@
 #include "CCDAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	MciWndProc
-//	Constructor
+// MciWndProc
+// Constructor
 //
-//	Set up default values, connect to MCI, open the CD player
+// Set up default values, connect to MCI, open the CD player
 /* ------------------------------------------------------------------------------------ */
 CCDAudio::CCDAudio()
 {
@@ -29,8 +29,8 @@ CCDAudio::CCDAudio()
 	m_nCurrentTrack = 0;					// No current track
 	m_cdon = false;
 
-	//	Ok, let's open up a channel to MCI so we can communicate with the CD
-	//	..Audio device.
+	// Ok, let's open up a channel to MCI so we can communicate with the CD
+	// ..Audio device.
 	MCI_OPEN_PARMS mciOpen;
 
 	mciOpen.lpstrDeviceType = "cdaudio";	// We want CD Audio
@@ -48,7 +48,7 @@ CCDAudio::CCDAudio()
 		m_mciDeviceID = mciOpen.wDeviceID;			// Save this for later operations
 	}
 
-	//	Set the format for the CD audio device to TRACKS/MINUTES/SECONDS
+	// Set the format for the CD audio device to TRACKS/MINUTES/SECONDS
 	MCI_SET_PARMS mciSet;
 
 	mciSet.dwCallback = NULL;			// Just in case...
@@ -72,7 +72,7 @@ CCDAudio::~CCDAudio()
 
 	mciClose.dwCallback = NULL;							// Please, no notifications
 
-	Stop();																	// Stop playback
+	Stop();												// Stop playback
 
 	MCIERROR theError = mciSendCommand(m_mciDeviceID, MCI_CLOSE,
 										MCI_WAIT, (DWORD)&mciClose);	// Shut it down!
@@ -98,7 +98,7 @@ int CCDAudio::Play(int nTrack, bool bLoop)
 
 	if(m_cdon)
 	{
-		m_saveloop = m_bLooping = bLoop;				// If we're looping
+		m_saveloop = m_bLooping = bLoop;			// If we're looping
 		m_savetrack = m_nCurrentTrack = nTrack;		// Our current track
 	}
 	else
@@ -259,7 +259,6 @@ void CCDAudio::Check()
 /* ------------------------------------------------------------------------------------ */
 int CCDAudio::SaveTo(FILE *SaveFD)
 {
-
 	fwrite(&m_PlayCount,		sizeof(int),	1,	SaveFD);
 	fwrite(&m_nPlayIndex,		sizeof(int),	1,	SaveFD);
 	fwrite(&m_bLooping,			sizeof(bool),	1,	SaveFD);

@@ -9,7 +9,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved
  ****************************************************************************************/
 
-//	You only need the one, master include file.
 #include "RabidFramework.h"
 #include "CAutoDoors.h"
 
@@ -22,13 +21,13 @@ static char THIS_FILE[]=__FILE__;
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	CAutoDoors
+// CAutoDoors
 //
-//	Default constructor.  Go through and set the user data for each door
-//	..to their default values.
+// Default constructor. Go through and set the user data for each door
+// ..to their default values.
 /* ------------------------------------------------------------------------------------ */
 CAutoDoors::CAutoDoors() :
-  m_EntityCount(0) // no doors yet
+	m_EntityCount(0) // no doors yet
 {
 	// Ok, check to see if there are automatic doors in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
@@ -58,15 +57,7 @@ CAutoDoors::CAutoDoors() :
 			sprintf(szError,"[WARNING] File %s - Line %d: '%s': Missing Model\n",
 					__FILE__, __LINE__, pDoor->szEntityName);
 			CCD->ReportError(szError, false);
-			// changed QD 07/15/06
 			continue;
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "Missing Door Model", MB_OK);
-			exit(-333);
-			*/
 		}
 
 		++m_EntityCount;						// Kick door count
@@ -79,10 +70,10 @@ CAutoDoors::CAutoDoors() :
 		CCD->ModelManager()->AddModel(pDoor->Model, ENTITY_DOOR);
 		CCD->ModelManager()->SetLooping(pDoor->Model, false);
 		CCD->ModelManager()->SetReverseOnCollide(pDoor->Model, pDoor->bReverse);
-// Start Aug2003DCS
+
 		CCD->ModelManager()->SetModelOrigin(pDoor->Model, &pDoor->origin);
 		CCD->ModelManager()->SetTargetTime(pDoor->Model, -1.0);
-// End Aug2003DCS
+
 		CCD->ModelManager()->SetRotating(pDoor->Model, pDoor->bRotating);
 		CCD->ModelManager()->SetAnimationSpeed(pDoor->Model, pDoor->AnimationSpeed);
 		CCD->ModelManager()->SetOneShot(pDoor->Model, pDoor->bOneShot);
@@ -131,15 +122,15 @@ CAutoDoors::CAutoDoors() :
 				while(geMotion_GetNextEvent(pMotion, &tStart, &Eventstring) && (i < TIME_LIST_MAX))
 				{
 					char Arg[6][128];
-                    memset(Arg, 0, sizeof(Arg));
-                    sscanf(Eventstring,
-                          "%s %s %s %s %s %s",
-                           &Arg[0], &Arg[1], &Arg[2], &Arg[3], &Arg[4], &Arg[5]);
+					memset(Arg, 0, sizeof(Arg));
+					sscanf(Eventstring,
+							"%s %s %s %s %s %s",
+							&Arg[0], &Arg[1], &Arg[2], &Arg[3], &Arg[4], &Arg[5]);
 
 					if(Arg[0][0] == 'S')
-                    {
+					{
 						if(!EffectC_IsStringNull(Arg[1]))
-                            SPool_Sound(Arg[1]);
+							SPool_Sound(Arg[1]);
 					}
 
 					TList[i] = tStart;
@@ -193,23 +184,24 @@ CAutoDoors::CAutoDoors() :
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	~CAutoDoors
+// ~CAutoDoors
 //
-//	Default destructor.  Clean up the audio allocated by all doors on the
-//	..way out.
+// Default destructor. Clean up the audio allocated by all doors on the
+// ..way out.
 /* ------------------------------------------------------------------------------------ */
 CAutoDoors::~CAutoDoors()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Handle a collision with an automatic door.
+// Handle a collision with an automatic door.
 /* ------------------------------------------------------------------------------------ */
-// changed RF063
-bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool UseKey, geActor *theActor)
+bool CAutoDoors::HandleCollision(geWorld_Model *pModel, bool bTriggerCall, bool UseKey, geActor *theActor)
 {
 	if(m_EntityCount == 0)
 		return false;									// None here, ignore call.
@@ -224,27 +216,23 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 
 	geEntity *pEntity;
 
-	//	Once more we scan the door list.  Does this get old, or what?
+	// Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
 		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDoor->Model)
 			continue;
-		// end change
 
 		if(pDoor->Model == pModel)
 		{
-// changed RF063
 			if(pDoor->PlayerOnly && theActor != CCD->Player()->GetActor())
 				return false;
 
 			if(UseKey && !pDoor->UseKey)
 				return false;
-// end change RF063
 
 			if((!pDoor->bShoot) && bTriggerCall)
 				return false;
@@ -252,13 +240,11 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 			if(pDoor->bShoot && !bTriggerCall)
 				return false;
 
-			//	Models match, we hit this one.  If the entity doesn't activate
-			//	..on collide AND this isn't a call from a trigger, don't
-			//	..activate the entity.
-// changed RF063
+			// Models match, we hit this one.  If the entity doesn't activate
+			// ..on collide AND this isn't a call from a trigger, don't
+			// ..activate the entity.
 			if(pDoor->bNoCollide && !UseKey)
 				return true;			// Fake a no-hit situation
-// end change RF063
 
 			bool state = true;
 
@@ -272,9 +258,9 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 				return true;
 			}
 
-			//	Ok, if the entity isn't already activated AND the entity is
-			//	..available for activation AND it's not already triggered,
-			//	..ACTIVATE IT!
+			// Ok, if the entity isn't already activated AND the entity is
+			// ..available for activation AND it's not already triggered,
+			// ..ACTIVATE IT!
 			if((!pDoor->bInAnimation) && (pDoor->bActive == GE_TRUE) &&
 				(!pDoor->bTrigger) && state)
 			{
@@ -301,8 +287,8 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 				pDoor->SoundHandle = PlaySound(pDoor->theSound, pDoor->origin, pDoor->bAudioLoops);
 			}
 
-			//	Now check to see if there's a linked door that we also need to
-			//	..trigger.
+			// Now check to see if there's a linked door that we also need to
+			// ..trigger.
 			if(pDoor->NextToTrigger != NULL)
 				TriggerNextDoor(pDoor->NextToTrigger, bTriggerCall);
 
@@ -313,10 +299,10 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel,	bool bTriggerCall, bool 
 	return false;							// We hit no known doors
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	PlaySound
+// PlaySound
 /* ------------------------------------------------------------------------------------ */
-// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop)
 {
 	if(!theSound)
@@ -325,7 +311,7 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 	Snd Sound;
 
 	memset(&Sound, 0, sizeof(Sound));
-    geVec3d_Copy(&Origin, &(Sound.Pos));
+	geVec3d_Copy(&Origin, &(Sound.Pos));
     Sound.Min = CCD->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
@@ -337,16 +323,17 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 	return -1;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TriggerNextDoor
+// TriggerNextDoor
 //
-//	Trigger doors that are linked.  Note that this call IS RECURSIVE
-//	..and will let you trigger a whole sequence of doors from one
-//	..collision.  Also, if you want fixed double-doors the links CAN
-//	..point at each other as a recursive call is NOT made if the door
-//	..being triggered here is already triggered.
+// Trigger doors that are linked.  Note that this call IS RECURSIVE
+// ..and will let you trigger a whole sequence of doors from one
+// ..collision.  Also, if you want fixed double-doors the links CAN
+// ..point at each other as a recursive call is NOT made if the door
+// ..being triggered here is already triggered.
 /* ------------------------------------------------------------------------------------ */
-void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
+void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel, bool bTriggerCall)
 {
 	if(m_EntityCount == 0)
 		return;									// None here, ignore call.
@@ -361,50 +348,36 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 
 	geEntity *pEntity;
 
-	//	Once more we scan the door list.  Does this get old, or what?
+	// Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the door data so we can compare models
 		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDoor->Model)
 			continue;
-		// end change
 
 		if(pDoor->Model == pModel)
 		{
 			if((!pDoor->bShoot) && (bTriggerCall == true))
 				return;
 
-// changed QD 03/05/2005 - don't care if it want to collide, it is triggered by another door
-// and therefore it just has to be activcated
- 			//	Models match, we hit this one.  If the entity doesn't activate
-			//	..on collide AND this isn't a call from a trigger, don't
-			//	..activate the entity.
-
-			//if((pDoor->bNoCollide))
-			//	return;								// Fake a no-hit situation
-// end change
-
 			bool state = true;
 
 			if(!EffectC_IsStringNull(pDoor->TriggerName))
 				state = GetTriggerState(pDoor->TriggerName);
 
-			//	Ok, if the entity isn't already activated AND the entity is
-			//	..available for activation AND it's not already triggered,
-			//	..ACTIVATE IT!
+			// Ok, if the entity isn't already activated AND the entity is
+			// ..available for activation AND it's not already triggered,
+			// ..ACTIVATE IT!
 			if((!pDoor->bInAnimation) && (pDoor->bActive == GE_TRUE) &&
 				(!pDoor->bTrigger) && state)
 			{
 				pDoor->bTrigger = GE_TRUE;			// It's this one, trigger the animation
 
-				//	MOD010122 - Changed this section too.  You just can't call Start anymore!
-				//		You might have to call ReStart.
 				if(pDoor->bRunWhileTrig || pDoor->bRunFromList ||
-					pDoor->bRunTimed     || pDoor->bRunToNextEvent)
+					pDoor->bRunTimed    || pDoor->bRunToNextEvent)
 				{
 					if(CCD->ModelManager()->HasMoved(pDoor->Model))
 					{
@@ -423,8 +396,8 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 				pDoor->bInAnimation = GE_TRUE;
 				pDoor->SoundHandle = PlaySound(pDoor->theSound, pDoor->origin, pDoor->bAudioLoops);
 
-				//	Now check to see if there's a linked door that we also need to
-				//	..trigger.
+				// Now check to see if there's a linked door that we also need to
+				// ..trigger.
 				if(pDoor->NextToTrigger != NULL)
 					TriggerNextDoor(pDoor->NextToTrigger, bTriggerCall);
 			}
@@ -436,15 +409,16 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel,	bool bTriggerCall)
 	return;							// We hit no known doors
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Increment animation times for all _animating_ doors that aren't
-//	..in a collision state.  This allows time to "stop" for those
-//	..doors that are colliding, preventing odd skips and jumps in
-//	..the entities animation.
+// Increment animation times for all _animating_ doors that aren't
+// ..in a collision state.  This allows time to "stop" for those
+// ..doors that are colliding, preventing odd skips and jumps in
+// ..the entities animation.
 /* ------------------------------------------------------------------------------------ */
-void CAutoDoors::Tick(geFloat dwTicks)
+void CAutoDoors::Tick(geFloat /*dwTicks*/)
 {
 	if(m_EntityCount == 0)
 		return;										// No need to waste time here.
@@ -453,11 +427,11 @@ void CAutoDoors::Tick(geFloat dwTicks)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
-		return;									// No doors, how odd...
+		return;										// No doors, how odd...
 
 	geEntity *pEntity;
 
-	//	Ok, we have doors somewhere.  Dig through 'em all.
+	// Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -471,8 +445,8 @@ void CAutoDoors::Tick(geFloat dwTicks)
 			if(GetTriggerState(pDoor->TriggerName))
 			{
 				if((!pDoor->bInAnimation) && (pDoor->bActive == GE_TRUE) &&
-					(!pDoor->bTrigger) && (pDoor->bNoCollide)
-					&& (!pDoor->UseKey)) // changed QD 03/05/2005
+					(!pDoor->bTrigger) && (pDoor->bNoCollide) &&
+					(!pDoor->UseKey))
 				{
 					pDoor->bTrigger = true;			// It's this one, trigger the animation
 
@@ -548,8 +522,7 @@ void CAutoDoors::Tick(geFloat dwTicks)
 			}
 		}
 
-// Start Aug2003DCS
-		//Handle the case where the model is animating on command from a script
+		// Handle the case where the model is animating on command from a script
 		if(CCD->ModelManager()->IsRunning(pDoor->Model)
 			&& (pDoor->bInAnimation == GE_FALSE)
 			&& (pDoor->SoundHandle == -1))
@@ -563,16 +536,16 @@ void CAutoDoors::Tick(geFloat dwTicks)
 			CCD->EffectManager()->Item_Delete(EFF_SND, pDoor->SoundHandle);
 			pDoor->SoundHandle = -1;
 		}
-// End Aug2003DCS
 	}
 
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	IsADoor
+// IsADoor
 //
-//	Return TRUE if the passed-in model is a door, FALSE otherwise
+// Return TRUE if the passed-in model is a door, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 {
@@ -587,16 +560,14 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 
 	geEntity *pEntity;
 
-	//	Ok, we have doors somewhere.  Dig through 'em all.
+	// Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pDoor->Model)
 			continue;
-		// end change
 
 		if(pDoor->Model == theModel)
 			return true;							// Model IS a door
@@ -605,11 +576,12 @@ bool CAutoDoors::IsADoor(geWorld_Model *theModel) const
 	return false;									// Nope, it's not a door.
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every door in the current world
-//	..off to an open file.
+// Save the current state of every door in the current world
+// ..off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 {
@@ -621,7 +593,7 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have doors somewhere.  Dig through 'em all.
+	// Ok, we have doors somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -641,11 +613,12 @@ int CAutoDoors::SaveTo(FILE *SaveFD, bool type)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every door in the current world from an
-//	..open file.
+// Restore the state of every door in the current world from an
+// ..open file.
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -653,12 +626,12 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
-		return RGF_SUCCESS;									// No doors, whatever...
+		return RGF_SUCCESS;								// No doors, whatever...
 
 	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Door *pDoor = static_cast<Door*>(geEntity_GetUserData(pEntity));
 
@@ -674,18 +647,19 @@ int CAutoDoors::RestoreFrom(FILE *RestoreFD, bool type)
 
 		if(pDoor->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pDoor->Model, GE_TRUE);
-    }
+	}
 
 	return RGF_SUCCESS;
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -697,7 +671,7 @@ int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 
 	geEntity *pEntity;
 
-	//	Ok, we have doors.  Dig through 'em all.
+	// Ok, we have doors.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -713,11 +687,12 @@ int CAutoDoors::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CAutoDoors::ReSynchronize()
 {

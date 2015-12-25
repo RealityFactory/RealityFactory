@@ -25,14 +25,16 @@ public:
 	~CCameraManager();
 
 	void Defaults();
-// changed RF063
+
 	int SaveTo(FILE *SaveFD);
 	int RestoreFrom(FILE *RestoreFD);
+
 	void SaveToS();
 	void RestoreFromS();
+
 	void SetJerk(float MaxAmount, geFloat Decay);
-// end change RF063
 	void Tick(geFloat dwTicks);
+
 	void SetZoom(bool flag);
 	void CancelZoom();
 
@@ -61,7 +63,7 @@ public:
 	int BindToWorldModel(geWorld_Model *theModel);					///< Bind camera to world model
 	int Unbind();													///< Remove camera bindings
 
-	/// Set camera XYZ/Rot offset
+	// Set camera XYZ/Rot offset
 	int SetCameraOffset(const geVec3d &theTranslation, const geVec3d &theRotation);
 	int GetCameraOffset(geVec3d *theTranslation, geVec3d *theRotation);
 
@@ -87,11 +89,10 @@ public:
 	void ChangeDistance(bool direction, float Speed);
 	geXForm3d ViewPoint();
 
-// eaa3 12/18/2000 Head bob functions
+	// Head bob functions
 	void SetHeadBobOffset(geFloat fOffset)	{ m_HeadBobOffset = fOffset;}
 	geFloat GetHeadBobOffset()				{ return m_HeadBobOffset;}
 	bool EnableHeadBob(bool fEnable)		{ bool xtmp = m_HeadBob; m_HeadBob = fEnable; return xtmp;}
-// eaa3 12/18/2000 end
 
 	void Get3rdData(float *distance, float *camerax, float *cameray);
 	void Set3rdData(float distance, float camerax, float cameray);
@@ -120,11 +121,8 @@ public:
 	bool	GetSwitch1st()				{ return switch1st;				}
 	bool	GetSwitch3rd()				{ return switch3rd;				}
 	bool	GetSwitchIso()				{ return switchiso;				}
-// changed RF063
 	bool	GetZooming()				{ return zoommode;				}
 	float	GetJerk()					{ return jerkamt;				}
-// end change RF063
-// changed RF064
 	float	GetOverlayDist()			{ return OverlayDist;			}
 	bool	GetViewChanged()			{ return m_bViewChanged;		}
 	bool	GetPositionMoved()			{ return m_bPositionMoved;		}
@@ -136,15 +134,14 @@ public:
 	bool	GetClipEnable()				{ return ClipEnable;			}
 	const geVec3d* GetMoveDif()			{ return &m_vMoveDif;			}
 	void SetDesiredHeight(float height)	{ DesiredHeight = height;		}
-// end change RF064
 
 private:
-	//	Member functions
-	void DoThirdPersonTracking();			///< Handle actor-locked third person view
+	// Member functions
+	void DoThirdPersonTracking();				///< Handle actor-locked third person view
 	void DoIsoTracking();
 
 private:
-	//	Member data
+	// Member data
 	geVec3d			Translation;				///< Camera translation
 	geVec3d			Rotation;					///< Camera rotation
 	bool			bBindToActor;				///< TRUE if camera bound to actor
@@ -169,10 +166,8 @@ private:
 	geFloat			m_cameraY;
 	geFloat			m_oldrotationx;
 
-// eaa3 12/18/2000 Head bobbing vars
 	geFloat			m_HeadBobOffset;			///< head bobbing offset
 	bool			m_HeadBob;					///< Head bob enable flag
-// eaa3 12/20/2000 end
 
 	geFloat			m_LookUp;
 	geFloat			m_LookDwn;
@@ -210,7 +205,6 @@ private:
 	bool			switch3rd;
 	bool			switchiso;
 
-// changed RF063
 	bool			jerk;
 	float			jerkamt;
 	float			jerkdecay;
@@ -226,9 +220,7 @@ private:
 	geFloat			sm_cameraY;
 	geFloat			sm_oldrotationx;
 	geFloat			sFOV;
-// end change RF063
 
-// changed RF064
 	geFloat			DesiredHeight;
 	float			HeightSpeed;
 	float			OverlayDist;
@@ -241,7 +233,6 @@ private:
 	bool			allowmouse3rd;
 	bool			allowmouseiso;
 	bool			allowtilt3rd;
-// end change RF064
 };
 
 #endif

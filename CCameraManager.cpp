@@ -9,7 +9,6 @@
 
 #include "RabidFramework.h"				// The One True Include File
 #include "IniFile.h"
-// changed RF063
 #include "CFixedCamera.h"
 #include "CLiquid.h"
 #include "COverlay.h"
@@ -18,11 +17,12 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CCameraManager::CCameraManager()
 {
 	Defaults();
+
 	memset(&CameraExtBox, 0, sizeof(geExtBox));
 	CameraExtBox.Min.X = CameraExtBox.Min.Y = CameraExtBox.Min.Z = -4.0f;
 	CameraExtBox.Max.X = CameraExtBox.Max.Y = CameraExtBox.Max.Z = 4.0f;
@@ -47,9 +47,9 @@ CCameraManager::CCameraManager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Defaults
+// Defaults
 //
-//	Set default values
+// Set default values
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::Defaults()
 {
@@ -67,19 +67,14 @@ void CCameraManager::Defaults()
 	FarClipPlaneDistance = 0.0f;
 	ClipEnable		= false;
 	TrackingFlags	= kCameraTrackPosition;
-// eaa3 12/18/2000 head bob setup
 	m_HeadBobOffset	= 0.0f;					// No offset
 	m_HeadBob		= false;				// Default to no bobbing
-// eaa3 12/18/2000 end
 	zooming			= false;
 	zoommode		= false;
 	shake			= false;
 	shakex = shakey = shakemin = 0.0f;
-// changed RF063
 	jerkamt			= 0.0f;
 	jerk			= false;
-// end change RF063
-// changed RF064
 	DesiredHeight	= 0.0f;
 	HeightSpeed		= 40.0f;
 	OverlayDist		= 10.0f;
@@ -87,7 +82,6 @@ void CCameraManager::Defaults()
 	geXForm3d_SetIdentity(&m_OldXForm);
 	geVec3d_Clear(&m_vMoveDif);
 	m_bViewChanged = m_bPositionMoved = false;
-// end change RF064
 
 	CIniFile AttrFile("camera.ini");
 	if(!AttrFile.ReadFile())
@@ -142,7 +136,6 @@ void CCameraManager::Defaults()
 			if(Type == "true")
 				switchiso = true;
 
-// changed RF064
 			HeightSpeed = (float)AttrFile.GetValueF(KeyName, "heightspeed");
 
 			if(HeightSpeed == 0.0f)
@@ -152,7 +145,6 @@ void CCameraManager::Defaults()
 
 			if(OverlayDist == 0.0f)
 				OverlayDist = 10.0f;
-// end change RF064
 		}
 		else if(KeyName == "FirstPerson")
 		{
@@ -261,8 +253,9 @@ void CCameraManager::Defaults()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 CCameraManager::~CCameraManager()
 {
@@ -274,11 +267,11 @@ CCameraManager::~CCameraManager()
 	return;
 }
 
-// changed RF063
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save camera state to an open file
+// Save camera state to an open file
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::SaveTo(FILE *SaveFD)
 {
@@ -303,10 +296,11 @@ int CCameraManager::SaveTo(FILE *SaveFD)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore camera state from an open file
+// Restore camera state from an open file
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::RestoreFrom(FILE *RestoreFD)
 {
@@ -331,8 +325,9 @@ int CCameraManager::RestoreFrom(FILE *RestoreFD)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveToS
+// SaveToS
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::SaveToS()
 {
@@ -348,8 +343,9 @@ void CCameraManager::SaveToS()
 	sFOV = FOV;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFromS
+// RestoreFromS
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::RestoreFromS()
 {
@@ -365,8 +361,9 @@ void CCameraManager::RestoreFromS()
 	FOV = sFOV;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetJerk
+// SetJerk
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::SetJerk(float MaxAmount, geFloat Decay)
 {
@@ -381,18 +378,19 @@ void CCameraManager::SetJerk(float MaxAmount, geFloat Decay)
 	jerk = true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CancelZoom
+// CancelZoom
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::CancelZoom()
 {
 	zooming = zoommode = false;
 	FOV = DEFAULTFOV;
 }
-// end change RF063
+
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::Tick(geFloat dwTicks)
 {
@@ -418,7 +416,10 @@ void CCameraManager::Tick(geFloat dwTicks)
 		}
 	}
 	else
+	{
 		FOV = DEFAULTFOV;
+	}
+
 
 	if(shake)
 	{
@@ -436,7 +437,7 @@ void CCameraManager::Tick(geFloat dwTicks)
 		}
 	}
 
-// changed RF063
+
 	if(jerk)
 	{
 		jerkamt -= ((dwTicks*0.001f) * jerkdecay);
@@ -447,9 +448,8 @@ void CCameraManager::Tick(geFloat dwTicks)
 			jerk = false;
 		}
 	}
-// end change RF063
 
-// changed RF064
+
 	if(DesiredHeight < CameraOffsetTranslation.Y)
 	{
 		CameraOffsetTranslation.Y -= ((dwTicks*0.001f) * HeightSpeed);
@@ -464,11 +464,11 @@ void CCameraManager::Tick(geFloat dwTicks)
 		if(DesiredHeight < CameraOffsetTranslation.Y)
 			DesiredHeight = CameraOffsetTranslation.Y;
 	}
-// end change RF064
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetShake
+// GetShake
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::GetShake(float *x, float *y)
 {
@@ -476,8 +476,9 @@ void CCameraManager::GetShake(float *x, float *y)
 	*y = shakey;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetZoom
+// SetZoom
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::SetZoom(bool flag)
 {
@@ -487,14 +488,12 @@ void CCameraManager::SetZoom(bool flag)
 		zoommode = !zoommode;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetShake
+// SetShake
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::SetShake(float MaxAmount, geFloat Decay, geVec3d Pos)
 {
-// changed QD 12/15/05
-	// can't be negative (sqrt!)
-	// float dist = (float)fabs(geVec3d_DistanceBetween(&Pos, &Translation));
 	float dist = geVec3d_DistanceBetween(&Pos, &Translation);
 
 	if(dist > shakemin)
@@ -516,10 +515,11 @@ void CCameraManager::SetShake(float MaxAmount, geFloat Decay, geVec3d Pos)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Position
+// Position
 //
-//	Set the current camera position
+// Set the current camera position
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::Position(const geVec3d &thePosition)
 {
@@ -528,10 +528,11 @@ int CCameraManager::Position(const geVec3d &thePosition)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Rotate
+// Rotate
 //
-//	Set the camera rotation
+// Set the camera rotation
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::Rotate(const geVec3d &theRotation)
 {
@@ -540,10 +541,11 @@ int CCameraManager::Rotate(const geVec3d &theRotation)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TurnLeft
+// TurnLeft
 //
-//	Rotate the camera to look LEFT
+// Rotate the camera to look LEFT
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TurnLeft(geFloat fAmount)
 {
@@ -552,10 +554,11 @@ int CCameraManager::TurnLeft(geFloat fAmount)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TurnRight
+// TurnRight
 //
-//	Rotate the camera to look RIGHT
+// Rotate the camera to look RIGHT
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TurnRight(geFloat fAmount)
 {
@@ -564,40 +567,41 @@ int CCameraManager::TurnRight(geFloat fAmount)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TiltUp
+// TiltUp
 //
-//	Rotate the camera to look UP
+// Rotate the camera to look UP
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TiltUp(geFloat fAmount)
 {
 	Rotation.X += fAmount;
-// Mode
 	if(Rotation.X > m_LookUp)
 		Rotation.X = m_LookUp;
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TiltDown
+// TiltDown
 //
-//	Rotate the camera to look DOWN
+// Rotate the camera to look DOWN
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TiltDown(geFloat fAmount)
 {
 	Rotation.X -= fAmount;
-// Mode
 	if(Rotation.X < -m_LookDwn)
 		Rotation.X = -m_LookDwn;
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Center
+// Center
 //
-//	Reset the camera rotations to more or less straighten it up
+// Reset the camera rotations to more or less straighten it up
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::Center()
 {
@@ -607,10 +611,11 @@ int CCameraManager::Center()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TiltXUp
+// TiltXUp
 //
-//	Rotate the camera to look UP
+// Rotate the camera to look UP
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TiltXUp(geFloat fAmount)
 {
@@ -625,10 +630,11 @@ int CCameraManager::TiltXUp(geFloat fAmount)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TiltXDown
+// TiltXDown
 //
-//	Rotate the camera to look DOWN
+// Rotate the camera to look DOWN
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TiltXDown(geFloat fAmount)
 {
@@ -643,8 +649,9 @@ int CCameraManager::TiltXDown(geFloat fAmount)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetTiltPercent
+// GetTiltPercent
 /* ------------------------------------------------------------------------------------ */
 float CCameraManager::GetTiltPercent()
 {
@@ -665,8 +672,9 @@ float CCameraManager::GetTiltPercent()
 	return Percent;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetTilt
+// GetTilt
 /* ------------------------------------------------------------------------------------ */
 float CCameraManager::GetTilt()
 {
@@ -683,21 +691,17 @@ float CCameraManager::GetTilt()
 	return 0.0f;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetPosition
+// GetPosition
 //
-//	Return the cameras current position
+// Return the cameras current position
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::GetPosition(geVec3d *thePosition)
 {
-// changed RF063
 	geXForm3d theViewPoint;
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theViewPoint); // Clear the matrix
-	//geXForm3d_RotateZ(&theViewPoint, Rotation.Z); // Rotate then translate
 	geXForm3d_SetZRotation(&theViewPoint, Rotation.Z);
-// end change
 	geXForm3d_RotateX(&theViewPoint, Rotation.X);
 	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
 
@@ -711,16 +715,16 @@ int CCameraManager::GetPosition(geVec3d *thePosition)
 		geVec3d_AddScaled(&theViewPoint.Translation, &Direction, -jerkamt, &theViewPoint.Translation);
 	}
 
-	//*thePosition = Translation;
 	*thePosition = theViewPoint.Translation;
-// end change RF063
+
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetRotation
+// GetRotation
 //
-//	Return the cameras current rotation
+// Return the cameras current rotation
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::GetRotation(geVec3d *theRotation)
 {
@@ -729,12 +733,13 @@ int CCameraManager::GetRotation(geVec3d *theRotation)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	BindToActor
+// BindToActor
 //
-//	Bind the camera to an actor in the level.  This will force the camera
-//	..to track the position and rotation of the actor as long as the
-//	..binding is in force.
+// Bind the camera to an actor in the level.  This will force the camera
+// ..to track the position and rotation of the actor as long as the
+// ..binding is in force.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::BindToActor(geActor *ActorToBindTo)
 {
@@ -744,12 +749,13 @@ int CCameraManager::BindToActor(geActor *ActorToBindTo)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetCameraOffset
+// SetCameraOffset
 //
-//	Defines an offset to be used whenever the camera is bound to an actor
-//	..or a world model.  This offset will be added to the translation of
-//	..the bound-to entity to offset the camera from the thing itself.
+// Defines an offset to be used whenever the camera is bound to an actor
+// ..or a world model.  This offset will be added to the translation of
+// ..the bound-to entity to offset the camera from the thing itself.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::SetCameraOffset(const geVec3d &theTranslation,
 									const geVec3d &theRotation)
@@ -757,15 +763,14 @@ int CCameraManager::SetCameraOffset(const geVec3d &theTranslation,
 	CameraOffsetTranslation = theTranslation;
 	CameraOffsetRotation = theRotation;
 	m_oldrotationx = CameraOffsetRotation.X;
-// changed RF064
 	DesiredHeight = theTranslation.Y;
-// end change RF064
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetCameraOffset
+// GetCameraOffset
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::GetCameraOffset(geVec3d *theTranslation, geVec3d *theRotation)
 {
@@ -776,11 +781,12 @@ int CCameraManager::GetCameraOffset(geVec3d *theTranslation, geVec3d *theRotatio
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	BindToActorBone
+// BindToActorBone
 //
-//	Binds the camera to a specific bone on a specific actor, other than that,
-//	..is just like BindToActor().  The camera offset is used here.
+// Binds the camera to a specific bone on a specific actor, other than that,
+// ..is just like BindToActor().  The camera offset is used here.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::BindToActorBone(geActor *theBindActor, const char *szBoneName)
 {
@@ -791,11 +797,12 @@ int CCameraManager::BindToActorBone(geActor *theBindActor, const char *szBoneNam
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	BindToWorldModel
+// BindToWorldModel
 //
-//	Binds the camera to track the position and rotation of the given world
-//	..model.  The camera offset is used here.
+// Binds the camera to track the position and rotation of the given world
+// ..model.  The camera offset is used here.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::BindToWorldModel(geWorld_Model *theBindModel)
 {
@@ -805,10 +812,11 @@ int CCameraManager::BindToWorldModel(geWorld_Model *theBindModel)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetBoundingBox
+// SetBoundingBox
 //
-//	Defines a bounding box for use by the camera so camera collisions can be tracked.
+// Defines a bounding box for use by the camera so camera collisions can be tracked.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::SetBoundingBox(const geExtBox &theBox)
 {
@@ -818,10 +826,11 @@ int CCameraManager::SetBoundingBox(const geExtBox &theBox)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ClearBoundingBox
+// ClearBoundingBox
 //
-//	Removes the camera bounding box
+// Removes the camera bounding box
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::ClearBoundingBox()
 {
@@ -830,10 +839,11 @@ int CCameraManager::ClearBoundingBox()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Unbind
+// Unbind
 //
-//	Removes ALL CAMERA BINDINGS.
+// Removes ALL CAMERA BINDINGS.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::Unbind()
 {
@@ -846,11 +856,12 @@ int CCameraManager::Unbind()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TrackMotion
+// TrackMotion
 //
-//	This routine forces the camera rotation and position to track whatever
-//	..it is bound to, if anything.
+// This routine forces the camera rotation and position to track whatever
+// ..it is bound to, if anything.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::TrackMotion()
 {
@@ -872,7 +883,6 @@ int CCameraManager::TrackMotion()
 
 		if((TrackingFlags & kCameraTrackRotation) != 0)
 		{
-// Start Nov2003DCS
 			geVec3d ActorRot;
 
 			if(szActorBone[0] != 0)
@@ -881,17 +891,14 @@ int CCameraManager::TrackMotion()
 				CCD->ActorManager()->GetRotation(theActor, &ActorRot);
 
 			Rotation.Y = ActorRot.Y;
-// End Nov2003DCS
 		}
 
 		Rotation.X += CameraOffsetRotation.X;
 		Rotation.Y += CameraOffsetRotation.Y;
 		Rotation.Z += CameraOffsetRotation.Z;
 
-// eaa3 12/18/200 Start head bob code
 		if((m_HeadBob) && (m_HeadBobOffset != 0.0f))
 			Translation.Y += m_HeadBobOffset;			// Adjust for 'head bob'
-// eaa3 12/18/2000 End head bob code
 
 		if((TrackingFlags & kCameraTrackThirdPerson) != 0)
 			DoThirdPersonTracking();
@@ -901,7 +908,7 @@ int CCameraManager::TrackMotion()
 	}
 	else if(bBindToModel)
 	{
-		// Get the actors position and rotation
+		// Get the model's position and rotation
 		if((TrackingFlags & kCameraTrackPosition) != 0)
 		{
 			CCD->ModelManager()->GetPosition(theModel, &Translation);
@@ -938,26 +945,22 @@ int CCameraManager::TrackMotion()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RenderView
+// RenderView
 //
-//	Render the view from this camera into the current window.
+// Render the view from this camera into the current window.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::RenderView()
 {
 	geXForm3d theViewPoint;
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theViewPoint); // Clear the matrix
-	//geXForm3d_RotateZ(&theViewPoint, Rotation.Z); // Rotate then translate
 	geXForm3d_SetZRotation(&theViewPoint, Rotation.Z);
-// end change
 	geXForm3d_RotateX(&theViewPoint, Rotation.X);
 	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
 
 	geXForm3d_Translate(&theViewPoint, Translation.X+shakex, Translation.Y+shakey, Translation.Z);
 
-// changed RF063
 	GE_Contents ZoneContents;
 	geExtBox ExtBox;
 	geVec3d Direction, Pos;
@@ -969,8 +972,6 @@ int CCameraManager::RenderView()
 	ExtBox.Max.X = ExtBox.Max.Z = 1.0f;
 
 	if(CCD->Collision()->GetContentsOf(Translation, &ExtBox, &ZoneContents) == RGF_SUCCESS)
-	//if(geWorld_GetContents(CCD->World(), &Translation, &ExtBox.Min,
-		//&ExtBox.Max, GE_COLLIDE_MODELS, 0, NULL, NULL, &ZoneContents) == GE_TRUE)
 	{
 		Liquid * LQ = CCD->Liquids()->IsLiquid(ZoneContents.Model);
 
@@ -995,7 +996,6 @@ int CCameraManager::RenderView()
 				LQ->Texture,
 				GE_TEXTURED_POINT  , GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f );
 		}
-// changed RF064
 		else
 		{
 			Overlay * OL = CCD->Overlays()->IsOverlay(ZoneContents.Model);
@@ -1021,7 +1021,6 @@ int CCameraManager::RenderView()
 					GE_TEXTURED_POINT  , GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f);
 			}
 		}
-// end change RF064
 	}
 
 	if(jerk)
@@ -1031,14 +1030,12 @@ int CCameraManager::RenderView()
 		geVec3d_AddScaled(&theViewPoint.Translation, &Direction, -jerkamt, &theViewPoint.Translation);
 	}
 
-// end change RF063
-	//	Set up camera attributes just prior to rendering the world.
+	// Set up camera attributes just prior to rendering the world.
 
 	geRect Rect;
 	geCamera_SetWorldSpaceXForm(EngineCamera, &theViewPoint);
 	geCamera_GetClippingRect(EngineCamera, &Rect);
 	geCamera_SetAttributes(EngineCamera, FOV, &Rect);
-// changed RF064
 	geVec3d_Subtract(&m_OldXForm.Translation, &theViewPoint.Translation, &m_vMoveDif );
 	m_bPositionMoved = !geVec3d_IsZero(&m_vMoveDif);
 
@@ -1050,15 +1047,15 @@ int CCameraManager::RenderView()
 		m_bViewChanged = true;
 		m_OldXForm = theViewPoint;
 	}
-// end change RF064
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ViewPoint
+// ViewPoint
 //
-//	Return the viewpoint of the camera
+// Return the viewpoint of the camera
 /* ------------------------------------------------------------------------------------ */
 geXForm3d CCameraManager::ViewPoint()
 {
@@ -1066,11 +1063,7 @@ geXForm3d CCameraManager::ViewPoint()
 
 	TrackMotion();
 
-// changed QD 10715/05
-	//geXForm3d_SetIdentity(&theViewPoint);			// Clear the matrix
-	//geXForm3d_RotateZ(&theViewPoint, Rotation.Z);	// Rotate then translate
 	geXForm3d_SetZRotation(&theViewPoint, Rotation.Z);
-// end change
 	geXForm3d_RotateX(&theViewPoint, Rotation.X);
 	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
 	geXForm3d_Translate(&theViewPoint, Translation.X, Translation.Y, Translation.Z);
@@ -1078,22 +1071,24 @@ geXForm3d CCameraManager::ViewPoint()
 	return theViewPoint;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	InCollision
+// InCollision
 //
-//	Returns TRUE if the camera bounding box is in collision with anything.
-//	..returns FALSE otherwise, or if no bounding box is set for use.
+// Returns TRUE if the camera bounding box is in collision with anything.
+// ..returns FALSE otherwise, or if no bounding box is set for use.
 /* ------------------------------------------------------------------------------------ */
 bool CCameraManager::InCollision()
 {
 	return false;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetFarClipPlane
+// SetFarClipPlane
 //
-//	Set the far clip plane distance, in other words, nothing further
-//	..than this from the camera will get rendered.
+// Set the far clip plane distance, in other words, nothing further
+// ..than this from the camera will get rendered.
 /* ------------------------------------------------------------------------------------ */
 int CCameraManager::SetFarClipPlane(geFloat fDistance)
 {
@@ -1102,10 +1097,11 @@ int CCameraManager::SetFarClipPlane(geFloat fDistance)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	EnableFarClipPlane
+// EnableFarClipPlane
 //
-//	Turn the far clip plane on and off.
+// Turn the far clip plane on and off.
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::EnableFarClipPlane(geBoolean ClipOn)
 {
@@ -1114,14 +1110,13 @@ void CCameraManager::EnableFarClipPlane(geBoolean ClipOn)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CameraRotX
+// CameraRotX
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::CameraRotX(bool direction)
 {
-// changed RF064
 	if((TrackingFlags & kCameraTrackFree) != 0 || (TrackingFlags & kCameraTrackIso) != 0)
-// end change RF064
 	{
 		if(direction)
 		{
@@ -1140,14 +1135,13 @@ void CCameraManager::CameraRotX(bool direction)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CameraRotY
+// CameraRotY
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::CameraRotY(bool direction, float Speed)
 {
-// changed RF064
 	if((TrackingFlags & kCameraTrackFree) != 0 || (TrackingFlags & kCameraTrackIso) != 0)
-// end change RF064
 	{
 		if(direction)
 		{
@@ -1160,8 +1154,9 @@ void CCameraManager::CameraRotY(bool direction, float Speed)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ResetCamera
+// ResetCamera
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::ResetCamera()
 {
@@ -1171,8 +1166,9 @@ void CCameraManager::ResetCamera()
 	Rotation.X = m_oldrotationx;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ChangeDistance
+// ChangeDistance
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::ChangeDistance(bool direction, float Speed)
 {
@@ -1199,13 +1195,14 @@ void CCameraManager::ChangeDistance(bool direction, float Speed)
 	}
 }
 
-//	********* PRIVATE MEMBER FUNCTIONS ************
+
+// ********* PRIVATE MEMBER FUNCTIONS ************
 
 /* ------------------------------------------------------------------------------------ */
-//	DoThirdPersonTracking
+// DoThirdPersonTracking
 //
-//	We have to do some fancy footwork if we want to have decent third-person
-//	..view handling when tracking an actor - so this does the job.
+// We have to do some fancy footwork if we want to have decent third-person
+// ..view handling when tracking an actor - so this does the job.
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::DoThirdPersonTracking()
 {
@@ -1219,9 +1216,7 @@ void CCameraManager::DoThirdPersonTracking()
 	geFloat ActorScale;
 	geVec3d Orient;
 	geFloat x;
-// changed QD 01/2004
 	geFloat PlayerScale = CCD->Player()->GetScale();
-// end change
 
 	CCD->ActorManager()->GetScale(theActor, &ActorScale);		// Get actor scale
 	CCD->ActorManager()->GetBoundingBox(theActor, &ActorExtBox);
@@ -1231,16 +1226,10 @@ void CCameraManager::DoThirdPersonTracking()
 	CCD->ActorManager()->GetPosition(theActor, &ActorPosition);
 	ActorPosition.Y += CameraOffsetTranslation.Y;
 	CCD->ActorManager()->GetRotation(theActor, &ActorRotation);
-// Start Nov2003DCS
 	geVec3d_Add(&ActorRotation, &CameraOffsetRotation, &ActorRotation);
-// End Nov2003DCS
 	ActorRotation.X = 0.0f;
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theViewPoint);
-	//geXForm3d_RotateZ(&theViewPoint, ActorRotation.Z+CameraOffsetRotation.Z);
 	geXForm3d_SetZRotation(&theViewPoint, ActorRotation.Z+CameraOffsetRotation.Z);
-// end change
 	geXForm3d_RotateX(&theViewPoint, ActorRotation.X+CameraOffsetRotation.X+GE_PIOVER180*(m_cameraX));
 	geXForm3d_RotateY(&theViewPoint, ActorRotation.Y+CameraOffsetRotation.Y+GE_PIOVER180*(m_cameraY));
 	geXForm3d_Translate(&theViewPoint, ActorPosition.X, ActorPosition.Y, ActorPosition.Z);
@@ -1248,21 +1237,12 @@ void CCameraManager::DoThirdPersonTracking()
 	Pos = theViewPoint.Translation;
 	geXForm3d_GetIn(&theViewPoint, &Direction);
 	geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
-// changed QD 12/15/05
-	// geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&Pos, &Front);
-// end change
 
 	if(geWorld_Collision(CCD->World(), &CameraExtBox.Min, &CameraExtBox.Max, &Front,
 		&Back, /*GE_VISIBLE_CONTENTS*/GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
     {
-// changed QD 01/2004
-		// can't be negative (sqrt!)
-		// CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
-		// if(CurrentDistance < 0.0f)
-		//	CurrentDistance = 0.0f;
 		CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
-// end change
 
 		if(CurrentDistance > (m_defaultdistance*ActorScale))
 			CurrentDistance = m_defaultdistance*ActorScale;
@@ -1270,13 +1250,10 @@ void CCameraManager::DoThirdPersonTracking()
 		geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
 	}
 
-// changed QD 01/2004
 	geVec3d_AddScaled(&Pos, &Direction, playermindistance*ActorScale, &Front);
 
 	if(CCD->Meshes()->CollisionCheck(&CameraExtBox.Min, &CameraExtBox.Max, Front, Back, &Collision))
 	{
-// changed QD distance can't be negative
-	//	geFloat CurrentDistance2 = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));//-4.0f;
 		geFloat CurrentDistance2 = geVec3d_DistanceBetween(&Collision.Impact, &Front);
 
 		CurrentDistance2 += playermindistance*ActorScale;
@@ -1300,7 +1277,6 @@ void CCameraManager::DoThirdPersonTracking()
 			geVec3d_AddScaled(&Pos, &Direction, CurrentDistance2, &Back);
 		}
 	}
-// end change
 
 	m_currentdistance = CurrentDistance/ActorScale;
 
@@ -1308,7 +1284,6 @@ void CCameraManager::DoThirdPersonTracking()
 	// ..third-person Actor Fading code. As the camera approaches
 	// ..the player avatar, the AVATAR IS FADED OUT until finally
 	// ..it's rendering is shut down. This is one Way Cool Effect.
-	// 03/22/2000 eaa3 Added Ralph Deane's scaling fixes.
 
 	geFloat fAlpha = 255.0f;
 
@@ -1331,8 +1306,6 @@ void CCameraManager::DoThirdPersonTracking()
 	if(CurrentDistance > 0.0f)
 	{
 		x = Orient.X;
-		// changed QD 12/15/05
-		// Orient.X = (geFloat)( GE_PI*0.5 ) - (geFloat)acos(Orient.Y / CurrentDistance);
 		Orient.X = GE_PIOVER2 - (geFloat)acos(Orient.Y / CurrentDistance);
 		Orient.Y = (geFloat)atan2(x, Orient.Z) + GE_PI;
 		Orient.Z = 0.0f;	// roll is zero - always!!?
@@ -1344,11 +1317,12 @@ void CCameraManager::DoThirdPersonTracking()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DoIsoTracking
+// DoIsoTracking
 //
-//	We have to do some fancy footwork if we want to have decent isometric
-//	..view handling when tracking an actor - so this does the job.
+// We have to do some fancy footwork if we want to have decent isometric
+// ..view handling when tracking an actor - so this does the job.
 /* ------------------------------------------------------------------------------------ */
 void CCameraManager::DoIsoTracking()
 {
@@ -1373,11 +1347,7 @@ void CCameraManager::DoIsoTracking()
 	CCD->ActorManager()->GetRotation(theActor, &ActorRotation);
 	ActorRotation.X = 0.0f;
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theViewPoint);
-	//geXForm3d_RotateZ(&theViewPoint, CameraOffsetRotation.Z);
 	geXForm3d_SetZRotation(&theViewPoint, CameraOffsetRotation.Z);
-// end change
 	geXForm3d_RotateX(&theViewPoint, CameraOffsetRotation.X+GE_PIOVER180*(m_cameraX));
 	geXForm3d_RotateY(&theViewPoint, CameraOffsetRotation.Y+GE_PIOVER180*(m_cameraY));
 	geXForm3d_Translate(&theViewPoint, ActorPosition.X, ActorPosition.Y, ActorPosition.Z);
@@ -1385,23 +1355,14 @@ void CCameraManager::DoIsoTracking()
 	Pos = theViewPoint.Translation;
 	geXForm3d_GetIn(&theViewPoint, &Direction);
 	geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
-// changed QD 12/15/05
-	// geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&Pos, &Front);
-// end change
 
 	if(IsoCollFlag)
 	{
 		if(geWorld_Collision(CCD->World(), &CameraExtBox.Min, &CameraExtBox.Max, &Front,
 		&Back, /*GE_VISIBLE_CONTENTS*/GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
 		{
-// changed QD 01/2004
-			// can't be negative (sqrt)
-			// CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
-			// if(CurrentDistance < 0.0f)
-			//	CurrentDistance = 0.0f;
 			CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
-// end change
 
 			if(CurrentDistance > (m_defaultdistance*ActorScale))
 				CurrentDistance = m_defaultdistance*ActorScale;
@@ -1409,7 +1370,6 @@ void CCameraManager::DoIsoTracking()
 			geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
 		}
 
-// changed QD 01/2004
 		if(CCD->Meshes()->CollisionCheck(&CameraExtBox.Min, &CameraExtBox.Max, Front, Back, &Collision))
 		{
 			geFloat CurrentDistance2 = geVec3d_DistanceBetween(&Collision.Impact, &Front);
@@ -1423,13 +1383,13 @@ void CCameraManager::DoIsoTracking()
 				geVec3d_AddScaled(&Pos, &Direction, CurrentDistance2, &Back);
 			}
 		}
-// end change
 	}
 
 	m_currentdistance = CurrentDistance/ActorScale;
 
 	if(IsoCollFlag)
 	{
+		// fade out actor
 		geFloat fAlpha = 255.0f;
 
 		if(CurrentDistance < (40.0f*ActorScale))
@@ -1452,8 +1412,6 @@ void CCameraManager::DoIsoTracking()
 	if(CurrentDistance > 0.0f)
 	{
 		x = Orient.X;
-		// changed QD 12/15/05
-		// Orient.X = GE_PI*0.5f - (geFloat)acos(Orient.Y / CurrentDistance);
 		Orient.X = GE_PIOVER2 - (geFloat)acos(Orient.Y / CurrentDistance);
 		Orient.Y = (geFloat)atan2(x, Orient.Z) + GE_PI;
 		Orient.Z = 0.0f;	// roll is zero - always!!?
