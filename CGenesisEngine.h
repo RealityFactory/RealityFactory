@@ -29,10 +29,10 @@ struct CompleteTexture
 	//	enum {LeftRight, TopDown} FirstRowPattern;
 };
 
-//BitmapBuffer is a reference to an array of bitmap pointers...
-//[0] [1] [2] [3]
-//[4] [5] [6] [7]
-//[8] [9] [10][11]
+// BitmapBuffer is a reference to an array of bitmap pointers...
+// [0] [1] [2] [3]
+// [4] [5] [6] [7]
+// [8] [9] [10][11]
 
 // Render Flags for ALL render functions
 #define DRV_RENDER_ALPHA		(1<<0)	///< Render function should expect alpha set in vertices
@@ -79,13 +79,13 @@ public:
 							FloatRect *ScreenRect, FloatRect *PercentRect,
 							geFloat Alpha, GE_RGBA *RGBA_Array = NULL);
 
-	// changed RF064
+
 	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float zdepth);
 	bool DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float Alpha, float zdepth);
 	CompleteTexture BitmapToComplete(geBitmap *pBitmap);
 	void DeleteCompleteTexture(CompleteTexture cp);
 	void DrawComplete(const CompleteTexture &cp, int x, int y);
-	// end change RF064
+
 
 	void ShowFrameRate(bool bHow);					///< Show/Hide frame rate
 	bool LoadLevel(const char *szLevelFilename);	///< Load level into engine
@@ -125,25 +125,25 @@ public:
 	int Height()					{ return m_nHeight;		}	///< Window height
 	geSound_System *AudioSystem()	{ return m_Audio;		}	///< Audio system pointer
 	char *LevelName()				{ return m_CurrentLevel;}	///< Current level name
+
 	void SetDebugging(bool fOn)		{ m_DebugEnabled = fOn;	}	///< Activate/deactivate debug output
-// changed RF064
 	float GetFogEnd()				{ return fFogEnd;		}
 	float GetFogStart()				{ return fFogStart;		}
-// end change RF064
 
 private:
 	//	Private member functions
 	bool CreateEngine(const char *szName);	///< Create Genesis3D engine
 	bool FindDriver();						///< Locate appropriate Genesis3D driver
-	// Dee  07/07/00
-	// Added to select any available driver and use it's first mode
-	bool AutoDriver();
-	//End Dee
 
-	// Dee  12/07/00
-	// Added to pop up a pick list of available drivers
+	/**
+	 * @brief Select any available driver and use it's first mode
+	 */
+	bool AutoDriver();
+
+	/**
+	 * @brief Pop up a pick list of available drivers
+	 */
 	bool PickDriver();
-	//End Dee
 
 private:
 	//	Private member variables
@@ -153,10 +153,8 @@ private:
 	char		m_SelectedDriverID;			///< Driver selection ID, Genesis style
 	RECT		m_ScreenRect;				///< Screen size rectangle
 	HWND		m_wndMain;					///< Main window handle
-	//Dee
-	//Added to support pop up driver window
-	HINSTANCE	m_Instance;
-	//end Dee
+	HINSTANCE	m_Instance;					///< Support pop up driver window
+
 	geDriver_System	*m_DrvSys;				///< Genesis3D driver system pointer
 	geDriver		*m_Driver;				///< Genesis3D driver selected
 	geDriver_Mode	*m_Mode;				///< Genesis3D driver mode selected
@@ -172,7 +170,6 @@ private:
 	GE_RGBA			FogColor;				///< Color for distance fog
 	geFloat			fFogStart, fFogEnd;		///< Fog start, end distances
 	geFloat			FarClipPlaneDistance;	///< Distance to far clip plane
-// changed RF063
 };
 
 #endif

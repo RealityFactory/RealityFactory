@@ -10,16 +10,14 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
-
-// Dee 07-07-00
 #include "AutoSelect.h"
-// End Dee
 #include "resource.h"
 
+
 /* ------------------------------------------------------------------------------------ */
-//	This is the window procedure that will be used by the main
-//	..engine wrapper.  I wish there was some way to do without
-//	..it, I'll have to research it.
+// This is the window procedure that will be used by the main
+// ..engine wrapper.  I wish there was some way to do without
+// ..it, I'll have to research it.
 /* ------------------------------------------------------------------------------------ */
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
@@ -27,13 +25,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_TIMER:
 		if(CCD->NetPlayerManager() != NULL)
-	    	CCD->NetPlayerManager()->ServerClientCycle();
+			CCD->NetPlayerManager()->ServerClientCycle();
 		break;
 	case WM_KILLFOCUS:
 		{
 			if(CCD != NULL)
 			{
-// Start Aug2003DCS
 #ifndef _DEBUG
 				ShowWindow(hWnd, SW_MINIMIZE);
 				CCD->SetHasFocus(false);
@@ -47,7 +44,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 				return 0;
 #endif
-// End Aug2003DCS
 			}
 		}
 		break;
@@ -94,14 +90,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CGenesisEngine
+// CGenesisEngine
 //
-//	Construct a main window and initialize the engine, also start up the
-//	..Genesis sound system.
+// Construct a main window and initialize the engine, also start up the
+// ..Genesis sound system.
 /* ------------------------------------------------------------------------------------ */
 CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 							   const char *szName, HINSTANCE theInstance,
-							   char chDriverID, bool fSoftware,
+							   char chDriverID, bool /*fSoftware*/,
 							   bool UseDialog, char *szStartLevel)
 {
 	WNDCLASS wc;
@@ -127,7 +123,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 		_getcwd(m_currentdir, 512);
 		ShowCursor(TRUE);
 
-// changed QD 02/01/07
 		OPENFILENAME OpenFileName;
 		TCHAR szFile[_MAX_PATH] = "\0";
 		TCHAR szFileTitle[_MAX_PATH] = "\0";
@@ -137,26 +132,26 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 		strcat(m_dir, "\\media\\levels");
 
 		// Fill in the OPENFILENAME structure to support a template and hook.
-		OpenFileName.lStructSize       = sizeof(OPENFILENAME);
-		OpenFileName.hwndOwner         = NULL;
-		OpenFileName.hInstance         = theInstance;
-		OpenFileName.lpstrFilter       = "Level BSP Files\0*.bsp\0All Files\0*.*\0\0";
-		OpenFileName.lpstrCustomFilter = NULL;
-		OpenFileName.nMaxCustFilter    = 0;
-		OpenFileName.nFilterIndex      = 0;
-		OpenFileName.lpstrFile         = szFile;
-		OpenFileName.nMaxFile          = sizeof(szFile);
-		OpenFileName.lpstrFileTitle    = szFileTitle;
-		OpenFileName.nMaxFileTitle     = sizeof(szFileTitle);
-		OpenFileName.lpstrInitialDir   = m_dir;
-		OpenFileName.lpstrTitle        = "Load Level";
-		OpenFileName.nFileOffset       = 0;
-		OpenFileName.nFileExtension    = 0;
-		OpenFileName.lpstrDefExt       = NULL;
-		OpenFileName.lCustData         = 0;
-		OpenFileName.lpfnHook 		   = 0;
-		OpenFileName.lpTemplateName    = 0;
-		OpenFileName.Flags             = OFN_EXPLORER;
+		OpenFileName.lStructSize		= sizeof(OPENFILENAME);
+		OpenFileName.hwndOwner			= NULL;
+		OpenFileName.hInstance			= theInstance;
+		OpenFileName.lpstrFilter		= "Level BSP Files\0*.bsp\0All Files\0*.*\0\0";
+		OpenFileName.lpstrCustomFilter	= NULL;
+		OpenFileName.nMaxCustFilter		= 0;
+		OpenFileName.nFilterIndex		= 0;
+		OpenFileName.lpstrFile			= szFile;
+		OpenFileName.nMaxFile			= sizeof(szFile);
+		OpenFileName.lpstrFileTitle		= szFileTitle;
+		OpenFileName.nMaxFileTitle		= sizeof(szFileTitle);
+		OpenFileName.lpstrInitialDir	= m_dir;
+		OpenFileName.lpstrTitle			= "Load Level";
+		OpenFileName.nFileOffset		= 0;
+		OpenFileName.nFileExtension		= 0;
+		OpenFileName.lpstrDefExt		= NULL;
+		OpenFileName.lCustData			= 0;
+		OpenFileName.lpfnHook			= 0;
+		OpenFileName.lpTemplateName		= 0;
+		OpenFileName.Flags				= OFN_EXPLORER;
 
 		// Call the common dialog function.
 		if(GetOpenFileName(&OpenFileName))
@@ -170,7 +165,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 
 			CCD->SetLevelDirectory(m_lev);
 		}
-// end change
 
 		chdir(m_currentdir);
 
@@ -194,7 +188,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	RegisterClass(&wc);
 
 	// Create the main window
-
 	hWnd = CreateWindowEx(0, szName, szName, WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT,
 							nWidth, nHeight, NULL, NULL, theInstance, NULL);
 
@@ -207,15 +200,15 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 
 	UpdateWindow(hWnd);
 
-	SetWindowPos (hWnd, HWND_TOP, (((m_ScreenRect.right + m_ScreenRect.left) / 2) - (nWidth / 2)),
-		(((m_ScreenRect.bottom + m_ScreenRect.top) / 2) - (nHeight / 2)),
-		nWidth, nHeight, SWP_NOCOPYBITS | SWP_NOZORDER | SWP_NOSIZE | SWP_SHOWWINDOW);
+	SetWindowPos(hWnd, HWND_TOP,
+				((m_ScreenRect.right + m_ScreenRect.left) / 2) - (nWidth / 2),
+				((m_ScreenRect.bottom + m_ScreenRect.top) / 2) - (nHeight / 2),
+				nWidth, nHeight,
+				SWP_NOCOPYBITS | SWP_NOZORDER | SWP_NOSIZE | SWP_SHOWWINDOW);
 
 	m_wndMain = hWnd;					// Save for later use
 
-// Dee
 	m_Instance = theInstance;			// Save for later
-// End Dee
 
 	// Ok, now create the engine and let 'er rip!
 	if(CreateEngine(szName) == FALSE)
@@ -244,9 +237,9 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~CGenesisEngine
+// ~CGenesisEngine
 //
-//	Shut down the Genesis3D engine
+// Shut down the Genesis3D engine
 /* ------------------------------------------------------------------------------------ */
 CGenesisEngine::~CGenesisEngine()
 {
@@ -276,10 +269,10 @@ CGenesisEngine::~CGenesisEngine()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreateEngine
+// CreateEngine
 //
-//	Set up the Genesis3D engine and attach it to the main window, which
-//	..must exist prior to this member function being called.
+// Set up the Genesis3D engine and attach it to the main window, which
+// ..must exist prior to this member function being called.
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::CreateEngine(const char *szName)
 {
@@ -306,8 +299,7 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 		return false;
 	}
 
-// Dee  07/07/00 - Added
-// Find any available driver and use the first mode it has
+	// Find any available driver and use the first mode it has
 	if(m_SelectedDriverID == 'A')
 	{
 		if(AutoDriver() == false)
@@ -316,16 +308,13 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 			return false;
 		}
 	}
-// End Dee
-
-// Dee  12/07/00 - Added
-// Pop a Pick List to choose the mode you'd like (out of what's available)
+	// Pop a Pick List to choose the mode you'd like (out of what's available)
 	else if(m_SelectedDriverID == 'P')
 	{
 		if(PickDriver() == false)
 		{
-			//Probably hit "Pick Something for Me" or ESC...
-			//So try to auto select for them
+			// Probably hit "Pick Something for Me" or ESC...
+			// So try to auto select for them
 			ReportError("[INFO] Auto-Detecting Driver", false);
 			if(AutoDriver() == false)
 			{
@@ -334,8 +323,7 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 			}
 		}
 
-		//Dee 12-07-00
-		//Added to support fullscreen or windowed driver change via pick list
+		// Added to support fullscreen or windowed driver change via pick list
 		{
 			geEngine_ShutdownDriver(m_theEngine);
 			ResetMainWindow(m_wndMain, m_nWidth, m_nHeight);
@@ -353,12 +341,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 				return false;
 			}
 		}
-		//End Dee
 	}
-// End Dee
-
-// Dee 07/07/00 - now part of above if(m_Selected...) statement
-// Find ourselves a good driver
+	// Find ourselves a good driver
 	else
 	{
 		if(FindDriver() == FALSE)
@@ -381,17 +365,15 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 			return false;
 		}
 	}
-// End Dee
 
-
-	//	Holy toledo, it all worked!  Back to the caller, then.
+	// Holy toledo, it all worked!  Back to the caller, then.
 	return true;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FindDriver
+// FindDriver
 //
-//	Locate a driver that'll do what we want, how we want it.
+// Locate a driver that'll do what we want, how we want it.
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::FindDriver()
 {
@@ -512,21 +494,20 @@ bool CGenesisEngine::FindDriver()
 		}
 	}
 
-	//	Ok, driver AND mode found that we're happy with, bail this.
+	// Ok, driver AND mode found that we're happy with, bail this.
 	return TRUE;
 }
 
-// Dee  12/07/00
 /* ------------------------------------------------------------------------------------ */
-//	AutoDriver
+// AutoDriver
 //
-//	Added to select any available driver and use it's first mode
+// Select any available driver and use it's first mode
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::AutoDriver()
 {
-	ModeList			   *DriverModeList;
-	int						DriverModeListLength;
-	int						Selection = 0;
+	ModeList	*DriverModeList;
+	int			DriverModeListLength;
+	int			Selection = 0;
 
 	// Create a List of Available Drivers
 	DriverModeList = ModeList_Create(m_theEngine, &DriverModeListLength, m_DrvSys, m_Driver, m_Mode);
@@ -541,28 +522,25 @@ bool CGenesisEngine::AutoDriver()
 	// Sort the List of Drivers
 	AutoSelect_SortDriverList(DriverModeList, DriverModeListLength);
 
-	//Pick the first Driver from the List
+	// Pick the first Driver from the List
 	if(AutoSelect_PickDriver(m_wndMain, m_theEngine, DriverModeList, DriverModeListLength, &Selection) == GE_FALSE)
 	{
 		ModeList_Destroy(DriverModeList);
 		return false;
 	}
 
-// changed QD 02/01/07
-	m_Driver=DriverModeList[Selection].Driver;
-	m_Mode=DriverModeList[Selection].Mode;
-	m_nWidth=DriverModeList[Selection].Width;
-	m_nHeight=DriverModeList[Selection].Height;
-// end change
+	m_Driver	= DriverModeList[Selection].Driver;
+	m_Mode		= DriverModeList[Selection].Mode;
+	m_nWidth	= DriverModeList[Selection].Width;
+	m_nHeight	= DriverModeList[Selection].Height;
+
 	return true;
 }
-// End Dee
 
-// Dee  12/07/00
 /* ------------------------------------------------------------------------------------ */
-//	PickDriver
+// PickDriver
 //
-//	Added to pop up a pick list to choose the driver from
+// Pop up a pick list to choose the driver from
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::PickDriver()
 {
@@ -580,28 +558,27 @@ bool CGenesisEngine::PickDriver()
 		return false;
 	}
 
-	//Pop up a Driver List to pick from
+	// Pop up a Driver List to pick from
 	ShowCursor(TRUE);						// Turn on the mouse cursor so we can pick with it
 
-	if(DrvList_PickDriver(m_Instance, m_wndMain, DriverModeList, DriverModeListLength, &Selection)==GE_FALSE)
+	if(DrvList_PickDriver(m_Instance, m_wndMain, DriverModeList, DriverModeListLength, &Selection) == GE_FALSE)
 	{
 		ShowCursor(FALSE);					// Turn the mouse cursor back off
 		return false;
 	}
 
-	m_Driver=DriverModeList[Selection].Driver;
-	m_Mode=DriverModeList[Selection].Mode;
-	m_nWidth=DriverModeList[Selection].Width;
-	m_nHeight=DriverModeList[Selection].Height;
+	m_Driver	= DriverModeList[Selection].Driver;
+	m_Mode		= DriverModeList[Selection].Mode;
+	m_nWidth	= DriverModeList[Selection].Width;
+	m_nHeight	= DriverModeList[Selection].Height;
 
 	ShowCursor(FALSE);						// Turn the mouse cursor back off
-    return true;
+	return true;
 }
-// End Dee
 
 /* ------------------------------------------------------------------------------------ */
-//	The DrawAlphaBitmap and its associated routines were
-//	written and provided by Andy Campbell aka Assassin
+// The DrawAlphaBitmap and its associated routines were
+// written and provided by Andy Campbell aka Assassin
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 									 geVec3d	*VertUVArray,
@@ -617,16 +594,16 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	geFloat fUVAdd = 0.0f;
 	geFloat fWidthBmp = 0;
 	geFloat fHeightBmp = 0;
-	geRect ClipRect = {0,0,0,0};
-	geRect UseRect = {0,0,0,0};
-	geVec3d DefaultUVArray[4] =  {{0.0f, 0.0f, 0.0f},
+	geRect ClipRect = {0, 0, 0, 0};
+	geRect UseRect = {0, 0, 0, 0};
+	geVec3d DefaultUVArray[4] =	{	{0.0f, 0.0f, 0.0f},
 									{1.0f, 0.0f, 0.0f},
 									{1.0f, 1.0f, 0.0f},
 									{0.0f, 1.0f, 0.0f}};
-	GE_RGBA DefaultRGBA_Array[4] = {{255,255,255,Alpha},
-									{255,255,255,Alpha},
-									{255,255,255,Alpha},
-									{255,255,255,Alpha}};
+	GE_RGBA DefaultRGBA_Array[4] = {{255, 255, 255, Alpha},
+									{255, 255, 255, Alpha},
+									{255, 255, 255, Alpha},
+									{255, 255, 255, Alpha}};
 	geBitmap_Info TempInfo, TempInfo2;
 
 	if(pBitmap)
@@ -641,14 +618,16 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	// Clip 2d viewport
 	//
 	if(!ClipCamera)
-    {
+	{
 		ClipRect.Top	= 0;
 		ClipRect.Left	= 0;
-		ClipRect.Bottom = m_nHeight-1;
-		ClipRect.Right	= m_nWidth-1;
-    }
+		ClipRect.Bottom = m_nHeight - 1;
+		ClipRect.Right	= m_nWidth - 1;
+	}
 	else
-		geCamera_GetClippingRect( ClipCamera, &ClipRect );
+	{
+		geCamera_GetClippingRect(ClipCamera, &ClipRect);
+	}
 
 	if(!VertUVArray)
 		VertUVArray = &DefaultUVArray[0];
@@ -687,8 +666,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[0].g = RGBA_Array[0].g;
 	vertex[0].b = RGBA_Array[0].b;
 	vertex[0].a = RGBA_Array[0].a;
-	vertex[0].u = VertUVArray[0].X + UVbreak/fWidthBmp;
-	vertex[0].v = VertUVArray[0].Y + UVbreak/fHeightBmp;
+	vertex[0].u = VertUVArray[0].X + UVbreak / fWidthBmp;
+	vertex[0].v = VertUVArray[0].Y + UVbreak / fHeightBmp;
 
 	vertex[1].x = static_cast<geFloat>(UseRect.Right);
 	vertex[1].y = static_cast<geFloat>(UseRect.Top);
@@ -697,8 +676,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[1].g = RGBA_Array[1].g;
 	vertex[1].b = RGBA_Array[1].b;
 	vertex[1].a = RGBA_Array[1].a;
-	vertex[1].u = VertUVArray[1].X - UVbreak/fWidthBmp;
-	vertex[1].v = VertUVArray[1].Y + UVbreak/fHeightBmp;
+	vertex[1].u = VertUVArray[1].X - UVbreak / fWidthBmp;
+	vertex[1].v = VertUVArray[1].Y + UVbreak / fHeightBmp;
 
 	vertex[2].x = static_cast<geFloat>(UseRect.Right);
 	vertex[2].y = static_cast<geFloat>(UseRect.Bottom);
@@ -707,8 +686,8 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[2].g = RGBA_Array[2].g;
 	vertex[2].b = RGBA_Array[2].b;
 	vertex[2].a = RGBA_Array[2].a;
-	vertex[2].u = VertUVArray[2].X - UVbreak/fWidthBmp;
-	vertex[2].v = VertUVArray[2].Y - UVbreak/fHeightBmp;
+	vertex[2].u = VertUVArray[2].X - UVbreak / fWidthBmp;
+	vertex[2].v = VertUVArray[2].Y - UVbreak / fHeightBmp;
 
 	vertex[3].x = static_cast<geFloat>(UseRect.Left);
 	vertex[3].y = static_cast<geFloat>(UseRect.Bottom);
@@ -717,74 +696,70 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 	vertex[3].g = RGBA_Array[3].g;
 	vertex[3].b = RGBA_Array[3].b;
 	vertex[3].a = RGBA_Array[3].a;
-	vertex[3].u = VertUVArray[3].X + UVbreak/fWidthBmp;
-	vertex[3].v = VertUVArray[3].Y - UVbreak/fHeightBmp;
+	vertex[3].u = VertUVArray[3].X + UVbreak / fWidthBmp;
+	vertex[3].v = VertUVArray[3].Y - UVbreak / fHeightBmp;
 
 	if(vertex[0].x < ClipRect.Left)
-    {
+	{
 		if(vertex[1].x <= ClipRect.Left)
 		{
-			//ReportError("Clipping Rect has negative dimension", NULL);
 			return false;
 		}
 
-		fUVAdd = (ClipRect.Left-vertex[0].x)/(vertex[1].x-vertex[0].x);
-		fUVAdd *= (vertex[1].u-vertex[0].u);
-		fWidthBmp -= ( ClipRect.Left - vertex[0].x );
+		fUVAdd = (ClipRect.Left - vertex[0].x)/(vertex[1].x - vertex[0].x);
+		fUVAdd *= (vertex[1].u - vertex[0].u);
+		fWidthBmp -= (ClipRect.Left - vertex[0].x);
 		vertex[0].u += fUVAdd;
 		vertex[3].u = vertex[0].u;
 		vertex[0].x = static_cast<geFloat>(ClipRect.Left);
 		vertex[3].x = vertex[0].x;
-    }
+	}
 
 	if(vertex[0].y < ClipRect.Top)
-    {
+	{
 		if(vertex[2].y <= ClipRect.Top)
 		{
-			//ReportError("Clipping Rect has negative dimension", false);
 			return false;
 		}
 
-		fUVAdd = (ClipRect.Top-vertex[0].y)/(vertex[3].y-vertex[0].y);
-		fUVAdd *= (vertex[3].v-vertex[0].v);
-		fHeightBmp -= ( ClipRect.Top - vertex[0].y );
+		fUVAdd = (ClipRect.Top - vertex[0].y)/(vertex[3].y - vertex[0].y);
+		fUVAdd *= (vertex[3].v - vertex[0].v);
+		fHeightBmp -= (ClipRect.Top - vertex[0].y);
 		vertex[0].v += fUVAdd;
 		vertex[1].v = vertex[0].v;
 		vertex[0].y = static_cast<geFloat>(ClipRect.Top);
 		vertex[1].y = vertex[0].y;
-    }
+	}
 
 	if(vertex[1].x > ClipRect.Right)
-    {
-		if(vertex[0].x >= ClipRect.Right )
+	{
+		if(vertex[0].x >= ClipRect.Right)
 		{
-			//ReportError("Clipping Rect has negative dimension", false);
 			return false;
 		}
 
-		fUVAdd = (vertex[1].x-ClipRect.Right)/(vertex[1].x-vertex[0].x);
-		fUVAdd *= (vertex[1].u-vertex[0].u);
+		fUVAdd = (vertex[1].x - ClipRect.Right)/(vertex[1].x - vertex[0].x);
+		fUVAdd *= (vertex[1].u - vertex[0].u);
 		vertex[1].u -= fUVAdd;
 		vertex[2].u = vertex[1].u;
 		vertex[1].x = static_cast<geFloat>(ClipRect.Right - 1);
 		vertex[2].x = vertex[1].x;
-    }
+	}
 
 	if(vertex[2].y > ClipRect.Bottom)
-    {
+	{
 		if(vertex[0].y >= ClipRect.Bottom )
 		{
-			//ReportError("Clipping Rect has negative dimension", false);
 			return false;
 		}
 
-		fUVAdd = (vertex[2].y-ClipRect.Bottom)/(vertex[3].y-vertex[0].y);
-		fUVAdd *= (vertex[3].v-vertex[0].v);
+		fUVAdd = (vertex[2].y - ClipRect.Bottom)/(vertex[3].y - vertex[0].y);
+		fUVAdd *= (vertex[3].v - vertex[0].v);
 		vertex[2].v -= fUVAdd;
 		vertex[3].v = vertex[2].v;
 		vertex[2].y = static_cast<geFloat>(ClipRect.Bottom - 1);
 		vertex[3].y = vertex[2].y;
-    }
+	}
 
 	geEngine_RenderPoly(m_theEngine,vertex,
 		4, pBitmap, (Alpha != 255 ? DRV_RENDER_ALPHA : 0 ) |
@@ -794,7 +769,7 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DrawAlphaBitmapRect
+// DrawAlphaBitmapRect
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap	*pBitmap,
 										 geRect		*BitmapRect,
@@ -819,8 +794,8 @@ bool CGenesisEngine::DrawAlphaBitmapRect(geBitmap	*pBitmap,
 		BitmapRect = &DefaultRect;
 		BitmapRect->Top = 0;
 		BitmapRect->Left = 0;
-		BitmapRect->Right = (TempInfo.Width-1);
-		BitmapRect->Bottom = (TempInfo.Height-1);
+		BitmapRect->Right = (TempInfo.Width - 1);
+		BitmapRect->Bottom = (TempInfo.Height - 1);
 	}
 
 	UVArray[0].X = static_cast<geFloat>(BitmapRect->Left  ) / static_cast<geFloat>(TempInfo.Width  - 1);
@@ -847,7 +822,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 	int WidthBmp, HeightBmp;
 	gePixelFormat PFormat;
 	int BitmapsWide, BitmapsHigh;
-	int i,j;
+	int i, j;
 
 	if(!pBitmap)
 	{
@@ -872,8 +847,8 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 	NumWide = BitmapsWide = (WidthBmp-1) / 256 + 1;
 	NumHigh = BitmapsHigh = (HeightBmp-1) / 256 + 1;
 	BitmapBuffer = new IncompleteTexture[BitmapsHigh * BitmapsWide];
-	int Width=0, Height=0;
-	geBitmap * Bitmap = NULL;
+	int Width = 0, Height = 0;
+	geBitmap *Bitmap = NULL;
 
 	for(i=0; i<BitmapsHigh; ++i)
 	{
@@ -934,7 +909,6 @@ CompleteTexture CGenesisEngine::BuildCompleteTexture(IncompleteTexture *BitmapBu
 	CompleteTexture ret;
 
 	ret.TextureArray	= BitmapBuffer;
-	//	ret.FirstRowPattern = LeftRight;
 	ret.TexturesHigh	= NumHigh;
 	ret.TexturesWide	= NumWide;
 	ret.TotalHeight		= BitmapBuffer[NumHigh*NumWide].Height	+ (NumHigh-1) * 256;
@@ -993,8 +967,9 @@ CompleteTexture CGenesisEngine::BitmapToComplete(geBitmap *pBitmap)
 	cp = BuildCompleteTexture(BitmapBuffer, NumWide, NumHigh);
 	AddCompleteTextureToWorld(cp);
 
-	cp.TotalWidth = NumWide*256;
-	cp.TotalHeight = NumHigh*256;
+	cp.TotalWidth = NumWide * 256;
+	cp.TotalHeight = NumHigh * 256;
+
 	return cp;
 }
 
@@ -1021,7 +996,7 @@ bool CGenesisEngine::DrawCompleteTexture(const CompleteTexture	&cp,
 										 FloatRect			*ScreenRect,
 										 FloatRect			*PercentRect,
 										 geFloat			Alpha,
-										 GE_RGBA			*RGBA_Array) // ignored currently
+										 GE_RGBA			* /*RGBA_Array*/) // ignored currently
 {
 	bool retval = true;
 	int i, x, wide, high;
@@ -1117,7 +1092,6 @@ bool CGenesisEngine::DrawCompleteTexture(const CompleteTexture	&cp,
 /* ------------------------------------------------------------------------------------ */
 
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, int y, float zdepth)
@@ -1135,22 +1109,22 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right  = PixelRect.Left + static_cast<float>(BitmapRect->Right - BitmapRect->Left);
 
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect,
-								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, 255.0f, NULL, zdepth);
+									CCD->CameraManager()->Camera(), &PixelRect,
+									NULL, 255.0f, NULL, zdepth);
 	}
 	else
 	{
 		Rect.Top	= 0;
 		Rect.Left	= 0;
-		Rect.Bottom = geBitmap_Height(pBitmap)-1;
-		Rect.Right	= geBitmap_Width(pBitmap)-1;
+		Rect.Bottom = geBitmap_Height(pBitmap) - 1;
+		Rect.Right	= geBitmap_Width(pBitmap) - 1;
 
 		PixelRect.Bottom = PixelRect.Top  + static_cast<float>(Rect.Bottom);
 		PixelRect.Right	 = PixelRect.Left + static_cast<float>(Rect.Right);
 
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect,
-								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, 255.0f, NULL, zdepth);
+									CCD->CameraManager()->Camera(), &PixelRect,
+									NULL, 255.0f, NULL, zdepth);
 	}
 
 	return ret;
@@ -1173,8 +1147,8 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right  = PixelRect.Left + static_cast<float>(BitmapRect->Right - BitmapRect->Left);
 
 		ret = DrawAlphaBitmapRect(pBitmap, BitmapRect,
-								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, Alpha, NULL, zdepth);
+									CCD->CameraManager()->Camera(), &PixelRect,
+									NULL, Alpha, NULL, zdepth);
 	}
 	else
 	{
@@ -1187,18 +1161,17 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 		PixelRect.Right  = PixelRect.Left + static_cast<float>(Rect.Right);
 
 		ret = DrawAlphaBitmapRect(pBitmap, &Rect,
-								 CCD->CameraManager()->Camera(), &PixelRect,
-								 NULL, Alpha, NULL, zdepth);
+									CCD->CameraManager()->Camera(), &PixelRect,
+									NULL, Alpha, NULL, zdepth);
 	}
 
 	return ret;
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	ShowFrameRate
+// ShowFrameRate
 //
-//	Turn frame rate display on/off
+// Turn frame rate display on/off
 /* ------------------------------------------------------------------------------------ */
 void CGenesisEngine::ShowFrameRate(bool bHow)
 {
@@ -1208,13 +1181,13 @@ void CGenesisEngine::ShowFrameRate(bool bHow)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadLevel
+// LoadLevel
 //
-//	Load a level file into the current engine.
+// Load a level file into the current engine.
 /* ------------------------------------------------------------------------------------ */
 bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 {
-	//	Check to see if we have a level loaded, and if so, gun it!
+	// Check to see if we have a level loaded, and if so, gun it!
 	if(m_World != NULL)
 	{
 		geEngine_RemoveWorld(m_theEngine, m_World);
@@ -1222,7 +1195,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		m_World = NULL;
 	}
 
-	//	Ok, try to open up the desired level file
+	// Ok, try to open up the desired level file
 	CCD->OpenRFFile(&m_Level, kLevelFile, szLevelFileName, GE_VFILE_OPEN_READONLY);
 
 	if(!m_Level)
@@ -1234,7 +1207,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		return FALSE;
 	}
 
-	//	Level open, now try to load it into Genesis3D
+	// Level open, now try to load it into Genesis3D
 	m_World = geWorld_Create(m_Level);
 	geVFile_Close(m_Level);
 
@@ -1258,14 +1231,14 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 
 	strcpy(m_CurrentLevel, szLevelFileName);		// Save level name
 
-	//	Level loaded and locked into the engine.
+	// Level loaded and locked into the engine.
 	return TRUE;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	BeginFrame
+// BeginFrame
 //
-//	Set up the engine to prepare for entities, etc. to be rendered into it.
+// Set up the engine to prepare for entities, etc. to be rendered into it.
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::BeginFrame()
 {
@@ -1285,10 +1258,10 @@ int CGenesisEngine::BeginFrame()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	EndFrame
+// EndFrame
 //
-//	All rendering is done, now clean up and flip or blit the results
-//	..into the main window.
+// All rendering is done, now clean up and flip or blit the results
+// ..into the main window.
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::EndFrame()
 {
@@ -1307,20 +1280,20 @@ int CGenesisEngine::EndFrame()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RenderWorld
+// RenderWorld
 //
-//	Render the BSP-based world the Genesis engine is running.
+// Render the BSP-based world the Genesis engine is running.
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::RenderWorld()
 {
 	if(!m_fInFramePass)
 		return RGF_FAILURE;				// Not in BeginFrame()/EndFrame() block
 
-	//	Update the camera position for bindings, etc.
+	// Update the camera position for bindings, etc.
 	CCD->CameraManager()->TrackMotion();
 	CCD->CameraManager()->RenderView();
 
-	//	We're ready, render it!
+	// We're ready, render it!
 	if(geEngine_RenderWorld(m_theEngine, m_World, CCD->CameraManager()->Camera(), 0.00f) == GE_FALSE)
 	{
 		ReportError("[ERROR] CGenesisEngine::RenderWorld failed", false);
@@ -1331,26 +1304,14 @@ int CGenesisEngine::RenderWorld()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplaySplash
+// DisplaySplash
 //
-//	Throw a bitmap up on the screen as a splash screen.  This is used for
-//	..displaying "Loading" bitmaps, intro screens, credit screens, etc.
-//	..Note that the next render cycle will over-write what's on the screen.
+// Throw a bitmap up on the screen as a splash screen.  This is used for
+// ..displaying "Loading" bitmaps, intro screens, credit screens, etc.
+// ..Note that the next render cycle will over-write what's on the screen.
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFile)
 {
-	//////////////////////////////////////////////////////////////////////
-	// Dee
-	// Need to adjust window sizes postions etc. to allow for windowed mode
-	//	int tWindowLeft, tWindowTop;
-
-	//	tWindowLeft=(m_ScreenRect.right + m_ScreenRect.left - m_nWidth) / 2;
-	//	tWindowTop=(m_ScreenRect.bottom + m_ScreenRect.top - m_nHeight) / 2;
-	//	tWindowLeft=(m_ScreenRect.right - m_nWidth) / 2;
-	//	tWindowTop=(m_ScreenRect.bottom - m_nHeight) / 2;
-	// End Dee
-	//////////////////////////////////////////////////////////////////////
-
 	geBitmap *theBmp = CreateFromFileName(szSplashBMP);
 	geBitmap_Info BmpInfo;
 
@@ -1373,7 +1334,6 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 			if(m_fInFramePass)
 				EndFrame();
 
-			// Version 053
 			geEngine_BeginFrame(m_theEngine, CCD->CameraManager()->Camera(), GE_TRUE);
 			m_fInFramePass = true;
 
@@ -1425,9 +1385,9 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetFogParameters
+// SetFogParameters
 //
-//	Set up parameters to be used for distance fogging
+// Set up parameters to be used for distance fogging
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::SetFogParameters(GE_RGBA theColor, geFloat fStart, geFloat fEnd)
 {
@@ -1439,9 +1399,9 @@ int CGenesisEngine::SetFogParameters(GE_RGBA theColor, geFloat fStart, geFloat f
 }
 
 /* ------------------------------------------------------------------------------------ */
-//  EnableFog
+// EnableFog
 //
-//	Turn distance fogging on and off
+// Turn distance fogging on and off
 /* ------------------------------------------------------------------------------------ */
 void CGenesisEngine::EnableFog(geBoolean FogOn)
 {
@@ -1507,9 +1467,9 @@ bool CGenesisEngine::ReportError(const char *szError, bool bMessageBoxIt)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save off the current level name to the supplied file
+// Save off the current level name to the supplied file
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::SaveTo(FILE *SaveFD)
 {
@@ -1519,10 +1479,10 @@ int CGenesisEngine::SaveTo(FILE *SaveFD)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the current level name from the supplied file.  Will
-//	..automatically load the level.
+// Restore the current level name from the supplied file.  Will
+// ..automatically load the level.
 /* ------------------------------------------------------------------------------------ */
 int CGenesisEngine::RestoreFrom(FILE *RestoreFD)
 {
@@ -1552,6 +1512,7 @@ void CGenesisEngine::ResetSystem()
 
 	geEngine_FillRect(Engine(), &Rect, &Color);
 	EndFrame();
+
 	CCD->ResetClock();
 }
 
