@@ -13,7 +13,7 @@
 #include "CInventory.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CArmour::CArmour()
 {
@@ -61,11 +61,8 @@ CArmour::CArmour()
 			else
 			{
 				List[ListPtr].DamageBy[j] = strdup(Type.c_str());
-// changed QD 07/15/06
-				//strcpy(szName, Value);
 				strncpy(szName, Value.c_str(), 63);
 				szName[63] = 0;
-// end change QD 07/15/06
 				Vector = Extract(szName);
 				List[ListPtr].Protection[j] = (int)Vector.X;
 				List[ListPtr].DamageTo[j] = (int)Vector.Y;
@@ -80,8 +77,9 @@ CArmour::CArmour()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CArmour::~CArmour()
 {
@@ -113,8 +111,9 @@ CArmour::~CArmour()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DisableHud
+// DisableHud
 /* ------------------------------------------------------------------------------------ */
 void CArmour::DisableHud(const char *Attr)
 {
@@ -141,8 +140,9 @@ void CArmour::DisableHud(const char *Attr)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AdjustDamage
+// AdjustDamage
 /* ------------------------------------------------------------------------------------ */
 int CArmour::AdjustDamage(int Amount, const char *name, const char *Attr)
 {

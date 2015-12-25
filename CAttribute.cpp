@@ -8,20 +8,17 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CInventory.h"
 #include "CAttribute.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
-// changed QD 06/26/04
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CAttribute::CAttribute() :
 	m_DynamicAttributes(1000),
@@ -33,7 +30,7 @@ CAttribute::CAttribute() :
 
 	if(pSet)
 	{
-		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		// Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -46,9 +43,11 @@ CAttribute::CAttribute() :
 				pSource->szEntityName = szName;
 			}
 
-			pSource->ActorRotation.X = GE_PIOVER180*pSource->ActorRotation.X;
-			pSource->ActorRotation.Y = GE_PIOVER180*pSource->ActorRotation.Y;
-			pSource->ActorRotation.Z = GE_PIOVER180*pSource->ActorRotation.Z;
+			// convert Degrees to Radians
+			pSource->ActorRotation.X = GE_PIOVER180 * pSource->ActorRotation.X;
+			pSource->ActorRotation.Y = GE_PIOVER180 * pSource->ActorRotation.Y;
+			pSource->ActorRotation.Z = GE_PIOVER180 * pSource->ActorRotation.Z;
+
 			pSource->Actor = CCD->ActorManager()->SpawnActor(pSource->szActorName,
 								pSource->origin, pSource->ActorRotation, "", "", NULL);
 
@@ -58,11 +57,10 @@ CAttribute::CAttribute() :
 				sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'\n",
 						__FILE__, __LINE__, pSource->szEntityName, pSource->szActorName);
 				CCD->ReportError(szError, false);
-				// changed QD 07/15/06 - make missing actor not a fatal error
+
 				pSource->alive = GE_FALSE;
 				pSource->ReSpawn = GE_FALSE;
 				continue;
-				// end change
 			}
 
 			CCD->ActorManager()->RemoveActor(pSource->Actor);
@@ -72,13 +70,12 @@ CAttribute::CAttribute() :
 		}
 	}
 
-// changed RF063
 	// ModifyAttribute
 	pSet = geWorld_GetEntitySet(CCD->World(), "ModifyAttribute");
 
 	if(pSet)
 	{
-		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		// Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -86,8 +83,8 @@ CAttribute::CAttribute() :
 			pSource->active = GE_FALSE;
 		}
 	}
-// end change RF063
 }
+
 
 bool CAttribute::InitAttribute(Attribute *pAttribute)
 {
@@ -127,6 +124,7 @@ bool CAttribute::InitAttribute(Attribute *pAttribute)
 	return true;
 }
 
+
 void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 {
 	char DefaultName[128];
@@ -137,9 +135,9 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 		++m_DynamicAttributes;
 	}
 
-	pAttribute->ActorRotation.X = GE_PIOVER180*pAttribute->ActorRotation.X;
-	pAttribute->ActorRotation.Y = GE_PIOVER180*pAttribute->ActorRotation.Y;
-	pAttribute->ActorRotation.Z = GE_PIOVER180*pAttribute->ActorRotation.Z;
+	pAttribute->ActorRotation.X = GE_PIOVER180 * pAttribute->ActorRotation.X;
+	pAttribute->ActorRotation.Y = GE_PIOVER180 * pAttribute->ActorRotation.Y;
+	pAttribute->ActorRotation.Z = GE_PIOVER180 * pAttribute->ActorRotation.Z;
 
 	if(InitAttribute(pAttribute))
 	{
@@ -156,8 +154,9 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CAttribute::~CAttribute()
 {
@@ -168,7 +167,7 @@ CAttribute::~CAttribute()
 	{
 		geEntity *pEntity;
 
-		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		// Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity= geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -197,7 +196,7 @@ void CAttribute::Tick(geFloat dwTicks)
 
 	if(pSet)
 	{
-		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		// Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -242,11 +241,8 @@ void CAttribute::Tick(geFloat dwTicks)
 
 			pSource->origin = pSource->OriginOffset;
 
-// changed QD 08/14/03
-// fixed: attribute following another entity
 			if(SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin)))
 				CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
-// end change 08/14/03
 
 			if(!EffectC_IsStringNull(pSource->TriggerName))
 			{
@@ -254,43 +250,49 @@ void CAttribute::Tick(geFloat dwTicks)
 				{
 					if(pSource->active == GE_FALSE)
 					{
-						pSource->Actor = CCD->ActorManager()->SpawnActor(pSource->szActorName,
-								pSource->origin, pSource->ActorRotation, "", "", NULL);//pSource->Actor);
+						pSource->Actor = CCD->ActorManager()->SpawnActor(	pSource->szActorName,
+																			pSource->origin,
+																			pSource->ActorRotation,
+																			"", "", NULL);
+
 						CCD->ActorManager()->SetType(pSource->Actor, ENTITY_ATTRIBUTE_MOD);
-// changed Nout 12/15/05
+
 						CCD->ActorManager()->SetEntityName(pSource->Actor, pSource->szEntityName);
-// end change
+
 						CCD->ActorManager()->SetScale(pSource->Actor, pSource->Scale);
 						CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 						if(pSource->Gravity)
 							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-// changed QD 07/21/04
-//						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
-						CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor,
-							pSource->AmbientColor, pSource->AmbientLightFromFloor);
-// end change
+
+						CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
+																		pSource->FillColor,
+																		pSource->AmbientColor,
+																		pSource->AmbientLightFromFloor);
+
 						CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
-// changed QD 06/26/04
+
 						if(pSource->ShadowAlpha > 0.0f)
 							CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
 
 						if(!EffectC_IsStringNull(pSource->ShadowBitmap))
 							CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
-// end change
-// changed QD Shadows
+
 						CCD->ActorManager()->SetProjectedShadows(pSource->Actor, pSource->UseProjectedShadows);
 						CCD->ActorManager()->SetStencilShadows(pSource->Actor, pSource->UseStencilShadows);
-// end change
-// changed RF064
+
 						CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 
 						if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 							CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
 
 						if(pSource->EnvironmentMapping)
-							SetEnvironmentMapping(pSource->Actor, true, pSource->AllMaterial, pSource->PercentMapping, pSource->PercentMaterial);
-// end change RF064
+							SetEnvironmentMapping(	pSource->Actor,
+													true,
+													pSource->AllMaterial,
+													pSource->PercentMapping,
+													pSource->PercentMaterial);
+
 						pSource->active = GE_TRUE;
 						pSource->bState = GE_TRUE;
 					}
@@ -311,43 +313,49 @@ void CAttribute::Tick(geFloat dwTicks)
 			{
 				if(pSource->active == GE_FALSE)
 				{
-					pSource->Actor = CCD->ActorManager()->SpawnActor(pSource->szActorName,
-							pSource->origin, pSource->ActorRotation, "", "", NULL);//pSource->Actor);
+					pSource->Actor = CCD->ActorManager()->SpawnActor(	pSource->szActorName,
+																		pSource->origin,
+																		pSource->ActorRotation,
+																		"", "", NULL);
+
 					CCD->ActorManager()->SetType(pSource->Actor, ENTITY_ATTRIBUTE_MOD);
-// changed Nout 12/15/05
+
 					CCD->ActorManager()->SetEntityName(pSource->Actor, pSource->szEntityName);
-// end change
+
 					CCD->ActorManager()->SetScale(pSource->Actor, pSource->Scale);
 					CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 					if(pSource->Gravity)
 						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-// changed QD 07/21/04
-					// CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
-					CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor,
-							pSource->AmbientColor, pSource->AmbientLightFromFloor);
-// end change
+
+					CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
+																	pSource->FillColor,
+																	pSource->AmbientColor,
+																	pSource->AmbientLightFromFloor);
+
 					CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
-// changed QD 06/26/04
+
 					if(pSource->ShadowAlpha > 0.0f)
 						CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
 
 					if(!EffectC_IsStringNull(pSource->ShadowBitmap))
 						CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
-// end change
-// changed QD Shadows
+
 					CCD->ActorManager()->SetProjectedShadows(pSource->Actor, pSource->UseProjectedShadows);
 					CCD->ActorManager()->SetStencilShadows(pSource->Actor, pSource->UseStencilShadows);
-// end change
-// changed RF064
+
 					CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 
 					if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 						CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
 
 					if(pSource->EnvironmentMapping)
-						SetEnvironmentMapping(pSource->Actor, true, pSource->AllMaterial, pSource->PercentMapping, pSource->PercentMaterial);
-// end change RF064
+						SetEnvironmentMapping(	pSource->Actor,
+												true,
+												pSource->AllMaterial,
+												pSource->PercentMapping,
+												pSource->PercentMaterial);
+
 					pSource->active = GE_TRUE;
 					pSource->bState = GE_TRUE;
 				}
@@ -355,13 +363,12 @@ void CAttribute::Tick(geFloat dwTicks)
 		}
 	}
 
-// changed RF063
 	// ModifyAttribute
 	pSet = geWorld_GetEntitySet(CCD->World(), "ModifyAttribute");
 
 	if(pSet)
 	{
-		//	Ok, we have Attributes somewhere.  Dig through 'em all.
+		// Ok, we have Attributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -377,7 +384,6 @@ void CAttribute::Tick(geFloat dwTicks)
 
 						if(theInv->Has(pSource->Attribute))
 						{
-							// changed QD 12/15/05
 							if(pSource->PowerUp)
 							{
 								int NewHighLimit = theInv->High(pSource->Attribute) + pSource->Amount;
@@ -394,9 +400,8 @@ void CAttribute::Tick(geFloat dwTicks)
 								else
 									theInv->Modify(pSource->Attribute, pSource->Amount);
 							}
-							// end change
-							pSource->active = GE_TRUE;
 
+							pSource->active = GE_TRUE;
 						}
 					}
 				}
@@ -407,15 +412,13 @@ void CAttribute::Tick(geFloat dwTicks)
 			}
 		}
 	}
-// end change RF063
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 /* ------------------------------------------------------------------------------------ */
-// changed QD 08/13/03 added UseKey
 bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKey)
-// end change 08/13/03
 {
 	// Ok, check to see if there are Attributes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
@@ -425,31 +428,26 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 
 	geEntity *pEntity;
 
-	//	Ok, we have Attributes somewhere.  Dig through 'em all.
+	// Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
 		if(pSource->Actor != pActor)
-			continue;	  // Not this one, keep looking
+			continue;		// Not this one, keep looking
 
-// changed RF063
-		if(pSource->PlayerOnly && theTarget!=CCD->Player()->GetActor())
+		if(pSource->PlayerOnly && theTarget != CCD->Player()->GetActor())
 			return false;
-// end change RF063
 
 		if(pSource->active == GE_FALSE)
 			continue;
 
-// changed RF063
-// changed QD 08/13/03
 		if(pSource->UseKey && !UseKey)
 			continue;
 
 		if(UseKey && !pSource->UseKey)
 			return false;
-// end change 08/13/03
 
 		bool flag = false;
 
@@ -459,7 +457,6 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 		{
 			if(theInv->Has(pSource->AttributeName))
 			{
-				// changed QD 12/15/05
 				if(pSource->PowerUp)
 				{
 					int NewHighLimit = theInv->High(pSource->AttributeName) + pSource->AttributeAmount;
@@ -473,8 +470,8 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 				}
 				else
 				{
-					if(theInv->Value(pSource->AttributeName) < theInv->High(pSource->AttributeName)
-						|| pSource->AttributeAmount < 0)
+					if(theInv->Value(pSource->AttributeName) < theInv->High(pSource->AttributeName) ||
+						pSource->AttributeAmount < 0)
 					{
 						if(pSource->SetMaximumAmount)
 							theInv->Set(pSource->AttributeName, theInv->High(pSource->AttributeName));
@@ -483,9 +480,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 
 						flag = true;
 					}
-
 				}
-				// end change
 			}
 		}
 
@@ -495,7 +490,6 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 			{
 				if(theInv->Has(pSource->AttributeAltName))
 				{
-					// changed QD 12/15/05
 					if(pSource->PowerUp)
 					{
 						int NewHighLimit = theInv->High(pSource->AttributeAltName) + pSource->AttributeAltAmount;
@@ -509,8 +503,8 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 					}
 					else
 					{
-						if(theInv->Value(pSource->AttributeAltName) < theInv->High(pSource->AttributeAltName)
-							|| pSource->AttributeAltAmount < 0)
+						if(theInv->Value(pSource->AttributeAltName) < theInv->High(pSource->AttributeAltName) ||
+							pSource->AttributeAltAmount < 0)
 						{
 							if(pSource->SetMaximumAmount)
 								theInv->Set(pSource->AttributeAltName, theInv->High(pSource->AttributeAltName));
@@ -520,7 +514,6 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 							flag = true;
 						}
 					}
-					// end change
 				}
 			}
 		}
@@ -553,17 +546,15 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 
 			return true;
 		}
-// end change RF063
 	}
 
 	return false;
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save Attributes to a supplied file
+// Save Attributes to a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::SaveTo(FILE *SaveFD, bool type)
 {
@@ -575,7 +566,7 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have Attributes somewhere.  Dig through 'em all.
+	// Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity && pEntity!=m_DynamicAttribute1;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -593,9 +584,9 @@ int CAttribute::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore Attributes from a supplied file
+// Restore Attributes from a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -607,68 +598,67 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have Attributes somewhere.  Dig through 'em all.
+	// Ok, we have Attributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Attribute *pSource = static_cast<Attribute*>(geEntity_GetUserData(pEntity));
 
-		READDATA(type, &(pSource->alive),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(type, &(pSource->active),		sizeof(geBoolean),	1, RestoreFD);
-		READDATA(type, &(pSource->Tick),		sizeof(geFloat),	1, RestoreFD);
-		READDATA(type, &(pSource->CallBack),	sizeof(geBoolean),	1, RestoreFD);
-		READDATA(type, &(pSource->CallBackCount), sizeof(int),		1, RestoreFD);
-		READDATA(type, &(pSource->bState),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->alive),			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->active),			sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->Tick),			sizeof(geFloat),	1, RestoreFD);
+		READDATA(type, &(pSource->CallBack),		sizeof(geBoolean),	1, RestoreFD);
+		READDATA(type, &(pSource->CallBackCount),	sizeof(int),		1, RestoreFD);
+		READDATA(type, &(pSource->bState),			sizeof(geBoolean),	1, RestoreFD);
 
-// changed RF064
 		if(pSource->active == GE_TRUE)
 		{
-			pSource->Actor = CCD->ActorManager()->SpawnActor(pSource->szActorName,
-				pSource->origin, pSource->ActorRotation, "", "", NULL);//pSource->Actor);
+			pSource->Actor = CCD->ActorManager()->SpawnActor(	pSource->szActorName,
+																pSource->origin,
+																pSource->ActorRotation,
+																"", "", NULL);
+
 			CCD->ActorManager()->SetType(pSource->Actor, ENTITY_ATTRIBUTE_MOD);
-// changed Nout 12/15/05
+
 			CCD->ActorManager()->SetEntityName(pSource->Actor, pSource->szEntityName);
-// end change
+
 			CCD->ActorManager()->SetScale(pSource->Actor, pSource->Scale);
 			CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 			if(pSource->Gravity)
 				CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
-// changed QD 07/21/04
-			// CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor, pSource->AmbientColor);
-			CCD->ActorManager()->SetActorDynamicLighting(pSource->Actor, pSource->FillColor,
-							pSource->AmbientColor, pSource->AmbientLightFromFloor);
-// end change
+
+			CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
+															pSource->FillColor,
+															pSource->AmbientColor,
+															pSource->AmbientLightFromFloor);
 
 			CCD->ActorManager()->SetShadow(pSource->Actor, pSource->ShadowSize);
 
-// changed QD 06/26/04
 			if(pSource->ShadowAlpha > 0.0f)
 				CCD->ActorManager()->SetShadowAlpha(pSource->Actor, pSource->ShadowAlpha);
 
 			if(!EffectC_IsStringNull(pSource->ShadowBitmap))
 				CCD->ActorManager()->SetShadowBitmap(pSource->Actor, pSource->Bitmap);
-// end change
 
 			CCD->ActorManager()->SetHideRadar(pSource->Actor, pSource->HideFromRadar);
 
 			if(!EffectC_IsStringNull(pSource->ChangeMaterial))
 				CCD->ActorManager()->ChangeMaterial(pSource->Actor, pSource->ChangeMaterial);
 		}
-// end change RF064
 	}
 
 	return RGF_SUCCESS;
 }
-// end change RF063
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -676,11 +666,11 @@ int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Attribute");
 
 	if(!pSet)
-		return RGF_NOT_FOUND;							// No static entity proxies
+		return RGF_NOT_FOUND;							// No Attribute entities
 
 	geEntity *pEntity;
 
-	//	Ok, we have static entity proxies.  Dig through 'em all.
+	// Ok, we have Attribute entities.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -696,11 +686,12 @@ int CAttribute::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CAttribute::ReSynchronize()
 {

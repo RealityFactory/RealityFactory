@@ -14,7 +14,7 @@
 #include "CActMaterial.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CActMaterial::CActMaterial()
 {
@@ -57,48 +57,37 @@ CActMaterial::CActMaterial()
 			sprintf(szError,"[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 					__FILE__, __LINE__, pMaterial->szEntityName, pMaterial->EntityName);
 			CCD->ReportError(szError, false);
-			// changed QD 07/15/06 - make missing actor not a fatal error
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "ActMaterial", MB_OK);
-			exit(-333);
-			*/
-			// end change
 		}
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CActMaterial::~CActMaterial()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CActMaterial::Tick(geFloat dwTicks)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ActMaterial");
 
 	if(!pSet)
-		return;         //	Not on this level.
+		return;			// Not on this level.
 
 	geEntity *pEntity;
 
-	// Ok, we have ActorMaterial entities somewhere. Dig through 'em all.
+	// Ok, we have ActMaterial entities somewhere. Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06 - make missing actor not a fatal error
 		if(pMaterial->Actor == NULL)
 			continue;
-		// end change
 
 		if(EffectC_IsStringNull(pMaterial->ChangeMaterial))
 			continue;
@@ -152,11 +141,11 @@ void CActMaterial::Tick(geFloat dwTicks)
 					break;
 				case 4:
 					if(pMaterial->CurMat < (pMaterial->MaterialCount-1))
-						pMaterial->CurMat +=1;
+						pMaterial->CurMat += 1;
 					break;
 				default:
 					pMaterial->CurMat +=1;
-					if(pMaterial->CurMat>=pMaterial->MaterialCount)
+					if(pMaterial->CurMat >= pMaterial->MaterialCount)
 						pMaterial->CurMat = 0;
 					break;
 				}
@@ -184,9 +173,9 @@ void CActMaterial::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every ActMaterial in the current world off to an open file.
+// Save the current state of every ActMaterial in the current world off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 {
@@ -200,7 +189,7 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 
 	// Ok, we have ActMaterial entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 
@@ -213,9 +202,9 @@ int CActMaterial::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every ActMaterial in the current world from an	open file.
+// Restore the state of every ActMaterial in the current world from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -227,9 +216,9 @@ int CActMaterial::RestoreFrom(FILE *RestoreFD, bool type)
 
 	geEntity *pEntity;
 
-	// Ok, we have logic gates somewhere.  Dig through 'em all.
+	// Ok, we have ActMaterial entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ActMaterial *pMaterial = static_cast<ActMaterial*>(geEntity_GetUserData(pEntity));
 

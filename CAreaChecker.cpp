@@ -10,22 +10,23 @@
 #include "CAreaChecker.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CAreaChecker::CAreaChecker()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CAreaChecker::~CAreaChecker()
 {
 }
 
-// changed QD 12/15/05
+
 /* ------------------------------------------------------------------------------------ */
-//	IsCloseEnough
+// IsCloseEnough
 /* ------------------------------------------------------------------------------------ */
 bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float diameter)
 {
@@ -35,17 +36,17 @@ bool CAreaChecker::IsCloseEnough(const geVec3d &Pos1, const geVec3d &Pos2, float
 
 	return (geVec3d_LengthSquared(&B) < diameter*diameter);
 }
-// end change
+
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
-void CAreaChecker::Tick(geFloat dwTicks)
+void CAreaChecker::Tick(geFloat /*dwTicks*/)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "AreaSwitch");
 
 	if(!pSet)
-	    return;
+		return;
 
 	geEntity *pEntity;
 	geVec3d cPos;

@@ -1,11 +1,11 @@
 /************************************************************************************//**
  * @file CActMaterial.h
- * @author Ralph Deane
- * @author Daniel Queteschiner
  * @brief CActMaterial handler
  *
  * This file contains the class implementation for the
- * CActMaterial enitity  for RGF-based games.
+ * CActMaterial entity for RGF-based games.
+ * @author Ralph Deane
+ * @author Daniel Queteschiner
  *//*
  * Copyright (c) 2002 Ralph Deane; All rights reserved.
  ****************************************************************************************/
