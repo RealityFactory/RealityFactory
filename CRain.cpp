@@ -74,9 +74,9 @@ CRain::CRain()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Create
+//	Create Spray Effect
 /* ------------------------------------------------------------------------------------ */
-int CRain::Create(Rain *R)
+int CRain::CreateSpray(Rain *R)
 {
     Spray Sp;
 
@@ -163,7 +163,7 @@ void CRain::Tick(geFloat dwTicks)
 				if(R->active == GE_FALSE)
 				{
 					for(int i=0; i<R->EffectCount; ++i)
-						R->EffectList[i] = Create(R);
+						R->EffectList[i] = CreateSpray(R);
 
 					R->active = GE_TRUE;
 				}
@@ -184,7 +184,7 @@ void CRain::Tick(geFloat dwTicks)
 			if(R->active == GE_FALSE)
 			{
 				for(int i=0; i<R->EffectCount; ++i)
-					R->EffectList[i] = Create(R);
+					R->EffectList[i] = CreateSpray(R);
 
 				R->active = GE_TRUE;
 			}

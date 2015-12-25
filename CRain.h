@@ -21,7 +21,6 @@ public:
 	CRain();
 	~CRain();
 
-	int Create(Rain *R);
 	void Tick(geFloat dwTicks);
 
 	/**
@@ -35,6 +34,9 @@ public:
 	 * lost when outside the game loop (typically in "menu mode").
 	 */
 	int ReSynchronize();
+
+private:
+	int CreateSpray(Rain *R);
 };
 
 #endif
