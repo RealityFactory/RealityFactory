@@ -20,6 +20,20 @@
 
 typedef CHashTable<long> CLongHashTable;
 // end change scripting
+class CPlayer;
+class CActorManager;
+class CModelManager;
+class CWeapon;
+class CEntityRegistry;
+class EffManager;
+class CPreEffect;
+class CArmour;
+class CAudioManager;
+class CCDAudio;
+class CHeadsUpDisplay;
+class CMIDIAudio;
+class CPolyShadow;
+class qxTerrainMgr;
 
 /**
  * @brief Global Data Pool class

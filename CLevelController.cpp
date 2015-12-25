@@ -11,7 +11,15 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CHeadsUpDisplay.h"
+#include "CInventory.h"
 
+#include "C3DAudioSource.h"
+#include "CAutoDoors.h"
+#include "CFixedCamera.h"
+#include "CMovingPlatforms.h"
+#include "CTriggers.h"
+#include "CWallDecal.h"
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"

@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 // changed Nout 12/15/05

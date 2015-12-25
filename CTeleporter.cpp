@@ -9,6 +9,8 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CPathFollower.h"
+#include "CTeleporter.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

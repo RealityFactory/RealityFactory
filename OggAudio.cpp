@@ -4,7 +4,12 @@
  * @author Torok Edwin
  ****************************************************************************************/
 
+#include <dsound.h>
+#include <genesis.h>
+#include "RGFStatus.h"
+#include "RGFConstants.h"
 #include "RabidFramework.h"
+#include "OggAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	OggAudio

@@ -14,6 +14,8 @@
 
 //	* Local defines, constants
 
+class OggAudio;
+class CMp3Manager;
 const int kBufferSize = 48000*4;
 
 /**

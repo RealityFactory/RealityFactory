@@ -10,6 +10,31 @@
 // start multiplayer
 #include "HawkNL\\nl.h"
 // end multiplayer
+#include "IniFile.h"
+#include "Mixer.h"
+#include "CHeadsUpDisplay.h"
+#include "CInventory.h"
+#include "CCDAudio.h"
+#include "CMIDIAudio.h"
+
+#include "Qx\\qxTerrainMgr.h"
+#include "CActMaterial.h"
+#include "CAttribute.h"
+#include "CAutoDoors.h"
+#include "CChange.h"
+#include "CChangeLevel.h"
+#include "CCountDown.h"
+#include "CDamage.h"
+#include "CElectric.h"
+#include "CLogic.h"
+#include "CMessage.h"
+#include "CMorphingFields.h"
+#include "CMovingPlatforms.h"
+#include "CSoundtrackToggle.h"
+#include "CStaticEntity.h"
+#include "CStaticMesh.h"
+#include "CTeleporter.h"
+#include "CTriggers.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);

@@ -11,6 +11,7 @@
 
 //	Include the One True Header File
 #include "RabidFramework.h"
+#include "CParticleSystem.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,

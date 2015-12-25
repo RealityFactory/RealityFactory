@@ -12,6 +12,15 @@
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CAttribute.h"
+#include "CAutoDoors.h"
+#include "CChangeLevel.h"
+#include "CMovingPlatforms.h"
+#include "CPathFollower.h"
+#include "CStaticEntity.h"
+#include "CStaticMesh.h"
+#include "CTeleporter.h"
+#include "CTriggers.h"
 
 static int kCollideFlags;
 

@@ -11,6 +11,7 @@
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CVideoTexture.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	CVideoTexture

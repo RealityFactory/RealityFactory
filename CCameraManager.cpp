@@ -8,7 +8,12 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"				// The One True Include File
+#include "IniFile.h"
 // changed RF063
+#include "CFixedCamera.h"
+#include "CLiquid.h"
+#include "COverlay.h"
+#include "CStaticMesh.h"
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 

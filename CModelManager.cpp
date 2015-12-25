@@ -8,6 +8,9 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"		// The One True Include File
+#include "CAutoDoors.h"
+#include "CDamage.h"
+#include "CTriggers.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 extern geSound_Def *SPool_Sound(const char *SName);  //MOD010122 - Added to handle SOUND events

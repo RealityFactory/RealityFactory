@@ -16,6 +16,9 @@
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
+#include "RGFStatus.h"
+#include "CEntityRegistry.h"
+#include "CPersistentAttributes.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

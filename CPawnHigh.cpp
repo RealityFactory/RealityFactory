@@ -12,6 +12,10 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "RGFScriptMethods.h"
+#include "CHeadsUpDisplay.h"
+#include "CInventory.h"
+#include "CScriptPoint.h"
+#include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

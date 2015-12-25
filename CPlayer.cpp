@@ -12,6 +12,25 @@
 
 // You only need the one, master include file.
 #include "RabidFramework.h"
+#include "IniFile.h"
+#include "CArmour.h"
+#include "CHeadsUpDisplay.h"
+#include "CCDAudio.h"
+#include "CMIDIAudio.h"
+
+#include "CInventory.h"
+
+#include "CAttribute.h"
+#include "CAutoDoors.h"
+#include "CChange.h"
+#include "CChangeLevel.h"
+#include "CDamage.h"
+#include "CFixedCamera.h"
+#include "CFlipBook.h"
+#include "CLiftBelt.h"
+#include "CMovingPlatforms.h"
+#include "CStaticEntity.h"
+#include "CTriggers.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 extern geSound_Def *SPool_Sound(const char *SName);

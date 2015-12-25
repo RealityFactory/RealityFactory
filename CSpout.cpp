@@ -5,6 +5,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CSpout.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);

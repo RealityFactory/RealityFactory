@@ -11,6 +11,8 @@
 #ifndef __RGF_CENTITYREGISTRY_H_
 #define __RGF_CENTITYREGISTRY_H_
 
+class CPersistentAttributes;
+
 /**
  * @brief Entity name and type registry
  *

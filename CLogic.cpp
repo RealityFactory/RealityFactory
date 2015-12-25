@@ -11,6 +11,8 @@
 // Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CHeadsUpDisplay.h"
+#include "CLogic.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

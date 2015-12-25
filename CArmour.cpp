@@ -7,6 +7,10 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "IniFile.h"
+#include "CArmour.h"
+#include "CHeadsUpDisplay.h"
+#include "CInventory.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

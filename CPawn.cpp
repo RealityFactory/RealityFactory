@@ -8,6 +8,9 @@
 
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "IniFile.h"
+#include "CScriptPoint.h"
+#include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 // changed QD 06/26/04

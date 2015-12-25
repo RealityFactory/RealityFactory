@@ -11,6 +11,9 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CCDAudio.h"
+#include "CMIDIAudio.h"
+#include "CSoundtrackToggle.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

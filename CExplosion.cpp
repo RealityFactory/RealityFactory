@@ -12,6 +12,8 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "IniFile.h"
+#include "CDamage.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

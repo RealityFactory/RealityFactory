@@ -11,6 +11,8 @@
 
 // As always, we include the One True Header File
 #include "RabidFramework.h"
+#include "OggAudio.h"
+#include "CMp3.h"
 
 //	************************ BEGIN IMPLEMENTATION ***************************
 

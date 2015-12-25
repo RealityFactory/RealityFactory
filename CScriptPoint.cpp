@@ -5,6 +5,7 @@
 
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CScriptPoint.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);

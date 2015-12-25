@@ -13,6 +13,9 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CDamage.h"
+#include "CPathFollower.h"
+#include "CStaticEntity.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 // changed QD 06/26/04

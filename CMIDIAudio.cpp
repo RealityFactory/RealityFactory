@@ -11,6 +11,7 @@
 
 //	Use the One True Include File
 #include "RabidFramework.h"
+#include "CMIDIAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

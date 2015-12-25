@@ -10,6 +10,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "C3DAudioSource.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

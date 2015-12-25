@@ -12,8 +12,9 @@
  * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
  ****************************************************************************************/
 
-// Include the One True Header
-#include "RabidFramework.h"
+#include <windows.h> // OutputDebugString
+#include <RGFStatus.h>
+#include <CRGFComponent.h>
 
 /* ------------------------------------------------------------------------------------ */
 //	Default constructor

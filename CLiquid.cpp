@@ -10,6 +10,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CLiquid.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,

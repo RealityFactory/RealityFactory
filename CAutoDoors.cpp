@@ -11,6 +11,7 @@
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CAutoDoors.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

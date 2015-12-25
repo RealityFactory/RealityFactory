@@ -8,6 +8,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFlipTree.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);

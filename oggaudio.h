@@ -8,7 +8,7 @@
 #define _OGGAUDIOH_
 
 //	* Local defines, constants
-#include "vorbis/vorbisfile.h"
+#include "vorbis\\vorbisfile.h"
 
 /**
  * @brief OggAudio class

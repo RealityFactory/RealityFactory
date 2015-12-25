@@ -11,6 +11,8 @@
 //	Include the One True Header
 
 #include "RabidFramework.h"
+#include "CInventory.h"
+#include "CChange.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

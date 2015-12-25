@@ -11,6 +11,8 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "IniFile.h"
+#include "CHeadsUpDisplay.h"
 
 // changed RF064
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,

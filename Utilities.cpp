@@ -10,6 +10,18 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CAttribute.h"
+#include "CAutoDoors.h"
+#include "CChangeLevel.h"
+#include "CCountDown.h"
+#include "CDamage.h"
+#include "CElectric.h"
+#include "CLiftBelt.h"
+#include "CLogic.h"
+#include "CPawn.h"
+#include "CStaticEntity.h"
+#include "CTeleporter.h"
+#include "CTriggers.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

@@ -11,6 +11,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "IniFile.h"
 #include <Ram.h>
 
 extern geSound_Def *SPool_Sound(const char *SName);

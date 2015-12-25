@@ -10,6 +10,8 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CInventory.h"
+#include "CAttribute.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);

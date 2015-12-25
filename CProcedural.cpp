@@ -11,6 +11,7 @@
 
 // You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CProcedural.h"
 
 extern Procedural *Water_Create(const char *TextureName, geWorld  *World);
 extern void Water_Destroy(Procedural *Water);

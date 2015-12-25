@@ -11,6 +11,7 @@
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CMovingPlatforms.h"			// Moving platforms subsystem class
 
 extern geSound_Def *SPool_Sound(const char *SName);
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);

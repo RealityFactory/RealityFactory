@@ -22,6 +22,15 @@ extern void CloseFile();
 // end change RF064
 
 // start multiplayer
+#include "IniFile.h"
+#include "CAudioManager.h"
+#include "CCDAudio.h"
+#include "CMIDIAudio.h"
+#include "CHeadsUpDisplay.h"
+#include "CInventory.h"
+#include "CArmour.h"
+#include "CPolyShadow.h"
+#include "Qx\\qxTerrainMgr.h"
 #include "HawkNL\\nl.h"
 // end multiplayer
 

@@ -21,6 +21,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CMorph.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);

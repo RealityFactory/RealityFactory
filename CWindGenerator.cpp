@@ -10,6 +10,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CWindGenerator.h"
 
 geFloat geVec3d_GetMaxElement(const geVec3d *V)
 {

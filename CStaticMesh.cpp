@@ -9,6 +9,7 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 #include <body._h>
+#include "CStaticMesh.h"
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
 // changed QD 09/28/2004

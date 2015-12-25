@@ -10,6 +10,11 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CPathDatabase.h"
+#include "CPathFollower.h"
+#include "CMorphingFields.h"
+#include "CStaticEntity.h"
+#include "CTeleporter.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor

@@ -9,6 +9,9 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CInventory.h"
+#include "CArmour.h"
+#include "CDamage.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

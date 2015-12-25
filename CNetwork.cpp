@@ -4,6 +4,15 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CAttribute.h"
+#include "CAutoDoors.h"
+#include "CDamage.h"
+#include "CElectric.h"
+#include "CLogic.h"
+#include "CMovingPlatforms.h"
+#include "CStaticEntity.h"
+#include "CTeleporter.h"
+#include "CTriggers.h"
 
 #include <crtdbg.h>
 #define DEBUG_NW new(_NORMAL_BLOCK, __FILE__, __LINE__)

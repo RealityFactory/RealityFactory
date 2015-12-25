@@ -8,6 +8,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFoliage.h"
 #include <Ram.h>
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,

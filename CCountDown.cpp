@@ -5,6 +5,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CCountDown.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

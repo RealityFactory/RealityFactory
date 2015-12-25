@@ -11,6 +11,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CRain.h"
 
 #define RAINM_RADIUSTOEFFECTRATIO	50
 

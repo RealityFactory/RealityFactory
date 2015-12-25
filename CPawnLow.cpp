@@ -11,11 +11,26 @@
 
 #include "RabidFramework.h"
 #include "RGFScriptMethods.h"
+#include "CHeadsUpDisplay.h"
+#include "CPolyShadow.h"
+#include "CInventory.h"
+
+#include "CDamage.h"
+#include "CFixedCamera.h"
+#include "CFlipBook.h"
+#include "CMovingPlatforms.h"
+#include "CPathFollower.h"
+#include "CScriptPoint.h"
+#include "CTriggers.h"
+#include "CWindGenerator.h"
+
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
 #include "Simkin\\skRuntimeException.h"
 #include "Simkin\\skParseException.h"
+
+#include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 

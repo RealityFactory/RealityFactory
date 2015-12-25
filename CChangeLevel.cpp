@@ -10,6 +10,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CChangeLevel.h"
 
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
