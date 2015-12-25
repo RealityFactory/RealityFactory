@@ -12,35 +12,35 @@
 // You only need the one, master include file.
 #include "RabidFramework.h"
 
-extern Procedural *Water_Create(char *TextureName, geWorld  *World);
+extern Procedural *Water_Create(const char *TextureName, geWorld  *World);
 extern void Water_Destroy(Procedural *Water);
 extern geBoolean Water_Animate(Procedural *Water, geFloat ElapsedTime);
 
-extern Procedural *Smoke_Create(char *TextureName, geWorld  *World, const char *StrParms);
+extern Procedural *Smoke_Create(const char *TextureName, geWorld  *World, const char *StrParms);
 extern void Smoke_Destroy(Procedural *Proc);
 extern geBoolean Smoke_Animate(Procedural *Smoke, geFloat ElapsedTime);
 
-extern Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStart);
+extern Procedural *Fire_Create(const char *TextureName, geWorld  *World, const char *ParmStart);
 extern void Fire_Destroy(Procedural * P);
 extern geBoolean Fire_Animate(Procedural * P,geFloat time);
 
-extern Procedural *ElectricFx_Create(char *TextureName, geWorld  *World, const char *StrParms);
+extern Procedural *ElectricFx_Create(const char *TextureName, geWorld  *World, const char *StrParms);
 extern void	ElectricFx_Destroy(Procedural *Proc);
 extern geBoolean	ElectricFx_Animate(Procedural *Fx, geFloat ElapsedTime);
 
-extern Procedural *Plasma_Create(char *TextureName, geWorld  *World, const char *ParmStart);
+extern Procedural *Plasma_Create(const char *TextureName, geWorld  *World, const char *ParmStart);
 extern void	Plasma_Destroy(Procedural *Proc);
 extern geBoolean Plasma_Animate(Procedural *Plasma, float ElapsedTime);
 
-extern Procedural *BumpMap_Create(char *TextureName, geWorld  *World, const char *ParmStart);
+extern Procedural *BumpMap_Create(const char *TextureName, geWorld  *World, const char *ParmStart);
 extern void	BumpMap_Destroy(Procedural *Proc);
 extern geBoolean BumpMap_Animate(Procedural *BumpMap, geFloat ElapsedTime);
 
-extern Procedural *Flow_Create(char *TextureName, geWorld  *World, const char *ParmStart);
+extern Procedural *Flow_Create(const char *TextureName, geWorld  *World, const char *ParmStart);
 extern void	Flow_Destroy(Procedural *Proc);
 extern geBoolean Flow_Animate(Procedural *BumpMap, geFloat ElapsedTime);
 
-extern Procedural *Particles_Create(char *TextureName, geWorld  *World, const char *InputParams);
+extern Procedural *Particles_Create(const char *TextureName, geWorld  *World, const char *InputParams);
 extern void Particles_Destroy(Procedural * Proc);
 extern geBoolean Particles_Animate(Procedural * Proc,geFloat time);
 

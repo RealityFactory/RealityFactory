@@ -151,7 +151,7 @@ static const char * strbreakers = " ,`\t\n\r\034\009";
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-Procedural* Particles_Create(char *TextureName, geWorld *World, const char *InputParams)
+Procedural* Particles_Create(const char *TextureName, geWorld *World, const char *InputParams)
 {
     Procedural *Proc;
     int i;

@@ -49,7 +49,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural * Proc, double time);
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-Procedural *Plasma_Create(char *TextureName, geWorld *World, const char *ParmStart)
+Procedural *Plasma_Create(const char *TextureName, geWorld *World, const char *ParmStart)
 {
     Procedural *P;
     geBoolean DoAlpha = GE_FALSE;

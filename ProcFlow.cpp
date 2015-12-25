@@ -134,7 +134,7 @@ static geBoolean Flow_CreateColorTable(Procedural *P)	// procedural struct
 //
 //	Create the procedural.
 /* ------------------------------------------------------------------------------------ */
-Procedural * Flow_Create(char *TextureName, geWorld *World, const char *Parameters)
+Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Parameters)
 {
 	Procedural		*P;
 	geBoolean		Result;

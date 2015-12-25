@@ -36,7 +36,7 @@ static void Water_Update(Procedural *Water, geFloat Time);
 /* ------------------------------------------------------------------------------------ */
 //	Water_Create
 /* ------------------------------------------------------------------------------------ */
-Procedural *Water_Create(char *TextureName, geWorld *World)
+Procedural *Water_Create(const char *TextureName, geWorld *World)
 {
 	Procedural *Water;
 

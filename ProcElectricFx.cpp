@@ -95,7 +95,7 @@ static geBoolean	ElectricFx_InitBitmap(Procedural *Fx, geBitmap *ppBitmap);
 /* ------------------------------------------------------------------------------------ */
 //	ElectricFx_Create
 /* ------------------------------------------------------------------------------------ */
-Procedural *ElectricFx_Create(char *TextureName, geWorld  *World, const char *StrParms)
+Procedural *ElectricFx_Create(const char *TextureName, geWorld  *World, const char *StrParms)
 {
 	Procedural	*Proc;
 	geBitmap	*Bitmap;

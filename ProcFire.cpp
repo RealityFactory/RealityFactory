@@ -26,7 +26,7 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc);
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-Procedural *Fire_Create(char *TextureName, geWorld  *World, const char *ParmStart)
+Procedural *Fire_Create(const char *TextureName, geWorld  *World, const char *ParmStart)
 {
 	Procedural	*P;
 	geBitmap	*ppBitmap;

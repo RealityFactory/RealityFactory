@@ -22,7 +22,7 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap, geVec3d *Horizontal,g
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-Procedural *BumpMap_Create(char *TextureName, geWorld  *World, const char *ParmStart)
+Procedural *BumpMap_Create(const char *TextureName, geWorld  *World, const char * /*ParmStart*/)
 {
     Procedural	*P;
     geBitmap	*HeightMap;

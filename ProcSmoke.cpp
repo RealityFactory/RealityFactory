@@ -72,7 +72,7 @@ static geBoolean Smoke_InitPalette(Procedural *Proc);
 /* ------------------------------------------------------------------------------------ */
 //	Smoke_Create
 /* ------------------------------------------------------------------------------------ */
-Procedural *Smoke_Create(char *TextureName, geWorld *World, const char *StrParms)
+Procedural *Smoke_Create(const char *TextureName, geWorld *World, const char *StrParms)
 {
 	Procedural	*Proc;
 	geBitmap	*Bitmap;
