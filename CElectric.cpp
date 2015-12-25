@@ -274,10 +274,10 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 
 	if(Effect->beInitialized && Effect->beNumPoints > 64)
 	{
-		int		P1;
-		int		P2;
-		int		P3;
-		int		P4;
+		int P1 = 0;
+		int P2 = 0;
+		int P3 = 0;
+		int P4 = 0;
 
 		switch(rand() % 7)
 		{
