@@ -2,7 +2,7 @@
  * @file CChange.cpp
  * @brief ChangeAttribute class
  *
- * This file contains the class implementation for ChangeAttribute	handling.
+ * This file contains the class implementation for ChangeAttribute handling.
  * @author Ralph Deane
  *//*
  * Copyright (c) 2002 Ralph Deane; All rights reserved
@@ -15,7 +15,7 @@
 #include "CChange.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CChangeAttribute::CChangeAttribute() :
 	m_Active(false)
@@ -27,7 +27,7 @@ CChangeAttribute::CChangeAttribute() :
 	{
 		geEntity *pEntity;
 
-		//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
+		// Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -40,14 +40,14 @@ CChangeAttribute::CChangeAttribute() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CChangeAttribute::~CChangeAttribute()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CChangeAttribute::Tick(geFloat dwTicks)
 {
@@ -61,7 +61,7 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 		geEntity *pEntity;
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-		//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
+		// Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
@@ -130,10 +130,10 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every  ChangeAttribute in the current world
-//	..off to an open file.
+// Save the current state of every  ChangeAttribute in the current world
+// ..off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 {
@@ -145,9 +145,9 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
+	// Ok, we have ChangeAttributes somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ChangeAttribute *pSource = static_cast<ChangeAttribute*>(geEntity_GetUserData(pEntity));
 
@@ -162,9 +162,9 @@ int CChangeAttribute::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every ChangeAttribute in the current world from an open file.
+// Restore the state of every ChangeAttribute in the current world from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -186,7 +186,7 @@ int CChangeAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &(pSource->OldState),	sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pSource->Increment),	sizeof(geFloat),	1, RestoreFD);
 		READDATA(type, &(pSource->Total),		sizeof(geFloat),	1, RestoreFD);
-    }
+	}
 
 	return RGF_SUCCESS;
 }

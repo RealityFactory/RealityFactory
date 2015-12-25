@@ -15,11 +15,9 @@
 #define CONSOLEMAXROWS 30
 #define CONSOLEMAXCOLS 80
 
-// start change scripting
 #include "hashtable\\hash_table.h"
 
 typedef CHashTable<long> CLongHashTable;
-// end change scripting
 class CPlayer;
 class CActorManager;
 class CModelManager;
@@ -59,32 +57,25 @@ public:
 
 	bool HandleGameInput();						///< Process MENU commands, etc.
 	bool HandleMenuInput();						///< Process keystrokes in GAME LOOP
-// changed RF063
 	int SaveTo(FILE *SaveFD);
 	int RestoreFrom(FILE *RestoreFD);
 	void Play(const char *szFile, int XPos, int YPos, bool Center);
-// end change RF063
 	int DispatchTick();							///< Send time tick to components
 	bool ProcessLevelChange();					///< Process a level change
 	void RenderComponents();					///< Render all components
 
-	// begin change gekido
-	// new console commands
 	void ConsoleInit (int nMaxRows);					///< initialize console
 	bool ConsoleRender();								///< renders the current buffer to screen
 	bool ConsolePrint(const char *szMsg, bool bBox);	///< print to console
 	bool ShowConsole (bool bConsoleFlag, int nTransition);	// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out transition when showing the console
 	bool ConsoleExec(const char *szMsg, bool bBox);		///< execute console command
 	bool ConsoleClear();								///< clears console
-	// end change gekido
 
-	// start pickles Jul 04
 	void InitJoysticks();
 	void CloseJoysticks();
 	int	 PollJoystickAxis(int jn, int a);
 	bool CheckJoystickButton(int jn, int bn);
 	int  GetNumJoys();
-	// end pickles Jul 04
 
 	skExecutableContext GetskContext();								// change simkin
 	void AddScriptedObject(const char *objectName, skRValue Object);// change simkin
@@ -133,9 +124,7 @@ public:
 	}
 
 	inline CGenesisEngine *Engine()				{ return theGameEngine;			}
-// start multiplayer
 	inline NetPlayerMgr *NetPlayerManager()		{ return theNetPlayerMgr;		}
-// end multiplayer
 	inline geWorld *World()						{ return theGameEngine->World();}
 	inline CInput *Input()						{ return theUserInput;			}
 	inline CPlayer *Player()					{ return thePlayer;				}
@@ -163,7 +152,6 @@ public:
 	inline EffManager *EffectManager()			{ return theEffect;				}
 	inline CRain *RainEffect()					{ return theRain;				}
 	inline CSpout *SpoutEffect()				{ return theSpout;				}
-// changed RF064
 	inline CActorSpout *ActorSpoutEffect()		{ return theActorSpout;			}
 	inline CMorph * Morphs()					{ return theMorph;				}
 	inline CCutScene *CutScenes()				{ return theCutScene;			}
@@ -171,7 +159,6 @@ public:
 	inline qxTerrainMgr *TerrainMgr()			{ return theTerrainMgr;			}
 	inline CArmour *Armours()					{ return theArmour;				}
 	inline CLiftBelt *LiftBelts()				{ return theLiftBelt;			}
-// end change RF064
 	inline CWindGenerator *WindGenerator()		{ return theWindGenerator;		}
 	inline CFloat *FloatEffect()				{ return theFloat;				}
 	inline Chaos *ChaosEffect()					{ return theChaos;				}
@@ -186,12 +173,10 @@ public:
 	inline CTriggers *Triggers()				{ return theTriggers;			}
 	inline CLogic *Logic()						{ return theLogic;				}
 	inline CDamage *Damage()					{ return theDamage;				}
-// changed RF064
 	inline CScriptPoint *ScriptPoints()			{ return theScriptPoints;		}
 	inline CPawn *Pawns()						{ return thePawn;				}
 	inline CCountDown *CountDownTimers()		{ return theCountDownTimer;		}
 	inline CChangeAttribute *ChangeAttributes() { return theChangeAttribute;	}
-// end change RF064
 	inline bool InGameMode()					{ return m_InGameLoop;			}
 	// Time inlines
 	inline DWORD LastElapsedTime_D()			{ return LastTimePassed_D;		}
@@ -217,19 +202,13 @@ public:
 	inline CFirePoint *FirePoints()				{ return theFirePoint;			}
 	inline CDecal *Decals()						{ return theDecal;				}
 	inline CWallDecal *WallDecals()				{ return theWallDecal;			}
-   //Start Aug2003DCS
 	inline CLevelController *LevelControllers() { return theLevelController;	}
-   //End Aug2003DCS
 	inline CFlipBook *FlipBooks()				{ return theFlipBook;			}
-	// start Pickles Jul 04
 	inline CFoliage *Foliage()					{ return theFoliage;			}
 	inline CFlipTree *FlipTree()				{ return theFlipTree;			}
-	// end Pickles Jul 04
-	// start Pickles PWX
 	inline PWXImageManager *PWXImMgr()			{ return thePWXImage;			}
 	inline CPolyShadow *PlyShdw()				{ return thePolyShadow;			}
 	inline CAreaChecker *AreaCheck()			{ return theAreaCheck;			}
-	// end Pickles PWX
 	inline CExplosionInit *Explosions()			{ return theExplosion;			}
 	inline CExplosion *CExplosions()			{ return theCExplosion;			}
 	inline CPreEffect *Effect()					{ return thePreEffect;			}
@@ -246,10 +225,7 @@ public:
 	inline const char *SplashScreen1()			{ return m_SplashScreen1;		}
 	inline const char *SplashAudio1()			{ return m_SplashAudio1;		}
 	inline const char *CutScene1()				{ return m_CutScene1;			}
-// changed QD 12/15/05
 	inline bool GetNSelect()					{ return NSelect;				}
-// end change
-// changed RF063
 	inline bool GetCSelect()					{ return CSelect;				}
 	inline bool GetSaving()						{ return saving;				}
 	inline void SetSaving(bool flag)			{ saving = flag;				}
@@ -258,20 +234,17 @@ public:
 	inline CLiquid *Liquids()					{ return theLiquid;				}
 	inline CDSpotLight *CDSpot()				{ return theCDSpot;				}
 	inline bool GetLogging()					{ return Logging;				}
-// end change RF063
 	inline bool GetPaused()						{ return Paused;				}
 	inline void SetPaused(bool flag)			{ Paused = flag;				}
 	inline float GetAudibleRadius()				{ return kAudibleRadius;		}
 	inline void SetAudibleRadius(float radius)	{ kAudibleRadius = radius;		}
 	inline float GetTicksGoneBy()				{ return dwTicksGoneBy;			}
-// changed RF064
 	inline COverlay *Overlays()					{ return theOverlay;			}
 	inline void SetKeyPaused(bool flag)			{ KeyPaused = flag;				}
 	inline bool GetCDifficult()					{ return CDifficult;			}
 	inline int GetDifficultLevel()				{ return DifficultLevel;		}
 	inline void SetDifficultLevel(int level)	{ DifficultLevel = level;		}
 	inline bool GetCmdLine()					{ return CmdLine;				}
-// end change RF064
 	inline GE_RGBA GetFogColor()				{ return cColor;				}
 	inline bool GetUseEffect()					{ return UseEffect;				}
 	inline const char *NextLevel()				{ return m_NewLevel;			}
@@ -291,14 +264,10 @@ public:
 	inline void SetLanguage(int language)		{ m_Language = language;		}
 	inline float GetLODdistance(int index)		{ return LODdistance[index];	}
 	inline bool GetLODAnimation()				{ return LODAnimation;			}
-// changed Nout 12/15/05
 	inline bool GetMouseControl()				{ return m_MouseControl;		}
 	inline void SetMouseControl(bool flag)		{ m_MouseControl = flag;		}
-// end change
-// changed QD 12/15/05
 	inline bool GetUseDialog()					{ return UseDialog;				}
 	inline const char *GetDefaultPlayerName()	{ return m_PlayerName;			}
-// end change
 
 private:
 	CGenesisEngine		*theGameEngine;		///< Genesis engine class
@@ -331,9 +300,7 @@ private:
 	EffManager			*theEffect;			///< Effects Manager
 	CRain				*theRain;			///< Rain Effect
 	CSpout				*theSpout;			///< Spout Effect
-// changed RF064
 	CActorSpout			*theActorSpout;
-// end change RF064
 	CWindGenerator		*theWindGenerator;
 	CFloat				*theFloat;			///< Floating Effect
 	CFlame				*theFlame;			///< Flame Effect
@@ -357,9 +324,7 @@ private:
 	CAreaChecker		*theAreaCheck;		// PWX
 	CDecal				*theDecal;
 	CWallDecal			*theWallDecal;
-	//Start Aug2003DCS
 	CLevelController	*theLevelController;
-   //End Aug2003DCS
 	CAttribute			*theAttribute;
 	CDamage				*theDamage;
 	CExplosionInit		*theExplosion;
@@ -368,12 +333,9 @@ private:
 	CChangeLevel		*theChangeLevel;
 	CShake				*theShake;
 	CFixedCamera		*theFixedCamera;
-// changed RF063
 	CViewSwitch			*theViewSwitch;
 	CInventory			*theInventory;
 	CLiquid				*theLiquid;
-// end change RF063
-// changed RF064
 	COverlay			*theOverlay;
 	CScriptPoint		*theScriptPoints;
 	CPawn				*thePawn;
@@ -388,7 +350,6 @@ private:
 	CDSpotLight			*theCDSpot;
 	Joystick			*joysticks[4];		// pickles Jul 04
 	float kAudibleRadius;
-// end change RF064
 	// Timekeeping information
 	__int64		PerformanceFrequency;		///< Performance Counter Frequency
 	__int64		LastTimePoll;				///< Last time we polled the time
@@ -398,7 +359,8 @@ private:
 	bool		m_InGameLoop;				///< Game loop/menu loop flag
 	DWORD		m_TotalPlayTime;			///< Total game time, this session
 	int			m_DebugLevel;				///< Internal debug output level
-	//	Level change information
+
+	// Level change information
 	bool		m_ChangeLevel;				///< We hit a level change
 	char		m_NewLevel[256];			///< New level filename from changelevel
 	char		m_SplashScreen[256];		///< Splash screen filename from changelevel
@@ -409,9 +371,7 @@ private:
 	char		m_CutScene1[256];			///< Cut scene to play from changelevel
 	char		m_Message[256];
 	int			m_Font;
-// changed Nout 12/15/05
 	bool		m_MouseControl;				///< use mouse to control player
-// end change
 	geVec3d		m_playerotation;
 	geVec3d		theRotation;
 	geVec3d		Offset;
@@ -421,16 +381,13 @@ private:
 	float		m_defaultdistance, m_cameraX, m_cameraY;
 	geVec3d		theTranslation, theRotate;
 	int			ViewPoint;
-    // changed QD 12/15/05 MAX_WEAPONS = 40
 	int			Slot[40];
     int			CurrentWeapon;
 	bool		Paused;
-// changed RF064
 	bool		KeyPaused;
 	bool		CDifficult;
 	int			DifficultLevel;
 	geFloat		dwTicksGoneBy;
-// end change RF064
 	bool		UseEffect;
 	GE_RGBA		cColor;
 	bool		UseAngle;
@@ -446,19 +403,11 @@ private:
 	char	m_MIDIDirectory[256];			///< MIDI file directory
 	char	m_MenuDirectory[256];			///< menu ini file directory
 	char	m_VirtualFile[256];
-// changed QD 12/15/05
 	char	m_PlayerName[64];
 	bool	NSelect;
-// end change
-// changed RF063
 	bool	CSelect;
-// end change RF063
-// changed QD 12/15/05
 	bool	UseDialog;
-// end change
-// changed QD 07/15/06
 	bool	m_bUseDInput; ///< dinput may conflict with hid.dll on win98, flag to disable
-// end change
 	bool	m_headbob;
 	bool	m_weaponposition;
 	bool	jumpkey;
@@ -466,17 +415,13 @@ private:
 	bool	crouchkey;
 	bool	zoomkey;
 	bool	lightkey;
-// changed RF063
 	bool	loadkey;
 	bool	savekey;
 	bool	saving;
 	bool	usekey;
 	bool	invkey;
-// end change RF063
-// changed RF064
 	bool	dropkey;
 	bool	reloadkey;
-// end change Rf064
 	geVFile *VFS;
 // start multiplayer
 	bool	consolekey;
@@ -485,23 +430,17 @@ private:
 	bool	multiplayer;
 	bool	server;
 // end multiplayer
-// begin change gekido 02.17.2004
-// start console vars
+
 	// current contents of the console
 	char	ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS];
 	int		nCurrentRow;	// what row of the console we're on
-// end console vars
-// end change gekido
-	//change scripting
 	CLongHashTable *MethodHash;
-// changed RF064
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
-	                 DWORD dw1, DWORD dw2);		///< Static timer callback
+						DWORD dw1, DWORD dw2);		///< Static timer callback
 	int		m_nTimerID;
 	__int64 TimeCounter;
 	bool	HasFocus;
 	bool	CmdLine;
-// end change RF064
 	int		m_Language;
 	bool	Logging;
 	float	LODdistance[5];

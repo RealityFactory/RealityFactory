@@ -12,16 +12,10 @@
 #include "RabidFramework.h"
 #include "RGFScriptMethods.h"
 
-// changed RF063
 extern geVFile *PassWord(char *m_VirtualFile, bool encrypt);
 extern void CloseFile();
-// end change RF063
 
-// changed RF064
 #include "Simkin\\skInterpreter.h" // change simkin
-// end change RF064
-
-// start multiplayer
 #include "IniFile.h"
 #include "CAudioManager.h"
 #include "CCDAudio.h"
@@ -32,25 +26,20 @@ extern void CloseFile();
 #include "CPolyShadow.h"
 #include "Qx\\qxTerrainMgr.h"
 #include "HawkNL\\nl.h"
-// end multiplayer
 
 skInterpreter interpreter;
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Initialize all common data pointers, store a pointer to the
-//	..Genesis engine object.
+// Initialize all common data pointers, store a pointer to the
+// ..Genesis engine object.
 /* ------------------------------------------------------------------------------------ */
 CCommonData::CCommonData()
 {
-// changed QD 08/15/06
 	VFS					= NULL;
-// end change QD 08/15/06
 	theGameEngine		= NULL;		// Genesis engine class
-// start multiplayer
 	theNetPlayerMgr		= NULL;
-// end multiplayer
 	theUserInput		= NULL;		// User input class
 	thePlayer			= NULL;		// Player avatar class
 	theAutoDoors		= NULL;		// Automatic doors class
@@ -62,9 +51,7 @@ CCommonData::CCommonData()
 	the3DAudio			= NULL;		// 3D Audio Source class
 	theParticles		= NULL;		// Particle systems handler class
 	theProps			= NULL;		// Static entity handler class
-// changed QD 01/2004
 	theMeshes			= NULL;
-// end change
 	theSTToggles		= NULL;		// Soundtrack toggle handler class
 	theStreams			= NULL;		// Streaming audio handler
 	theVidText			= NULL;		// Video texture handler
@@ -79,7 +66,6 @@ CCommonData::CCommonData()
 	theEffect			= NULL;		// Ralph Deane's Effect Manager
 	theRain				= NULL;		// Ralph Deane's Rain Effect
 	theSpout			= NULL;		// Ralph Deane's Spout Effect
-// changed RF064
 	theActorSpout		= NULL;
 	theMorph			= NULL;
 	theCutScene			= NULL;
@@ -87,7 +73,6 @@ CCommonData::CCommonData()
 	theTerrainMgr		= NULL;
 	theArmour			= NULL;
 	theLiftBelt			= NULL;
-// end change RF064
 	theWindGenerator	= NULL;
 	theFloat			= NULL;		// Ralph Deane's Floating Effect
 	theChaos			= NULL;		// Ralph Deane's Chaos Procedural
@@ -111,46 +96,36 @@ CCommonData::CCommonData()
 	theAreaCheck		= NULL;		// PWX
 	theDecal			= NULL;
 	theWallDecal		= NULL;
-//Start Aug2003DCS
    theLevelController	= NULL;
-//End Aug2003DCS
 	theAttribute		= NULL;
 	theDamage			= NULL;
 	theExplosion		= NULL;
 	theCExplosion		= NULL;
 	thePreEffect		= NULL;
-// changed RF064
 	theScriptPoints		= NULL;
 	thePawn				= NULL;
 	theCountDownTimer	= NULL;
 	theChangeAttribute	= NULL;
-// end change RF064
 	theShake			= NULL;
 	theFixedCamera		= NULL;
 	theChangeLevel		= NULL;
-// changed RF063
 	theViewSwitch		= NULL;
 	theInventory		= NULL;
 	theLiquid			= NULL;
 	theCDSpot			= NULL;
-// end change RF063
-// changed RF064
 	theOverlay			= NULL;
 
-	//	skInterpreter::setInterpreter(new skInterpreter);//change simkin
 	srand((unsigned)time(NULL));
-// end change RF064
 
 	FreeImage_Initialise();
 
 	MethodHash = new CLongHashTable(RGF_SM_MAXMETHODS);
 	FillHashMethods();	//change scripting
 
-	//	Initialize game state data
+	// Initialize game state data
 	m_InGameLoop = true;					// We start in the game loop
 	m_TotalPlayTime = 0;					// With no time spent playing
 	m_ChangeLevel = false;					// No level change yet
-	//	m_DebugLevel = kNoDebugOutput;		// Default to NO debug output
 	m_DebugLevel = kHighDebugOutput;		// Default to HIGH debug output
 
 	//	Set up directory defaults
@@ -165,24 +140,18 @@ CCommonData::CCommonData()
 	strcpy(m_VirtualFile,			"Pack.vfs"		);
 	strcpy(m_SplashScreen,			"rflogo.bmp"	);
 	strcpy(m_SplashAudio,			"startup.wav"	);
-// changed JRW 02/20/07
 	strcpy(m_PlayerName,			"Unnamed"		);
-// end change
 
 	m_CutScene[0]		= '\0';
 	m_CutScene1[0]		= '\0';
 	m_SplashScreen1[0]	= '\0';
 	m_SplashAudio1[0]	= '\0';
 
-// changed Nout 12/15/05
 	m_MouseControl		= true;
-// end change
 	m_headbob			= false;
 	m_weaponposition	= false;
-// changed RF064
 	Paused				= false;
 	KeyPaused			= false;
-// end change RF064
 	UseAngle			= true;
 	jumpkey				= false;
 	runkey				= false;
@@ -191,43 +160,29 @@ CCommonData::CCommonData()
 	lightkey			= false;
 	ShowTrack			= false;
 	KeepAttributes		= true;
-// changed RF063
 	CSelect				= false;
-// changed QD 12/15/05
 	NSelect				= false;
 	UseDialog			= false;
-// end change
-// changed QD 07/15/06
 	m_bUseDInput		= true;
-// end change
 	loadkey				= false;
 	savekey				= false;
 	saving				= false;
 	usekey				= false;
 	invkey				= false;
 	HasFocus			= true;
-// end change RF063
-// changed RF064
 	dropkey				= false;
 	reloadkey			= false;
 	CDifficult			= false;
 	DifficultLevel		= 1;
-// end change RF064
-// start multiplayer
 	consolekey			= false;
 	consoleflag			= false;
 	network				= false;
 	if(nlInit())
 		network			= true;
 	multiplayer			= false;
-// end multiplayer
 
-// begin change gekido 02.17.2004
-// begin console vars
 	ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS] = 0;
 	nCurrentRow = 0;	// what row of the console we're on
-// end console vars
-// end change gekido 02.17.2004
 	m_Language = 0;
 	Logging = false;
 
@@ -235,50 +190,37 @@ CCommonData::CCommonData()
 	if(m_DebugLevel == kHighDebugOutput)
 		OutputDebugString("CCommonData initialized\n");
 
-// changed RF064
-	//	Set up for timekeeping
+	// Set up for timekeeping
 	m_nTimerID = timeSetEvent(1, 0,	&TimerFunction, (DWORD)this,
 				TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
 	TimeCounter = LastTimePoll = 0;
 	LastTimePassed_D = 0;
 	LastTimePassed_F = 0;
-// end change RF064
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Just clean up pointers, if needed.
+// Just clean up pointers, if needed.
 /* ------------------------------------------------------------------------------------ */
 CCommonData::~CCommonData()
 {
 	ShutdownLevel();
 	ShutdownCommon();
-// changed RF063
 	geVFile_CloseAPI();
 
 	if(VFS!=NULL)
 	{
 		CloseFile();
 	}
-// end change RF063
 
-// changed RF064
 
-// start change simkin
-	//delete skInterpreter::getInterpreter();
-	//skInterpreter::setInterpreter(0);
-// end change simkin
-
-// end change RF064
 
 	FreeImage_DeInitialise();
 
-// changed QD 08/15/06 - fix memory leaks
 	ClearHashMethods();
-// end change QD 08/15/06
 	SAFE_DELETE(MethodHash);
 
 // start multiplayer
@@ -286,29 +228,25 @@ CCommonData::~CCommonData()
 		nlShutdown();
 // end multiplayer
 
-// changed RF064
 	timeKillEvent(m_nTimerID);
-// end change RF064
 
-// changed QD 12/15/05
 	FILE *fd;
 	if(fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.log", "at"))
 	{
 		fprintf(fd, "Successful Shutdown");
 		fclose(fd);
 	}
-// end change
 
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	InitializeCommon
+// InitializeCommon
 //
-//	This function initializes all the COMMON entities that survive
-//	..between level loads.  These need only be initialized ONCE.
-//	..Note that the engine setup is driven from RealityFactory.INI, if this
-//	..file doesn't exist, the default (640x480, windowed) is used.
+// This function initializes all the COMMON entities that survive
+// ..between level loads.  These need only be initialized ONCE.
+// ..Note that the engine setup is driven from RealityFactory.INI, if this
+// ..file doesn't exist, the default (640x480, windowed) is used.
 /* ------------------------------------------------------------------------------------ */
 int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool CommandLine)
 {
@@ -318,13 +256,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	int nHeight			= 800;		// Default to 800 high
 	int nWidth			= 600;		// Default to 600 wide
 	FILE *fd;						// Used for prefs file
-// changed JRW 02/20/07
 	char szTitle[80]	= "Game";	// Game title
-// end change
 	geFloat fGamma		= 1.5f;
-// changed QD 12/15/05 - turned into member variable
-	// bool UseDialog	= false;
-// end change
 	bool UseCut			= false;
 	bool UseCut1		= false;
 	bool UseSecond		= false;
@@ -332,12 +265,9 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	CmdLine = CommandLine;
 
-// begin change gekido
 	CCD->ConsoleInit(30); // setup our console so we can use it for debugging output
-// end change gekido
 
-	//	Ok, let's see if we have an initialization file, and if so,
-	//	..read it in and parse it.
+	// Ok, let's see if we have an initialization file, and if so, read it in and parse it.
 	if((fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.ini", "rt")) != NULL)
 	{
 		// File there, parse it!
@@ -392,7 +322,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				if(szArg != NULL)
 					strcpy(m_MIDIDirectory, szArg);
 			}
-			// Update #1
 			else if(!stricmp(szAtom, "menu"))
 			{
 				if(szArg != NULL)
@@ -434,7 +363,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				else
 					ShowTrack = false;
 			}
-// changed RF063
 			else if(!stricmp(szAtom, "usecharselect"))
 			{
 				if(!stricmp(szArg, "true"))
@@ -449,7 +377,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				else
 					CDifficult = false;
 			}
-// end change RF063
 			else if(!stricmp(szAtom, "usefirst"))
 			{
 				if(!stricmp(szArg, "true"))
@@ -535,16 +462,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			}
 			else if(!stricmp(szAtom, "renderer"))
 			{
-				// changed QD 02/01/07 - obsolete, always using hardware
-				/*
-				if(szArg != NULL)
-				{
-					if(!stricmp(szArg, "software"))
-						bSoftware = true;
-					else
-						bSoftware = false;
-				}
-				*/
 			}
 			else if(!stricmp(szAtom, "defaultdifficulty"))
 			{
@@ -582,16 +499,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			{
 				if(szArg != NULL)
 				{
-					// changed QD  08/15/06 - software renderer is obsolete
-					/*
-					if(!stricmp(szArg, "windowed"))
-						chTheDriver = 'S';				// Not used, only fullscreen counts
-					// begin change gekido - removed glide support, we don't provide
-					// ..the driver anymore, no point in supporting the renderer as an option
-					//	else if(!stricmp(szArg,"glide"))
-					//		chTheDriver = 'G';				// Use GLIDE in fullscreen
-					else
-					*/
 					if(!stricmp(szArg, "d3d"))
 						chTheDriver = '(';
 					else if(!stricmp(szArg, "d3d16"))
@@ -600,17 +507,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 						chTheDriver = 'O';
 					else if(!stricmp(szArg, "wire"))
 						chTheDriver = 'W';
-					//Dee 07-07-00
 					else if(!stricmp(szArg, "auto"))
 						chTheDriver = 'A';				// Use Auto Detect
-					//End Dee
-					//Dee 12-07-00
 					else if(!stricmp(szArg, "pick"))
 						chTheDriver = 'P';				// Pop a driver pick list
-					//End Dee
 					else
 					{
-						// changed QD 07/15/06
 						ReportError("[WARNING] Bad driver selection in RealityFactory.ini\n", false);
 						chTheDriver = 'P';
 					}
@@ -635,7 +537,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 						m_Language = 4;
 				}
 			}
-// changed QD 12/15/05
 			else if(!stricmp(szAtom, "playername"))
 			{
 				if((szArg != NULL) && (strlen(szArg) > 0))
@@ -653,14 +554,11 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				else
 					NSelect = false;
 			}
-// end change
-// changed QD 07/15/06
 			else if(!stricmp(szAtom, "usedirectinput"))
 			{
 				if(!stricmp(szArg, "false"))
 					m_bUseDInput = false;
 			}
-// end change
 			else
 				ReportError("[WARNING] Unknown command in RealityFactory.ini\n", false);
 		}
@@ -668,9 +566,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		fclose(fd);
 	}
 
-// changed QD 07/15/06 - moved below RF.ini parsing (need value of usedirectinput)
 	CCD->InitJoysticks(); // pickles Jul 04
-// end change
 
 	if(UseFirst)
 	{
@@ -694,23 +590,18 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		m_CutScene1[0] = '\0';
 	}
 
-// changed RF063
 	theGameEngine = new CGenesisEngine(bFullScreen, nWidth, nHeight, szTitle, hInstance,
 										chTheDriver, bSoftware, UseDialog, szStartLevel);
 
 	if(theGameEngine == NULL)
 	{
-		// changed QD 12/15/05
-		//theGameEngine->ReportError("Can't create Genesis3d Graphics engine!\n", true);
 		ReportError("[ERROR] Failed to create Genesis3D Graphics engine!\n", true);
-		// end change
 		return -1;
 	}
 
 	if(m_DebugLevel != kNoDebugOutput)
 		theGameEngine->SetDebugging(true);			// Activate engine debugging
 
-// 08.05.2004 - begin change gekido
 	ReportError("\nInitializing Game Shell...",										false);
 	ReportError("-----------------------------------------------",					false);
 	ReportError("--- Reality Factory "RF_VMAJS"."RF_VMINS"                 ---",	false);
@@ -721,7 +612,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	ReportError("\nParsed RealityFactory.ini file",									false);
 	//	First, initialize the Genesis3D game engine
 	ReportError("\nGenesis3D Initialized", false);
-// 08.05.2004 - end change gekido
 
 	FILE *fdInput = NULL;
 	char szInputString[16];
@@ -729,9 +619,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	if((fdInput = fopen(m_VirtualFile, "rt")) == NULL)
 	{
 		VFS = NULL;
-		// changed Nout 12/15/05
 		ReportError("\n[INFO] No VFS - Reading from Real File System...", false);
-		// end change
 	}
 	else
 	{
@@ -759,11 +647,10 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		theGameEngine->ReportError("[ERROR] Failed to create Camera Manager", false);
 		return -93;
 	}
-// end change RF063
 
 	geEngine_SetGamma(theGameEngine->Engine(), 1.0f);
 
-	//	We have a 3D engine, now initialize the user input subsystem
+	// We have a 3D engine, now initialize the user input subsystem
 	ReportError("Initializing User Input Subsystem...", false);
 	theUserInput = new CInput();
 
@@ -802,9 +689,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		theGameEngine->ReportError("[ERROR] MIDI Player failed to instantiate", false);
 
 	ReportError("Initializing RF Menu Manager Subsystem...", false);
-// changed QD 12/15/05
 	theMenu = new CRFMenu(szStartLevel); // new CRFMenu();
-// end change
 
 	if(theMenu == NULL)
 	{
@@ -832,19 +717,20 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	}
 // end multiplayer
 
-	//	Finally, initialize the AVIFile library.  This is done independent of
-	//	..any AVI-specific classes so that we can guarantee only ONE instance
-	//	..of the library is loaded.
+
+	// Finally, initialize the AVIFile library.  This is done independent of
+	// ..any AVI-specific classes so that we can guarantee only ONE instance
+	// ..of the library is loaded.
 	ReportError("Initializing AVIFile Video Subsystem...", false);
 	AVIFileInit();
 
-	//	Common subsystems initialized, back to caller!
+	// Common subsystems initialized, back to caller!
 	return 0;
 }
 
 // start multiplayer
 /* ------------------------------------------------------------------------------------ */
-//	ShutDownNetWork
+// ShutDownNetWork
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::ShutDownNetWork()
 {
@@ -862,7 +748,7 @@ void CCommonData::ShutDownNetWork()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetMultiPlayer
+// SetMultiPlayer
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::SetMultiPlayer(bool multi, bool Server)
 {
@@ -871,16 +757,13 @@ void CCommonData::SetMultiPlayer(bool multi, bool Server)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetMultiPlayer
+// GetMultiPlayer
 /* ------------------------------------------------------------------------------------ */
 bool CCommonData::GetMultiPlayer()
 {
 	return (multiplayer && CCD->GetNetwork());
 }
-// end multiplayer
 
-// begin change gekido
-// new console commands
 /* ------------------------------------------------------------------------------------ */
 //	ConsoleInit
 /* ------------------------------------------------------------------------------------ */
@@ -938,9 +821,7 @@ bool CCommonData::ConsoleClear()
 	// clears console
 	return false;
 }
-// end change gekido
 
-// change simkin start
 /* ------------------------------------------------------------------------------------ */
 //	GetskContext
 /* ------------------------------------------------------------------------------------ */
@@ -965,11 +846,8 @@ void CCommonData::RemoveScriptedObject(const char *objectName)
 {
 	interpreter.removeGlobalVariable(objectName);
 }
-// change simkin end
 
 
-// 03.04.2004 - begin change gekido
-//	- added extensive logging to the startup and shutdown functions to help debugging
 /* ------------------------------------------------------------------------------------ */
 //	ShutdownCommon
 //
@@ -985,10 +863,8 @@ void CCommonData::ShutdownCommon()
 	//	Clean up all the various subsystems before exiting.  Note that you
 	//	..must delete all the components BEFORE you delete the engine, as
 	//	..the engine is used to free sounds, etc. in many of the components.
-// start multiplayer
 	ReportError("Shutting Down Network Manager Subsystem...", false);
 	SAFE_DELETE(theNetPlayerMgr);
-// end multiplayer
 
 	ReportError("Shutting Down Collision Manager Subsystem...", false);
 	SAFE_DELETE(theCollider);
@@ -1017,9 +893,7 @@ void CCommonData::ShutdownCommon()
 	ReportError("Restoring Mouse Cursor...", false);
 	ShowCursor(TRUE);
 
-// changed Nout 12/15/05
 	m_MouseControl = true;
-// end change
 
 	CloseJoysticks(); // pwx
 
@@ -1064,7 +938,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -30;
 	}
 
-// changed RF064
 	ReportError("Initializing Terrain Manager...", false);
 	theTerrainMgr = new qxTerrainMgr();
 	if(theTerrainMgr == NULL)
@@ -1072,7 +945,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create qxTerrainMgr handler", false);
 		return -26;
 	}
-// end change RF064
 
 	ReportError("Initializing Effects Manager...", false);
 	theEffect = new EffManager();
@@ -1140,14 +1012,12 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 	}
 
 	ReportError("Loading Player Avatar...", false);
-	// changed QD 12/15/05
 	if(thePlayer->LoadAvatar(m_PlayerAvatar, m_PlayerName) != RGF_SUCCESS)
 	{
 		theGameEngine->ReportError("[ERROR] Failed to load player avatar actor!", false);
 		return -5;
 	}
 
-// changed RF064
 	//	Set up the heads-up display (HUD) for the game
 	ReportError("Initializing HUD...", false);
 	theHUD = new CHeadsUpDisplay();
@@ -1156,7 +1026,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create HUD class", false);
 		return -3;
 	}
-// end change RF064
 
 	ReportError("Initializing Damage Subsystem...", false);
 	theDamage = new CDamage();
@@ -1241,18 +1110,14 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -14;
 	}
 
-// changed QD 01/2004
 	//	Load up all the static meshes for the level.
-// begin change gekido
 	ReportError("Initializing Static Mesh Subsystem...", false);
-// end change gekido
 	theMeshes = new CStaticMesh();
 	if(theMeshes == NULL)
 	{
 		theGameEngine->ReportError("[ERROR] Failed to create static mesh handler", false);
 		return -14;
 	}
-// end change QD
 
 	//	Set up soundtrack toggles for the level
 	ReportError("Initializing Soundtrack Toggle Subsystem...", false);
@@ -1351,7 +1216,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -28;
 	}
 
-// changed RF064
 	ReportError("Initializing ActorSpout Effects Manager...", false);
 	theActorSpout = new CActorSpout();
 	if(theActorSpout == NULL)
@@ -1359,7 +1223,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create ActorSpout handler", false);
 		return -28;
 	}
-// end change RF064
 
 	ReportError("Initializing Floating Particle Effects Manager...", false);
 	theFloat = new CFloat();
@@ -1385,7 +1248,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -32;
     }
 
-// changed RF064
 	ReportError("Initializing ScriptPoint Manager Subsystem...", false);
 	theScriptPoints = new CScriptPoint();
 	if(theScriptPoints == NULL)
@@ -1417,7 +1279,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create CountDownTimer handler", false);
 		return -40;
 	}
-// end change RF064
 
 	//	Set up triggers
 	ReportError("Initializing Trigger Manager Subsystem...", false);
@@ -1490,7 +1351,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 	}
 	// pwx
 
-// Start Pickles Jul 04
 	ReportError("Initializing Foliage Manager Subsystem...", false);
 	theFoliage = new CFoliage();
 	if(theFoliage == NULL)
@@ -1506,9 +1366,7 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create Tree handling class", false);
 		return -7;
 	}
-// End Pickles Jul 04
 
-// Start PWX
 	ReportError("Initializing PWXImage Manager Subsystem...", false);
 	thePWXImage = new PWXImageManager();
 	if(thePWXImage == NULL)
@@ -1516,9 +1374,7 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create PWX image handling class", false);
 		return -7;
 	}
-// End PWX
 
-// Start PWX
 	ReportError("Initializing Shadow Manager Subsystem...", false);
 	thePolyShadow = new CPolyShadow();
 	if(thePolyShadow == NULL)
@@ -1526,7 +1382,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create Poly Shadow handling class", false);
 		return -7;
 	}
-// End PWX
 
 	// Decal
 	ReportError("Initializing Decal Manager Subsystem...", false);
@@ -1545,7 +1400,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -7;
 	}
 
-// Start Aug2003DCS
 	ReportError("Initializing LevelController Manager Subsystem...", false);
 	theLevelController = new CLevelController();
 	if(theLevelController == NULL)
@@ -1553,7 +1407,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create LevelController handling class", false);
 		return -7;
 	}
-// End Aug2003DCS
 
 	// Attribute
 	ReportError("Initializing Attribute Manager Subsystem...", false);
@@ -1596,7 +1449,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		return -40;
 	}
 
-// changed RF063
 	ReportError("Initializing ViewSwitch Subsystem...", false);
 	theViewSwitch = new CViewSwitch();
 	if(theViewSwitch == NULL)
@@ -1620,9 +1472,7 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 		theGameEngine->ReportError("[ERROR] Failed to create Liquid handler", false);
 		return -40;
 	}
-// end change RF063
 
-// changed RF064
 	ReportError("Initializing Overlay Subsystem...", false);
 	theOverlay = new COverlay();
 	if(theOverlay == NULL)
@@ -1691,7 +1541,6 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 	theMenu->LoadWBitmap();
 
 	ReportError("Preparing to Launch Game...", false);
-// end change RF064
 
 	//	All level classes up! Let's **PLAY**
 	return 0;
@@ -1705,12 +1554,10 @@ int CCommonData::InitializeLevel(const char *szLevelName)
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::ShutdownLevel()
 {
-// start multiplayer
 	if(theNetPlayerMgr != NULL)
 	{
 		theNetPlayerMgr->DeletePlayers();
 	}
-// end multiplayer
 
 	if(theMenu)
 		theMenu->UnLoadWBitmap();
@@ -1822,19 +1669,13 @@ bool CCommonData::HandleGameInput()
 		return bKeepPlaying;
 
 	frun = flook = fcamera = false;				// Clear modifiers
-// changed RF063
 	bool screen, jump, run, crouch, zoom, light, save, load, use, inv;
 	static int nLoopTimer = timeGetTime();	// Loop timer
-// start multiplayer
 	bool fconsole = false;
-// end multiplayer
-// changed RF064
 	bool fdrop = false;
 	bool freload = false;
-// end change RF064
 	frun = fhud = flook = fcamera = screen = jump = false;				// Clear modifiers
 	run = crouch = zoom = light = save = load = use = inv = false;
-// end change RF063
 
 	// Check for input from the user, building a keystroke queue,
 	nInputEvent = theUserInput->GetFirstInput();
@@ -1889,7 +1730,6 @@ bool CCommonData::HandleGameInput()
 		case RGF_K_LOOKMODE:
 			flook = true;
 			break;
-// changed RF063
 		case RGF_K_USE:
 			use = true;
 			if(!usekey)
@@ -1905,8 +1745,6 @@ bool CCommonData::HandleGameInput()
 				KeyPaused = true;
 			}
 			break;
-// end change RF063
-// start multiplayer
 		case RGF_K_HUD:
 			fconsole = true;
 			if(!consolekey)
@@ -1924,7 +1762,6 @@ bool CCommonData::HandleGameInput()
 				consolekey = true;
 			}
 			break;
-// end multiplayer
 		case RGF_K_JUMP:
 			jump = true;
 			if(!jumpkey)
@@ -1975,7 +1812,6 @@ bool CCommonData::HandleGameInput()
 				zoomkey = true;
 			}
 			break;
-// changed RF064
 		case RGF_K_DROP:
 			fdrop = true;
 			if(!dropkey)
@@ -1998,7 +1834,6 @@ bool CCommonData::HandleGameInput()
 		case RGF_K_POWERDWN:
 			theLiftBelt->ChangeLift(false);
 			break;
-// end change RF064
 		case RGF_K_HOLSTER_WEAPON:
 			theWeapon->Holster();
 			break;
@@ -2086,7 +1921,6 @@ bool CCommonData::HandleGameInput()
 			break;
 		case RGF_K_QUICKSAVE:
 			{
-// changed RF063
 				save = true;
 				if(!savekey)
 				{
@@ -2097,16 +1931,13 @@ bool CCommonData::HandleGameInput()
 						CCD->ReportError("Failed to create savegame file!", false);
 						break;
 					}
-// start multiplayer
 					theGameEngine->SaveTo(outFD);
 					theMenu->SaveTo(outFD, false);
 					thePlayer->SaveTo(outFD);
 					theAutoDoors->SaveTo(outFD, false);
 					thePlatforms->SaveTo(outFD, false);
 					theProps->SaveTo(outFD, false);
-					// changed QD 01/2004
 					theMeshes->SaveTo(outFD, false);
-					// end change
 					theTeleports->SaveTo(outFD, false);
 					theFields->SaveTo(outFD);
 					theMIDIPlayer->SaveTo(outFD);
@@ -2123,18 +1954,15 @@ bool CCommonData::HandleGameInput()
 					theChangeLevel->SaveTo(outFD, false);
 					theActMaterial->SaveTo(outFD, false);
 					theModelManager->SaveTo(outFD, false);
-// end multiplayer
 					SaveTo(outFD);
 					fclose(outFD);
 					savekey = true;
 					saving = true;
 				}
-// end change RF063
 			}
 			break;
 		case RGF_K_QUICKLOAD:
 			{
-// Changed RF063
 				load = true;
 				if(!loadkey)
 				{
@@ -2186,13 +2014,10 @@ bool CCommonData::HandleGameInput()
 					TerrainMgr()->Init(); // Pickles
 					thePlayer->RestoreFrom(inFD);
 					theTerrainMgr->Frame(); // Pickles
-// start multiplayer
 					theAutoDoors->RestoreFrom(inFD, false);
 					thePlatforms->RestoreFrom(inFD, false);
 					theProps->RestoreFrom(inFD, false);
-					// changed QD 01/2004
 					theMeshes->RestoreFrom(inFD, false);
-					// end change
 					theTeleports->RestoreFrom(inFD, false);
 					theFields->RestoreFrom(inFD);
 					theMIDIPlayer->RestoreFrom(inFD);
@@ -2209,12 +2034,10 @@ bool CCommonData::HandleGameInput()
 					theChangeLevel->RestoreFrom(inFD, false);
 					theActMaterial->RestoreFrom(inFD, false);
 					theModelManager->RestoreFrom(inFD, false);
-// end multiplayer
 					RestoreFrom(inFD);
 					fclose(inFD);
 					loadkey = true;
 				}
-// end change RF063
 			}
 			break;
 		default:
@@ -2239,7 +2062,6 @@ bool CCommonData::HandleGameInput()
 	if(!light)
 		lightkey = false;
 
-// changed RF063
 	if(!load)
 		loadkey = false;
 
@@ -2251,18 +2073,13 @@ bool CCommonData::HandleGameInput()
 
 	if(!inv)
 		invkey = false;
-// end change RF063
-// start multiplayer
 	if(!fconsole)
 		consolekey = false;
-// end multiplayer
-// changed RF064
 	if(!fdrop)
 		dropkey = false;
 
 	if(!freload)
 		reloadkey = false;
-// end change RF064
 	if(!zoom)
 	{
 		theCameraManager->SetZoom(false);
@@ -2276,23 +2093,21 @@ bool CCommonData::HandleGameInput()
 
 	thePlayer->CheckKeyLook(keyrotate); // update #2
 
-// changed 12/15/05
 #ifdef _DEBUG
 	   thePlayer->CheckMouseLook();
 #else
 	   if(m_MouseControl)
 		   thePlayer->CheckMouseLook();
 #endif
-// end change
 
 	thePlayer->ProcessMove(bPlayerMoved);
 
 	return bKeepPlaying;
 }
 
-// changed RF063
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 /* ------------------------------------------------------------------------------------ */
 int CCommonData::SaveTo(FILE *SaveFD)
 {
@@ -2311,7 +2126,6 @@ int CCommonData::SaveTo(FILE *SaveFD)
 	fwrite(&UseAngle,			sizeof(bool),		1,		SaveFD);
 	fwrite(&KeepAttributes,		sizeof(bool),		1,		SaveFD);
 	fwrite(&CurrentWeapon,		sizeof(int),		1,		SaveFD);
-	// changed QD 12/15/05 MAX_WEAPONS = 40
 	fwrite(&Slot,				sizeof(int),		40,		SaveFD);
 	fwrite(&theRotation,		sizeof(geVec3d),	1,		SaveFD);
 	fwrite(&theTranslation,		sizeof(geVec3d),	1,		SaveFD);
@@ -2328,15 +2142,13 @@ int CCommonData::SaveTo(FILE *SaveFD)
 	fwrite(&dropkey,			sizeof(bool),		1,		SaveFD);
 	fwrite(&reloadkey,			sizeof(bool),		1,		SaveFD);
 	fwrite(&CSelect,			sizeof(bool),		1,		SaveFD);
-// changed QD 12/15/05
 	fwrite(&NSelect,			sizeof(bool),		1,		SaveFD);
-// end change
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 /* ------------------------------------------------------------------------------------ */
 int CCommonData::RestoreFrom(FILE *RestoreFD)
 {
@@ -2355,7 +2167,6 @@ int CCommonData::RestoreFrom(FILE *RestoreFD)
 	fread(&UseAngle,			sizeof(bool),		1,		RestoreFD);
 	fread(&KeepAttributes,		sizeof(bool),		1,		RestoreFD);
 	fread(&CurrentWeapon,		sizeof(int),		1,		RestoreFD);
-	// changed QD 12/15/05 MAX_WEAPONS = 40
 	fread(&Slot,				sizeof(int),		40,		RestoreFD);
 	fread(&theRotation,			sizeof(geVec3d),	1,		RestoreFD);
 	fread(&theTranslation,		sizeof(geVec3d),	1,		RestoreFD);
@@ -2372,16 +2183,13 @@ int CCommonData::RestoreFrom(FILE *RestoreFD)
 	fread(&dropkey,				sizeof(bool),		1,		RestoreFD);
 	fread(&reloadkey,			sizeof(bool),		1,		RestoreFD);
 	fread(&CSelect,				sizeof(bool),		1,		RestoreFD);
-// changed QD 12/15/05
 	fread(&NSelect,				sizeof(bool),		1,		RestoreFD);
-// end change
 
 	theHUD->LoadConfiguration();
 	theHUD->Activate();
 
 	return RGF_SUCCESS;
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
 //	DispatchTick
@@ -2426,18 +2234,14 @@ int CCommonData::DispatchTick()
 	theWindGenerator->Tick(dwTicksGoneBy);
 
 	//	Ok, deal out time to everyone else.
-// start multiplayer
 	theNetPlayerMgr->Tick(dwTicksGoneBy);
-// end multiplayer
 	theAutoDoors->Tick(dwTicksGoneBy);		// Advance doors, if needed
 	thePlatforms->Tick(dwTicksGoneBy);		// Advance platforms, if needed
 	theTeleports->Tick(dwTicksGoneBy);		// Animate teleporter fields
 	theFields->Tick(dwTicksGoneBy);			// Animate morphing fields
 	theParticles->Tick(dwTicksGoneBy);		// Animate particle systems
 	theProps->Tick(dwTicksGoneBy);			// Animate static models
-	// changed QD 01/2004
 	theMeshes->Tick(dwTicksGoneBy);
-	// end change
 	theStreams->Tick(dwTicksGoneBy);		// Deal with streaming audio proxies
 	theSTToggles->Tick(dwTicksGoneBy);		// Soundtrack toggles dealt with
 	theVidText->Tick(dwTicksGoneBy);		// Video textures dealt with
@@ -2449,11 +2253,9 @@ int CCommonData::DispatchTick()
 	theEffect->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Effects Manager
 	theRain->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Rain Effect
 	theSpout->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Spout Effect
-// changed RF064
 	theActorSpout->Tick(dwTicksGoneBy);
 	theMorph->Tick(dwTicksGoneBy);
 	theActMaterial->Tick(dwTicksGoneBy);
-// end change RF064
 	theFloat->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Float Effect
 	theChaos->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Chaos Procedural
 	theFlame->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Flame Effect
@@ -2462,10 +2264,8 @@ int CCommonData::DispatchTick()
 	theLogic->Tick(dwTicksGoneBy);			// Time to Ralph Deane's Logic
 	theMessage->Tick(dwTicksGoneBy);
 	theDecal->Tick(dwTicksGoneBy);
-// changed RF064
 	theWallDecal->Tick(dwTicksGoneBy);
 	theTerrainMgr->Frame();
-// end change RF064
 	theWeapon->Tick(dwTicksGoneBy);
 	theFirePoint->Tick(dwTicksGoneBy);
 	theFlipBook->Tick(dwTicksGoneBy);
@@ -2475,23 +2275,17 @@ int CCommonData::DispatchTick()
 	theAttribute->Tick(dwTicksGoneBy);
 	theDamage->Tick(dwTicksGoneBy);
 	theCExplosion->Tick(dwTicksGoneBy);
-// changed RF064
 	thePawn->Tick(dwTicksGoneBy);
 	theCountDownTimer->Tick(dwTicksGoneBy);
 	theChangeAttribute->Tick(dwTicksGoneBy);
 	theOverlay->Tick(dwTicksGoneBy);
 	theLiftBelt->Tick(dwTicksGoneBy);
 	theCDSpot->Tick(dwTicksGoneBy);
-// end change RF064
 	theChangeLevel->Tick(dwTicksGoneBy);
 	theShake->Tick(dwTicksGoneBy);
 	theFixedCamera->Tick();
-// changed RF063
 	theViewSwitch->Tick();
-// end change RF063
-// Start Aug2003DCS
    	theLevelController->Tick(dwTicksGoneBy);	// Execute the LevelControllers
-// End Aug2003DCS
 	theCameraManager->Tick(dwTicksGoneBy);
 
 	//	Finally, now that everything has moved, update all audio
@@ -2501,18 +2295,16 @@ int CCommonData::DispatchTick()
 
 	theActorManager->Tick(dwTicksGoneBy);
 	theHUD->Tick(dwTicksGoneBy);
-// changed RF064
 	theCutScene->Tick(dwTicksGoneBy);
-// end change RF064
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProcessLevelChange
+// ProcessLevelChange
 //
-//	Process a level change entity trigger.  This will shut down our
-//	..current level and load the new one!
+// Process a level change entity trigger.  This will shut down our
+// ..current level and load the new one!
 /* ------------------------------------------------------------------------------------ */
 bool CCommonData::ProcessLevelChange()
 {
@@ -2520,14 +2312,13 @@ bool CCommonData::ProcessLevelChange()
 
 	m_ChangeLevel = true;
 
-	//	Kill the current soundtrack.
+	// Kill the current soundtrack.
 	if(theMIDIPlayer)
 		theMIDIPlayer->Stop();		// Shut down MIDI, if any
 
 	if(theCDPlayer)
 		theCDPlayer->Stop();		// Shut down CD Audio, if any
 
-// changed RF063
 	CCD->AudioStreams()->StopAll();
 
 	// Uh-oh, time to change levels!  This is somewhat messy but
@@ -2537,7 +2328,6 @@ bool CCommonData::ProcessLevelChange()
 	if(!EffectC_IsStringNull(m_NewLevel))
 		strcpy(szLevelFile, m_NewLevel);	// Save off before...
 
-	//if(m_DebugLevel == kHighDebugOutput)
 	if(Logging)
 	{
 		char szDebug[512];
@@ -2552,9 +2342,7 @@ bool CCommonData::ProcessLevelChange()
 	//	Check for a cut scene to play..
 	if(!EffectC_IsStringNull(m_CutScene))
 	{
-// changed RF063
 		Play(m_CutScene, 0, 0, true);
-// end change RF063
 	}
 
 	// Numero uno, display the level-changing splash screen.
@@ -2613,10 +2401,8 @@ bool CCommonData::ProcessLevelChange()
 		else
 			theGameEngine->DisplaySplash(m_SplashScreen, m_SplashAudio);
 
-// changed RF064
 		if(EffectC_IsStringNull(m_NewLevel))
 			Spin(5000);
-// end change RF064
 	}
 	else
 	{
@@ -2649,17 +2435,15 @@ bool CCommonData::ProcessLevelChange()
 		}
 	}
 
+	// Shut the current level down
 	ShutdownLevel();
-// changed RF064
 	CCD->SetKeyPaused(false);
-// end change RF064
 	// Ok, load in the new level
 
 	if(!EffectC_IsStringNull(m_NewLevel))
 	{
 		// Shut the current level down
 
-		//ShutdownLevel();
 		if(InitializeLevel(szLevelFile) != 0)
 		{
 			// I regard this as a catastrophic error, so we'll log it and
@@ -2675,7 +2459,7 @@ bool CCommonData::ProcessLevelChange()
 
 		CCD->HUD()->LoadConfiguration();
 
-		//	Restore the player attributes for the new level
+		// Restore the player attributes for the new level
 		if(KeepAttributes)
 			thePlayer->LoadAttributes(".\\temp.bin");
 		else
@@ -2683,19 +2467,17 @@ bool CCommonData::ProcessLevelChange()
 
 		KeepAttributes = true;
 
-		// Move the player avatar to the start of the new level
 		CCD->TerrainMgr()->Init();
 
+		// Move the player avatar to the start of the new level
 		thePlayer->MoveToStart();
 
 		geVec3d ActPos = thePlayer->Position();
 		geVec3d_Subtract(&ActPos, &Offset, &ActPos);
 		CCD->ActorManager()->Position(thePlayer->GetActor(), ActPos);
 
-// changed RF064
 		if(!thePlayer->GetMonitorMode())
 		{
-			//thePlayer->SwitchCamera(ViewPoint);
 			if(ViewPoint == thePlayer->GetViewPoint())
 			{
 				if(!UseAngle)
@@ -2707,18 +2489,15 @@ bool CCommonData::ProcessLevelChange()
 				CCD->CameraManager()->Set3rdData(m_defaultdistance, m_cameraX, m_cameraY);
 			}
 		}
-// end change RF064
 
 		int i;
 
-		// changed QD 12/15/05 MAX_WEAPONS = 40
+		// MAX_WEAPONS = 40
 		for(i=0; i<40; i++)
 			theWeapon->SetSlot(i, Slot[i]);
 
-// changed RF064
 		if(!thePlayer->GetMonitorMode())
 			theWeapon->ReSetWeapon(CurrentWeapon);
-// end change RF064
 
 		geEntity_EntitySet *pSet;
 		geEntity *pEntity;
@@ -2747,7 +2526,6 @@ bool CCommonData::ProcessLevelChange()
 			strncpy(m_NewLevel, pSetup->Deathlevel, 255);
 			m_NewLevel[255] = '\0';
 		}
-// end change QD 07/15/06
 
 		m_ChangeLevel = false;
 		Paused = true;
@@ -2786,20 +2564,15 @@ void CCommonData::RenderComponents()
 {
 	theParticles->Render();	// Render all particle systems
 
-// changed RF064
-//	theProps->Render(thePlayer->ViewPoint(),
-//		LastElapsedTime_D());
 	if(ShowTrack)
 		theScriptPoints->Render();
 
 	theOverlay->Render();
 	theTerrainMgr->Render();
-// end change RF064
 
 	return;
 }
 
-// start change scripting
 /* ------------------------------------------------------------------------------------ */
 //	GetHashMethod
 /* ------------------------------------------------------------------------------------ */
@@ -2827,7 +2600,6 @@ bool CCommonData::AddHashMethod(std::string key, long value)
 	return add;
 }
 
-// changed QD 08/15/06
 /* ------------------------------------------------------------------------------------ */
 //	FillHashMethods
 /* ------------------------------------------------------------------------------------ */
@@ -2836,7 +2608,6 @@ void CCommonData::ClearHashMethods(void)
 	// default destructor of hashtable does not free user allocated memory!
 	MethodHash->RemoveAllKey(true);
 }
-// end change QD 08/15/06
 
 /* ------------------------------------------------------------------------------------ */
 //	FillHashMethods
@@ -2975,7 +2746,6 @@ void CCommonData::FillHashMethods(void)
 	AddHashMethod("GetPitchToPoint",		RGF_SM_GETPITCHTOPOINT);
 	AddHashMethod("GetYawToPoint",			RGF_SM_GETYAWTOPOINT);
 	AddHashMethod("FastPointCheck",			RGF_SM_FASTPOINTCHECK);
-// changed Nout 12/15/05
 	AddHashMethod("SetCameraWindow",		RGF_SM_SETCAMERAWINDOW);
 	AddHashMethod("SetFixedCameraPosition",	RGF_SM_SETFIXEDCAMERAPOSITION);
 	AddHashMethod("SetFixedCameraRotation",	RGF_SM_SETFIXEDCAMERAROTATION);
@@ -3022,8 +2792,6 @@ void CCommonData::FillHashMethods(void)
 	AddHashMethod("SetEntityPosition",		RGF_SM_SETENTITYPOSITION);
 	AddHashMethod("SetEntityRotation",		RGF_SM_SETENTITYROTATION);
 	AddHashMethod("AddAttribute",			RGF_SM_ADDATTRIBUTE);
-// end change Nout 12/15/05
-// changed QD 07/15/06
 	AddHashMethod("SetAttributeValueLimits",RGF_SM_SETATTRIBUTEVALUELIMITS);
 	AddHashMethod("RightCopy",				RGF_SM_RIGHTCOPY);
 	AddHashMethod("NearestPoint",			RGF_SM_NEARESTPOINT);
@@ -3031,12 +2799,9 @@ void CCommonData::FillHashMethods(void)
 	AddHashMethod("sin",					RGF_SM_SIN);
 	AddHashMethod("cos",					RGF_SM_COS);
 	AddHashMethod("tan",					RGF_SM_TAN);
-// end change QD 07/15/06
-// changed QD 02/01/07
 	AddHashMethod("asin",					RGF_SM_ASIN);
 	AddHashMethod("acos",					RGF_SM_ACOS);
 	AddHashMethod("atan",					RGF_SM_ATAN);
-// end change
 	AddHashMethod("SetGravity",				RGF_SM_SETGRAVITY);
 	AddHashMethod("GetGravityX",			RGF_SM_GETGRAVITYX);
 	AddHashMethod("GetGravityY",			RGF_SM_GETGRAVITYY);
@@ -3236,16 +3001,13 @@ void CCommonData::FillHashMethods(void)
 	//AddHashMethod("pitch_speed",			RGF_SM_PITCH_SPEED);			// same as readable
 	//AddHashMethod("ideal_pitch",			RGF_SM_IDEAL_PITCH);			// same as readable
 }
-//end change scripting
 
 
-// start pickles Jul 04
 /* ------------------------------------------------------------------------------------ */
 //	InitJoysticks
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::InitJoysticks()
 {
-// changed QD 07/15/06
 	if(!m_bUseDInput)
 		return;
 
@@ -3274,7 +3036,6 @@ void CCommonData::InitJoysticks()
         joysticks[j] = new Joystick(j);
         joysticks[j]->open();
     }
-// end change
 
 	return;
 }
@@ -3362,42 +3123,39 @@ void CCommonData::CloseJoysticks()
 
 	return;
 }
-// end pickles Jul 04
 
 
 /* ------------------------------------------------------------------------------------ */
-//	PlayOpeningCutScene
+// PlayOpeningCutScene
 //
-//	Get the opening cut scene file from the PlayerSetup entity and
-//	..play it, if one exists.
+// Get the opening cut scene file from the PlayerSetup entity and
+// ..play it, if one exists.
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::PlayOpeningCutScene()
 {
+	// Ok, check to see if there's a PlayerSetup around...
 	geEntity_EntitySet *pSet;
-	//	Ok, check to see if there's a PlayerSetup around...
 	pSet = geWorld_GetEntitySet(theGameEngine->World(), "PlayerSetup");
 
 	if(!pSet)
 		return;									// No setup?
 
-	//	Ok, get the setup information.  There should only be one, so
-	//	..we'll just take the first one we run into.
+	// Ok, get the setup information.  There should only be one, so
+	// ..we'll just take the first one we run into.
 	geEntity *pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	if((pSetup->OpeningCutScene != NULL) && (strlen(pSetup->OpeningCutScene) != 0))
 	{
-// changed RF063
 		Play(pSetup->OpeningCutScene, 160, 120, true);
-// end change RF063
 	}
 
 	return;
 }
 
-// changed RF063
+
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
 // Play a .gif or .avi file
 /* ------------------------------------------------------------------------------------ */
@@ -3420,12 +3178,12 @@ void CCommonData::Play(const char *szFile, int XPos, int YPos, bool Center)
 		delete SplashAVI;
 	}
 }
-// end change RF063
+
 
 /* ------------------------------------------------------------------------------------ */
-//	CheckMediaPlayers
+// CheckMediaPlayers
 //
-//	Poll the status of all of our active media players
+// Poll the status of all of our active media players
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::CheckMediaPlayers()
 {
@@ -3507,12 +3265,10 @@ FILE *CCommonData::OpenRFFile(int nFileType, const char *szFilename, const char 
 		strcpy(szTemp, ".\\");
 		strcat(szTemp, szFilename);
 		break;
-// changed Nout 12/15/05
 	case kScriptFile:
 		strcpy(szTemp, ".\\");
 		strcat(szTemp, szFilename);
 		break;
-// end change
 	case kRawFile:
 		strcpy(szTemp, szFilename);
 		break;
@@ -3596,17 +3352,13 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, const char *szFilen
 		strcat(szTemp, szFilename);
 		break;
 	case kInstallFile:
-// changed RF063
 		strcpy(szTemp,"install\\");
 		strcat(szTemp, szFilename);
-// end change RF063
 		break;
-// changed Nout 12/15/05
 	case kScriptFile:
 		strcpy(szTemp, ".\\");
 		strcat(szTemp, szFilename);
 		break;
-// end change
 	case kRawFile:
 		strcpy(szTemp, szFilename);
 		break;
@@ -3622,15 +3374,12 @@ bool CCommonData::OpenRFFile(geVFile **theFp, int nFileType, const char *szFilen
 
 	if(!(*theFp) && VFS)
 	{
-// changed Nout/QD 12/15/05
-		//if(m_DebugLevel == kHighDebugOutput)
 		if(Logging)
 		{
 			char szDebug[256];
 			sprintf(szDebug, "[INFO] File '%s' not found in Real File System, searching in VFS", szTemp);
 			CCD->ReportError(szDebug, false);
 		}
-// end change
 		*theFp = geVFile_Open(VFS, szTemp, nHow);
 	}
 
@@ -3714,17 +3463,13 @@ bool CCommonData::FileExist(int nFileType, const char *szFilename)
 		strcat(szTemp, szFilename);
 		break;
 	case kInstallFile:
-// changed RF063
 		strcpy(szTemp,"install\\");
 		strcat(szTemp, szFilename);
-// end change RF063
 		break;
-// changed Nout 12/15/05
 	case kScriptFile:
 		strcpy(szTemp, ".\\");
 		strcat(szTemp, szFilename);
 		break;
-// end change
 	case kRawFile:
 		strcpy(szTemp, szFilename);
 		break;
@@ -3792,11 +3537,9 @@ char *CCommonData::GetDirectory(int nType)
 	case kInstallFile:
 		thePtr = ".\\";
 		break;
-// changed Nout 12/15/05
 	case kScriptFile:
 		thePtr = ".\\";
 		break;
-// end change
 	case kRawFile:
 		thePtr = ".\\";
 		break;
@@ -3813,12 +3556,11 @@ char *CCommonData::GetDirectory(int nType)
 	return thePtr;				// Back to caller with...whatever.
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	TimerFunction
+// TimerFunction
 /* ------------------------------------------------------------------------------------ */
-void CALLBACK CCommonData::TimerFunction(UINT uID, UINT uMsg,
-										 DWORD dwUser, DWORD dw1, DWORD dw2)
+void CALLBACK CCommonData::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
+										 DWORD dwUser, DWORD /*dw1*/, DWORD /*dw2*/)
 {
 	CCommonData *thePointer = reinterpret_cast<CCommonData*>(dwUser);
 
@@ -3829,8 +3571,8 @@ void CALLBACK CCommonData::TimerFunction(UINT uID, UINT uMsg,
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Get the amount of time passed since the last call, in milliseconds.
-//	..Return the result as a DWORD value.
+// Get the amount of time passed since the last call, in milliseconds.
+// ..Return the result as a DWORD value.
 /* ------------------------------------------------------------------------------------ */
 DWORD CCommonData::GetTimePassed_D()
 {
@@ -3847,8 +3589,8 @@ DWORD CCommonData::GetTimePassed_D()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Get the amount of time passed since the last call, in milliseconds.
-//	..Return the result as a floating-point value.
+// Get the amount of time passed since the last call, in milliseconds.
+// ..Return the result as a floating-point value.
 /* ------------------------------------------------------------------------------------ */
 geFloat CCommonData::GetTimePassed_F()
 {
@@ -3866,10 +3608,10 @@ geFloat CCommonData::GetTimePassed_F()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Reset the internal timer count variable to the current instant.
-//	..This effectively "resets" the game clock.  This is useful for
-//	..ignoring a large amount of passed time, such as time spent in
-//	..a menu mode or during a level or content load.
+// Reset the internal timer count variable to the current instant.
+// ..This effectively "resets" the game clock.  This is useful for
+// ..ignoring a large amount of passed time, such as time spent in
+// ..a menu mode or during a level or content load.
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::ResetClock()
 {
@@ -3882,8 +3624,8 @@ void CCommonData::ResetClock()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Return the current performance counter as a DWORD.  This supplies
-//	..a free-running counter of DWORD width.
+// Return the current performance counter as a DWORD.  This supplies
+// ..a free-running counter of DWORD width.
 /* ------------------------------------------------------------------------------------ */
 DWORD CCommonData::FreeRunningCounter()
 {
@@ -3891,8 +3633,8 @@ DWORD CCommonData::FreeRunningCounter()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Return the current performance counter as a float.  This supplies
-//	..a free-running counter of floating-point precision
+// Return the current performance counter as a float.  This supplies
+// ..a free-running counter of floating-point precision
 /* ------------------------------------------------------------------------------------ */
 geFloat CCommonData::FreeRunningCounter_F()
 {
@@ -3904,9 +3646,9 @@ geFloat CCommonData::FreeRunningCounter_F()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Waste time, useful for preventing the Genesis3D engine from
-//	..being called so fast that the numbers returned are too
-//	..small to be accurate.
+// Waste time, useful for preventing the Genesis3D engine from
+// ..being called so fast that the numbers returned are too
+// ..small to be accurate.
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::Spin(DWORD dwMilliseconds)
 {
@@ -3927,12 +3669,11 @@ void CCommonData::Spin(DWORD dwMilliseconds)
 
 	return;
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	SetChangeLevelData
+// SetChangeLevelData
 //
-//	Store away all the information we need to do a level change.
+// Store away all the information we need to do a level change.
 /* ------------------------------------------------------------------------------------ */
 void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 {
@@ -3944,12 +3685,14 @@ void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 		return;
 	}
 	else
+	{
 		strcpy(m_NewLevel, pItem->szNewLevel);
+	}
 
-	strcpy(m_SplashScreen, pItem->szSplashFile);
-	strcpy(m_SplashAudio, pItem->szAudioFile);
-	strcpy(m_CutScene, pItem->szCutScene);
-	strcpy(m_Message, pItem->szMessage);
+	strcpy(m_SplashScreen,	pItem->szSplashFile	);
+	strcpy(m_SplashAudio,	pItem->szAudioFile	);
+	strcpy(m_CutScene,		pItem->szCutScene	);
+	strcpy(m_Message,		pItem->szMessage	);
 
 	m_Font = pItem->Font;
 	strcpy(m_StartPointName, pItem->StartPointName);
@@ -3977,7 +3720,6 @@ void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 
 	if(KeepAttributes)
 	{
-		// changed QD 12/15/05 MAX_WEAPONS = 40
 		for(i=0; i<40; i++)
 			Slot[i] = theWeapon->GetSlot(i);
 
@@ -4027,7 +3769,6 @@ void CCommonData::SetLevelData()
 	Offset.Y =0.0f;
 	Offset.Z =0.0f;
 
-	// changed QD 12/15/05 MAX_WEAPONS = 40
 	for(i=0; i<40; i++)
 		Slot[i] = theWeapon->GetSlot(i);
 

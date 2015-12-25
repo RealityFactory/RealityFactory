@@ -54,7 +54,7 @@ CChangeLevel::~CChangeLevel()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CChangeLevel::Tick(geFloat dwTicks)
+void CChangeLevel::Tick(geFloat /*dwTicks*/)
 {
 	//	Ok, see if we have any changelevel entities at all
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ChangeLevel");
@@ -71,21 +71,16 @@ void CChangeLevel::Tick(geFloat dwTicks)
 	{
 		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
-// change RF063
 		if(!EffectC_IsStringNull(pItem->TriggerChange))
 		{
 			if(GetTriggerState(pItem->TriggerChange))
 			{
 				CCD->SetChangeLevelData(pItem);
-// changed RF064
 				CCD->SetChangeLevel(true);
 				CCD->SetKeyPaused(false);
-				//CCD->HUD()->Activate();
-// end change RF064
 				return;
 			}
 		}
-// end change RF063
 
 		if(pItem->CallBack == GE_TRUE)
 		{
@@ -233,13 +228,13 @@ int CChangeLevel::RestoreFrom(FILE *RestoreFD, bool type)
 	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ChangeLevel *pItem = static_cast<ChangeLevel*>(geEntity_GetUserData(pEntity));
 
 		READDATA(type, &pItem->CallBack,		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pItem->CallBackCount,	sizeof(int),		1, RestoreFD);
-    }
+	}
 
 	return RGF_SUCCESS;
 }
