@@ -12,49 +12,50 @@
 #include "RabidFramework.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	CAVIPlayer
+// CAVIPlayer
 //
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CAVIPlayer::CAVIPlayer()
 {
 	Init();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	~CAVIPlayer
+// ~CAVIPlayer
 //
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CAVIPlayer::~CAVIPlayer()
 {
 	Release();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
-//	Play an AVI file at a specific position in the game window.
-//	..Note that this always plays VIDEO STREAM 0 and AUDIO STREAM
-//	..0, no attempt is made to handle multiple streams in the
-//	..same file.
-// Version 053
+// Play an AVI file at a specific position in the game window.
+// ..Note that this always plays VIDEO STREAM 0 and AUDIO STREAM
+// ..0, no attempt is made to handle multiple streams in the
+// ..same file.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 {
-	//	Open the file up.
+	// Open the file up.
 	if(Open(szFile) != RGF_SUCCESS)
 		return RGF_FAILURE;						// AVI didn't open.
 
 	StartVideoRetrieve(0);					// Start bringing it in
 
-	//	Fine, the file opened, get the bitmap info for it.
+	// Fine, the file opened, get the bitmap info for it.
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
 
-	//	Ok, while we have frames, let's load 'em in, copy them into
-	//	..the engine, and blast up the bitmap.  Note that NOTHING
-	//	..ELSE CAN WILL BE HAPPENING WHILE THE VIDEO IS PLAYING.
+	// Ok, while we have frames, let's load 'em in, copy them into
+	// ..the engine, and blast up the bitmap.  Note that NOTHING
+	// ..ELSE CAN WILL BE HAPPENING WHILE THE VIDEO IS PLAYING.
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 
@@ -67,10 +68,10 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	gePixelFormat nFormat;
 	int nAlignValue = 0;
 
-	//	Here's how it shakes down: 16bit color is always RGB/555,
-	//	..24bit color is always BGR, and 32bit color is always
-	//	..BGR with the high byte unused (worthless).  I'm NOT supporting
-	//	..8bit color from video files, if you want it, put it in.
+	// Here's how it shakes down: 16bit color is always RGB/555,
+	// ..24bit color is always BGR, and 32bit color is always
+	// ..BGR with the high byte unused (worthless).  I'm NOT supporting
+	// ..8bit color from video files, if you want it, put it in.
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
@@ -81,15 +82,15 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-		nAlignValue = (nWidth*2) + ((nWidth*2) % 4);
+		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
 		break;
 	case 24:
 		nFormat = GE_PIXELFORMAT_24BIT_BGR;
-		nAlignValue = (nWidth*3) + ((nWidth*3) % 4);
+		nAlignValue = (nWidth * 3) + ((nWidth * 3) % 4);
 		break;
 	case 32:
 		nFormat = GE_PIXELFORMAT_32BIT_XBGR;
-		nAlignValue = nWidth*4;
+		nAlignValue = (nWidth * 4);
 		break;
 	}
 
@@ -102,31 +103,33 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	geBitmap_GetInfo(theBmp,&Info,NULL);
 	geBitmap_ClearMips(theBmp);
 
+	// **NOTE**	11/23/1999
+	// All this is to force Genesis3D to get the bitmap loaded into
+	// ..where it needs to be so our first frame doesn't take a
+	// ..bazillion milliseconds.  For some reason, the first
+	// ..BeginFrame/DrawBitmap/EndFrame sequence takes nearly
+	// ..720milliseconds (at least on my machine), causing the
+	// ..first frame of the video to push all remaining frames
+	// ..out of synch with the audio.  So, we lock and unlock
+	// ..and do the whole fake-render-cycle so that we can avoid
+	// ..having whatever setup is happening down inside Genesis3D
+	// ..screw us up whilst playing video.
+
 	geBitmap *LockedBMP = NULL;
-	//	**NOTE**	11/23/1999
-	//	All this is to force Genesis3D to get the bitmap loaded into
-	//	..where it needs to be so our first frame doesn't take a
-	//	..bazillion milliseconds.  For some reason, the first
-	//	..BeginFrame/DrawBitmap/EndFrame sequence takes nearly
-	//	..720milliseconds (at least on my machine), causing the
-	//	..first frame of the video to push all remaining frames
-	//	..out of synch with the audio.  So, we lock and unlock
-	//	..and do the whole fake-render-cycle so that we can avoid
-	//	..having whatever setup is happening down inside Genesis3D
-	//	..screw us up whilst playing video.
 
 	geBitmap_LockForWriteFormat(theBmp, &LockedBMP, 0, 0, nFormat);
+
 	// The following block of code comes to us courtesy of
 	// ..Ralph Deane, who discovered that the lock sometimes
 	// ..failed and how to fix it!
 
 	if(LockedBMP == NULL)
-    {
+	{
 		geBitmap_SetFormat(theBmp, nFormat, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(theBmp, &LockedBMP, 0, 0, nFormat);
 		if(LockedBMP == NULL)
 			return RGF_FAILURE;
-    }
+	}
 
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 	unsigned char *wptr ,*pptr;
@@ -140,7 +143,9 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	// ..to copy it to the target bitmap from the bottom
 	// ..up to make it display correctly.  Thanks to Ernest
 	// ..Kleynhans for catching this little mistake 11/22/99.
-	pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount>>3)));// (pBmp->biBitCount/8)));
+
+	pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
+
 	// Ok, we've got a _somewhat_ optimized version of the bitmap
 	// ..copy, it's far faster than memcpy() but it's not as
 	// ..optimized as it could be.  However, for now, it does seem
@@ -214,32 +219,30 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		geEngine_EndFrame(CCD->Engine()->Engine());
 	}
 
-	//	End of the force-the-bitmap-to-be-ready code.  Blech.
+	// End of the force-the-bitmap-to-be-ready code.  Blech.
 
 	bool bAudioStreamPlaying = false;
 
 	if(GetAudioStreamCount() != 0)
 	{
-		if(CreateStreamingAudioBuffer(0)==RGF_SUCCESS)		// We're gonna play audio
+		if(CreateStreamingAudioBuffer(0) == RGF_SUCCESS)	// We're gonna play audio
 			bAudioStreamPlaying = true;
 	}
 
 	DWORD ElapsedTime, OldTime, FrameTime = 0;
-// changed RF064
 	int nFrameTotal = 0;
 
 	OldTime = CCD->FreeRunningCounter();				// Prime the time.
-// end change RF064
 
 	FrameTime = 0;
 
-	//	**IMPORTANT NOTE** It APPEARS that, if I try to blit to the
-	//	..screen with bitmaps TOO FAST, the sucker locks up.  Regardless,
-	//	..since I'm not running any video faster than 30fps, I've set
-	//	..the rendering loop to not try to get new frames from the AVI
-	//	..file any faster than that.  The system will RENDER full-speed,
-	//	..but the AVI file API won't be hit any more often than once
-	//	..every 30msec.
+	// **IMPORTANT NOTE** It APPEARS that, if I try to blit to the
+	// ..screen with bitmaps TOO FAST, the sucker locks up.  Regardless,
+	// ..since I'm not running any video faster than 30fps, I've set
+	// ..the rendering loop to not try to get new frames from the AVI
+	// ..file any faster than that.  The system will RENDER full-speed,
+	// ..but the AVI file API won't be hit any more often than once
+	// ..every 30msec.
 
 	for(;;)
 	{
@@ -247,7 +250,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 
 		// If Winblows has something to say, take it in and pass it on in the
 		// ..off-chance someone cares.
-		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
 			GetMessage(&msg, NULL, 0, 0 );
 			TranslateMessage(&msg);
@@ -273,10 +276,9 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			// ..for the timer.  If that happens, the following IF
 			// ..will help us recover such that the audio and video
 			// ..don't drift too far out of synch.
-// changed RF064
+
 			//if(ElapsedTime > 60)
 			//ElapsedTime = 30;			// Force video to recover
-// end change RF064
 
 			FrameTime += ElapsedTime;			// Compute new frame time
 			GetVideoFrameAtTime(0, FrameTime, &pBmp);
@@ -285,14 +287,12 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 				break;											// Video over, exit loop
 
 			// Lock the created bitmap for write!
-			geBitmap_LockForWriteFormat(theBmp,&LockedBMP,0,0, nFormat);
+			geBitmap_LockForWriteFormat(theBmp, &LockedBMP, 0, 0, nFormat);
 
-			// The following block of code comes to us courtesy of
-			// ..Ralph Deane, who discovered that the lock sometimes
-			// ..failed and how to fix it!
+			// The lock sometimes fails, here's how to fix it!
 			if(LockedBMP == NULL)
 			{
-				geBitmap_SetFormat(theBmp,nFormat,GE_TRUE,0,NULL);
+				geBitmap_SetFormat(theBmp, nFormat, GE_TRUE, 0, NULL);
 				geBitmap_LockForWriteFormat(theBmp,&LockedBMP,0,0, nFormat);
 
 				if(LockedBMP == NULL)
@@ -307,12 +307,14 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			// ..to copy it to the target bitmap from the bottom
 			// ..up to make it display correctly.  Thanks to Ernest
 			// ..Kleynhans for catching this little mistake 11/22/99.
+
 			pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
 
 			// Ok, we've got a _somewhat_ optimized version of the bitmap
 			// ..copy, it's far faster than memcpy() but it's not as
 			// ..optimized as it could be.  However, for now, it does seem
 			// ..to be Good Enough.
+
 			switch(nFormat)
 			{
 			case GE_PIXELFORMAT_16BIT_555_RGB:
@@ -368,7 +370,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 				}
 				break;
 			}
-// changed RF064
+
 			geBitmap_UnLock(LockedBMP);
 			geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_TRUE);
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, XPos, YPos);
@@ -390,41 +392,41 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			geEngine_EndFrame(CCD->Engine()->Engine());
 			break;													// Lemme out!
 		}
-// end change RF064
 	}
 
 	EndVideoRetrieve(0);								// All done.
 
-// changed QD 12/15/05
 	geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-// end change
+
 	geBitmap_Destroy(&theBmp);
 
-	//	Ok, if we have an audio stream playing it's quite possible for
-	//	..it to need to drain out even AFTER the video is done!  To
-	//	..make this happen, we'll keep pumping audio until it's done
-	//	..and then wait the max. time (1 second) for the buffer to clear.
+	// Ok, if we have an audio stream playing it's quite possible for
+	// ..it to need to drain out even AFTER the video is done!  To
+	// ..make this happen, we'll keep pumping audio until it's done
+	// ..and then wait the max. time (1 second) for the buffer to clear.
+
 	if(bAudioStreamPlaying)
 	{
 		for(int nTemp=0; nTemp<10; ++nTemp)
 		{
-			PumpBuffer(0, false);					// Make sure nothing but silence
+			PumpBuffer(0, false);				// Make sure nothing but silence
 			Sleep(50);							// Let audio buffer play out
 		}
 
 		DestroyStreamingAudioBuffer();			// Kill any audio streaming
 	}
 
-	//	Close the file down.
+	// Close the file down.
 	Close();
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Open
+// Open
 //
-//	Open an AVI file for playback, but don't start playing it.
+// Open an AVI file for playback, but don't start playing it.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::Open(const char *szFile)
 {
@@ -432,17 +434,11 @@ int CAVIPlayer::Open(const char *szFile)
 		return RGF_FAILURE;					// Wrong!
 
 	char szTemp[256];
-// changed QD 07/15/06 -  make safer
-/*
-	strcpy(szTemp, CCD->GetDirectory(kVideoFile));
-	strcat(szTemp, "\\");
-	strcat(szTemp, szFile);
-*/
+
 	strncpy(szTemp, CCD->GetDirectory(kVideoFile), 255);
 	szTemp[255] = 0;
 	strncat(szTemp, "\\", 255-strlen(szTemp));
 	strncat(szTemp, szFile, 255-strlen(szTemp));
-// end change QD 07/15/06
 
 	if(AVIFileOpen(&m_pAviFile, szTemp, OF_READ, NULL))
 	{
@@ -450,20 +446,22 @@ int CAVIPlayer::Open(const char *szFile)
 		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open AVI file %s",
 				__FILE__, __LINE__, szTemp);
 		CCD->ReportError(szBug, false);
+
 		return RGF_FAILURE;					// Wrong again!
 	}
 
-	//	File open, now scan it to built the data structures containing
-	//	..audio and video stream information.
+	// File open, now scan it to built the data structures containing
+	// ..audio and video stream information.
 	FindStreams();
 
-	//	Ok, check to see if the audio and video formats are proper
+	// Ok, check to see if the audio and video formats are proper
 	if(!DetermineAudioFormats() || !DetermineVideoFormats())
 	{
 		char szBug[256];
 		sprintf(szBug, "[WARNING] File %s - Line %d: AVI file %s has invalid/indeterminate formats",
 				__FILE__, __LINE__, szFile);
 		CCD->ReportError(szBug, false);
+
 		Release();
 		return RGF_FAILURE;
 	}
@@ -471,8 +469,8 @@ int CAVIPlayer::Open(const char *szFile)
 	m_nLastFramePlayed = -1;					// No last frame played
 	m_LastFrameBitmap = NULL;					// No last bitmap frame
 
-	//	The file is open, we've loaded all the info we need about the
-	//	..file, and we're ready to start streaming from it.
+	// The file is open, we've loaded all the info we need about the
+	// ..file, and we're ready to start streaming from it.
 	if(CCD->GetLogging())
 	{
 		char szDebug[512];
@@ -484,11 +482,11 @@ int CAVIPlayer::Open(const char *szFile)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayFrameAt
+// DisplayFrameAt
 //
-//	Display a single frame from the previously opened AVI file
-//	..at a specific location in the game window.  The frame is
-//	..determined by the time in milliseconds passed in.
+// Display a single frame from the previously opened AVI file
+// ..at a specific location in the game window.  The frame is
+// ..determined by the time in milliseconds passed in.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 {
@@ -497,22 +495,23 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 
 	StartVideoRetrieve(0);
 
-	//	Get the bitmap info for the file
+	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
 
-	//	Let's grab a frame and blit it, shall we?
+	// Let's grab a frame and blit it, shall we?
 
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
-	//	Here's how it shakes down: 16bit color is always RGB/555,
-	//	..24bit color is always BGR, and 32bit color is always
-	//	..BGR with the high byte unused (worthless).  I'm NOT supporting
-	//	..8bit color from video files, if you want it, put it in.
+	// Here's how it shakes down: 16bit color is always RGB/555,
+	// ..24bit color is always BGR, and 32bit color is always
+	// ..BGR with the high byte unused (worthless).  I'm NOT supporting
+	// ..8bit color from video files, if you want it, put it in.
+
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
 	case 8:
@@ -523,15 +522,15 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-		nAlignValue = (nWidth*2) + ((nWidth*2) % 4);
+		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
 		break;
 	case 24:
 		nFormat = GE_PIXELFORMAT_24BIT_BGR;
-		nAlignValue = (nWidth*3) + ((nWidth*3) % 4);
+		nAlignValue = (nWidth * 3) + ((nWidth * 3) % 4);
 		break;
 	case 32:
 		nFormat = GE_PIXELFORMAT_32BIT_XBGR;
-		nAlignValue = nWidth*4;
+		nAlignValue = nWidth * 4;
 		break;
 	}
 
@@ -574,7 +573,9 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		// ..to copy it to the target bitmap from the bottom
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
+
 		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
@@ -646,19 +647,18 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		nStatus = RGF_SUCCESS;
 	}
 
-// changed QD 12/15/05
 	geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-// end change
 	geBitmap_Destroy(&theBmp);
 
 	return nStatus;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DisplayFrame
+// DisplayFrame
 //
-//	Display a single, specific frame from the previously opened
-//	..AVI file at a specific location in the game window.
+// Display a single, specific frame from the previously opened
+// ..AVI file at a specific location in the game window.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 {
@@ -667,21 +667,21 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 
 	StartVideoRetrieve(0);
 
-	//	Get the bitmap info for the file
+	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
 
-	//	Let's grab a frame and blit it, shall we?
+	// Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
-	//	Here's how it shakes down: 16bit color is always RGB/555,
-	//	..24bit color is always BGR, and 32bit color is always
-	//	..BGR with the high byte unused (worthless).  I'm NOT supporting
-	//	..8bit color from video files, if you want it, put it in.
+	// Here's how it shakes down: 16bit color is always RGB/555,
+	// ..24bit color is always BGR, and 32bit color is always
+	// ..BGR with the high byte unused (worthless).  I'm NOT supporting
+	// ..8bit color from video files, if you want it, put it in.
 
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
@@ -693,11 +693,11 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-		nAlignValue = (nWidth * 2) + ((nWidth*2) % 4);
+		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
 		break;
 	case 24:
 		nFormat = GE_PIXELFORMAT_24BIT_BGR;
-		nAlignValue = (nWidth * 3) + ((nWidth*3) % 4);
+		nAlignValue = (nWidth * 3) + ((nWidth * 3) % 4);
 		break;
 	case 32:
 		nFormat = GE_PIXELFORMAT_32BIT_XBGR;
@@ -745,7 +745,9 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		// ..to copy it to the target bitmap from the bottom
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
+
 		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
@@ -817,18 +819,17 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		nStatus = RGF_SUCCESS;
 	}
 
-// changed QD 12/15/05
 	geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-// end change
 	geBitmap_Destroy(&theBmp);
 
 	return nStatus;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Close
+// Close
 //
-//	Close the currently open AVI file, if there is one.
+// Close the currently open AVI file, if there is one.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::Close()
 {
@@ -859,12 +860,12 @@ int CAVIPlayer::GetVideoStreamCount()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayFrameTexture
+// DisplayFrameTexture
 //
-//	Passed the name of a texture and a frame number, this
-//	..function will replace the current texture contents with the
-//	..contents of the desired frame of the AVI file.  Note that this
-//	..affects every polygon surfaced with this bitmap!!!
+// Passed the name of a texture and a frame number, this
+// ..function will replace the current texture contents with the
+// ..contents of the desired frame of the AVI file.  Note that this
+// ..affects every polygon surfaced with this bitmap!!!
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 {
@@ -875,31 +876,31 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	if(theBitmap == NULL)
 		return RGF_FAILURE;					// Doesn't exist?
 
-	//	Ok, we've got the bitmap, see if it's visible...
+	// Ok, we've got the bitmap, see if it's visible...
 	if(geWorld_BitmapIsVisible(CCD->World(), theBitmap) != GE_TRUE)
 		return RGF_SUCCESS;					// Lie, it's not visible anyway
 
-	//	Ok, we have a texture, we know it's visible, copy the desired
-	//	..frame into the bitmap!
+	// Ok, we have a texture, we know it's visible, copy the desired
+	// ..frame into the bitmap!
 	geBitmap_ClearMips(theBitmap);
 
 	StartVideoRetrieve(0);
 
-	//	Get the bitmap info for the file
+	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
 
-	//	Let's grab a frame and blit it, shall we?
+	// Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
 	gePixelFormat nFormat;
 
-	//	Here's how it shakes down: 16bit color is always RGB/555,
-	//	..24bit color is always BGR, and 32bit color is always
-	//	..BGR with the high byte unused (worthless).  I'm NOT supporting
-	//	..8bit color from video files, if you want it, put it in.
+	// Here's how it shakes down: 16bit color is always RGB/555,
+	// ..24bit color is always BGR, and 32bit color is always
+	// ..BGR with the high byte unused (worthless).  I'm NOT supporting
+	// ..8bit color from video files, if you want it, put it in.
 
 	switch(pVideoFormat->bmiHeader.biBitCount)
 	{
@@ -911,15 +912,15 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-		nAlignValue = (nWidth*2) + ((nWidth*2) % 4);
+		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
 		break;
 	case 24:
 		nFormat = GE_PIXELFORMAT_24BIT_BGR;
-		nAlignValue = (nWidth*3) + ((nWidth*3) % 4);
+		nAlignValue = (nWidth * 3) + ((nWidth * 3) % 4);
 		break;
 	case 32:
 		nFormat = GE_PIXELFORMAT_32BIT_XBGR;
-		nAlignValue = nWidth*4;
+		nAlignValue = nWidth * 4;
 		break;
 	}
 
@@ -959,7 +960,9 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		// ..to copy it to the target bitmap from the bottom
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
+
 		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
@@ -1032,17 +1035,18 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	return nStatus;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DisplayNextFrameTexture
+// DisplayNextFrameTexture
 //
-//	Passed the name of a texture and a first/next flag, this
-//	..function will replace the current texture contents with the
-//	..contents of the appropriate frame of the AVI file.  Note that this
-//	..affects every polygon surfaced with this bitmap!!!  Note that
-//	..there are a LOT of static in this function, this is in order
-//	..to minimize the impact of repeated calls into this function
-//	..after the "first frame" call.  It makes a SIGNIFICANT performance
-//	..improvement to do this.
+// Passed the name of a texture and a first/next flag, this
+// ..function will replace the current texture contents with the
+// ..contents of the appropriate frame of the AVI file.  Note that this
+// ..affects every polygon surfaced with this bitmap!!!  Note that
+// ..there are a LOT of static in this function, this is in order
+// ..to minimize the impact of repeated calls into this function
+// ..after the "first frame" call.  It makes a SIGNIFICANT performance
+// ..improvement to do this.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFrame)
 {
@@ -1055,16 +1059,18 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 	static gePixelFormat nFormat;
 	static int nAlignValue;
 	int nStatus = RGF_FAILURE;			// Assume failure
-	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
+	LPBITMAPINFOHEADER pBmp;			// Will hold decompressed frame
 	geBitmap *LockedBMP;
 	unsigned char *wptr ,*pptr;
 
-	//	If this is the first frame, clear out all the timing variables
+	// If this is the first frame, clear out all the timing variables
 	if(bFirstFrame)
 	{
-		OldTime = CCD->FreeRunningCounter();				// Prime the time
-		FrameTime = 0;									// No time passed yet
+		OldTime = CCD->FreeRunningCounter();		// Prime the time
+		FrameTime = 0;								// No time passed yet
+
 		StartVideoRetrieve(0);					// Prime the video pump
+
 		// Locate the bitmap to be replaced in the world.
 		theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
 
@@ -1075,12 +1081,15 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		geBitmap_GetInfo(theBitmap,&Info,NULL);
 		geBitmap_ClearMips(theBitmap);
 		pVideoFormat = GetVideoFormat(0);	// Video format
+
 		nWidth = pVideoFormat->bmiHeader.biWidth;
 		nHeight = pVideoFormat->bmiHeader.biHeight;
-		//	Here's how it shakes down: 16bit color is always RGB/555,
-		//	..24bit color is always BGR, and 32bit color is always
-		//	..BGR with the high byte unused (worthless).  I'm NOT supporting
-		//	..8bit color from video files, if you want it, put it in.
+
+		// Here's how it shakes down: 16bit color is always RGB/555,
+		// ..24bit color is always BGR, and 32bit color is always
+		// ..BGR with the high byte unused (worthless).  I'm NOT supporting
+		// ..8bit color from video files, if you want it, put it in.
+
 		switch(pVideoFormat->bmiHeader.biBitCount)
 		{
 		case 8:
@@ -1091,11 +1100,11 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 			break;
 		case 16:
 			nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
-			nAlignValue = (nWidth * 2) + ((nWidth*2) % 4);
+			nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
 			break;
 		case 24:
 			nFormat = GE_PIXELFORMAT_24BIT_BGR;
-			nAlignValue = (nWidth * 3) + ((nWidth*3) % 4);
+			nAlignValue = (nWidth * 3) + ((nWidth * 3) % 4);
 			break;
 		case 32:
 			nFormat = GE_PIXELFORMAT_32BIT_XBGR;
@@ -1104,24 +1113,23 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		}
 	}
 
-	//	Compute the time between passes so we can pick the right frame
-// changed RF064
+	// Compute the time between passes so we can pick the right frame
 	int ElapsedTime = (CCD->FreeRunningCounter() - OldTime);
 
-	//	We don't want this routine entered more often than once
-	//	..every 40msec (which is more than a 20fps. rendering rate!)
-	//	..or the whole system crawls like a swatted fly.
+	// We don't want this routine entered more often than once
+	// ..every 40msec (which is more than a 20fps. rendering rate!)
+	// ..or the whole system crawls like a swatted fly.
 
 	if(ElapsedTime < 40)
 		return RGF_SUCCESS;
 
 	//if(ElapsedTime > 60)
 		//ElapsedTime = 60;					// Correct for stalls somewhere else
-// end change RF064
+
 	FrameTime += ElapsedTime;
 	OldTime = CCD->FreeRunningCounter();
 
-	//	Ok, grab out the appropriate video frame for processing
+	// Ok, grab out the appropriate video frame for processing
 
 	pBmp = NULL;
 	GetVideoFrameAtTime(0, FrameTime, &pBmp);
@@ -1151,7 +1159,9 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		// ..to copy it to the target bitmap from the bottom
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
+
 		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
 		// ..optimized as it could be.  However, for now, it does seem
@@ -1221,21 +1231,20 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 	else
 	{
 		// End of video, let's "rewind" it automatically
-		OldTime = CCD->FreeRunningCounter();				// Prime the time
+		OldTime = CCD->FreeRunningCounter();			// Prime the time
 		FrameTime = 0;									// No time passed yet
 	}
 
-	//	Ok, we (hopefully!) did it!  Let's bail out.
-
+	// Ok, we (hopefully!) did it!  Let's bail out.
 	return nStatus;
 }
 
-//	******************** PRIVATE MEMBER FUNCTIONS ***********************
+// ******************** PRIVATE MEMBER FUNCTIONS ***********************
 
 /* ------------------------------------------------------------------------------------ */
-//	Init
+// Init
 //
-//	Clean up the objects buffers, etc.
+// Clean up the objects buffers, etc.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::Init()
 {
@@ -1265,11 +1274,12 @@ void CAVIPlayer::Init()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Release
+// Release
 //
-//	Let go of the piles of stuff we allocated to track this
-//	..AVI file.
+// Let go of the piles of stuff we allocated to track this
+// ..AVI file.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::Release()
 {
@@ -1303,12 +1313,13 @@ void CAVIPlayer::Release()
 	Init();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	FindStreams
+// FindStreams
 //
-//	Locate the various audio and video streams in an AVI file.
-//	..Loads the internal structures of the current instance with
-//	..the located data.
+// Locate the various audio and video streams in an AVI file.
+// ..Loads the internal structures of the current instance with
+// ..the located data.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::FindStreams()
 {
@@ -1327,11 +1338,12 @@ void CAVIPlayer::FindStreams()
 	}while(++m_nNumVideoStreams < MAX_VIDEO_STREAMS);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DetermineAudioFormats
+// DetermineAudioFormats
 //
-//	Figure out what audio formats the various audio streams are.
-//	..Load the instances internal variables with the info.
+// Figure out what audio formats the various audio streams are.
+// ..Load the instances internal variables with the info.
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::DetermineAudioFormats()
 {
@@ -1357,11 +1369,12 @@ bool CAVIPlayer::DetermineAudioFormats()
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DetermineVideoFormats
+// DetermineVideoFormats
 //
-//	Figure out what vodei formats the various audio streams are.
-//	..Load the instances internal variables with the info.
+// Figure out what vodei formats the various audio streams are.
+// ..Load the instances internal variables with the info.
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::DetermineVideoFormats()
 {
@@ -1387,11 +1400,12 @@ bool CAVIPlayer::DetermineVideoFormats()
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ExtractAudioStream
+// ExtractAudioStream
 //
-//	Read the next buffer of audio data from a specified audio stream
-//	..in the currently open AVI file.
+// Read the next buffer of audio data from a specified audio stream
+// ..in the currently open AVI file.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 {
@@ -1409,8 +1423,7 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 
 	PAVISTREAM pStream = m_pAudioStreams[nStreamNum];
 
-	if(AVIStreamRead(pStream, nSamplePos, nSamples, pBuffer, nBufSize,
-		&nReadIn, &nSamplesIn))
+	if(AVIStreamRead(pStream, nSamplePos, nSamples, pBuffer, nBufSize, &nReadIn, &nSamplesIn))
 	{
 		CCD->ReportError("[WARNING] ExtractAudioStream: Error reading AVI stream\n", false);
 		return 0;
@@ -1428,11 +1441,12 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 	return static_cast<int>(nReadIn);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	StartVideoRetrieve
+// StartVideoRetrieve
 //
-//	Initialize the desired stream such that it's ready to start pulling
-//	..bitmaps out of for display.
+// Initialize the desired stream such that it's ready to start pulling
+// ..bitmaps out of for display.
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::StartVideoRetrieve(int nStreamNum)
 {
@@ -1458,11 +1472,12 @@ bool CAVIPlayer::StartVideoRetrieve(int nStreamNum)
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	EndVideoRetrieve
+// EndVideoRetrieve
 //
-//	Close down the video stream we had previously prepared.  This
-//	..cleans up the AVI subsystem for this stream.
+// Close down the video stream we had previously prepared.  This
+// ..cleans up the AVI subsystem for this stream.
 /* ------------------------------------------------------------------------------------ */
 bool CAVIPlayer::EndVideoRetrieve(int nStreamNum)
 {
@@ -1481,11 +1496,12 @@ bool CAVIPlayer::EndVideoRetrieve(int nStreamNum)
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetVideoFrameAtTime
+// GetVideoFrameAtTime
 //
-//	Read a specific video frame, computed from the time in milliseconds,
-//	..into a bitmap buffer suitable for display.
+// Read a specific video frame, computed from the time in milliseconds,
+// ..into a bitmap buffer suitable for display.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec, LPBITMAPINFOHEADER *ppbi)
 {
@@ -1511,8 +1527,8 @@ void CAVIPlayer::GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec, LPBIT
 	if(lFrame <= 0)
 		lFrame = 1;								// Avoid the deadly "frame 0"
 
-	//	Ok, if this is a new frame, load the desired one from the open
-	//	..video file.
+	// Ok, if this is a new frame, load the desired one from the open
+	// ..video file.
 	if(m_nLastFramePlayed != lFrame)
 	{
 		m_LastFrameBitmap = (LPBITMAPINFOHEADER)AVIStreamGetFrame(pgf, lFrame);
@@ -1522,11 +1538,12 @@ void CAVIPlayer::GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec, LPBIT
 	*ppbi = m_LastFrameBitmap;		// Used new or cached
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetVideoFrame
+// GetVideoFrame
 //
-//	Retrieves a specific frame number from the stream desired into a
-//	..bitmap suitable for display.
+// Retrieves a specific frame number from the stream desired into a
+// ..bitmap suitable for display.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::GetVideoFrame(int nStreamNum, LONG lFrame, LPBITMAPINFOHEADER *ppbi)
 {
@@ -1538,11 +1555,12 @@ void CAVIPlayer::GetVideoFrame(int nStreamNum, LONG lFrame, LPBITMAPINFOHEADER *
 	*ppbi = (LPBITMAPINFOHEADER)AVIStreamGetFrame(pgf, lFrame);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetAudioFormat
+// GetAudioFormat
 //
-//	Determine the audio format of a specific audio stream in the
-//	..currently open AVI file.
+// Determine the audio format of a specific audio stream in the
+// ..currently open AVI file.
 /* ------------------------------------------------------------------------------------ */
 LPWAVEFORMATEX CAVIPlayer::GetAudioFormat(int nStreamNum)
 {
@@ -1552,11 +1570,12 @@ LPWAVEFORMATEX CAVIPlayer::GetAudioFormat(int nStreamNum)
 	return m_pAudioFormats[nStreamNum];
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetVideoFormat
+// GetVideoFormat
 //
-//	Determine the video format of a specific video stream in the
-//	..currently open AVI file.
+// Determine the video format of a specific video stream in the
+// ..currently open AVI file.
 /* ------------------------------------------------------------------------------------ */
 LPBITMAPINFO CAVIPlayer::GetVideoFormat(int nStreamNum)
 {
@@ -1566,12 +1585,13 @@ LPBITMAPINFO CAVIPlayer::GetVideoFormat(int nStreamNum)
 	return m_pVideoFormats[nStreamNum];
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CreateStreamingAudioBuffer
+// CreateStreamingAudioBuffer
 //
-//	Create a streaming audio buffer for audio playback from
-//	..a video file.  This buffer will need to be periodically
-//	..fed by calls to the PumpBuffer() routine.
+// Create a streaming audio buffer for audio playback from
+// ..a video file.  This buffer will need to be periodically
+// ..fed by calls to the PumpBuffer() routine.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 {
@@ -1582,7 +1602,7 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 
 	m_pDS->QueryInterface(IID_IDirectSound, reinterpret_cast<LPVOID*>(&pDSIF));
 
-	//	Create a DSound buffer to stream into
+	// Create a DSound buffer to stream into
 	DSBUFFERDESC theDesc;
 
 	memset(&theDesc, 0, sizeof (DSBUFFERDESC));
@@ -1605,13 +1625,13 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 		return RGF_FAILURE;
 	}
 
-	//	Lock the ENTIRE buffer and fill it with SILENCE
+	// Lock the ENTIRE buffer and fill it with SILENCE
 
 	void *lpbuf1 = NULL, *lpbuf2 = NULL;
 	long dwsize1 = 0, dwsize2 = 0;
 
-	//	Ok, we need to set up our "silence" value and adjust it for
-	//	..8bit samples if needed.
+	// Ok, we need to set up our "silence" value and adjust it for
+	// ..8bit samples if needed.
 	int nSilence = 0x0;
 
 	if(GetAudioFormat(nAudioStreamID)->wBitsPerSample == 8)
@@ -1645,16 +1665,17 @@ int CAVIPlayer::CreateStreamingAudioBuffer(int nAudioStreamID)
 
 	PumpBuffer(nAudioStreamID, true);							// Pump it!
 
-	//	Ok, let's do the FIRST pump on it and start it playing!
+	// Ok, let's do the FIRST pump on it and start it playing!
 	m_pStream->Play(0, 0, DSBPLAY_LOOPING);	// Start playback
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DestroyStreamingAudioBuffer
+// DestroyStreamingAudioBuffer
 //
-//	Close off and clean up the audio playback buffer.
+// Close off and clean up the audio playback buffer.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::DestroyStreamingAudioBuffer()
 {
@@ -1667,12 +1688,13 @@ int CAVIPlayer::DestroyStreamingAudioBuffer()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	PumpBuffer
+// PumpBuffer
 //
-//	Fills the streaming audio buffer from an audio stream in
-//	..an open AVI file.  At end of file, the buffer plays
-//	..silence.
+// Fills the streaming audio buffer from an audio stream in
+// ..an open AVI file.  At end of file, the buffer plays
+// ..silence.
 /* ------------------------------------------------------------------------------------ */
 void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 {
@@ -1681,8 +1703,8 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 	long dwsize1 = 0, dwsize2 = 0, nSize;
 	int nBytesRead = 0;
 
-	//	Ok, we need to set up our "silence" value and adjust it for
-	//	..8bit samples if needed.
+	// Ok, we need to set up our "silence" value and adjust it for
+	// ..8bit samples if needed.
 	int nSilence = 0x0;
 
 	if(GetAudioFormat(nAudioStreamID)->wBitsPerSample == 8)
@@ -1690,8 +1712,8 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 	int nBlockSize = GetAudioFormat(nAudioStreamID)->nBlockAlign;
 
-	//	If this is a FORCE LOAD, we want to fill the WHOLE BUFFER with
-	//	..audio, so lock it and LOAD!
+	// If this is a FORCE LOAD, we want to fill the WHOLE BUFFER with
+	// ..audio, so lock it and LOAD!
 	if(ForceLoad)
 	{
 		hr = m_pStream->Lock(0, m_nBufSize,
@@ -1711,10 +1733,8 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 				m_AudioEOF = true;
 		}
 
-// changed RF064
 		m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
 
-// end change RF064
 		return;
 	}
 
@@ -1775,8 +1795,8 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 		return;														// End of file, pump silence
 	}
 
-	//	Fine, read data into the circular buffer directly from the
-	//	..video file if there's anything there.
+	// Fine, read data into the circular buffer directly from the
+	// ..video file if there's anything there.
 	nBytesRead = ExtractAudioStream(nAudioStreamID, dwsize1 / nBlockSize, (LPBYTE)lpbuf1);
 
 	if(nBytesRead != dwsize1)									// End of audio in the video
@@ -1808,16 +1828,17 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 #endif
 	}
 
-	//	Unlock buffer, we're done with it for now.
+	// Unlock buffer, we're done with it for now.
 	m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
 
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetMaxWriteSize
+// GetMaxWriteSize
 //
-//	Get the maximum number of bytes we can write into the current buffer.
+// Get the maximum number of bytes we can write into the current buffer.
 /* ------------------------------------------------------------------------------------ */
 int CAVIPlayer::GetMaxWriteSize()
 {
@@ -1825,7 +1846,7 @@ int CAVIPlayer::GetMaxWriteSize()
 
 	// Get current play position
 	if(m_pStream->GetCurrentPosition(&dwPlayCursor, &dwWriteCursor) == DS_OK)
-    {
+	{
 		if((DWORD)m_nOffset <= dwPlayCursor)
 		{
 			// Our write position trails play cursor
@@ -1843,7 +1864,7 @@ int CAVIPlayer::GetMaxWriteSize()
 			dwPlayCursor, dwWriteCursor, dwMaxSize, m_nOffset);
 		OutputDebugString(szFudge);
 #endif
-    }
+	}
 	else
 	{
 		dwMaxSize = 0;

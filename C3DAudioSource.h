@@ -39,7 +39,6 @@ public:
 	 */
 	void Tick(geFloat dwTicks);
 
-// Start Aug2003DCS
 	/**
 	 * @brief Given a name, locate the desired entity in the currently loaded
 	 * level and set its ProgrammedTrigger boolean.
@@ -51,7 +50,6 @@ public:
 	 * level and return true if it is playing, false if not.
 	 */
 	geBoolean IsPlaying(const char *szName);
-// End Aug2003DCS
 
 	/**
 	 * @brief Given a name, locate the desired entity in the currently loaded

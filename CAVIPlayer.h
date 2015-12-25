@@ -31,11 +31,14 @@ public:
 	CAVIPlayer();
 	~CAVIPlayer();
 
-	// Version 053
 	int Play(const char *szFile, int XPos, int YPos, bool Center);	///< Play an AVI
+
 	int Open(const char *szFile);									///< Open an AVI
+
 	int DisplayFrameAt(int XPos, int YPos, DWORD dwTime);			///< Display one frame from a specific time
+
 	int DisplayFrame(int XPos, int YPos, int FrameID);				///< Display one specific frame
+
 	int Close();													///< Close the open AVI file
 
 	int GetAudioStreamCount();										///< Get the # of audio streams in the AVI
@@ -46,56 +49,59 @@ public:
 
 private:
 	void Init();								///< Initialize buffers
+
 	void Release();								///< Release buffers
 
 	void FindStreams();
 
 	bool DetermineAudioFormats();
+
 	bool DetermineVideoFormats();
 
 	int ExtractAudioStream(int nStreamNum, int nBytes, LPBYTE pBuffer);
 
 	bool StartVideoRetrieve(int nStreamNum);
+
 	bool EndVideoRetrieve(int nStreamNum);
 
-	void GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec,
-						LPBITMAPINFOHEADER *ppbi);
-	void GetVideoFrame(int nStreamNum, LONG lFrame,
-						LPBITMAPINFOHEADER *ppbi);
+	void GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec, LPBITMAPINFOHEADER *ppbi);
+
+	void GetVideoFrame(int nStreamNum, LONG lFrame, LPBITMAPINFOHEADER *ppbi);
 
 	LPWAVEFORMATEX GetAudioFormat(int nStreamNum);
+
 	LPBITMAPINFO GetVideoFormat(int nStreamNum);
 
 	int CreateStreamingAudioBuffer(int nAudioStreamID);
+
 	int DestroyStreamingAudioBuffer();
+
 	void PumpBuffer(int nAudioStreamID, bool ForceLoad);
+
 	int GetMaxWriteSize();
 
 private:
-	bool m_bVideoPrimed;						///< Open video is in retrieval
-	PAVIFILE m_pAviFile;						///< Open AVI file
+	bool				m_bVideoPrimed;						///< Open video is in retrieval
+	PAVIFILE			m_pAviFile;							///< Open AVI file
+	PAVISTREAM			m_pAudioStreams[MAX_AUDIO_STREAMS];	///< Audio stream pointer array
+	PAVISTREAM			m_pVideoStreams[MAX_VIDEO_STREAMS];	///< Video stream pointer array
+	int					m_nNumAudioStreams;					///< # of of audio streams
+	int					m_nNumVideoStreams;					///< # of video streams (doh)
+	LPWAVEFORMATEX		m_pAudioFormats[MAX_AUDIO_STREAMS];	///< Array of stream audio formats
+	LPBYTE				m_pAudioData[MAX_AUDIO_STREAMS];	///< Audio stream data buffers
+	LPBITMAPINFO		m_pVideoFormats[MAX_VIDEO_STREAMS];	///< Array of stream video formats
+	PGETFRAME			m_pVideoPGF[MAX_VIDEO_STREAMS];		///< Video stream data buffers
+	LONG				m_lVideoEndTime[MAX_VIDEO_STREAMS];	///< Array of end times for video streams
 
-
-	PAVISTREAM m_pAudioStreams[MAX_AUDIO_STREAMS];	///< Audio stream pointer array
-	PAVISTREAM m_pVideoStreams[MAX_VIDEO_STREAMS];	///< Video stream pointer array
-
-	int m_nNumAudioStreams;						///< # of of audio streams
-	int m_nNumVideoStreams;						///< # of video streams (doh)
-
-
-	LPWAVEFORMATEX m_pAudioFormats[MAX_AUDIO_STREAMS];	///< Array of stream audio formats
-	LPBYTE m_pAudioData[MAX_AUDIO_STREAMS];				///< Audio stream data buffers
-	LPBITMAPINFO m_pVideoFormats[MAX_VIDEO_STREAMS];	///< Array of stream video formats
-	PGETFRAME m_pVideoPGF[MAX_VIDEO_STREAMS];			///< Video stream data buffers
-	LONG m_lVideoEndTime[MAX_VIDEO_STREAMS];			///< Array of end times for video streams
 	// AUDIO streaming member variables
-	LPDIRECTSOUND m_pDS;						///< DirectSound object
-	LPDIRECTSOUNDBUFFER m_pStream;				///< Sound buffers
-	int m_nOffset;
-	bool m_AudioEOF;
-	int m_nLastFramePlayed;
-	int m_nBufSize;								///< Audio buffer size
-	BITMAPINFOHEADER *m_LastFrameBitmap;
+	LPDIRECTSOUND		m_pDS;								///< DirectSound object
+	LPDIRECTSOUNDBUFFER m_pStream;							///< Sound buffers
+	int					m_nOffset;
+	bool				m_AudioEOF;
+	int					m_nLastFramePlayed;
+	int					m_nBufSize;							///< Audio buffer size
+
+	BITMAPINFOHEADER*	m_LastFrameBitmap;
 };
 
 #endif
