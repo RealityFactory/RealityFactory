@@ -32,7 +32,7 @@ extern geSound_Def *SPool_Sound(const char *SName);
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())//change simkin
 {
@@ -48,8 +48,9 @@ ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileNa
 	memset(m_ConsoleDebug, 0, sizeof(char*)*DEBUGLINES);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 ControllerObject::~ControllerObject()
 {
@@ -62,8 +63,9 @@ ControllerObject::~ControllerObject()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	method
+// method
 /* ------------------------------------------------------------------------------------ */
 bool ControllerObject::method(const skString& methodName, skRValueArray& arguments,
 							  skRValue& returnValue, skExecutableContext& ctxt)
@@ -71,7 +73,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	char  string1[128], string2[128];
 	float float1;
 	bool  bool1;
-//	int   int1;
 
 	string1[0] = '\0';
 	string2[0] = '\0';
@@ -249,7 +250,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// changed Nout 12/15/05
 	// ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha);
 	// Shows a TextMessage on the screen, attached to a Pawn or Player
 	// Align can be Right, Left or Centre. If left open, Right is used.
@@ -293,9 +293,9 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// SetPlatformSpeed(PlatformName, Speed)
 	else if(IS_METHOD(methodName, "SetPlatformSpeed"))
 	{
+		// SetPlatformSpeed(PlatformName, Speed)
 		PARMCHECK(2);
 		MovingPlatform *pEntity;
 
@@ -307,9 +307,10 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// SetDoorSpeed(DoorName, Speed)
 	else if(IS_METHOD(methodName, "SetDoorSpeed"))
 	{
+		// SetDoorSpeed(DoorName, Speed)
+
 		PARMCHECK(2);
 		Door *pEntity;
 
@@ -321,10 +322,11 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// move immediately a platform to a given timeposition
-	// SetPlatformTimeNow(PlatformName, KeyFrame)
 	else if(IS_METHOD(methodName, "SetPlatformToTargetTime"))
 	{
+		// SetPlatformTimeNow(PlatformName, KeyFrame)
+		// move a platform immediately to a given timeposition
+
 		PARMCHECK(2);
 		MovingPlatform *pEntity;
 
@@ -336,10 +338,11 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// move immediately a door to a given timeposition
-	// SetDoorTimeNow(DoorName, KeyFrame)
 	else if(IS_METHOD(methodName, "SetDoorToTargetTime"))
 	{
+		// SetDoorTimeNow(DoorName, KeyFrame)
+		// move a door immediately to a given timeposition
+
 		PARMCHECK(2);
 		Door *pEntity;
 
@@ -351,9 +354,10 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// SetFlag(FlagNr, BooleanValue)
 	else if(IS_METHOD(methodName, "SetFlag"))
 	{
+		// SetFlag(FlagNr, BooleanValue)
+
 		int int1 = arguments[0].intValue();
 
 		if(int1 >= MAXFLAGS)
@@ -364,9 +368,10 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// Boolean:GetFlag(FlagNr)
 	else if(IS_METHOD(methodName, "GetFlag"))
 	{
+		// bool GetFlag(FlagNr)
+
 		int int1 = arguments[0].intValue();
 
 		if(int1 >= MAXFLAGS)
@@ -406,7 +411,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 				if(arguments[2].boolValue())
 					PlatformPos.Y = EntityPos.Y;
 
-   			returnValue = geVec3d_DistanceBetween(&PlatformPos, &EntityPos);
+			returnValue = geVec3d_DistanceBetween(&PlatformPos, &EntityPos);
 		}
 		else
 			returnValue = 0;
@@ -447,7 +452,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// end change
 	else if(IS_METHOD(methodName, "Console"))
 	{
 		PARMCHECK(1);
@@ -539,18 +543,10 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		PARMCHECK(2);
 
 		int temp = arguments[1].intValue();
-		// changed QD 07/15/06
-		/*
-		char* cstemp="";
-		strncpy(cstemp,arguments[0].str(),temp);
-		cstemp[temp]='\0';
-		returnValue = skString(cstemp);
-		*/
 		temp = (temp<127)?temp:127;
 		strncpy(string1, arguments[0].str(), temp);
 		string1[temp] = 0;
 		returnValue = skString(string1);
-		// end change
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Integer"))
@@ -560,12 +556,11 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		returnValue = (int)temp;
 		return true;
 	}
-	else if(IS_METHOD(methodName, "ModifyAttribute")) // changed QD 12/15/05
+	else if(IS_METHOD(methodName, "ModifyAttribute"))
 	{
 		PARMCHECK(2);
+
 		strcpy(string1, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
@@ -579,16 +574,14 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-// end change
 		returnValue = (int)theInv->Modify(string1, arguments[1].intValue());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetAttribute"))
 	{
 		PARMCHECK(1);
+
 		strcpy(string1, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 1)
@@ -602,7 +595,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-// end change
 		returnValue = (int)theInv->Value(string1);
 		return true;
 	}
@@ -610,9 +602,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "SetAttribute"))
 	{
 		PARMCHECK(2);
+
 		strcpy(string1, arguments[0].str());
-// changed QD 12/15/05
-		//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
@@ -626,17 +617,13 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		}
 		else
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-// end change
 		returnValue = (int)theInv->Set(string1, arguments[1].intValue());
 		return true;
 	}
-// changed QD 12/15/05
 	else if(IS_METHOD(methodName, "AddAttribute"))
 	{
 		// USAGE:	AddAttribute(char *Attribute)
 		//			AddAttribute(char *Attribute, char *EntityName)
-
-		// changed QD 07/15/06 - add optional arguments
 		//			AddAttribute(char *Attribute, int LowValue, int HighValue)
 		//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
 
@@ -663,15 +650,12 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		{
 			theInv->SetValueLimits(string1, arguments[1].intValue(), arguments[2].intValue());
 		}
-		// end change QD 07/15/06
 
 		return true;
 	}
-// end change
-// changed QD 07/15/06
 	else if(IS_METHOD(methodName, "SetAttributeValueLimits"))
 	{
-		// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
+		// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue)
 		//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
 		PARMCHECK(3);
@@ -730,8 +714,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// end change QD 07/15/06
-// changed QD 02/01/07
 	else if(IS_METHOD(methodName, "asin"))
 	{
 		PARMCHECK(1);
@@ -753,7 +735,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// end change
 	else if(IS_METHOD(methodName, "SetPlayerWeapon"))
 	{
 		PARMCHECK(1);
@@ -769,7 +750,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		CCD->HUD()->ActivateElement(string1, true);
 		return true;
 	}
-// changed RF071A
 	else if(IS_METHOD(methodName, "IsKeyDown"))
 	{
 		PARMCHECK(1);
@@ -781,7 +761,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// changed QD 12/15/05
 	else if(IS_METHOD(methodName, "SetFixedCameraPosition"))
 	{
 		// USAGE: SetFixedCameraPosition(PosX, PosY, PosZ)
@@ -843,15 +822,15 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-// end change
 	else
 	{
 		return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	getValue
+// getValue
 /* ------------------------------------------------------------------------------------ */
 bool ControllerObject::getValue(const skString& fieldName, const skString& attribute, skRValue& value)
 {
@@ -875,13 +854,11 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 		value = skString(szName);
 		return true;
 	}
-// changed RF071A
 	else if(fieldName == "key_pressed")
 	{
 		value = CCD->Input()->GetKeyboardInputNoWait();
 		return true;
 	}
-// changed Nout 12/15/05
 	else if(fieldName == "player_X")
 	{
 		geVec3d Pos;
@@ -941,13 +918,13 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 
 		return true;
 	}
-//End added by Nout
 	else
 		return skScriptedExecutable::getValue(fieldName, attribute, value);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	setValue
+// setValue
 /* ------------------------------------------------------------------------------------ */
 bool ControllerObject::setValue(const skString& fieldName, const skString& attribute, const skRValue& value)
 {
@@ -970,10 +947,11 @@ bool ControllerObject::setValue(const skString& fieldName, const skString& attri
 		return skScriptedExecutable::setValue(fieldName, attribute, value);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CLevelController
+// CLevelController
 //
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CLevelController::CLevelController() : m_ConsoleBlock(0)
 {
@@ -984,7 +962,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 		return;									// No LevelController, how odd...
 
 	geEntity *pEntity;
-	//	Ok, we have a LevelController.
+	// Ok, we have a LevelController.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -1062,7 +1040,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 
 			if(!EffectC_IsStringNull(pLC->InitOrder))
 			{
-				skRValueArray args;//change simkin
+				skRValueArray args;
 				skRValue ret;
 
 				strcpy(Object->Order, pLC->InitOrder);
@@ -1102,17 +1080,18 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				strcpy(Object->Order, pLC->StartOrder);
 			else
 				Object->Order[0] = '\0';
-      }
-   }
+		}
+	}
 
 	//Ok, we're done!
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	~CLevelController
+// ~CLevelController
 //
-//	Default destructor, clean up anything we allocated on construction
+// Default destructor, clean up anything we allocated on construction
 /* ------------------------------------------------------------------------------------ */
 CLevelController::~CLevelController()
 {
@@ -1137,8 +1116,9 @@ CLevelController::~CLevelController()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CLevelController::Tick(geFloat dwTicks)
 {
@@ -1158,19 +1138,19 @@ void CLevelController::Tick(geFloat dwTicks)
 
 			if(!EffectC_IsStringNull(Object->Order))
 			{
-				skRValueArray args;// change simkin
+				skRValueArray args;
 				skRValue ret;
 
 				if(Object->m_Console)
 				{
 					char szBug[256];
-					sprintf(szBug, "%s %s",Object->szName, Object->Order);
+					sprintf(szBug, "%s %s", Object->szName, Object->Order);
 					strcpy(Object->m_ConsoleHeader, szBug);
 				}
 
 				if(Object->m_Console && m_ConsoleBlock < 4)
 				{
-					int x,y;
+					int x, y;
 
 					x = 5;
 					y = (115 * m_ConsoleBlock) + 5;
@@ -1239,5 +1219,4 @@ void CLevelController::Tick(geFloat dwTicks)
 
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
-
 

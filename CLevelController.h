@@ -29,8 +29,10 @@ public:
 	~ControllerObject();
 
 	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
+
 	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
-	bool method (const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
+
+	bool method(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
 private:
 	char	Order[64];

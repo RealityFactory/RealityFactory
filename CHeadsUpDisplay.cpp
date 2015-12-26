@@ -14,18 +14,16 @@
 #include "IniFile.h"
 #include "CHeadsUpDisplay.h"
 
-// changed RF064
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
-// end change RF064
 
 #define ZDEPTH11 1.1f
 #define ZDEPTH1  1.0f
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Set up the HUD
+// Set up the HUD
 /* ------------------------------------------------------------------------------------ */
 CHeadsUpDisplay::CHeadsUpDisplay()
 {
@@ -40,35 +38,33 @@ CHeadsUpDisplay::CHeadsUpDisplay()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Release bitmaps, etc.
+// Release bitmaps, etc.
 /* ------------------------------------------------------------------------------------ */
 CHeadsUpDisplay::~CHeadsUpDisplay()
 {
 	// Clean up all the HUD bitmaps
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
-// changed Nout 12/15/05
 		if(m_theHUD[nTemp].GifData)
 			delete m_theHUD[nTemp].GifData;
-// end change
 
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadConfiguration
+// LoadConfiguration
 //
-//	Loads the HUD configuration from the HUD configuration file
-//	..defined in the PlayerSetup entity.
+// Loads the HUD configuration from the HUD configuration file
+// ..defined in the PlayerSetup entity.
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::LoadConfiguration()
 {
 	char				*HudInfo;
 
-	//	Ok, check to see if there's a PlayerSetup around...
+	// Ok, check to see if there's a PlayerSetup around...
 	if(CCD->MenuManager()->GetUseSelect() && !EffectC_IsStringNull(CCD->MenuManager()->GetCurrentHud()))
 	{
 		HudInfo = CCD->MenuManager()->GetCurrentHud();
@@ -106,23 +102,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 	// Something is there, so let's clean up all the HUD bitmaps to prepare
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
-// Note QD: TPool handles these bitmaps
-/*
-		if(m_theHUD[nTemp].Identifier != NULL)
-			geBitmap_Destroy(&m_theHUD[nTemp].Identifier);
-
-		if(m_theHUD[nTemp].Indicator != NULL)
-			geBitmap_Destroy(&m_theHUD[nTemp].Indicator);
-
-// changed RF063
-		if(m_theHUD[nTemp].Indicator2 != NULL)
-			geBitmap_Destroy(&m_theHUD[nTemp].Indicator2);
-// end change RF063
-*/
-// changed Nout 12/15/05
 		if(m_theHUD[nTemp].GifData)
 			delete m_theHUD[nTemp].GifData;
-// end change
 
 		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
 	}
@@ -130,48 +111,35 @@ int CHeadsUpDisplay::LoadConfiguration()
 	std::string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
 	std::string Tname, Talpha;
-// changed RF063
 	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
 	bool valid, active, modify, flipindicator; // changed QD 07/15/06
 	int nTop, nLeft, iTopOffset, iLeftOffset, Height, direction;
-// changed RF064
 	int Style;
-// end change RF064
 	HUDTYPE Type;
 	float Font, DisplayTime;
 	char format[16];
-// changed Nout 12/15/05
 	CAnimGif *GifAnim;
-// end change
 
 	while(KeyName != "")
 	{
-// changed RF063
 		if(KeyName[0] == '~')
 			strcpy(szType, KeyName.substr(1).c_str());
 		else
 			strcpy(szType, KeyName.c_str());
-// end change RF063
 
 		valid = false;
 		active = true;
 		modify = false;
-// changed QD 07/15/06
 		flipindicator = false;
-// end change
-// changed RF064
 		Style = NONE;
-// end change RF064
 		direction = 0;
 		TempBmp1 = NULL;
 		TempBmp2 = NULL;
-// changed RF063
 		TempBmp3 = NULL;
 		Font = 0.0f;
 		Height = 0;
 		nTop = nLeft = iTopOffset = iLeftOffset = 0;
 		format[0] = '\0';
-// changed Nout 12/15/05
 		GifAnim = NULL;
 
 		if(!strnicmp(szType, "picture", 6))
@@ -199,7 +167,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				GifAnim = new CAnimGif(szName, kVideoFile);
 			}
 		}
-// end changed
 		else if(!stricmp(szType, "compass"))
 		{
 			Type = COMPASS;
@@ -216,12 +183,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
-// changed RF064
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-// end change RF064
 			}
 		}
-// changed RF063
 		else if(!stricmp(szType, "radar"))
 		{
 			Type = RADAR;
@@ -238,9 +202,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
-// changed RF064
+
 				TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-// end change RF064
 			}
 
 			Tname = AttrFile.GetValue(KeyName, "npcindicator");
@@ -254,9 +217,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
-// changed RF064
+
 				TempBmp3 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-// end change RF064
 
 				if(!TempBmp3)
 					TempBmp3 = TempBmp2;
@@ -266,7 +228,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 			Font = (float)AttrFile.GetValueI(KeyName, "range");
 		}
-// end change RF063
 		else if(!stricmp(szType, "position"))
 		{
 			Type = PPOS;
@@ -291,9 +252,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 		}
 		else
 		{
-// changed RF063
 			strcpy(szAttr, szType);
-// end change RF063
 			Tname = AttrFile.GetValue(KeyName, "type");
 
 			if(Tname != "")
@@ -330,7 +289,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 				if(valid)
 				{
-// changed RF064
 					Tname = AttrFile.GetValue(KeyName, "style");
 
 					if(Tname == "clip")
@@ -338,7 +296,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 					if(Tname == "magazine")
 						Style = MAG;
-// end change RF064
 
 					if(Type != VALUE)
 					{
@@ -353,17 +310,14 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 							strcpy(szName, Tname.c_str());
 							strcpy(szAlpha, Talpha.c_str());
-// changed RF064
+
 							TempBmp2 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-// end change RF064
 						}
 
-// changed QD 07/15/06
 						if(AttrFile.GetValue(KeyName, "flipindicator") == "true")
 						{
 							flipindicator = true;
 						}
-// end change QD 07/15/06
 					}
 				}
 			}
@@ -385,17 +339,15 @@ int CHeadsUpDisplay::LoadConfiguration()
 				strcpy(szName, Tname.c_str());
 				strcpy(szAlpha, Talpha.c_str());
 
-// changed RF064
 				TempBmp1 = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-// end change RF064
 			}
 
 			if(AttrFile.GetValue(KeyName, "framex") == "center")
 			{
 				if(TempBmp1)
-					nLeft = geBitmap_Width(TempBmp1)/2;
+					nLeft = geBitmap_Width(TempBmp1) / 2;
 
-				nLeft = (CCD->Engine()->Width()/2)-nLeft;
+				nLeft = (CCD->Engine()->Width() / 2) - nLeft;
 			}
 			else
 			{
@@ -408,9 +360,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 			if(AttrFile.GetValue(KeyName, "framey") == "center")
 			{
 				if(TempBmp1)
-					nTop = geBitmap_Height(TempBmp1)/2;
+					nTop = geBitmap_Height(TempBmp1) / 2;
 
-				nTop = (CCD->Engine()->Height()/2)-nTop;
+				nTop = (CCD->Engine()->Height() / 2) - nTop;
 			}
 			else
 			{
@@ -458,7 +410,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 				m_theHUD[nItem].DisplayTime			= DisplayTime;
 				m_theHUD[nItem].Identifier			= TempBmp1;
 				m_theHUD[nItem].Indicator			= TempBmp2;
-// changed RF063
 				m_theHUD[nItem].Indicator2			= TempBmp3;
 				strcpy(m_theHUD[nItem].szAttributeName, szAttr);
 				strcpy(m_theHUD[nItem].format, format);
@@ -468,22 +419,15 @@ int CHeadsUpDisplay::LoadConfiguration()
 				m_theHUD[nItem].iLeftOffset			= iLeftOffset;
 				m_theHUD[nItem].PixelsPerIncrement	= Font;
 				m_theHUD[nItem].iHeight				= Height;
-// changed RF064
 				m_theHUD[nItem].Style				= Style;
-// end change RF064
-// changed QD 07/15/06
 				m_theHUD[nItem].flipindicator		= flipindicator;
-// end change QD 07/15/06
-// changed Nout 12/15/05
 				m_theHUD[nItem].GifData				= GifAnim;
-// end change
 			}
 		}
 
 		KeyName = AttrFile.FindNextKey();
 	}
 
-	//Activate();		// Turn the HUD ON!
 	return RGF_SUCCESS;
 }
 
@@ -500,9 +444,9 @@ int CHeadsUpDisplay::Activate()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Deactivate
+// Deactivate
 //
-//	Flag the HUD as non-renderable.
+// Flag the HUD as non-renderable.
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::Deactivate()
 {
@@ -512,9 +456,9 @@ int CHeadsUpDisplay::Deactivate()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemoveElement
+// RemoveElement
 //
-//	Remove the named element from the HUD display list.
+// Remove the named element from the HUD display list.
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
 {
@@ -522,35 +466,23 @@ int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
 	{
 		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
 		{
-// changed QD 12/15/05 TPool handles these bitmaps
-/*			// It's this attribute, wipe it out.
-			if(m_theHUD[nItem].Identifier)
-				geBitmap_Destroy(&m_theHUD[nItem].Identifier);
-
-			if(m_theHUD[nItem].Indicator)
-				geBitmap_Destroy(&m_theHUD[nItem].Indicator);
-*/
-// end change
-// changed Nout 12/15/05
 			if(m_theHUD[nItem].GifData)
 				delete m_theHUD[nItem].GifData;
-// end change
 
 			memset(&m_theHUD[nItem], 0, sizeof(HUDEntry));
 			return RGF_SUCCESS;					// It's outta here
 		}
 	}
 
-	//	Ooops, HUD attribute not found.
+	// Ooops, HUD attribute not found.
 	return RGF_FAILURE;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ActivateElement
+// ActivateElement
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 {
-// changed RF063
 	bool flag = false;
 
 	for(int nItem=0; nItem<MAXHUD; ++nItem)
@@ -564,15 +496,13 @@ int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 
 	if(flag)
 		return RGF_SUCCESS;
-// end change RF063
 
-	//	Ooops, HUD attribute not found.
+	// Ooops, HUD attribute not found.
 	return RGF_FAILURE;
 }
 
-// changed Nout 12/15/05
 /* ------------------------------------------------------------------------------------ */
-//	SetElementLeftTop
+// SetElementLeftTop
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop)
 {
@@ -590,7 +520,7 @@ int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, i
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetElementILeftTop
+// SetElementILeftTop
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset)
 {
@@ -608,7 +538,7 @@ int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOf
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetElementDisplayTime
+// SetElementDisplayTime
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float DisplayTime)
 {
@@ -629,12 +559,9 @@ int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float Di
 
 	return RGF_FAILURE;
 }
-// end change
 
-
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CHeadsUpDisplay::Tick(geFloat dwTick)
 {
@@ -688,7 +615,6 @@ void CHeadsUpDisplay::Tick(geFloat dwTick)
 				}
 			}
 		}
-// changed Nout 12/15/05
 		else if(m_theHUD[nItem].Type == PICTURE)
 		{
 			if(m_theHUD[nItem].display)
@@ -701,15 +627,13 @@ void CHeadsUpDisplay::Tick(geFloat dwTick)
 				}
 			}
 		}
-// end change
 	}
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//	Render
+// Render
 //
-//	If the HUD is active, render it to the screen.
+// If the HUD is active, render it to the screen.
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::Render()
 {
@@ -717,8 +641,6 @@ int CHeadsUpDisplay::Render()
 	int nValue, nLow, nHigh;
 	int nItem;
 
-// changed Nout 12/15/05
-	// changed Nout 12/15/05
 	for(nItem = 0; nItem < MAXHUD; ++nItem)
 	{
 		if(!m_theHUD[nItem].active)
@@ -758,7 +680,6 @@ int CHeadsUpDisplay::Render()
 
 	if(!m_bHUDActive)
 		return RGF_SUCCESS;				// Ignore the call
-// end change
 
 	// Iterate through the HUD element list, displaying each place there
 	// ..is an entry in the slot.
@@ -777,28 +698,22 @@ int CHeadsUpDisplay::Render()
 				// Draw the identifier icon
 				if(m_theHUD[nItem].Identifier)
 				{
-// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier,
 												NULL,
 												m_theHUD[nItem].nLeft,
 												m_theHUD[nItem].nTop,
 												ZDEPTH11);
-// end change RF064
 				}
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-// changed RF064
 				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
 					continue;
-// end change RF064
 
 				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 
-// changed RF063
 				nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
 				nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
-// changed RF064
 
 				if(m_theHUD[nItem].Style != NONE)
 				{
@@ -832,7 +747,6 @@ int CHeadsUpDisplay::Render()
 							continue;
 					}
 				}
-// end change RF064
 
 				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 				{
@@ -860,11 +774,9 @@ int CHeadsUpDisplay::Render()
 					theRect.Left = 0;
 					theRect.Right =  geBitmap_Width(m_theHUD[nItem].Indicator);
 
-// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
 						m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
 						m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset+theRect.Top, ZDEPTH1);
-// end change RF064
 				}
 
 				break;
@@ -874,29 +786,23 @@ int CHeadsUpDisplay::Render()
 				// Draw the identifier icon
 				if(m_theHUD[nItem].Identifier)
 				{
-// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier,
 												NULL,
 												m_theHUD[nItem].nLeft,
 												m_theHUD[nItem].nTop,
 												ZDEPTH11);
-// end change RF064
 				}
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-// changed RF064
 				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
 					continue;
-// end change RF064
 
 				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 
-// changed RF063
 				nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
 				nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
 
-// changed RF064
 				if(m_theHUD[nItem].Style!=NONE)
 				{
 					if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
@@ -929,7 +835,6 @@ int CHeadsUpDisplay::Render()
 							continue;
 					}
 				}
-// end change RF064
 
 				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 				{
@@ -969,26 +874,20 @@ int CHeadsUpDisplay::Render()
 				// Draw the identifier icon
 				if(m_theHUD[nItem].Identifier)
 				{
-// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier,
 											NULL,
 											m_theHUD[nItem].nLeft,
 											m_theHUD[nItem].nTop,
 											ZDEPTH11);
-// end change RF064
 				}
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-// changed RF064
 				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
 					continue;
-// end change RF064
 
 				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
 
-// changed RF063
-// changed RF064
 				if(m_theHUD[nItem].Style != NONE)
 				{
 					if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
@@ -998,7 +897,7 @@ int CHeadsUpDisplay::Render()
 						if(magsize == 0)
 							continue;
 
-						if(m_theHUD[nItem].Style==MAG)
+						if(m_theHUD[nItem].Style == MAG)
 						{
 							nValue = CCD->Weapons()->GetMagAmt() - CCD->Weapons()->GetShotFired();
 						}
@@ -1015,13 +914,11 @@ int CHeadsUpDisplay::Render()
 							continue;
 					}
 				}
-// end change RF064
 
 				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
 				{
 					nValue = CCD->Player()->LightValue();
 				}
-// end change RF063
 
 				char szBug[256];
 				sprintf(szBug, m_theHUD[nItem].format, nValue);
@@ -1034,13 +931,11 @@ int CHeadsUpDisplay::Render()
 				// Draw the identifier icon
 				if(m_theHUD[nItem].Identifier)
 				{
-// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier,
 												NULL,
 												m_theHUD[nItem].nLeft,
 												m_theHUD[nItem].nTop,
 												ZDEPTH11);
-// end change RF064
 				}
 
 				char szBug[256];
@@ -1050,8 +945,6 @@ int CHeadsUpDisplay::Render()
 
 				break;
 			}
-// changed RF063
-
 		case RADAR:	// Radar
 			{
 				geActor *ActorsInRange[512];
@@ -1067,27 +960,24 @@ int CHeadsUpDisplay::Render()
 
 					while(RPos.Y < 0.0f)
 					{
-						// changed QD 12/15/05
-						RPos.Y += GE_2PI; //(GE_PI*2);
+						RPos.Y += GE_2PI;
 					}
 
-					// changed QD 12/15/05
-					while(RPos.Y > GE_2PI) //(GE_PI*2))
+					while(RPos.Y > GE_2PI)
 					{
-						// changed QD 12/15/05
-						RPos.Y -= GE_2PI; //(GE_PI*2);
+						RPos.Y -= GE_2PI;
 					}
 
 					for(int nTemp=0; nTemp<nActorCount; nTemp++)
 					{
-						if(ActorsInRange[nTemp]!=CCD->Player()->GetActor())
+						if(ActorsInRange[nTemp] != CCD->Player()->GetActor())
 						{
 							geVec3d APos;
 							int ActorType;
 							bool flag = false;
 							int offx, offy;
-// changed RF064
-							if(CCD->ActorManager()->GetType(ActorsInRange[nTemp], &ActorType)!=RGF_NOT_FOUND)
+
+							if(CCD->ActorManager()->GetType(ActorsInRange[nTemp], &ActorType) != RGF_NOT_FOUND)
 							{
 								bool hide;
 								CCD->ActorManager()->GetHideRadar(ActorsInRange[nTemp], &hide);
@@ -1097,9 +987,8 @@ int CHeadsUpDisplay::Render()
 										flag = true;
 
 									CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &APos);
-									// changed QD 12/15/05 - can't be negative (sqrt!)
-									// float dist = ((float)fabs(geVec3d_DistanceBetween(&Pos, &APos)))*scale;
-									float dist = geVec3d_DistanceBetween(&Pos, &APos)*scale;
+
+									float dist = geVec3d_DistanceBetween(&Pos, &APos) * scale;
 									geVec3d_Subtract(&APos, &Pos, &Orient);
 									Orient.Y = (float)atan2(Orient.X, Orient.Z) + GE_PI;
 
@@ -1109,13 +998,21 @@ int CHeadsUpDisplay::Render()
 
 									if(!flag)
 									{
-										offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator)/2);
-										offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator)/2);
+										offx = m_theHUD[nItem].nLeft +
+												(geBitmap_Width(m_theHUD[nItem].Identifier) / 2) -
+												(geBitmap_Width(m_theHUD[nItem].Indicator)  / 2);
+										offy = m_theHUD[nItem].nTop +
+												(geBitmap_Height(m_theHUD[nItem].Identifier) / 2) -
+												(geBitmap_Height(m_theHUD[nItem].Indicator)  / 2);
 									}
 									else
 									{
-										offx = m_theHUD[nItem].nLeft+(geBitmap_Width(m_theHUD[nItem].Identifier)/2)-(geBitmap_Width(m_theHUD[nItem].Indicator2)/2);
-										offy = m_theHUD[nItem].nTop+(geBitmap_Height(m_theHUD[nItem].Identifier)/2)-(geBitmap_Height(m_theHUD[nItem].Indicator2)/2);
+										offx = m_theHUD[nItem].nLeft +
+												(geBitmap_Width(m_theHUD[nItem].Identifier) / 2) -
+												(geBitmap_Width(m_theHUD[nItem].Indicator2) / 2);
+										offy = m_theHUD[nItem].nTop +
+												(geBitmap_Height(m_theHUD[nItem].Identifier) / 2) -
+												(geBitmap_Height(m_theHUD[nItem].Indicator2) / 2);
 									}
 
 									if(angle < 0.0f)
@@ -1160,8 +1057,7 @@ int CHeadsUpDisplay::Render()
 										}
 										else
 										{
-											// changed QD 12/15/05
-											angle = GE_PIOVER2 - angle;//(GE_PI/2.0f) - angle;
+											angle = GE_PIOVER2 - angle;
 
 											if(!flag)
 											{
@@ -1181,7 +1077,6 @@ int CHeadsUpDisplay::Render()
 									}
 								}
 							}
-// end change RF064
 						}
 					}
 				}
@@ -1191,21 +1086,20 @@ int CHeadsUpDisplay::Render()
 				{
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier, NULL,
 												m_theHUD[nItem].nLeft,
-												m_theHUD[nItem].nTop, ZDEPTH1);
+												m_theHUD[nItem].nTop,
+												ZDEPTH1);
 				}
 
 				break;
 			}
-// end change RF063
-		// Compass
 		case COMPASS:
 			{
 				if(m_theHUD[nItem].Indicator)
 				{
 					geVec3d Pos;
-					CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(),&Pos);
-					// changed QD 12/15/05
-					Pos.Y *= GE_180OVERPI;// /= 0.0174532925199433f;
+					CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &Pos);
+
+					Pos.Y *= GE_180OVERPI;
 					Pos.Y += 30.0f;
 
 					while(Pos.Y<0)
@@ -1222,21 +1116,18 @@ int CHeadsUpDisplay::Render()
 					theRect.Right =  theRect.Left + 40;
 
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Indicator, &theRect,
-						m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset,
-						m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, ZDEPTH11);
-// end change RF064
+						m_theHUD[nItem].nLeft + m_theHUD[nItem].iLeftOffset,
+						m_theHUD[nItem].nTop  + m_theHUD[nItem].iTopOffset, ZDEPTH11);
 				}
 
 				// Draw the identifier icon
 				if(m_theHUD[nItem].Identifier)
 				{
-					// changed RF064
 					CCD->Engine()->DrawBitmap(m_theHUD[nItem].Identifier,
 												NULL,
 												m_theHUD[nItem].nLeft,
 												m_theHUD[nItem].nTop,
 												ZDEPTH1);
-					// end change RF064
 				}
 
 				break;

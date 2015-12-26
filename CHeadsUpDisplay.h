@@ -21,22 +21,17 @@ typedef enum
 	VALUE,
 	PPOS,
 	COMPASS,
-// changed RF063
 	RADAR,
-// changed Nout 12/15/05
 	PICTURE
-// end change
 
 } HUDTYPE;
 
-// changed RF064
 typedef enum
 {
 	NONE = 0,
 	CLIP,
 	MAG
 };
-// end change RF064
 
 /**
  * @brief HUD element
@@ -47,7 +42,6 @@ struct HUDEntry
 	char		szAttributeName[64];	///< Attribute name to display
 	geBitmap	*Identifier;			///< Identifier bitmap
 	geBitmap	*Indicator;				///< Indicator (level) bitmap
-// changed RF063
 	geBitmap	*Indicator2;
 	int			nTop, nLeft;			///< Top/left point of HUD display element
 	int			iTopOffset, iLeftOffset;
@@ -61,15 +55,9 @@ struct HUDEntry
 	float		DisplayTime;
 	float		CurrentTime;
 	int			OldAmount;
-// change RF064
 	int			Style;
-// end change RF064
-// changed QD 07/15/06
 	bool		flipindicator;			///< flip the indicator scaling
-// end change QD 07/15/06
-// changed Nout 12/15/05
 	CAnimGif	*GifData;
-// end change
 };
 
 /**
@@ -82,18 +70,21 @@ public:
 	~CHeadsUpDisplay();							///< Default destructor
 
 	int LoadConfiguration();					///< Load configuration from PlayerSetup entity
+
 	int Activate();								///< Turn HUD on
+
 	int Deactivate();							///< Turn HUD off
+
 	int RemoveElement(const char *szAttributeName);	///< Remove element from HUD
 	int ActivateElement(const char *szAttributeName, bool activate);
+
 	int Render();								///< Render the HUD out
+
 	void Tick(geFloat dwTick);
 	bool GetActive() { return m_bHUDActive; }
-// changed Nout 12/15/05
 	int SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop);
 	int SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset);
 	int SetElementDisplayTime(const char *szAttributeName, float DisplayTime);
-// end change
 
 private:
 	bool m_bHUDActive;							///< HUD displayed flag
