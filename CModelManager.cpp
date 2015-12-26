@@ -13,28 +13,25 @@
 #include "CTriggers.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
-extern geSound_Def *SPool_Sound(const char *SName);  //MOD010122 - Added to handle SOUND events
+extern geSound_Def *SPool_Sound(const char *SName);
 
-// Start Aug2003DCS
 // Modular data for the Tick routines
-int     ModelState[MODEL_LIST_SIZE];
-#define NOT_PROCESSED    0
-#define NO_MOVEMENT      1
-#define MOVED_IT         2
-#define CANT_MOVE        3
-// End Aug2003DCS
+int ModelState[MODEL_LIST_SIZE];
+
+#define NOT_PROCESSED	0
+#define NO_MOVEMENT		1
+#define MOVED_IT		2
+#define CANT_MOVE		3
 
 /* ------------------------------------------------------------------------------------ */
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CModelManager::CModelManager()
 {
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 		MainList[nTemp] = NULL;
 
-// Start Aug2003DCS
 	ManagedModels = 0;
-// End Aug2003DCS
 
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
@@ -69,8 +66,8 @@ CModelManager::CModelManager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Default destructor.
-//	Clean out our in-memory model database
+// Default destructor.
+// Clean out our in-memory model database
 /* ------------------------------------------------------------------------------------ */
 CModelManager::~CModelManager()
 {
@@ -87,9 +84,9 @@ CModelManager::~CModelManager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddModel
+// AddModel
 //
-//	Add a model to be managed to the in-memory database
+// Add a model to be managed to the in-memory database
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::AddModel(geWorld_Model *theModel, int nModelType)
 {
@@ -97,19 +94,19 @@ int CModelManager::AddModel(geWorld_Model *theModel, int nModelType)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemoveModel
+// RemoveModel
 //
-//	Remove a model from automatic management
+// Remove a model from automatic management
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RemoveModel(const geWorld_Model *theModel)
 {
-   return RemoveModelFromList(theModel);
+	return RemoveModelFromList(theModel);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Start
+// Start
 //
-//	Start animation for a specific model
+// Start animation for a specific model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::Start(const geWorld_Model *theModel)
 {
@@ -123,20 +120,19 @@ int CModelManager::Start(const geWorld_Model *theModel)
 
 	pEntry->bForward		= true;				// Running forwards
 	pEntry->bMoving			= true;				// Model will move on next tick
-	pEntry->bHasMoved		= true;				//MOD010122 - Added - Model has been moved
+	pEntry->bHasMoved		= true;				// Model has been moved
 	pEntry->ModelTime		= 0.0f;				// Reset the timer
-	pEntry->AnimStartTime	= pEntry->ModelTime;//MOD010122 - Added - Time animation was started
+	pEntry->AnimStartTime	= pEntry->ModelTime;// Time animation was started
 
 	geWorld_OpenModel(CCD->World(), pEntry->Model, GE_TRUE);
 
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added ReStart function
 /* ------------------------------------------------------------------------------------ */
-//	ReStart
+// ReStart
 //
-//	ReStart animation for a specific model
+// ReStart animation for a specific model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ReStart(const geWorld_Model *theModel)
 {
@@ -155,9 +151,9 @@ int CModelManager::ReStart(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop animation for a specific model
+// Stop animation for a specific model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::Stop(const geWorld_Model *theModel)
 {
@@ -180,15 +176,14 @@ int CModelManager::Stop(const geWorld_Model *theModel)
 		geWorld_OpenModel(CCD->World(), pEntry->Model, GE_TRUE);
 	}
 
-	// if (pEntry->bOneShot)				//MOD010122 - Close model if OneShot is selected
+	// if (pEntry->bOneShot)				// Close model if OneShot is selected
 	// geWorld_OpenModel(CCD->World(), pEntry->Model, GE_FALSE);
 
 	return RGF_SUCCESS;
 }
 
-// Start Aug2003DCS
 /* ------------------------------------------------------------------------------------ */
-//	SetParentModel
+// SetParentModel
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetParentModel(geWorld_Model *theModel, geWorld_Model *ParentModel)
 {
@@ -258,7 +253,7 @@ int CModelManager::SetParentModel(geWorld_Model *theModel, geWorld_Model *Parent
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetModelOriginOffset
+// SetModelOriginOffset
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetModelOriginOffset(const geWorld_Model *theModel, const geVec3d *OriginOffset)
 {
@@ -275,7 +270,7 @@ int CModelManager::SetModelOriginOffset(const geWorld_Model *theModel, const geV
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetModelOrigin
+// SetModelOrigin
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetModelOrigin(const geWorld_Model *theModel, const geVec3d *Origin)
 {
@@ -292,7 +287,7 @@ int CModelManager::SetModelOrigin(const geWorld_Model *theModel, const geVec3d *
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetTargetTime
+// SetTargetTime
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetTargetTime(const geWorld_Model *theModel, geFloat TT)
 {
@@ -306,7 +301,7 @@ int CModelManager::SetTargetTime(const geWorld_Model *theModel, geFloat TT)
 
 	if(TT < 0.0f)
 	{
-		//Stop
+		// Stop
 		pEntry->bMoving = false;				// Model stops moving now
 		pEntry->TargetTime = TT;
 	}
@@ -323,16 +318,16 @@ int CModelManager::SetTargetTime(const geWorld_Model *theModel, geFloat TT)
 				pEntry->bForward = true;
 
 			pEntry->bMoving = true;						// Model will move on next tick
-			pEntry->AnimStartTime = pEntry->ModelTime;	// MOD010122 - Added - Time animation was started
+			pEntry->AnimStartTime = pEntry->ModelTime;	// Time animation was started
 		}
 		else
 		{
 			// Start
 			pEntry->bForward		= true;				// Running forwards
 			pEntry->bMoving			= true;				// Model will move on next tick
-			pEntry->bHasMoved		= true;				// MOD010122 - Added - Model has been moved
+			pEntry->bHasMoved		= true;				// Model has been moved
 			pEntry->ModelTime		= 0.0f;				// Reset the timer
-			pEntry->AnimStartTime	= pEntry->ModelTime;// MOD010122 - Added - Time animation was started
+			pEntry->AnimStartTime	= pEntry->ModelTime;// Time animation was started
 
 			geWorld_OpenModel(CCD->World(), pEntry->Model, GE_TRUE);
 		}
@@ -341,9 +336,8 @@ int CModelManager::SetTargetTime(const geWorld_Model *theModel, geFloat TT)
 	return RGF_SUCCESS;
 }
 
-// changed Nout 12/15/05
 /* ------------------------------------------------------------------------------------ */
-//	SetToTargetTime
+// SetToTargetTime
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetToTargetTime(const geWorld_Model *theModel, geFloat TT)
 {
@@ -392,10 +386,9 @@ int CModelManager::SetToTargetTime(const geWorld_Model *theModel, geFloat TT)
 
 	return RGF_SUCCESS;
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	GetModelTargetTime
+// GetModelTargetTime
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::GetTargetTime(const geWorld_Model *theModel, geFloat *TT)
 {
@@ -432,9 +425,9 @@ int CModelManager::GetModelCurrentTime(const geWorld_Model *theModel, geFloat *t
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ModelInCollision
+// ModelInCollision
 //
-//	Return true if the model is currently colliding with something
+// Return true if the model is currently colliding with something
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ModelInCollision(const geWorld_Model *theModel, bool *Colliding)
 {
@@ -449,13 +442,11 @@ int CModelManager::ModelInCollision(const geWorld_Model *theModel, bool *Collidi
 
 	return RGF_SUCCESS;
 }
-// End Aug2003DCS
-
 
 /* ------------------------------------------------------------------------------------ */
-//	Reset
+// Reset
 //
-//	Reset the state of an animated model to its defaults
+// Reset the state of an animated model to its defaults
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::Reset(const geWorld_Model *theModel)
 {
@@ -475,9 +466,9 @@ int CModelManager::Reset(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsRunning
+// IsRunning
 //
-//	Return true if the model is animating, otherwise false
+// Return true if the model is animating, otherwise false
 /* ------------------------------------------------------------------------------------ */
 bool CModelManager::IsRunning(const geWorld_Model *theModel)
 {
@@ -489,11 +480,10 @@ bool CModelManager::IsRunning(const geWorld_Model *theModel)
 	return pEntry->bMoving;
 }
 
-// MOD010122 - Added HasMoved function
 /* ------------------------------------------------------------------------------------ */
-//	HasMoved
+// HasMoved
 //
-//	Return true if the model has moved, otherwise false
+// Return true if the model has moved, otherwise false
 /* ------------------------------------------------------------------------------------ */
 bool CModelManager::HasMoved(const geWorld_Model *theModel)
 {
@@ -506,9 +496,9 @@ bool CModelManager::HasMoved(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsModel
+// IsModel
 //
-//	Is the model pointer passed in a managed world model?
+// Is the model pointer passed in a managed world model?
 /* ------------------------------------------------------------------------------------ */
 bool CModelManager::IsModel(const geWorld_Model *theModel)
 {
@@ -521,9 +511,9 @@ bool CModelManager::IsModel(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetLooping
+// SetLooping
 //
-//	Set the automatic looping flag for a model
+// Set the automatic looping flag for a model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetLooping(const geWorld_Model *theModel, bool bLoopIt)
 {
@@ -537,11 +527,10 @@ int CModelManager::SetLooping(const geWorld_Model *theModel, bool bLoopIt)
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added SetOneShot function
 /* ------------------------------------------------------------------------------------ */
-//	SetOneShot
+// SetOneShot
 //
-//	Set the OneShot flag for a model
+// Set the OneShot flag for a model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetOneShot(const geWorld_Model *theModel, bool bOS)
 {
@@ -556,10 +545,10 @@ int CModelManager::SetOneShot(const geWorld_Model *theModel, bool bOS)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetReverseOnCollide
+// SetReverseOnCollide
 //
-//	Sets the desired models 'reverse direction on collide' flag.  This
-//	..is useful for doors when you don't want them trapping an actor.
+// Sets the desired models 'reverse direction on collide' flag.  This
+// ..is useful for doors when you don't want them trapping an actor.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetReverseOnCollide(const geWorld_Model *theModel, bool bReverseIt)
 {
@@ -573,9 +562,8 @@ int CModelManager::SetReverseOnCollide(const geWorld_Model *theModel, bool bReve
 	return RGF_SUCCESS;
 }
 
-// Added by Pickles to RF071A
 /* ------------------------------------------------------------------------------------ */
-//	SetRideable
+// SetRideable
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetRideable(const geWorld_Model *theModel, bool bRideable)
 {
@@ -588,10 +576,9 @@ int CModelManager::SetRideable(const geWorld_Model *theModel, bool bRideable)
 
 	return RGF_SUCCESS;
 }
-// End Added by Pickles to RF071A
 
 /* ------------------------------------------------------------------------------------ */
-//	SetReverse
+// SetReverse
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetReverse(const geWorld_Model *theModel, bool bReverseIt)
 {
@@ -606,7 +593,7 @@ int CModelManager::SetReverse(const geWorld_Model *theModel, bool bReverseIt)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetAllowInside
+// SetAllowInside
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetAllowInside(const geWorld_Model *theModel, bool bAllowInside)
 {
@@ -621,7 +608,7 @@ int CModelManager::SetAllowInside(const geWorld_Model *theModel, bool bAllowInsi
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetRotating
+// SetRotating
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetRotating(const geWorld_Model *theModel, bool bRotating)
 {
@@ -635,11 +622,10 @@ int CModelManager::SetRotating(const geWorld_Model *theModel, bool bRotating)
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added SetRunTimed function
 /* ------------------------------------------------------------------------------------ */
-//	SetRunTimed
+// SetRunTimed
 //
-//	Set the run timed flag for a model
+// Set the run timed flag for a model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetRunTimed(const geWorld_Model *theModel, bool bRT)
 {
@@ -653,11 +639,10 @@ int CModelManager::SetRunTimed(const geWorld_Model *theModel, bool bRT)
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added SetTimeEachTrig function
 /* ------------------------------------------------------------------------------------ */
-//	SetTimeEachTrig
+// SetTimeEachTrig
 //
-//	Set the time each trigger value for a model
+// Set the time each trigger value for a model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetTimeEachTrig(const geWorld_Model *theModel, geFloat fTET)
 {
@@ -671,11 +656,10 @@ int CModelManager::SetTimeEachTrig(const geWorld_Model *theModel, geFloat fTET)
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added SetRunFromList function
 /* ------------------------------------------------------------------------------------ */
-//	SetRunFromList
+// SetRunFromList
 //
-//	Set the run from list flag for a model
+// Set the run from list flag for a model
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetRunFromList(const geWorld_Model *theModel, bool bRFL)
 {
@@ -689,11 +673,10 @@ int CModelManager::SetRunFromList(const geWorld_Model *theModel, bool bRFL)
 	return RGF_SUCCESS;
 }
 
-// MOD010122 - Added SetTimeList function
 /* ------------------------------------------------------------------------------------ */
-//	SetTimeList
+// SetTimeList
 //
-//	Set the time list for a model
+// Set the time list for a model
 //  Note: Only 20 list items are supported
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetTimeList(const geWorld_Model *theModel, const geFloat *fTL)
@@ -716,9 +699,9 @@ int CModelManager::SetTimeList(const geWorld_Model *theModel, const geFloat *fTL
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetAnimationSpeed
+// SetAnimationSpeed
 //
-//	Set the animation speed percentage for the specified world model.
+// Set the animation speed percentage for the specified world model.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetAnimationSpeed(const geWorld_Model *theModel, geFloat fSpeed)
 {
@@ -732,9 +715,8 @@ int CModelManager::SetAnimationSpeed(const geWorld_Model *theModel, geFloat fSpe
 	return RGF_SUCCESS;
 }
 
-// start multiplayer
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SaveTo(FILE *SaveFD, bool type)
 {
@@ -761,7 +743,7 @@ int CModelManager::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -786,7 +768,6 @@ int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 
 	return RGF_SUCCESS;
 }
-// end multiplayer
 
 
 // Data required to undo actor motion caused by models
@@ -796,27 +777,25 @@ geVec3d UndoActorPos[512];
 geVec3d UndoActorRot[512];
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Dispatch time to all animating models, let them move, and make any
-//	..adjustments to actors etc. in the vicinity if necessary.
+// Dispatch time to all animating models, let them move, and make any
+// ..adjustments to actors etc. in the vicinity if necessary.
 /* ------------------------------------------------------------------------------------ */
 void CModelManager::Tick(geFloat dwTicks)
 {
-// Start Aug2003DCS
 	memset(&ModelState[0], NOT_PROCESSED, MODEL_LIST_SIZE * sizeof(int));
-// End Aug2003DCS
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
 	if(pSet)
 	{
 		geEntity *pEntity;
-		// Once more we scan the door list.  Does this get old, or what?
+		// Once more we scan the entity list.  Does this get old, or what?
 		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
-			// Get the door data so we can compare models
+			// Get the entity data so we can compare models
 			ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
 
 			if(pMod->DoForce)
@@ -837,10 +816,8 @@ void CModelManager::Tick(geFloat dwTicks)
 		}
 	}
 
-// Start Aug2003DCS
-// NOTE: The original rest of this function was modified (a lot) and put into a new function called ProcessModelTick.
-// This function calls this new function, plus another new function named ProcessChildModelTick.
-// ProcessChildModelTick recursively follows the model hierarchy to move the linked models together.
+	// Call ProcessModelTick and ProcessChildModelTick.
+	// ProcessChildModelTick recursively follows the model hierarchy to move the linked models together.
 	for(int nEntry=0; nEntry<ManagedModels; nEntry++)
 	{
 		if((MainList[nEntry] != NULL) && !MainList[nEntry]->ParentModel)
@@ -880,14 +857,12 @@ void CModelManager::Tick(geFloat dwTicks)
 			}
 		}
 	}
-// End Aug2003DCS
 
 	return;
 }
 
-// Start Aug2003DCS
 /* ------------------------------------------------------------------------------------ */
-//	ProcessChildModelTick
+// ProcessChildModelTick
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ProcessChildModelTick(int nEntry, geFloat dwTicks)
 {
@@ -926,7 +901,7 @@ int CModelManager::ProcessChildModelTick(int nEntry, geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProcessModelTick
+// ProcessModelTick
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 {
@@ -945,10 +920,9 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 		if(MainList[nEntry]->bMoving)
 		{
 			ModelState[nEntry] = MOVED_IT;
-// changed RF064
+
 			if (CCD->MenuManager()->GetSEBoundBox())
 			{
-// Start Oct2003DCS
 				geExtBox Result;
 				geVec3d Verts[8];
 				geXForm3d Xf;
@@ -998,18 +972,15 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					else if(Verts[i].Z > Result.Max.Z)
 						Result.Max.Z = Verts[i].Z;
 				}
-// End Oct2003DCS
+
 				DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
 			}
-// end change RF064
 
 			// Make sure we have animation data for the model
 			pMotion= geWorld_ModelGetMotion(MainList[nEntry]->Model);
 
 			if(!pMotion)					// No motion data?
 			{
-				//CCD->ReportError("No motion for model", false);
-				// MOD010122 - Added next two lines
 				MainList[nEntry]->bMoving = false;
 				MainList[nEntry]->bHasMoved = false;
 				return RGF_SUCCESS;
@@ -1019,8 +990,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 			if(!pPath)						// No path data?
 			{
-				//CCD->ReportError("No path for model animation", false);
-				//MOD010122 - Added next two lines
 				MainList[nEntry]->bMoving = false;
 				MainList[nEntry]->bHasMoved = false;
 				return RGF_SUCCESS;
@@ -1033,16 +1002,13 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 			// Save off the previous animation time in case we need to back up
 			MainList[nEntry]->OldModelTime = MainList[nEntry]->ModelTime;
 
-// Start Aug2003DCS
 			geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
-// End Aug2003DCS
 
 			// Now, check the direction
 			if(MainList[nEntry]->bForward)
 			{
 				// Model is animating FORWARDS along timeline
 				MainList[nEntry]->ModelTime += (dwTicks * MainList[nEntry]->ModelAnimationSpeed);
-// Start Aug2003DCS
 				if(MainList[nEntry]->TargetTime >= 0.0f)
 				{
 					if(MainList[nEntry]->ModelTime > MainList[nEntry]->TargetTime)
@@ -1055,9 +1021,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				}
 				else
 				{
-// End Aug2003DCS
-// MOD010122 - The next section of code has been extensively modified.
-//	         Another marker such as this will signal the end of the changed area.
 					if(MainList[nEntry]->bRunTimed)
 					{
 						TempTimeDelta = MainList[nEntry]->ModelTime - MainList[nEntry]->AnimStartTime;
@@ -1131,9 +1094,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 						{
 							TargetTime = tEnd * 1000.0f;
 
-// changed Nout 12/15/05 - enable reverse for non looping models
-							//if(MainList[nEntry]->bLooping)
-							//{
 							if(MainList[nEntry]->bReverse)
 							{
 								MainList[nEntry]->bForward = false;	// Reverse direction
@@ -1145,28 +1105,23 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 								MainList[nEntry]->ModelTime = tStart * 1000.0f;
 								MainList[nEntry]->AnimStartTime = MainList[nEntry]->ModelTime - TempTimeDelta;
 							}
-							//}
 							else // not looping and not reverse
 							{
 								MainList[nEntry]->bMoving = false;		// Kill the motion
 								MainList[nEntry]->ModelTime = tEnd * 1000.0f;
 							}
-// end change
 						}
 						else
 						{
 							TargetTime = MainList[nEntry]->ModelTime;
 						}
 					}
-// Start Aug2003DCS
 				}
-// End Aug2003DCS
 			}
 			else
 			{
 				// Model is animating BACKWARDS along timeline
 				MainList[nEntry]->ModelTime -= (dwTicks * MainList[nEntry]->ModelAnimationSpeed);
-// Start Aug2003DCS
 				if(MainList[nEntry]->TargetTime >= 0.0f)
 				{
 					if(MainList[nEntry]->ModelTime < MainList[nEntry]->TargetTime)
@@ -1179,7 +1134,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				}
 				else
 				{
-// End Aug2003DCS
 					if(MainList[nEntry]->bRunTimed)
 					{
 						TempTimeDelta = MainList[nEntry]->AnimStartTime - MainList[nEntry]->ModelTime;
@@ -1339,7 +1293,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 							break;
 						}
-					case 'T':   // Set trigger
+					case 'T':	// Set trigger
 						{
 							if(!EffectC_IsStringNull(Arg[1]))
 							{
@@ -1353,7 +1307,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					}
 				}
 
-// Start Aug2003DCS
 				ModelState[nEntry] = MOVED_IT;
 				// Model moved, everything ok
 				MainList[nEntry]->bModelInCollision = false;
@@ -1372,7 +1325,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 			if(MainList[nEntry]->ParentModel && (ModelState[ModelIndex(MainList[nEntry]->ParentModel)] == MOVED_IT))
 			{
 				// Parent moved, so the child must too!  Whether it likes it or not.
-// Start Oct2003DCS
 				if(CCD->MenuManager()->GetSEBoundBox())
 				{
 					geExtBox  Result;
@@ -1427,7 +1379,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 					DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
 				}
-// End Oct2003DCS
+
 				// Make sure we have animation data for the model
 				pMotion= geWorld_ModelGetMotion(MainList[nEntry]->Model);
 
@@ -1444,7 +1396,6 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				}
 				else
 				{
-// changed QD 10/14/05 - moved return to end of block
 					// Model could not move due to collision
 					//return RGF_FAILURE;
 
@@ -1468,14 +1419,12 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 	return RGF_SUCCESS;
 }
-// End Aug2003DCS
 
 
-// MOD010122 - End of extensive modification area
 /* ------------------------------------------------------------------------------------ */
-//	GetPosition
+// GetPosition
 //
-//	Get the current position of the desired world model.
+// Get the current position of the desired world model.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::GetPosition(const geWorld_Model *theModel, geVec3d *thePosition)
 {
@@ -1491,9 +1440,8 @@ int CModelManager::GetPosition(const geWorld_Model *theModel, geVec3d *thePositi
 	return RGF_SUCCESS;
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	SetPosition
+// SetPosition
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetPosition(const geWorld_Model *theModel, const geVec3d &thePosition)
 {
@@ -1506,13 +1454,11 @@ int CModelManager::SetPosition(const geWorld_Model *theModel, const geVec3d &the
 
 	return RGF_SUCCESS;
 }
-// end change RF064
-
 
 /* ------------------------------------------------------------------------------------ */
-//	GetRotation
+// GetRotation
 //
-//	Get the current rotation of the desired world model.
+// Get the current rotation of the desired world model.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::GetRotation(const geWorld_Model *theModel, geVec3d *theRotation)
 {
@@ -1529,7 +1475,7 @@ int CModelManager::GetRotation(const geWorld_Model *theModel, geVec3d *theRotati
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetModelTime
+// GetModelTime
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::GetModelTime(const geWorld_Model *theModel, geFloat *time)
 {
@@ -1548,17 +1494,17 @@ int CModelManager::GetModelTime(const geWorld_Model *theModel, geFloat *time)
 	return RGF_SUCCESS;
 }
 
-//	EVIL HACK ALERT
+// EVIL HACK ALERT
 //
-//	Due to problems in getting proper bounding box information out
-//	..of the G3D API, the following two set-and-get bounding box
-//	..calls have been added.  The manually-set bounding box will be
-//	..used elsewhere to perform collision detection.
+// Due to problems in getting proper bounding box information out
+// ..of the G3D API, the following two set-and-get bounding box
+// ..calls have been added.  The manually-set bounding box will be
+// ..used elsewhere to perform collision detection.
 
 /* ------------------------------------------------------------------------------------ */
-//	SetBoundingBox
+// SetBoundingBox
 //
-//	Define the OBB for a specific managed model.
+// Define the OBB for a specific managed model.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::SetBoundingBox(const geWorld_Model *theModel, const geExtBox &theBBox)
 {
@@ -1573,9 +1519,9 @@ int CModelManager::SetBoundingBox(const geWorld_Model *theModel, const geExtBox 
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetBoundingBox
+// GetBoundingBox
 //
-//	Retrieve the previously set OBB for a specific managed model.
+// Retrieve the previously set OBB for a specific managed model.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::GetBoundingBox(const geWorld_Model *theModel, geExtBox *theBBox)
 {
@@ -1592,11 +1538,11 @@ int CModelManager::GetBoundingBox(const geWorld_Model *theModel, geExtBox *theBB
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddPassenger
+// AddPassenger
 //
-//	Set a specified model to have a specified actor as a passenger on it.
-//	..This lasts one animation cycle, it is assumed actor gravity
-//	..processing, etc. will re-add the passenger as long as required.
+// Set a specified model to have a specified actor as a passenger on it.
+// ..This lasts one animation cycle, it is assumed actor gravity
+// ..processing, etc. will re-add the passenger as long as required.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::AddPassenger(const geWorld_Model *theModel, geActor *theActor)
 {
@@ -1618,9 +1564,9 @@ int CModelManager::AddPassenger(const geWorld_Model *theModel, geActor *theActor
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemovePassenger
+// RemovePassenger
 //
-//	Remove an actor using a model as a vehicle.
+// Remove an actor using a model as a vehicle.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RemovePassenger(const geWorld_Model *theModel, const geActor *theActor)
 {
@@ -1642,10 +1588,10 @@ int CModelManager::RemovePassenger(const geWorld_Model *theModel, const geActor 
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsAPassenger
+// IsAPassenger
 //
-//	Checks to see if a specific actor is a passenger on a model.  Returns
-//	..GE_TRUE if so, otherwise GE_FALSE.
+// Checks to see if a specific actor is a passenger on a model.  Returns
+// ..GE_TRUE if so, otherwise GE_FALSE.
 /* ------------------------------------------------------------------------------------ */
 geBoolean CModelManager::IsAPassenger(const geWorld_Model *theModel, const geActor *theActor)
 {
@@ -1664,7 +1610,7 @@ geBoolean CModelManager::IsAPassenger(const geWorld_Model *theModel, const geAct
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	EmptyContent
+// EmptyContent
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::EmptyContent(const geWorld_Model *Model)
 {
@@ -1690,36 +1636,31 @@ int CModelManager::EmptyContent(const geWorld_Model *Model)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DoesBoxHitModel
+// DoesBoxHitModel
 //
-//	EVIL HACK!  This should NOT be necessary but the freaking G3D API
-//	..won't return a proper bounding box for an animated world model,
-//	..so we have to use manually-set ones.
+// EVIL HACK!  This should NOT be necessary but the freaking G3D API
+// ..won't return a proper bounding box for an animated world model,
+// ..so we have to use manually-set ones.
 //
-//	This function takes an ExtBox and checks to see if it intersects
-//	..the ExtBox of any managed model, and if so, returns a pointer
-//	..to that model - otherwise NULL.  GE_TRUE is returned if there
-//	..was a collision, BTW.  Note that the EXTBOX coming in is assumed
-//	..to be in MODEL SPACE, we translate it into WORLD SPACE assuming
-//	..that the 'thePoint' is the origin of the ExtBox.
+// This function takes an ExtBox and checks to see if it intersects
+// ..the ExtBox of any managed model, and if so, returns a pointer
+// ..to that model - otherwise NULL.  GE_TRUE is returned if there
+// ..was a collision, BTW.  Note that the EXTBOX coming in is assumed
+// ..to be in MODEL SPACE, we translate it into WORLD SPACE assuming
+// ..that the 'thePoint' is the origin of the ExtBox.
 /* ------------------------------------------------------------------------------------ */
-geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBox,
+geBoolean CModelManager::DoesBoxHitModel(const geVec3d &/*thePoint*/, geExtBox theBox,
                                          geWorld_Model **theModel)
 {
 	geExtBox Result, Temp;
-// Start Nov2003DCS
 	geVec3d Verts[8];
 	geXForm3d Xf;
 	int	i;
 	geFloat	dx, dy, dz;
-// End Nov2003DCS
 
 	*theModel = NULL;
 
-// Start Aug2003DCS
 	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
-	//for(int nTemp = 0; nTemp < 512; nTemp++)
-// End Aug2003DCS
 	{
 		if(MainList[nTemp] == NULL)
 			continue;				// Empty slot
@@ -1728,7 +1669,6 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 			continue;
 
 		for(i=0; i<8; ++i)
-// Start Nov2003DCS
 			Verts[i] = MainList[nTemp]->Mins;
 
 		dx = MainList[nTemp]->Maxs.X - MainList[nTemp]->Mins.X;
@@ -1772,10 +1712,6 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 				Result.Max.Z = Verts[i].Z;
 		}
 
-		//DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation, &Result.Min, &Result.Max);
-// End Nov2003DCS
-
-// changed RF064
 		//if(CCD->MenuManager()->GetSEBoundBox())
 		//DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation, &Result.Min, &Result.Max);
 
@@ -1784,10 +1720,8 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 			&& MainList[nTemp]->bRotating)
 			continue;
 
-// changed RF064
 		if(MainList[nTemp]->ModelType == ENTITY_LIQUID || MainList[nTemp]->ModelType == ENTITY_OVERLAY)
 			continue;
-// end change RF064
 
 		Result.Min.X += MainList[nTemp]->Translation.X;
 		Result.Min.Y += MainList[nTemp]->Translation.Y;
@@ -1810,21 +1744,17 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &thePoint, geExtBox theBo
 	return GE_FALSE;						// Hey, no collisions!
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	ContentModel
+// ContentModel
 /* ------------------------------------------------------------------------------------ */
-geBoolean CModelManager::ContentModel(const geVec3d &thePoint, geExtBox theBox,
+geBoolean CModelManager::ContentModel(const geVec3d &/*thePoint*/, geExtBox theBox,
 									  geWorld_Model **theModel)
 {
 	geExtBox Result, Temp;
 
 	*theModel = NULL;
 
-// Start Aug2003DCS
 	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
-	//for(int nTemp = 0; nTemp < 512; nTemp++)
-// End Aug2003DCS
 	{
 		if(MainList[nTemp] == NULL)
 			continue;				// Empty slot
@@ -1903,13 +1833,11 @@ geBoolean CModelManager::ContentModel(const geVec3d &thePoint, geExtBox theBox,
 
 	return GE_FALSE;						// Hey, no collisions!
 }
-// end change RF064
-
 
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Check to see if this model needs to do anything when collided with.
+// Check to see if this model needs to do anything when collided with.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor *theActor)
 {
@@ -1938,33 +1866,31 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 			// Need to add force to the actor that hit us...
 			if(CCD->ActorManager()->ForceActive(theActor, 2) == false)
 			{
-// changed RF064
 				Direction.Z = GE_PIOVER180*(pMod->ForceVector.Z);
 				Direction.X = GE_PIOVER180*(pMod->ForceVector.X);
 				Direction.Y = GE_PIOVER180*(pMod->ForceVector.Y);
 
 				geVec3d_Normalize(&Direction);
 				CCD->ActorManager()->SetForce(theActor, 2, Direction, pMod->ForceAmount, pMod->ForceDecay);
-// end change RF064
 
 				pMod->DoForce = true;
 				pMod->FTime = 0.0f;
 
 				if(pMod->theFSound != NULL)
 				{
-					// eaa3 03/28/2000 Check to see if the sound is already playing,
+					// Check to see if the sound is already playing,
 					// ..and if so, DON'T REPLAY IT!!!
 					if(geSound_SoundIsPlaying(CCD->Engine()->AudioSystem(), pMod->FSoundHandle) != GE_TRUE)
 					{
-                        // We have some sound, play the sucker.
-                        geFloat Volume, Pan, Frequency;
-                        geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
+						// We have some sound, play the sucker.
+						geFloat Volume, Pan, Frequency;
+						geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 
 						geSound3D_GetConfig(CCD->World(), &xfmPlayer, &pMod->origin,
                            CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
 
 						pMod->FSoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(),
-                           pMod->theFSound, Volume, Pan, Frequency, GE_FALSE);
+							pMod->theFSound, Volume, Pan, Frequency, GE_FALSE);
 					}
 					// End of sound checking
 				}
@@ -1976,7 +1902,6 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 			// Need to damage the actor that hit us...
 			if(theActor)
 			{
-// changed RF063
 				if(EffectC_IsStringNull(pMod->DamageAttribute))
 				{
 					CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
@@ -1984,7 +1909,6 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 				else
 				{
 					CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
-// end change RF063
 				}
 			}
 
@@ -1993,7 +1917,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 
 			if(pMod->theDSound != NULL)
 			{
-				// eaa3 03/28/2000 Check to see if the sound is already playing,
+				// Check to see if the sound is already playing,
 				// ..and if so, DON'T REPLAY IT!!!
 				if(geSound_SoundIsPlaying(CCD->Engine()->AudioSystem(), pMod->DSoundHandle) != GE_TRUE)
 				{
@@ -2021,10 +1945,10 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetModifier
+// GetModifier
 //
-//	Get any modifiers for the passed-in model.  Note that the caller is
-//	..expected to delete the returned struct.
+// Get any modifiers for the passed-in model.  Note that the caller is
+// ..expected to delete the returned struct.
 /* ------------------------------------------------------------------------------------ */
 ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 {
@@ -2035,7 +1959,7 @@ ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 	if(!pSet)
 		return false;
 
-	//	Once more we scan the door list.  Does this get old, or what?
+	// Once more we scan the door list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -2043,22 +1967,22 @@ ModelStateModifier *CModelManager::GetModifier(const geWorld_Model *theModel)
 		ModelStateModifier *pMod = static_cast<ModelStateModifier*>(geEntity_GetUserData(pEntity));
 
 		if(pMod->theModel != theModel)
-			continue;								// Not this one
+			continue;							// Not this one
 
 		ModelStateModifier *ModPerm = new ModelStateModifier;
 		memcpy(ModPerm, pMod, sizeof(ModelStateModifier));
-		return ModPerm;						// Users problem to delete struct now...
+		return ModPerm;							// Users problem to delete struct now...
 	}
 
 	return NULL;								// No modifiers for the desired model
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetAttributes
+// GetAttributes
 //
-//	Check to see if a specified model has any attached attributes, and if
-//	..so, return a pointer to the attributes structure.  NOTE THAT IT IS
-//	..THE CALLERS RESPONSIBILITY TO DELETE THE RETURNED POINTER!
+// Check to see if a specified model has any attached attributes, and if
+// ..so, return a pointer to the attributes structure.  NOTE THAT IT IS
+// ..THE CALLERS RESPONSIBILITY TO DELETE THE RETURNED POINTER!
 /* ------------------------------------------------------------------------------------ */
 ModelAttributes *CModelManager::GetAttributes(const geWorld_Model *theModel)
 {
@@ -2077,26 +2001,26 @@ ModelAttributes *CModelManager::GetAttributes(const geWorld_Model *theModel)
 		ModelAttributes *pMod = static_cast<ModelAttributes*>(geEntity_GetUserData(pEntity));
 
 		if(pMod->theModel != theModel)
-			continue;								// Not this one
+			continue;							// Not this one
 
 		ModelAttributes *ModPerm = new ModelAttributes;
 		memcpy(ModPerm, pMod, sizeof(ModelAttributes));
-		return ModPerm;						// Users problem to delete struct now...
+		return ModPerm;							// Users problem to delete struct now...
 	}
 
 	return NULL;								// No attributes for the desired model
 }
 
-//	******** PRIVATE MEMBER FUNCTIONS **********
+// ******** PRIVATE MEMBER FUNCTIONS **********
 
 /* ------------------------------------------------------------------------------------ */
-//	AddNewModelToList
+// AddNewModelToList
 //
-//	Add a model to be managed to the in-memory database
+// Add a model to be managed to the in-memory database
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 {
-	int i;  // MOD010122 - Used for index
+	int i;
 
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
@@ -2111,15 +2035,12 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 			MainList[nTemp]->bMoving				= false;
 			MainList[nTemp]->ModelAnimationSpeed	= 1.0f;		// 100%
 			MainList[nTemp]->ModelTime				= 0.0f;
-// Start Nov2003DCS
 			MainList[nTemp]->TargetTime				= -1.0f;
-// End Nov2003DCS
 			MainList[nTemp]->ModelType				= nModelType;
 			MainList[nTemp]->bLooping				= false;
 			MainList[nTemp]->bRotating				= false;
 			MainList[nTemp]->bReverse				= false; //true; // changed QD 12/15/05
 			MainList[nTemp]->bAllowInside			= false;
-// MOD010122 - Added next seven variable initializations
 			MainList[nTemp]->bRunTimed				= false;
 			MainList[nTemp]->TimeEachTrig			= 1.0f;
 			MainList[nTemp]->bRunFromList			= false;
@@ -2132,12 +2053,9 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 			MainList[nTemp]->TLIndex				= 0;
 			MainList[nTemp]->AnimStartTime			= 0.0f;
 			MainList[nTemp]->ListWrapAround			= false;
-// MOD010122 - End of variable init additions
 
 			MainList[nTemp]->bReverseOnCollision	= false;
-// changed QD 12/15/05
 			MainList[nTemp]->bRideable				= true;
-// end change
 
 			geWorld_ModelGetBBox(CCD->World(), MainList[nTemp]->Model, &MainList[nTemp]->Mins, &MainList[nTemp]->Maxs);
 
@@ -2155,10 +2073,8 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 			for(int iPassenger=0; iPassenger<MAX_PASSENGERS; ++iPassenger)
 				MainList[nTemp]->Passengers[iPassenger] = NULL;
 
-// Start Aug2003DCS
 			if(nTemp >= ManagedModels)
 				ManagedModels = nTemp + 1;
-// End Aug2003DCS
 
 			return RGF_SUCCESS;
 		}
@@ -2168,16 +2084,13 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemoveModelFromList
+// RemoveModelFromList
 //
-//	Remove a model from the in-memory database
+// Remove a model from the in-memory database
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RemoveModelFromList(const geWorld_Model *theModel)
 {
-// Start Aug2003DCS
 	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
-	//for(int nTemp=0; nTemp<512; nTemp++)
-// End Aug2003DCS
 	{
 		// Let's find the right
 		if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
@@ -2192,18 +2105,15 @@ int CModelManager::RemoveModelFromList(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FindModel
+// FindModel
 //
-//	Locate a models entry in the database, return a pointer to it.
+// Locate a models entry in the database, return a pointer to it.
 /* ------------------------------------------------------------------------------------ */
 ModelInstanceList *CModelManager::FindModel(const geWorld_Model *theModel)
 {
 	if(theModel)
 	{
-// Start Aug2003DCS
 		for(int nTemp=0; nTemp<ManagedModels; nTemp++)
-		//for(int nTemp=0; nTemp<512; nTemp++)
-// End Aug2003DCS
 		{
 			// Let's find the right
 			if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
@@ -2214,11 +2124,10 @@ ModelInstanceList *CModelManager::FindModel(const geWorld_Model *theModel)
 	return NULL;							// Heh, not found, sucker!
 }
 
-// Start Aug2003DCS
 /* ------------------------------------------------------------------------------------ */
-//	ModelIndex
+// ModelIndex
 //
-//	Return the index of the model in the 'MainList'.
+// Return the index of the model in the 'm_MainList'.
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ModelIndex(const geWorld_Model *theModel)
 {
@@ -2231,16 +2140,13 @@ int CModelManager::ModelIndex(const geWorld_Model *theModel)
 
 	return NULL;							// Heh, not found, sucker!
 }
-// End Aug2003DCS
 
-
-// Start Nov2003DCS
 /* ------------------------------------------------------------------------------------ */
-//	MoveModel
+// MoveModel
 //
-//	Given a model instance, move the dratted thing.  Note that this will
-//	..perform motion checking to make sure that all actors within the
-//	..models bounding box will remain unaffected by its motion...
+// Given a model instance, move the dratted thing.  Note that this will
+// ..perform motion checking to make sure that all actors within the
+// ..models bounding box will remain unaffected by its motion...
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 {
@@ -2254,7 +2160,7 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	geXForm3d ParentXfm, ResultXfm;
 	int i;
 
-	//	Get the old transform for this model. (Note: this includes any motion due to a parent)
+	// Get the old transform for this model. (Note: this includes any motion due to a parent)
 	geWorld_GetModelXForm(CCD->World(), theEntry->Model, &xfmOldPosition);
 
 	// Compute the new animation time
@@ -2263,14 +2169,14 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	// Get the new transform from the path (Note: this does not include any parent movement)
 	gePath_Sample(pPath, theTime, &xfmDest);
 
-	//Include the translation and rotation of the parent model, if any
+	// Include the translation and rotation of the parent model, if any
 	if(theEntry->ParentModel)
 	{
 		// Get the parent's transform
 		geWorld_GetModelXForm(CCD->World(), theEntry->ParentModel, &ParentXfm);
 
 		// Move model with its parent model
-		geVec3d RotatedOriginOffset, OriginOffsetOffset; // = theEntry->OriginOffset;
+		geVec3d RotatedOriginOffset, OriginOffsetOffset;
 		geXForm3d_Rotate(&ParentXfm, &(theEntry->OriginOffset), &RotatedOriginOffset);
 		geVec3d_Subtract(&RotatedOriginOffset, &(theEntry->OriginOffset), &OriginOffsetOffset);
 		geXForm3d_Multiply(&ParentXfm, &xfmDest, &ResultXfm);
@@ -2285,21 +2191,17 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	// Find the current center of rotation
 	geWorld_GetModelRotationalCenter(CCD->World(), theEntry->Model, &Center);
 
-	//	At this point, we need to check to see if we have any actors within a
-	//	..reasonable range of our platform, and if so, we'll need to check to see
-	//	..if moving the platform will end up forcing any of the actors in this
-	//	..platforms range to move.
+	// At this point, we need to check to see if we have any actors within a
+	// ..reasonable range of our platform, and if so, we'll need to check to see
+	// ..if moving the platform will end up forcing any of the actors in this
+	// ..platforms range to move.
 
-// changed QD 05/20/07
-	//int nActorCount = CCD->ActorManager()->GetActorsInRange(Center, ModelRange, 512, &ActorsInRange[0]);
 	geVec3d tmp;
 	geVec3d_Add(&Center, &(ResultXfm.Translation), &tmp);
 	int nActorCount = CCD->ActorManager()->GetActorsInRange(tmp, ModelRange, 512, &ActorsInRange[0]);
 
-// Added Pickles RF071A
-	if(!(theEntry->bRideable) && !(theEntry->bReverseOnCollision)) // changed Nout 12/15/05
+	if(!(theEntry->bRideable) && !(theEntry->bReverseOnCollision))
 		nActorCount = 0;
-// End Added Pickles RF071A
 
 	if(nActorCount == 0)
 	{
@@ -2314,8 +2216,8 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	// ..collision. Is this a pain, or what?
 
 	geVec3d ActorPosition, NewActorPosition, DeltaRotation, Delta1;
-	bool    InitDataForPassengers = true;
-	int     nTemp;
+	bool	InitDataForPassengers = true;
+	int		nTemp;
 
 	for(nTemp=0; nTemp<nActorCount; ++nTemp)
 	{
@@ -2368,11 +2270,8 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 			CCD->ActorManager()->GetPosition(ActorsInRange[nTemp], &Offset);
 
 			geVec3d_Subtract(&Offset, &Center, &Offset);
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&DeltaXfm);
-			//geXForm3d_RotateZ(&DeltaXfm, DeltaRotation.Z);
+
 			geXForm3d_SetZRotation(&DeltaXfm, DeltaRotation.Z);
-			// end change
 			geXForm3d_RotateX(&DeltaXfm, DeltaRotation.X);
 			geXForm3d_RotateY(&DeltaXfm, DeltaRotation.Y);
 
@@ -2423,18 +2322,15 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 
 	return RGF_SUCCESS;
 }
-// End Nov2003DCS
 
-
-// Start Nov2003DCS
 /* ------------------------------------------------------------------------------------ */
-//	This function is a rewrite of the Genesis function called geXForm3d_GetEulerAngles.
-//  The Genesis version assumes the matrix was created in the rotation order of z,y,x. Why?
-//  We need this function to assume the order of z,x,y.  In addition, the Genesis
-//  version doesn't evaluate the Y angle beyond doing an inverse sin.  The inverse sin
-//  only gives a range of +-90 degrees.  We need +-180 degrees.  In our version the
-//  X angle has this problem, but we recalculate X using the atan2 function once we
-//  know the value of the Y angle.
+// This function is a rewrite of the Genesis function called geXForm3d_GetEulerAngles.
+// The Genesis version assumes the matrix was created in the rotation order of z,y,x. Why?
+// We need this function to assume the order of z,x,y.  In addition, the Genesis
+// version doesn't evaluate the Y angle beyond doing an inverse sin.  The inverse sin
+// only gives a range of +-90 degrees.  We need +-180 degrees.  In our version the
+// X angle has this problem, but we recalculate X using the atan2 function once we
+// know the value of the Y angle.
 /* ------------------------------------------------------------------------------------ */
 void CModelManager::GetEulerAngles(const geXForm3d *M, geVec3d *Angles)
 // order of angles z,x,y
@@ -2488,9 +2384,8 @@ void CModelManager::GetEulerAngles(const geXForm3d *M, geVec3d *Angles)
 		Angles->Y = -atan2(BZ, -M->AZ / sin(Angles->Y));
 	}
 
-	assert( geVec3d_IsValid(Angles) != GE_FALSE);
+	assert(geVec3d_IsValid(Angles) != GE_FALSE);
 }
-// End Nov2003DCS
 
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
