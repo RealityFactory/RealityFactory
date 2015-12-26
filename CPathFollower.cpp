@@ -17,9 +17,9 @@
 #include "CTeleporter.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Initialize all path followers and set the path origin and next target points.
+// Initialize all path followers and set the path origin and next target points.
 /* ------------------------------------------------------------------------------------ */
 CPathFollower::CPathFollower() :
 	m_EntityCount(0)
@@ -161,21 +161,21 @@ CPathFollower::CPathFollower() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Doesn't do anything.
+// Doesn't do anything.
 /* ------------------------------------------------------------------------------------ */
 CPathFollower::~CPathFollower()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Check to see if the player avatar is within trigger range for any
-//	..range-triggered entity motion paths.
+// Check to see if the player avatar is within trigger range for any
+// ..range-triggered entity motion paths.
 /* ------------------------------------------------------------------------------------ */
-int CPathFollower::Tick(geFloat dwTicks)
+int CPathFollower::Tick(geFloat /*dwTicks*/)
 {
 	// Ok, check to see if there are path followers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "PathFollower");
@@ -201,15 +201,11 @@ int CPathFollower::Tick(geFloat dwTicks)
 		if(pFollower->RangeTrigger == 0.0f)
 			continue;												// Not range trigger, keep moving
 
-		// changed QD 12/15/05
-		//if(geVec3d_DistanceBetween(&(pFollower->origin), &PlayerPos) > pFollower->RangeTrigger)
-		//	continue;	// Too far away
 		geVec3d temp;
 		geVec3d_Subtract(&(pFollower->origin), &PlayerPos, &temp);
 
 		if(geVec3d_DotProduct(&temp, &temp) > pFollower->RangeTrigger*pFollower->RangeTrigger)
 			continue;
-		// end change
 
 		// In range, trigger it!
 		pFollower->bTriggered = GE_TRUE;							// Triggered...
@@ -222,10 +218,10 @@ int CPathFollower::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Check to see if the model collided with is a motion trigger, and if so,
-//	..trigger it and tell the caller.
+// Check to see if the model collided with is a motion trigger, and if so,
+// ..trigger it and tell the caller.
 /* ------------------------------------------------------------------------------------ */
 bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 {
@@ -267,21 +263,21 @@ bool CPathFollower::HandleCollision(const geWorld_Model *Model)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetNextPosition
+// GetNextPosition
 //
-//	Given the name of an entity, return it's next position.  This
-//	..is the primary motion service!  Based on the current point type
-//	..and the kind of motion, return the geVec3d position that the
-//	..named entity should be moved to.  A VERY BASIC ray collision test
-//	..is performed to determine if the entity can move, so it is
-//	..possible for there to be (some) interpenetration, although it
-//	..is expected that entities which require "real" collision detection
-//	..will do a full-scale collision test using the returned new position.
-//	..for ranged motion, a random direction is picked and the entity is
-//	..moved in that direction up to the limit of the range.  For RANGED
-//	..points, if the parameter YLocked == true then there is no motion
-//	..permitted in the Y range (this prevents having props locked to a
-//	..motion path from flying in the air!).
+// Given the name of an entity, return it's next position.  This
+// ..is the primary motion service!  Based on the current point type
+// ..and the kind of motion, return the geVec3d position that the
+// ..named entity should be moved to.  A VERY BASIC ray collision test
+// ..is performed to determine if the entity can move, so it is
+// ..possible for there to be (some) interpenetration, although it
+// ..is expected that entities which require "real" collision detection
+// ..will do a full-scale collision test using the returned new position.
+// ..for ranged motion, a random direction is picked and the entity is
+// ..moved in that direction up to the limit of the range.  For RANGED
+// ..points, if the parameter YLocked == true then there is no motion
+// ..permitted in the Y range (this prevents having props locked to a
+// ..motion path from flying in the air!).
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPosition,
 								   bool YLocked)
@@ -377,15 +373,18 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 				pFollower->CurrentTarget = RandomPosition;
 				pFollower->TimeInMotion = 0.0f;				// Clear re-seek time
 			}
+
 			// From here on in, the code is identical to the target-seeking
 			// ..computations performed for way an start points.
 			geVec3d_Subtract(&pFollower->CurrentTarget, &pFollower->CurrentPosition, &DirectionVector);
 			geVec3d_Normalize(&DirectionVector);
 			geVec3d_Scale(&DirectionVector, fDistance, &DirectionVector);
+
 			// Fine, DirectionVector now contains a displacement from the current
 			// ..position of the bound entity towards the target node.
 			if(YLocked)
 				DirectionVector.Y = 0.0f;			// Stomp on Y vector value
+
 			temp.X = pFollower->CurrentPosition.X + DirectionVector.X;
 			temp.Y = pFollower->CurrentPosition.Y + DirectionVector.Y;
 			temp.Z = pFollower->CurrentPosition.Z + DirectionVector.Z;
@@ -481,11 +480,11 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetTarget
+// GetTarget
 //
-//	Given the name of an entity, return the absolute position of it's
-//	..current target.  This is used primarily to help set the
-//	..facing direction of entities moving through the world.
+// Given the name of an entity, return the absolute position of it's
+// ..current target.  This is used primarily to help set the
+// ..facing direction of entities moving through the world.
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 {
@@ -527,9 +526,9 @@ int CPathFollower::GetTarget(const char *szEntityName, geVec3d *Target)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetPathOrigin
+// GetPathOrigin
 //
-//	Return the FIRST point on the path associated with this entity.
+// Return the FIRST point on the path associated with this entity.
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 {
@@ -563,9 +562,9 @@ int CPathFollower::GetPathOrigin(const char *szEntityName, geVec3d *PathOrigin)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetSpeed
+// GetSpeed
 //
-//	Get the motion speed of an entity on a path.
+// Get the motion speed of an entity on a path.
 /* ------------------------------------------------------------------------------------ */
 geFloat CPathFollower::GetSpeed(const char *szEntityName)
 {
@@ -594,12 +593,12 @@ geFloat CPathFollower::GetSpeed(const char *szEntityName)
 	return 0.0f;
 }
 
-//	****************** PRIVATE MEMBER FUNCTIONS ************
+// ****************** PRIVATE MEMBER FUNCTIONS ************
 
 /* ------------------------------------------------------------------------------------ */
-//	TypeNameToIndex
+// TypeNameToIndex
 //
-//	Given a component type name, turn it into a fixed type index.
+// Given a component type name, turn it into a fixed type index.
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::TypeNameToIndex(const char *szName)
 {
@@ -616,10 +615,10 @@ int CPathFollower::TypeNameToIndex(const char *szName)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetDirectionVector
+// GetDirectionVector
 //
-//	Passed in two points, return a normalized direction vector
-//	..from the 'LookFrom' point to the 'LookAt' point.
+// Passed in two points, return a normalized direction vector
+// ..from the 'LookFrom' point to the 'LookAt' point.
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetDirectionVector(const geVec3d &LookFrom, const geVec3d &LookAt,
 									  geVec3d *theDirectionVector)
@@ -632,12 +631,12 @@ int CPathFollower::GetDirectionVector(const geVec3d &LookFrom, const geVec3d &Lo
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetRotationToFacePoint
+// GetRotationToFacePoint
 //
-//	Passed in two points, a 'LookFrom' point and a 'LookAt' point,
-//	..return the transform required to face 'LookFrom' at 'LookAt'.
+// Passed in two points, a 'LookFrom' point and a 'LookAt' point,
+// ..return the transform required to face 'LookFrom' at 'LookAt'.
 //
-//	Shamelessly stolen from Seven's ProjectZ code!
+// Shamelessly stolen from Seven's ProjectZ code!
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::GetRotationToFacePoint(const geVec3d &LookFrom, const geVec3d &LookAt,
 										  geVec3d *LookRotation)
@@ -660,10 +659,10 @@ int CPathFollower::GetRotationToFacePoint(const geVec3d &LookFrom, const geVec3d
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CPathFollower::ReSynchronize()
 {
