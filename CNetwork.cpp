@@ -19,17 +19,15 @@
 #define new DEBUG_NW
 
 /* ------------------------------------------------------------------------------------ */
-//	NetPlayer Constructor
+// NetPlayer Constructor
 /* ------------------------------------------------------------------------------------ */
 NetPlayer::NetPlayer()
 {
 	Actor = NULL;
 	ActorName[0] = '\0';
 	Animation[0] = '\0';
-// changed QD 02/01/07
 	PlayerName[0] = '\0';
 	Scale = 1.0f;
-// end change
 	AnimTime = 0.0f;
 
 	BaseRotation.X = BaseRotation.Y = BaseRotation.Z = 0.0f;
@@ -38,7 +36,7 @@ NetPlayer::NetPlayer()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 NetPlayer::~NetPlayer()
 {
@@ -51,9 +49,9 @@ NetPlayer::~NetPlayer()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Create
+// Create
 //
-//	add netplayer actor to level
+// add netplayer actor to level
 /* ------------------------------------------------------------------------------------ */
 void NetPlayer::Create(char *actorname)
 {
@@ -62,13 +60,11 @@ void NetPlayer::Create(char *actorname)
 	CCD->ActorManager()->Position(Actor, localTranslation);
 	CCD->ActorManager()->Rotate(Actor, localRotation);
 	CCD->ActorManager()->SetAnimationTime(Actor, AnimTime);
-// changed QD 02/01/07
 	CCD->ActorManager()->SetScale(Actor, Scale);
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	NetPlayerMgr Constructor
+// NetPlayerMgr Constructor
 /* ------------------------------------------------------------------------------------ */
 NetPlayerMgr::NetPlayerMgr()
 {
@@ -86,7 +82,7 @@ NetPlayerMgr::NetPlayerMgr()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 NetPlayerMgr::~NetPlayerMgr()
 {
@@ -120,9 +116,9 @@ NetPlayerMgr::~NetPlayerMgr()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Delet Players
+// Delet Players
 //
-//	Delete all active players
+// Delete all active players
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::DeletePlayers()
 {
@@ -137,9 +133,9 @@ void NetPlayerMgr::DeletePlayers()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreatePlayer
+// CreatePlayer
 //
-//	Create a new player from its ID#
+// Create a new player from its ID#
 /* ------------------------------------------------------------------------------------ */
 bool NetPlayerMgr::CreatePlayer(int Id)
 {
@@ -170,9 +166,9 @@ bool NetPlayerMgr::CreatePlayer(int Id)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetIndexFromId
+// GetIndexFromId
 //
-//	Get player number from ID#
+// Get player number from ID#
 /* ------------------------------------------------------------------------------------ */
 int NetPlayerMgr::GetIndexFromId(int Id)
 {
@@ -191,13 +187,12 @@ int NetPlayerMgr::GetIndexFromId(int Id)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Initialize
+// Initialize
 //
-//	Initialize networking for multiplayer game
+// Initialize networking for multiplayer game
 /* ------------------------------------------------------------------------------------ */
 bool NetPlayerMgr::Initialize(bool server, char *serverip)
 {
-
 	// test for working network TCP\IP
 	serverstop = true;
 
@@ -217,7 +212,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 				return false;
 			}
 
-			if(!nlListen(serversock))       /* let's listen on this socket */
+			if(!nlListen(serversock))	/* let's listen on this socket */
 			{
 				nlClose(serversock);
 				serverstop = true;
@@ -245,7 +240,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 		clientrun = false;
 		clientready = false;
 
-		NLaddress   addr;
+		NLaddress addr;
 
 		// open client socket on system set port
 		sock = nlOpen(0, NL_RELIABLE);
@@ -316,9 +311,9 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReadBuffer
+// ReadBuffer
 //
-//	Read packet into buffer from socket
+// Read packet into buffer from socket
 /* ------------------------------------------------------------------------------------ */
 int NetPlayerMgr::ReadBuffer(NetBuffer *Buff, NLsocket socket)
 {
@@ -329,7 +324,7 @@ int NetPlayerMgr::ReadBuffer(NetBuffer *Buff, NLsocket socket)
 	if(readlen = nlRead(socket, bufferlen, 4) > 0)
 	{
 		int rv;
-		memcpy(&rv,bufferlen,sizeof(int)); // convert to integer value
+		memcpy(&rv, bufferlen, sizeof(int)); // convert to integer value
 
 		// read in rest of data
 		Buff->PosBack(0);
@@ -348,19 +343,19 @@ int NetPlayerMgr::ReadBuffer(NetBuffer *Buff, NLsocket socket)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
-void NetPlayerMgr::Tick(geFloat dwTicks)
+void NetPlayerMgr::Tick(geFloat /*dwTicks*/)
 {
 
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ServerClientCycle
+// ServerClientCycle
 //
-//	This is the Server and Client processing
+// This is the Server and Client processing
 //
-//	this function is called every 0.05 second from the Windows Timer
+// this function is called every 0.05 second from the Windows Timer
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::ServerClientCycle()
 {
@@ -513,7 +508,7 @@ void NetPlayerMgr::ServerClientCycle()
 	if(!clientready && clientrun)
 	{
 		// get acceptance packet from server to get ID#
-		if(ReadBuffer(Buffer, sock)==NL_TRUE)
+		if(ReadBuffer(Buffer, sock) == NL_TRUE)
 		{
 			if(Buffer->GetChar() == static_cast<unsigned char>(CONNECTIONACCEPT))
 			{
@@ -538,14 +533,9 @@ void NetPlayerMgr::ServerClientCycle()
 			CreatePlayer(PlayerId);
 			int index = GetIndexFromId(PlayerId);
 
-			// changed QD 12/15/05
-			// strcpy(Player[index]->ActorName, CCD->Player()->GetPlayerName());
 			strcpy(Player[index]->ActorName, CCD->Player()->GetActorName());
-			// end change
-			// changed QD 02/01/07
 			strcpy(Player[index]->PlayerName, CCD->Player()->GetPlayerName());
 			CCD->ActorManager()->GetScale(CCD->Player()->GetActor(), &Player[index]->Scale);
-			// end change
 
 			CCD->ActorManager()->GetAligningRotation(CCD->Player()->GetActor(), &Player[index]->BaseRotation);
 			CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &Player[index]->localRotation);
@@ -670,9 +660,9 @@ void NetPlayerMgr::ServerClientCycle()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddNewPlayer
+// AddNewPlayer
 //
-//	add net player from info in buffer
+// add net player from info in buffer
 /* ------------------------------------------------------------------------------------ */
 int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 {
@@ -684,10 +674,8 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 	int index = GetIndexFromId(NewId);
 
 	char *name = Buff->GetString();
-// changed QD 02/01/07
 	char *playername = Buff->GetString();
 	float scale = Buff->GetFloat();
-// end change
 	geVec3d BaseRotation = Buff->GetVec3d();
 	geVec3d localRotation = Buff->GetVec3d();
 	geVec3d localTranslation = Buff->GetVec3d();
@@ -698,10 +686,8 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 	if(flag)
 	{
 		strcpy(Player[index]->ActorName, name);
-// changed QD 02/01/07
 		strcpy(Player[index]->PlayerName, playername);
 		Player[index]->Scale = scale;
-// end change
 		Player[index]->BaseRotation = BaseRotation;
 		Player[index]->localRotation = localRotation;
 		Player[index]->localTranslation = localTranslation;
@@ -719,9 +705,9 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SendWorldInfo
+// SendWorldInfo
 //
-//	send info about current world to socket
+// send info about current world to socket
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 {
@@ -785,18 +771,16 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	BuildPlayer
+// BuildPlayer
 //
-//	put player info into buffer
+// put player info into buffer
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::BuildPlayer(NetBuffer *Buff, int index, int Id)
 {
 	Buff->Add(Id);
 	Buff->AddString(Player[index]->ActorName, strlen(Player[index]->ActorName));
-// changed QD 02/01/07
 	Buff->AddString(Player[index]->PlayerName, strlen(Player[index]->PlayerName));
 	Buff->Add(Player[index]->Scale);
-// end change
 	Buff->Add(Player[index]->BaseRotation);
 	Buff->Add(Player[index]->localRotation);
 	Buff->Add(Player[index]->localTranslation);
@@ -806,9 +790,9 @@ void NetPlayerMgr::BuildPlayer(NetBuffer *Buff, int index, int Id)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ClientUpdate
+// ClientUpdate
 //
-//	check if client needs to send update to server
+// check if client needs to send update to server
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::ClientUpdate()
 {
@@ -868,9 +852,9 @@ void NetPlayerMgr::ClientUpdate()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ServerUpdateClient
+// ServerUpdateClient
 //
-//	server builds update buffer from incoming packets
+// server builds update buffer from incoming packets
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::ServerUpdateClient(NetBuffer *Buff)
 {
@@ -918,9 +902,9 @@ void NetPlayerMgr::ServerUpdateClient(NetBuffer *Buff)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProcessClientUpdate
+// ProcessClientUpdate
 //
-//	client processes other clients update data
+// client processes other clients update data
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::ProcessClientUpdate(NetBuffer *Buff)
 {
@@ -998,9 +982,9 @@ void NetPlayerMgr::ProcessClientUpdate(NetBuffer *Buff)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DeletePlayer
+// DeletePlayer
 //
-//	Client delete player from game
+// Client delete player from game
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::DeletePlayer(NetBuffer *Buff)
 {
@@ -1015,9 +999,9 @@ void NetPlayerMgr::DeletePlayer(NetBuffer *Buff)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SendDelete
+// SendDelete
 //
-//	send message to server you are leaving
+// send message to server you are leaving
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::SendDelete()
 {
@@ -1037,9 +1021,9 @@ void NetPlayerMgr::SendDelete()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	WriteData
+// WriteData
 //
-//	direct save data to file (Save) or buffer (build world data by server)
+// direct save data to file (Save) or buffer (build world data by server)
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::WriteData(bool type, void *data, int size, int amount, FILE *SaveFD)
 {
@@ -1054,9 +1038,9 @@ void NetPlayerMgr::WriteData(bool type, void *data, int size, int amount, FILE *
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReadData
+// ReadData
 //
-//	read data from file (Load) or from buffer (read world data by client)
+// read data from file (Load) or from buffer (read world data by client)
 /* ------------------------------------------------------------------------------------ */
 void NetPlayerMgr::ReadData(bool type, void *data, int size, int amount, FILE *RestoreFD)
 {

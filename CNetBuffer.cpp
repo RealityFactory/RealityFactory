@@ -11,7 +11,7 @@
 #include "CNetBuffer.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 NetBuffer::NetBuffer(int value)
 {
@@ -30,11 +30,11 @@ NetBuffer::NetBuffer(int value)
 		dataptr = Data;
 	}
 
-    Pos = 0;
+	Pos = 0;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 NetBuffer::~NetBuffer()
 {
@@ -42,14 +42,14 @@ NetBuffer::~NetBuffer()
 		free(Data);
 
 	Data	= NULL;
-	dataptr = NULL;
+	dataptr	= NULL;
 	Size	= 0;
 	MaxSize = 0;
     Pos		= 0;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PosBack
+// PosBack
 /* ------------------------------------------------------------------------------------ */
 void NetBuffer::PosBack(int len)
 {
@@ -67,7 +67,7 @@ void NetBuffer::PosBack(int len)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddLen
+// AddLen
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::AddLen()
 {
@@ -78,10 +78,10 @@ void *NetBuffer::AddLen()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Adds an integer (32bit) value to the buffer
+// Adds an integer (32bit) value to the buffer
 //
-//	@param value Integer that you want to add to the buffer
-//	@returns A pointer to the data buffer
+// @param value Integer that you want to add to the buffer
+// @returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Add(int value)
 {
@@ -95,7 +95,7 @@ void *NetBuffer::Add(int value)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Add
+// Add
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Add(unsigned char value)
 {
@@ -109,7 +109,7 @@ void *NetBuffer::Add(unsigned char value)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddRaw
+// AddRaw
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::AddRaw(void *data, int len)
 {
@@ -123,10 +123,10 @@ void *NetBuffer::AddRaw(void *data, int len)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Makes the buffer grow bigger
+// Makes the buffer grow bigger
 //
-//	@param addsize Size to grow the buffer by
-//	@returns A pointer to the data buffer
+// @param addsize Size to grow the buffer by
+// @returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Expand(int addsize)
 {
@@ -141,7 +141,7 @@ void *NetBuffer::Expand(int addsize)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CheckSize
+// CheckSize
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::CheckSize(int size)
 {
@@ -159,9 +159,9 @@ void *NetBuffer::CheckSize(int size)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Adds an geVect3D value to the buffer
+// Adds an geVect3D value to the buffer
 //
-//	@param geVect3D The geVect3D that you want to add to the buffer
+// @param geVect3D The geVect3D that you want to add to the buffer
 //	@returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Add(geVec3d vect3d)
@@ -174,10 +174,10 @@ void *NetBuffer::Add(geVec3d vect3d)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Adds an XForm3d value to the buffer
+// Adds an XForm3d value to the buffer
 //
-//	@param xform The XForm3d that you want to add to the buffer
-//	@returns A pointer to the data buffer
+// @param xform The XForm3d that you want to add to the buffer
+// @returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void* NetBuffer::Add(geXForm3d xform)
 {
@@ -198,10 +198,10 @@ void* NetBuffer::Add(geXForm3d xform)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Adds a float value to the buffer
+// Adds a float value to the buffer
 //
-//	@param value The float that you want to add to the buffer
-//	@returns A pointer to the data buffer
+// @param value The float that you want to add to the buffer
+// @returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void* NetBuffer::Add(geFloat value)
 {
@@ -215,50 +215,50 @@ void* NetBuffer::Add(geFloat value)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Gets an integer from the buffer
+// Gets an integer from the buffer
 //
-//	@returns The integer received from the buffer
+// @returns The integer received from the buffer
 /* ------------------------------------------------------------------------------------ */
 int NetBuffer::GetInt()
 {
 	int rv;
 
-    memcpy(&rv, dataptr, sizeof(int));
+	memcpy(&rv, dataptr, sizeof(int));
 	dataptr += sizeof(int);
-    Pos += sizeof(int);
+	Pos += sizeof(int);
 	return rv;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetChar
+// GetChar
 /* ------------------------------------------------------------------------------------ */
 unsigned char NetBuffer::GetChar()
 {
 	unsigned char rv;
 
-    memcpy(&rv, dataptr, sizeof(unsigned char));
+	memcpy(&rv, dataptr, sizeof(unsigned char));
 	dataptr += sizeof(unsigned char);
-    Pos += sizeof(unsigned char);
+	Pos += sizeof(unsigned char);
 
 	return rv;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetRaw
+// GetRaw
 /* ------------------------------------------------------------------------------------ */
 void NetBuffer::GetRaw(void *pointer, int len)
 {
-    memcpy(pointer, dataptr, len);
+	memcpy(pointer, dataptr, len);
 	dataptr += len;
-    Pos += len;
+	Pos += len;
 
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Gets a float from the buffer
+// Gets a float from the buffer
 //
-//	@returns The float received from the buffer
+// @returns The float received from the buffer
 /* ------------------------------------------------------------------------------------ */
 float NetBuffer::GetFloat()
 {
@@ -266,15 +266,15 @@ float NetBuffer::GetFloat()
 
 	memcpy(&rv, dataptr, sizeof(geFloat));
 	dataptr += sizeof(geFloat);
-    Pos += sizeof(geFloat);
+	Pos += sizeof(geFloat);
 
 	return (float)rv;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Gets a geVec3d from the buffer
+// Gets a geVec3d from the buffer
 //
-//	@returns The geVec3d received from the buffer
+// @returns The geVec3d received from the buffer
 /* ------------------------------------------------------------------------------------ */
 geVec3d NetBuffer::GetVec3d()
 {
@@ -288,9 +288,9 @@ geVec3d NetBuffer::GetVec3d()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Gets an XForm3d from the buffer
+// Gets an XForm3d from the buffer
 //
-//	@returns The XForm3d received from the buffer
+// @returns The XForm3d received from the buffer
 /* ------------------------------------------------------------------------------------ */
 geXForm3d NetBuffer::GetXForm3d()
 {
@@ -313,11 +313,11 @@ geXForm3d NetBuffer::GetXForm3d()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Adds a string value to the buffer
+// Adds a string value to the buffer
 //
-//	@param message The string that you want to add to the buffer
-//	@param len The string's length that you want to add to the buffer
-//	@returns A pointer to the data buffer
+// @param message The string that you want to add to the buffer
+// @param len The string's length that you want to add to the buffer
+// @returns A pointer to the data buffer
 /* ------------------------------------------------------------------------------------ */
 void* NetBuffer::AddString(const char *message, int len)
 {
@@ -332,12 +332,12 @@ void* NetBuffer::AddString(const char *message, int len)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Gets a String from the buffer
+// Gets a String from the buffer
 //
-//	NOTE: You must free the returning string when finished with it.
-//	@returns The string received from the buffer
+// NOTE: You must delete the returning string when finished with it.
+// @returns The string received from the buffer
 /* ------------------------------------------------------------------------------------ */
-char * NetBuffer::GetString()
+char* NetBuffer::GetString()
 {
 	int len;
 	char *rv;
@@ -347,7 +347,7 @@ char * NetBuffer::GetString()
 
 	memcpy(rv, dataptr, len);
 	dataptr += len;
-    Pos += len;
+	Pos += len;
 	rv[len] = 0;
 
 	return rv;

@@ -13,13 +13,10 @@
 
 #define CONNECTIONPACKETS  4	///< # of packets sent during connection handshake
 
-// changed QD 02/01/07
 #define WRITEDATA(type, a, b, c, d) CCD->NetPlayerManager()->WriteData(type, (void*)a, b, c, d)
 #define READDATA(type, a, b, c, d) CCD->NetPlayerManager()->ReadData(type, (void*)a, b, c, d)
-// end change
 
 #define MAXPLAYERS 10
-
 
 typedef enum
 {
@@ -74,10 +71,8 @@ public:
 	geActor *Actor;
 	char ActorName[128];
 	char Animation[128];
-// changed QD 02/01/07
 	char PlayerName[64];
 	float Scale;
-// end change
 	float AnimTime;
 	int Id;
 	geVec3d localTranslation;
