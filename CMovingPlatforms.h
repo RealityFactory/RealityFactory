@@ -59,7 +59,7 @@ private:
 
 private:
 	int m_EntityCount;					///< Count of moving platforms in world
-	ActorsOnPlatforms AP[512];				///< No more than 512 actors on platforms at once
+	ActorsOnPlatforms AP[512];			///< No more than 512 actors on platforms at once
 };
 
 #endif

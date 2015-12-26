@@ -15,10 +15,10 @@
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Set all morphing fields to default values, load sounds, set up fog zones.
-//	If there is audio, start it looping at zero volume.
+// Set all morphing fields to default values, load sounds, set up fog zones.
+// If there is audio, start it looping at zero volume.
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::CMorphingFields() :
 	m_EntityCount(0)
@@ -53,7 +53,7 @@ CMorphingFields::CMorphingFields() :
 		// Reset all the data for each morphing field
 		pField->theSound	= NULL;							// No sound right now
 		pField->theFog		= NULL;							// No fog sphere...yet
-		pField->bForward	= GE_TRUE;							// Animation direction
+		pField->bForward	= GE_TRUE;						// Animation direction
 		pField->fRadius		= pField->fogRadiusStart;		// Start fog radius
 		pField->tElapsed	= static_cast<geFloat>(pField->fogSpeed);
 		pField->clrCurrent	= pField->clrStart;				// Current color
@@ -63,7 +63,7 @@ CMorphingFields::CMorphingFields() :
 
 		if(!EffectC_IsStringNull(pField->szSoundFile))
 		{
-			pField->theSound=SPool_Sound(pField->szSoundFile);
+			pField->theSound = SPool_Sound(pField->szSoundFile);
 
 			if(!pField->theSound)
 			{
@@ -98,10 +98,11 @@ CMorphingFields::CMorphingFields() :
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up all audio and fog on our way out.
+// Clean up all audio and fog on our way out.
 /* ------------------------------------------------------------------------------------ */
 CMorphingFields::~CMorphingFields()
 {
@@ -116,8 +117,8 @@ CMorphingFields::~CMorphingFields()
 
 	geEntity *pEntity;
 
-	//	Ok, we have morphing fields somewhere.  Dig through 'em all and release
-	//	..the audio (if any).
+	// Ok, we have morphing fields somewhere.  Dig through 'em all and remove
+	// ..the fog (if any).
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -133,13 +134,14 @@ CMorphingFields::~CMorphingFields()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Perform animation work on this morphing field.  In this case, that means
-//	..updating any looping audio effects for the players current position,
-//	..morphing fog color, morphing fog radius, and morphing fog density.
-//	..It seems like a lot of work, but the effect is _cool_!
+// Perform animation work on this morphing field.  In this case, that means
+// ..updating any looping audio effects for the players current position,
+// ..morphing fog color, morphing fog radius, and morphing fog density.
+// ..It seems like a lot of work, but the effect is _cool_!
 /* ------------------------------------------------------------------------------------ */
 void CMorphingFields::Tick(geFloat dwTicks)
 {
@@ -165,7 +167,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 			{
 				if(pField->active == GE_FALSE)
 				{
-					if(pField->theSound && pField->SoundHandle==-1)
+					if(pField->theSound && pField->SoundHandle == -1)
 					{
 						Snd Sound;
 						memset(&Sound, 0, sizeof(Sound));
@@ -205,8 +207,8 @@ void CMorphingFields::Tick(geFloat dwTicks)
 				if(pField->theSound && pField->SoundHandle == -1)
 				{
 					Snd Sound;
-					memset( &Sound, 0, sizeof( Sound ) );
-					geVec3d_Copy( &(pField->origin), &( Sound.Pos ) );
+					memset(&Sound, 0, sizeof(Sound));
+					geVec3d_Copy(&(pField->origin), &(Sound.Pos));
 					Sound.Min = CCD->GetAudibleRadius();
 					Sound.Loop = GE_TRUE;
 					Sound.SoundDef = pField->theSound;
@@ -264,13 +266,13 @@ void CMorphingFields::Tick(geFloat dwTicks)
 				// Morph the fog from start to end and back.
 				pField->fDensity += pField->fDepthDelta * dwTicks;	// Animate density
 
-				if((pField->fDensity > (pField->fogVariance + kFogDensity)) ||
+				if( (pField->fDensity > (pField->fogVariance + kFogDensity)) ||
 					(pField->fDensity < (kFogDensity-pField->fogVariance)))
-					pField->fDepthDelta = -(pField->fDepthDelta);		// Flip sign
+					pField->fDepthDelta = -(pField->fDepthDelta);	// Flip sign
 
 				pField->fRadius += pField->fRadiusDelta;
 
-				if((pField->fRadius > pField->fogRadiusEnd) ||
+				if( (pField->fRadius > pField->fogRadiusEnd) ||
 					(pField->fRadius < pField->fogRadiusStart))
 					pField->fRadiusDelta = -(pField->fRadiusDelta);	// Flip sign
 
@@ -335,10 +337,11 @@ void CMorphingFields::Tick(geFloat dwTicks)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save morphingfield states to a supplied file
+// Save morphingfield states to a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::SaveTo(FILE *SaveFD)
 {
@@ -369,10 +372,11 @@ int CMorphingFields::SaveTo(FILE *SaveFD)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore morphingfield states from a supplied file
+// Restore morphingfield states from a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 {
@@ -403,10 +407,11 @@ int CMorphingFields::RestoreFrom(FILE *RestoreFD)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	BindToPath
+// BindToPath
 //
-//	Given the name of an entity, bind that entity to a motion path.
+// Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::BindToPath(const char *szName)
 {
@@ -434,13 +439,13 @@ int CMorphingFields::BindToPath(const char *szName)
 	return RGF_FAILURE;							// No such entity, sorry
 }
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -469,10 +474,10 @@ int CMorphingFields::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CMorphingFields::ReSynchronize()
 {

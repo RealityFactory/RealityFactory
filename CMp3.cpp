@@ -3,12 +3,11 @@
  * @brief CMp3Manager class implementation
  ****************************************************************************************/
 
-#include "RabidFramework.h"				// The One True Header
+#include "RabidFramework.h"
 #include "CMp3.h"
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CMp3Manager::CMp3Manager() :
 	m_Active(false),
@@ -19,7 +18,7 @@ CMp3Manager::CMp3Manager() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CMp3Manager::~CMp3Manager()
 {
@@ -28,24 +27,24 @@ CMp3Manager::~CMp3Manager()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	OpenMediaFile
+// OpenMediaFile
 //
-//	This function opens and renders the specified media file.
-//	File..Open has been selected
+// This function opens and renders the specified media file.
+// File..Open has been selected
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::OpenMediaFile(LPCSTR szFile)
 {
 	m_Video = MCIWndCreate(CCD->Engine()->WindowHandle(),
-		// AfxGetInstanceHandle(),
-		NULL,
-		WS_CHILD | MCIWNDF_NOMENU, szFile);
+							NULL,
+							WS_CHILD | MCIWNDF_NOMENU,
+							szFile);
 
 	if(m_Video)
 	{
 		MCIWndUseTime(m_Video);
 		m_Length = MCIWndGetLength(m_Video);
 	}
-} // OpenMediaFile
+}
 
 /* ------------------------------------------------------------------------------------ */
 // Rewind
@@ -59,7 +58,7 @@ void CMp3Manager::Rewind()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Refresh
+// Refresh
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::Refresh()
 {
@@ -82,7 +81,7 @@ void CMp3Manager::Refresh()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlayMp3
+// PlayMp3
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 {
@@ -93,10 +92,10 @@ void CMp3Manager::PlayMp3(long volume, geBoolean loop)
 		m_Active = true;
 		SetVolume(volume);
 	}
-} // PlayMp3
+}
 
 /* ------------------------------------------------------------------------------------ */
-//	StopMp3
+// StopMp3
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::StopMp3()
 {
@@ -107,8 +106,7 @@ void CMp3Manager::StopMp3()
 	}
 
 	return ;
-} //StopMp3
-// end change RF064
+}
 
 /* ------------------------------------------------------------------------------------ */
 // IsPlaying
@@ -136,7 +134,7 @@ bool CMp3Manager::IsPlaying()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetVolume
+// SetVolume
 /* ------------------------------------------------------------------------------------ */
 void CMp3Manager::SetVolume(long volume)
 {

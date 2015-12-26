@@ -64,7 +64,7 @@ CMorph::CMorph()
 		pMorph->CurDelayToNextStage = pMorph->DelayToNextStage;
 		pMorph->StageDir = 1;
 		pMorph->First = GE_TRUE;
-		pMorph->CMorphBmp = NULL;	// changed QD 07/15/06
+		pMorph->CMorphBmp = NULL;
 
 		if(EffectC_IsStringNull(pMorph->StartBmp))
 			pMorph->CStartBmp = NULL;
@@ -77,16 +77,7 @@ CMorph::CMorph()
 			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create StartBmp\n",
 					__FILE__, __LINE__, pMorph->szEntityName);
 			CCD->ReportError(szError, false);
-			// changed QD 07/15/06
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError,"EM_Morph", MB_OK);
-			exit(-333);
-			*/
 			continue;
-			// end change
 		}
 
 		if(geBitmap_GetInfo(pMorph->CStartBmp, &StartInfo, NULL) == GE_FALSE)
@@ -106,16 +97,7 @@ CMorph::CMorph()
 			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create EndBmp\n",
 					__FILE__, __LINE__, pMorph->szEntityName);
 			CCD->ReportError(szError, false);
-			// changed QD 07/15/06
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError,"EM_Morph", MB_OK);
-			exit(-333);
-			*/
 			continue;
-			// end change
 		}
 
 		if(geBitmap_GetInfo(pMorph->CEndBmp, &EndInfo, NULL) == GE_FALSE)
@@ -139,16 +121,7 @@ CMorph::CMorph()
 				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->EntityName);
 				CCD->ReportError(szError, false);
-				// changed QD
-				/*
-				CCD->ShutdownLevel();
-				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError, "EM_Morph", MB_OK);
-				exit(-333);
-				*/
 				continue;
-				// end change
 			}
 		}
 
@@ -199,13 +172,6 @@ CMorph::CMorph()
 				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial '%s'\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				CCD->ReportError(szError, false);
-				/*
-				CCD->ShutdownLevel();
-				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError, "EM_Morph", MB_OK);
-				exit(-333);
-				*/
 				continue;
 			}
 		}
@@ -219,13 +185,6 @@ CMorph::CMorph()
 				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing bitmap '%s' in level\n",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				CCD->ReportError(szError, false);
-				/*
-				CCD->ShutdownLevel();
-				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError,"EM_Morph", MB_OK);
-				exit(-333);
-				*/
 				continue;
 			}
 		}
@@ -242,10 +201,8 @@ CMorph::CMorph()
 
 		geBitmap_ClearMips(pMorph->CMorphBmp);
 
-// changed QD 07/15/06
 		if(geBitmap_GetAlpha(pMorph->CStartBmp) &&	geBitmap_GetAlpha(pMorph->CEndBmp))
 		{
-
 			geBitmap *Alpha = geBitmap_Create(MorphInfo.Width, MorphInfo.Height, 1, GE_PIXELFORMAT_8BIT_GRAY);
 			if(Alpha)
 			{
@@ -254,7 +211,6 @@ CMorph::CMorph()
 				geBitmap_Destroy(&Alpha);
 			}
 		}
-// end change QD 07/15/06
 	}
 }
 
@@ -293,10 +249,8 @@ void CMorph::Tick(geFloat dwTicks)
 	{
 		EM_Morph *pMorph = static_cast<EM_Morph*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pMorph->CStartBmp || !pMorph->CEndBmp|| !pMorph->CMorphBmp)
 			continue;
-		// end change
 
 		if(!EffectC_IsStringNull(pMorph->TriggerName))
 		{
@@ -396,7 +350,7 @@ void CMorph::Tick(geFloat dwTicks)
 				// setup pointers
 				CurMorph = Morph + (MorphInfo.Stride * Row * 3);
 				CurStart = Start + (StartInfo.Stride * Row * 3);
-				CurEnd = End + (EndInfo.Stride * Row * 3);
+				CurEnd   = End   + (EndInfo.Stride   * Row * 3);
 
 				// copy data
 				for(Col=0; Col<MorphInfo.Width; ++Col)
@@ -409,12 +363,12 @@ void CMorph::Tick(geFloat dwTicks)
 					// adjust pointers
 					CurMorph += 3;
 					CurStart += 3;
-					CurEnd += 3;
+					CurEnd   += 3;
 				}
 			}
 
-
-ALLDONE:	// unlock all bitmaps
+ALLDONE:
+			// unlock all bitmaps
 			if(StartLocked)
 			{
 				Result = geBitmap_UnLock(StartLocked);
@@ -435,8 +389,6 @@ ALLDONE:	// unlock all bitmaps
 				assert(Result == GE_TRUE);
 				MorphLocked = NULL;
 			}
-
-// changed QD 07/15/06
 
 			if(geBitmap_GetAlpha(pMorph->CStartBmp) &&	geBitmap_GetAlpha(pMorph->CEndBmp))
 			{
@@ -475,7 +427,7 @@ ALLDONE:	// unlock all bitmaps
 					// setup pointers
 					CurMorph = Morph + (MorphInfo.Stride * Row);
 					CurStart = Start + (StartInfo.Stride * Row);
-					CurEnd = End + (EndInfo.Stride * Row);
+					CurEnd   = End   + (EndInfo.Stride   * Row);
 
 					// copy data
 					for(Col=0; Col<MorphInfo.Width; ++Col)
@@ -490,7 +442,8 @@ ALLDONE:	// unlock all bitmaps
 					}
 				}
 
-ALPHADONE:		// unlock all bitmaps
+ALPHADONE:
+				// unlock all bitmaps
 				if(StartLocked)
 				{
 					Result = geBitmap_UnLock(StartLocked);
@@ -512,7 +465,6 @@ ALPHADONE:		// unlock all bitmaps
 					MorphLocked = NULL;
 				}
 			}
-// end change QD 07/15/06
 		}
 	}
 
