@@ -19,7 +19,9 @@ public:
 	~CLiftBelt();
 
 	void Tick(geFloat dwTicks);
+
 	void ChangeLift(bool increase);
+
 	void DisableHud(const char *Attr);
 
 	/**

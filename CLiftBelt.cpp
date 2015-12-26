@@ -124,9 +124,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 
 						pSource->bState = GE_TRUE;
 
-						// changed QD 12/15/05
 						CCD->ActorManager()->GetForce(CCD->Player()->GetActor(), 3, NULL, &(pSource->Powerlevel), NULL);
-						// end change
 
 						if(m_Change)
 						{
@@ -254,7 +252,7 @@ int CLiftBelt::LocateEntity(const char *szName, void **pEntityData)
 
 	// Ok, we have liftbelts somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		LiftBelt *pSource = static_cast<LiftBelt*>(geEntity_GetUserData(pEntity));
 

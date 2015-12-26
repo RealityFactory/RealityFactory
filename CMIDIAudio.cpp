@@ -9,14 +9,13 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Use the One True Include File
 #include "RabidFramework.h"
 #include "CMIDIAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Open up the MIDI sequencer via MCI
+// Open up the MIDI sequencer via MCI
 /* ------------------------------------------------------------------------------------ */
 CMIDIAudio::CMIDIAudio()
 {
@@ -29,17 +28,17 @@ CMIDIAudio::CMIDIAudio()
 	m_MIDIFile[0]	= 0;		// No file yet
 	m_Position		= 0;		// No playlist position
 
-	//	All done.  The way the MCI sequencer works, there's no mechanism for loading
-	//	..in a new MIDI file without "opening" it anew, so we'll just open/close as
-	//	..part of the start/stop cycle.
+	// All done.  The way the MCI sequencer works, there's no mechanism for loading
+	// ..in a new MIDI file without "opening" it anew, so we'll just open/close as
+	// ..part of the start/stop cycle.
 
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Shut down the sequencer and clean up.
+// Shut down the sequencer and clean up.
 /* ------------------------------------------------------------------------------------ */
 CMIDIAudio::~CMIDIAudio()
 {
@@ -65,44 +64,43 @@ CMIDIAudio::~CMIDIAudio()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
-//	Play back a General MIDI file, using the default MIDI device as
-//	..opened in the constructor.  Note that ONLY General MIDI files
-//	..are assumed, and that it's assumed that the user has a General
-//	..MIDI-compatible sound card installed.
+// Play back a General MIDI file, using the default MIDI device as
+// ..opened in the constructor.  Note that ONLY General MIDI files
+// ..are assumed, and that it's assumed that the user has a General
+// ..MIDI-compatible sound card installed.
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::Play(const char *szFile, bool bLoop)
 {
-// FIX #1
 	char szTemp[256];
 	strcpy(szTemp, CCD->GetDirectory(kMIDIFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFile);
 
-	//	Ok, we're opening the MIDI file as part of the sequencer open.  This
-	//	..is the simplest way to do it.  The output device that gets opened
-	//	..is the default sequencer as set in the Multimedia control panel.
+	// Ok, we're opening the MIDI file as part of the sequencer open.  This
+	// ..is the simplest way to do it.  The output device that gets opened
+	// ..is the default sequencer as set in the Multimedia control panel.
+
 	MCI_OPEN_PARMS mciOpen;
 
 	mciOpen.lpstrDeviceType = "sequencer";
-// FIX #1
 
-	//	Ok, we're opening the MIDI file as part of the sequencer open.  This
-	//	..is the simplest way to do it.  The output device that gets opened
-	//	..is the default sequencer as set in the Multimedia control panel.
+	// Ok, we're opening the MIDI file as part of the sequencer open.  This
+	// ..is the simplest way to do it.  The output device that gets opened
+	// ..is the default sequencer as set in the Multimedia control panel.
 
 	mciOpen.lpstrElementName = szTemp;
 
 	if(mciSendCommand(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD)(LPVOID) &mciOpen))
-    {
+	{
 		// Blew the file open, return an ERROR.
 		char szBug[256];
 		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open sequence file '%s'\n",
 				__FILE__, __LINE__, szFile);
 		CCD->ReportError(szBug, false);
 		return RGF_FAILURE;
-    }
+	}
 
 	m_mciDeviceID = mciOpen.wDeviceID;			// Save device ID for later work.
 
@@ -129,9 +127,7 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 
 	strcpy(m_MIDIFile, szFile);								// Save filename
 
-// changed RF064
 	strcpy(m_savefile, szFile);
-// end change RF064
 
 	m_bActive = true;
 
@@ -142,12 +138,12 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 		CCD->ReportError(szDebug, false);
 	}
 
-	//	File playing, let's BAIL THIS MESS!
+	// File playing, let's BAIL THIS MESS!
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Restore
+// Restore
 /* ------------------------------------------------------------------------------------ */
 void CMIDIAudio::Restore()
 {
@@ -156,9 +152,9 @@ void CMIDIAudio::Restore()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlayList
+// PlayList
 //
-//	Play a list of MIDI files.
+// Play a list of MIDI files.
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::PlayList(char **szList, int nCount)
 {
@@ -188,7 +184,7 @@ int CMIDIAudio::PlayList(char **szList, int nCount)
 		strcpy(m_szList[nTemp], szList[nTemp]);
 	}
 
-	//	Playlist allocated, let's get going...
+	// Playlist allocated, let's get going...
 	m_ListCount = nCount;					// # of tunes to play
 	m_Position = 0;							// Which tune we're on
 
@@ -198,9 +194,9 @@ int CMIDIAudio::PlayList(char **szList, int nCount)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop the currently playing MIDI file.
+// Stop the currently playing MIDI file.
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::Stop()
 {
@@ -228,9 +224,9 @@ int CMIDIAudio::Stop()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsPlaying
+// IsPlaying
 //
-//	Return TRUE if there's a MIDI file running.
+// Return TRUE if there's a MIDI file running.
 /* ------------------------------------------------------------------------------------ */
 bool CMIDIAudio::IsPlaying()
 {
@@ -255,11 +251,11 @@ bool CMIDIAudio::IsPlaying()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Check
+// Check
 //
-//	This function takes care of checking the MIDI sequencer periodically
-//	..to see if the file is still playing.  I'd use notifications but I've
-//	..found those to be somewhat unreliable, THIS I know works.
+// This function takes care of checking the MIDI sequencer periodically
+// ..to see if the file is still playing.  I'd use notifications but I've
+// ..found those to be somewhat unreliable, THIS I know works.
 /* ------------------------------------------------------------------------------------ */
 void CMIDIAudio::Check()
 {
@@ -287,7 +283,7 @@ void CMIDIAudio::Check()
 		memset(&mciPlay, 0, sizeof(MCI_PLAY_PARMS));
 
 		if(mciSendCommand(m_mciDeviceID, MCI_PLAY, MCI_NOTIFY, (DWORD)(LPVOID)&mciPlay))
-	    {
+		{
 			MCI_GENERIC_PARMS mciClose;
 			// Can't restart it?  Damn!
 			CCD->ReportError("[WARNING] CMIDIAudio: Failed to restart looping MIDI file\n", false);
@@ -325,9 +321,9 @@ void CMIDIAudio::Check()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current MIDI playback state to the supplied file
+// Save the current MIDI playback state to the supplied file
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::SaveTo(FILE *SaveFD)
 {
@@ -349,9 +345,9 @@ int CMIDIAudio::SaveTo(FILE *SaveFD)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the MIDI playback state from the supplied file
+// Restore the MIDI playback state from the supplied file
 /* ------------------------------------------------------------------------------------ */
 int CMIDIAudio::RestoreFrom(FILE *RestoreFD)
 {

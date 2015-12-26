@@ -2,7 +2,7 @@
  * @file CLiquid.cpp
  * @brief Liquid class implementation
  *
- * This file contains the class implementation for the CLiquid and COverlay class.
+ * This file contains the class implementation for the CLiquid class.
  * @author Ralph Deane
  *//*
  * Copyright (c) 2001 Ralph Deane; All rights reserved.

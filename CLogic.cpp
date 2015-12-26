@@ -15,10 +15,9 @@
 #include "CLogic.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Load up all logic gates and set the
-//	..entities to default values.
+// Load up all logic gates and set the entities to default values.
 /* ------------------------------------------------------------------------------------ */
 CLogic::CLogic() :
 	m_EntityCount(0)
@@ -27,13 +26,13 @@ CLogic::CLogic() :
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
-		return;									// No 3D audio sources
+		return;									// No logic gates
 
 	geEntity *pEntity;
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
@@ -48,8 +47,8 @@ CLogic::CLogic() :
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "LogicGate");
-		// Reset all the data for each logic gate
 
+		// Reset all the data for each logic gate
 		pSource->active		= GE_FALSE;
 		pSource->bState		= GE_FALSE;
 		pSource->OldState	= GE_FALSE;
@@ -61,16 +60,17 @@ CLogic::CLogic() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up.
+// Clean up.
 /* ------------------------------------------------------------------------------------ */
 CLogic::~CLogic()
 {
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CLogic::Tick(geFloat dwTicks)
 {
@@ -83,14 +83,14 @@ void CLogic::Tick(geFloat dwTicks)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
-		return;									// No sources
+		return;									// No logic gates
 
 	geEntity *pEntity;
 	geBoolean state, state2;
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
@@ -179,8 +179,7 @@ void CLogic::Tick(geFloat dwTicks)
 			pSource->bState = GE_FALSE;
 			if(theInv->Has(pSource->Trigger1Name))
 			{
-// changed RF063
-				if(theInv->Value(pSource->Trigger1Name)>pSource->Amount)
+				if(theInv->Value(pSource->Trigger1Name) > pSource->Amount)
 					pSource->bState = GE_TRUE;
 			}
 			break;
@@ -189,15 +188,13 @@ void CLogic::Tick(geFloat dwTicks)
 			if(pSource->bState || state)
 				pSource->bState = GE_TRUE;
 			break;
-// changed RF063
 		case 10: // Use attribute
 			pSource->bState = GE_FALSE;
-// changed RF064
+
 			if(CCD->Player()->GetUseAttribute(pSource->Trigger1Name))
 			{
 				pSource->bState = GE_TRUE;
 			}
-// end change RF064
 			break;
 		case 11: // Clear Use Attribute
 			state = GetLTriggerState(pSource->Trigger1Name);
@@ -205,20 +202,18 @@ void CLogic::Tick(geFloat dwTicks)
 			{
 				if(!pSource->OldState)
 				{
-// changed RF064
 					if(CCD->Player()->GetUseAttribute(pSource->Trigger2Name))
 					{
 						CCD->HUD()->ActivateElement(pSource->Trigger2Name, false);
 						CCD->Player()->DelUseAttribute(pSource->Trigger2Name);
 					}
-// end change RF064
+
 					pSource->OldState = GE_TRUE;
 				}
 			}
 			else
 				pSource->OldState = GE_FALSE;
 			break;
-// changed RF064
 		case 12: // Contents
 			pSource->bState = GE_FALSE;
 			if(!EffectC_IsStringNull(pSource->Trigger1Name))
@@ -315,7 +310,6 @@ void CLogic::Tick(geFloat dwTicks)
 					pSource->bState = GE_TRUE;
 			}
 			break;
-// end change RF064
 		}
 	}
 
@@ -333,11 +327,12 @@ void CLogic::Tick(geFloat dwTicks)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every  logic gate in the current world
-//	..off to an open file.
+// Save the current state of every  logic gate in the current world
+// ..off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CLogic::SaveTo(FILE *SaveFD, bool type)
 {
@@ -345,13 +340,13 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
-		return RGF_SUCCESS;									// No gates, whatever...
+		return RGF_SUCCESS;							// No logic gates, whatever...
 
 	geEntity *pEntity;
 
 	// Ok, we have logic gates somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		LogicGate *pSource = static_cast<LogicGate*>(geEntity_GetUserData(pEntity));
 
@@ -366,9 +361,9 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every  logic gate in the current world from an	open file.
+// Restore the state of every  logic gate in the current world from an	open file.
 /* ------------------------------------------------------------------------------------ */
 int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -376,7 +371,7 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");
 
 	if(!pSet)
-		return RGF_SUCCESS;					// No gates, whatever...
+		return RGF_SUCCESS;					// No logic gates, whatever...
 
 	geEntity *pEntity;
 
@@ -395,13 +390,14 @@ int CLogic::RestoreFrom(FILE *RestoreFD, bool type)
 	return RGF_SUCCESS;
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CLogic::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -413,7 +409,7 @@ int CLogic::LocateEntity(const char *szName, void **pEntityData)
 
 	geEntity *pEntity;
 
-	// Ok, we have logic gates somewhere.  Dig through 'em all.
+	// Ok, we have logic gates somewhere. Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -429,11 +425,12 @@ int CLogic::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;				// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CLogic::ReSynchronize()
 {
@@ -441,7 +438,7 @@ int CLogic::ReSynchronize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetState
+// SetState
 /* ------------------------------------------------------------------------------------ */
 void CLogic::SetState()
 {
@@ -487,8 +484,9 @@ void CLogic::SetState()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetLTriggerState
+// GetLTriggerState
 /* ------------------------------------------------------------------------------------ */
 bool CLogic::GetLTriggerState(const char *Name)
 {
@@ -500,7 +498,7 @@ bool CLogic::GetLTriggerState(const char *Name)
 
 		if(!stricmp(EntityType, "LogicGate"))
 		{
-			pool=Bottom;
+			pool = Bottom;
 
 			while(pool != NULL)
 			{
