@@ -21,11 +21,10 @@ public:
 	~COverlay();
 
 	void Tick(geFloat dwTicks);
+
 	Overlay *IsOverlay(const geWorld_Model *theModel);
+
 	void Render();
-
-private:
-
 };
 
 #endif

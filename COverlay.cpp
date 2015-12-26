@@ -171,7 +171,7 @@ void COverlay::Tick(geFloat dwTicks)
 		{
 			if(!GetTriggerState(pItem->TriggerName))
 			{
-				pItem->Alpha=pItem->Transparency; // reset alpha when trigger is off
+				pItem->Alpha = pItem->Transparency; // reset alpha when trigger is off
 				continue;
 			}
 		}
@@ -272,8 +272,9 @@ void COverlay::Render()
 			Vertex.Y = Pos.Y;
 			Vertex.Z = Pos.Z;
 
-			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, pItem->Texture,
-				GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f);
+			geWorld_AddPolyOnce(CCD->World(), &Vertex, 1,
+								pItem->Texture, GE_TEXTURED_POINT,
+								GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f);
 		}
 	}
 

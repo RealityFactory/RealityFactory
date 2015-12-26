@@ -9,7 +9,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header File
 #include "RabidFramework.h"
 #include "CParticleSystem.h"
 
@@ -18,14 +17,14 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Initialize the list of active particle systems to empty, then go through the
-//	loaded world and set up all the static particle	systems defined therein.
+// Initialize the list of active particle systems to empty, then go through the
+// loaded world and set up all the static particle	systems defined therein.
 /* ------------------------------------------------------------------------------------ */
 CParticleSystem::CParticleSystem()
 {
-	//	Clear out our containers
+	// Clear out our containers
 	memset(&theList, 0, sizeof(ParticleSystem*) * 50);
 	memset(&bmpList, 0, sizeof(geBitmap*) * 50);
 
@@ -40,7 +39,7 @@ CParticleSystem::CParticleSystem()
 
 	// Ok, we have particle systems somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		ParticleSystemProxy *pProxy = static_cast<ParticleSystemProxy*>(geEntity_GetUserData(pEntity));
 
@@ -54,25 +53,13 @@ CParticleSystem::CParticleSystem()
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pProxy->szEntityName, "ParticleSystemProxy");
 
-		// changed QD 02/01/07
-		/*
-		if(pProxy->Model)
-		{
-			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pProxy->Model, &ModelOrigin);
-			geVec3d_Subtract(&pProxy->origin, &ModelOrigin, &pProxy->OriginOffset);
-  		}
-		*/
 		SetOriginOffset(pProxy->EntityName, pProxy->BoneName, pProxy->Model, &(pProxy->origin));
 		pProxy->OriginOffset = pProxy->origin;
-		// end change
 
 		// Ok, let's set up the system.
 		pProxy->clrColor.a = 255.0f;		// Maximum alpha to start
 
-// changed RF064
 		if(LoadParticleMap(&pmHandle, pProxy->szTexture, pProxy->szAlpha) != RGF_SUCCESS)
-// end change RF064
 		{
 			char szBug[256];
 			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to load particle map '%s'\n",
@@ -109,13 +96,13 @@ CParticleSystem::CParticleSystem()
 
 				// Check for system default over-rides in the proxy
 				if(pProxy->BirthRate != 0)
-				  SetBirthRate(psHandle, pProxy->BirthRate);
+					SetBirthRate(psHandle, pProxy->BirthRate);
 
 				if(pProxy->MaxParticleCount != 0)
-				  SetMaxSize(psHandle, pProxy->MaxParticleCount);
+					SetMaxSize(psHandle, pProxy->MaxParticleCount);
 
 				if(pProxy->ParticleLifespan != 0)
-				  SetParticleLife(psHandle, pProxy->ParticleLifespan);
+					SetParticleLife(psHandle, pProxy->ParticleLifespan);
 
 				Hide(psHandle, true);				// hide it
 				Pause(psHandle, true);				// Stop it
@@ -144,12 +131,13 @@ CParticleSystem::CParticleSystem()
 		}
 	}
 
-	//	Everyone set up, let's go!
+	// Everyone set up, let's go!
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CreateSound
+// CreateSound
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, float radius)
 {
@@ -157,10 +145,10 @@ int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, f
 	Snd Sound;
 
 	memset(&Sound, 0, sizeof(Sound));
-    geVec3d_Copy(&Origin, &(Sound.Pos));
-    Sound.Min = radius;
-    Sound.Loop = GE_TRUE;
-    Sound.SoundDef = SPool_Sound(SoundFile);
+	geVec3d_Copy(&Origin, &(Sound.Pos));
+	Sound.Min = radius;
+	Sound.Loop = GE_TRUE;
+	Sound.SoundDef = SPool_Sound(SoundFile);
 
 	if(!(Sound.SoundDef))
 	{
@@ -177,10 +165,11 @@ int CParticleSystem::CreateSound(const geVec3d &Origin, const char *SoundFile, f
 	return effect;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Shut down and clean up all active particle systems.
+// Shut down and clean up all active particle systems.
 /* ------------------------------------------------------------------------------------ */
 CParticleSystem::~CParticleSystem()
 {
@@ -195,26 +184,24 @@ CParticleSystem::~CParticleSystem()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	LoadParticleMap
+// LoadParticleMap
 //
-//	This function loads a texture map to be used as a particle texture.
-//	..Note that, if the ALPHA map is not specified, the SAME FILE is
-//	..used both for alpha and color.
+// This function loads a texture map to be used as a particle texture.
+// ..Note that, if the ALPHA map is not specified, the SAME FILE is
+// ..used both for alpha and color.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::LoadParticleMap(int *pmHandle, const char *szPrimary, const char *szAlpha)
 {
 	int nHandle = (-1), nTemp;
 
-// changed RF064
-   // Sanity check
+	// Sanity check
 	if(pmHandle == NULL)
 		return RGF_FAILURE;		// Bad programmer!
 
 	if(EffectC_IsStringNull(szPrimary) == GE_TRUE)
 		return RGF_FAILURE;		//if you want to have a default bmp file you can do it here
-
-// end change RF064
 
 	// Ok, first find a free handle
 	for(nTemp=0; nTemp<50; ++nTemp)
@@ -253,13 +240,14 @@ int CParticleSystem::LoadParticleMap(int *pmHandle, const char *szPrimary, const
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Create
+// Create
 //
-//	Create a brand-new particle system.  This particle system becomes active
-//	immediately on return from this routine and will be eligible for display in the
-//	next Render() call. A handle to the particle system is returned if it created
-//	successfully.  Note that all systems are created NOT RUNNING and HIDDEN.
+// Create a brand-new particle system.  This particle system becomes active
+// immediately on return from this routine and will be eligible for display in the
+// next Render() call. A handle to the particle system is returned if it created
+// successfully.  Note that all systems are created NOT RUNNING and HIDDEN.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 							const geVec3d &emitterPos, float Scale, const char *szName)
@@ -646,11 +634,12 @@ int CParticleSystem::Create(int *psHandle, int nSystemType, int nTexHandle,
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Pause
+// Pause
 //
-//	Pause and unpause a particle systems execution.  If there are particles in the
-//	system, they will STILL RENDER, but time will not advance for the system.
+// Pause and unpause a particle systems execution.  If there are particles in the
+// system, they will STILL RENDER, but time will not advance for the system.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Pause(int psHandle, bool bPause)
 {
@@ -662,11 +651,12 @@ int CParticleSystem::Pause(int psHandle, bool bPause)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Hide
+// Hide
 //
-//	Hide and unhide a particle systems execution.  If there are particles in the
-//	system, they will STILL HAVE TIME ADVANCE, but they will NOT RENDER.
+// Hide and unhide a particle systems execution.  If there are particles in the
+// system, they will STILL HAVE TIME ADVANCE, but they will NOT RENDER.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Hide(int psHandle, bool bShowIt)
 {
@@ -678,11 +668,12 @@ int CParticleSystem::Hide(int psHandle, bool bShowIt)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Rewind
+// Rewind
 //
-//	Clear out a particle systems particles and start it all over again.
-//	..The system is reloaded, and set to NOT RUNNING and HIDDEN.
+// Clear out a particle systems particles and start it all over again.
+// ..The system is reloaded, and set to NOT RUNNING and HIDDEN.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Rewind(int psHandle)
 {
@@ -780,26 +771,28 @@ int CParticleSystem::Rewind(int psHandle)
 	return RGF_SUCCESS;								// System ready to run again
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destroy
+// Destroy
 //
-//	Kill a particle system, shutting it down and freeing it up.
+// Kill a particle system, shutting it down and freeing it up.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Destroy(int psHandle)
 {
 	if(theList[psHandle] == NULL)
-	return RGF_FAILURE;							// No such
+		return RGF_FAILURE;						// No such
 
 	Remove(psHandle);							// Gun the sucker!
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetColor
+// SetColor
 //
-//	Change the base particle color for the indicated particle system.
-//	..If bChangeExisting is true, _ALL_ particles in the system will change color.
+// Change the base particle color for the indicated particle system.
+// ..If bChangeExisting is true, _ALL_ particles in the system will change color.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetColor(int psHandle, const GE_RGBA &clrColor, bool bChangeExisting)
 {
@@ -827,11 +820,12 @@ int CParticleSystem::SetColor(int psHandle, const GE_RGBA &clrColor, bool bChang
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetEmitter
+// SetEmitter
 //
-//	Change the point of emission for new particles.  This is useful
-//	..for particles that are used as projectile trails, spell effect trails, etc.
+// Change the point of emission for new particles.  This is useful
+// ..for particles that are used as projectile trails, spell effect trails, etc.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetEmitter(int psHandle, const geVec3d &emitterPos)
 {
@@ -843,11 +837,12 @@ int CParticleSystem::SetEmitter(int psHandle, const geVec3d &emitterPos)
 	return RGF_SUCCESS;							// New particles come from new place!
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetTexture
+// SetTexture
 //
-//	Change the texture used for the indicated particle system.  If
-//	..bChangeExisting is true, _ALL_ particles in the system will change texture.
+// Change the texture used for the indicated particle system.  If
+// ..bChangeExisting is true, _ALL_ particles in the system will change texture.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetTexture(int psHandle, int pmHandle,	bool bChangeExisting)
 {
@@ -872,12 +867,13 @@ int CParticleSystem::SetTexture(int psHandle, int pmHandle,	bool bChangeExisting
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetVelocity
+// SetVelocity
 //
-//	Change the velocity for all new particles in the system indicated.
-//	..If bChangeExisting is true, change the velocity for all current
-//	..particles as well.
+// Change the velocity for all new particles in the system indicated.
+// ..If bChangeExisting is true, change the velocity for all current
+// ..particles as well.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetVelocity(int psHandle, float fVelocity,	bool bChangeExisting)
 {
@@ -902,11 +898,12 @@ int CParticleSystem::SetVelocity(int psHandle, float fVelocity,	bool bChangeExis
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetParticleLife
+// SetParticleLife
 //
-//	Set the lifetime (in milliseconds) for all new particles emitted
-//	..by the indicated particle system.  Existing particles are NOT	effected.
+// Set the lifetime (in milliseconds) for all new particles emitted
+// ..by the indicated particle system.  Existing particles are NOT	effected.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetParticleLife(int psHandle, int nLifeInMsec)
 {
@@ -918,11 +915,12 @@ int CParticleSystem::SetParticleLife(int psHandle, int nLifeInMsec)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetEffectRadius
+// SetEffectRadius
 //
-//	Set the maximum radius of an area-based effect.  Not used in
-//	..all systems, mainly Rain and Explosive Array.
+// Set the maximum radius of an area-based effect.  Not used in
+// ..all systems, mainly Rain and Explosive Array.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetEffectRadius(int psHandle, float fRadius)
 {
@@ -934,13 +932,14 @@ int CParticleSystem::SetEffectRadius(int psHandle, float fRadius)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetSystemLife
+// SetSystemLife
 //
-//	Set the lifetime of the particle system, in milliseconds.  If the
-//	..system is running the lifetime will be reset to this value.  Note
-//	..that passing in a NEGATIVE NUMBER makes this system ETERNAL, that
-//	..is, it runs until stopped by a function call.
+// Set the lifetime of the particle system, in milliseconds.  If the
+// ..system is running the lifetime will be reset to this value.  Note
+// ..that passing in a NEGATIVE NUMBER makes this system ETERNAL, that
+// ..is, it runs until stopped by a function call.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetSystemLife(int psHandle, int nLife)
 {
@@ -950,18 +949,19 @@ int CParticleSystem::SetSystemLife(int psHandle, int nLife)
 	theList[psHandle]->SystemLife = static_cast<float>(nLife);
 
 	if(nLife < 0)
-	  theList[psHandle]->bForever = true;
+		theList[psHandle]->bForever = true;
 	else
-	  theList[psHandle]->bForever = false;
+		theList[psHandle]->bForever = false;
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetBirthRate
+// SetBirthRate
 //
-//	Set the particle birth rate per second for the desired system.  A
-//	..birth rate of zero means no new particles get added EVER.
+// Set the particle birth rate per second for the desired system.  A
+// ..birth rate of zero means no new particles get added EVER.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetBirthRate(int psHandle, int nBirthRate)
 {
@@ -973,11 +973,12 @@ int CParticleSystem::SetBirthRate(int psHandle, int nBirthRate)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetMaxSize
+// SetMaxSize
 //
-//	Sets the maximum number of particles that can exist concurrently
-//	..in the desired particle system.
+// Sets the maximum number of particles that can exist concurrently
+// ..in the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::SetMaxSize(int psHandle, int nMaxParticles)
 {
@@ -989,10 +990,11 @@ int CParticleSystem::SetMaxSize(int psHandle, int nMaxParticles)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Increment time for all the currently running particle systems.
+// Increment time for all the currently running particle systems.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::Tick(geFloat dwTicks)
 {
@@ -1068,10 +1070,11 @@ void CParticleSystem::Tick(geFloat dwTicks)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Render
+// Render
 //
-//	Render all active and visible particle systems.
+// Render all active and visible particle systems.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Render()
 {
@@ -1087,14 +1090,15 @@ int CParticleSystem::Render()
 	return RGF_SUCCESS;
 }
 
-//	************* PRIVATE MEMBER FUNCTIONS ****************
+
+// ************* PRIVATE MEMBER FUNCTIONS ****************
 
 /* ------------------------------------------------------------------------------------ */
-//	Allocate
+// Allocate
 //
-//	Locate a free entry in the particle system table and allocate it,
-//	..setting it to an EMPTY system.  If no free slots are available,
-//	..return an invalid handle.
+// Locate a free entry in the particle system table and allocate it,
+// ..setting it to an EMPTY system.  If no free slots are available,
+// ..return an invalid handle.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Allocate()
 {
@@ -1109,14 +1113,15 @@ int CParticleSystem::Allocate()
 		}
 	}
 
-	//	No free entries, error back to caller.
+	// No free entries, error back to caller.
 	return -1;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Remove
+// Remove
 //
-//	Remove a particle system from the particle system table.
+// Remove a particle system from the particle system table.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Remove(int nHandle)
 {
@@ -1129,10 +1134,11 @@ int CParticleSystem::Remove(int nHandle)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Clear
+// Clear
 //
-//	Clear out all particles associated with a particle system
+// Clear out all particles associated with a particle system
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::Clear(int nHandle)
 {
@@ -1153,11 +1159,12 @@ int CParticleSystem::Clear(int nHandle)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Spawn
+// Spawn
 //
-//	Add a new particle into the system indicated by the handle.  Return
-//	..a pointer to the new particle entity.
+// Add a new particle into the system indicated by the handle.  Return
+// ..a pointer to the new particle entity.
 /* ------------------------------------------------------------------------------------ */
 theParticle *CParticleSystem::Spawn(int nHandle, const GE_RGBA &theColor,
 									const geVec3d &Pos,	const geVec3d &Rotation,
@@ -1168,7 +1175,7 @@ theParticle *CParticleSystem::Spawn(int nHandle, const GE_RGBA &theColor,
 	if(theNewParticle == NULL)
 	{
 		CCD->ReportError("[WARNING] Particle Spawn: out of memory", false);
-	    return NULL;								// Uh-oh, major problem.
+		return NULL;								// Uh-oh, major problem.
 	}
 
 	// Ok, new particle around, let's clean it up and insert it.
@@ -1212,21 +1219,21 @@ theParticle *CParticleSystem::Spawn(int nHandle, const GE_RGBA &theColor,
 	return theNewParticle;		// New particle back to caller
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReverseSpawn
+// ReverseSpawn
 //
-//	Add a new particle into the system indicated by the handle.  Return
-//	..a pointer to the new particle entity.  Note that this version of
-//	..Spawn() creates a particle at the furthest point that it would
-//	..travel in it's lifetime, with a REVERSE velocity such that it
-//	..travels from the outer limit towards the origin.
+// Add a new particle into the system indicated by the handle.  Return
+// ..a pointer to the new particle entity.  Note that this version of
+// ..Spawn() creates a particle at the furthest point that it would
+// ..travel in it's lifetime, with a REVERSE velocity such that it
+// ..travels from the outer limit towards the origin.
 /* ------------------------------------------------------------------------------------ */
 theParticle *CParticleSystem::ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 										   const geVec3d &Pos, const geVec3d &Rotation,
 										   float fVelocity)
 {
 	theParticle *theNewParticle = new theParticle;
-	//geVec3d OldPosition;
 	geVec3d NewPosition, In;
 	geXForm3d Xform;
 
@@ -1255,25 +1262,14 @@ theParticle *CParticleSystem::ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 	theNewParticle->Vertex.v = 0.0f;
 
 	// Ok, move it out to it's "real" start position
-// changed QD 12/15/05
-	//OldPosition.X = Pos.X;
-	//OldPosition.Y = Pos.Y;
-	//OldPosition.Z = Pos.Z;
-
-	//geXForm3d_SetIdentity(&Xform);
-	//geXForm3d_RotateZ(&Xform, Rotation.Z);
 	geXForm3d_SetZRotation(&Xform, Rotation.Z);
 	geXForm3d_RotateX(&Xform, Rotation.X);
 	geXForm3d_RotateY(&Xform, Rotation.Y);
-	// QD: translation doesn't influence the orientation
-	//geXForm3d_Translate(&Xform, Pos.X, Pos.Y, Pos.Z);
 
 	// Get particle forward vector
 	geXForm3d_GetIn(&Xform, &In);
 	// Move particle based on the direction it's "facing"
-	//geVec3d_AddScaled(&OldPosition, &In, fVelocity*theNewParticle->LifeTime/30.f, &NewPosition);
 	geVec3d_AddScaled(&Pos, &In, fVelocity*theNewParticle->LifeTime/30.f, &NewPosition);
-// end change
 
 	theNewParticle->Vertex.X = NewPosition.X;
 	theNewParticle->Vertex.Y = NewPosition.Y;
@@ -1297,12 +1293,13 @@ theParticle *CParticleSystem::ReverseSpawn(int nHandle, const GE_RGBA &theColor,
 	return theNewParticle;		// New particle back to caller
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Sweep
+// Sweep
 //
-//	Pass through all particles in a particle system, updating each
-//	..particles lifespan, velocity, etc. and removing any particles
-//	..that expire.
+// Pass through all particles in a particle system, updating each
+// ..particles lifespan, velocity, etc. and removing any particles
+// ..that expire.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::Sweep(int nHandle, float dwMsec)
 {
@@ -1331,6 +1328,7 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 	while(myParticle != NULL)
 	{
 		myParticle->LifeTime -= dwMsec;						// Particles die eventually
+
 		if(myParticle->LifeTime <= 0.0f)
 		{
 			// Kill off this particle, died of old age
@@ -1355,6 +1353,7 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 				theList[nHandle]->Particles = pTemp;
 
 			theList[nHandle]->Count--;						// One less particle around
+
 			continue;
 		}
 
@@ -1363,14 +1362,9 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		OldPosition.Y = myParticle->Vertex.Y;
 		OldPosition.Z = myParticle->Vertex.Z;
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xform);
-		//geXForm3d_RotateZ(&Xform, myParticle->Rotation.Z);
 		geXForm3d_SetZRotation(&Xform, myParticle->Rotation.Z);
 		geXForm3d_RotateX(&Xform, myParticle->Rotation.X);
 		geXForm3d_RotateY(&Xform, myParticle->Rotation.Y);
-    	//geXForm3d_Translate(&Xform, OldPosition.X, OldPosition.Y, OldPosition.Z);
-		// end change
 
 		// Get particle forward vector
 		geXForm3d_GetIn(&Xform, &In);
@@ -1380,7 +1374,7 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		myParticle->Vertex.X = NewPosition.X;
 		myParticle->Vertex.Y = NewPosition.Y;
 		myParticle->Vertex.Z = NewPosition.Z;
-		myParticle->Pos = NewPosition;						// eaa3 Save off position!!
+		myParticle->Pos = NewPosition;						// Save off position!!
 
 		// Apply gravity, if there IS any
 		ApplyGravity(nHandle, myParticle);
@@ -1404,49 +1398,6 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 		if(nNewCount > (theList[nHandle]->Maximum - theList[nHandle]->Count))
 			nNewCount = (theList[nHandle]->Maximum - theList[nHandle]->Count);
 
-		// changed QD 02/01/07
-		/*for(; nNewCount>0; nNewCount--)
-		{
-			switch(theList[nHandle]->nType)
-			{
-			case kPSystem_Shockwave:
-				AddShockwaveParticle(nHandle);
-				break;
-			case kPSystem_Fountain:
-				AddFountainParticle(nHandle);
-				break;
-			case kPSystem_Rain:
-				AddRainParticle(nHandle);
-				break;
-			case kPSystem_Sphere:
-				AddSphereParticle(nHandle);
-				break;
-			case kPSystem_Column:
-				AddRainParticle(nHandle);
-				break;
-			case kPSystem_ExplosiveArray:
-				AddRainParticle(nHandle);
-				break;
-			case kPSystem_SpiralArm:
-				AddSpiralArmParticle(nHandle);
-				break;
-			case kPSystem_Trail:
-				AddTrailParticle(nHandle);
-				break;
-			case kPSystem_Guardian:
-				AddGuardianParticle(nHandle);
-				break;
-			case kPSystem_ImplodeSphere:
-				AddImplodeSphereParticle(nHandle);
-				break;
-			case kPSystem_ImplodeShockwave:
-				AddImplodeShockwaveParticle(nHandle);
-				break;
-			case kPSystem_ImplodeSpiralArm:
-				AddImplodeSpiralArmParticle(nHandle);
-				break;
-			}
-		}*/
 		switch(theList[nHandle]->nType)
 		{
 		case kPSystem_Shockwave:
@@ -1500,16 +1451,16 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 				AddImplodeSpiralArmParticle(nHandle);
 			break;
 		}
-		// end change
 	}
 
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ApplyGravity
+// ApplyGravity
 //
-//	Apply the effect of gravity, if there is gravity, to a particle.
+// Apply the effect of gravity, if there is gravity, to a particle.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::ApplyGravity(int nHandle, theParticle *myParticle)
 {
@@ -1522,22 +1473,12 @@ void CParticleSystem::ApplyGravity(int nHandle, theParticle *myParticle)
 	if(theList[nHandle]->Gravity == 0.0f)
 		return;								// Nothing to do it with.
 
-// changed QD 12/15/05
 	geVec3d OldPosition, NewPosition; //, In, Up;
 	geVec3d Up = {0.0f, 1.0f, 0.0f};
-	//geXForm3d Xform;
 
 	OldPosition.X = myParticle->Vertex.X;
 	OldPosition.Y = myParticle->Vertex.Y;
 	OldPosition.Z = myParticle->Vertex.Z;
-
-/*
-	geXForm3d_SetIdentity(&Xform);
-	geXForm3d_Translate(&Xform, OldPosition.X, OldPosition.Y, OldPosition.Z);
-	geXForm3d_GetIn(&Xform, &In);			// Get particle forward vector
-	geXForm3d_GetUp(&Xform, &Up);			// Get our upward vector
-*/
-// end change
 
 	// Gravity always pulls towards negative Y in this G3D 1.0 implementation
 	geVec3d_AddScaled(&OldPosition, &Up, theList[nHandle]->Gravity, &NewPosition);
@@ -1549,14 +1490,15 @@ void CParticleSystem::ApplyGravity(int nHandle, theParticle *myParticle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RenderSystem
+// RenderSystem
 //
-//	Render the particle system in the appropriate slot.  Only render the
-//	..system if the viewpoint of the player is close enough to be able to
-//	..see the system, which means within about 600.0f units.
+// Render the particle system in the appropriate slot.  Only render the
+// ..system if the viewpoint of the player is close enough to be able to
+// ..see the system, which means within about 600.0f units.
 /* ------------------------------------------------------------------------------------ */
-void CParticleSystem::RenderSystem(int nHandle, const geVec3d &PlayerPos)
+void CParticleSystem::RenderSystem(int nHandle, const geVec3d & /*PlayerPos*/)
 {
 	theParticle *myParticle = theList[nHandle]->Particles;
 
@@ -1590,20 +1532,19 @@ void CParticleSystem::RenderSystem(int nHandle, const geVec3d &PlayerPos)
 	return;
 }
 
+
 // ***************************************************************************************
-// **		        IMPLEMENTATION OF SYSTEM-TYPE SPECIFIC ROUTINES						**
+// **				IMPLEMENTATION OF SYSTEM-TYPE SPECIFIC ROUTINES						**
 // ***************************************************************************************
 
 /* ------------------------------------------------------------------------------------ */
-//	SetupShockwave
+// SetupShockwave
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with shockwave particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with shockwave particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupShockwave(int nHandle)
 {
-	// changed QD 02/01/07
-	// 100 particles for a shockwave
 	// all particles at once for a shockwave
 	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; ++nFoo)
 		AddShockwaveParticle(nHandle);
@@ -1614,10 +1555,11 @@ void CParticleSystem::SetupShockwave(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddShockwaveParticle
+// AddShockwaveParticle
 //
-//	Add a new shockwave particle to the desired particle system.
+// Add a new shockwave particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddShockwaveParticle(int nHandle)
 {
@@ -1651,11 +1593,12 @@ void CParticleSystem::AddShockwaveParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupSpiralArm
+// SetupSpiralArm
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with spiral arm particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with spiral arm particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupSpiralArm(int nHandle)
 {
@@ -1672,10 +1615,11 @@ void CParticleSystem::SetupSpiralArm(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddSpiralArmParticle
+// AddSpiralArmParticle
 //
-//	Add a new spiral arm particle to the desired particle system.
+// Add a new spiral arm particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddSpiralArmParticle(int nHandle)
 {
@@ -1710,11 +1654,12 @@ void CParticleSystem::AddSpiralArmParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupFountain
+// SetupFountain
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with fountain particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with fountain particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupFountain(int nHandle)
 {
@@ -1728,10 +1673,11 @@ void CParticleSystem::SetupFountain(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddFountainParticle
+// AddFountainParticle
 //
-//	Add a new fountain particle to the desired particle system.
+// Add a new fountain particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddFountainParticle(int nHandle)
 {
@@ -1757,10 +1703,11 @@ void CParticleSystem::AddFountainParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupRain
+// SetupRain
 //
-//	Set up initial particles for "rain" particle effect.
+// Set up initial particles for "rain" particle effect.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupRain(int nHandle)
 {
@@ -1774,10 +1721,11 @@ void CParticleSystem::SetupRain(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddRainParticle
+// AddRainParticle
 //
-//	Add a new rain particle to the particle system list
+// Add a new rain particle to the particle system list
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddRainParticle(int nHandle)
 {
@@ -1811,11 +1759,12 @@ void CParticleSystem::AddRainParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupSphere
+// SetupSphere
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with sphere particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with sphere particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupSphere(int nHandle)
 {
@@ -1829,10 +1778,11 @@ void CParticleSystem::SetupSphere(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddSphereParticle
+// AddSphereParticle
 //
-//	Add a new sphere particle to the desired particle system.
+// Add a new sphere particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddSphereParticle(int nHandle)
 {
@@ -1871,10 +1821,11 @@ void CParticleSystem::AddSphereParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupTrail
+// SetupTrail
 //
-//	Load initial trail particles.
+// Load initial trail particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupTrail(int nHandle)
 {
@@ -1887,13 +1838,14 @@ void CParticleSystem::SetupTrail(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddTrailParticle
+// AddTrailParticle
 //
-//	Add a particle as part of a particle trail.  Trail particles have
-//	..a very slight gravity effect, a very low velocity, and a more or
-//	..less random rotation to emulate drifting particles left by, say,
-//	..a rocket or other projectile.
+// Add a particle as part of a particle trail.  Trail particles have
+// ..a very slight gravity effect, a very low velocity, and a more or
+// ..less random rotation to emulate drifting particles left by, say,
+// ..a rocket or other projectile.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddTrailParticle(int nHandle)
 {
@@ -1933,11 +1885,12 @@ void CParticleSystem::AddTrailParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupGuardian
+// SetupGuardian
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with 'guardian effect' particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with 'guardian effect' particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupGuardian(int nHandle)
 {
@@ -1951,10 +1904,11 @@ void CParticleSystem::SetupGuardian(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddGuardianParticle
+// AddGuardianParticle
 //
-//	Add a new 'guardian effect' particle to the desired particle system.
+// Add a new 'guardian effect' particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddGuardianParticle(int nHandle)
 {
@@ -1993,11 +1947,12 @@ void CParticleSystem::AddGuardianParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupImplodeSphere
+// SetupImplodeSphere
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with imploding sphere particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with imploding sphere particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupImplodeSphere(int nHandle)
 {
@@ -2012,9 +1967,9 @@ void CParticleSystem::SetupImplodeSphere(int nHandle)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddImplodeSphereParticle
+// AddImplodeSphereParticle
 //
-//	Add a new imploding sphere particle to the desired particle system.
+// Add a new imploding sphere particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddImplodeSphereParticle(int nHandle)
 {
@@ -2053,16 +2008,15 @@ void CParticleSystem::AddImplodeSphereParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupImplodeShockwave
+// SetupImplodeShockwave
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with imploding shockwave particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with imploding shockwave particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupImplodeShockwave(int nHandle)
 {
-	// changed QD 02/01/07
-	// 100 particles for a shockwave
 	// all particles at once for a shockwave
 	for(int nFoo=0; nFoo<theList[nHandle]->Maximum; ++nFoo)
 		AddImplodeShockwaveParticle(nHandle);
@@ -2073,10 +2027,11 @@ void CParticleSystem::SetupImplodeShockwave(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddImplodeShockwaveParticle
+// AddImplodeShockwaveParticle
 //
-//	Add a new imploding shockwave particle to the desired particle system.
+// Add a new imploding shockwave particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddImplodeShockwaveParticle(int nHandle)
 {
@@ -2110,11 +2065,12 @@ void CParticleSystem::AddImplodeShockwaveParticle(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetupImplodeSpiralArm
+// SetupImplodeSpiralArm
 //
-//	Load the particle list for the specified system indicated by
-//	..'nHandle' with imploding spiral arm particles.
+// Load the particle list for the specified system indicated by
+// ..'nHandle' with imploding spiral arm particles.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::SetupImplodeSpiralArm(int nHandle)
 {
@@ -2130,10 +2086,11 @@ void CParticleSystem::SetupImplodeSpiralArm(int nHandle)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddImplodeSpiralArmParticle
+// AddImplodeSpiralArmParticle
 //
-//	Add a new imploding spiral arm particle to the desired particle system.
+// Add a new imploding spiral arm particle to the desired particle system.
 /* ------------------------------------------------------------------------------------ */
 void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 {
@@ -2167,13 +2124,14 @@ void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 	return;
 }
 
-//	******************** CRGF Overrides ********************
+
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -2201,11 +2159,12 @@ int CParticleSystem::LocateEntity(const char *szName, void **pEntityData)
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CParticleSystem::ReSynchronize()
 {
