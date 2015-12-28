@@ -9,15 +9,14 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	You only need the one, master include file.
 #include "RabidFramework.h"
 #include "CVideoTexture.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	CVideoTexture
+// CVideoTexture
 //
-//	Default constructor.  Set up for texture replacement by scanning
-//	..for texture replacement indicators.
+// Default constructor. Set up for texture replacement by scanning
+// ..for texture replacement indicators.
 /* ------------------------------------------------------------------------------------ */
 CVideoTexture::CVideoTexture() :
 	m_EntityCount(0)					// No video textures
@@ -46,7 +45,7 @@ CVideoTexture::CVideoTexture() :
 		pTex->Playing = GE_FALSE;
 
 		if(pTex->Radius == 0.0f)
-			pTex->Playing = GE_TRUE;		// Video playing
+			pTex->Playing = GE_TRUE;			// Video playing
 
 		// Regardless of whether or not this is a ranged video texture,
 		// ..we're going to initialize it and get the first frame
@@ -95,13 +94,13 @@ CVideoTexture::CVideoTexture() :
 		}
 	}
 
-	//	Ok, we've counted the texture replacers and reset 'em all to their default values.
+	// Ok, we've counted the texture replacers and reset 'em all to their default values.
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~CVideoTexture
+// ~CVideoTexture
 //
-//	Default destructor.  Shut down all playing videos.
+// Default destructor.  Shut down all playing videos.
 /* ------------------------------------------------------------------------------------ */
 CVideoTexture::~CVideoTexture()
 {
@@ -123,14 +122,14 @@ CVideoTexture::~CVideoTexture()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Play the next frame of video for all playing videos, as well as check for the
-//	..player coming into the trigger radius for a triggered video texture.  Note that,
-//	..due to CPU performance constraints, this routine won't check for updates any more
-//	..often than once every <n> milliseconds.
+// Play the next frame of video for all playing videos, as well as check for the
+// ..player coming into the trigger radius for a triggered video texture.  Note that,
+// ..due to CPU performance constraints, this routine won't check for updates any more
+// ..often than once every <n> milliseconds.
 /* ------------------------------------------------------------------------------------ */
-void CVideoTexture::Tick(geFloat dwTicks)
+void CVideoTexture::Tick(geFloat /*dwTicks*/)
 {
 	// Ok, check to see if there are video textures in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "VideoTextureReplacer");
@@ -163,17 +162,14 @@ void CVideoTexture::Tick(geFloat dwTicks)
 		{
 			// This is a RANGE TRIGGERED video. Check to see if we're
 			// ..in range before doing anything else
-			// changed QD 12/15/05
 			geVec3d temp;
 			geVec3d_Subtract(&(pTex->origin), &(CCD->Player()->Position()), &temp);
 
-			//if(geVec3d_DistanceBetween(&(pTex->origin), &(CCD->Player()->Position())) > pTex->Radius)
 			if(geVec3d_DotProduct(&temp, &temp) > pTex->Radius*pTex->Radius)
 			{
 				++nSlot;
 				continue;
 			}
-			// end change
 
 			pTex->Playing = GE_TRUE;			// Playback triggered
 
@@ -186,7 +182,6 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					if((m_VidList[nSlot] = new CAVIPlayer()) == NULL)
 					{
 						CCD->ReportError("[WARNING] Vidtex start: Failed to make new CAVIPlayer", false);
-						//return;
 						++nSlot;
 						continue;
 					}
@@ -197,7 +192,6 @@ void CVideoTexture::Tick(geFloat dwTicks)
 						sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open range texture '%s'",
 								__FILE__, __LINE__, pTex->szVideoName);
 						CCD->ReportError(szBug, false);
-						//return;
 						++nSlot;
 						continue;
 					}
@@ -219,7 +213,6 @@ void CVideoTexture::Tick(geFloat dwTicks)
 					if((m_GifList[nSlot] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
 					{
 						CCD->ReportError("Failed to create new CAnimGif", false);
-						//return;
 						++nSlot;
 						continue;
 					}
@@ -236,15 +229,15 @@ void CVideoTexture::Tick(geFloat dwTicks)
 		++nSlot;
 	}
 
-	//	Whew, all done!  Let's get outta here...
+	// Whew, all done!  Let's get outta here...
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CVideoTexture::ReSynchronize()
 {

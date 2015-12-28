@@ -8,7 +8,6 @@
  * Copyright (c) 2007 Jan Eisenkolb; All right reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CWindGenerator.h"
 
@@ -23,9 +22,9 @@ geFloat geVec3d_GetMaxElement(const geVec3d *V)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Init variables
+// Init variables
 /* ------------------------------------------------------------------------------------ */
 CWindGenerator::CWindGenerator()
 {
@@ -61,6 +60,7 @@ CWindGenerator::CWindGenerator()
 	// copy the relevant data
 	m_ThinkTime = pWG->ThinkTime*1000.f;
 	m_ChangeTime = pWG->ChangeSpeed*1000.f;
+
 	if(m_ChangeTime <= 0.0f)
 		m_ChangeTime = 0.1f;
 
@@ -75,14 +75,14 @@ CWindGenerator::CWindGenerator()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CWindGenerator::~CWindGenerator()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick(): Update Wind value when ThinkTime is reached
+// Tick(): Update Wind value when ThinkTime is reached
 /* ------------------------------------------------------------------------------------ */
 void CWindGenerator::Tick(geFloat dwTicks)
 {
@@ -97,7 +97,7 @@ void CWindGenerator::Tick(geFloat dwTicks)
 
 		switch(m_CurrentState)
 		{
-		case 0: //beginning
+		case 0: // start
 			//increment the current WindSpeed value
 			CCD->Player()->ModifyWind(&m_ChangeSpeed);
 
@@ -119,9 +119,8 @@ void CWindGenerator::Tick(geFloat dwTicks)
 
 				m_CurrentState = 1;
 			}
-
 			break;
-		case 1: //pause
+		case 1: // pause
 			// increment pause timer
 			m_PauseTimer += m_CurrentTime;
 			if(m_PauseTimer > m_PauseTime)
@@ -130,7 +129,7 @@ void CWindGenerator::Tick(geFloat dwTicks)
 				m_PauseTimer = 0.0f;
 			}
 			break;
-		case 2: //end
+		case 2: // end
 			// increment the current WindSpeed value
 			CCD->Player()->ModifyWind(&m_ChangeSpeed);
 
@@ -146,7 +145,6 @@ void CWindGenerator::Tick(geFloat dwTicks)
 
 				m_CurrentState = 0;
 			}
-
 			break;
 		}
 

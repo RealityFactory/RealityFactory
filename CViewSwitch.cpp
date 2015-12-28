@@ -8,14 +8,13 @@
  * Copyright (c) 2000 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CViewSwitch.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Load up all ViewSwitchs and set the entity values.
+// Load up all ViewSwitchs and set the entity values.
 /* ------------------------------------------------------------------------------------ */
 CViewSwitch::CViewSwitch()
 {
@@ -24,9 +23,9 @@ CViewSwitch::CViewSwitch()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up.
+// Clean up.
 /* ------------------------------------------------------------------------------------ */
 CViewSwitch::~CViewSwitch()
 {

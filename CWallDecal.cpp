@@ -8,7 +8,6 @@
  * Copyright (c) 2000 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "CWallDecal.h"
@@ -17,9 +16,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Load up all Decals and set the	entities to default values.
+// Load up all Decals and set the	entities to default values.
 /* ------------------------------------------------------------------------------------ */
 CWallDecal::CWallDecal()
 {
@@ -33,20 +32,17 @@ CWallDecal::CWallDecal()
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
-// Start Aug2003DCS - Added szEntityName
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{
 			char szName[128];
 			geEntity_GetName(pEntity, szName, 128);
 			pSource->szEntityName = szName;
 		}
-// End Aug2003DCS
 
-// changed RF064
 		pSource->FBitmap = NULL;
 		pSource->vertex = NULL;
 
@@ -89,16 +85,12 @@ CWallDecal::CWallDecal()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
 			geVec3d_Subtract(&(pSource->origin), &ModelOrigin, &(pSource->OriginOffset));
-// Start Aug2003DCS
 			geVec3d_Copy(&(pSource->Angle), &(pSource->OriginalAngle));
 			geVec3d_Copy(&(pSource->Angle), &(pSource->LastAngle));
-// End Aug2003DCS
 		}
-// end change RF064
 
 		pSource->active = GE_FALSE;
 
-//Start Aug2003DCS
 		pSource->BmpChanged = GE_FALSE;
 
 		if(EffectC_IsStringNull(pSource->TriggerName))
@@ -107,20 +99,18 @@ CWallDecal::CWallDecal()
 			pSource->active = GE_TRUE;
 			pSource->ProgrammedTrigger = GE_FALSE;
 		}
-//End Nov2001DCS
 	}
 
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Clean up.
+// Clean up.
 /* ------------------------------------------------------------------------------------ */
 CWallDecal::~CWallDecal()
 {
-// changed RF064
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "WallDecal");
 
@@ -131,7 +121,7 @@ CWallDecal::~CWallDecal()
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
@@ -141,12 +131,10 @@ CWallDecal::~CWallDecal()
 		if(pSource->vertex)
 			geRam_Free(pSource->vertex);
 	}
-// end change RF064
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::Tick(geFloat dwTicks)
 {
@@ -160,12 +148,10 @@ void CWallDecal::Tick(geFloat dwTicks)
 
 	// Ok, we have Decals somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		WallDecal *pSource = static_cast<WallDecal*>(geEntity_GetUserData(pEntity));
 
-// Start Aug2003DCS  Moved this section up AND modified it
-// changed RF064
 		if(pSource->active == GE_TRUE && pSource->Animated)
 		{
 			pSource->Time += dwTicks;
@@ -206,20 +192,10 @@ void CWallDecal::Tick(geFloat dwTicks)
 					break;
 				}
 			}
-//			geWorld_AddPolyOnce(CCD->World(),
-//						(GE_LVertex *)pSource->vertex,
-//						4,
-//						pSource->FBitmap[pSource->CurTex],
-//						GE_TEXTURED_POLY,
-//						GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-//						1.0f);
 		}
-// end change RF064
-// End Aug2003DCS
 
 		if(!EffectC_IsStringNull(pSource->TriggerName))
 		{
-// Start Aug2003DCS
 			if(((strcmp(pSource->TriggerName,"*Programmed*") == 0) && pSource->ProgrammedTrigger) ||
 				((strcmp(pSource->TriggerName,"*Programmed*") != 0) && GetTriggerState(pSource->TriggerName)))
 			{
@@ -249,8 +225,6 @@ void CWallDecal::Tick(geFloat dwTicks)
 					pSource->active = GE_FALSE;
 				}
 			}
-// End Aug2003DCS
-// changed RF064
 		}
 		else
 		{
@@ -261,18 +235,17 @@ void CWallDecal::Tick(geFloat dwTicks)
 			}
 		}
 
-// Start Aug2003DCS
 		if(pSource->active == GE_TRUE)
 		{
 			if (pSource->Model)
 			{
-				//Move origin with the model
+				// Move origin with the model
 				geVec3d OriginalOrigin = pSource->origin;
 				pSource->origin = pSource->OriginOffset;
 
 				if(SetOriginOffset(0, 0, pSource->Model, &(pSource->origin)))
 				{
-					//Rotate wall decal angle to match model's rotation
+					// Rotate wall decal angle to match model's rotation
 					geVec3d Direction, Direction2, CopyOfDirection, UnitVec;
 					geXForm3d Xf;
 
@@ -299,30 +272,25 @@ void CWallDecal::Tick(geFloat dwTicks)
 					geXForm3d_Rotate(&Xf, &UnitVec, &UnitVec);
 					geXForm3d_Rotate(&ModelXForm, &UnitVec, &Direction2);
 
-					// changed QD 12/15/05 - use squared distance
+					// use squared distance
 					geVec3d temp1, temp2;
 					geVec3d_Subtract(&Direction, &CopyOfDirection, &temp1);
 					geVec3d_Subtract(&UnitVec, &Direction2, &temp2);
 
-					//if((geVec3d_DistanceBetween(&Direction, &CopyOfDirection) != 0.0f) ||
-					//	(geVec3d_DistanceBetween(&UnitVec, &Direction2) != 0.0f))
 					if((geVec3d_DotProduct(&temp1, &temp1) != 0.0f) ||
 						(geVec3d_DotProduct(&temp2, &temp2) != 0.0f))
-					// end change
 					{
-						//Remove the old decal and place the new one
+						// Remove the old decal and place the new one
 						geWorld_RemovePoly(CCD->World(), pSource->Poly);
 						AddDecal(pSource, &Direction, &Direction2);
 					}
 					else
 					{
-						// changed QD 12/15/05 - use squared distance
+						// use squared distance
 						geVec3d temp;
 						geVec3d_Subtract(&OriginalOrigin, &(pSource->origin), &temp);
 
-						//if(geVec3d_DistanceBetween(&OriginalOrigin, &(pSource->origin)) != 0.0f)
 						if(geVec3d_DotProduct(&temp, &temp) != 0.0f)
-						// end change
 						{
 							geWorld_RemovePoly(CCD->World(), pSource->Poly);
 							AddDecal(pSource);
@@ -331,7 +299,6 @@ void CWallDecal::Tick(geFloat dwTicks)
 				}
 			}
 		}
-//End Aug2003DCS
 	}
 }
 
@@ -339,13 +306,6 @@ void CWallDecal::Tick(geFloat dwTicks)
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::AddDecal(WallDecal *pSource)
 {
-	geVec3d Axis[3] =
-	{
-		{1.0f, 0.0f, 0.0f},
-		{0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f}
-	};
-
 	pSource->origin = pSource->OriginOffset;
 	SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
 
@@ -356,73 +316,27 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	Direction.Y = GE_PIOVER180*(pSource->Angle.Y-90.0f);
 
 	geXForm3d Xf;
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateZ(&Xf, Direction.Z);
+
 	geXForm3d_SetZRotation(&Xf, Direction.Z);
 	geXForm3d_RotateX(&Xf, Direction.X);
 	geXForm3d_RotateY(&Xf, Direction.Y);
-	// geXForm3d_Translate(&Xf, pSource->origin.X, pSource->origin.Y, pSource->origin.Z);
-	// end change
-
-	//Pos = Xf.Translation;
 
 	geXForm3d_GetIn(&Xf, &Direction);
 
 	geVec3d Front, Back;
 	geVec3d_AddScaled(&(pSource->origin), &Direction, 4000.0f, &Back);
-// changed QD 12/15/05
-	//geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&(pSource->origin), &Front);
-// end change
 
 	GE_Collision Collision;
-	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
-		GE_CONTENTS_SOLID_CLIP, GE_COLLIDE_MODELS | GE_COLLIDE_MESHES , 0, NULL, NULL, &Collision);
+	geWorld_Collision(CCD->World(), NULL, NULL,
+						&Front, &Back,
+						GE_CONTENTS_SOLID_CLIP,
+						GE_COLLIDE_MODELS | GE_COLLIDE_MESHES,
+						0, NULL, NULL, &Collision);
 
 	geVec3d impact = Collision.Impact;
 	geVec3d normal = Collision.Plane.Normal;
 	geVec3d right, up;
-
-//	int major = 0;
-//
-//#define fab(a) (a > 0 ? a : -a)
-//
-//	if(fab(normal.Y) > fab(normal.X))
-//	{
-//		major = 1;
-//		if(fab(normal.Z) > fab(normal.Y))
-//			major = 2;
-//	}
-//	else
-//	{
-//		if(fab(normal.Z) > fab(normal.X))
-//			major = 2;
-//	}
-//
-//	if(fab(normal.X)==1.0f || fab(normal.Y)==1.0f || fab(normal.Z)==1.0f)
-//	{
-//		if ((major == 0 && normal.X > 0) || major == 1)
-//		{
-//			right.X =  0.0f;
-//			right.Y =  0.0f;
-//			right.Z = -1.0f;
-//		}
-//		else if (major == 0)
-//		{
-//			right.X =  0.0f;
-//			right.Y =  0.0f;
-//			right.Z =  1.0f;
-//		}
-//		else
-//		{
-//			right.X =  normal.Z;
-//			right.Y =  0.0f;
-//			right.Z =  0.0f;
-//		}
-//	}
-//	else
-//		geVec3d_CrossProduct(&Axis[major], &normal, &right);
 
 	right.X = ( normal.Z * cos(GE_PIOVER180*pSource->Angle.Z)) + ( normal.Y * cos(GE_PIOVER180*pSource->Angle.Z));
 	right.Y = ( normal.Z * sin(GE_PIOVER180*pSource->Angle.Z)) + ( normal.X * sin(GE_PIOVER180*pSource->Angle.Z));
@@ -434,7 +348,6 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 
 	geVec3d_Scale(&right, pSource->Width*0.5f, &right);
 	geVec3d_Scale(&up, pSource->Height*0.5f, &up);
-// changed RF064
 	geVec3d_MA(&impact, 0.5f, &normal, &impact);
 
 	GE_LVertex	vertex[4];
@@ -446,19 +359,18 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 		vertex[i].u = 0.0f;
 		vertex[i].v = 0.0f;
 		// color
-		vertex[i].r = pSource->Color.r;	//red
-		vertex[i].g = pSource->Color.g;	//green
-		vertex[i].b = pSource->Color.b;	//blue
-		vertex[i].a = pSource->Alpha;	//alpha
+		vertex[i].r = pSource->Color.r;	// red
+		vertex[i].g = pSource->Color.g;	// green
+		vertex[i].b = pSource->Color.b;	// blue
+		vertex[i].a = pSource->Alpha;	// alpha
 	}
 
 	vertex[3].u = 1.0f;
 	vertex[2].u = 1.0f;
 	vertex[2].v = 1.0f;
 	vertex[1].v = 1.0f;
-// end change RF064
 
-	//calculate vertices from corners
+	// calculate vertices from corners
 	vertex[1].X = impact.X + (-right.X - up.X);
 	vertex[1].Y = impact.Y + (-right.Y - up.Y);
 	vertex[1].Z = impact.Z + (-right.Z - up.Z);
@@ -475,16 +387,15 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 	vertex[0].Y = impact.Y + (-right.Y + up.Y);
 	vertex[0].Z = impact.Z + (-right.Z + up.Z);
 
-// changed RF064
 	if(!pSource->Animated)
 	{
 		pSource->Poly = geWorld_AddPoly(CCD->World(),
-							vertex,
-							4,
-							pSource->Bitmap,
-							GE_TEXTURED_POLY,
-							GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-							1.0f);
+										vertex,
+										4,
+										pSource->Bitmap,
+										GE_TEXTURED_POLY,
+										GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF,
+										1.0f);
 	}
 	else
 	{
@@ -497,27 +408,16 @@ void CWallDecal::AddDecal(WallDecal *pSource)
 										GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF,
 										1.0f);
 	}
-// end change RF064
 }
 
-// Start Aug2003DCS - Added three functions
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3d *RightVec)
 {
-	geVec3d Axis[3] =
-	{
-		{1.0f, 0.0f, 0.0f},
-		{0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f}
-	};
-
 	geVec3d Front, Back;
 
-// changed QD 12/15/05
 	geVec3d_AddScaled(&(pSource->origin), InVec, 4000.0f, &Back);
 	geVec3d_Copy(&(pSource->origin), &Front);
-// end change
 
 	GE_Collision Collision;
 	geWorld_Collision(CCD->World(), NULL, NULL, &Front, &Back,
@@ -539,17 +439,17 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 
 	GE_LVertex	vertex[4];
 
-	//Setup vertex 1,2,3,4
+	// Setup vertex 1,2,3,4
 	for(int i=0; i<4; ++i)
 	{
 		// texture coordinates
 		vertex[i].u = 0.0f;
 		vertex[i].v = 0.0f;
 		// color
-		vertex[i].r = pSource->Color.r;	//red
-		vertex[i].g = pSource->Color.g;	//green
-		vertex[i].b = pSource->Color.b;	//blue
-		vertex[i].a = pSource->Alpha;	//alpha
+		vertex[i].r = pSource->Color.r;	// red
+		vertex[i].g = pSource->Color.g;	// green
+		vertex[i].b = pSource->Color.b;	// blue
+		vertex[i].a = pSource->Alpha;	// alpha
 	}
 
 	vertex[3].u = 1.0f;
@@ -557,7 +457,7 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 	vertex[2].v = 1.0f;
 	vertex[1].v = 1.0f;
 
-	//calculate vertices from corners
+	// calculate vertices from corners
 	vertex[1].X = impact.X + (-Right.X - up.X);
 	vertex[1].Y = impact.Y + (-Right.Y - up.Y);
 	vertex[1].Z = impact.Z + (-Right.Z - up.Z);
@@ -577,12 +477,12 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 	if(!pSource->Animated)
 	{
 		pSource->Poly = geWorld_AddPoly(CCD->World(),
-						vertex,
-						4,
-						pSource->Bitmap,
-						GE_TEXTURED_POLY,
-						GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
-						1.0f);
+										vertex,
+										4,
+										pSource->Bitmap,
+										GE_TEXTURED_POLY,
+										GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF ,
+										1.0f);
 	}
 	else
 	{
@@ -598,10 +498,10 @@ void CWallDecal::AddDecal(WallDecal *pSource, const geVec3d *InVec, const geVec3
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetProgrammedTrigger
+// SetProgrammedTrigger
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and set it's ProgrammedTrigger boolean.
+// Given a name, locate the desired item in the currently loaded level
+// ..and set it's ProgrammedTrigger boolean.
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 {
@@ -630,10 +530,10 @@ int CWallDecal::SetProgrammedTrigger(const char *szName, geBoolean Flag)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetCurrentBitmap
+// SetCurrentBitmap
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and set it's CurBmp value.
+// Given a name, locate the desired item in the currently loaded level
+// ..and set it's CurBmp value.
 /* ------------------------------------------------------------------------------------ */
 int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 {
@@ -665,8 +565,6 @@ int CWallDecal::SetCurrentBitmap(const char *szName, int CurrentBitmap)
 
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
-// End Aug2003DCS
-
 
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

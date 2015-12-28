@@ -15,12 +15,12 @@
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	CTeleporter
+// CTeleporter
 //
-//	Constructor.  The way we're doing teleporters is that a teleporter
-//	..manifests in the game as a ball of fog surrounding a teleport
-//	..trigger.  Once the trigger is hit, the teleporter activates and
-//	..the player is "instantly" teleported to the destination.
+// Constructor.  The way we're doing teleporters is that a teleporter
+// ..manifests in the game as a ball of fog surrounding a teleport
+// ..trigger.  Once the trigger is hit, the teleporter activates and
+// ..the player is "instantly" teleported to the destination.
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::CTeleporter() :
 	m_EntityCount(0)					// No teleports
@@ -58,14 +58,12 @@ CTeleporter::CTeleporter() :
 		pTeleporter->theFog			= NULL;					// No fog sphere...yet
 		pTeleporter->bForward		= GE_TRUE;				// Animation direction
 		pTeleporter->active			= GE_FALSE;
-// changed QD 12/15/05
 		pTeleporter->cFadeColor.a	= 0.0f;
 		pTeleporter->CallBack		= GE_FALSE;
 		pTeleporter->CallBackCount	= 0;
 		pTeleporter->fOldTime		= 0.0f;
 		pTeleporter->bDoFade		= GE_FALSE;
 		pTeleporter->bFadeOut		= GE_TRUE;
-// end change
 
 		if(!EffectC_IsStringNull(pTeleporter->szSoundFile))
 		{
@@ -91,7 +89,7 @@ CTeleporter::CTeleporter() :
 		}
 	}
 
-	//	Ok, if we have teleport targets, clear out the pathfollower data
+	// Ok, if we have teleport targets, clear out the pathfollower data
 	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
 
 	if(pSet != NULL)
@@ -111,9 +109,9 @@ CTeleporter::CTeleporter() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~CTeleporter
+// ~CTeleporter
 //
-//	Destructor, clean up after ourselves.
+// Destructor, clean up after ourselves.
 /* ------------------------------------------------------------------------------------ */
 CTeleporter::~CTeleporter()
 {
@@ -151,9 +149,9 @@ CTeleporter::~CTeleporter()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Handle a collision with a teleport trigger.
+// Handle a collision with a teleport trigger.
 /* ------------------------------------------------------------------------------------ */
 bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor)
 {
@@ -178,10 +176,8 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 
 		if(pTeleport->Model == pModel)
 		{
-// changed RF063
-			if(pTeleport->PlayerOnly && theActor!=CCD->Player()->GetActor())
+			if(pTeleport->PlayerOnly && theActor != CCD->Player()->GetActor())
 				return false;
-// end change RF063
 
 			if(pTeleport->bActive == GE_FALSE || pTeleport->active == GE_FALSE)
 				return true;								// Hit, yes, something happened, no
@@ -212,10 +208,9 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 					if(pTeleport->bOneShot == GE_TRUE)
 						pTeleport->bActive = GE_FALSE;			// Teleporter shut down
 
-// changed QD 12/15/05
 					pTeleport->CallBack = GE_TRUE;
 					pTeleport->CallBackCount = 2;
-// end change
+
 					if(pTeleport->theSound && pTeleport->SoundHandle == -1)
 					{
 						Snd Sound;
@@ -232,7 +227,8 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 					// ..appear in the air at the target end, I'm not sure WHY this
 					// ..is but there it is.  However, it is a neat effect...
 					if((pTeleport->bUseTeleportEffect == GE_TRUE) &&
-						(pTeleport->bUseFogEffect == GE_TRUE) && pTeleport->theFog)
+						(pTeleport->bUseFogEffect == GE_TRUE) &&
+						pTeleport->theFog)
 					{
 						for(int nTemp=1000; nTemp<6000; nTemp+=100)
 						{
@@ -244,18 +240,12 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 												pTeleport->fogRadius+static_cast<geFloat>(nTemp/400));
 							CCD->Engine()->RenderWorld();
 							CCD->Engine()->EndFrame();
-// changed Nout 12/15/05
-// changed RF064
-							// CCD->Engine()->ResetSystem();
+
 							CCD->ResetClock();
-// end change RF064
-// end change
 						}
 					}
 
-// changed QD
 					// move to new position
-					// CCD->ActorManager()->Position(theActor, pTarget->origin);
 					if(pTeleport->fFadeTime > 0.0f)
 					{
 						pTeleport->bDoFade = GE_TRUE;
@@ -278,8 +268,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 						{
 							CCD->ActorManager()->Position(theActor, pTarget->origin);
 						}
-// end change QD
-// change Nout 12/15/05
+
 						// rotate to match target angle
 						if(pTarget->UseAngle)
 						{
@@ -295,12 +284,12 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 							}
 						}
 					}
-// end change
+
 					return true;
 				}
 			}
 
-			return true;									// Player is _TELEPORTED_
+			return true;					// Player is _TELEPORTED_
 		}
 	}
 
@@ -308,11 +297,11 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Increment animation times on teleporters.  This is used to vary
-//	..the color of each teleporter from one point to another.  The
-//	..time variance is set in the world editor.
+// Increment animation times on teleporters.  This is used to vary
+// ..the color of each teleporter from one point to another.  The
+// ..time variance is set in the world editor.
 /* ------------------------------------------------------------------------------------ */
 void CTeleporter::Tick(geFloat dwTicks)
 {
@@ -397,8 +386,12 @@ void CTeleporter::Tick(geFloat dwTicks)
 					pTeleport->theFog = geWorld_AddFog(CCD->World());
 
 					if(pTeleport->theFog != NULL)
-						geFog_SetAttributes(pTeleport->theFog, &pTeleport->origin, &pTeleport->cColor, 0.0f,
-											pTeleport->fDensity, pTeleport->fogRadius);
+						geFog_SetAttributes(pTeleport->theFog,
+											&pTeleport->origin,
+											&pTeleport->cColor,
+											0.0f,
+											pTeleport->fDensity,
+											pTeleport->fogRadius);
 				}
 			}
 
@@ -419,8 +412,13 @@ void CTeleporter::Tick(geFloat dwTicks)
 					if(pTeleport->fDensity < (kFogDensity-pTeleport->fogVariance))
 						pTeleport->bForward = GE_TRUE;			// Start incrementing next time
 				}
-				geFog_SetAttributes(pTeleport->theFog, &pTeleport->origin, &pTeleport->cColor, 0.0f,
-					pTeleport->fDensity, pTeleport->fogRadius);			// Animate the density!
+
+				geFog_SetAttributes(pTeleport->theFog,
+									&pTeleport->origin,
+									&pTeleport->cColor,
+									0.0f,
+									pTeleport->fDensity,
+									pTeleport->fogRadius);		// Animate the density!
 			}
 		}
 
@@ -438,7 +436,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 	return;
 }
 
-// changed QD 12/15/05
+
 void CTeleporter::DoFade(void)
 {
 	if(m_EntityCount == 0)
@@ -556,12 +554,11 @@ void CTeleporter::DoFade(void)
 		}
 	}
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save all teleporters and teleport targets to the supplied file
+// Save all teleporters and teleport targets to the supplied file
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 {
@@ -587,10 +584,8 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 		WRITEDATA(type, &(pTeleport->fDensity),		sizeof(geFloat),	1, SaveFD);
 		WRITEDATA(type, &(pTeleport->origin),		sizeof(geVec3d),	1, SaveFD);
 		WRITEDATA(type, &(pTeleport->active),		sizeof(geBoolean),	1, SaveFD);
-// changed QD 12/15/05
 		WRITEDATA(type, &(pTeleport->CallBack),		sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &(pTeleport->CallBackCount),sizeof(int),		1, SaveFD);
-// end change
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
@@ -610,9 +605,9 @@ int CTeleporter::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore all teleporters and teleport targets from the supplied file
+// Restore all teleporters and teleport targets from the supplied file
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -638,10 +633,8 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &(pTeleport->fDensity),		sizeof(geFloat),	1, RestoreFD);
 		READDATA(type, &(pTeleport->origin),		sizeof(geVec3d),	1, RestoreFD);
 		READDATA(type, &(pTeleport->active),		sizeof(geBoolean),	1, RestoreFD);
-// changed QD 12/15/05
 		READDATA(type, &(pTeleport->CallBack),		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &(pTeleport->CallBackCount),	sizeof(int),		1, RestoreFD);
-// end change
 	}
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "TeleportTarget");
@@ -661,9 +654,9 @@ int CTeleporter::RestoreFrom(FILE *RestoreFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	BindToPath
+// BindToPath
 //
-//	Given the name of an entity, bind that entity to a motion path.
+// Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::BindToPath(const char *szName)
 {
@@ -691,13 +684,13 @@ int CTeleporter::BindToPath(const char *szName)
 	return RGF_FAILURE;							// No such entity, sorry
 }
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return its user data.
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -726,10 +719,10 @@ int CTeleporter::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CTeleporter::ReSynchronize()
 {

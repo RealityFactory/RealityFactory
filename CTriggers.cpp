@@ -17,9 +17,9 @@
 extern geSound_Def *SPool_Sound(const char *SName);
 
 /* ------------------------------------------------------------------------------------ */
-//	CTriggers
+// CTriggers
 //
-//	Default constructor.  Set all triggers to default values and load any audio we need.
+// Default constructor.  Set all triggers to default values and load any audio we need.
 /* ------------------------------------------------------------------------------------ */
 CTriggers::CTriggers() :
 	m_EntityCount(0)					// No triggers
@@ -102,9 +102,9 @@ CTriggers::CTriggers() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~CTriggers
+// ~CTriggers
 //
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 CTriggers::~CTriggers()
 {
@@ -112,11 +112,10 @@ CTriggers::~CTriggers()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Handle a collision with a  trigger
+// Handle a collision with a  trigger
 /* ------------------------------------------------------------------------------------ */
-// changed RF063
 int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool UseKey, const geActor *theActor)
 {
 	SetState();
@@ -141,22 +140,18 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 		// Get the  data so we can compare models
 		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTrigger->Model)
 			continue;
-		// end change
 
 		if(pTrigger->Model == pModel)
 		{
-// changed RF063
 			if(pTrigger->PlayerOnly && theActor != CCD->Player()->GetActor())
 				return false;
 
-// changed RF064
-			if((pTrigger->bNoCollide && !UseKey) || (UseKey && !pTrigger->UseKey)
-				|| (!pTrigger->bShoot && HitType)
-				|| (pTrigger->bShoot && !HitType))
-// end change RF064
+			if((pTrigger->bNoCollide && !UseKey) ||
+				(UseKey && !pTrigger->UseKey) ||
+				(!pTrigger->bShoot && HitType) ||
+				(pTrigger->bShoot && !HitType))
 			{
 				FreeState();
 				if(CCD->ModelManager()->EmptyContent(pTrigger->Model))
@@ -164,7 +159,6 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 
 				return RGF_FAILURE;
 			}
-// end change RF063
 
 			state = true;
 
@@ -178,10 +172,10 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 			}
 
 			// If trigger not already running, and active, trigger it!
-			if((!pTrigger->bInAnimation)
-				&& (pTrigger->bActive == GE_TRUE)
-				&& pTrigger->isHit == GE_FALSE
-				&& state == true)
+			if((!pTrigger->bInAnimation) &&
+				(pTrigger->bActive == GE_TRUE) &&
+				pTrigger->isHit == GE_FALSE &&
+				state == true)
 			{
 				pTrigger->bState = GE_TRUE;
 				pTrigger->bTrigger = GE_TRUE;			// It's this one, trigger the animation
@@ -197,7 +191,7 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 			if(CCD->ModelManager()->EmptyContent(pTrigger->Model))
 				return RGF_EMPTY;
 
-			return RGF_SUCCESS;  // Hmmph, we hit a trigger
+			return RGF_SUCCESS;		// Hmmph, we hit a trigger
 		}
 	}
 
@@ -206,11 +200,10 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 }
 
 
-// MOD010122 - Added this function.
 /* ------------------------------------------------------------------------------------ */
-//	HandleTriggerEvent
+// HandleTriggerEvent
 //
-//	Handle an animated model's trigger event
+// Handle an animated model's trigger event
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::HandleTriggerEvent(const char *TName)
 {
@@ -230,17 +223,15 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 	geEntity *pEntity;
 	bool state;
 
-	//	Once more we scan the list.  Does this get old, or what?
+	// Once more we scan the list.  Does this get old, or what?
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		// Get the  data so we can compare models
 		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTrigger->Model)
 			continue;
-		// end change
 
 		if(!strcmp(pTrigger->szEntityName, TName))
 		{
@@ -256,16 +247,16 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 			}
 
 			// If trigger not already running, and active, trigger it!
-			if((!pTrigger->bInAnimation)
-				&& pTrigger->bActive == GE_TRUE
-				&& pTrigger->isHit == GE_FALSE
-				&& state == true)
+			if((!pTrigger->bInAnimation) &&
+				pTrigger->bActive == GE_TRUE &&
+				pTrigger->isHit == GE_FALSE &&
+				state == true)
 			{
 				pTrigger->bState = GE_TRUE;
 				pTrigger->bTrigger = GE_TRUE;			// It's this one, trigger the animation
-// changed RF063
+
 				CCD->ModelManager()->Start(pTrigger->Model);
-// end change RF063
+
 				pTrigger->SoundHandle = PlaySound(pTrigger->theSound, pTrigger->origin, pTrigger->bAudioLoops);
 				pTrigger->isHit = GE_TRUE;
 				pTrigger->time = 0.0f;
@@ -277,14 +268,13 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 		}
 	}
 
-    FreeState();
-    return false;							// We hit no known triggers
+	FreeState();
+	return false;							// We hit no known triggers
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlaySound
+// PlaySound
 /* ------------------------------------------------------------------------------------ */
-// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool SoundLoop)
 {
 	if(!theSound)
@@ -293,7 +283,7 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 	Snd Sound;
 
 	memset(&Sound, 0, sizeof(Sound));
-    geVec3d_Copy(&Origin, &(Sound.Pos));
+	geVec3d_Copy(&Origin, &(Sound.Pos));
     Sound.Min = CCD->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
@@ -306,9 +296,9 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsATrigger
+// IsATrigger
 //
-//	Return TRUE if the passed-in model is a  trigger, FALSE otherwise
+// Return TRUE if the passed-in model is a  trigger, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 {
@@ -329,10 +319,8 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 	{
 		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTrigger->Model)
 			continue;
-		// end change
 
 		if(pTrigger->Model == theModel)
 			return true;							// Model IS a trigger
@@ -342,10 +330,10 @@ bool CTriggers::IsATrigger(const geWorld_Model *theModel)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Increment animation times for all _animating_  triggers that aren't
-//	..in a collision state.
+// Increment animation times for all _animating_  triggers that aren't
+// ..in a collision state.
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::Tick(geFloat dwTicks)
 {
@@ -356,7 +344,7 @@ void CTriggers::Tick(geFloat dwTicks)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
 	if(!pSet)
-		return;									// No  triggers
+		return;									// No triggers
 
 	geEntity *pEntity;
 
@@ -381,9 +369,6 @@ void CTriggers::Tick(geFloat dwTicks)
 				{
 					pTrigger->bState = GE_FALSE;
 					pTrigger->time = 0.0f;
-					// MOD010122 - Next line commented out to fix bug.  isHit should not be turned off until the full trigger
-					//             cycle, on-off is complete.
-					//					pTrigger->isHit=false;
 				}
 			}
 			else
@@ -409,11 +394,10 @@ void CTriggers::Tick(geFloat dwTicks)
 			(CCD->ModelManager()->IsRunning(pTrigger->Model) == false))
 		{
 			// Animation has stopped/not running, handle it.
-			// MOD010122 - The "&& (!pTrigger->isHit)" was added to the next if statement.  We don't want to reset until
-			//             the full trigger cycle, on-off, is complete.
+			// We don't want to reset until the full trigger cycle, on-off, is complete.
 			if((pTrigger->bOneShot != GE_TRUE) && (pTrigger->bActive == GE_TRUE) && (!pTrigger->isHit))
 			{
-				// Ok, not one-shot, reset the door
+				// Ok, not one-shot, reset the trigger
 				pTrigger->bInAnimation = GE_FALSE;
 				pTrigger->bTrigger = GE_FALSE;
 			}
@@ -432,9 +416,9 @@ void CTriggers::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of every  trigger in the current world off to an open file.
+// Save the current state of every  trigger in the current world off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::SaveTo(FILE *SaveFD, bool type)
 {
@@ -452,10 +436,8 @@ int CTriggers::SaveTo(FILE *SaveFD, bool type)
 	{
 		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTrigger->Model)
 			continue;
-		// end change
 
 		WRITEDATA(type, &pTrigger->bInAnimation,	sizeof(geBoolean),	1, SaveFD);
 		WRITEDATA(type, &pTrigger->bTrigger,		sizeof(geBoolean),	1, SaveFD);
@@ -476,9 +458,9 @@ int CTriggers::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of every  trigger in the current world from an open file.
+// Restore the state of every  trigger in the current world from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -495,10 +477,8 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		Trigger *pTrigger = static_cast<Trigger*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTrigger->Model)
 			continue;
-		// end change
 
 		READDATA(type, &pTrigger->bInAnimation,		sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pTrigger->bTrigger,			sizeof(geBoolean),	1, RestoreFD);
@@ -516,18 +496,18 @@ int CTriggers::RestoreFrom(FILE *RestoreFD, bool type)
 
 		if(pTrigger->bInAnimation)
 			geWorld_OpenModel(CCD->World(), pTrigger->Model, GE_TRUE);
-    }
+	}
 
 	return RGF_SUCCESS;
 }
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -556,10 +536,10 @@ int CTriggers::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CTriggers::ReSynchronize()
 {
@@ -567,7 +547,7 @@ int CTriggers::ReSynchronize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetState
+// SetState
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::SetState()
 {
@@ -614,7 +594,7 @@ void CTriggers::SetState()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetTTriggerState
+// GetTTriggerState
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::GetTTriggerState(const char *Name)
 {
@@ -647,7 +627,7 @@ bool CTriggers::GetTTriggerState(const char *Name)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FreeState
+// FreeState
 /* ------------------------------------------------------------------------------------ */
 void CTriggers::FreeState()
 {
