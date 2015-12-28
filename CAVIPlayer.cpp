@@ -1327,11 +1327,9 @@ void CAVIPlayer::Release()
 		if(m_pAudioStreams[n])
 			AVIStreamRelease(m_pAudioStreams[n]);
 
-		if(m_pAudioFormats[n])
-			delete [] ((LPBYTE)m_pAudioFormats[n]);
+		delete [] ((LPBYTE)m_pAudioFormats[n]);
 
-		if(m_pAudioData[n])
-			delete [] m_pAudioData[n];
+		delete [] m_pAudioData[n];
 	}
 
 	for(n=0; n<m_nNumVideoStreams; ++n)
@@ -1339,8 +1337,7 @@ void CAVIPlayer::Release()
 		if(m_pVideoStreams[n])
 			AVIStreamRelease(m_pVideoStreams[n]);
 
-		if(m_pVideoFormats[n])
-			delete [] ((LPBYTE)m_pVideoFormats[n]);
+		delete [] ((LPBYTE)m_pVideoFormats[n]);
 	}
 
 	if(m_pAviFile)
