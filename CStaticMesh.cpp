@@ -10,9 +10,9 @@
 #include "RabidFramework.h"
 #include <body._h>
 #include "CStaticMesh.h"
+
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
-// changed QD 09/28/2004
 #define LIGHT_SUNLIGHT		0
 #define LIGHT_POINTLIGHT	1
 #define LIGHT_SPOTLIGHT		2
@@ -39,8 +39,6 @@ typedef struct	tag_spotlight
 	int		arc;
 
 }	spotlight;
-// end change
-
 
 /* ------------------------------------------------------------------------------------ */
 // Construction/Destruction
@@ -86,9 +84,7 @@ CStaticMesh::CStaticMesh()
 				// add a new entry to the meshlist
 				if(!AddNewMesh(pMesh->szActorFile))
 				{
-					// changed QD 12/15/05
 					CleanUp();
-					// end change
 					char szError[256];
 					sprintf(szError, "File %s - Line %d: %s: AddNewMesh '%s' failed",
 							__FILE__, __LINE__, pMesh->szEntityName, pMesh->szActorFile);
@@ -106,9 +102,7 @@ CStaticMesh::CStaticMesh()
 			// the file doesn't exist, report error and shutdown
 			else
 			{
-				// changed QD 12/15/05
 				CleanUp();
-				// end change
 				char szError[256];
 				sprintf(szError, "File %s - Line %d: %s: file '%s' doesn't exist",
 						__FILE__, __LINE__, pMesh->szEntityName, pMesh->szActorFile);
@@ -123,22 +117,14 @@ CStaticMesh::CStaticMesh()
 		else
 			pMesh->ListIndex = Index;
 
-// changed QD 09/28/2004
-/*		if(pMesh->CompSunLightMin>100)
-			pMesh->CompSunLightMin=100;
-		if(pMesh->CompSunLightMin<0)
-			pMesh->CompSunLightMin=0;*/
-
 		pMesh->ColorLOD0 = NULL;
 		pMesh->ColorLOD1 = NULL;
 		pMesh->ColorLOD2 = NULL;
 		pMesh->ColorLOD3 = NULL;
 
 		// validate the alpha value
-		if(pMesh->Alpha > 255.0f)
-			pMesh->Alpha = 255.0f;
-		else if(pMesh->Alpha < 0.0f)
-			pMesh->Alpha = 0.0f;
+		if(pMesh->Alpha > 255.0f)		pMesh->Alpha = 255.0f;
+		else if(pMesh->Alpha < 0.0f)	pMesh->Alpha = 0.0f;
 
 		pMesh->RenderFlags = 0;//GE_RENDER_BACKFACED; //flag has no effect
 
@@ -152,14 +138,13 @@ CStaticMesh::CStaticMesh()
 
 		if(pMesh->Model)
 		{
-            geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pMesh->Model, &ModelOrigin);
-            geVec3d_Subtract(&(pMesh->origin), &ModelOrigin, &(pMesh->OriginOffset));
-  		}
+			geVec3d ModelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), pMesh->Model, &ModelOrigin);
+			geVec3d_Subtract(&(pMesh->origin), &ModelOrigin, &(pMesh->OriginOffset));
+		}
 	}
 
-// changed QD 09/28/2004
-// compute static lighting for the static meshes
+	// compute static lighting for the static meshes
 
 	geEntity_EntitySet *pSetLight, *pSetSpotlight, *pSetSunLight;
 	geEntity *pEntityLight, *pEntitySpotlight, *pEntitySunLight;
@@ -248,6 +233,7 @@ CStaticMesh::CStaticMesh()
 		if(bAmbientLight)
 		{
 			SetAmbientLight(pMesh);
+
 			if(CCD->GetLogging())
 			{
 				char Info[512];
@@ -301,19 +287,14 @@ CStaticMesh::CStaticMesh()
 				CCD->ReportError(Info, false);
 			}
 		}
-
-// changed QD 02/12/2005
-		//if(pMesh->CompLightSmooth && bLights)
-		//	FreeVertexNormals();
 	}
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	dig through the meshlist to see if the szActorfile is already in there
-//	if it's there set Index
-//	in: filename
-//	out: found?,  index
+// dig through the meshlist to see if the szActorfile is already in there
+// if it's there set Index
+// in: filename
+// out: found?,  index
 /* ------------------------------------------------------------------------------------ */
 bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 {
@@ -326,14 +307,14 @@ bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 		}
 	}
 
-	*Index=0;
+	*Index = 0;
 	return false;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	add a new entry to the meshlist
-//	in: filename
-//	out: success?
+// add a new entry to the meshlist
+// in: filename
+// out: success?
 /* ------------------------------------------------------------------------------------ */
 bool CStaticMesh::AddNewMesh(const char *szActorFile)
 {
@@ -364,7 +345,6 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			sprintf(Name, "%s%d.act", LodName, LOD);
 		}
 
-// changed QD 12/15/05
 		if(!CCD->FileExist(kActorFile, Name))
 		{
 			if(!LOD)
@@ -379,7 +359,6 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			else
 				continue;
 		}
-// end change
 
 		//open the actor file
 		CCD->OpenRFFile(&ActorFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
@@ -446,10 +425,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		MeshList[m_MeshCount]->FaceI[LOD] = NULL;
 		MeshList[m_MeshCount]->Color[LOD] = NULL;
 		MeshList[m_MeshCount]->MaterialI[LOD] = NULL;
-		// changed QD 02/12/2005
 		MeshList[m_MeshCount]->VNormals[LOD] = NULL;
 		MeshList[m_MeshCount]->VNormalI[LOD] = NULL;
-		// end change
 
 
 		// get the body information of this actor
@@ -457,7 +434,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 
 		if(!B)
 		{
-			CleanUp=GE_TRUE;
+			CleanUp = GE_TRUE;
 
 			char szError[256];
 			sprintf(szError,"File %s - Line %d: Failed to get body from actor '%s'",
@@ -469,7 +446,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 
 		// extracting the data of the body
 		{
-			int i,j;
+			int i, j;
 			geBody_Index BoneIndex;
 			geXForm3d Transform;
 			char BoneName[256];
@@ -544,7 +521,6 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				goto CLEAN_UP;
 			}
 
-			// changed QD 02/12/2005
 			// get the number of VertexNormals in the body
 			MeshList[m_MeshCount]->NumVNormals[LOD] = B->SkinNormalCount;
 			// allocate memory for the normalindices, each face has 3 indices for its 3 vertexnormals
@@ -573,7 +549,6 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 
 				goto CLEAN_UP;
 			}
-			// end change
 
 			// allocate memory for the materialindices
 			MeshList[m_MeshCount]->Color[LOD] = (GE_RGBA*)malloc(sizeof(GE_RGBA)*(MeshList[m_MeshCount]->NumFaces[LOD]));
@@ -608,7 +583,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			{
 				geVec3d Point;
 
-				geVec3d_Copy(&(B->XSkinVertexArray[i].XPoint), &(Point));//s[i]));
+				geVec3d_Copy(&(B->XSkinVertexArray[i].XPoint), &(Point));
 
 				// transform vertex point by bone transformation
 				BoneIndex = B->XSkinVertexArray[i].BoneIndex;
@@ -701,10 +676,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				{
 					// fill in VertexIndices
 					MeshList[m_MeshCount]->FaceI[LOD][i*3+j]=B->SkinFaces[0].FaceArray[i].VtxIndex[j];
-					// changed QD 02/12/2005
 					// fill in NormalIndices
 					MeshList[m_MeshCount]->VNormalI[LOD][i*3+j]=B->SkinFaces[0].FaceArray[i].NormalIndex[j];
-					// end change
 				}
 			}
 		}
@@ -740,13 +713,11 @@ CLEAN_UP:
 			free(MeshList[m_MeshCount]->FaceI[LOD]);
 			MeshList[m_MeshCount]->FaceI[LOD] = NULL;
 
-			// changed QD 02/12/2005
 			free(MeshList[m_MeshCount]->VNormals[LOD]);
 			MeshList[m_MeshCount]->VNormals[LOD] = NULL;
 
 			free(MeshList[m_MeshCount]->VNormalI[LOD]);
 			MeshList[m_MeshCount]->VNormalI[LOD] = NULL;
-			// end change
 
 			free(MeshList[m_MeshCount]->Color[LOD]);
 			MeshList[m_MeshCount]->Color[LOD] = NULL;
@@ -787,9 +758,8 @@ CLEAN_UP:
 	return true;
 }
 
-// changed QD 09/28/2004
 /* ------------------------------------------------------------------------------------ */
-//							COMPUTE LIGHTING
+// COMPUTE LIGHTING
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 {
@@ -835,12 +805,10 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 	}
 }
 
-// changed QD 02/12/2005
-// removed PrepareVertexNormals and FreeVertexNormals, using normals of act file instead
 
 /* ------------------------------------------------------------------------------------ */
-//	actually computing the lighting for 1 light
-//	in: calling mesh, light-data, type of light (SunLight, light, spotlight supported)
+// actually computing the lighting for 1 light
+// in: calling mesh, light-data, type of light (SunLight, light, spotlight supported)
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 {
@@ -888,11 +856,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 	geXForm3d_RotateY(&thePosition, pMesh->Rotation.Y);
 	geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
 
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theRotation);
-	//geXForm3d_RotateZ(&theRotation, pMesh->Rotation.Z);
 	geXForm3d_SetZRotation(&theRotation, pMesh->Rotation.Z);
-	// end change
 	geXForm3d_RotateX(&theRotation, pMesh->Rotation.X);
 	geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
@@ -904,19 +868,18 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 		switch(LOD)
 		{
 		case 0:
-			pColor=pMesh->ColorLOD0;
+			pColor = pMesh->ColorLOD0;
 			break;
 		case 1:
-			pColor=pMesh->ColorLOD1;
+			pColor = pMesh->ColorLOD1;
 			break;
 		case 2:
-			pColor=pMesh->ColorLOD2;
+			pColor = pMesh->ColorLOD2;
 			break;
 		case 3:
-			pColor=pMesh->ColorLOD3;
+			pColor = pMesh->ColorLOD3;
 			break;
 		}
-
 
 		for(int iFace=0;iFace<MeshList[pMesh->ListIndex]->NumFaces[LOD];iFace++)
 		{
@@ -990,7 +953,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 					// Find the angle between the light, and the face normal
 					geVec3d_Subtract(&LOrigin, &Vertex[j], &Vect);
 
-					geFloat Dist = geVec3d_Normalize (&Vect);
+					geFloat Dist = geVec3d_Normalize(&Vect);
 					geFloat Angle = geVec3d_DotProduct(&Vect, &Normal);
 
 					if(Angle <= 0.f)
@@ -1010,27 +973,23 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 					continue;
 
 				// check if there's something between the light source and the vertex
-				geBoolean Result=RayTracing(pMesh, LOD, Vertex[j], LOrigin, &Collision);
+				geBoolean Result = RayTracing(pMesh, LOD, Vertex[j], LOrigin, &Collision);
 
 				if(Result && !geVec3d_Compare(&Vertex[j], &Collision.Impact, 0.0001f))
 					continue;
 
-				pColor[iFace*3+j].r += (Color->r*Val);
-				pColor[iFace*3+j].g += (Color->g*Val);
-				pColor[iFace*3+j].b += (Color->b*Val);
+				pColor[iFace*3+j].r += (Color->r * Val);
+				pColor[iFace*3+j].g += (Color->g * Val);
+				pColor[iFace*3+j].b += (Color->b * Val);
 
 				// avoid overflow
-				if(pColor[iFace*3+j].r > 255.f)
-					pColor[iFace*3+j].r = 255.f;
-				if(pColor[iFace*3+j].g > 255.f)
-					pColor[iFace*3+j].g = 255.f;
-				if(pColor[iFace*3+j].b > 255.f)
-					pColor[iFace*3+j].b = 255.f;
+				if(pColor[iFace*3+j].r > 255.f)		pColor[iFace*3+j].r = 255.f;
+				if(pColor[iFace*3+j].g > 255.f)		pColor[iFace*3+j].g = 255.f;
+				if(pColor[iFace*3+j].b > 255.f)		pColor[iFace*3+j].b = 255.f;
 			}
 		}
 	}
 }
-// end change 09/28/2004
 
 
 /* TODO exclude skybox from collisin test - only works if you turn all world geometry into models
@@ -1062,14 +1021,13 @@ static geBoolean ColCB(geWorld_Model *Model, geActor *Actor, void *Context)
 	return GE_TRUE;
 }*/
 
-// changed QD 09/28/2004
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 								  const geVec3d &OldPosition, const geVec3d &NewPosition,
 								  GE_Collision *Collision)
 {
-	if(m_MeshCount==0) // don't waste precious time
+	if(m_MeshCount == 0) // don't waste precious time
 		return GE_FALSE;
 
 	// Ok, see if we have any static meshes we need check
@@ -1099,11 +1057,9 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 		if(!pMesh->StaticShadowCaster)
 			continue;
 
-// changed QD 09/28/2004
 		int LODIndex = 0;
 		if(pMesh == CallingMesh)
 			LODIndex = LOD;
-// end change
 
 		geXForm3d thePosition, thePositionT, theScale;
 
@@ -1116,7 +1072,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 
 		// get the transpose, we will transform the line/ min&max instead of the whole mesh
 		// this should be faster
-		geXForm3d_GetTranspose(&thePosition, &thePositionT); //(M, MTranspose)
+		geXForm3d_GetTranspose(&thePosition, &thePositionT);
 
 		// now we can scale it (the matrix had to be orthonormal (=without scale) to transpose it)
 		geXForm3d_SetScaling(&theScale, pMesh->Scale, pMesh->Scale, pMesh->Scale);
@@ -1141,7 +1097,6 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 		geXForm3d_Rotate(&theRotationT, &Line, &m_vDir);
 		geVec3d_Scale(&m_vDir, InvScale, &m_vDir);
 		geFloat fL = geVec3d_Normalize(&m_vDir);
-// changed QD 04/23/2004
 		for(int i=0; i<MeshList[pMesh->ListIndex]->NumFaces[LODIndex]; i++)
 		{
 			geVec3d Vertex[3];
@@ -1155,7 +1110,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 				Vertex[j].Y=MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Y;
 				Vertex[j].Z=MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Z;
 			}
-// end change
+
 			//*********************************************************************
 			// Fast, Minimum Storage Ray-Triangle Intersection by Möller & Trumbore
 			//*********************************************************************
@@ -1169,7 +1124,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 
 			// begin calculating determinant - also used to calculate U parameter
 			geVec3d_CrossProduct(&m_vDir, &edge2, &pvec);
-			geFloat det = edge1.X*pvec.X+edge1.Y*pvec.Y+edge1.Z*pvec.Z;// geVec3d_DotProduct(&edge1, &pvec);
+			geFloat det = edge1.X*pvec.X + edge1.Y*pvec.Y + edge1.Z*pvec.Z;// geVec3d_DotProduct(&edge1, &pvec);
 
 			// the line and the plane are almost parallel, if determinant is near zero
 			if(det < 0.0001f && det > -0.0001f)
@@ -1180,7 +1135,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 			// calculate distance from vert0 to ray origin
 			geVec3d_Subtract(&OldPos, &Vertex[0], &tvec);
 			// calculate U parameter and test bounds
-			geFloat u = (tvec.X*pvec.X+tvec.Y*pvec.Y+tvec.Z*pvec.Z)*inv_det;
+			geFloat u = (tvec.X*pvec.X + tvec.Y*pvec.Y + tvec.Z*pvec.Z) * inv_det;
 
 			if(u < 0.0f || u > 1.0f)
 				continue;
@@ -1188,13 +1143,13 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 			// prepare to test V parameter
 			geVec3d_CrossProduct(&tvec, &edge1, &qvec);
 			// calculate V parameter and test bounds
-			geFloat v = (m_vDir.X*qvec.X+m_vDir.Y*qvec.Y+m_vDir.Z*qvec.Z)*inv_det;
+			geFloat v = (m_vDir.X*qvec.X + m_vDir.Y*qvec.Y + m_vDir.Z*qvec.Z) * inv_det;
 
 			if(v < 0.0f || u+v > 1.0f)
 				continue;
 
 			// calculate s, ray intersects triangle
-			s = (edge2.X*qvec.X + edge2.Y*qvec.Y + edge2.Z*qvec.Z)*inv_det;
+			s = (edge2.X*qvec.X + edge2.Y*qvec.Y + edge2.Z*qvec.Z) * inv_det;
 
 			// collision but not on segment?
 			if(s <= 0.0f)
@@ -1210,25 +1165,22 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 					geXForm3d_Transform(&thePosition, &PlaneNormal, &(Collision->Plane.Normal));
 					geVec3d_Normalize(&(Collision->Plane.Normal));
 
-// changed QD 09/28/2004
 					Collision->Plane.Dist = geVec3d_DotProduct(&(Collision->Plane.Normal), &(Collision->Impact));
-// end change
 				}
 
 				return GE_TRUE;
 			}
-		}//for faces
-	}//for entities
+		} // for faces
+	} // for entities
 
 	return GE_FALSE;
 }
 /* ------------------------------------------------------------------------------------ */
-//							END COMPUTE LIGHTING
+// END COMPUTE LIGHTING
 /* ------------------------------------------------------------------------------------ */
 
-// changed QD 12/15/05
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CStaticMesh::~CStaticMesh()
 {
@@ -1236,7 +1188,7 @@ CStaticMesh::~CStaticMesh()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CleanUp
+// CleanUp
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::CleanUp()
 {
@@ -1248,7 +1200,7 @@ void CStaticMesh::CleanUp()
 
 	geEntity *pEntity;
 
-	//	Ok, we have static mesh entities somewhere.  Dig through 'em all.
+	// Ok, we have static mesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -1275,13 +1227,11 @@ void CStaticMesh::CleanUp()
 
 			free(MeshList[i]->FaceI[LOD]);
 
-// changed QD 02/12/2005
 			if(MeshList[i]->VNormals[LOD])
 				free(MeshList[i]->VNormals[LOD]);
 
 			if(MeshList[i]->VNormalI[LOD])
 				free(MeshList[i]->VNormalI[LOD]);
-// end change
 			free(MeshList[i]->Color[LOD]);
 
 			free(MeshList[i]->MaterialI[LOD]);
@@ -1291,7 +1241,6 @@ void CStaticMesh::CleanUp()
 				if(MeshList[i]->Bitmaps[LOD][j])
 				{
 					geWorld_RemoveBitmap(CCD->World(), MeshList[i]->Bitmaps[LOD][j]);
-				//		geBitmap_Destroy(&(pMesh->Bitmaps0[i]));
 				}
 			}
 			free(MeshList[i]->Bitmaps[LOD]);
@@ -1314,10 +1263,9 @@ void CStaticMesh::CleanUp()
 
 	m_MeshCount = 0;
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//  entity tick function
+// entity tick function
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::Tick(geFloat dwTicks)
 {
@@ -1373,8 +1321,8 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		// get the distance between the entity and the camera
 		geVec3d CamPosition;
 		CCD->CameraManager()->GetPosition(&CamPosition);
-// changed QD 02/01/07
-// use center of bounding box for LOD determination instead enity origin ( = root bone position of actor)
+
+		// use center of bounding box for LOD determination instead entity origin ( = root bone position of actor)
 		geVec3d Center;
 		geXForm3d thePosition;
 
@@ -1385,7 +1333,6 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
 		geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
 		float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
-// end change
 
 		// which LOD do we have to render?
 		if(CCD->GetLODdistance(0) == 0 && CCD->GetLODdistance(1) == 0 && CCD->GetLODdistance(2) == 0
@@ -1459,7 +1406,6 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 	geXForm3d thePosition, theRotation;
 
-// changed QD 04/23/2004
 	geXForm3d CameraXf;
 	geFloat clipsq = 10000.f;
 	//if(!pMesh->Backfaced || CCD->CameraManager()->GetClipEnable())
@@ -1470,7 +1416,6 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		clipsq = CCD->CameraManager()->GetFarClipPlane();
 		clipsq *= clipsq;
 	}
-// end change
 
 	geXForm3d_SetScaling(&thePosition, pMesh->Scale, pMesh->Scale, pMesh->Scale);
 
@@ -1483,9 +1428,6 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 	// check the visibility at an overall bounding box level
 	if(pMesh->VisCheckLevel > 0 && pMesh->VisCheckLevel < 3)
 	{
-// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&theRotation);
-		//geXForm3d_RotateZ(&theRotation, pMesh->Rotation.Z);
 		geXForm3d_SetZRotation(&theRotation, pMesh->Rotation.Z);
 		geXForm3d_RotateX(&theRotation, pMesh->Rotation.X);
 		geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
@@ -1555,7 +1497,6 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 			Vertex[j].Z = temp[j].Z;
 		}
 
-// changed QD 04/23/2004
 		// backface culling - using GE_RENDER_BACKFACED or not doesn't make any difference
 		if(!pMesh->Backfaced)
 		{
@@ -1598,7 +1539,6 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 			if((distsq[0] > clipsq) && (distsq[1] > clipsq) && (distsq[2] > clipsq))
 				continue;
 		}
-// end change
 
 		// check the visibility at a per face bounding box level
 		// rather slow to be honest...
@@ -1610,18 +1550,12 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 			for(j=1; j<3; ++j)
 			{
-				if(Box.Max.X < Vertex[j].X)
-					Box.Max.X = Vertex[j].X;
-				if(Box.Max.Y < Vertex[j].Y)
-					Box.Max.Y = Vertex[j].Y;
-				if(Box.Max.Z < Vertex[j].Z)
-					Box.Max.Z = Vertex[j].Z;
-				if(Box.Min.X > Vertex[j].X)
-					Box.Min.X = Vertex[j].X;
-				if(Box.Min.Y > Vertex[j].Y)
-					Box.Min.Y = Vertex[j].Y;
-				if(Box.Min.Z > Vertex[j].Z)
-					Box.Min.Z = Vertex[j].Z;
+				if(Box.Max.X < Vertex[j].X)		Box.Max.X = Vertex[j].X;
+				if(Box.Max.Y < Vertex[j].Y)		Box.Max.Y = Vertex[j].Y;
+				if(Box.Max.Z < Vertex[j].Z)		Box.Max.Z = Vertex[j].Z;
+				if(Box.Min.X > Vertex[j].X)		Box.Min.X = Vertex[j].X;
+				if(Box.Min.Y > Vertex[j].Y)		Box.Min.Y = Vertex[j].Y;
+				if(Box.Min.Z > Vertex[j].Z)		Box.Min.Z = Vertex[j].Z;
 			}
 
 			if(!EffectC_IsBoxVisible(CCD->World(), CCD->CameraManager()->Camera(), &Box))
@@ -1638,9 +1572,8 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 				Vertex[j].g = pMesh->FillColor.g;
 				Vertex[j].b = pMesh->FillColor.b;
 			}
-			else if((pMesh->CompSunLight || pMesh->CompLight) && pColor) // changed QD 09/28/2004
+			else if((pMesh->CompSunLight || pMesh->CompLight) && pColor)
 			{
-				// changed QD 02/12/2004
 				/*
 				if(pMesh->CompLightSmooth)
 				{
@@ -1800,21 +1733,21 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 		geVec3d_Scale(&OBBcenter, 0.5f, &OBBcenter);
 		geVec3d_Add(&OBBcenter, &OldPosition, &OBBcenter);
 
-		OBBaxis[0].X=1.0f;
-		OBBaxis[0].Y=0.0f;
-		OBBaxis[0].Z=0.0f;
+		OBBaxis[0].X = 1.0f;
+		OBBaxis[0].Y = 0.0f;
+		OBBaxis[0].Z = 0.0f;
 
-		OBBaxis[1].X=0.0f;
-		OBBaxis[1].Y=1.0f;
-		OBBaxis[1].Z=0.0f;
+		OBBaxis[1].X = 0.0f;
+		OBBaxis[1].Y = 1.0f;
+		OBBaxis[1].Z = 0.0f;
 
-		OBBaxis[2].X=0.0f;
-		OBBaxis[2].Y=0.0f;
-		OBBaxis[2].Z=1.0f;
+		OBBaxis[2].X = 0.0f;
+		OBBaxis[2].Y = 0.0f;
+		OBBaxis[2].Z = 1.0f;
 
-		OBBHalfAxisLength[0]=(Max->X-Min->X)*0.5f;
-		OBBHalfAxisLength[1]=(Max->Y-Min->Y)*0.5f;
-		OBBHalfAxisLength[2]=(Max->Z-Min->Z)*0.5f;
+		OBBHalfAxisLength[0] = (Max->X - Min->X) * 0.5f;
+		OBBHalfAxisLength[1] = (Max->Y - Min->Y) * 0.5f;
+		OBBHalfAxisLength[2] = (Max->Z - Min->Z) * 0.5f;
 /*
 // it's possible to rotate the box with the actor... but it doesn't make a big difference,
 // so stick with the simple method above
@@ -1882,9 +1815,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 		geXForm3d thePosition, thePositionT, theScale;
 		geExtBox Box;
-		//int Index = pMesh->ListIndex;
 
-// changed QD 09/08/2004
 		// get current LOD
 		int LOD = 0;
 
@@ -1894,8 +1825,8 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			// get the distance between the entity and the camera
 			geVec3d CamPosition;
 			CCD->CameraManager()->GetPosition(&CamPosition);
-// changed QD 02/01/07
-// use center of bounding box for LOD determination instead enity origin ( = root bone position of actor)
+
+			// use center of bounding box for LOD determination instead enity origin ( = root bone position of actor)
 			geVec3d Center;
 			geXForm3d thePosition;
 
@@ -1906,7 +1837,6 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
 			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
 			float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
-// end change
 
 			if(CCD->GetLODdistance(0) != 0 && dist > CCD->GetLODdistance(0))
 			{
@@ -1934,7 +1864,6 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 		if(LOD > 3)
 			continue;
-// end change
 
 		// set up the transformation matrix
 		geXForm3d_SetZRotation(&thePosition, pMesh->Rotation.Z);
@@ -1983,7 +1912,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					if(geVec3d_GetElement(&TestBox.Max, i) < geVec3d_GetElement(&Box.Min, i))
 						break;
 
-					if (geVec3d_GetElement(&TestBox.Min, i) > geVec3d_GetElement(&Box.Max, i))
+					if(geVec3d_GetElement(&TestBox.Min, i) > geVec3d_GetElement(&Box.Max, i))
 						break;
 				}
 
@@ -1995,6 +1924,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					{
 						geVec3d_Subtract(&Box.Min, Max, &Box.Min);
 						geVec3d_Subtract(&Box.Max, Min, &Box.Max);
+
 						if(!geExtBox_RayCollision(&Box, &OldPosition, &NewPosition, &s, &(Collision->Plane.Normal)))
 							continue;
 
@@ -2027,13 +1957,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 							Gs = s;
 							geVec3d_AddScaled(&OldPosition, &Line, Gs, &Collision->Impact);
 							Collision->Plane.Normal=PlaneNormal;
-// changed QD 10/01/2004
 							Collision->Plane.Dist = geVec3d_DotProduct(&(Collision->Plane.Normal), &(Collision->Impact));
 						}
 					}
 					else // just want to know if we collide at all
 						return GE_TRUE;
-// end change
 				}
 			}
 
@@ -2062,7 +1990,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_RotateX(&theRotationT, -pMesh->Rotation.X);
 			geXForm3d_RotateZ(&theRotationT, -pMesh->Rotation.Z);
 
-			//	don't translate the direction!
+			// don't translate the direction!
 			geXForm3d_Rotate(&theRotationT, &Line, &m_vDir);
 			geVec3d_Scale(&m_vDir, InvScale, &m_vDir);
 
@@ -2128,8 +2056,8 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 							R += HalfAxisLength[j]*fabs(V.X*axis[j].X + V.Y*axis[j].Y + V.Z*axis[j].Z);
 						}
 
-						Min1 = DP-R;
-						Max1 = DP+R;
+						Min1 = DP - R;
+						Max1 = DP + R;
 					}
 
 					Speed = V.X*m_vDir.X+V.Y*m_vDir.Y+V.Z*m_vDir.Z;
@@ -2158,11 +2086,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 								Max0 = DP;
 						}
 
-						D_C = V.X*center.X+V.Y*center.Y+V.Z*center.Z;
+						D_C = V.X*center.X + V.Y*center.Y + V.Z*center.Z;
 						Min1 = D_C-HalfAxisLength[j];
 						Max1 = D_C+HalfAxisLength[j];
 
-						Speed = V.X*m_vDir.X+V.Y*m_vDir.Y+V.Z*m_vDir.Z;
+						Speed = V.X*m_vDir.X + V.Y*m_vDir.Y + V.Z*m_vDir.Z;
 						if(NoIntersect(Speed, Min0, Max0, Min1, Max1, &TFirst, &TLast))
 							goto NO_COLLISION;//continue;
 					}
@@ -2176,16 +2104,16 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 
 							//TriProject
 							{
-								Min0 = V.X*Vertex[0].X+V.Y*Vertex[0].Y+V.Z*Vertex[0].Z;
+								Min0 = V.X*Vertex[0].X + V.Y*Vertex[0].Y + V.Z*Vertex[0].Z;
 								Max0 = Min0;
 
-								geFloat DP = V.X*Vertex[1].X+V.Y*Vertex[1].Y+V.Z*Vertex[1].Z;;
+								geFloat DP = V.X*Vertex[1].X + V.Y*Vertex[1].Y + V.Z*Vertex[1].Z;
 								if(DP < Min0)
 									Min0 = DP;
 								else if(DP > Max0)
 									Max0 = DP;
 
-								DP = V.X*Vertex[2].X+V.Y*Vertex[2].Y+V.Z*Vertex[2].Z;
+								DP = V.X*Vertex[2].X + V.Y*Vertex[2].Y + V.Z*Vertex[2].Z;
 								if(DP < Min0)
 									Min0 = DP;
 								else if(DP > Max0)
@@ -2193,7 +2121,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 							}
 							//ObbProj
 							{
-								geFloat DP = V.X*center.X+V.Y*center.Y+V.Z*center.Z;
+								geFloat DP = V.X*center.X + V.Y*center.Y + V.Z*center.Z;
 								geFloat R = 0.0f;
 
 								for(int m=0; m<3; ++m)
@@ -2201,11 +2129,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 									R += HalfAxisLength[m]*fabs(V.X*axis[m].X + V.Y*axis[m].Y + V.Z*axis[m].Z);
 								}
 
-								Min1 = DP-R;
-								Max1 = DP+R;
+								Min1 = DP - R;
+								Max1 = DP + R;
 							}
 
-							Speed = V.X*m_vDir.X+V.Y*m_vDir.Y+V.Z*m_vDir.Z;
+							Speed = V.X*m_vDir.X + V.Y*m_vDir.Y + V.Z*m_vDir.Z;
 							if(NoIntersect(Speed, Min0, Max0, Min1, Max1, &TFirst, &TLast))
 								goto NO_COLLISION;//continue;
 						}
@@ -2225,18 +2153,14 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 							geXForm3d_Transform(&thePosition, &(Collision->Plane.Normal), &(Collision->Plane.Normal));
 							geVec3d_Normalize(&(Collision->Plane.Normal));
 
-// changed QD 09/28/2004
 							Collision->Plane.Dist = geVec3d_DotProduct(&(Collision->Plane.Normal), &(Collision->Impact));
-// end change
 						}
 					}
-// changed QD 10/01/2004
 					else // just want to know if we collide at all
 						return GE_TRUE;
-// end change
+
 NO_COLLISION:;
 				}
-
 			}
 			else
 			{
@@ -2269,7 +2193,7 @@ NO_COLLISION:;
 
 					// begin calculating determinant - also used to calculate U parameter
 					geVec3d_CrossProduct(&m_vDir, &edge2, &pvec);
-					geFloat det = edge1.X*pvec.X+edge1.Y*pvec.Y+edge1.Z*pvec.Z;// geVec3d_DotProduct(&edge1, &pvec);
+					geFloat det = edge1.X*pvec.X + edge1.Y*pvec.Y + edge1.Z*pvec.Z;// geVec3d_DotProduct(&edge1, &pvec);
 
 					// the line and the plane are almost parallel, if determinant is near zero
 					if(det < 0.0001f && det > -0.0001f)
@@ -2280,7 +2204,7 @@ NO_COLLISION:;
 					// calculate distance from vert0 to ray origin
 					geVec3d_Subtract(&OldPos, &Vertex[0], &tvec);
 					// calculate U parameter and test bounds
-					geFloat u = (tvec.X*pvec.X+tvec.Y*pvec.Y+tvec.Z*pvec.Z)*inv_det;//geVec3d_DotProduct(&tvec, &pvec);
+					geFloat u = (tvec.X*pvec.X + tvec.Y*pvec.Y + tvec.Z*pvec.Z)*inv_det;//geVec3d_DotProduct(&tvec, &pvec);
 
 					if(u < 0.0f || u > 1.0f)
 						continue;
@@ -2313,33 +2237,32 @@ NO_COLLISION:;
 								geXForm3d_Transform(&thePosition, &PlaneNormal, &(Collision->Plane.Normal));
 								geVec3d_Normalize(&(Collision->Plane.Normal));
 
-// changed QD 09/28/2004
 								Collision->Plane.Dist = geVec3d_DotProduct(&(Collision->Plane.Normal), &(Collision->Impact));
-// end change
-
 							}
 						}
-// changed QD 10/01/2004
 						else // just want to know if we collide at all
+						{
 							return GE_TRUE;
-// end change
+						}
+
 						ColResult = GE_TRUE;
 					}
-				}//for(all triangles)
-			}//if(Min&&Max)
-		}//if(ColLevel)
+				} // for(all triangles)
+			} // if(Min&&Max)
+		} // if(ColLevel)
 
 		if(ColResult)
 			GColResult = GE_TRUE;
 	}
+
 	return GColResult;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Obb center is supposed to be at {0, 0, 0}
+// Obb center is supposed to be at {0, 0, 0}
 /* ------------------------------------------------------------------------------------ */
 void CStaticMesh::AABBofOBB(geVec3d *Min, geVec3d *Max, const geVec3d *AxisLength,
-			   const geVec3d *Axis0, const geVec3d *Axis1, const geVec3d *Axis2)
+							const geVec3d *Axis0, const geVec3d *Axis1, const geVec3d *Axis2)
 {
 	geVec3d A0, A1, A2;
 
@@ -2455,7 +2378,7 @@ int CStaticMesh::SaveTo(FILE *SaveFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
+	// Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
@@ -2483,11 +2406,12 @@ int CStaticMesh::RestoreFrom(FILE *RestoreFD, bool type)
 
 	geEntity *pEntity;
 
-	//	Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
+	// Ok, we have StaticMesh entities somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
+
 		READDATA(type, &pMesh->origin,		sizeof(geVec3d), 1, RestoreFD);
 		READDATA(type, &pMesh->Rotation,	sizeof(geVec3d), 1, RestoreFD);
 	}
@@ -2507,7 +2431,7 @@ int CStaticMesh::LocateEntity(const char *szName, void **pEntityData)
 
 	geEntity *pEntity;
 
-	//	Ok, we have static meshes.  Dig through 'em all.
+	// Ok, we have static meshes.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{

@@ -24,19 +24,19 @@ struct LoadedMeshList
 	OBB			OBBox[4];
 	geVec3d		Max[4];
 	geVec3d		Min[4];
-	GE_LVertex	*Verts[4];
-	int16		*MaterialI[4];
-	int16		*FaceI[4];
-	GE_RGBA		*Color[4];
-	geBitmap	**Bitmaps[4];
+	GE_LVertex*	Verts[4];
+	int16*		MaterialI[4];
+	int16*		FaceI[4];
+	GE_RGBA*	Color[4];
+	geBitmap**	Bitmaps[4];
 	int			NumFaces[4];
 	int			MaterialCount[4];
 	int			NumVerts[4];
 	int			NumVNormals[4];
-	geVec3d		*VNormals[4];
-	int16		*VNormalI[4];
-	geBitmap	*LODBitmap;
-	char		*szFilename;
+	geVec3d*	VNormals[4];
+	int16*		VNormalI[4];
+	geBitmap*	LODBitmap;
+	char*		szFilename;
 };
 
 

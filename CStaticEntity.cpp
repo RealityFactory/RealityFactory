@@ -11,23 +11,20 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CDamage.h"
 #include "CPathFollower.h"
 #include "CStaticEntity.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
-// changed QD 06/26/04
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 //
-//	Go through all the entity proxies in the level and load up the
-//	..various actors to be used.
+// Go through all the entity proxies in the level and load up the
+// ..various actors to be used.
 /* ------------------------------------------------------------------------------------ */
 CStaticEntity::CStaticEntity() :
 	m_EntityCount(0)
@@ -36,7 +33,7 @@ CStaticEntity::CStaticEntity() :
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
-		return;													// Don't waste CPU time.
+		return;											// Don't waste CPU time.
 
 	geEntity *pEntity;
 
@@ -72,21 +69,10 @@ CStaticEntity::CStaticEntity() :
 			sprintf(szError, "[WARNING] File %s - Line %d: %s : Missing Actor '%s'",
 					__FILE__, __LINE__, pProxy->szEntityName, pProxy->szActorFile);
 			CCD->ReportError(szError, false);
-			// changed QD 07/15/06
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "StaticEntity", MB_OK);
-			exit(-333);
-			*/
 			continue;
-			// end change
 		}
 
-// changed Nout 12/15/05 - StaticEntity can be selected via ActorManager->GetEntityByName
 		CCD->ActorManager()->SetEntityName(pProxy->Actor, pProxy->szEntityName);
-// end change
 		CCD->ActorManager()->SetScale(pProxy->Actor, pProxy->ScaleFactor);
 		CCD->ActorManager()->SetType(pProxy->Actor, ENTITY_PROP);
 		CCD->ActorManager()->SetAutoStepUp(pProxy->Actor, true);
@@ -102,32 +88,24 @@ CStaticEntity::CStaticEntity() :
 
 		if(pProxy->SubjectToGravity)
 			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
-// changed QD 07/24/04
+
 		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor, pProxy->AmbientLightFromFloor);
-// end change
 
 		CCD->ActorManager()->SetShadow(pProxy->Actor, pProxy->ShadowSize);
 
-// changed QD 06/26/04
 		if(pProxy->ShadowAlpha > 0.0f)
 			CCD->ActorManager()->SetShadowAlpha(pProxy->Actor, pProxy->ShadowAlpha);
 
 		if(!EffectC_IsStringNull(pProxy->ShadowBitmap))
 			CCD->ActorManager()->SetShadowBitmap(pProxy->Actor, TPool_Bitmap(pProxy->ShadowBitmap, pProxy->ShadowAlphamap, NULL, NULL));
-// end change
 
-// begin change gekido
 		CCD->ActorManager()->SetProjectedShadows(pProxy->Actor, pProxy->UseProjectedShadows);
-// end change gekido
 
-// changed QD Shadows
 		CCD->ActorManager()->SetStencilShadows(pProxy->Actor, pProxy->UseStencilShadows);
-// end change
 
 		if(pProxy->EnvironmentMapping)
 			SetEnvironmentMapping(pProxy->Actor, true, pProxy->AllMaterial, pProxy->PercentMapping, pProxy->PercentMaterial);
 
-// changed RF064
 		CCD->ActorManager()->SetHideRadar(pProxy->Actor, pProxy->HideFromRadar);
 
 		if(!EffectC_IsStringNull(pProxy->ChangeMaterial))
@@ -138,12 +116,9 @@ CStaticEntity::CStaticEntity() :
 			CCD->ActorManager()->SetBoxChange(pProxy->Actor, false);
 			CCD->ActorManager()->SetBBox(pProxy->Actor, pProxy->BoxSize.X, -(pProxy->BoxSize.Y*2.0f), pProxy->BoxSize.Z);
 		}
-// end change RF064
 
-// changed QD 07/21/04
 		if(pProxy->NoCollision)
 			CCD->ActorManager()->SetNoCollide(pProxy->Actor);
-// end change
 
 		pProxy->bInitialized	= GE_FALSE;		// Pathfollowing not initialized
 		pProxy->IsHit			= GE_FALSE;
@@ -153,14 +128,12 @@ CStaticEntity::CStaticEntity() :
 		pProxy->CallBack		= GE_FALSE;
 		pProxy->Time			= pProxy->DamageDelay;
 		pProxy->DoingDamage		= GE_FALSE;
-// changed QD 05/06/2004
 		pProxy->dying			= GE_FALSE;
 
 		if(pProxy->FadeOutTime <= 0.0f)
 			pProxy->FadeOut = GE_FALSE;
 		else
 			pProxy->AlphaRate = (pProxy->InitialAlpha)/pProxy->FadeOutTime;
-// end change
 
 		if(pProxy->AttributeAmt != -1)
 		{
@@ -190,9 +163,9 @@ CStaticEntity::CStaticEntity() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Go through all proxies and unload all the actors associated with 'em.
+// Go through all proxies and unload all the actors associated with 'em.
 /* ------------------------------------------------------------------------------------ */
 CStaticEntity::~CStaticEntity()
 {
@@ -232,11 +205,11 @@ CStaticEntity::~CStaticEntity()
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
 /* ------------------------------------------------------------------------------------ */
-//	Render
+// Render
 //
-//	Render all of the static entities in the level.
+// Render all of the static entities in the level.
 /* ------------------------------------------------------------------------------------ */
-void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
+void CStaticEntity::Render(geXForm3d /*ViewPoint*/, DWORD /*dwTime*/)
 {
 	if(m_EntityCount == 0)
 		return;									// Don't waste time here
@@ -254,15 +227,13 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 	{
 		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pProxy->Actor)
 			continue;
-		// end change
 
 		if(CCD->MenuManager()->GetSEBoundBox() && pProxy->alive)
 		{
 			geExtBox ExtBox;
-			//geActor_GetDynamicExtBox(pProxy->Actor, &ExtBox);
+
 			geActor_GetExtBox(pProxy->Actor, &ExtBox);
 			ExtBox.Min.X -= pProxy->origin.X;
 			ExtBox.Min.Y -= pProxy->origin.Y;
@@ -278,15 +249,14 @@ void CStaticEntity::Render(geXForm3d ViewPoint, DWORD dwTime)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	HandleCollision
+// HandleCollision
 //
-//	Process a collision between the player and an actor.  We will check
-//	..all known proxies and, if the actor associated with one is the
-//	..actor we hit, will act (heh) on it.  For now, that means we play
-//	..the "collision" audio, though eventually this will trigger script
-//	..execution.
+// Process a collision between the player and an actor.  We will check
+// ..all known proxies and, if the actor associated with one is the
+// ..actor we hit, will act (heh) on it.  For now, that means we play
+// ..the "collision" audio, though eventually this will trigger script
+// ..execution.
 /* ------------------------------------------------------------------------------------ */
-// changed RF063
 int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity, bool UseKey)
 {
 	if(m_EntityCount == 0)
@@ -296,7 +266,7 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
-		return RGF_FAILURE;													// Don't waste CPU time.
+		return RGF_FAILURE;							// Don't waste CPU time.
 
 	geEntity *pEntity;
 
@@ -305,24 +275,20 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 	{
 		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pProxy->Actor)
 			continue;
-		// end change
 
 		if(pProxy->Actor != pActor)
 		{
 			pProxy->IsHit = GE_FALSE;
-			continue;	  // Not this one, keep looking
+			continue;	// Not this one, keep looking
 		}
 
-// changed RF063
 		if(UseKey && !pProxy->UseKey)
 			return RGF_FAILURE;
 
 		if(UseKey && !(pProxy->GetDamaged && pProxy->alive && pProxy->DoDamage && !pProxy->DoingDamage))
 			return RGF_FAILURE;
-// end change RF063
 
 		if(!pProxy->alive)
 		{
@@ -336,12 +302,11 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 			{
 				if(pProxy->AttributeAmt != -1)
 				{
-// changed RF063
 					if(EffectC_IsStringNull(pProxy->DamageAttribute))
 						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health", "Actor");
 					else
 						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute, "Actor");
-// end change RF063
+
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = GE_TRUE;
 				}
@@ -350,12 +315,11 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 			{
 				if(theActor)
 				{
-// changed RF063
 					if(EffectC_IsStringNull(pProxy->DamageTo))
 						CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
 					else
 						CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
-// end change RF063
+
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = GE_TRUE;
 				}
@@ -369,7 +333,8 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 				if(!CCD->EffectManager()->Item_Alive(pProxy->index))
 					pProxy->index = -1;
 			}
-			// eaa3 03/28/2000 Check to see if the sound is already playing,
+
+			// Check to see if the sound is already playing,
 			// ..and if so, DON'T REPLAY IT!!!
 			if(pProxy->IsHit == GE_FALSE)
 			{
@@ -386,13 +351,11 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 					pProxy->index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 				}
 			}
-			// End of sound checking
 		}
 
 		// If we have a collision animation, switch to that
 		if(!EffectC_IsStringNull(pProxy->szImpactAction))
 		{
-// changed RF064
 			char *Motion = CCD->ActorManager()->GetMotion(pProxy->Actor);
 
 			if(strcmp(Motion, pProxy->szImpactAction))
@@ -400,7 +363,6 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 				CCD->ActorManager()->SetMotion(pProxy->Actor, pProxy->szImpactAction);
 				CCD->ActorManager()->SetNextMotion(pProxy->Actor, pProxy->szDefaultAction);
 			}
-// end change RF064
 		}
 
 		// Ok, if this is a MOVEABLE STATIC ACTOR, let's see if it can be
@@ -430,14 +392,14 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 				return RGF_RECHECK;
 		}
 
-		return RGF_SUCCESS;													// Hit, and dealt with
+		return RGF_SUCCESS;							// Hit, and dealt with
 	}
 
-	return RGF_FAILURE;														// Nothing we own collided with
+	return RGF_FAILURE;								// Nothing we own collided with
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	clear IsHit flag on all entities
+// clear IsHit flag on all entities
 /* ------------------------------------------------------------------------------------ */
 void CStaticEntity::ClearHit()
 {
@@ -461,11 +423,11 @@ void CStaticEntity::ClearHit()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Handle any time-based processing necessary.  In this case, that means
-//	..to update the sound effects from any playing audio effects to
-//	..reflect the player avatar position.
+// Handle any time-based processing necessary.  In this case, that means
+// ..to update the sound effects from any playing audio effects to
+// ..reflect the player avatar position.
 /* ------------------------------------------------------------------------------------ */
 void CStaticEntity::Tick(geFloat dwTicks)
 {
@@ -476,7 +438,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticEntityProxy");
 
 	if(!pSet)
-		return;													// Don't waste CPU time.
+		return;								// Don't waste CPU time.
 
 	geEntity *pEntity;
 
@@ -486,17 +448,14 @@ void CStaticEntity::Tick(geFloat dwTicks)
 	{
 		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pProxy->Actor)
 			continue;
-		// end change
 
-// changed QD 05/06/2004
 		if(pProxy->dying && pProxy->DeathDissappear)
 		{
 			if(EffectC_IsStringNull(pProxy->szDeathAction) || CCD->ActorManager()->EndAnimation(pProxy->Actor))
 			{
-				if (pProxy->FadeOut && pProxy->InitialAlpha > 0.0f)
+				if(pProxy->FadeOut && pProxy->InitialAlpha > 0.0f)
 				{
 					CCD->ActorManager()->SetNoCollide(pProxy->Actor);
 					pProxy->InitialAlpha -= (pProxy->AlphaRate*(dwTicks*0.001f));
@@ -511,7 +470,6 @@ void CStaticEntity::Tick(geFloat dwTicks)
 
 			continue;
 		}
-// end change
 
 		if(pProxy->DoingDamage)
 		{
@@ -527,6 +485,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 			if(pProxy->CallBackCount == 0)
 				pProxy->CallBack = GE_FALSE;
 		}
+
 		if(pProxy->AttributeAmt != -1 && pProxy->alive)
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(pProxy->Actor);
@@ -541,8 +500,6 @@ void CStaticEntity::Tick(geFloat dwTicks)
 				pProxy->bState = GE_FALSE;
 				pProxy->CallBack = GE_TRUE;
 				pProxy->CallBackCount = 2;
-
-// changed QD 05/06/2004
 				pProxy->dying = GE_TRUE;
 
 				if(!EffectC_IsStringNull(pProxy->szDeathAction))
@@ -555,7 +512,6 @@ void CStaticEntity::Tick(geFloat dwTicks)
 					CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
 					pProxy->dying = GE_FALSE;
 				}
-// end change
 			}
 		}
 
@@ -605,9 +561,9 @@ void CStaticEntity::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save static entities states to a supplied file
+// Save static entities states to a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 {
@@ -628,10 +584,8 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 	{
 		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pProxy->Actor)
 			continue;
-		// end change
 
 		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
 		{
@@ -664,9 +618,9 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore static entities states from a supplied file
+// Restore static entities states from a supplied file
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -687,10 +641,8 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		StaticEntityProxy *pProxy = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pProxy->Actor)
 			continue;
-		// end change
 
 		READDATA(type, &pProxy->origin,			sizeof(geVec3d),	1, RestoreFD);
 		READDATA(type, &pProxy->CallBack,		sizeof(geBoolean),	1, RestoreFD);
@@ -723,9 +675,9 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	BindToPath
+// BindToPath
 //
-//	Given the name of an entity, bind that entity to a motion path.
+// Given the name of an entity, bind that entity to a motion path.
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::BindToPath(const char *szName)
 {
@@ -754,7 +706,7 @@ int CStaticEntity::BindToPath(const char *szName)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetEntity
+// GetEntity
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 {
@@ -772,10 +724,8 @@ int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 	{
 		StaticEntityProxy *pTheEntity = static_cast<StaticEntityProxy*>(geEntity_GetUserData(pEntity));
 
-		// changed QD 07/15/06
 		if(!pTheEntity->Actor)
 			continue;
-		// end change
 
 		if(pTheEntity->Actor == Actor)
 		{
@@ -788,16 +738,16 @@ int CStaticEntity::GetEntity(const geActor *Actor, void **pEntityData)
 }
 
 
-//	******************* PRIVATE MEMBER FUCNTIONS ***************
+// ******************* PRIVATE MEMBER FUCNTIONS ***************
 
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -826,10 +776,10 @@ int CStaticEntity::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CStaticEntity::ReSynchronize()
 {

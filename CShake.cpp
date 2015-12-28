@@ -9,12 +9,11 @@
  * Copyright (c) 1999 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// Include the One True Header
 #include "RabidFramework.h"
 #include "CShake.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CShake::CShake()
 {
@@ -37,9 +36,9 @@ CShake::CShake()
 		if(pSource->Model)
 		{
 			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
+			geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
 			geVec3d_Subtract(&(pSource->origin), &ModelOrigin, &(pSource->OriginOffset));
-  		}
+		}
 
 		pSource->active = GE_FALSE;
 	}
@@ -55,7 +54,7 @@ CShake::~CShake()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CShake::Tick(geFloat dwTicks)
+void CShake::Tick(geFloat /*dwTicks*/)
 {
 	// Ok, check to see if there are ScreenShakes in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScreenShake");

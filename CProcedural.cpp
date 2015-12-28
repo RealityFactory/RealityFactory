@@ -69,49 +69,46 @@ CProcedural::CProcedural()
 
 		if(!EffectC_IsStringNull(pTex->szTextureName) && !EffectC_IsStringNull(pTex->szProcName))
 		{
-// changed QD 12/15/05
-// if-else if instead of separate if statements
-			if(!stricmp(pTex->szProcName,"water"))
+			if(!stricmp(pTex->szProcName, "water"))
 			{
 				pTex->Proc = Water_Create(pTex->szTextureName, CCD->World());
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"smoke"))
+			else if(!stricmp(pTex->szProcName, "smoke"))
 			{
 				pTex->Proc = Smoke_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"fire"))
+			else if(!stricmp(pTex->szProcName, "fire"))
 			{
 				pTex->Proc = Fire_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"electric"))
+			else if(!stricmp(pTex->szProcName, "electric"))
 			{
 				pTex->Proc = ElectricFx_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"plasma"))
+			else if(!stricmp(pTex->szProcName, "plasma"))
 			{
 				pTex->Proc = Plasma_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"bumpmap"))
+			else if(!stricmp(pTex->szProcName, "bumpmap"))
 			{
 				pTex->Proc = BumpMap_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"flow"))
+			else if(!stricmp(pTex->szProcName, "flow"))
 			{
 				pTex->Proc = Flow_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"particle"))
+			else if(!stricmp(pTex->szProcName, "particle"))
 			{
 				pTex->Proc = Particles_Create(pTex->szTextureName,CCD->World(),pTex->Parameter);
 				continue;
 			}
-// end change
 		}
 	}
 
@@ -138,49 +135,46 @@ CProcedural::~CProcedural()
 
 		if(!EffectC_IsStringNull(pTex->szTextureName) && !EffectC_IsStringNull(pTex->szProcName))
 		{
-// changed QD 1/15/05
-// if-else if instead of separate if statements
-			if(!stricmp(pTex->szProcName,"water"))
+			if(!stricmp(pTex->szProcName, "water"))
 			{
 				Water_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"smoke"))
+			else if(!stricmp(pTex->szProcName, "smoke"))
 			{
 				Smoke_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"fire"))
+			else if(!stricmp(pTex->szProcName, "fire"))
 			{
 				Fire_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"electric"))
+			else if(!stricmp(pTex->szProcName, "electric"))
 			{
 				ElectricFx_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"plasma"))
+			else if(!stricmp(pTex->szProcName, "plasma"))
 			{
 				Plasma_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"bumpmap"))
+			else if(!stricmp(pTex->szProcName, "bumpmap"))
 			{
 				BumpMap_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"flow"))
+			else if(!stricmp(pTex->szProcName, "flow"))
 			{
 				Flow_Destroy(pTex->Proc);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"particle"))
+			else if(!stricmp(pTex->szProcName, "particle"))
 			{
 				Particles_Destroy(pTex->Proc);
 				continue;
 			}
-// end change
 		}
 	}
 
@@ -208,70 +202,61 @@ void CProcedural::Tick(geFloat dwTicksIn)
 
 		if(pTex->DistanceFlag)
 		{
-// changed QD 12/15/05
-			//if(geVec3d_DistanceBetween(&pTex->origin, &CCD->Player()->Position()) > pTex->Distance)
-			//	continue;
 			geVec3d temp;
 			geVec3d_Subtract(&(pTex->origin), &CCD->Player()->Position(), &temp);
 
 			if(geVec3d_DotProduct(&temp, &temp) > pTex->Distance*pTex->Distance)
 				continue;
-// end change
 		}
 
-// changed Nout 12/15/05 - added trigger
 		if(!EffectC_IsStringNull(pTex->TriggerName))
 		{
 			if(!GetTriggerState(pTex->TriggerName))
 				continue;
 		}
-// end change
 
 		if(!EffectC_IsStringNull(pTex->szTextureName) && !EffectC_IsStringNull(pTex->szProcName))
 		{
-// changed QD 12/15/05
-// if - else if instead of separate if statements
-			if(!stricmp(pTex->szProcName,"water"))
+			if(!stricmp(pTex->szProcName, "water"))
 			{
 				Water_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"smoke"))
+			else if(!stricmp(pTex->szProcName, "smoke"))
 			{
 				Smoke_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"fire"))
+			else if(!stricmp(pTex->szProcName, "fire"))
 			{
 				Fire_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"electric"))
+			else if(!stricmp(pTex->szProcName, "electric"))
 			{
 				ElectricFx_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"plasma"))
+			else if(!stricmp(pTex->szProcName, "plasma"))
 			{
 				Plasma_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"bumpmap"))
+			else if(!stricmp(pTex->szProcName, "bumpmap"))
 			{
 				BumpMap_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"flow"))
+			else if(!stricmp(pTex->szProcName, "flow"))
 			{
 				Flow_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-			else if(!stricmp(pTex->szProcName,"particle"))
+			else if(!stricmp(pTex->szProcName, "particle"))
 			{
 				Particles_Animate(pTex->Proc, dwTicks);
 				continue;
 			}
-// end change
 		}
 	}
 

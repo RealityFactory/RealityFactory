@@ -9,7 +9,6 @@
  * Copyright (c) 1999 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// Include the One True Header
 #include "RabidFramework.h"
 #include "CRain.h"
 
@@ -19,7 +18,7 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	CRain Constructor
+// CRain Constructor
 /* ------------------------------------------------------------------------------------ */
 CRain::CRain()
 {
@@ -75,25 +74,25 @@ CRain::CRain()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Create Spray Effect
+// Create Spray Effect
 /* ------------------------------------------------------------------------------------ */
 int CRain::CreateSpray(Rain *R)
 {
-    Spray Sp;
+	Spray Sp;
 
-    // clear out spray data
-    memset(&Sp, 0, sizeof(Sp));
+	// clear out spray data
+	memset(&Sp, 0, sizeof(Sp));
 
-    // get bitmap for use as texture
-    // rain/a_rain are default bitmap names
-    Sp.Texture = TPool_Bitmap("rain.bmp", "a_rain.bmp", R->BmpName, R->AlphaName);
+	// get bitmap for use as texture
+	// rain/a_rain are default bitmap names
+	Sp.Texture = TPool_Bitmap("rain.bmp", "a_rain.bmp", R->BmpName, R->AlphaName);
 
-    // setup spray data
-    Sp.MinScale		= 0.5f;
-    Sp.MaxScale		= 1.5f;
+	// setup spray data
+	Sp.MinScale		= 0.5f;
+	Sp.MaxScale		= 1.5f;
 	Sp.ShowAlways	= GE_TRUE;
-    Sp.Rate			= (1.1f - R->Severity)*0.1f;
-    geVec3d_Copy(&(R->Gravity), &(Sp.Gravity));
+	Sp.Rate			= (1.1f - R->Severity) * 0.1f;
+	geVec3d_Copy(&(R->Gravity), &(Sp.Gravity));
 
 	// set source position
 	geVec3d_Copy(&(R->origin), &(Sp.Source));
@@ -106,7 +105,7 @@ int CRain::CreateSpray(Rain *R)
 	Sp.DestVariance = static_cast<int>(R->Radius*0.5f);
 
 	memcpy(&(Sp.ColorMin), &(R->ColorMin), sizeof(Sp.ColorMin));
-    memcpy(&(Sp.ColorMax), &(R->ColorMax), sizeof(Sp.ColorMax));
+	memcpy(&(Sp.ColorMax), &(R->ColorMax), sizeof(Sp.ColorMax));
 
 	Sp.ColorMin.a = Sp.ColorMax.a = 255.0f;
 
@@ -117,7 +116,7 @@ int CRain::CreateSpray(Rain *R)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CRain  Destructor
+// CRain Destructor
 /* ------------------------------------------------------------------------------------ */
 CRain::~CRain()
 {
@@ -140,9 +139,9 @@ CRain::~CRain()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
-void CRain::Tick(geFloat dwTicks)
+void CRain::Tick(geFloat /*dwTicks*/)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Rain");
 
@@ -209,13 +208,13 @@ void CRain::Tick(geFloat dwTicks)
 }
 
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CRain::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -244,10 +243,10 @@ int CRain::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CRain::ReSynchronize()
 {

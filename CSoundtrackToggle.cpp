@@ -16,7 +16,7 @@
 #include "CSoundtrackToggle.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CSoundtrackToggle::CSoundtrackToggle() :
 	m_EntityCount(0)
@@ -48,44 +48,23 @@ CSoundtrackToggle::CSoundtrackToggle() :
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 //
-//	Go through all toggles and unload all the audio associated with 'em.
+// Go through all toggles and unload all the audio associated with 'em.
 /* ------------------------------------------------------------------------------------ */
 CSoundtrackToggle::~CSoundtrackToggle()
 {
 	delete m_MIDIPlayer;
 	delete m_Streams;
-// changed QD 12/15/05 - code does nothing
-/*
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	pSet = geWorld_GetEntitySet(CCD->World(), "SoundtrackToggle");
-
-	if(!pSet)
-		return;									// All gone?  How odd.
-
-	// Ok, we have toggles somewhere.  Dig through 'em all and release the audio (if any)
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-	{
-		SoundtrackToggle *pToggle = (SoundtrackToggle*)geEntity_GetUserData(pEntity);
-	}
-
-	//	All cleaned up, bail this mess.
-	return;
-*/
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Check to see if the player is within the trigger range for any
-//	..of the soundtrack toggles we manage
+// Check to see if the player is within the trigger range for any
+// ..of the soundtrack toggles we manage
 /* ------------------------------------------------------------------------------------ */
-void CSoundtrackToggle::Tick(geFloat dwTicks)
+void CSoundtrackToggle::Tick(geFloat /*dwTicks*/)
 {
 	if(m_EntityCount == 0)
 		return;							// No toggles in world, bail early
@@ -138,17 +117,15 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 
 		if(!EffectC_IsStringNull(pToggle->szStreamFileOne) && m_Streams)
 		{
-// changed QD 09/02/03
-// build filename
+			// build filename
 			char music[256];
 			strcpy(music, CCD->GetDirectory(kAudioStreamFile));
 			strcat(music, "\\");
 			strcat(music, pToggle->szStreamFileOne);
 
 			m_Streams->Stop();
-//			m_Streams->Create(pToggle->szStreamFileOne);
 			m_Streams->Create(music);
-// end change
+
 			m_Streams->Play(pToggle->bStreamLoops);
 		}
 
@@ -160,10 +137,10 @@ void CSoundtrackToggle::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CSoundtrackToggle::ReSynchronize()
 {
@@ -171,7 +148,7 @@ int CSoundtrackToggle::ReSynchronize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop all streaming audio tracks
+// Stop all streaming audio tracks
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::StopStreaming()
 {
@@ -184,7 +161,7 @@ void CSoundtrackToggle::StopStreaming()
 	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-	    pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 
@@ -194,7 +171,7 @@ void CSoundtrackToggle::StopStreaming()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Set the volume for all the streams
+// Set the volume for all the streams
 /* ------------------------------------------------------------------------------------ */
 void CSoundtrackToggle::SetVolume(LONG nVolume)
 {

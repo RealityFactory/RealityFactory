@@ -11,7 +11,7 @@
 #include <body._h>
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CPolyShadow::CPolyShadow()
 {
@@ -25,14 +25,14 @@ CPolyShadow::CPolyShadow()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CPolyShadow::~CPolyShadow()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DrawShadow
+// DrawShadow
 /* ------------------------------------------------------------------------------------ */
 bool CPolyShadow::DrawShadow(const geActor *Actor)
 {
@@ -49,7 +49,6 @@ bool CPolyShadow::DrawShadow(const geActor *Actor)
 	geVec3d Pos,NewPos;
 	geVec3d LightRot, NewLPos;
 
-
 	// get actor data
 	pBody = geActor_GetBody(geActor_GetActorDef(Actor));
 	geBody_GetGeometryStats(pBody, 0, &Verts, &NumFace, &Normals);
@@ -65,11 +64,9 @@ bool CPolyShadow::DrawShadow(const geActor *Actor)
 	NewPos = Pos;
 	NewPos.Y -= 512.f;
 
-	// changed QD 12/15/05 - remove PathFollower dependency
 	// get the angle from the light source to the actor - Cheat a bit. Should be done for every vertex.
 	geVec3d_Subtract(&Pos, &NewLPos, &LightRot);
 	geVec3d_Normalize(&LightRot);
-	// end change
 
 	// Get ground plane and distance
 	BOOL Result = geWorld_Collision(CCD->Engine()->World(), NULL, NULL, &Pos, &NewPos,

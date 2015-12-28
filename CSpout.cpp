@@ -3,7 +3,6 @@
  * @brief Spout and ActorSpout Entity Class
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CSpout.h"
 
@@ -11,7 +10,7 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	CSpout Constructor
+// CSpout Constructor
 /* ------------------------------------------------------------------------------------ */
 CSpout::CSpout()
 {
@@ -43,7 +42,7 @@ CSpout::CSpout()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), S->Model, &ModelOrigin);
 			geVec3d_Subtract(&S->origin, &ModelOrigin, &S->OriginOffset);
-  		}
+		}
 
 		if(S->MinPauseTime < 0.0f)
 			S->MinPauseTime = 0.0f;
@@ -58,30 +57,29 @@ CSpout::CSpout()
 		S->active = GE_FALSE;
 		S->EffectList = -1;
 
-		// changed QD 12/15/05
 		S->Angles.X = GE_PIOVER180*(S->Angles.X);
 		S->Angles.Y = GE_PIOVER180*(S->Angles.Y-90.0f);
 		S->Angles.Z = GE_PIOVER180*(S->Angles.Z);
-		// end change
 	}
 
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Create
+// Create
 /* ------------------------------------------------------------------------------------ */
 int CSpout::Create(Spout *S)
 {
 	int effect = -1;
-	Spray	Sp;
-	geVec3d	In;
-	geXForm3d	Xf;
+	Spray Sp;
+	geVec3d In;
+	geXForm3d Xf;
 
 	memset(&Sp, 0, sizeof(Sp));
-	Sp.Texture=TPool_Bitmap("g_bubble.bmp", "a_bubble.bmp", S->BmpName, S->AlphaName);
+	Sp.Texture = TPool_Bitmap("g_bubble.bmp", "a_bubble.bmp", S->BmpName, S->AlphaName);
 
-	//variance
+	// variance
 	Sp.SourceVariance = S->SourceVariance;
 	if(Sp.SourceVariance < 0)
 		Sp.SourceVariance = 0;
@@ -171,16 +169,18 @@ int CSpout::Create(Spout *S)
 	return effect;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CSpout  Destructor
+// CSpout  Destructor
 /* ------------------------------------------------------------------------------------ */
 CSpout::~CSpout()
 {
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CSpout::Tick(geFloat dwTicks)
 {
@@ -286,13 +286,13 @@ void CSpout::Tick(geFloat dwTicks)
 }
 
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CSpout::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -321,10 +321,10 @@ int CSpout::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CSpout::ReSynchronize()
 {
@@ -337,7 +337,7 @@ int CSpout::ReSynchronize()
 /****************************************************************************************/
 
 /* ------------------------------------------------------------------------------------ */
-//	CActorSpout Constructor
+// CActorSpout Constructor
 /* ------------------------------------------------------------------------------------ */
 CActorSpout::CActorSpout()
 {
@@ -369,7 +369,7 @@ CActorSpout::CActorSpout()
 			geVec3d ModelOrigin;
 			geWorld_GetModelRotationalCenter(CCD->World(), S->Model, &ModelOrigin);
 			geVec3d_Subtract(&(S->origin), &ModelOrigin, &(S->OriginOffset));
-  		}
+		}
 
 		if(S->MinPauseTime < 0.0f)
 			S->MinPauseTime = 0.0f;
@@ -378,7 +378,7 @@ CActorSpout::CActorSpout()
 			S->MaxPauseTime = S->MinPauseTime;
 
 		if(S->MaxPauseTime > 0.0f)
-			S->PauseTime = EffectC_Frand( S->MinPauseTime, S->MaxPauseTime );
+			S->PauseTime = EffectC_Frand(S->MinPauseTime, S->MaxPauseTime);
 
 		S->active = GE_FALSE;
 		S->EffectList = -1;
@@ -413,8 +413,9 @@ CActorSpout::CActorSpout()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Create
+// Create
 /* ------------------------------------------------------------------------------------ */
 int CActorSpout::Create(ActorSpout *S)
 {
@@ -429,12 +430,11 @@ int CActorSpout::Create(ActorSpout *S)
 	Sp.Style = S->Style;
 	Sp.Alpha = S->Alpha;
 	Sp.AlphaRate = S->AlphaRate;
-// changed QD 07/15/06
-	//Sp.BaseRotation = S->BaseRotation;
+
 	Sp.BaseRotation.X = GE_PIOVER180*S->BaseRotation.X;
 	Sp.BaseRotation.Y = GE_PIOVER180*S->BaseRotation.Y;
 	Sp.BaseRotation.Z = GE_PIOVER180*S->BaseRotation.Z;
-// end change QD 07/15/06
+
 	Sp.MinRotationSpeed.X = GE_PIOVER180*S->MinRotationSpeed.X;
 	Sp.MinRotationSpeed.Y = GE_PIOVER180*S->MinRotationSpeed.Y;
 	Sp.MinRotationSpeed.Z = GE_PIOVER180*S->MinRotationSpeed.Z;
@@ -480,9 +480,7 @@ int CActorSpout::Create(ActorSpout *S)
 	Sp.FillColor = S->FillColor;
 	// ambientcolor
 	Sp.AmbientColor = S->AmbientColor;
-// changed QD 07/21/04
 	Sp.AmbientLightFromFloor = S->AmbientLightFromFloor;
-// end change
 
 	Sp.Rate = S->ParticleCreateRate;
 	if(Sp.Rate < 0.0f)
@@ -508,16 +506,18 @@ int CActorSpout::Create(ActorSpout *S)
 	return effect;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	CActorSpout  Destructor
+// CActorSpout  Destructor
 /* ------------------------------------------------------------------------------------ */
 CActorSpout::~CActorSpout()
 {
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CActorSpout::Tick(geFloat dwTicks)
 {
@@ -622,13 +622,13 @@ void CActorSpout::Tick(geFloat dwTicks)
 	}
 }
 
-//	******************** CRGF Overrides ********************
+// ******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CActorSpout::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -657,10 +657,10 @@ int CActorSpout::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CActorSpout::ReSynchronize()
 {

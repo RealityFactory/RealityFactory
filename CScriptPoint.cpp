@@ -11,7 +11,7 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CScriptPoint::CScriptPoint()
 {
@@ -44,17 +44,17 @@ CScriptPoint::CScriptPoint()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CScriptPoint::~CScriptPoint()
 {
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -83,12 +83,12 @@ int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DrawLine3d
+// DrawLine3d
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 							  int r, int g, int b, int r1, int g1, int b1)
 {
-	geVec3d		perp;
+	geVec3d perp;
 
 	geXForm3d M = CCD->CameraManager()->ViewPoint();
 	geVec3d in;
@@ -116,9 +116,6 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 	geXForm3d_GetIn(&M, &in);
 	geVec3d_CrossProduct(&perp, &in, &perp);
 	geVec3d_Normalize(&perp);
-// changed QD 12/15/05
-// does nothing at all - zap it
-	// geVec3d_Scale(&perp, 2.0f / 2.0f, &perp);
 
 	v[0].X = p2->X - perp.X;
 	v[0].Y = p2->Y - perp.Y;
@@ -153,16 +150,16 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 	v[3].b = static_cast<float>(b1);
 
 	geWorld_AddPolyOnce(CCD->World(),
-		v,
-		4,
-		NULL,
-		GE_GOURAUD_POLY,
-		GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
-		1.0f);
+						v,
+						4,
+						NULL,
+						GE_GOURAUD_POLY,
+						GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
+						1.0f);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Render
+// Render
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::Render()
 {
@@ -188,8 +185,8 @@ void CScriptPoint::Render()
 			char *EntityName = pSource->NextPoint;
 			sp = pSource->origin;
 
-			if(!geWorld_Collision(CCD->World(),NULL, NULL,&sp,&XForm.Translation,
-				GE_CONTENTS_CANNOT_OCCUPY,GE_COLLIDE_MODELS,0xffffffff, NULL, NULL,
+			if(!geWorld_Collision(CCD->World(), NULL, NULL, &sp, &XForm.Translation,
+				GE_CONTENTS_CANNOT_OCCUPY, GE_COLLIDE_MODELS, 0xffffffff, NULL, NULL,
 				&Collision))
 			{
 				Vert.X = sp.X;
@@ -231,7 +228,7 @@ void CScriptPoint::Render()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetOrigin
+// SetOrigin
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::SetOrigin()
 {
@@ -275,7 +272,7 @@ void CScriptPoint::SetOrigin()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetOrigin
+// GetOrigin
 /* ------------------------------------------------------------------------------------ */
 geVec3d CScriptPoint::GetOrigin(const char *Name)
 {
@@ -310,7 +307,7 @@ geVec3d CScriptPoint::GetOrigin(const char *Name)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FreeOrigin
+// FreeOrigin
 /* ------------------------------------------------------------------------------------ */
 void CScriptPoint::FreeOrigin()
 {
