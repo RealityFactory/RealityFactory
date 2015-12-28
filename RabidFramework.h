@@ -2,7 +2,7 @@
  * @file RabidFramework.h
  * @brief Reality Factory Header File
  *
- * This file includes ALL of the headers necessary to use the
+ * This file includes common headers necessary to use
  * Reality Factory (RGF) for creating Genesis3D-based games.
  * @author Ralph Deane
  *//*
@@ -108,10 +108,8 @@ enum
 #include <Genesis.h>
 #include <font.h>
 
-//start pickles JUL 04
 #include <joystick.h>
 #pragma comment(lib,"dinput8.lib")
-// end pickles JUL 04
 
 //	Additional data types
 
@@ -126,19 +124,15 @@ typedef struct
 class CCommonData;
 
 #include "IniFile.h"
-// changed RF064
 #include "Mixer.h"
 #include "Qx\\qxTerrainMgr.h"
-// end change RF064
 #include "GameEntityDataTypes.h"		// Just what it says!  GEdit-usable.
 #include "RGFStatus.h"					// Status codes
 #include "RGFEvents.h"					// Event codes, etc.
 #include "RGFTypes.h"					// Types, defs, etc.
 #include "RGFConstants.h"				// Constants
 #include "CRGFComponent.h"				// RGF base component interface
-// changed RF063
 #include "CAnimGif.h"
-// end change RF063
 #include "Collider.h"					// Collision utility class
 #include "CCameraManager.h"				// Camera Manager class
 #include "CAudioManager.h"				// Audio entity manager subsystem
@@ -179,7 +173,6 @@ class CCommonData;
 #include "CFlame.h"						// Ralph Deane's Flame Entity
 #include "CMenu.h"						// Ralph Deane's Menu Manager
 #include "Utilities.h"					// Ralph Deane's Utility Code
-// changed RF064
 #include "CScriptPoint.h"
 #include "CPawn.h"
 #include "CCountDown.h"
@@ -189,7 +182,6 @@ class CCommonData;
 #include "CActMaterial.h"
 #include "CArmour.h"
 #include "CLiftBelt.h"
-// end change RF064
 #include "CTriggers.h"					// Ralph Deane's Generic Triggers
 #include "CLogic.h"						// Ralph Deane's Trigger Logic
 #include "CMessage.h"
@@ -205,40 +197,23 @@ class CCommonData;
 #include "CChangeLevel.h"
 #include "CShake.h"
 #include "CFixedCamera.h"
-// changed RF063
 #include "CViewSwitch.h"
 #include "CInventory.h"
 #include "CLiquid.h"
 #include "COverlay.h"
 #include "CDSpotLight.h"
-// end change RF063
-// changed QD 01/2004
 #include "CStaticMesh.h"
-// end change QD
 
-//Start PWX
 #include "PWXImageManager.h"
-//End PWX
 #include "CPolyShadow.h"	// Fake Shadow
 #include "CFlipTree.h"		// Pickles Jul 04
 #include "CFoliage.h"		// Pickles Jul 04
 #include "CAreaChecker.h"	// Pickles Oct 04
 
-// start multiplayer
 #include "CNetwork.h"
-// end multiplayer
-
-// Start Aug2003DCS
 #include "CLevelController.h"
-// End Aug2003DCS
 
 #include "CWindGenerator.h"
-
-// start change gekido
-// 02.17.2004
-// our new console manager class
-//#include "CConsoleManager.h"
-// end change gekido
 
 #include "CCommonData.h"				// Common data handler component
 

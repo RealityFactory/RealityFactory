@@ -12,7 +12,6 @@
 #ifndef __RGF_STREAMINGAUDIO_H_
 #define __RGF_STREAMINGAUDIO_H_
 
-//	* Local defines, constants
 
 class OggAudio;
 class CMp3Manager;
@@ -37,8 +36,9 @@ public:
 	int SetVolume(LONG nVolume);			///< Set volume on audio
 
 private:
-	//	Private member functions
+	// Private member functions
 	DWORD GetMaxWriteSize();				///< Get max. buffer write size
+
 	int PumpWave(int nSize);				///< Pump wave data to stream
 
 	// Static timer callback
@@ -46,13 +46,13 @@ private:
 										DWORD dw1, DWORD dw2);
 
 	int WaveOpen(char *szFileName, HMMIO *pFileID,
-					WAVEFORMATEX **ppwfxInfo,	MMCKINFO *pckInRIFF);
+					WAVEFORMATEX **ppwfxInfo, MMCKINFO *pckInRIFF);
 
 	int WaveRead(HMMIO hmmioIn, int nSizeToRead, BYTE *pDestination,
 					MMCKINFO *pckIn, UINT *nBytesRead);
 
 private:
-	//	Private member variables
+	// Private member variables
 	LPDIRECTSOUND	m_pDS;					///< DirectSound object
 	HMMIO			m_hWaveFile;			///< Handle to WAVE file
 	int				m_nDataPosition;		///< Start of WAVE data in file
@@ -65,7 +65,7 @@ private:
 	WAVEFORMATEX	*m_pWaveFormat;			///< Wave format block
 	MMCKINFO		m_rRiffData;			///< Wave RIFF block
 	bool			m_fEOF;					///< At end of WAVE file
-	int				m_nOffset;
+	int				m_nOffset;				///< WriteCursor position
 	bool			m_bLoops;				///< Loop this WAVE or not?
 	bool			mp3;
 	bool			ogg;

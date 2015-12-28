@@ -9,17 +9,15 @@
  * Copyright (c) 2001 Ralph Deane; All Rights Reserved
  ****************************************************************************************/
 
-// As always, we include the One True Header File
 #include "RabidFramework.h"
 #include "OggAudio.h"
 #include "CMp3.h"
 
-//	************************ BEGIN IMPLEMENTATION ***************************
 
 /* ------------------------------------------------------------------------------------ */
-//	StreamingAudio
+// StreamingAudio
 //
-//	Default constructor, takes a DirectSound pointer
+// Default constructor, takes a DirectSound pointer
 /* ------------------------------------------------------------------------------------ */
 StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 {
@@ -43,9 +41,9 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~StreamingAudio
+// ~StreamingAudio
 //
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 StreamingAudio::~StreamingAudio()
 {
@@ -57,7 +55,6 @@ StreamingAudio::~StreamingAudio()
 			delete Ogg;
 			Ogg = NULL;
 		}
-
 		return;
 	}
 
@@ -94,9 +91,9 @@ StreamingAudio::~StreamingAudio()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Create
+// Create
 //
-//	Creates a new audio stream and sets up a timer for it.
+// Creates a new audio stream and sets up a timer for it.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Create(char *szFileName)
 {
@@ -113,19 +110,19 @@ int StreamingAudio::Create(char *szFileName)
 	if(szFileName == NULL)
 		return RGF_FAILURE;										// Wrong.
 
-// changed RF064
-	int len = strlen(szFileName)-4;
-	if(stricmp((szFileName+len),".mp3") == 0)
+	int len = strlen(szFileName) - 4;
+
+	if(stricmp((szFileName+len), ".mp3") == 0)
 	{
 		if(Mpeg3 != NULL)
 			return RGF_FAILURE;
+
 		Mpeg3 = new CMp3Manager;
 		Mpeg3->OpenMediaFile(szFileName);
 		mp3 = true;
 		m_fActive = true;
 
 		// start a timer for this stream.
-
 		MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, reinterpret_cast<DWORD>(this),
 										TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
@@ -136,6 +133,7 @@ int StreamingAudio::Create(char *szFileName)
 		}
 
 		m_nTimerID = nTimer;					// Save timer ID
+
 		return RGF_SUCCESS;
 	}
 
@@ -150,6 +148,7 @@ int StreamingAudio::Create(char *szFileName)
 		Ogg->Load(szFileName);
 		ogg = true;
 		m_fActive = true;
+
 		return RGF_SUCCESS;
 	}
 
@@ -166,9 +165,8 @@ int StreamingAudio::Create(char *szFileName)
 	}
 
 	m_nTimerID = nTimer;									// Save timer ID
-// end change RF064
 
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream != NULL)
 		return RGF_FAILURE;									// Already loaded!
 
@@ -184,8 +182,7 @@ int StreamingAudio::Create(char *szFileName)
 		return RGF_FAILURE;									// Problem here, too!
 	}
 
-	// Get current position in file, which will be the start of the
-	// ..WAVE data.
+	// Get current position in file, which will be the start of the WAVE data.
 	m_nDataPosition = mmioSeek(m_hWaveFile, 0, SEEK_CUR);
 	m_nDataSize = m_rRiffData.cksize;						// Save data size
 
@@ -203,7 +200,6 @@ int StreamingAudio::Create(char *szFileName)
 	theDesc.dwFlags = DSBCAPS_CTRLVOLUME;
 
 	nError = pDSIF->CreateSoundBuffer(&theDesc, &m_pStream, NULL);
-
 	pDSIF->Release();									// Done w/ this.
 
 	if(nError != 0)										// Error!  Sick out.
@@ -211,26 +207,25 @@ int StreamingAudio::Create(char *szFileName)
 		char szBug[128];
 		sprintf(szBug, "StreamingAudio: Failed to create buffer for '%s'\n", szFileName);
 		OutputDebugString(szBug);
+
 		mmioClose(m_hWaveFile, 0);
 		m_hWaveFile = NULL;
 		delete m_pWaveFormat;
 		m_pWaveFormat = NULL;
+
 		return RGF_FAILURE;
 	}
 
-	m_nOffset = 0;								// Start at top of buffer
-// changed RF064
-	//m_fActive = true;							// Set as active
-// end change RF064
+	m_nOffset = 0;						// Start at top of buffer
 	PumpWave(kBufferSize);				// Initial buffer load
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
-//	Start this stream buffer playing, with or without looping.
+// Start this stream buffer playing, with or without looping.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Play(bool bLooping)
 {
@@ -252,7 +247,6 @@ int StreamingAudio::Play(bool bLooping)
 	else if(nVolume > 10000)
 		ScaledVolume = 0;
 	else
-		//ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
 		ScaledVolume = (LONG)(log10((double)nVolume)*2500 - 10000);
 	nVolume = ScaledVolume;
 
@@ -271,10 +265,8 @@ int StreamingAudio::Play(bool bLooping)
 	if(m_pStream == NULL)
 		return RGF_FAILURE;							// No stream
 
-// changed RF064
 	if(m_fActive == true)
 		return RGF_SUCCESS;
-// end change RF064
 
 	m_fActive = true;
 	m_bLoops = bLooping;
@@ -286,15 +278,14 @@ int StreamingAudio::Play(bool bLooping)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop this stream from playing back.
+// Stop this stream from playing back.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Stop()
 {
 	if(mp3)
 	{
-// changed RF064
 		m_fActive = false;
 
 		if(Mpeg3 == NULL)
@@ -302,7 +293,6 @@ int StreamingAudio::Stop()
 
 		Mpeg3->StopMp3();
 		return RGF_SUCCESS;
-// end change RF064
 	}
 
 	if(ogg)
@@ -328,9 +318,9 @@ int StreamingAudio::Stop()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Pause
+// Pause
 //
-//	Pause/unpause this stream's playback.
+// Pause/unpause this stream's playback.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Pause()
 {
@@ -375,9 +365,9 @@ int StreamingAudio::Pause()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Delete
+// Delete
 //
-//	Delete this stream - stop it and kill the timer.
+// Delete this stream - stop it and kill the timer.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Delete()
 {
@@ -389,6 +379,7 @@ int StreamingAudio::Delete()
 		Ogg->Stop();
 		delete Ogg;
 		Ogg = NULL;
+
 		return RGF_SUCCESS;
 	}
 
@@ -402,6 +393,7 @@ int StreamingAudio::Delete()
 		Mpeg3->StopMp3();
 		delete Mpeg3;
 		Mpeg3 = NULL;
+
 		return RGF_SUCCESS;
 	}
 
@@ -415,9 +407,9 @@ int StreamingAudio::Delete()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Rewind
+// Rewind
 //
-//	Reposition stream playback to the start of the wave data
+// Reposition stream playback to the start of the wave data
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Rewind()
 {
@@ -443,12 +435,10 @@ int StreamingAudio::Rewind()
 		return RGF_FAILURE;								// No stream
 
 	// Check to be sure it's active
-
 	if(m_fActive == false)
 		return RGF_FAILURE;								// Not an active stream
 
 	// Ok, position to the start of the WAVE DATA
-
 	mmioSeek(m_hWaveFile, m_nDataPosition, SEEK_SET);
 
 	m_rRiffData.cksize = m_nDataSize;					// Restore data size
@@ -459,10 +449,10 @@ int StreamingAudio::Rewind()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsPlaying
+// IsPlaying
 //
-//	Returns TRUE if the stream is actively playing, FALSE otherwise
-//	..If the stream is at EOF that qualifies as "not playing".
+// Returns TRUE if the stream is actively playing, FALSE otherwise
+// ..If the stream is at EOF that qualifies as "not playing".
 /* ------------------------------------------------------------------------------------ */
 bool StreamingAudio::IsPlaying()
 {
@@ -490,9 +480,9 @@ bool StreamingAudio::IsPlaying()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetVolume
+// SetVolume
 //
-//	Set the playback volume of the audio stream.
+// Set the playback volume of the audio stream.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::SetVolume(LONG nVolume)
 {
@@ -537,14 +527,15 @@ int StreamingAudio::SetVolume(LONG nVolume)
 	return RGF_SUCCESS;
 }
 
-//	******************* PRIVATE MEMBER FUNCTIONS **********************
+
+// ******************* PRIVATE MEMBER FUNCTIONS **********************
 
 /* ------------------------------------------------------------------------------------ */
-//	PumpWave
+// PumpWave
 //
-//	Fill the streaming audio buffer from the wave file, making sure that
-//	..there's always something (up to and including silence) in the
-//	..buffer for playback.
+// Fill the streaming audio buffer from the wave file, making sure that
+// ..there's always something (up to and including silence) in the
+// ..buffer for playback.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::PumpWave(int nSize)
 {
@@ -553,16 +544,16 @@ int StreamingAudio::PumpWave(int nSize)
 	DWORD dwsize1 = 0, dwsize2 = 0;
 	UINT nBytesRead = 0;
 
-	//	Ok, we need to set up our "silence" value and adjust it for
-	//	..8bit samples if needed.
+	// Ok, we need to set up our "silence" value and adjust it for
+	// ..8bit samples if needed.
 
 	int nSilence = 0x0;
 
 	if(m_pWaveFormat->wBitsPerSample == 8)
 		nSilence = 0x80;									// In case wave is 8-bit
 
-	//	Ok, try to lock <n>K of the buffer.  If it fails, just bail this
-	//	..function.
+	// Ok, try to lock <n>K of the buffer.  If it fails, just bail this
+	// ..function.
 	hr = m_pStream->Lock(m_nOffset, nSize, &lpbuf1, &dwsize1, &lpbuf2, &dwsize2, 0);
 
 	if(hr != DS_OK)
@@ -591,8 +582,9 @@ int StreamingAudio::PumpWave(int nSize)
 		return RGF_SUCCESS;									// Inactive, pump silence
 	}
 
-	//	Fine, read data into the circular buffer directly from the
-	//	..wave file if there's anything there.
+	// Fine, read data into the circular buffer directly from the
+	// ..wave file if there's anything there.
+
 	// Fill block #1
 	hr = WaveRead(m_hWaveFile, dwsize1, static_cast<BYTE*>(lpbuf1), &m_rRiffData, &nBytesRead);
 
@@ -615,9 +607,8 @@ int StreamingAudio::PumpWave(int nSize)
 	// Unlock buffer, we're done with it for now.
 	m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
 
-	//	Ok, if we're at the end of file AND we're flagged to loop, rewind
-	//	..to the beginning of the buffer so we start from the top next
-	//	..time through.
+	// Ok, if we're at the end of file AND we're flagged to loop, rewind to the
+	// ..beginning of the buffer so we start from the top next time through.
 	if(m_fEOF && m_bLoops)
 		Rewind();						// Hope the sound designer looped the WAVE right!
 
@@ -625,9 +616,9 @@ int StreamingAudio::PumpWave(int nSize)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetMaxWriteSize
+// GetMaxWriteSize
 //
-//	Get the maximum number of bytes we can write into the current buffer.
+// Get the maximum number of bytes we can write into the current buffer.
 /* ------------------------------------------------------------------------------------ */
 DWORD StreamingAudio::GetMaxWriteSize()
 {
@@ -656,17 +647,17 @@ DWORD StreamingAudio::GetMaxWriteSize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	TimerFunction
+// TimerFunction
 //
-//	This function takes care of periodically pumping audio into
-//	..the playback buffer for streaming waves.  Based on the
-//	..user information passed in (set up when the wave file was
-//	..started streaming) it calls into the instance that is needed.
-//	..Yeah, this is a little wacky, but it let's me stream the wave
-//	..out without having to continually poll and stuff buffers.
+// This function takes care of periodically pumping audio into
+// ..the playback buffer for streaming waves.  Based on the
+// ..user information passed in (set up when the wave file was
+// ..started streaming) it calls into the instance that is needed.
+// ..Yeah, this is a little wacky, but it let's me stream the wave
+// ..out without having to continually poll and stuff buffers.
 /* ------------------------------------------------------------------------------------ */
-void CALLBACK StreamingAudio::TimerFunction(UINT uID, UINT uMsg,
-											DWORD dwUser, DWORD dw1, DWORD dw2)
+void CALLBACK StreamingAudio::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
+											DWORD dwUser, DWORD /*dw1*/, DWORD /*dw2*/)
 {
 	StreamingAudio *thePointer = (StreamingAudio*)dwUser;
 
@@ -690,10 +681,10 @@ void CALLBACK StreamingAudio::TimerFunction(UINT uID, UINT uMsg,
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	WaveOpen
+// WaveOpen
 //
-//	Open up a wave file, validate it, and return a handle to the open
-//	..file and a WAVEFORMATEX structure containing the wave info.
+// Open up a wave file, validate it, and return a handle to the open
+// ..file and a WAVEFORMATEX structure containing the wave info.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 							 WAVEFORMATEX **ppwfxInfo,	MMCKINFO *pckInRIFF)
@@ -704,7 +695,7 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	WORD cbExtraAlloc = 0;			// Extra bytes for waveformatex
 	int nError = 0;					// Return value.
 
-	//	Set up for the job
+	// Set up for the job
 	*ppwfxInfo = NULL;
 
 	if((hmmioIn = mmioOpen(szFileName, NULL, MMIO_ALLOCBUF | MMIO_READ)) == NULL)
@@ -732,8 +723,8 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 		return -3;
 	}
 
-	//	Expect the 'fmt' chunk to be at least as large as <PCMWAVEFORMAT>;
-	//	if there are extra parameters at the end, we'll ignore them.
+	// Expect the 'fmt' chunk to be at least as large as <PCMWAVEFORMAT>;
+	// if there are extra parameters at the end, we'll ignore them.
     if(ckIn.cksize < (long) sizeof(PCMWAVEFORMAT))
 	{
 		mmioClose(hmmioIn, 0);				// Clean up
@@ -757,7 +748,7 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 		// Read in length of extra bytes.
 		if (mmioRead(hmmioIn, (LPSTR) &cbExtraAlloc, (long) sizeof(cbExtraAlloc)) != (long) sizeof(cbExtraAlloc))
 		{
-			mmioClose(hmmioIn, 0);				// Clean up
+			mmioClose(hmmioIn, 0);			// Clean up
 			return -6;
 		}
 	}
@@ -769,7 +760,7 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 		return -7;
 	}
 
-	//	Copy the bytes from the pcm structure to the waveformatex structure
+	// Copy the bytes from the pcm structure to the waveformatex structure
 	memcpy(*ppwfxInfo, &pcmWaveFormat, sizeof(pcmWaveFormat));
 	(*ppwfxInfo)->cbSize = cbExtraAlloc;
 
@@ -779,7 +770,7 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 		if(mmioRead(hmmioIn, (LPSTR) (((BYTE*)&((*ppwfxInfo)->cbSize))+sizeof(cbExtraAlloc)),
 			(long) (cbExtraAlloc)) != (long) (cbExtraAlloc))
 		{
-			mmioClose(hmmioIn, 0);				// Clean up
+			mmioClose(hmmioIn, 0);			// Clean up
 			return -8;
 		}
 	}
@@ -809,12 +800,12 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	This will read wave data from the wave file.  Makre sure we're descended into
-//	the data chunk, else this will fail bigtime!
-//	hmmioIn         - Handle to mmio.
-//	cbRead          - # of bytes to read.
-//	pbDest          - Destination buffer to put bytes.
-//	cbActualRead- # of bytes actually read.
+// This will read wave data from the wave file.  Makre sure we're descended into
+// the data chunk, else this will fail bigtime!
+// hmmioIn         - Handle to mmio.
+// cbRead          - # of bytes to read.
+// pbDest          - Destination buffer to put bytes.
+// cbActualRead- # of bytes actually read.
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::WaveRead(HMMIO hmmioIn, int nSizeToRead, BYTE *pDestination,
 								MMCKINFO *pckIn, UINT *nBytesRead)

@@ -8,7 +8,6 @@
  * Copyright (c) 1999 Ralph Deane; All Rights Reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
@@ -29,7 +28,6 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//MOD010124 - Added the SetOriginOffset function.
 /* ------------------------------------------------------------------------------------ */
 // SetOriginOffset
 //
@@ -44,7 +42,6 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 {
 	if(!EffectC_IsStringNull(EntityName))
 	{
-// changed RF064
 		if(!stricmp(EntityName, "Player"))
 		{
 			geXForm3d Xf;
@@ -60,7 +57,6 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 
 			return false;
 		}
-// end change RF064
 
 		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
@@ -109,7 +105,6 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 					return false;
 				}
 			}
-// changed RF064
 
 			if(!stricmp(EntityType, "Pawn"))
 			{
@@ -138,7 +133,6 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 					return true;
 				}
 			}
-// end change RF064
 		}
 	}
 	else if(Model)
@@ -155,7 +149,7 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 		geWorld_GetModelRotationalCenter(CCD->World(), Model, &ModelOrigin);
 		geVec3d_Add(OriginOffset, &ModelOrigin, OriginOffset);
 		return true;
-  	}
+	}
 
 	return false;
 }
@@ -170,7 +164,6 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 {
 	if(!EffectC_IsStringNull(EntityName))
 	{
-// changed RF064
 		if(!stricmp(EntityName, "Player"))
 		{
 			if(EffectC_IsStringNull(BoneName))
@@ -181,7 +174,6 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 
 			return false;
 		}
-// end change RF064
 
 		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
@@ -215,7 +207,6 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 				}
 			}
 
-// changed RF064
 			if(!stricmp(EntityType, "Pawn"))
 			{
 				Pawn *pProxy;
@@ -233,7 +224,6 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 					return false;
 				}
 			}
-// end change RF064
 		}
 	}
 
@@ -248,7 +238,6 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 /* ------------------------------------------------------------------------------------ */
 bool GetTriggerState(const char *TriggerName)
 {
-// changed RF064
 	if(!stricmp(TriggerName, "MovieMode"))
 	{
 		return CCD->Player()->GetMonitorState();
@@ -273,20 +262,6 @@ bool GetTriggerState(const char *TriggerName)
 	{
 		return CCD->Player()->InFirstPerson();
 	}
-
-/*	if(!strnicmp(TriggerName, "Zoom", 4))
-	{
-		if(!CCD->CameraManager()->GetZooming())
-			return false;
-		if(strlen(TriggerName)==4)
-			return true;
-		char *Weaponname;
-		Weaponname = (TriggerName+4);
-		if(!stricmp(Weaponname, CCD->Weapons()->GetWeaponName()))
-			return true;
-		return false;
-	} */
-// end change RF064
 
 	char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
 
@@ -334,7 +309,6 @@ bool GetTriggerState(const char *TriggerName)
 			return pProxy->bState;
 		}
 
-// changed RF064
 		if(!stricmp(EntityType, "CountDownTimer"))
 		{
 			CountDownTimer *pProxy;
@@ -351,7 +325,6 @@ bool GetTriggerState(const char *TriggerName)
 	}
 
 	return CCD->Pawns()->GetEventState(TriggerName);
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -408,27 +381,24 @@ bool GetCallBackState(const char *CallBackName)
 			return pProxy->CallBack;
 		}
 
-// changed QD 12/15/05
 		if(!stricmp(EntityType, "Teleporter"))
 		{
 			Teleporter *pProxy;
 			CCD->Teleporters()->LocateEntity(CallBackName, (void**)&pProxy);
 			return pProxy->CallBack;
 		}
-// end change
 	}
 
 	return false;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	EffectC_IsStringNull()
+// EffectC_IsStringNull()
 //
-//	Determines if a string is NULL, accounting for additional editor posibilities.
+// Determines if a string is NULL, accounting for additional editor posibilities.
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffectC_IsStringNull(const char *String )
 {
-
 	// first way
 	if(String == NULL)
 	{
@@ -459,9 +429,9 @@ geBoolean EffectC_IsStringNull(const char *String )
 } // EffectC_IsStringNull()
 
 /* ------------------------------------------------------------------------------------ */
-//	EffectC_IsPointVisible()
+// EffectC_IsPointVisible()
 //
-//	Returns true if point is visible, false if it isn't.
+// Returns true if point is visible, false if it isn't.
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const geVec3d *Target,
 								 int32 Leaf, uint32 ClipStyle)
@@ -516,7 +486,7 @@ geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const g
 		const geXForm3d	*CameraXf;
 
 		// get camera xform
-		CameraXf = geCamera_GetWorldSpaceXForm( Camera );
+		CameraXf = geCamera_GetWorldSpaceXForm(Camera);
 
 		// check if its visible
 		if ( geWorld_Collision( World, (const geVec3d *)NULL, (const geVec3d *)NULL, &( CameraXf->Translation ), Target, GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, (GE_CollisionCB *)NULL, NULL, &Collision ) == GE_TRUE )
@@ -524,14 +494,12 @@ geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const g
 			return GE_FALSE;
 		}
 
-// changed QD 09/23/03
 		geActor *pActor;
 		geFloat T;
 		geVec3d Normal;
 
 		if(CCD->ActorManager()->DoesRayHitActor(CameraXf->Translation, *Target, &pActor, NULL, &T, &Normal) == GE_TRUE)
 			return GE_FALSE;
-// end change QD
 	}
 
 	// if we got to here then its visible
@@ -540,10 +508,9 @@ geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const g
 } // EffectC_IsPointVisible()
 
 
-// changed QD 01/2004
 /* ------------------------------------------------------------------------------------ */
-//	this is a non-conservative test
-//	check all box corners, then shrink the box and check the corners again...
+// this is a non-conservative test
+// check all box corners, then shrink the box and check the corners again...
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geExtBox* TestBox)
 {
@@ -611,12 +578,11 @@ geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geE
 
 	return GE_FALSE;
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	EffectC_rand()
+// EffectC_rand()
 //
-//	Picks a random int within the supplied range.
+// Picks a random int within the supplied range.
 /* ------------------------------------------------------------------------------------ */
 int EffectC_rand(int Low, int High)
 {
@@ -629,17 +595,16 @@ int EffectC_rand(int Low, int High)
 	// pick a random int from whithin the range
 	return ((rand()%(High - Low +1)) + Low);
 
-} // EffectC_rand()
+}
 
 
 /* ------------------------------------------------------------------------------------ */
-//	EffectC_Frand()
+// EffectC_Frand()
 //
-//	Picks a random float within the supplied range.
+// Picks a random float within the supplied range.
 /* ------------------------------------------------------------------------------------ */
 float EffectC_Frand(float Low, float High)
 {
-	// locals
 	float	Range;
 
 	// if they are the same then just return one of them
@@ -652,13 +617,13 @@ float EffectC_Frand(float Low, float High)
 	Range = High - Low;
 	return ((float)(((rand() % 1000) + 1))) / 1000.0f * Range + Low;
 
-} // EffectC_Frand()
+}
 
 
 /* ------------------------------------------------------------------------------------ */
-//	EffectC_XFormFromVector()
+// EffectC_XFormFromVector()
 //
-//	Create a transform from two vectors.
+// Create a transform from two vectors.
 /* ------------------------------------------------------------------------------------ */
 void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXForm3d *Out)
 {
@@ -671,7 +636,7 @@ void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXFo
 	Vertical.Z = 0.0f;
 
 	// create the source vector, fudging it if its coplanar to the comparison vector
-	geVec3d_Subtract( Source, Target, &Vect );
+	geVec3d_Subtract(Source, Target, &Vect);
 
 	if((Vertical.X == Vect.X) && (Vertical.Z == Vect.Z))
 	{
@@ -705,15 +670,14 @@ void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXFo
 
 	// put the translation in
 	Out->Translation = *Source;
-
-} // EffectC_XFormFromVector()
+}
 
 
 /*--------------------------------------------------------------------------------------*/
-//	Utility functions to load bitmaps
-//	from gebmutil.c
+// Utility functions to load bitmaps
+// from gebmutil.c
 /* ------------------------------------------------------------------------------------ */
-geBitmap *CreateFromFileAndAlphaNames(const char * BmName, const char *AlphaName)
+geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName)
 {
 	geBitmap *Bmp, *AlphaBmp;
 
@@ -722,7 +686,6 @@ geBitmap *CreateFromFileAndAlphaNames(const char * BmName, const char *AlphaName
 	if(!Bmp)
 		return NULL;
 
-// changed RF064
 	if(!EffectC_IsStringNull(AlphaName))
 	{
 		if(stricmp(BmName, AlphaName))
@@ -745,16 +708,14 @@ geBitmap *CreateFromFileAndAlphaNames(const char * BmName, const char *AlphaName
 			geBitmap_Destroy(&AlphaBmp);
 		}
 	}
-// end change RF064
 
-	//geBitmap_SetPreferredFormat(Bmp,GE_PIXELFORMAT_16BIT_4444_ARGB);
 	geBitmap_SetPreferredFormat(Bmp, GE_PIXELFORMAT_32BIT_ARGB);
 
 	return Bmp;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CreateFromFileName
+// CreateFromFileName
 /* ------------------------------------------------------------------------------------ */
 geBitmap *CreateFromFileName(const char *BmName)
 {
@@ -772,16 +733,7 @@ geBitmap *CreateFromFileName(const char *BmName)
 		sprintf(szError, "[WARNING] File %s - Line %d: Missing Bitmap %s or Missing Path",
 				__FILE__, __LINE__, BmName);
 		CCD->ReportError(szError, false);
-		// changed QD 07/15/06
 		return NULL;
-		/*
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError,"Bitmap Manager", MB_OK);
-		exit(-333);
-		*/
-		// end change
 	}
 
 	Bmp = geBitmap_CreateFromFile(File);
@@ -840,9 +792,9 @@ geBitmap *CreateFromFileName(const char *BmName)
 					unsigned char *gptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
 
 					if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
-						gptr += (height-1)*(Info.Stride*4);
+						gptr += (height - 1) * (Info.Stride * 4);
 					else
-						gptr += (height-1)*(Info.Stride*3);
+						gptr += (height - 1) * (Info.Stride * 3);
 
 					unsigned char *fptr = FreeImage_GetBits(Fbmp32);
 
@@ -885,10 +837,7 @@ geBitmap *CreateFromFileName(const char *BmName)
 					Bmp = NULL;
 				}
 			}
-// 09/30/2003 Wendell Buckner
-// updated freeimage library for Show save game image add Nout
-/*			FreeImage_Free(Fbmp32);
-			FreeImage_Free(Fbmp); */
+
 			FreeImage_Unload(Fbmp32);
 			FreeImage_Unload(Fbmp);
 		}
@@ -953,7 +902,7 @@ unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_h
 // NB: based on comment in sourcecode of GTest.
 /* ------------------------------------------------------------------------------------ */
 void CollisionCalcRatio(const GE_Collision &a_Collision, const geVec3d &a_OldPos,
-                        const geVec3d &a_NewPos, float *a_Ratio)
+						const geVec3d &a_NewPos, float *a_Ratio)
 {
 	float fd = geVec3d_DotProduct(&a_OldPos, &(a_Collision.Plane.Normal)) - a_Collision.Plane.Dist;
 	float bd = geVec3d_DotProduct(&a_NewPos, &(a_Collision.Plane.Normal)) - a_Collision.Plane.Dist;
@@ -965,25 +914,25 @@ void CollisionCalcRatio(const GE_Collision &a_Collision, const geVec3d &a_OldPos
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Calculates the point of impact based on the collision results.
+// Calculates the point of impact based on the collision results.
 /* ------------------------------------------------------------------------------------ */
 void CollisionCalcImpactPoint(const GE_Collision &a_Collision, const geVec3d &a_OldPos,
-                              const geVec3d &a_NewPos, float a_MinDistanceFromPlane,
-                              float a_Ratio, geVec3d *a_Impact)
+							  const geVec3d &a_NewPos, float a_MinDistanceFromPlane,
+							  float a_Ratio, geVec3d *a_Impact)
 {
-	geVec3d vecTravelled ;
-	geVec3d vecPath ;
+	geVec3d vecTravelled;
+	geVec3d vecPath;
 
 	geVec3d_Subtract(&a_NewPos, &a_OldPos, &vecPath);
 	geVec3d_Scale(&vecPath, a_Ratio, &vecTravelled);
 	geVec3d_Add(&a_OldPos, &vecTravelled, a_Impact);
 
 	if(a_MinDistanceFromPlane != 0.0f)
-		geVec3d_AddScaled(a_Impact, &(a_Collision.Plane.Normal), a_MinDistanceFromPlane, a_Impact) ;
+		geVec3d_AddScaled(a_Impact, &(a_Collision.Plane.Normal), a_MinDistanceFromPlane, a_Impact);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SqueezeVector
+// SqueezeVector
 /* ------------------------------------------------------------------------------------ */
 static void SqueezeVector(geVec3d *Vect, float Epsilon)
 {
@@ -998,11 +947,11 @@ static void SqueezeVector(geVec3d *Vect, float Epsilon)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReflectVelocity
+// ReflectVelocity
 /* ------------------------------------------------------------------------------------ */
 static void ReflectVelocity(geVec3d *In, const geVec3d *Normal, geVec3d *Out, float Scale)
 {
-	float	Reflect;
+	float Reflect;
 
 	Reflect = geVec3d_DotProduct(In, Normal) * Scale;
 
@@ -1017,7 +966,7 @@ static void ReflectVelocity(geVec3d *In, const geVec3d *Normal, geVec3d *Out, fl
 // Calculates the velocity *after* the collision (a_NewVelocity).
 /* ------------------------------------------------------------------------------------ */
 void CollisionCalcVelocityImpact(const GE_Collision &a_Collision, const geVec3d &a_OldVelocity,
-                                 float a_Elasticity, float a_Friction, geVec3d *a_NewVelocity)
+								 float a_Elasticity, float a_Friction, geVec3d *a_NewVelocity)
 {
 	geVec3d normalizedVelocity;
 	float length;
@@ -1046,7 +995,6 @@ geVec3d Extract(char *Vector)
 
 	if(temp)
 	{
-// changed RF063 - atoi -> atof
 		values.X = (float)atof(temp);
 		temp = strtok(NULL," \n");
 
@@ -1059,7 +1007,6 @@ geVec3d Extract(char *Vector)
 			{
 				values.Z = (float)atof(temp);
 			}
-// end change RF063
 		}
 	}
 
@@ -1067,7 +1014,7 @@ geVec3d Extract(char *Vector)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Ang2Vec
+// Ang2Vec
 /* ------------------------------------------------------------------------------------ */
 void Ang2Vec(float ang, geVec3d *vec)
 {
@@ -1081,12 +1028,12 @@ void Ang2Vec(float ang, geVec3d *vec)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CanSeePointToPoint
+// CanSeePointToPoint
 /* ------------------------------------------------------------------------------------ */
 geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2)
 {
 	GE_Collision Collision;
-    int32 Leaf1, Leaf2;
+	int32 Leaf1, Leaf2;
 	geVec3d RayMins = {-1.0f, -1.0f, -1.0f}, RayMaxs = {1.0f, 1.0f, 1.0f};
 
 	geWorld_GetLeaf(CCD->World(), Pos1, &Leaf1);
@@ -1099,7 +1046,7 @@ geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CanSeeActorToPoint
+// CanSeeActorToPoint
 /* ------------------------------------------------------------------------------------ */
 geBoolean CanSeeActorToPoint(const geActor *Actor, const geVec3d *Pos2)
 {
@@ -1108,12 +1055,12 @@ geBoolean CanSeeActorToPoint(const geActor *Actor, const geVec3d *Pos2)
 
 	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 	CCD->ActorManager()->GetPosition(Actor, &thePosition);
-	thePosition.Y += (theBox.Max.Y*0.75f);
+	thePosition.Y += (theBox.Max.Y * 0.75f);
 	return CanSeePointToPoint(&thePosition, Pos2);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CanSeePointToActor
+// CanSeePointToActor
 /* ------------------------------------------------------------------------------------ */
 geBoolean CanSeePointToActor(const geVec3d *Pos2, const geActor *Actor)
 {
@@ -1122,45 +1069,41 @@ geBoolean CanSeePointToActor(const geVec3d *Pos2, const geActor *Actor)
 
 	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 	CCD->ActorManager()->GetPosition(Actor, &thePosition);
-	thePosition.Y += (theBox.Max.Y*0.5f);
+	thePosition.Y += (theBox.Max.Y * 0.5f);
+
 	return CanSeePointToPoint(Pos2, &thePosition);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CanSeeActorToActor
+// CanSeeActorToActor
 /* ------------------------------------------------------------------------------------ */
 geBoolean CanSeeActorToActor(const geActor *Actor1, const geActor *Actor2)
 {
 	geExtBox theBox;
 	geVec3d thePosition1, thePosition2;
-// changed RF064
 	geBoolean flag;
 
 	CCD->ActorManager()->GetBoundingBox(Actor1, &theBox);
 	CCD->ActorManager()->GetPosition(Actor1, &thePosition1);
 
-	thePosition1.Y += (theBox.Max.Y*0.75f);
+	thePosition1.Y += (theBox.Max.Y * 0.75f);
 
 	CCD->ActorManager()->GetBoundingBox(Actor2, &theBox);
 	CCD->ActorManager()->GetPosition(Actor2, &thePosition2);
 
 	flag = CanSeePointToPoint(&thePosition1, &thePosition2);
 
-	thePosition2.Y += (theBox.Max.Y*0.37f);
+	thePosition2.Y += (theBox.Max.Y * 0.37f);
 
 	flag |= CanSeePointToPoint(&thePosition1, &thePosition2);
 
-	thePosition2.Y += (theBox.Max.Y*0.37f);
+	thePosition2.Y += (theBox.Max.Y * 0.37f);
 
 	return (flag | CanSeePointToPoint(&thePosition1, &thePosition2));
-// end change RF064
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 // Get actor from entity name
-//
-// added by QD
 /* ------------------------------------------------------------------------------------ */
 geActor *GetEntityActor(const char *EntityName)
 {
@@ -1217,25 +1160,18 @@ geActor *GetEntityActor(const char *EntityName)
 /* ------------------------------------------------------------------------------------ */
 geFloat Length(geVec3d &vec)
 {
-// changed QD 12/15/05 - length can't be negative (sqrt!)
-/*	geFloat Len = geVec3d_Length(&vec);
-
-	if(Len < 0)
-		Len *= -1;
-
-	return Len;
-*/
 	return geVec3d_Length(&vec);
 }
 
 /* ------------------------------------------------------------------------------------ */
 //	SetEnvironmentMapping
 /* ------------------------------------------------------------------------------------ */
-void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial)
+void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial,
+						   float Percent, float PercentMaterial)
 {
 	geEnvironmentOptions Options;
 	Options.UseEnvironmentMapping = Enable;
-	Options.PercentPuppet = PercentMaterial*0.01f;// /100.0f;
+	Options.PercentPuppet = PercentMaterial * 0.01f;
 
 	if(!Enable)
 	{
@@ -1248,23 +1184,22 @@ void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float 
 		if(!AllMaterial)
 		{
 			Options.Supercede = true;
-			Options.PercentMaterial = Percent*0.01f;// /100.0f;
+			Options.PercentMaterial = Percent * 0.01f;
 			Options.PercentEnvironment = 1.0f;
 		}
 		else
 		{
 			Options.Supercede = false;
-			Options.PercentEnvironment = Percent*0.01f;// /100.0f;
+			Options.PercentEnvironment = Percent * 0.01f;
 			Options.PercentMaterial = 1.0f;
 		}
 	}
 
 	geActor_SetEnvironOptions(Actor, &Options);
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	RootBoneName
+// RootBoneName
 /* ------------------------------------------------------------------------------------ */
 const char *RootBoneName(const geActor *Actor)
 {
@@ -1276,6 +1211,7 @@ const char *RootBoneName(const geActor *Actor)
 
 	Body = geActor_GetBody(ActorDef);
 	geBody_GetBone(Body, 0, &RootBone, &XForm, &ParentBoneIndex);
+
 	return RootBone;
 }
 

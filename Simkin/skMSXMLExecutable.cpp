@@ -48,13 +48,13 @@ void skMSXMLExecutable::load(const skString& scriptLocation,const skString& in,s
 	XMLDoc DOMdoc;
 	if (elm != NULL)
 		DOMdoc = elm->ownerDocument;
-  else{
+	else{
 		HRESULT hr = DOMdoc.CreateInstance(skSTR("MSXML.DOMDocument"));
 		if (hr != ERROR_SUCCESS)
 			throw skXMLParseException(skSTR("Create MSXML Instance Failed"),0);
 	}
 	BOOL bloaded = DOMdoc->loadXML( _bstr_t(fromString(in)) );
-  if (bloaded){
+	if (bloaded){
 		setElement(DOMdoc->documentElement);
 		m_ScriptLocation = scriptLocation;
 	}

@@ -9,7 +9,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-
 #ifndef __RGF_RGFSTATUS_H__
 #define __RGF_RGFSTATUS_H__
 
@@ -30,11 +29,11 @@
 
 //	RGF collision codes
 
-#define RGF_NO_COLLISION		0x0000 	// No collision
-#define RGF_COLLIDE_AABB		0x0001 	// Bounding box collision
-#define RGF_COLLIDE_ACTOR		0x0002 	// Actor collision
-#define RGF_COLLIDE_MODEL		0x0004 	// Model collision
-#define RGF_COLLIDE_MESH		0x0008 	// Mesh collision
+#define RGF_NO_COLLISION		0x0000	// No collision
+#define RGF_COLLIDE_AABB		0x0001	// Bounding box collision
+#define RGF_COLLIDE_ACTOR		0x0002	// Actor collision
+#define RGF_COLLIDE_MODEL		0x0004	// Model collision
+#define RGF_COLLIDE_MESH		0x0008	// Mesh collision
 #define RGF_COLLIDE_CONTENTS	0x000e	// Collide w/ contents
 
 #define RGF_COLLISIONLEVEL_1	0x0001	// AABB, total actor only
@@ -181,7 +180,6 @@ typedef enum
 	KEY_SEMICOLON,
 	KEY_COMMA,
 	KEY_APOSTROPHE,
-// start Multiplayer
 	KEY_NUMPAD0,
 	KEY_NUMPAD1,
 	KEY_NUMPAD2,
@@ -193,10 +191,8 @@ typedef enum
 	KEY_NUMPAD8,
 	KEY_NUMPAD9,
 	KEY_DECIMAL,
-// end Multiplayer
 	KEY_MAXIMUM
 } KEYCODES;
-
 
 //	RGF model types
 

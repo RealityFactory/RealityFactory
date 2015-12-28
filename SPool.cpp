@@ -21,7 +21,7 @@ SPool *Bottom;
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Spool_Initialize
+// Spool_Initialize
 /* ------------------------------------------------------------------------------------ */
 void SPool_Initalize()
 {
@@ -29,7 +29,7 @@ void SPool_Initalize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SPool_Sound
+// SPool_Sound
 /* ------------------------------------------------------------------------------------ */
 geSound_Def *SPool_Sound(const char *SName)
 {
@@ -42,16 +42,7 @@ geSound_Def *SPool_Sound(const char *SName)
 		sprintf(szError, "[WARNING] File %s - Line %d: Missing Required Field from Entity - Sound File: %s\n",
 				__FILE__, __LINE__, SName);
 		CCD->ReportError(szError, false);
-		// changed QD 07/15/06
 		return NULL;
-		/*
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError, "Sound Manager", MB_OK);
-		exit(-333);
-		*/
-		// end change
 	}
 
 	pool = Bottom;
@@ -72,7 +63,6 @@ geSound_Def *SPool_Sound(const char *SName)
 	pool = GE_RAM_ALLOCATE_STRUCT(SPool);
 	memset(pool, 0, sizeof(SPool));
 
-// changed QD 07/15/06
 	pool->Name = strdup(SName);
 	pool->SoundDef = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), MainFS);
 	geVFile_Close(MainFS);
@@ -86,14 +76,6 @@ geSound_Def *SPool_Sound(const char *SName)
 		free(pool->Name);
 		geRam_Free(pool);
 		return NULL;
-		/*
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError,"Sound Manager", MB_OK);
-		exit(-333);
-		*/
-
 	}
 
 	pool->next = Bottom;
@@ -101,13 +83,12 @@ geSound_Def *SPool_Sound(const char *SName)
 
 	if(pool->next)
 		pool->next->prev = pool;
-// end change
 
 	return pool->SoundDef;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SPool_Delete
+// SPool_Delete
 /* ------------------------------------------------------------------------------------ */
 void SPool_Delete()
 {

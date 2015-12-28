@@ -12,7 +12,6 @@
 
 #include "RGFConstants.h"
 
-// changed QD 02/01/07
 // utility functions for std::string replacing CString functionality
 inline void Replace(std::string &source, const std::string &strold, const std::string &strnew)
 {
@@ -31,7 +30,7 @@ inline void TrimRight(std::string &source, const std::string &t)
 { source.erase(source.find_last_not_of(t)+1); }
 
 inline void TrimLeft(std::string &source)
-{ source.erase(0, source.find_first_not_of(" \r\t\n"));}
+{ source.erase(0, source.find_first_not_of(" \r\t\n")); }
 
 inline void TrimLeft(std::string &source, const std::string &t)
 { source.erase(0, source.find_first_not_of(t)); }
@@ -42,7 +41,6 @@ inline bool EndsWith(const std::string &str, const std::string &suffix)
 			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-// end change
 
 bool SetOriginOffset(const char *EntityName, const char *BoneName,
 					 const geWorld_Model *Model, geVec3d *OriginOffset);
@@ -54,14 +52,13 @@ bool GetCallBackState(const char *CallBackName);
 geBoolean EffectC_IsStringNull(const char *String);
 geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const geVec3d *Target,
 								 int32 Leaf, uint32 ClipStyle);
-
-// changed QD 01/2004
 geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geExtBox* TestBox);
-// end change
+
 int EffectC_rand(int Low, int High);
 float EffectC_Frand(float Low, float High);
 void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXForm3d *Out);
 
+// Bitmap creation functions
 geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName);
 geBitmap *CreateFromFileName(const char *BmName);
 
@@ -89,7 +86,7 @@ geVec3d Extract(char *Vector);
 #define FLIP(flags,mask)	((flags) ^= (mask))
 
 // mask definitions
-#define BIT(shift)     (1<<(shift))
+#define BIT(shift)			(1<<(shift))
 
 #define SET_BITARR(bitarr, bitnum)		(bitarr[(bitnum)>>3] |= (1<<((bitnum)&7)))
 #define RESET_BITARR(bitarr, bitnum)	(bitarr[(bitnum)>>3] &= ~(1<<((bitnum)&7)))
@@ -97,16 +94,14 @@ geVec3d Extract(char *Vector);
 
 void Ang2Vec(float ang, geVec3d *vec);
 
-geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2);
-geBoolean CanSeeActorToPoint(const geActor *Actor, const geVec3d *Pos2);
-geBoolean CanSeePointToActor(const geVec3d *Pos2, const geActor *Actor);
+geBoolean CanSeePointToPoint(const geVec3d *Pos1,   const geVec3d *Pos2);
+geBoolean CanSeeActorToPoint(const geActor *Actor,  const geVec3d *Pos2);
+geBoolean CanSeePointToActor(const geVec3d *Pos2,   const geActor *Actor);
 geBoolean CanSeeActorToActor(const geActor *Actor1, const geActor *Actor2);
 
-// changed RF064
 geActor *GetEntityActor(const char *EntityName);
 geFloat Length(geVec3d &vec);
 void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
-// end change RF064
 const char *RootBoneName(const geActor *Actor);
 
 // TODO: Move to engine

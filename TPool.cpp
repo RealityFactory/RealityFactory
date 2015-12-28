@@ -9,11 +9,11 @@
 
 typedef struct	TPool
 {
-	TPool    *next;
-	TPool    *prev;
-	geBitmap *Bitmap;
-	char     *BmpName;
-	char     *AlphaName;
+	TPool		*next;
+	TPool		*prev;
+	geBitmap	*Bitmap;
+	char		*BmpName;
+	char		*AlphaName;
 
 } TPool;
 
@@ -73,7 +73,6 @@ geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 	pool = GE_RAM_ALLOCATE_STRUCT(TPool);
 	memset(pool, 0, sizeof(TPool));
 
-// changed QD 07/15/06
 	pool->BmpName = strdup(TBName);
 	pool->AlphaName = strdup(TAName);
 	pool->Bitmap = CreateFromFileAndAlphaNames(TBName, TAName);
@@ -104,7 +103,6 @@ geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 
 	if(pool->next)
 		pool->next->prev = pool;
-// end change
 
 	return pool->Bitmap;
 }
