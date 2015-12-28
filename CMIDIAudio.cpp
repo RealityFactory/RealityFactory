@@ -17,16 +17,17 @@
 //
 // Open up the MIDI sequencer via MCI
 /* ------------------------------------------------------------------------------------ */
-CMIDIAudio::CMIDIAudio()
+CMIDIAudio::CMIDIAudio() :
+	m_bLooping(false),		// No play, no loop
+	m_bActive(true),		// Assume we're up running
+	m_mciDeviceID(-1),		// Device ID from open
+	m_ListCount(0),			// No list of files to play
+	m_szList(NULL),			// None, really!
+	m_Position(0),			// No playlist position
+	m_saveloop(false)
 {
-	m_bLooping		= false;	// No play, no loop
-	m_bActive		= true;		// Assume we're up running
-	m_mciDeviceID	= -1;		// Device ID from open
-	m_ListCount		= 0;		// No list of files to play
-	m_szList		= NULL;		// None, really!
-	m_savefile[0]	= 0;		// No file yet
-	m_MIDIFile[0]	= 0;		// No file yet
-	m_Position		= 0;		// No playlist position
+	m_savefile[0]	= 0;	// No file yet
+	m_MIDIFile[0]	= 0;	// No file yet
 
 	// All done.  The way the MCI sequencer works, there's no mechanism for loading
 	// ..in a new MIDI file without "opening" it anew, so we'll just open/close as

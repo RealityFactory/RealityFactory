@@ -43,10 +43,9 @@ typedef struct	tag_spotlight
 /* ------------------------------------------------------------------------------------ */
 // Construction/Destruction
 /* ------------------------------------------------------------------------------------ */
-CStaticMesh::CStaticMesh()
+CStaticMesh::CStaticMesh() :
+	m_MeshCount(0)
 {
-	m_MeshCount = 0;
-
 	for(int nTemp = 0; nTemp < MESH_LIST_SIZE; nTemp++)
 		MeshList[nTemp] = NULL;
 

@@ -21,10 +21,9 @@
 //
 //	Just flags the component as initialized.
 /* ------------------------------------------------------------------------------------ */
-CRGFComponent::CRGFComponent()
+CRGFComponent::CRGFComponent() :
+	m_Initialized(true)
 {
-	m_Initialized = true;
-
 	return;
 }
 

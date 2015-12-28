@@ -26,22 +26,22 @@ geFloat geVec3d_GetMaxElement(const geVec3d *V)
 //
 // Init variables
 /* ------------------------------------------------------------------------------------ */
-CWindGenerator::CWindGenerator()
+CWindGenerator::CWindGenerator() :
+	m_bEnabled(false),
+	m_bInitialized(false),
+	m_CurrentTime(0.0f),
+	m_ThinkTime(0.0f),
+	m_ChangeTime(0.0f),
+	m_CurrentState(0),
+	m_MinPauseTime(0.0f),
+	m_MaxPauseTime(0.0f),
+	m_PauseTime(0.0f),
+	m_PauseTimer(0.0f),
+	m_Tolerance(0.1f)
 {
-	m_bEnabled		= false;
-	m_bInitialized	= false;
-	m_CurrentTime	= 0.0f;
-	m_ThinkTime		= 0.0f;
-	m_ChangeTime	= 0.0f;
 	m_MaxWindSpeed	= CCD->Player()->GetWind();
 	m_MinWindSpeed	= CCD->Player()->GetWind();
 	m_DestWindSpeed	= CCD->Player()->GetWind();
-	m_CurrentState	= 0;
-	m_MinPauseTime	= 0.0f;
-	m_MaxPauseTime	= 0.0f;
-	m_PauseTime		= 0.0f;
-	m_PauseTimer	= 0.0f;
-	m_Tolerance		= 0.1f;
 	geVec3d_Clear(&m_AnchorValue);
 	geVec3d_Clear(&m_ChangeSpeed);
 

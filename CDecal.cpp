@@ -19,10 +19,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 //
 // Load up all Decals and set the entities to default values.
 /* ------------------------------------------------------------------------------------ */
-CDecal::CDecal()
+CDecal::CDecal() :
+	Bottom(NULL)
 {
-	Bottom = (Decal*)NULL;
-
 	// Ok, check to see if there are Decals in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DecalDefine");
 

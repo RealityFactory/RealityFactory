@@ -16,7 +16,12 @@
 //
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-CAVIPlayer::CAVIPlayer()
+CAVIPlayer::CAVIPlayer() :
+	m_nOffset(0),
+	m_AudioEOF(false),
+	m_nLastFramePlayed(0),
+	m_nBufSize(0),
+	m_LastFrameBitmap(NULL)
 {
 	Init();
 }

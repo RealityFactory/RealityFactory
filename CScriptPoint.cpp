@@ -13,7 +13,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-CScriptPoint::CScriptPoint()
+CScriptPoint::CScriptPoint() :
+	Texture(NULL),
+	Bottom(NULL)
 {
 	// Ok, check to see if there are ScriptPoints in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");

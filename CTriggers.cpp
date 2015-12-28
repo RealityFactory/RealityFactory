@@ -22,7 +22,8 @@ extern geSound_Def *SPool_Sound(const char *SName);
 // Default constructor.  Set all triggers to default values and load any audio we need.
 /* ------------------------------------------------------------------------------------ */
 CTriggers::CTriggers() :
-	m_EntityCount(0)					// No triggers
+	m_EntityCount(0),					// No triggers
+	Bottom(NULL)
 {
 	// Ok, check to see if there are triggers in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");

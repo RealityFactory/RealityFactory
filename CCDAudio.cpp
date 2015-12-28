@@ -17,17 +17,18 @@
 //
 // Set up default values, connect to MCI, open the CD player
 /* ------------------------------------------------------------------------------------ */
-CCDAudio::CCDAudio()
+CCDAudio::CCDAudio() :
+	m_PlayCount(0),						// No active tracks
+	m_bLooping(false),					// Nothing to play, no looping
+	m_bActive(false),					// Device currently unavailable
+	m_mciDeviceID(-1),
+	m_nCurrentTrack(0),					// No current track
+	m_nPlayIndex(0),					// No track list active
+	m_saveloop(false),
+	m_savetrack(0),
+	m_cdon(false)
 {
 	memset(m_PlayList, 0, sizeof(int)*99);	// Nothing playing
-	//	Set default values
-	m_PlayCount = 0;						// No active tracks
-
-	m_nPlayIndex = 0;						// No track list active
-	m_bLooping = false;						// Nothing to play, no looping
-	m_bActive = false;						// Device currently unavailable
-	m_nCurrentTrack = 0;					// No current track
-	m_cdon = false;
 
 	// Ok, let's open up a channel to MCI so we can communicate with the CD
 	// ..Audio device.

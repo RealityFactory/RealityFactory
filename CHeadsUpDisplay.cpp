@@ -25,10 +25,9 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 //
 // Set up the HUD
 /* ------------------------------------------------------------------------------------ */
-CHeadsUpDisplay::CHeadsUpDisplay()
+CHeadsUpDisplay::CHeadsUpDisplay() :
+	m_bHUDActive(true)					// HUD not displayed
 {
-	m_bHUDActive = true;					// HUD not displayed
-
 	// Clear the HUD array
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{

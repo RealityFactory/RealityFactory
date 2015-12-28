@@ -22,9 +22,9 @@
 // ..StreamingAudioProxy entities to prepare for possible playback.
 /* ------------------------------------------------------------------------------------ */
 CAudioStream::CAudioStream() :
-	m_EntityCount(0)
+	m_EntityCount(0),
+	m_LoopingProxy(-1) // no looping proxy yet
 {
-	m_LoopingProxy = -1;							// No looping proxy yet
 
 	memset(m_FileList, 0, sizeof(char*)*MAX_AUDIOSTREAMS);
 	memset(m_Streams,  0, sizeof(StreamingAudio*)*MAX_AUDIOSTREAMS);

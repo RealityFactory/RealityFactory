@@ -20,7 +20,8 @@
 // Load up all logic gates and set the entities to default values.
 /* ------------------------------------------------------------------------------------ */
 CLogic::CLogic() :
-	m_EntityCount(0)
+	m_EntityCount(0),
+	Bottom(NULL)
 {
 	// Ok, check to see if there are logic gates in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LogicGate");

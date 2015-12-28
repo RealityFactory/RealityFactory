@@ -18,9 +18,9 @@
 //
 // Scan through the current level, creating a doubly-linked-list in-memory database.
 /* ------------------------------------------------------------------------------------ */
-CPathDatabase::CPathDatabase()
+CPathDatabase::CPathDatabase() :
+	m_nPathCount(0)							// No paths yet
 {
-	m_nPathCount = 0;							// No paths yet
 	memset(&m_DB, 0, MAX_PATHS * sizeof(PathDatabaseRecord*));
 	memset(&m_Handles, 0, MAX_OPEN_PATHS * sizeof(PathDatabaseRecord*));
 
