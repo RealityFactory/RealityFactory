@@ -1486,7 +1486,7 @@ int CAVIPlayer::ExtractAudioStream(int nStreamNum, int nSamples, LPBYTE pBuffer)
 
 #ifdef MONDO_DEBUG
 	char szCrapola[256];
-	sprintf(szCrapola, "nReadIn %d nSamplesIn %d wanted %d start %d\n", nReadIn,
+	sprintf(szCrapola, "nReadIn %ld nSamplesIn %ld wanted %d start %d\n", nReadIn,
 		nSamplesIn, nSamples, nSamplePos);
 	OutputDebugString(szCrapola);
 #endif
@@ -1816,7 +1816,7 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 		CCD->ReportError("[WARNING] PumpWave: Failed to lock", false);
 #ifdef MONDO_DEBUG
 		char szFrack[256];
-		sprintf(szFrack,"locktry for audiobuf bytes failed\n", nSize);
+		sprintf(szFrack,"locktry for %ld audiobuf bytes failed\n", nSize);
 		OutputDebugString(szFrack);
 #endif
 		return;														// Fake it, bail out
@@ -1842,7 +1842,7 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 #ifdef MONDO_DEBUG
 	char szGloop[256];
-	sprintf(szGloop, "offset %d dwsize1 %d ptr %p dwsize2 %d ptr %p\n", m_nOffset,
+	sprintf(szGloop, "offset %d dwsize1 %ld ptr %p dwsize2 %ld ptr %p\n", m_nOffset,
 		dwsize1, lpbuf1, dwsize2, lpbuf2);
 	OutputDebugString(szGloop);
 #endif
@@ -1865,7 +1865,7 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 		m_AudioEOF = true;
 #ifdef MONDO_DEBUG
 		char szScum[256];
-		sprintf(szScum, "EOFAudio wanted %d read %d\n", dwsize1, nBytesRead);
+		sprintf(szScum, "EOFAudio wanted %ld read %d\n", dwsize1, nBytesRead);
 		OutputDebugString(szScum);
 #endif
 		m_nOffset = 0;
