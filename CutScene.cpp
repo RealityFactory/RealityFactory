@@ -9,12 +9,11 @@
  * Copyright (c) 2002 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// Include the One True Header
 #include "RabidFramework.h"
 #include "CutScene.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CCutScene::CCutScene()
 {
@@ -52,22 +51,21 @@ CCutScene::CCutScene()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CCutScene::~CCutScene()
 {
-
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
-void CCutScene::Tick(geFloat dwTicks)
+void CCutScene::Tick(geFloat /*dwTicks*/)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "CutScene");
 
 	if(!pSet)
-		return;   // Not on this level.
+		return;		// Not on this level.
 
 	geEntity *pEntity;
 

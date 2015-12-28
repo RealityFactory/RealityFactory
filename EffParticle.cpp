@@ -34,7 +34,7 @@ typedef struct	Particle
 	GE_LVertex		ptclVertex;
 	geBitmap		*ptclTexture;
 	gePoly			*ptclPoly;
-	unsigned 	 	ptclFlags;
+	unsigned		ptclFlags;
 	Particle		*ptclNext;
 	Particle		*ptclPrev;
 	geFloat			Scale;
@@ -42,9 +42,9 @@ typedef struct	Particle
 	geFloat			Alpha;
 	geVec3d			CurrentAnchorPoint;
 	const geVec3d	*AnchorPoint;
-	geFloat	 	 	ptclTime;
+	geFloat			ptclTime;
 	geFloat			ptclTotalTime;
-	geVec3d	 	    ptclVelocity;
+	geVec3d			ptclVelocity;
 	geBoolean		Bounce;
 
 } Particle;
@@ -83,7 +83,7 @@ Particle_System* Particle_SystemCreate(geWorld *World)
 	Particle_System *ps;
 
 	ps = GE_RAM_ALLOCATE_STRUCT(Particle_System);
-	if	(!ps)
+	if(!ps)
 		return ps;
 
 	memset(ps, 0, sizeof(*ps));
@@ -103,7 +103,6 @@ static void DestroyParticle(Particle_System *ps, Particle *p)
 		geWorld_RemovePoly(ps->psWorld, p->ptclPoly);
 
 	geRam_Free(p);
-
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -233,15 +232,15 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 					geVec3d_Add(&DeltaPos, &Gravity, &DeltaPos);
 				}
 
-				//apply wind
+				// apply wind
 				if(ptcl->ptclFlags & PARTICLE_HASWIND)
 				{
 					geVec3d Wind = CCD->Player()->GetWind();
 
-					//make wind vector
+					// make wind vector
 					geVec3d_Scale(&Wind, ps->psQuantumSeconds, &Wind);
 
-					//add wind to delta pos
+					// add wind to delta pos
 					geVec3d_Add(&DeltaPos, &Wind, &DeltaPos);
 				}
 
@@ -278,10 +277,10 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 								totalTravelled += (1.0f - totalTravelled) * ratio ;
 
 							if(totalTravelled >= 1.0f - margin)
-								break ;
+								break;
 
 							if(++loopCounter >= maxLoops) // safety check
-								break ;
+								break;
 						}
 					}
 					else
@@ -357,7 +356,7 @@ static Particle* CreateParticle(Particle_System *ps, geBitmap *Texture, const GE
 	ps->psParticles = ptcl;
 
 	if(ptcl->ptclNext)
-	  ptcl->ptclNext->ptclPrev = ptcl;
+		ptcl->ptclNext->ptclPrev = ptcl;
 
 	ptcl->ptclTexture = Texture;
 	ptcl->ptclVertex = *Vert;
@@ -366,7 +365,7 @@ static Particle* CreateParticle(Particle_System *ps, geBitmap *Texture, const GE
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	removes all references to an anchor point
+// removes all references to an anchor point
 /* ------------------------------------------------------------------------------------ */
 geBoolean Particle_SystemRemoveAnchorPoint(Particle_System *ps, geVec3d	*AnchorPoint)
 {
@@ -429,7 +428,7 @@ void Particle_SystemAddParticle(Particle_System		*ps,
 		ptcl->ptclFlags |= PARTICLE_HASVELOCITY;
 	}
 
-	//setup wind
+	// setup wind
 	if(UseWind == GE_TRUE)
 	{
 		ptcl->ptclFlags |= PARTICLE_HASWIND;
@@ -470,24 +469,23 @@ void Particle_SystemReset(Particle_System *ps)
 	Particle_SystemRemoveAll(ps);
 }
 
-// changed RF064
 //
 // Actor Particles
 //
 #define	ACTOR_PARTICLE_HASVELOCITY		2 //( 1 << 1 )
 #define ACTOR_PARTICLE_HASGRAVITY		4 //( 1 << 2 )
 
-typedef struct	ActorParticle
+typedef struct ActorParticle
 {
 	geActor			*Actor;
-	unsigned 	 	ptclFlags;
+	unsigned		ptclFlags;
 	ActorParticle	*ptclNext;
 	ActorParticle	*ptclPrev;
 	geVec3d			RotationSpeed;
 	geFloat			Alpha;
-	geFloat	 	 	ptclTime;
+	geFloat			ptclTime;
 	geFloat			ptclTotalTime;
-	geVec3d	 	    ptclVelocity;
+	geVec3d			ptclVelocity;
 	geBoolean		Bounce;
 	geExtBox		theBox;
 	float			AlphaRate;
@@ -524,7 +522,7 @@ ActorParticle_System*  ActorParticle_SystemCreate()
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-static void ActorDestroyParticle(ActorParticle_System *ps, ActorParticle *p)
+static void ActorDestroyParticle(ActorParticle_System * /*ps*/, ActorParticle *p)
 {
 	if(p->Actor)
 	{
@@ -756,7 +754,7 @@ static ActorParticle* ActorCreateParticle(ActorParticle_System *ps,
 	ps->psParticles = ptcl;
 
 	if(ptcl->ptclNext)
-	  ptcl->ptclNext->ptclPrev = ptcl;
+		ptcl->ptclNext->ptclPrev = ptcl;
 
 	ptcl->Actor = CCD->ActorManager()->SpawnActor(ActorName, Position, BaseRotation, "", "", NULL);
 
@@ -772,9 +770,7 @@ void ActorParticle_SystemAddParticle(ActorParticle_System	*ps,
 									 geVec3d				RotationSpeed,
 									 GE_RGBA				FillColor,
 									 GE_RGBA				AmbientColor,
-									 // changed QD 07/21/04
 									 geBoolean				AmbientLightFromFloor,
-									 // end change
 									 float					Alpha,
 									 float					AlphaRate,
 									 geFloat				Time,
@@ -805,10 +801,7 @@ void ActorParticle_SystemAddParticle(ActorParticle_System	*ps,
 	}
 
 	// setup remaining data
-//	changed QD 07/21/04
-//	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor);
 	CCD->ActorManager()->SetActorDynamicLighting(ptcl->Actor, FillColor, AmbientColor, AmbientLightFromFloor);
-// end change
 
 	if(EnvironmentMapping)
 		SetEnvironmentMapping(ptcl->Actor, true, AllMaterial, PercentMapping, PercentMaterial);
@@ -844,6 +837,5 @@ void ActorParticle_SystemReset(ActorParticle_System *ps)
 	ps->psLastTime = 0.0f;
 	ActorParticle_SystemRemoveAll(ps);
 }
-// end change RF064
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

@@ -20,9 +20,7 @@
 #define EFF_SND         4
 #define EFF_BOLT        5
 #define EFF_CORONA      6
-// changed RF064
 #define EFF_ACTORSPRAY  7
-// end change RF064
 
 #define EFFECTC_CLIP_LEAF			1 //( 1 << 0 )
 #define EFFECTC_CLIP_LINEOFSIGHT	2 //( 1 << 1 )
@@ -93,12 +91,10 @@ typedef struct
 	float		Intensity;		///< light intensity
 	geBoolean	DoNotClip;		///< whether or not clipping should be ignored
 	geBoolean	CastShadows;	///< whether or not the light should cast shadows
-// change QD
 	geBoolean	Spot;			///< is it a spotlight?
 	geFloat		Arc;			///< angle of lightcone
 	geVec3d		Direction;		///< direction of spotlight
 	int			Style;			///< falloff style
-// end change QD
 
 } Glow;
 
@@ -142,10 +138,8 @@ typedef struct
 	float		AlphaRate;		///< how much to subtract from alpha each second
 	Sprite_CycleStyle	Style;	///< how to cycle through the images
 	float		Rotation;		///< art rotation amount (radians)
-// changed RF064
 	float		LifeTime;
 	float		CurrentLife;
-// end change RF064
 
 } Sprite;
 
@@ -220,7 +214,6 @@ typedef struct
 
 } EffCorona;
 
-// changed RF064
 /**
  * @brief Actor Spout
  */
@@ -239,9 +232,7 @@ typedef struct
 	geVec3d		MaxRotationSpeed;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
-// changed QD 07/21/04
 	geBoolean	AmbientLightFromFloor;
-// end change
 	int			Style;
 	float		Alpha;
 	float		AlphaRate;
@@ -272,7 +263,6 @@ typedef struct
 } ActorSpray;
 
 typedef	struct	ActorParticle_System	ActorParticle_System;
-// end change RF064
 
 typedef	struct	Particle_System	Particle_System;
 
@@ -300,7 +290,6 @@ public:
 	void Item_Modify(int Itype, int Index, void *Data, uint32 Flags);
 	void Item_Delete(int Itype, int Index);
 	void Item_Pause(int Itype, int Index, geBoolean Flag);
-	// changed RF063
 	bool Item_Alive(int Index);
 
 private:
@@ -341,19 +330,15 @@ private:
 	geBoolean Corona_Process(EffCorona *Data, float TimeDelta);
 	geBoolean Corona_Modify(EffCorona *Data, EffCorona *NewData, uint32 Flags);
 
-	// changed RF064
 	// ACTORSPRAY
 	void *ActorSpray_Add(void *Data);
 	void ActorSpray_Remove(ActorSpray *Data);
 	geBoolean ActorSpray_Process(ActorSpray *Data, float TimeDelta);
 	geBoolean ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, uint32 Flags);
-	// end change RF064
 
 	Eff_Item Item[MAX_EFF_ITEMS];
 	Particle_System	*Ps;
-	// changed RF064
 	ActorParticle_System *APs;
-	// end change RF064
 };
 
 #endif

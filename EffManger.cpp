@@ -22,21 +22,17 @@ extern void Particle_SystemAddParticle(Particle_System *ps, geBitmap *Texture,
 									   geFloat Time, const geVec3d *Velocity,float Scale,
 									   const geVec3d *Gravity, geBoolean Bounce, geBoolean UseWind);
 
-// changed RF064
-extern ActorParticle_System*  ActorParticle_SystemCreate();
+extern ActorParticle_System* ActorParticle_SystemCreate();
 extern void ActorParticle_SystemDestroy(ActorParticle_System *ps);
 extern void ActorParticle_SystemFrame(ActorParticle_System *ps, geFloat DeltaTime);
 extern void ActorParticle_SystemAddParticle(ActorParticle_System *ps,
 							char *ActorName, geVec3d Position,
-							geVec3d	BaseRotation, geVec3d RotationSpeed,
-							GE_RGBA	FillColor, GE_RGBA	AmbientColor,
-							// changed QD 07/21/04
+							geVec3d BaseRotation, geVec3d RotationSpeed,
+							GE_RGBA FillColor, GE_RGBA	AmbientColor,
 							geBoolean AmbientLightFromFloor,
-							// end change
 							float Alpha, float AlphaRate, geFloat Time, const geVec3d *Velocity,
 							geFloat	Scale, bool Gravity, geBoolean Bounce, geBoolean Solid,
 							bool EnvironmentMapping, bool AllMaterial, float PercentMapping, float PercentMaterial);
-// end change RF064
 
 extern void TPool_Initalize();
 extern void TPool_Delete();
@@ -67,7 +63,7 @@ extern void Electric_BoltEffectRender(
 	const geXForm3d *		XForm);		/* Transform of our point of view */
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Constructor
+// Effect Manager Constructor
 /* ------------------------------------------------------------------------------------ */
 EffManager::EffManager()
 {
@@ -86,13 +82,11 @@ EffManager::EffManager()
 	// create the particle system handler
 	Ps = Particle_SystemCreate(CCD->World());
 
-// change RF064
 	APs = ActorParticle_SystemCreate();
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Destructor
+// Effect Manager Destructor
 /* ------------------------------------------------------------------------------------ */
 EffManager::~EffManager()
 {
@@ -136,13 +130,11 @@ EffManager::~EffManager()
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
-// changed RF064
 			case EFF_ACTORSPRAY:
 				ActorSpray_Remove((ActorSpray *)Item[i].Data);
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
-// end change RF064
 			default:
 				break;
 			}
@@ -152,16 +144,14 @@ EffManager::~EffManager()
 	// remove the particle system handler
 	Particle_SystemDestroy(Ps);
 
-// change RF064
 	ActorParticle_SystemDestroy(APs);
-// end change RF064
 
 	TPool_Delete(); // delete the textures
 	SPool_Delete(); // delete the sounds
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Tick  - Process all effects
+// Effect Manager Tick  - Process all effects
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Tick(geFloat dwTicks)
 {
@@ -229,7 +219,6 @@ void EffManager::Tick(geFloat dwTicks)
 				}
 				C++;// += 1;
 				break;
-// changed RF064
 			case EFF_ACTORSPRAY:
 				{
 					ActorSpray_Remove((ActorSpray*)Item[i].Data);
@@ -238,7 +227,6 @@ void EffManager::Tick(geFloat dwTicks)
 				}
 				AS++;// += 1;
 				break;
-// end change RF064
 			default:
 				break;
 			}
@@ -297,7 +285,6 @@ void EffManager::Tick(geFloat dwTicks)
 				}
 				C++;// += 1;
 				break;
-// changed RF064
 			case EFF_ACTORSPRAY:
 				if(ActorSpray_Process((ActorSpray*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
@@ -305,7 +292,6 @@ void EffManager::Tick(geFloat dwTicks)
 				}
 				AS++;// += 1;
 				break;
-// end change RF064
 			default:
 				break;
 			}
@@ -317,13 +303,11 @@ void EffManager::Tick(geFloat dwTicks)
 	// process the particles
 	Particle_SystemFrame(Ps, dwTicks);
 
-// changed RF064
 	ActorParticle_SystemFrame(APs, dwTicks);
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Add new Effect item
+// Effect Manager Add new Effect item
 //     - Itype is effect type
 //     - Idata is the effect data
 /* ------------------------------------------------------------------------------------ */
@@ -380,14 +364,12 @@ int EffManager::Item_Add(int Itype, void *Idata)
 				Item[i].RemoveNext = GE_FALSE;
 				return i;
 				break;
-				// changed RF064
 			case EFF_ACTORSPRAY:
 				Item[i].Data = ActorSpray_Add(Idata);
 				Item[i].Active = GE_TRUE;
 				Item[i].RemoveNext = GE_FALSE;
 				return i;
 				break;
-				// end change RF064
 			default:
 				break;
 			}
@@ -399,7 +381,7 @@ int EffManager::Item_Add(int Itype, void *Idata)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Modify effect item
+// Effect Manager Modify effect item
 //     - Itype is effect type
 //     - Index is slot index
 //     - Data is new effect data
@@ -408,22 +390,22 @@ int EffManager::Item_Add(int Itype, void *Idata)
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Item_Modify(int Itype, int Index, void *Data, uint32 Flags)
 {
-    // make sure that item types match and that it is active
-    if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
-    {
+	// make sure that item types match and that it is active
+	if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
+	{
 		// modify effect data
 		switch(Itype)
 		{
-        case EFF_LIGHT:
+		case EFF_LIGHT:
 			Glow_Modify((Glow*)Item[Index].Data, (Glow*)Data, Flags);
 			break;
-        case EFF_SPRAY:
+		case EFF_SPRAY:
 			Spray_Modify((Spray*)Item[Index].Data, (Spray*)Data, Flags);
 			break;
-        case EFF_SPRITE:
+		case EFF_SPRITE:
 			Sprite_Modify((Sprite*)Item[Index].Data, (Sprite*)Data, Flags);
 			break;
-        case EFF_SND:
+		case EFF_SND:
 			Snd_Modify((Snd*)Item[Index].Data, (Snd*)Data, Flags);
 			break;
 		case EFF_BOLT:
@@ -432,29 +414,27 @@ void EffManager::Item_Modify(int Itype, int Index, void *Data, uint32 Flags)
 		case EFF_CORONA:
 			Corona_Modify((EffCorona*)Item[Index].Data, (EffCorona*)Data, Flags);
 			break;
-// changed RF064
 		case EFF_ACTORSPRAY:
 			ActorSpray_Modify((ActorSpray*)Item[Index].Data, (ActorSpray*)Data, Flags);
 			break;
-// end change RF064
-        default:
+		default:
 			break;
 		}
-    }
+	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Delete effect item
+// Effect Manager Delete effect item
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Item_Delete(int Itype, int Index)
 {
 	// delete only if types match and is active
-    if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
-    {
+	if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
+	{
 		// remove the effects data
 		switch(Itype)
 		{
-        case EFF_LIGHT:
+		case EFF_LIGHT:
 			Glow_Remove((Glow*)Item[Index].Data);
 			Item[Index].Active = GE_FALSE;
 			break;
@@ -479,52 +459,45 @@ void EffManager::Item_Delete(int Itype, int Index)
 			Corona_Remove((EffCorona*)Item[Index].Data);
 			Item[Index].Active = GE_FALSE;
 			break;
-// changed RF064
 		case EFF_ACTORSPRAY:
 			ActorSpray_Remove((ActorSpray*)Item[Index].Data);
 			Item[Index].Active = GE_FALSE;
 			break;
-// end change RF064
-        default:
+		default:
 			break;
 		}
-    }
+	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Effect Manager Pause/Unpause an effect
+// Effect Manager Pause/Unpause an effect
 //     - Flag is state of pause flag
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Item_Pause(int Itype, int Index, geBoolean Flag)
 {
-    // change only if types match and is active
-    if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
+	// change only if types match and is active
+	if(Item[Index].Type == Itype && Item[Index].Active == GE_TRUE)
 		Item[Index].Pause = Flag;
 
-	// do processing for bolt if it is paused
-	// if(Itype == EFF_BOLT)
-	//	Bolt_Pause((Bolt*)Item[Index].Data, Flag);
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	Item_Alive
+// Item_Alive
 /* ------------------------------------------------------------------------------------ */
 bool EffManager::Item_Alive(int Index)
 {
-    if(Item[Index].Active == GE_TRUE && Item[Index].RemoveNext == GE_FALSE)
+	if(Item[Index].Active == GE_TRUE && Item[Index].RemoveNext == GE_FALSE)
 		return true;
 
 	return false;
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//   Private Functions to handle each effect
+// Private Functions to handle each effect
 /* ------------------------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------------------------ */
-//	Spray
+// Spray
 /* ------------------------------------------------------------------------------------ */
 void *EffManager::Spray_Add(void *Data)
 {
@@ -568,11 +541,10 @@ void *EffManager::Spray_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Spray_Remove
+// Spray_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Spray_Remove(Spray *Data)
 {
-	// changed QD 12/15/05
 	if(Data)
 	{
 		if(Data->AnchorPoint != NULL)
@@ -584,7 +556,7 @@ void EffManager::Spray_Remove(Spray *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Spray_Process
+// Spray_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 {
@@ -621,10 +593,10 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 	{
 		if(EffectC_IsPointVisible(CCD->World(),
 					CCD->CameraManager()->Camera(),
-					&( Data->Source ),
+					&(Data->Source),
 					Data->Leaf,
 					EFFECTC_CLIP_LEAF | EFFECTC_CLIP_SEMICIRCLE) == GE_FALSE)
- 			return GE_TRUE;
+			return GE_TRUE;
 	}
 
 	// get camera xform
@@ -749,7 +721,7 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 } // Spray_Process()
 
 /* ------------------------------------------------------------------------------------ */
-//	Spray_Modify
+// Spray_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Spray_Modify(Spray *Data, Spray *NewData, uint32 Flags)
 {
@@ -775,9 +747,9 @@ geBoolean EffManager::Spray_Modify(Spray *Data, Spray *NewData, uint32 Flags)
 	{
 		geVec3d	In;
 
-		geXForm3d_RotateX(&(NewData->Xform), Data->Angle.X * GE_PIOVER180);// / 57.3f);
-		geXForm3d_RotateY(&(NewData->Xform), Data->Angle.Y * GE_PIOVER180);// / 57.3f);
-		geXForm3d_RotateZ(&(NewData->Xform), Data->Angle.Z * GE_PIOVER180);// / 57.3f);
+		geXForm3d_RotateX(&(NewData->Xform), Data->Angle.X * GE_PIOVER180);
+		geXForm3d_RotateY(&(NewData->Xform), Data->Angle.Y * GE_PIOVER180);
+		geXForm3d_RotateZ(&(NewData->Xform), Data->Angle.Z * GE_PIOVER180);
 
 		geXForm3d_GetIn(&(NewData->Xform), &In);
 		geVec3d_Inverse(&In);
@@ -804,7 +776,7 @@ geBoolean EffManager::Spray_Modify(Spray *Data, Spray *NewData, uint32 Flags)
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Glow
+// Glow
 /* ------------------------------------------------------------------------------------ */
 void* EffManager::Glow_Add(void *Data)
 {
@@ -838,11 +810,10 @@ void* EffManager::Glow_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Glow_Remove
+// Glow_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Glow_Remove(Glow *Data)
 {
-	// changed QD 12/15/05
 	if(Data)
 	{
 		if(Data->Light != NULL)
@@ -851,12 +822,12 @@ void EffManager::Glow_Remove(Glow *Data)
 			Data->Light = (geLight*)NULL;
 		}
 
-		geRam_Free( Data );
+		geRam_Free(Data);
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Glow_Process
+// Glow_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Glow_Process(Glow  *Data,  float  TimeDelta)
 {
@@ -904,82 +875,80 @@ geBoolean EffManager::Glow_Process(Glow  *Data,  float  TimeDelta)
 
 	// set color
 	if(Data->ColorMin.r < -255.0f)
-          Data->ColorMin.r = -255.0f;
+		Data->ColorMin.r = -255.0f;
 	if(Data->ColorMax.r > 255.0f)
-          Data->ColorMax.r = 255.0f;
+		Data->ColorMax.r = 255.0f;
 	if(Data->ColorMin.r > Data->ColorMax.r)
-          Data->ColorMin.r = Data->ColorMax.r;
+		Data->ColorMin.r = Data->ColorMax.r;
 
 	Color.r = EffectC_Frand(Data->ColorMin.r, Data->ColorMax.r) * Data->Intensity;
 
 
 	if(Data->ColorMin.g < -255.0f)
-          Data->ColorMin.g = -255.0f;
+		Data->ColorMin.g = -255.0f;
 	if(Data->ColorMax.g > 255.0f)
-          Data->ColorMax.g = 255.0f;
+		Data->ColorMax.g = 255.0f;
 	if(Data->ColorMin.g > Data->ColorMax.g)
-          Data->ColorMin.g = Data->ColorMax.g;
+		Data->ColorMin.g = Data->ColorMax.g;
 
 	Color.g = EffectC_Frand(Data->ColorMin.g, Data->ColorMax.g) * Data->Intensity;
 
 
 	if(Data->ColorMin.b < -255.0f)
-          Data->ColorMin.b = -255.0f;
+		Data->ColorMin.b = -255.0f;
 	if(Data->ColorMax.b > 255.0f)
-          Data->ColorMax.b = 255.0f;
+		Data->ColorMax.b = 255.0f;
 	if(Data->ColorMin.b > Data->ColorMax.b)
-          Data->ColorMin.b = Data->ColorMax.b;
+		Data->ColorMin.b = Data->ColorMax.b;
 
 	Color.b = EffectC_Frand(Data->ColorMin.b, Data->ColorMax.b) * Data->Intensity;
 
 
 	if(Data->ColorMin.a < -255.0f )
-          Data->ColorMin.a = -255.0f;
+		Data->ColorMin.a = -255.0f;
 	if(Data->ColorMax.a > 255.0f )
-          Data->ColorMax.a = 255.0f;
+		Data->ColorMax.a = 255.0f;
 	if(Data->ColorMin.a > Data->ColorMax.a )
-          Data->ColorMin.a = Data->ColorMax.a;
+		Data->ColorMin.a = Data->ColorMax.a;
 
 	Color.a = EffectC_Frand(Data->ColorMin.a, Data->ColorMax.a) * Data->Intensity;
 
 	// set radius
 	if(Data->RadiusMin < 0.0f)
-          Data->RadiusMin = 0.0f;
+		Data->RadiusMin = 0.0f;
 	if(Data->RadiusMax <= 0.0f)
-          Data->RadiusMax = 0.1f;
+		Data->RadiusMax = 0.1f;
 	if(Data->RadiusMin > Data->RadiusMax)
-          Data->RadiusMin = Data->RadiusMax;
+		Data->RadiusMin = Data->RadiusMax;
 
 	Radius = EffectC_Frand(Data->RadiusMin, Data->RadiusMax);
 
-// changed QD
 	// adjust the lights parameters
 	if(Data->Spot)
 		geWorld_SetSpotLightAttributes(CCD->World(),
-								   Data->Light,
-								   &(Data->Pos),
-								   &Color,
-								   Radius,
-								   Data->Arc,
-								   &(Data->Direction),
-								   Data->Style,
-								   Data->CastShadows);
+										Data->Light,
+										&(Data->Pos),
+										&Color,
+										Radius,
+										Data->Arc,
+										&(Data->Direction),
+										Data->Style,
+										Data->CastShadows);
 
 	else
 		geWorld_SetLightAttributes(CCD->World(),
-						Data->Light,
-						&(Data->Pos),
-						&Color,
-						Radius,
-						Data->CastShadows );
-// end change QD
+									Data->Light,
+									&(Data->Pos),
+									&Color,
+									Radius,
+									Data->CastShadows );
 
 	// all done
 	return GE_TRUE;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Glow_Modify
+// Glow_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Glow_Modify(Glow *Data, Glow *NewData, uint32 Flags)
 {
@@ -988,10 +957,9 @@ geBoolean EffManager::Glow_Modify(Glow *Data, Glow *NewData, uint32 Flags)
 	// adjust the source
 	if(Flags & GLOW_POS)
 	{
-// changed QD
 		if(Data->Spot)
 			geVec3d_Copy(&(NewData->Direction), &(Data->Direction));
-// end change QD
+
 		geVec3d_Copy(&(NewData->Pos), &(Data->Pos));
 		RecalculateLeaf = GE_TRUE;
 	}
@@ -1038,7 +1006,7 @@ geBoolean EffManager::Glow_Modify(Glow *Data, Glow *NewData, uint32 Flags)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Sprite
+// Sprite
 /* ------------------------------------------------------------------------------------ */
 void* EffManager::Sprite_Add(void *Data)
 {
@@ -1050,7 +1018,7 @@ void* EffManager::Sprite_Add(void *Data)
 	if(!NewData)
 		return NULL;
 
-  	memcpy(NewData, Data, sizeof(*NewData));
+	memcpy(NewData, Data, sizeof(*NewData));
 
 	NewData->Rotation = 0.0f;
 
@@ -1076,9 +1044,7 @@ void* EffManager::Sprite_Add(void *Data)
 
 	NewData->CurrentTexture = 0;
 	NewData->ElapsedTime = 0.0f;
-// changed RF064
 	NewData->CurrentLife = 0.0f;
-// end change RF064
 	NewData->Direction = 1;
 
 	// calculate leaf value
@@ -1088,18 +1054,17 @@ void* EffManager::Sprite_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Sprite_Remove
+// Sprite_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Sprite_Remove(Sprite *Data)
 {
 	// free effect data
-	// changed QD 12/15/05
 	if(Data)
 		geRam_Free(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Sprite_Process
+// Sprite_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 {
@@ -1156,7 +1121,6 @@ geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 			return GE_TRUE;
 	}
 
-// changed RF064
 	if(Data->LifeTime > 0.0f)
 	{
 		Data->CurrentLife += TimeDelta;
@@ -1166,7 +1130,6 @@ geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 			return GE_FALSE;
 		}
 	}
-// end change RF064
 
 	// adjust art
 	if(Data->TotalTextures > 1)
@@ -1314,13 +1277,13 @@ geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Sprite_Modify
+// Sprite_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Sprite_Modify(Sprite *Data, Sprite *NewData, uint32 Flags)
 {
 	geBoolean RecalculateLeaf = GE_FALSE;
 
-  	// adjust pause
+	// adjust pause
 	if(Flags & SPRITE_PAUSE)
 	{
 		Data->Pause = NewData->Pause;
@@ -1396,23 +1359,20 @@ geBoolean EffManager::Sprite_Modify(Sprite *Data, Sprite *NewData, uint32 Flags)
 /* ------------------------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------------------------ */
-//	Snd_Get3dSoundValues()
+// Snd_Get3dSoundValues()
 /* ------------------------------------------------------------------------------------ */
 static geBoolean Snd_Get3dSoundValues(Snd		*Data,
 									  geFloat	*Volume,
 									  geFloat	*Pan,
 									  geFloat	*Frequency)
 {
-	// locals
 	const geXForm3d	*SoundXf;
-// changed RF063
 	geXForm3d CamXf;
-	geFloat	VolDelta, PanDelta;
+	geFloat VolDelta, PanDelta;
 
 	// get the camera xform
 	CamXf = CCD->CameraManager()->ViewPoint();
 	SoundXf = &CamXf;
-// end change RF063
 
 	// get 3d sound values
 	geSound3D_GetConfig(CCD->World(),
@@ -1449,16 +1409,15 @@ static geBoolean Snd_Get3dSoundValues(Snd		*Data,
 } // Snd_Get3dSoundValues()
 
 /* ------------------------------------------------------------------------------------ */
-//	Snd_Add()
+// Snd_Add()
 /* ------------------------------------------------------------------------------------ */
 void* EffManager::Snd_Add(void *Data)
 {
-	// locals
-	Snd	*NewData;
+	Snd *NewData;
 // EFFECTS
-//	geFloat	Volume;
-//	geFloat	Pan;
-//	geFloat	Frequency;
+//	geFloat Volume;
+//	geFloat Pan;
+//	geFloat Frequency;
 
 	// don't create anything if there is no sound system
 	if(CCD->Engine()->AudioSystem() == NULL)
@@ -1507,13 +1466,12 @@ void* EffManager::Snd_Add(void *Data)
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Snd_Remove(Snd *Data)
 {
-	// changed Nout 12/15/05
 	if(Data)
 	{
 		// stop the sound
 		if(Data->Sound != NULL)
 		{
-			CCD->MenuManager()->StopSound(CCD->Engine()->AudioSystem(), Data->Sound );
+			CCD->MenuManager()->StopSound(CCD->Engine()->AudioSystem(), Data->Sound);
 		}
 
 		// free effect data
@@ -1523,12 +1481,12 @@ void EffManager::Snd_Remove(Snd *Data)
 } // Snd_Remove()
 
 /* ------------------------------------------------------------------------------------ */
-//	Snd_Process()
+// Snd_Process()
 //
-//	Perform processing on an indivual effect. A return of GE_FALSE means that the
-//	effect needs to be removed.
+// Perform processing on an indivual effect. A return of GE_FALSE means that the
+// effect needs to be removed.
 /* ------------------------------------------------------------------------------------ */
-geBoolean EffManager::Snd_Process(Snd *Data, float TimeDelta)
+geBoolean EffManager::Snd_Process(Snd *Data, float /*TimeDelta*/)
 {
 	// locals
 	geBoolean	Result;
@@ -1601,9 +1559,9 @@ geBoolean EffManager::Snd_Process(Snd *Data, float TimeDelta)
 } // Snd_Process()
 
 /* ------------------------------------------------------------------------------------ */
-//	Snd_Modify()
+// Snd_Modify()
 //
-//	Adjust the effect.
+// Adjust the effect.
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Snd_Modify(Snd *Data, Snd	*NewData, uint32 Flags)
 {
@@ -1643,7 +1601,7 @@ geBoolean EffManager::Snd_Modify(Snd *Data, Snd	*NewData, uint32 Flags)
 } // Snd_Modify()
 
 /* ------------------------------------------------------------------------------------ */
-//	Corona
+// Corona
 /* ------------------------------------------------------------------------------------ */
 void *EffManager::Corona_Add(void *Data)
 {
@@ -1692,18 +1650,17 @@ void *EffManager::Corona_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Corona_Remove
+// Corona_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Corona_Remove(EffCorona *Data)
 {
 	// free effect data
-	// changed QD 12/15/05
 	if(Data)
 		geRam_Free(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Corona_Process
+// Corona_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Corona_Process(EffCorona *Data, float TimeDelta)
 {
@@ -1827,7 +1784,7 @@ geBoolean EffManager::Corona_Process(EffCorona *Data, float TimeDelta)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Corona_Modify
+// Corona_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Corona_Modify(EffCorona *Data, EffCorona *NewData, uint32 Flags)
 {
@@ -1861,7 +1818,7 @@ geBoolean EffManager::Corona_Modify(EffCorona *Data, EffCorona *NewData, uint32 
 // EFFECT
 
 /* ------------------------------------------------------------------------------------ */
-//	Bolt
+// Bolt
 /* ------------------------------------------------------------------------------------ */
 void* EffManager::Bolt_Add(void *Data)
 {
@@ -1875,10 +1832,10 @@ void* EffManager::Bolt_Add(void *Data)
 	memcpy(NewData, Data, sizeof(*NewData));
 
 	NewData->Bolt = Electric_BoltEffectCreate(NewData->Bitmap,
-							   NULL,
-							   NewData->NumPoints,
-							   NewData->Width,
-							   NewData->Wildness);
+								NULL,
+								NewData->NumPoints,
+								NewData->Width,
+								NewData->Wildness);
 
 	Electric_BoltEffectSetColorInfo(NewData->Bolt, &NewData->Color, NewData->DominantColor);
 
@@ -1887,11 +1844,10 @@ void* EffManager::Bolt_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Bolt_Remove
+// Bolt_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::Bolt_Remove(EBolt *Data)
 {
-	// changed QD 12/15/05
 	if(Data)
 	{
 		// free effect data
@@ -1903,7 +1859,7 @@ void EffManager::Bolt_Remove(EBolt *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Bolt_Process
+// Bolt_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Bolt_Process(EBolt *Data, float TimeDelta)
 {
@@ -1949,7 +1905,7 @@ geBoolean EffManager::Bolt_Process(EBolt *Data, float TimeDelta)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Bolt_Modify
+// Bolt_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags)
 {
@@ -1988,7 +1944,7 @@ geBoolean EffManager::Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ActorSpray
+// ActorSpray
 /* ------------------------------------------------------------------------------------ */
 void *EffManager::ActorSpray_Add(void *Data)
 {
@@ -1999,7 +1955,7 @@ void *EffManager::ActorSpray_Add(void *Data)
 	if(!NewData)
 		return NULL;
 
-  	memcpy(NewData, Data, sizeof(*NewData));
+	memcpy(NewData, Data, sizeof(*NewData));
 
 	// setup defaults
 	NewData->TimeRemaining = 0.0f;
@@ -2014,18 +1970,17 @@ void *EffManager::ActorSpray_Add(void *Data)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ActorSpray_Remove
+// ActorSpray_Remove
 /* ------------------------------------------------------------------------------------ */
 void EffManager::ActorSpray_Remove(ActorSpray *Data)
 {
 	// free effect data
-	// changed QD 12/15/05
 	if(Data)
 		geRam_Free(Data);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ActorSpray_Process
+// ActorSpray_Process
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 {
@@ -2202,9 +2157,7 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 						Speed,
 						Data->FillColor,
 						Data->AmbientColor,
-						// changed QD 07/21/04
 						Data->AmbientLightFromFloor,
-						// end change
 						Data->Alpha,
 						Data->AlphaRate,
 						UnitLife,
@@ -2225,7 +2178,7 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 } // Spray_Process()
 
 /* ------------------------------------------------------------------------------------ */
-//	ActorSpray_Modify
+// ActorSpray_Modify
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, uint32 Flags)
 {
@@ -2246,9 +2199,9 @@ geBoolean EffManager::ActorSpray_Modify(ActorSpray *Data, ActorSpray *NewData, u
 	if(Flags & SPRAY_DEST)
 	{
 		geVec3d	In;
-		geXForm3d_RotateZ(&(NewData->Xform), Data->Angle.Z * GE_PIOVER180);// / 57.3f);
-		geXForm3d_RotateX(&(NewData->Xform), Data->Angle.X * GE_PIOVER180);// / 57.3f);
-		geXForm3d_RotateY(&(NewData->Xform), Data->Angle.Y * GE_PIOVER180);// / 57.3f);
+		geXForm3d_RotateZ(&(NewData->Xform), Data->Angle.Z * GE_PIOVER180);
+		geXForm3d_RotateX(&(NewData->Xform), Data->Angle.X * GE_PIOVER180);
+		geXForm3d_RotateY(&(NewData->Xform), Data->Angle.Y * GE_PIOVER180);
 
 		geXForm3d_GetIn(&(NewData->Xform), &In);
 		geVec3d_Inverse(&In);
