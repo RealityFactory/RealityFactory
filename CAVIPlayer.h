@@ -41,10 +41,14 @@ public:
 
 	int Close();													///< Close the open AVI file
 
-	int GetAudioStreamCount();										///< Get the # of audio streams in the AVI
-	int GetVideoStreamCount();										///< Get the # of video streams in the AVI
+	inline int GetAudioStreamCount() const							///< Get the # of audio streams in the AVI
+	{ return m_nNumAudioStreams; }
+
+	inline int GetVideoStreamCount() const							///< Get the # of video streams in the AVI
+	{ return m_nNumVideoStreams; }
 
 	int DisplayFrameTexture(int nFrame, const char *szTextureName);	///< Display AVI frame as texture
+
 	int DisplayNextFrameTexture(const char *szTextureName, bool bFirstFrame);///< Play an AVI as a texture map
 
 private:

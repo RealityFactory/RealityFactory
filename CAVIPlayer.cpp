@@ -890,25 +890,6 @@ int CAVIPlayer::Close()
 	return RGF_SUCCESS;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	GetAudioStreamCount
-//
-//	Return the number of audio streams in the current AVI file.
-/* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::GetAudioStreamCount()
-{
-	return m_nNumAudioStreams;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetVideoStreamCount
-//
-//	Return the number of video streams in the current AVI file.
-/* ------------------------------------------------------------------------------------ */
-int CAVIPlayer::GetVideoStreamCount()
-{
-	return m_nNumVideoStreams;
-}
 
 /* ------------------------------------------------------------------------------------ */
 // DisplayFrameTexture
