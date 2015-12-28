@@ -44,20 +44,15 @@ qxEffectBase::qxEffectBase(char* strName)
 ,SoundMinDistance(0.0f)
 //QXVARIABLES
 {
-
 	geVec3d_Clear(&Origin);
-
 }
 
 qxEffectBase::~qxEffectBase()
 {
-
 }
 
 bool qxEffectBase::Init()
 {
-
-
 	QXASSERT( DistanceMax >= 0.0f);
 	QXASSERT( DistanceMin >= 0.0f);
 	QXASSERT( DistanceMin <= DistanceMax);
@@ -82,7 +77,6 @@ bool qxEffectBase::Init()
 
 bool qxEffectBase::TriggerStop()
 {
-
 	return true;
 }
 
@@ -98,7 +92,6 @@ void qxEffectBase::SetPause(bool b)
 
 bool qxEffectBase::TestTrigger()
 {
-
 	return true;
 }
 
@@ -110,7 +103,6 @@ bool qxEffectBase::TestTrigger()
 //
 int qxEffectBase::Frame()
 {
-
 	float fTime = CCD->LastElapsedTime_F()*0.001f;
 
 	// kill the effect if its time has run out
@@ -147,17 +139,16 @@ int qxEffectBase::Frame()
 // The base effect has no destination. This is virtual, so those
 // effects with destinations can handle it.
 //
-void  qxEffectBase::SetOriginAndDest(geVec3d* pOrig, geVec3d* pDest)
+void  qxEffectBase::SetOriginAndDest(geVec3d* pOrig, geVec3d* /*pDest*/)
 {
 	Origin = *pOrig;
-	geWorld_GetLeaf(CCD->Engine()->World(), &Origin, &m_nLeaf );
+	geWorld_GetLeaf(CCD->Engine()->World(), &Origin, &m_nLeaf);
 }
 
 
 
 bool qxEffectBase::ActorFrame( )
 {
-
 	// adjust position if it's hooked to an actor
 	if ( m_pActor )
 	{
@@ -180,13 +171,11 @@ bool qxEffectBase::ActorFrame( )
 
 void qxEffectBase::SoundFrame()
 {
-
 }
 
 //Return visible distance between camera and origin, or -1.0f if not visible
 float qxEffectBase::CheckVisibleDistance()
 {
-
 	float fDistance = 0.0f;
 
 	if(DistanceMax > 0.0f)
@@ -207,9 +196,8 @@ float qxEffectBase::CheckVisibleDistance()
 
 
 
-void qxEffectBase::AttachTrigger(char* pTriggerName)
+void qxEffectBase::AttachTrigger(char* /*pTriggerName*/)
 {
-
 }
 
 
@@ -235,45 +223,44 @@ void qxEffectBase::AttachBmp(char* pBmpName, char* pAlphaName)
 }
 
 
-bool qxEffectBase::AttachActor(char* pActorName)
+bool qxEffectBase::AttachActor(char* /*pActorName*/)
 {
-
 	return true;
 }
 
 bool qxEffectBase::AttachActorBmp(char* pBmpName)
 {
-		QXASSERT(m_pActor);
+	QXASSERT(m_pActor);
 
-		geActor_Def	*ActorDef;
-		geBody		*Body;
-		int			MaterialCount;
-		int			i;
-		const char	*MaterialName;
-		float		R, G, B;
+	geActor_Def	*ActorDef;
+	geBody		*Body;
+	int			MaterialCount;
+	int			i;
+	const char	*MaterialName;
+	float		R, G, B;
 
-		// get actor material count
-		ActorDef = geActor_GetActorDef(m_pActor);
-		QXASSERT(ActorDef);
+	// get actor material count
+	ActorDef = geActor_GetActorDef(m_pActor);
+	QXASSERT(ActorDef);
 
-		Body = geActor_GetBody( ActorDef );
-		QXASSERT(Body);
+	Body = geActor_GetBody( ActorDef );
+	QXASSERT(Body);
 
-		MaterialCount = geActor_GetMaterialCount( m_pActor );
+	MaterialCount = geActor_GetMaterialCount( m_pActor );
 
-		// get bitmap pointer
-		for ( i = 0; i < MaterialCount; i++ )
-		{
-			if ( !geBody_GetMaterial( Body, i, &MaterialName, &m_pBmp, &R, &G, &B ))
-				continue;
+	// get bitmap pointer
+	for ( i = 0; i < MaterialCount; i++ )
+	{
+		if ( !geBody_GetMaterial( Body, i, &MaterialName, &m_pBmp, &R, &G, &B ))
+			continue;
 
-			if ( !strnicmp( pBmpName, MaterialName, strlen( pBmpName ) ))
-				break;
-		}
-		if ( i == MaterialCount )
-		{
-			return false;
-		}
+		if ( !strnicmp( pBmpName, MaterialName, strlen( pBmpName ) ))
+			break;
+	}
+	if ( i == MaterialCount )
+	{
+		return false;
+	}
 
 	return true;
 }

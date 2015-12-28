@@ -47,11 +47,14 @@ TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName, CC
 	strcpy(szName, "SkyDome");
 }
 
+
 TerrainObject::~TerrainObject()
 {
 }
 
-bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt)
+
+bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
+						   skRValue& returnValue, skExecutableContext& ctxt)
 {
 	char param0[128];
 	float param1;
@@ -93,7 +96,6 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		CCD->TerrainMgr()->SetOffsetY(param3);
 		return true;
 	}
-	// changed QD 2007
 	else if (IS_METHOD(methodName, "SetSkyDomeHeightOffset"))
 	{
 		PARMCHECK(1);
@@ -101,7 +103,6 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		CCD->TerrainMgr()->SetSkyDomeOffsetY(param3);
 		return true;
 	}
-	// end change
 	else if (IS_METHOD(methodName, "SetDesiredTriangles"))
 	{
 		PARMCHECK(1);
@@ -303,6 +304,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 	}
 }
 
+
 bool TerrainObject::getValue(const skString& fieldName, const skString& attribute, skRValue& value)
 {
 	if (fieldName == "time")
@@ -318,6 +320,7 @@ bool TerrainObject::getValue(const skString& fieldName, const skString& attribut
 	else
 		return skScriptedExecutable::getValue(fieldName, attribute, value);
 }
+
 
 bool TerrainObject::setValue(const skString& fieldName, const skString& attribute, const skRValue& value)
 {
@@ -358,9 +361,7 @@ qxTerrainMgr::qxTerrainMgr()
 	m_fScaleY = 1.0f;
 	m_fScaleXZ = 4.0f;
 	m_OffsetY = 0;
-	// changed QD 02/01/07
 	m_SkyDomeOffsetY = 0;
-	// end change
 	m_nDesiredTriangles = 500;
 	m_nLandscapeSize = 4096;
 	m_nFarPlane = 9999999;
@@ -423,6 +424,7 @@ qxTerrainMgr::qxTerrainMgr()
 	Object = NULL;
 }
 
+
 qxTerrainMgr::~qxTerrainMgr()
 {
 	if(Object)
@@ -430,6 +432,7 @@ qxTerrainMgr::~qxTerrainMgr()
 	if(Initialized)
 		Shutdown();
 }
+
 
 bool qxTerrainMgr::Init()
 {
@@ -501,7 +504,7 @@ bool qxTerrainMgr::Init()
 				}
 				if(!EffectC_IsStringNull(pSource->InitOrder))
 				{
-					skRValueArray args;//change simkin
+					skRValueArray args;
 					skRValue ret;
 
 					strcpy(Object->Order, pSource->InitOrder);
@@ -639,6 +642,7 @@ bool qxTerrainMgr::Init()
 	return false;
 }
 
+
 void qxTerrainMgr::Shutdown()
 {
 
@@ -648,7 +652,6 @@ void qxTerrainMgr::Shutdown()
 	delete m_pStarField;
 	delete m_pSkyDome;
 	delete m_pCloudMachine;
-
 
 	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
@@ -661,10 +664,7 @@ void qxTerrainMgr::Shutdown()
 
 	delete m_pqxPolyPool;
 	delete m_pqxVertPool;
-
 }
-
-
 
 
 bool qxTerrainMgr::Frame()
@@ -678,7 +678,7 @@ bool qxTerrainMgr::Frame()
 	{
 		if(!EffectC_IsStringNull(Object->Order))
 		{
-			skRValueArray args; //change simkin
+			skRValueArray args;
 			skRValue ret;
 
 			try
@@ -846,7 +846,6 @@ bool qxTerrainMgr::Frame()
 }
 
 
-
 bool qxTerrainMgr::Render()
 {
 	if(!Initialized)
@@ -884,9 +883,9 @@ bool qxTerrainMgr::Render()
 	return true;
 }
 
+
 void qxTerrainMgr::Draw()
 {
-
 	if(!Initialized)
 		return;
 
@@ -912,25 +911,28 @@ void qxTerrainMgr::SetNormalDistanceToCamera( float f )
 	m_fNormalDistanceToCamera = f;
 }
 
+
 void qxTerrainMgr::PolyCountRaise()
 {
 	m_nDesiredTriangles += m_nPolyIncrement;
 }
 
+
 void qxTerrainMgr::PolyCountLower()
 {
-
 	m_nDesiredTriangles -= m_nPolyIncrement;
 
 	if(m_nDesiredTriangles < 0)
 		m_nDesiredTriangles = m_nPolyIncrement;
 }
+
+
 void qxTerrainMgr::DistanceDetailLower()
 {
-
 	if(m_nDistanceDetail > 1)
 		m_nDistanceDetail--;
 }
+
 
 void qxTerrainMgr::DistanceDetailRaise()
 {
@@ -939,6 +941,7 @@ void qxTerrainMgr::DistanceDetailRaise()
 
 	m_nDistanceDetail++;
 }
+
 
 void qxTerrainMgr::ToggleRenderWireframe()
 {
@@ -957,8 +960,8 @@ qxTerrainMapBase* qxTerrainMgr::GetEastNeighbor(qxTerrainMapBase* p)
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX, OffsetZ+1);
-
 }
+
 
 qxTerrainMapBase* qxTerrainMgr::GetWestNeighbor(qxTerrainMapBase* p)
 {
@@ -966,56 +969,62 @@ qxTerrainMapBase* qxTerrainMgr::GetWestNeighbor(qxTerrainMapBase* p)
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX, OffsetZ-1);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetNorthNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX+1, OffsetZ);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetSouthNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX-1, OffsetZ);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetNorthWestNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX+1, OffsetZ-1);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetNorthEastNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX+1, OffsetZ+1);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetSouthEastNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX-1, OffsetZ+1);
-
 }
+
+
 qxTerrainMapBase* qxTerrainMgr::GetSouthWestNeighbor(qxTerrainMapBase* p)
 {
 	int OffsetX = p->GetMapOffsetIndexX();
 	int OffsetZ = p->GetMapOffsetIndexZ();
 
 	return GetMap(OffsetX-1, OffsetZ-1);
-
 }
+
 
 void qxTerrainMgr::SetEarthAxis(  )
 {
@@ -1028,8 +1037,8 @@ void qxTerrainMgr::SetEarthAxis(  )
 
 	geXForm3d_RotateY(&m_matEarthRotation, RotateY );
 	geXForm3d_RotateX(&m_matEarthRotation, RotateX );
-
 }
+
 
 qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 {
@@ -1039,7 +1048,6 @@ qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
 		qxTerrainMapBase* p = m_pMaps[i];
-
 		if(	p->GetMapOffsetIndexX() == OffsetX
 			&& p->GetMapOffsetIndexZ() == OffsetZ)
 			return p;
@@ -1048,9 +1056,9 @@ qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 	return NULL;
 }
 
+
 inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 {
-
 	// See if requested map is beyond the world boundaries
 	if( OffsetX > m_nWorldBoundsX || OffsetZ > m_nWorldBoundsZ )
 		return true;
@@ -1059,7 +1067,6 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	for(unsigned int i = 0; i < m_pMaps.size(); i++)
 	{
 		qxTerrainMapBase* p = m_pMaps[i];
-
 		if(	p->GetMapOffsetIndexX() == OffsetX
 			&& p->GetMapOffsetIndexZ() == OffsetZ)
 			return true;
@@ -1094,7 +1101,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 
 	QXASSERT( pMap );
 
-	if( !pMap->Init())
+	if(!pMap->Init())
 		return false;
 
 	pMap->SetSunLight(true);
@@ -1107,7 +1114,6 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 
 bool qxTerrainMgr::LoadTerrainDefinitionFile(char* pStr)
 {
-
 	QXASSERT(pStr);
 
 	delete m_pTerrainDefinitionFile;
@@ -1143,6 +1149,7 @@ void qxTerrainMgr::UpdateFog()
 	}
 }
 
+
 float qxTerrainMgr::GetSunPercentToZenith()
 {
 	if(m_pSun)
@@ -1150,6 +1157,7 @@ float qxTerrainMgr::GetSunPercentToZenith()
 	else
 		return 1.0f;
 }
+
 
 void qxTerrainMgr::UpdateTwilightPercent()
 {
@@ -1162,7 +1170,6 @@ void qxTerrainMgr::UpdateTwilightPercent()
 	// Twilight distance is 0.0 to 1.0
 	m_fTwilightPercent = (fSunPercentToZenith+fTwilightDist)/ (fTwilightDist*2.0f) ;
 	m_fTwilightPercent = GE_CLAMP(m_fTwilightPercent, 0.0f, 1.0f);
-
 }
 
 //
@@ -1228,8 +1235,8 @@ void qxTerrainMgr::CalculatePlayerLatitude()
 	float f = fDayFactor*23.5f;
 	float f2 = fPlayerLatitude + f + 90.0f; // Shift 90 since matrix assumes we are at north pole
 	m_fPlayerLatitudeRotation = RADIANS( f2 );
-
 }
+
 
 void qxTerrainMgr::ToggleSkyFollow()
 {

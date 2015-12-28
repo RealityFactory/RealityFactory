@@ -18,7 +18,7 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-qxEffectTextureFlow::qxEffectTextureFlow(char* strName, void*& qxFromEditor)
+qxEffectTextureFlow::qxEffectTextureFlow(char* strName, void*& /*qxFromEditor*/)
 :
 qxEffectBase(strName),
 m_pOriginalBmpCopy(0),
@@ -36,7 +36,6 @@ m_bMipsChecked(false)
 
 qxEffectTextureFlow::~qxEffectTextureFlow()
 {
-
 	if ( m_pOriginalBmpCopy )
 	{
 		geBitmap_Destroy( &m_pOriginalBmpCopy );
@@ -46,11 +45,13 @@ qxEffectTextureFlow::~qxEffectTextureFlow()
 	{
 		geBitmap_Destroy( &m_pBmp );
 	}
+
 	if(BmpName)
 		delete BmpName;
 	if(AlphaName)
 		delete AlphaName;
 }
+
 
 bool qxEffectTextureFlow::Init()
 {
@@ -156,7 +157,7 @@ int qxEffectTextureFlow::Frame()
 	}
 
 	// lock the destination bitmap for writing
-	if ( !geBitmap_LockForWriteFormat( m_pBmp, &DestLocked, 0, 0, m_PixelFormat )  )
+	if ( !geBitmap_LockForWriteFormat( m_pBmp, &DestLocked, 0, 0, m_PixelFormat ) )
 	{
 		bSuccess = false;
 		goto ALLDONE;
@@ -200,7 +201,6 @@ int qxEffectTextureFlow::Frame()
 			// copy data
 			for ( Col = 0; Col < DestInfo.Width; Col++ )
 			{
-
 				// adjust current pixel
 				*CurDestBits_8 = m_Table[*CurSrcBits1_8][*( CurSrcBits2_8 + SrcCol )];
 
@@ -272,7 +272,6 @@ int qxEffectTextureFlow::Frame()
 	}
 
 
-
 	// adjust offsets
 	m_fCurX +=  (CCD->LastElapsedTime_F()*0.001f) * OffsetX ;
 	if ( m_fCurX >= SrcInfo.Width )
@@ -305,16 +304,13 @@ int qxEffectTextureFlow::Frame()
 	}
 
 	return bSuccess;
-
-
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //
 //
-//	FindBestColorMatch()
+// FindBestColorMatch()
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -325,7 +321,6 @@ uint8 qxEffectTextureFlow::FindBestColorMatch(
 											int			B,				// desired blue
 											int			A )				// desired alpha
 {
-
 	// locals
 	int		Color;
 	int		RDiff, GDiff, BDiff, ADiff;
@@ -346,7 +341,6 @@ uint8 qxEffectTextureFlow::FindBestColorMatch(
 	// find best match
 	for ( Color = 0; Color < 256; Color++ )
 	{
-
 		// get color deltas
 		RDiff = abs( ColorTable->R[Color] - R );
 		GDiff = abs( ColorTable->G[Color] - G );
@@ -371,9 +365,9 @@ uint8 qxEffectTextureFlow::FindBestColorMatch(
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //
-//	CreateColorTable()
+// CreateColorTable()
 //
-//	Creates a color lookup table.
+// Creates a color lookup table.
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 bool qxEffectTextureFlow::CreateColorTable()
@@ -405,7 +399,6 @@ bool qxEffectTextureFlow::CreateColorTable()
 	{
 		for ( Color2 = 0; Color2 < 256; Color2++ )
 		{
-
 			// pick new color value
 			NewR = ( ( ColorTable.R[Color1] >> 1 ) + ( ColorTable.R[Color2] >> 1 ) );
 			NewG = ( ( ColorTable.G[Color1] >> 1 ) + ( ColorTable.G[Color2] >> 1 ) );
@@ -417,8 +410,6 @@ bool qxEffectTextureFlow::CreateColorTable()
 				FindBestColorMatch( &ColorTable, NewR, NewG, NewB, NewA );
 		}
 	}
-
-
 
 	return true;
 }

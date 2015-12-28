@@ -126,7 +126,6 @@ bool qxTerrainMap::Init()
 		m_nDesiredPolyCount = m_nMinPolyCount;
 
 
-
 	if(!InitBaseVerts())
 		return false;
 
@@ -227,7 +226,6 @@ bool qxTerrainMap::BuildTextures( )
 	//mips = mips - (( 256 / m_nTileTextureSize ) - 1);
 	if(mips < 0 )
 		mips = 0;
-
 
 
 	int k;
@@ -333,7 +331,6 @@ bool qxTerrainMap::LoadHeightMap()
 			return false;
 		}
 
-		// changed QD 07/15/06 - moved below if(!pHeightBMP)
 		geBitmap_SetPreferredFormat(pHeightBMP, GE_PIXELFORMAT_8BIT_GRAY);
 
 		m_nHeightMapWidth	= geBitmap_Width(pHeightBMP);

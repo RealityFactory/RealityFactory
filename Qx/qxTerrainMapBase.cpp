@@ -51,7 +51,6 @@ qxTerrainMapBase::qxTerrainMapBase( qxTerrainDefinition& TerrainDef )
 ,m_SunLight(false)
 ,m_bRenderBackFace(false)
 {
-
 	m_nDesiredPolyCount =	CCD->TerrainMgr()->GetDesiredTriangles();
 	m_nDistanceDetail	=	CCD->TerrainMgr()->GetDistanceDetail();
 	m_pPolyPool			= 	CCD->TerrainMgr()->GetPolyPoolQX();
@@ -66,14 +65,11 @@ qxTerrainMapBase::qxTerrainMapBase( qxTerrainDefinition& TerrainDef )
 
 	SetCurrentVertColor(CCD->TerrainMgr()->GetAmbientLightColor() );
 	SetNormalDistanceToCamera(CCD->TerrainMgr()->GetNormalDistanceToCamera() );
-
-
-
 }
+
 
 qxTerrainMapBase::~qxTerrainMapBase()
 {
-
 	delete m_pSplitQueue;
 	delete m_pMergeQueue;
 
@@ -97,16 +93,13 @@ qxTerrainMapBase::~qxTerrainMapBase()
 
 	// delete tile ptr array
 	delete [] m_ppBaseTiles;
-
-
-
 }
+
 
 bool qxTerrainMapBase::Init()
 {
 	return true;
 }
-
 
 
 bool qxTerrainMapBase::LoadTexture( LPCSTR strTextureFile, LPCSTR strAlphaFile)
@@ -127,7 +120,6 @@ bool qxTerrainMapBase::LoadTexture( LPCSTR strTextureFile, LPCSTR strAlphaFile)
 
 	return true;
 }
-
 
 
 int qxTerrainMapBase::SetDesiredPolyCount(int newCount)
@@ -187,9 +179,9 @@ void qxTerrainMapBase::OffsetAllVerts()
 	m_bUpdate = true;
 }
 
+
 void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 {
-
 	qxSkyDome *SkyDome = CCD->TerrainMgr()->GetSkyDome();
 	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
 
@@ -308,9 +300,10 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 				(m_fSunIntensity*
 				(m_CurrentSunColor.rgba.b * fIntensity )
 				));
-		  }
+		}
 	}
 }
+
 
 void qxTerrainMapBase::LightVertex(qxTerrainVert* pVert)
 {
@@ -324,6 +317,7 @@ void qxTerrainMapBase::LightVertex(qxTerrainVert* pVert)
 	else
 		LightVertexSunLight(pVert);
 }
+
 
 void qxTerrainMapBase::LightVertexWireFrame(qxTerrainVert* Vert)
 {
@@ -349,12 +343,11 @@ int qxTerrainMapBase::SetDistanceDetail(int newDetail)
 
 void qxTerrainMapBase::Draw()
 {
-
 }
+
 
 int	qxTerrainMapBase::Frame()
 {
-
 	// update pCameraPosition
 	// required for qxTerrainPoly::CalcPriority() s
 
@@ -367,8 +360,8 @@ int	qxTerrainMapBase::Frame()
 
 
 	//
-	//	if we want to re-triangulate from scratch
-	//	instead of split/merge progressively
+	// if we want to re-triangulate from scratch
+	// instead of split/merge progressively
 	//
 	if( m_bUpdate )
 	{
@@ -416,7 +409,6 @@ int	qxTerrainMapBase::Frame()
 		if(nDesiredPolyCount < m_nMinPolyCount )
 			nDesiredPolyCount = m_nMinPolyCount;
 	}
-
 
 
 	qxTerrainPoly* pTerrainPoly;
@@ -655,10 +647,10 @@ bool qxTerrainMapBase::Render()
 	for(int i = 0; i < m_nTilesCountTotal; i++)
 	{
 		//
-		//	if either base-tri in the tile is !VF_Out,
-		//	then switch textures & render tri's.
-		//	else, skip em, so we dont do _SetTexture()
-		//	when nothing with the texture is rendered
+		// if either base-tri in the tile is !VF_Out,
+		// then switch textures & render tri's.
+		// else, skip em, so we dont do _SetTexture()
+		// when nothing with the texture is rendered
 		//
 
 		if( 	!( (m_ppBaseTiles[i])->IsLBRootOut() ) ||
@@ -666,7 +658,6 @@ bool qxTerrainMapBase::Render()
 		{
 
 			CCD->TerrainMgr()->SetTexture(GetTexture(i));
-
 
 			geTClip_SetTexture( GetTexture(i) );
 
@@ -678,15 +669,12 @@ bool qxTerrainMapBase::Render()
 
 	geTClip_Pop();
 
-	// end change
 	return true;
 }
 
 
-
 bool qxTerrainMapBase::RenderWireframe()
 {
-
 	qxTerrainVert* pVert = m_pVertList;
 
 	geRect Rect;
@@ -723,7 +711,6 @@ bool qxTerrainMapBase::RenderWireframe()
 		if( 	!( (m_ppBaseTiles[i])->IsLBRootOut() )  ||
 				!( (m_ppBaseTiles[i])->IsRTRootOut() )  )
 		{
-
 			geTClip_SetTexture( NULL );
 			(m_ppBaseTiles[i])->LBRenderWireFrame();
 			(m_ppBaseTiles[i])->RTRenderWireFrame();
@@ -734,8 +721,6 @@ bool qxTerrainMapBase::RenderWireframe()
 
 	return true;
 }
-
-
 
 
 void qxTerrainMapBase::UpdateViewFrustrum()
@@ -836,9 +821,7 @@ void qxTerrainMapBase::UpdateViewFrustrum()
 		(m_ppBaseTiles[i])->UpdateViewFlagsLB();
 		(m_ppBaseTiles[i])->UpdateViewFlagsRT();
 	}
-
 }
-
 
 
 inline qxTerrainVert* qxTerrainMapBase::AllocateVert()
@@ -851,6 +834,7 @@ inline qxTerrainVert* qxTerrainMapBase::AllocateVert()
 	return Vert;
 }
 
+
 inline qxTerrainPoly* qxTerrainMapBase::AllocatePoly()
 {
 	// first try to get a poly from the pool
@@ -860,7 +844,6 @@ inline qxTerrainPoly* qxTerrainMapBase::AllocatePoly()
 		Poly = new qxTerrainPoly();
 	return Poly;
 }
-
 
 
 void qxTerrainMapBase::ResetBaseTiles()
@@ -888,13 +871,9 @@ void qxTerrainMapBase::ResetBaseTiles()
 				m_ppBaseTiles[j * m_nTilesCountX + i]->LinkLeft(m_ppBaseTiles[j * m_nTilesCountX + (i-1)]);
 			if(j > 0)
 				m_ppBaseTiles[j * m_nTilesCountX + i]->LinkTop(m_ppBaseTiles[(j-1) * m_nTilesCountX + i]);
-
 		}
 	}
-
-
 }
-
 
 
 void qxTerrainMapBase::Split(qxTerrainPoly* pPoly)
@@ -933,7 +912,6 @@ void qxTerrainMapBase::Split(qxTerrainPoly* pPoly)
 		pPoly->m_pLeftChild->m_pRightNeighbor = 0;
 		pPoly->m_pRightChild->m_pLeftNeighbor = 0;
 	}
-
 }
 
 
@@ -989,7 +967,6 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 
 		//JJT
 		//pPoly->Owner_Landscape->CalculateVertexLighting( pPoly->m_pSubVert );
-
 
 	}// no copy
 
@@ -1086,14 +1063,15 @@ void qxTerrainMapBase::Split2(qxTerrainPoly* pPoly, bool bCopy)
 	// put children in split queue
 	m_pSplitQueue->InsertTerrainPoly(pPoly->m_pLeftChild);
 	m_pSplitQueue->InsertTerrainPoly(pPoly->m_pRightChild);
-
 }
+
 
 bool qxTerrainMapBase::SetCurrentVertHeight( qxTerrainVert* pVert)
 {
-		pVert->CurrentVert.Y = GetElementHeight( pVert->hX, pVert->hZ );
-		return true;
+	pVert->CurrentVert.Y = GetElementHeight( pVert->hX, pVert->hZ );
+	return true;
 }
+
 
 void qxTerrainMapBase::Merge(qxTerrainPoly* pPoly)
 {
@@ -1160,10 +1138,8 @@ void qxTerrainMapBase::Merge(qxTerrainPoly* pPoly)
 }
 
 
-
 bool qxTerrainMapBase::InitBaseVerts()
 {
-
 	m_nMapOffsetX -= (CCD->TerrainMgr()->GetLandscapeSize()/2);
 	m_nMapOffsetZ -= (CCD->TerrainMgr()->GetLandscapeSize()/2);
 
@@ -1246,7 +1222,7 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 		Vert->CurrentVert.X = (float)((i + 1) * m_nTileSize)+ m_nMapOffsetX;
 		Vert->CurrentVert.Z = (float)0 + m_nMapOffsetZ;
-		Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ); ;
+		Vert->CurrentVert.Y = GetElementHeight(Vert->hX, Vert->hZ);
 
 		Vert->CurrentVert.u = 1;	// 0 to 1
 		Vert->CurrentVert.v = 0;
@@ -1279,7 +1255,6 @@ bool qxTerrainMapBase::InitBaseVerts()
 		// link left
 		(m_ppBaseTiles[i])->LinkLeft(m_ppBaseTiles[i - 1]);
 	}
-
 
 
 	// left column of tiles
@@ -1419,14 +1394,14 @@ bool qxTerrainMapBase::InitBaseVerts()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//	GetSurfaceNormal()
+// GetSurfaceNormal()
 //
-//	calc the surface normal of a heightfield element.
-//	this DOES take into account the worldspace mapping of the heightfield elements,
-//	so if you stretch a heightfield far horizontally,
-//	the normals will reflect this properly.
+// calc the surface normal of a heightfield element.
+// this DOES take into account the worldspace mapping of the heightfield elements,
+// so if you stretch a heightfield far horizontally,
+// the normals will reflect this properly.
 //
-//	X,Z are HEIGHTMAP coords, not world coords.
+// X,Z are HEIGHTMAP coords, not world coords.
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1470,10 +1445,9 @@ void qxTerrainMapBase::GetSurfaceNormal(int X, int Z, geVec3d* Normal)
 	Normal->Y = 1;
 
 	geVec3d_Normalize(Normal);
-
 }
+
 
 void qxTerrainMapBase::Dump()
 {
-
 }

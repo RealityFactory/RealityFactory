@@ -19,12 +19,9 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 
-
 qxTerrainVert::qxTerrainVert()
 :
 m_pNext(0)
 {
-
 }
-
 

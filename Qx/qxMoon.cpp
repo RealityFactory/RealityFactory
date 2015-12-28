@@ -30,7 +30,6 @@ qxMoon::qxMoon()
 ,m_pPoly(0)
 ,m_eMoonPhase(MOON_PHASE_FULL)
 {
-
 }
 
 qxMoon::~qxMoon()
@@ -40,7 +39,6 @@ qxMoon::~qxMoon()
 		geWorld_RemovePoly(CCD->Engine()->World(), m_pPoly);
 		m_pPoly = 0;
 	}
-
 }
 
 
@@ -58,39 +56,31 @@ bool qxMoon::Init()
 	{
 		case MOON_PHASE_FULL:
 		{
-
 			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonfull.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-
 		}
 		case MOON_PHASE_QUARTER_WAX:
 		{
-
 			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonq1.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-
 		}
 		case MOON_PHASE_NEW:
 		{
-
 			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonnew.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-
 		}
 		case MOON_PHASE_QUARTER_WANE:
 		{
-
 			m_pBmp = TPool_Bitmap("terrain\\moonfull.bmp", "terrain\\a_moonq3.bmp", NULL, NULL);
 			m_fScale			= .5f*Scale;
 			m_fAlpha			= 255.0f;
 			break;
-
 		}
 		default:
 			QXASSERT(0);
@@ -111,7 +101,6 @@ bool qxMoon::Init()
 								GE_RENDER_DO_NOT_OCCLUDE_OTHERS|GE_RENDER_NO_FOG|GE_RENDER_NO_CLIP,
 								m_fScale );
 
-
 	return true;
 }
 
@@ -121,7 +110,6 @@ int qxMoon::Frame()
 	geVec3d thePosition;
 	CCD->CameraManager()->GetPosition(&thePosition);
 	const geVec3d* pCam = &thePosition;
-
 
 	GE_LVertex v;
 	gePoly_GetLVertex( m_pPoly, 0, &v );
@@ -135,7 +123,6 @@ int qxMoon::Frame()
 	v.a = m_fAlpha;
 
 	gePoly_SetLVertex( m_pPoly, 0, &v );
-
 
 	return 1;
 }

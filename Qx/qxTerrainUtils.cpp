@@ -19,16 +19,14 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-
-
 //////////////////////////////////////////////////////////////////////
 // qxPolyPool
 //////////////////////////////////////////////////////////////////////
 qxPolyPool::qxPolyPool()
-:
-List_Head(NULL)
+: List_Head(NULL)
 {
 }
+
 
 qxPolyPool::~qxPolyPool()
 {
@@ -47,6 +45,7 @@ qxPolyPool::~qxPolyPool()
 	QXASSERT(cursor == NULL);
 	return;
 }
+
 
 void qxPolyPool::PutPoly(qxTerrainPoly** Poly)
 {
@@ -76,11 +75,12 @@ qxTerrainPoly* qxPolyPool::ExtractPoly()
 //////////////////////////////////////////////////////////////////////
 // qxVertPool
 //////////////////////////////////////////////////////////////////////
+
 qxVertPool::qxVertPool()
-:
-List_Head(0)
+: List_Head(0)
 {
 }
+
 
 qxVertPool::~qxVertPool()
 {
@@ -99,6 +99,7 @@ qxVertPool::~qxVertPool()
 	QXASSERT(cursor == NULL);
 }
 
+
 void qxVertPool::PutVert(qxTerrainVert** Vert)
 {
 	QXASSERT(Vert != NULL);
@@ -110,8 +111,8 @@ void qxVertPool::PutVert(qxTerrainVert** Vert)
 
 	// the pointer should no longer point to the vert, once its in the pool
 	*Vert = (qxTerrainVert *)NULL;
-
 }
+
 
 qxTerrainVert* qxVertPool::ExtractVert()
 {
@@ -124,7 +125,6 @@ qxTerrainVert* qxVertPool::ExtractVert()
 	List_Head = List_Head->m_pNext;
 	return out;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////
@@ -144,12 +144,14 @@ qxSplitQueue::qxSplitQueue()
 	}
 }
 
+
 qxSplitQueue::~qxSplitQueue()
 {
 	Clear();
 	ClearPool();
 	delete [] m_pPriorityList;
 }
+
 
 void qxSplitQueue::Clear()
 {
@@ -166,6 +168,7 @@ void qxSplitQueue::Clear()
 	}
 }
 
+
 void qxSplitQueue::ClearPool()
 {
 	qxSplitQueueNode* p = m_pPoolListHead;
@@ -177,6 +180,7 @@ void qxSplitQueue::ClearPool()
 		m_pPoolListHead = p;
 	}
 }
+
 
 void qxSplitQueue::InsertTerrainPoly(qxTerrainPoly* poly)
 {
@@ -203,9 +207,9 @@ void qxSplitQueue::InsertTerrainPoly(qxTerrainPoly* poly)
 		m_nHighestPriority = pNewNode->m_nPriority;
 }
 
+
 void qxSplitQueue::RemoveNode(qxSplitQueueNode* Node)
 {
-
 	if(m_pPriorityList[Node->m_nPriority] == Node)
 		m_pPriorityList[Node->m_nPriority] = Node->m_pNext;
 
@@ -218,9 +222,9 @@ void qxSplitQueue::RemoveNode(qxSplitQueueNode* Node)
 	PoolNode(Node);
 }
 
+
 void qxSplitQueue::UpdatePriorities(int nNearestIsHighest)
 {
-
 	qxSplitQueueNode* pNode;
 
 	// make a new list to copy into, cuz we cant go thru the old list sequentially,
@@ -272,12 +276,11 @@ void qxSplitQueue::UpdatePriorities(int nNearestIsHighest)
 			break;
 		}
 	}
-
 }
+
 
 qxSplitQueueNode* qxSplitQueue::GetHighestPriorityNode()
 {
-
 	// if this node was removed, new highest is lower
 	if(m_pPriorityList[m_nHighestPriority] == NULL)
 	{
@@ -297,6 +300,7 @@ qxSplitQueueNode* qxSplitQueue::GetHighestPriorityNode()
 	return m_pPriorityList[m_nHighestPriority];
 }
 
+
 qxSplitQueueNode* qxSplitQueue::AllocateNode()
 {
 	qxSplitQueueNode* NewNode;
@@ -314,6 +318,7 @@ qxSplitQueueNode* qxSplitQueue::AllocateNode()
 	return NewNode;
 }
 
+
 void qxSplitQueue::PoolNode(qxSplitQueueNode* Node)
 {
 	QXASSERT(Node != NULL);
@@ -325,7 +330,6 @@ void qxSplitQueue::PoolNode(qxSplitQueueNode* Node)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////
 // qxMergeQueue
 //////////////////////////////////////////////////////////////////////
@@ -334,7 +338,6 @@ qxMergeQueue::qxMergeQueue()
 :m_pPoolListHead(0)
 ,m_nLowestPriority(0)
 {
-
 	m_pPriorityList = new qxMergeQueueNode*[PRIORITIES];
 
 	// list is all nulls to start
@@ -344,6 +347,7 @@ qxMergeQueue::qxMergeQueue()
 	}
 }
 
+
 qxMergeQueue::~qxMergeQueue()
 {
 	Clear();
@@ -351,6 +355,7 @@ qxMergeQueue::~qxMergeQueue()
 
 	delete [] m_pPriorityList;
 }
+
 
 void qxMergeQueue::Clear()
 {
@@ -367,6 +372,7 @@ void qxMergeQueue::Clear()
 	}
 }
 
+
 void qxMergeQueue::ClearPool(void)
 {
 	qxMergeQueueNode* pNode = m_pPoolListHead;
@@ -376,12 +382,11 @@ void qxMergeQueue::ClearPool(void)
 		delete m_pPoolListHead;
 		m_pPoolListHead = pNode;
 	}
-
 }
+
 
 void qxMergeQueue::InsertDiamond(qxTerrainPoly* poly)
 {
-
 	qxMergeQueueNode* NewNode = AllocateNode();
 
 	NewNode->m_pPoly1 = poly;
@@ -407,6 +412,7 @@ void qxMergeQueue::InsertDiamond(qxTerrainPoly* poly)
 		m_nLowestPriority = NewNode->m_nPriority;
 }
 
+
 void qxMergeQueue::RemoveNode(qxMergeQueueNode* Node)
 {
 	if(m_pPriorityList[Node->m_nPriority] == Node)
@@ -420,6 +426,7 @@ void qxMergeQueue::RemoveNode(qxMergeQueueNode* Node)
 
 	PoolNode(Node);
 }
+
 
 void qxMergeQueue::UpdatePriorities(int nNearestIsHighest)
 {
@@ -478,6 +485,7 @@ void qxMergeQueue::UpdatePriorities(int nNearestIsHighest)
 	}
 }
 
+
 qxMergeQueueNode* qxMergeQueue::GetLowestPriorityNode()
 {
 	// if this node was removed, new lowest is higher
@@ -498,6 +506,7 @@ qxMergeQueueNode* qxMergeQueue::GetLowestPriorityNode()
 	return m_pPriorityList[m_nLowestPriority];
 }
 
+
 qxMergeQueueNode* qxMergeQueue::AllocateNode()
 {
 	qxMergeQueueNode* NewNode;
@@ -514,6 +523,7 @@ qxMergeQueueNode* qxMergeQueue::AllocateNode()
 
 	return NewNode;
 }
+
 
 void qxMergeQueue::PoolNode(qxMergeQueueNode* Node)
 {
@@ -537,8 +547,6 @@ inline void qxSplitQueueNode::UpdatePriority(int nNearestIsHighest)
 
 void qxMergeQueueNode::UpdatePriority(int nNearestIsHighest)
 {
-
-
 	if(m_pPoly2)
 	{
 		int var1 = m_pPoly1->CalcPriority(nNearestIsHighest);
@@ -551,6 +559,5 @@ void qxMergeQueueNode::UpdatePriority(int nNearestIsHighest)
 	{
 		m_nPriority = m_pPoly1->CalcPriority(nNearestIsHighest);
 	}
-
 }
 

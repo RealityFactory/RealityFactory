@@ -12,7 +12,7 @@
 #define ONE_OVER_255		0.00392156862745098039215686274509804f
 #define fractRand(v) randnum (-v, v)
 #define MAX_DISTANCE_DETAIL 16
-			
+
 
 struct geWorld_Leaf;
 
@@ -23,7 +23,7 @@ typedef struct	gePoly
 #endif
 
 	geWorld			*World;
-	GE_LVertex		Verts[MAX_USER_VERTS];	// Copy of user verts					
+	GE_LVertex		Verts[MAX_USER_VERTS];	// Copy of user verts
 
 	geWorld_Leaf	*LeafData;
 	geFloat			ZOrder;
@@ -49,7 +49,7 @@ typedef struct	gePoly
 
 enum eDirection
 {
-	
+
 	DIRECTION_N,
 	DIRECTION_NE,
 	DIRECTION_E,

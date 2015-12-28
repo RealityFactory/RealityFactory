@@ -1,4 +1,4 @@
-// qxStars.h: 
+// qxStars.h:
 //
 // Author: Jeff Thelen
 //
@@ -15,41 +15,37 @@
 
 #include "qxEffectParticleChamber.h"
 
-	
+
 #define NUM_STARS 80
 
 class qxStar
 {
-
 public:
 
 	qxStar();
 	~qxStar();
-	
+
 	gePoly*		m_pPoly;
 	float		m_fScale;
 	GE_RGBA		m_Color;
 	geVec3d		m_vOrigin;
-
 };
 
 
-class qxStarField 
+class qxStarField
 {
 public:
 
 	qxStarField();
-
 	~qxStarField();
 
 	bool	Init();
-	
+
 	int		Frame();
 
 	//
 	// Attributes
 	//
-
 
 protected:
 
@@ -63,11 +59,7 @@ protected:
 
 	geXForm3d	m_matLocal;
 	void GetRandomStarColor(GE_RGBA* p);
-
-
 };
-
-
 
 
 #endif

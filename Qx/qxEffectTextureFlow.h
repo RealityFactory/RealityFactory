@@ -25,18 +25,18 @@ typedef struct ColorRGBA
 } ColorRGBA;
 
 
-class qxEffectTextureFlow : public qxEffectBase  
+class qxEffectTextureFlow : public qxEffectBase
 {
 
 public:
-	
+
 	qxEffectTextureFlow(char* strName, void*& qxFromEditor);
 	~qxEffectTextureFlow();
 	virtual bool Init();
 	virtual int Frame();
 	static const char* GetQXTypeName() { return "qxEffectTextureFlow"; }
 
-	
+
 protected:
 
 	geBitmap*		m_pOriginalBmpCopy;	// copy of the original bitmap
@@ -47,7 +47,7 @@ protected:
 	bool			m_bMipsChecked;		// whether or not preprocessing of mips has occured
 	gePixelFormat	m_PixelFormat;		// our prefered pixel format
 	uint8			m_Table[256][256];	// color lookup table
-	
+
 	uint8 FindBestColorMatch( ColorRGBA	*ColorTable,	// color table to use
 							  int			R,				// desired red
 							  int			G,				// desired green
@@ -55,7 +55,7 @@ protected:
 							  int			A );			// desired alpha
 
 	bool CreateColorTable();
-	
+
 
 public:
 	char		*BmpName;

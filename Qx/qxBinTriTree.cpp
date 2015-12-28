@@ -20,9 +20,9 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-qxBinTriTree::qxBinTriTree(qxTerrainMapBase* newOwner, 
-						   qxTerrainVert* lv, 
-						   qxTerrainVert* rv, 
+qxBinTriTree::qxBinTriTree(qxTerrainMapBase* newOwner,
+						   qxTerrainVert* lv,
+						   qxTerrainVert* rv,
 						   qxTerrainVert* tv)
 : m_pOwner(newOwner)
 
@@ -37,7 +37,7 @@ qxBinTriTree::qxBinTriTree(qxTerrainMapBase* newOwner,
 
 	CalcVarianceTable();
 
-	// NOTE: UpdateWedgeBounds() MUST happen AFTER the var table is calc'd, 
+	// NOTE: UpdateWedgeBounds() MUST happen AFTER the var table is calc'd,
 	//	cause variance is needed to calc the wedge bounding box
 	m_pTerrainPolyRoot->UpdateWedgeBounds();
 
@@ -55,7 +55,7 @@ qxBinTriTree::~qxBinTriTree()
 //
 void qxBinTriTree::Update()
 {
-		
+
 	m_pTerrainPolyRoot->UpdatePosition();
 	m_pTerrainPolyRoot->UpdateWedgeBounds();
 
@@ -65,33 +65,33 @@ void qxBinTriTree::CalcVarianceTable(void)
 {
 	int Max = m_pOwner->GetMaxVarianceLookupId();
 	m_pFinishedTable = new bool[ Max + 1 ];
-	
+
 	// first, clear existing table
 	for(int i = 0; i < Max; i++)
 		m_pFinishedTable[i] = 0;		// no elements filled yet
 
-/*	one CalcVar on the root tri requires that all the other tri's in the tree 
-	also be calc'd because its a recursive process, 
-	where a parent's V must be >= all its children because it includes them 
+/*	one CalcVar on the root tri requires that all the other tri's in the tree
+	also be calc'd because its a recursive process,
+	where a parent's V must be >= all its children because it includes them
 	(accounts for possible visual error of all children)
-*/	
-	CalcVariance(m_pTerrainPolyRoot->m_nTreeID, 
-				 m_pTerrainPolyRoot->m_pLeftVert->hX, 
+*/
+	CalcVariance(m_pTerrainPolyRoot->m_nTreeID,
+				 m_pTerrainPolyRoot->m_pLeftVert->hX,
 				 m_pTerrainPolyRoot->m_pLeftVert->hZ,
-				 m_pTerrainPolyRoot->m_pRightVert->hX, 
+				 m_pTerrainPolyRoot->m_pRightVert->hX,
 				 m_pTerrainPolyRoot->m_pRightVert->hZ,
-				 m_pTerrainPolyRoot->m_pTopVert->hX, 
+				 m_pTerrainPolyRoot->m_pTopVert->hX,
 				 m_pTerrainPolyRoot->m_pTopVert->hZ);
 
 	delete m_pFinishedTable;
 }
 
-int qxBinTriTree::CalcVariance( int id, 
-								 int lx, 
-								 int lz, 
-								 int rx, 
-								 int rz, 
-								 int tx, 
+int qxBinTriTree::CalcVariance( int id,
+								 int lx,
+								 int lz,
+								 int rx,
+								 int rz,
+								 int tx,
 								 int tz)
 {
 
@@ -106,16 +106,15 @@ int qxBinTriTree::CalcVariance( int id,
 
 	// the average of the real heights at the two ends of the hypot
 	float AvgHeight = (float)(	m_pOwner->GetElementHeight(lx,lz) + m_pOwner->GetElementHeight(rx,rz) )	 / 2;
-					
 
 
 	int v = (int)fabs( RealHeight - AvgHeight );
 
 	// calcVar for children
-	// 2^7 for max_depth=8, next depth == 8.  128 is the min id# 
+	// 2^7 for max_depth=8, next depth == 8.  128 is the min id#
 	// for a node at the deepest level (7).
-	
-	if(id < ((m_pOwner->GetMaxVarianceLookupId() + 1)/2)) 
+
+	if(id < ((m_pOwner->GetMaxVarianceLookupId() + 1)/2))
 	{
 		// left child
 		v = max( v, CalcVariance((id * 2), tx, tz, lx, lz, (lx+rx)/2, (lz+rz)/2) );

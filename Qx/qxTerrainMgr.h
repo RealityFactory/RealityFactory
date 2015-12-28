@@ -38,6 +38,7 @@ class qxTerrainDefinitionFile;
 class qxSkyDome;
 class qxColor;
 
+
 class TerrainObject : public skScriptedExecutable
 {
 public:
@@ -51,6 +52,7 @@ public:
 	float	ElapseTime;
 	char	szName[64];
 };
+
 
 class qxTerrainMgr
 {
@@ -72,7 +74,6 @@ public:
 	CIniFile *GetIniFile()
 	{ return &AttrFile; }
 
-
 	geVec3d* GetLightSource()		{ return &m_vLightSource; }
 	float GetLightAmbient()			{ return m_fLightAmbient; }
 	float GetLightIntensity()		{ return m_fLightIntensity; }
@@ -87,9 +88,7 @@ public:
 	float GetScaleY()				{ return m_fScaleY; }
 	float GetScaleXZ()				{ return m_fScaleXZ; }
 	int GetOffsetY()				{ return m_OffsetY; }
-	// changed QD 02/01/07
 	int GetSkyDomeOffsetY()			{ return m_SkyDomeOffsetY; }
-	// end change
 	int GetShadingMethod()			{ return m_nShadingMethod; }
 	int GetDistanceDetail()			{ return m_nDistanceDetail; }
 	gePixelFormat GetPixelFormatFinal() { return m_PixelFormatFinal; }
@@ -99,17 +98,15 @@ public:
 	void SetAllowSun(bool flag)		{ AllowSun = flag; }
 	void SetAllowCloud(bool flag)	{ AllowCloud = flag; }
 	bool GetAllowSkyFog()			{ return skyfog; }
-	void SetAllowSkyFog(bool flag)	{ skyfog = flag; }
+	void SetAllowSkyFog(bool flag)			{ skyfog = flag; }
 
-	void SetSunScale(float value)	{ m_SunScale = value; }
-	void SetScaleY(float value)		{ m_fScaleY = value; }
-	void SetScaleXZ(float value)	{ m_fScaleXZ = value; }
-	void SetOffsetY(int value)		{ m_OffsetY = value; }
-	// changed QD 02/01/07
-	void SetSkyDomeOffsetY(int value)	{ m_SkyDomeOffsetY = value; }
-	// end change
-	void SetDesiredTriangles(int value)	{ m_nDesiredTriangles = value; }
-	void SetLandscapeSize(int value)	{ m_nLandscapeSize = value; }
+	void SetSunScale(float value)			{ m_SunScale = value; }
+	void SetScaleY(float value)				{ m_fScaleY = value; }
+	void SetScaleXZ(float value)			{ m_fScaleXZ = value; }
+	void SetOffsetY(int value)				{ m_OffsetY = value; }
+	void SetSkyDomeOffsetY(int value)		{ m_SkyDomeOffsetY = value; }
+	void SetDesiredTriangles(int value)		{ m_nDesiredTriangles = value; }
+	void SetLandscapeSize(int value)		{ m_nLandscapeSize = value; }
 	void SetAmbientLightColor(float r, float g, float b, float a)
 	{ m_AmbientLightColor.r = r;
 	  m_AmbientLightColor.g = g;
@@ -149,10 +146,10 @@ public:
 	  mooncolor.g = g;
 	  mooncolor.b = b;
 	  mooncolor.a = a;}
-	void SetMoonPhase(int value)		{MoonPhase = value; }
+	void SetMoonPhase(int value)	{MoonPhase = value; }
 	int GetMoonPhase()  { return MoonPhase; }
 
-	GE_RGBA Getrgba()  { return rgba; }
+	GE_RGBA Getrgba()					{ return rgba; }
 	float GetMinBlueSkyColor()  { return m_fMinBlueSkyColor; }
 	float GetDistanceFromSunFactor()  { return m_fDistanceFromSunFactor; }
 	GE_RGBA Getcolor()  { return color; }
@@ -162,8 +159,8 @@ public:
 	bool GetTextureFlow()  { return TextureFlow; }
 	float GetElapsedTime() { return ElapsedTime; }
 	float GetTerrainTime() { return TerrainTime; }
-	eDirection	GetWindDir() { return WindDir; }
-	void SetWindDir(eDirection	Dir) { WindDir = Dir; }
+	eDirection GetWindDir() { return WindDir; }
+	void SetWindDir(eDirection Dir) { WindDir = Dir; }
 
 	void SetNormalDistanceToCamera( float f );
 	float GetNormalDistanceToCamera() { return m_fNormalDistanceToCamera; }
@@ -229,9 +226,7 @@ private:
 	float		m_fScaleXZ;
 	int			m_nFarPlane;
 	int			m_OffsetY;
-	// changed QD 02/01/07
 	int			m_SkyDomeOffsetY;
-	// end change
 	int			m_nDesiredTriangles;
 	int			m_nShadingMethod;
 	float		m_SunScale;
@@ -330,4 +325,4 @@ private:
 	CIniFile AttrFile;
 };
 
-#endif // !defined(AFX_WORLD_H__5F7A1C41_0BE9_11D3_BE84_50514EC10001__INCLUDED_)
+#endif

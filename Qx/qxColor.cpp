@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 //
-// This file contains code CONFIDENTIAL to Chimerix Entertainment, Inc. 
+// This file contains code CONFIDENTIAL to Chimerix Entertainment, Inc.
 // and Quixotic, Inc.  Use or disclosure without permission is prohibited.
 //
 // Copyright 2000 Chimerix Entertainment, Inc.  All Rights Reserved.
@@ -53,7 +53,7 @@ qxColor::qxColor(InitType initType, float rh, float gs, float bv,
 		case RGB:
 			SetRGBA(rh, gs, bv, a);
 			break;
-			
+
 		case HSV:
 			SetHSVA(rh, gs, bv, a);
 			break;

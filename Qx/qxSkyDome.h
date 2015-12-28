@@ -1,4 +1,4 @@
-// qxSkyDome.h: 
+// qxSkyDome.h:
 //
 // Original code: GenScape (c) 1999, Lucas Ackerman
 //
@@ -19,19 +19,18 @@
 #include "qxTerrainDefinitionFile.h"
 #include "qxTerrainMap.h"
 
-class	qxTerrainMgr;
-class	qxTerrainTile;
-class	qxTerrainVert;
-class   qxTerrainMap;
+class qxTerrainMgr;
+class qxTerrainTile;
+class qxTerrainVert;
+class qxTerrainMap;
 
 
 class qxSkyDome : public qxTerrainMap
 {
-
 public:
 
-	qxSkyDome(	qxTerrainDefinition& TerrainDef, 
-				int WidthLength, 
+	qxSkyDome(	qxTerrainDefinition& TerrainDef,
+				int WidthLength,
 				float fMaxHeight,
 				float fScaleXZ = 1.0f);
 
@@ -53,7 +52,7 @@ public:
 
 	float		GetDistanceFromSunFactor() { return m_fDistanceFromSunFactor; }
 	float		GetMaxSkyHeight() { return m_fMaxHeight; }
-	
+
 	qxColor*	GetCurrentSunColor()	{ return &m_CurrentSunColor; }
 	GE_RGBA*	GetCurrentSkyColor()	{ return &m_CurrentSkyColor.rgba; }
 	float		GetSunIntensity()		{ return m_fSunIntensity; }
@@ -66,9 +65,8 @@ public:
 
 protected:
 
-
 	geBitmap*	GetTexture();
-	geBitmap*	GetTexture(int i) ;
+	geBitmap*	GetTexture(int i);
 	void		CenterOnCamera();
 	void		MoveWithCamera();
 	void		ShadeTexture() {}
@@ -77,16 +75,15 @@ protected:
 	float		m_fMaxHeight;
 	bool		m_bMoveWithCamera;
 	qxEffectTextureFlow* pTextureFlow;
-	
-	
-	
+
+
 	// Scale the dome in the X Z directions
 	float		m_fScaleXZ;
 
 
 	void		AdjustSkyColor();
 	qxColor		m_CurrentSkyColor;
-	
+
 	// Factor for determining color depending on triangle's distance from sun
 	float		m_fDistanceFromSunFactor;
 
@@ -100,11 +97,7 @@ protected:
 	float		m_fMinBlueSkyColor;
 	float		m_fSunIntensity;
 	float		fTimer;
-
 };
-
-
-
 
 
 #endif

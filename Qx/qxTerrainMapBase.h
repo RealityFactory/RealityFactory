@@ -11,7 +11,6 @@
 #define qxTerrainMapBase_H
 #include "qxTerrainVert.h"
 
-
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
@@ -34,7 +33,6 @@ class qxMergeQueue;
 
 class qxTerrainMapBase
 {
-
 public:
 
 	qxTerrainMapBase() {}
@@ -58,17 +56,16 @@ public:
 	virtual bool Init();
 
 
-
 	virtual		geBitmap*	GetTexture()		{ return m_pTexture; }
 	virtual		geBitmap*	GetTexture(int i)	{ return m_pTexture; }
 
 	bool		GetRenderBackFace()				{ return m_bRenderBackFace; }
 
-	int					GetMapOffsetIndexZ() { return	m_nMapOffsetIndexZ; }
-	int					GetMapOffsetIndexX() { return	m_nMapOffsetIndexX; }
-	int					GetMapOffsetZ() { return	m_nMapOffsetZ; }
-	int					GetMapOffsetX() { return 	m_nMapOffsetX; }
-	int					SetDesiredPolyCount(int newCount);
+	int			GetMapOffsetIndexZ()			{ return	m_nMapOffsetIndexZ; }
+	int			GetMapOffsetIndexX()			{ return	m_nMapOffsetIndexX; }
+	int			GetMapOffsetZ()					{ return	m_nMapOffsetZ; }
+	int			GetMapOffsetX()					{ return 	m_nMapOffsetX; }
+	int			SetDesiredPolyCount(int newCount);
 
 
 	void PutPoly(qxTerrainPoly** p) { m_pPolyPool->PutPoly(p); }
@@ -112,7 +109,6 @@ public:
 
 protected:
 
-
 	int					m_nRenderFlags;
 
 	// Heighmap length and width
@@ -146,7 +142,6 @@ protected:
 	int					m_nMinPolyCount;
 	std::string			m_strTextureFile;
 	std::string			m_strAlphaFile;
-
 
 	bool				m_bUpdate;
 
@@ -201,7 +196,6 @@ protected:
 	int					m_nNearestIsHighest;
 
 
-
 	float				m_fScale;
 
 	//
@@ -214,13 +208,11 @@ protected:
 	int					m_nFarPlane;
 
 
-
 	qxSplitQueue*		m_pSplitQueue;
 	qxMergeQueue*		m_pMergeQueue;
 
 	// after a Split(qxTerrainPoly), this will point to a list of split qxTerrainPoly's.
 	qxTerrainPoly*		m_pSplitList;
-
 
 
 	void			UpdateViewFrustrum();
@@ -234,7 +226,6 @@ protected:
 	void Split( qxTerrainPoly* pPoly );
 	void Split2( qxTerrainPoly* pPoly, bool bCopy );
 	void Merge( qxTerrainPoly* pPoly );
-
 
 
 	//
@@ -255,12 +246,11 @@ inline void qxTerrainMapBase::LightAllVerts(float alpha)
 		pVert->CurrentVert.a = alpha;
 		pVert = pVert->m_pNext;
 	}
-
 }
+
 
 inline void qxTerrainMapBase::LightAllVerts(GE_RGBA* pColor)
 {
-
 	qxTerrainVert* pVert = m_pVertList;
 
 	if( pColor )

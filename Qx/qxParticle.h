@@ -50,16 +50,12 @@ public:
 	virtual void			UpdatePoly();
 	inline	void			Die();
 
-
 	qxEffectParticleChamber* m_pParent;
-
-
 };
 
 //Quad version of particle
 class qxParticleQuad : public qxParticleBase
 {
-
 public:
 
 	qxParticleQuad();
@@ -72,7 +68,6 @@ public:
 	bool Frame( float fTimeDelta);
 	void TranslateQuad( float fTimeDelta );
 	void UpdatePoly();
-
 };
 
 inline bool qxParticleQuad::Frame( float fTimeDelta )
@@ -82,14 +77,12 @@ inline bool qxParticleQuad::Frame( float fTimeDelta )
 
 	TranslateQuad( fTimeDelta );
 
-
-
 	return true;
 }
 
+
 inline bool qxParticleBase::Frame( float fTimeDelta )
 {
-
 	geVec3d		DeltaPos;
 
 	// Some systems may have particles with no Lifetime
@@ -110,8 +103,8 @@ inline bool qxParticleBase::Frame( float fTimeDelta )
 	// Animation
 	if ( m_nFlags & QX_PARTICLE_ANIMATION )
 	{
-
 		int nBmpSize = m_pParent->m_BmpArray.size();
+
 		int frame = (int)(m_pParent->AnimateFPS * m_fAge);
 
 		if( m_pParent->AnimateFPS > nBmpSize)
@@ -138,7 +131,6 @@ inline bool qxParticleBase::Frame( float fTimeDelta )
 			m_nFlags &= ~(QX_PARTICLE_ANIMATION);
 		}
 	}
-
 
 
 	geVec3d_Clear(&DeltaPos);
@@ -197,8 +189,6 @@ inline bool qxParticleBase::Frame( float fTimeDelta )
 Death:
 		Die();
 		return false;
-
-
 }
 
 inline void qxParticleBase::Die()

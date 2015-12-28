@@ -22,9 +22,7 @@ enum eHeightFieldSourceType
 
 class qxTerrainDefinition
 {
-
 public:
-
 
 	qxTerrainDefinition()
 	:
@@ -50,6 +48,7 @@ public:
 	float			m_fLatitude;
 	float			m_fLongitude;
 	eTerrainType	m_eType;
+
 	std::string		m_strHeightmap;
 	std::string		m_strBmp;
 	std::string		m_strAlpha;
@@ -64,14 +63,11 @@ public:
 	int				m_nWaterMapHeight;
 	int				m_nWaterMapLength;
 	int				m_nWaterLevel;
-
-
 };
 
 
 class qxTerrainDefinitionFile// : public CStdioFile
 {
-
 public:
 
 	qxTerrainDefinitionFile( const char* pFileName );
@@ -83,7 +79,6 @@ public:
 	qxTerrainDefinition* m_pTerrainDef;
 
 	std::string m_strCurrent;
-
 };
 
 

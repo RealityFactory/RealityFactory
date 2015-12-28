@@ -1,4 +1,4 @@
-// qxTerrainUtils.h: 
+// qxTerrainUtils.h:
 //
 // Original code: GenScape (c) 1999, Lucas Ackerman
 //
@@ -18,6 +18,7 @@
 class qxTerrainVert;
 class qxTerrainPoly;
 
+
 class qxPolyPool
 {
 public:
@@ -30,13 +31,11 @@ public:
 private:
 
 	qxTerrainPoly* List_Head;
-
 };
 
 
 class qxVertPool
 {
-
 public:
 	qxVertPool();
 	~qxVertPool();
@@ -47,33 +46,28 @@ public:
 private:
 
 	qxTerrainVert* List_Head;
-
 };
 
 
-
-class qxSplitQueueNode	
+class qxSplitQueueNode
 {
 public:
 
 	qxSplitQueueNode() {}
 	~qxSplitQueueNode() {}
 	void UpdatePriority(int nNearestIsHighest=0);
-	
 
 
 private:
-	
+
 	qxTerrainPoly*		m_pPoly;
 	qxSplitQueueNode*	m_pNext;
 	qxSplitQueueNode*	m_pPrevious;
 	int m_nPriority;
-	
+
 	friend class qxSplitQueue;
 	friend class qxTerrainMapBase;
-
 };
-
 
 
 class qxSplitQueue
@@ -83,7 +77,7 @@ public:
 	qxSplitQueue();
 	~qxSplitQueue();
 
-	void Clear();	
+	void Clear();
 	void ClearPool();
 	void RemoveNode(qxSplitQueueNode* pNode);
 	void InsertTerrainPoly(qxTerrainPoly* pPoly);
@@ -99,18 +93,15 @@ private:
 	// array of ptrs to doubly linked lists.  works sort of like a chained hash table
 	qxSplitQueueNode** m_pPriorityList;
 	qxSplitQueueNode* m_pPoolListHead;
-	
+
 	int m_nHighestPriority;
 
 	friend class qxTerrainMapBase;
-
-
 };
 
 
-class qxMergeQueueNode	
+class qxMergeQueueNode
 {
-
 public:
 
 	qxMergeQueueNode() {}
@@ -118,7 +109,7 @@ public:
 	void UpdatePriority(int nNearestIsHighest=0);
 
 private:
-	
+
 	qxTerrainPoly* m_pPoly1;
 	qxTerrainPoly* m_pPoly2;
 	qxMergeQueueNode* m_pNext;
@@ -128,8 +119,8 @@ private:
 
 	friend class qxMergeQueue;
 	friend class qxTerrainMapBase;
-
 };
+
 
 class qxMergeQueue
 {
@@ -138,7 +129,7 @@ public:
 	qxMergeQueue();
 	~qxMergeQueue();
 
-	void Clear();	
+	void Clear();
 	void ClearPool();
 	void RemoveNode(qxMergeQueueNode* pNode);
 
@@ -158,12 +149,7 @@ private:
 	int m_nLowestPriority;
 
 	friend class qxTerrainMapBase;
-
 };
-
-
-
-
 
 
 #endif

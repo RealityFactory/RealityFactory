@@ -1,4 +1,4 @@
-// qxMoon_H.h: 
+// qxMoon_H.h:
 //
 // Author: Jeff Thelen
 //
@@ -14,8 +14,6 @@
 #endif // _MSC_VER > 1000
 
 
-
-
 enum eMOON_PHASE
 {
 	MOON_PHASE_NEW,
@@ -28,7 +26,7 @@ enum eMOON_PHASE
 #include "..\\RabidFramework.h"
 
 
-class qxMoon 
+class qxMoon
 {
 public:
 
@@ -37,7 +35,7 @@ public:
 	~qxMoon();
 
 	bool	Init();
-	
+
 	int		Frame();
 
 	//
@@ -55,11 +53,7 @@ protected:
 	float		m_fScale;
 	float		m_fAlpha;
 	eMOON_PHASE	m_eMoonPhase;
-
-	
 };
-
-
 
 
 #endif

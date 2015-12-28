@@ -1,3 +1,4 @@
+
 #include "..\\RabidFramework.h"
 #include "qxTerrainDefinitionFile.h"
 
@@ -17,27 +18,21 @@ qxTerrainDefinitionFile::~qxTerrainDefinitionFile()
 // based on what is there
 void qxTerrainDefinitionFile::CheckWorldBounds()
 {
-
 }
 
 bool qxTerrainDefinitionFile::Load( int X, int Z )
 {
-
 	return true;
 }
 
 inline bool qxTerrainDefinitionFile::GetNextHeader()
 {
-
 	return false;
 }
 
 inline bool qxTerrainDefinitionFile::ParseDefinition()
 {
-
 	return true;
 }
-
-	
 
 

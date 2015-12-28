@@ -6,7 +6,6 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-
 #ifndef QX_EFFECTBASE_H
 #define QX_EFFECTBASE_H
 
@@ -26,7 +25,6 @@ enum TRIGGER_FLAG
 };
 
 
-
 class qxEffectBase
 {
 public:
@@ -42,19 +40,16 @@ public:
 	std::string&	GetName()	{ return m_strName; }
 	geBitmap*		GetBitmap() { return m_pBmp; }
 
-	virtual void	SetPause( bool b);
-	virtual void	SetActive( bool b);
-	void			SetTotalTime(float f) { TotalTime = f; m_fTimeLeft = f; }
+	virtual void	SetPause(bool b);
+	virtual void	SetActive(bool b);
+	void			SetTotalTime(float f)	{ TotalTime = f; m_fTimeLeft = f; }
 	void			SetTimeLeft(float f)	{ m_fTimeLeft = f; }
 
 	// Not all effects have a destination, but all have an origin.
 	virtual void	SetOriginAndDest(geVec3d* pOrig, geVec3d* pDest);
 
 	bool			GetPaused() { return m_bPaused; }
-	void			SetVisibilityFlags( int n ) { m_nVisibilityFlags = n; }
-
-
-
+	void			SetVisibilityFlags(int n) { m_nVisibilityFlags = n; }
 
 protected:
 
@@ -120,4 +115,5 @@ inline bool qxEffectBase::IsVisible()
 
 	return true;
 }
-#endif // !defined(AFX_EFFECTBASE_H__2D101602_6559_11D3_BE84_004F4FC10000__INCLUDED_)
+
+#endif // !defined(QX_EFFECTBASE_H)

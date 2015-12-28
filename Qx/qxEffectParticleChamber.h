@@ -46,7 +46,7 @@ public:
 	// some classes may not want the original origin
 	virtual geVec3d*	GetOrigin() { return &Origin; }
 
-	int				GetParticlesAlive() { 	return m_nParticlesAlive; }
+	int				GetParticlesAlive() { return m_nParticlesAlive; }
 
 	bool			SetAngles( geVec3d* pAngles );
 
@@ -66,7 +66,6 @@ public:
 	std::vector<geBitmap*> m_BmpArray;
 
 protected:
-
 
 	void		LoadAnimation();
 

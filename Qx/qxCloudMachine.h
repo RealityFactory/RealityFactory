@@ -1,4 +1,4 @@
-// qxCloudMachine.h: 
+// qxCloudMachine.h:
 //
 // Author: Jeff Thelen
 //
@@ -25,10 +25,8 @@ public:
 	~qxCloudMachine();
 
 	bool	Init();
-	
+
 	int		Frame();
-
-
 
 	void DoWhiteFluffy();
 	void DoGreyOvercast();
@@ -43,10 +41,10 @@ public:
 
 	int m_nHeightMin;
 	int m_nHeightMax;
-		
+
 	float		m_fTimeToKillParticles;
 	float		m_fTimeToMoveOrigin;
-	
+
 	eDirection	m_eWindDir;
 
 	// virtual override
@@ -57,11 +55,7 @@ protected:
 
 	void SetAngles();
 
-
-	
 };
-
-
 
 
 #endif

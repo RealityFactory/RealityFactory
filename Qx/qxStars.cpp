@@ -32,9 +32,9 @@ m_pStarSparkle(0)
 	geXForm3d_SetIdentity(&m_matLocal);
 }
 
+
 qxStarField::~qxStarField()
 {
-
 }
 
 
@@ -46,9 +46,9 @@ bool qxStarField::Init()
 	return true;
 }
 
+
 bool qxStarField::InitStarsMajor()
 {
-
 	float Scale = (CCD->TerrainMgr()->GetLandscapeSize())/1000.0f;
 
 	// Random stars. We should in the end use actual star coordinates for
@@ -68,45 +68,40 @@ bool qxStarField::InitStarsMajor()
 		RotateRads.X = Frand(	RADIANS(-180), RADIANS(180) );
 		RotateRads.Y = Frand(	RADIANS(-180), RADIANS(180) );
 		RotateRads.Z = Frand(	RADIANS(-180), RADIANS(180) );
-		
-		
+
+
 		geXForm3d matRotate;
 		geXForm3d_SetIdentity(&matRotate);
-		
-		
+
+
 		geXForm3d_RotateX( &matRotate, RotateRads.X );
 		geXForm3d_RotateY(&matRotate, RotateRads.Y );
 		geXForm3d_RotateZ(&matRotate, RotateRads.Z );
-		
+
 		geVec3d In, Pos;
-		geXForm3d_GetIn(&matRotate, &In);	
-		
-		
+		geXForm3d_GetIn(&matRotate, &In);
+
+
 		geVec3d_Scale(&In, 2000*Scale, &In);
-		
+
 		geVec3d_Clear(&Pos);
 
-	
 		geVec3d_Add( &Pos, &In, &m_Stars[i].m_vOrigin);
 
-			
 		m_Stars[i].m_fScale		= Frand(.25f*Scale, 1.00f*Scale);
 		m_Stars[i].m_Color.a	= Frand(64, 255);
-		
+
 		switch( CurBmp )
 		{
 		case 0: CurBmp=1; pCurBmp = pBmp1; break;
 		case 1: CurBmp=2; pCurBmp = pBmp2; break;
 		case 2: CurBmp=3; pCurBmp = pBmp3; break;
 		case 3: CurBmp=0; pCurBmp = pBmp4; break;
-		
 		}
-	
 
-		
-		
+
 		GetRandomStarColor( &m_Stars[i].m_Color );
-		
+
 		GE_LVertex v;
 		memset(&v, 0, sizeof(v));
 		v.a =	m_Stars[i].m_Color.a;
@@ -115,7 +110,7 @@ bool qxStarField::InitStarsMajor()
 		v.b =	m_Stars[i].m_Color.b;
 		geVec3d_Copy(&m_Stars[i].m_vOrigin, (geVec3d*) &v.X);
 
-		m_Stars[i].m_pPoly = 
+		m_Stars[i].m_pPoly =
 			geWorld_AddPoly(CCD->Engine()->World(),
 			&v,
 			1,
@@ -131,8 +126,6 @@ bool qxStarField::InitStarsMajor()
 
 int qxStarField::Frame()
 {
-
-
 	// -1.0 midnight, 1.0 noon
 	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
 
@@ -158,21 +151,21 @@ int qxStarField::Frame()
 	for(int i = 0; i < NUM_STARS; i++)
 	{
 		geVec3d Translation = m_Stars[i].m_vOrigin;
-		
+
 		GE_LVertex v;
 		gePoly_GetLVertex( m_Stars[i].m_pPoly, 0, &v );
-		
+
 		geXForm3d_Rotate(CCD->TerrainMgr()->GetEarthRotation(),
 			&m_Stars[i].m_vOrigin, &Translation);
-		
+
 		geVec3d_Add(pCam, &Translation, (geVec3d*)&v.X);
 
 		v.a = fSunupAlphaAdjust * m_Stars[i].m_Color.a;
 
 		gePoly_SetLVertex( m_Stars[i].m_pPoly, 0, &v );
 	}
-	
-		
+
+
 	if( fSunupAlphaAdjust < 1.0f )
 		return 1;
 
@@ -192,13 +185,12 @@ int qxStarField::Frame()
 	}
 	else
 	{
-				
 		float fTime  = CCD->LastElapsedTime_F()*0.001f;
 		m_fStarSparkleTime -= fTime;
 
 		GE_LVertex v;
 		gePoly_GetLVertex( m_pStarSparkle->m_pPoly, 0, &v );
-		
+
 		m_fStarSparkleAlpha += m_fStarSparkleDir * fTime;
 
 		// end of sparkle time
@@ -220,21 +212,19 @@ int qxStarField::Frame()
 				m_fStarSparkleAlpha = m_pStarSparkle->m_Color.a*.5f;
 				m_fStarSparkleDir = -m_fStarSparkleDir;
 			}
-			
+
 			v.a = m_fStarSparkleAlpha;
-			
+
 			gePoly_SetLVertex( m_pStarSparkle->m_pPoly, 0, &v );
 		}
 	}
 
 	return 1;
-
 }
 
 
 void qxStarField::GetRandomStarColor(GE_RGBA* p)
 {
-
 	int Color = rand()%16;
 
 	switch( Color )
@@ -294,16 +284,13 @@ qxStar::qxStar()
 {
 	ColorInit(&m_Color);
 	geVec3d_Clear(&m_vOrigin);
-
 }
 
 qxStar::~qxStar()
 {
-
 	if(m_pPoly)
 	{
 		geWorld_RemovePoly(CCD->Engine()->World(), m_pPoly);
 		m_pPoly = 0;
 	}
-
 }

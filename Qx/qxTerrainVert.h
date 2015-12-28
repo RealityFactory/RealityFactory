@@ -7,7 +7,6 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-
 #ifndef qxTerrainVert_H
 #define qxTerrainVert_H
 

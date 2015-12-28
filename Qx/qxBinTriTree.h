@@ -7,10 +7,8 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-
 #ifndef qxBinTriTree_H
 #define qxBinTriTree_H
-
 
 class qxTerrainVert;
 class qxTerrainMapBase;
@@ -22,13 +20,13 @@ class qxBinTriTree
 public:
 
 	qxBinTriTree() {}
-	
+
 	// left, right, top verts of the base tri.
-	qxBinTriTree(	qxTerrainMapBase* newOwner, 
-					qxTerrainVert* lv, 
-					qxTerrainVert* rv, 
+	qxBinTriTree(	qxTerrainMapBase* newOwner,
+					qxTerrainVert* lv,
+					qxTerrainVert* rv,
 					qxTerrainVert* tv);
-	
+
 	~qxBinTriTree();
 
 
@@ -41,18 +39,17 @@ public:
 	void		Update();
 
 private:
-	// for calculating a triangle's variance, will add it to 
+	// for calculating a triangle's variance, will add it to
 	// vtable if it doesnt exist (as determined by finished_table)
-	// take's id# and heightmap x,z location of each vert (left, right, top) 
+	// take's id# and heightmap x,z location of each vert (left, right, top)
 	// of the tri.
-	int	CalcVariance(	int id, int lx, int lz, int rx, int rz, 
+	int	CalcVariance(	int id, int lx, int lz, int rx, int rz,
 						int tx, int tz);
 
 	qxTerrainMapBase*	m_pOwner;
 	qxTerrainPoly*		m_pTerrainPolyRoot;
 
 	friend class qxTerrainTile;
-
 };
 
 

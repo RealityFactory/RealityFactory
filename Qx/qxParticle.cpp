@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// This file contains code CONFIDENTIAL to Quixotic, Inc.  
+// This file contains code CONFIDENTIAL to Quixotic, Inc.
 // Use or disclosure without permission is prohibited.
 //
 // Copyright 1999 Quixotic, Inc.  All Rights Reserved.
@@ -16,8 +16,6 @@
 #include "..\\RabidFramework.h"
 #include "qxParticle.h"
 #include "QxUser.h"	//Genesis
-//#include "qxUtilsCommon.h"
-//#include <Math.h>
 
 
 #ifdef _DEBUG
@@ -46,7 +44,6 @@ m_pPoly(0)
 	m_vVertex.g = 255.0f;
 	m_vVertex.b = 255.0f;
 	m_vVertex.a = 255.0f;
-
 }
 
 qxParticleQuad::qxParticleQuad()
@@ -54,7 +51,7 @@ qxParticleQuad::qxParticleQuad()
 {
 	geVec3d_Clear(&m_vRotateRads);
 	geXForm3d_SetIdentity(&m_matLocal);
-		
+
 	for(int i = 0; i < 4; i++)
 	{
 		geVec3d_Clear( (geVec3d*) &(m_vQuadVerts[i].X) );
@@ -80,7 +77,7 @@ qxParticleBase::~qxParticleBase()
 
 
 void qxParticleQuad::TranslateQuad( float fElapsedTime )
-{	
+{
 	geVec3d Up, Left;
 	float HalfWidth =  geBitmap_Width( m_pPoly->Bitmap ) * m_fSize * 0.5f;
 	float HalfHeight = geBitmap_Height( m_pPoly->Bitmap ) * m_fSize * 0.5f;
@@ -88,7 +85,7 @@ void qxParticleQuad::TranslateQuad( float fElapsedTime )
 	// Build rotation matrix
 	if( !geVec3d_IsZero(&m_vRotateRads) )
 	{
-			
+
 		geXForm3d matRotate;
 		geXForm3d_SetIdentity(&matRotate);
 
@@ -102,13 +99,13 @@ void qxParticleQuad::TranslateQuad( float fElapsedTime )
 		geXForm3d_Multiply(&m_matLocal, &matRotate, &m_matLocal);
 	}
 
-	
+
 	geXForm3d_GetLeft( &m_matLocal, &Left );
 	geXForm3d_GetUp( &m_matLocal, &Up );
 
 	geVec3d_Scale( &Left, HalfWidth, &Left );
 	geVec3d_Scale( &Up, HalfHeight, &Up );
-	
+
 	m_vQuadVerts[0].X = m_vVertex.X + Left.X + Up.X;
 	m_vQuadVerts[0].Y = m_vVertex.Y + Left.Y + Up.Y;
 	m_vQuadVerts[0].Z = m_vVertex.Z + Left.Z + Up.Z;
@@ -121,6 +118,5 @@ void qxParticleQuad::TranslateQuad( float fElapsedTime )
 	m_vQuadVerts[3].X = m_vVertex.X + Left.X - Up.X;
 	m_vQuadVerts[3].Y = m_vVertex.Y + Left.Y - Up.Y;
 	m_vQuadVerts[3].Z = m_vVertex.Z + Left.Z - Up.Z;
-
 }
-			
+

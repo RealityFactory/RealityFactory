@@ -33,7 +33,7 @@ static char THIS_FILE[]=__FILE__;
 //////////////////////////////////////////////////////////////////////
 
 
-qxEffectParticleChamber::qxEffectParticleChamber(char* strName, void*& qxFromEditor)
+qxEffectParticleChamber::qxEffectParticleChamber(char* strName, void*& /*qxFromEditor*/)
 :
 qxEffectBase(strName)
 ,m_fEmissionResidue(0.0f)
@@ -42,7 +42,6 @@ qxEffectBase(strName)
 ,m_bQuadRandomInitialRotate(false)
 ,m_bUseGravity(false)
 ,m_bUseVelocity(false)
-
 
 //QX VARIABLES
 ,AnglesRandom(false)
@@ -86,25 +85,20 @@ qxEffectBase(strName)
 
 	ColorInit(&ColorStart);
 	ColorInit(&ColorEnd);
-
 }
-
 
 
 qxEffectParticleChamber::~qxEffectParticleChamber()
 {
-
 	for(unsigned int i = 0; i < m_pParticles.size(); i++)
 	{
 		delete m_pParticles[i];
 	}
-
 }
 
 
 bool qxEffectParticleChamber::Init()
 {
-
 	if(!qxEffectBase::Init() )
 		return false;
 
@@ -120,8 +114,6 @@ bool qxEffectParticleChamber::Init()
 	QXASSERT(RandomGravityMin.X <= RandomGravityMax.X);
 	QXASSERT(RandomGravityMin.Y <= RandomGravityMax.Y);
 	QXASSERT(RandomGravityMin.Z <= RandomGravityMax.Z);
-
-
 
 
 	if( !EffectC_IsStringNull( AnimateBmpPrefix) )
@@ -156,13 +148,8 @@ bool qxEffectParticleChamber::Init()
 		m_pParticles[i] = p;
 	}
 
-
 	// setup orientation
-
 	SetAngles( &Angles );
-
-
-
 
 	// setup default vertex data
 	m_Vertex.u = 0.0f;
@@ -171,13 +158,10 @@ bool qxEffectParticleChamber::Init()
 	if(Quad)
 	{
 		InitQuad();
-
 	}
 
 	m_bUseGravity = !geVec3d_IsZero(&Gravity);
 	m_bUseVelocity = (SpeedMax > 0.0f);
-
-
 
 
 	m_fAlphaTempEnd = AlphaEnd;
@@ -187,7 +171,6 @@ bool qxEffectParticleChamber::Init()
 		QXASSERT(AlphaEnd > AlphaStart);
 		m_fAlphaTempEnd = AlphaEnd*2.0f;
 	}
-
 
 	return true;
 }
@@ -210,7 +193,6 @@ bool qxEffectParticleChamber::SetAngles(geVec3d* pAngles)
 	}
 	else
 	{
-
 		geVec3d		In;
 
 		// setup dest position
@@ -236,13 +218,11 @@ void qxEffectParticleChamber::SetOriginAndDest(geVec3d* pPos, geVec3d* pDest)
 	EffectC_XFormFromVector( &Origin, &m_vDest, &m_matXForm );
 
 	SetAngles( &Angles );
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 //
-//	qxEffectParticleChamber::Frame()
+// qxEffectParticleChamber::Frame()
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 int qxEffectParticleChamber::Frame()
@@ -279,9 +259,6 @@ int qxEffectParticleChamber::Frame()
 	}
 
 
-
-
-
 	// adjust position if it's hooked to an actor
 	if ( m_pActor )
 	{
@@ -304,7 +281,6 @@ int qxEffectParticleChamber::Frame()
 	}//if actor attached
 
 
-
 	if(!IsVisible())
 	{
 		//Printer()->AddDebugStringBottom("NOTVISIBLE");
@@ -318,7 +294,6 @@ int qxEffectParticleChamber::Frame()
 	// perform level of detail processing if required
 	if ( DistanceMax > 0.0f )
 	{
-
 		float fDistance = CheckVisibleDistance();
 		if(fDistance < 0.0f)
 			return 1;
@@ -327,15 +302,11 @@ int qxEffectParticleChamber::Frame()
 		// determine polygon adjustment amount
 		if ( fDistance > DistanceMin )
 		{
-
 			// Distance min determines the minimum needed for full intensity
 			// .67 = ( 1.0f - ( (1000-100)/(3000-100) )
 			fDistanceAdjustment = ( 1.0f - ( ( fDistance - DistanceMin ) / ( DistanceMax - DistanceMin ) ) );
-
 		}
 	}
-
-
 
 
 	// calculate how many particles we should create from ParticlesPerSec and
@@ -557,12 +528,10 @@ int qxEffectParticleChamber::Frame()
 					pQuad->UpdatePoly();
 					// Due to bug somewhere...
 
-
 				}
 				//
 				//QUAD
 				//
-
 				else
 				{
 					m_pParticles[i]->m_pPoly = geWorld_AddPoly(CCD->Engine()->World(),
@@ -572,7 +541,6 @@ int qxEffectParticleChamber::Frame()
 										GE_TEXTURED_POINT,
 										m_nRenderStyle,
 										m_pParticles[i]->m_fSize );
-
 				}
 
 				// decrement the number of needed particles
@@ -581,41 +549,30 @@ int qxEffectParticleChamber::Frame()
 		}
 	}
 
-
-
-
-
-
 	return 1;
-
 } // Frame()
 
 
 void qxEffectParticleChamber::AddBmp(const char* pBmp, const char* pAlpha)
 {
-
 	// LoadBitmaps
 	char Bmp[128], Alpha[128];
 	strcpy(Bmp, pBmp);
 	strcpy(Alpha, pAlpha);
 	geBitmap* p = TPool_Bitmap(Bmp, Alpha, NULL, NULL);
 	QXASSERT(p);
-
 	m_BmpArray.push_back(p);
 }
-
 
 
 // This can only be called once.
 // Not necessary if coming from the editor
 void qxEffectParticleChamber::SetAnimationMode()
 {
-
 	if( m_bAnimationMode )
 		return;
 
 	m_bAnimationMode = true;
-
 }
 
 
@@ -678,11 +635,8 @@ bool qxEffectParticleChamber::ReInit()
 		m_pParticles[j] = p;
 	}
 
-
 	// setup orientation
-
 	SetAngles( &Angles );
-
 
 	if(Quad)
 	{
@@ -706,16 +660,15 @@ bool qxEffectParticleChamber::ReInit()
 
 void qxEffectParticleChamber::KillAllParticles( )
 {
-
 	for ( int i=0; i < ParticlesMax; i++ )
 	{
 		m_pParticles[i]->Die();
 	}
 }
 
+
 void qxEffectParticleChamber::TranslateAllParticles(geVec3d* pV )
 {
-
 	// update all particles that we own
 	for ( int i=0; i < ParticlesMax; i++ )
 	{
@@ -730,7 +683,6 @@ void qxEffectParticleChamber::TranslateAllParticles(geVec3d* pV )
 
 void qxEffectParticleChamber::KillAgedParticles( float fAge )
 {
-
 	m_nParticlesAlive = 0;
 
 	// update all particles that we own
@@ -754,8 +706,6 @@ void qxEffectParticleChamber::KillAgedParticles( float fAge )
 //
 void qxEffectParticleChamber::KillInvisibleParticles( float fDistThreshold )
 {
-
-
 	m_nParticlesAlive = 0;
 
 	// update all particles that we own
@@ -787,12 +737,11 @@ void qxEffectParticleChamber::KillInvisibleParticles( float fDistThreshold )
 
 void qxEffectParticleChamber::InitQuad()
 {
-
 	QXASSERT(QuadRotateDegreesMin.X <= QuadRotateDegreesMax.X);
 	QXASSERT(QuadRotateDegreesMin.Y <= QuadRotateDegreesMax.Y);
 	QXASSERT(QuadRotateDegreesMin.Z <= QuadRotateDegreesMax.Z);
 
-	//Convert degrees to rads
+	// Convert degrees to rads
 	m_vQuadRotateRadsMin.X = RADIANS(QuadRotateDegreesMin.X);
 	m_vQuadRotateRadsMin.Y = RADIANS(QuadRotateDegreesMin.Y);
 	m_vQuadRotateRadsMin.Z = RADIANS(QuadRotateDegreesMin.Z);
@@ -815,6 +764,5 @@ void qxEffectParticleChamber::InitQuad()
 		QXASSERT(m_vQuadInitialRotateRadsMin.X <= m_vQuadInitialRotateRadsMax.X);
 		QXASSERT(m_vQuadInitialRotateRadsMin.Y <= m_vQuadInitialRotateRadsMax.Y);
 		QXASSERT(m_vQuadInitialRotateRadsMin.Z <= m_vQuadInitialRotateRadsMax.Z);
-
 	}
 }

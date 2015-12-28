@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// This file contains code CONFIDENTIAL to Chimerix Entertainment, Inc. 
+// This file contains code CONFIDENTIAL to Chimerix Entertainment, Inc.
 // and Quixotic, Inc.  Use or disclosure without permission is prohibited.
 //
 // Copyright 2000 Chimerix Entertainment, Inc.  All Rights Reserved.
@@ -99,7 +99,7 @@ public:
 	void SetH(float h);
 	void SetS(float s);
 	void SetV(float v);
-	
+
 	void SetRGBA(GE_RGBA& c) { SetRGBA(c.r, c.g, c.b, c.a); }
 	void SetRGBA(float r, float g, float b, float a = 255.0);
 	void SetHSVA(float h, float s, float v, float a = 255.0);
@@ -117,7 +117,7 @@ public:
 		m_hue	= qx.m_hue;
 		m_saturation = qx.m_saturation;
 		m_value	= qx.m_value;
-		return *this;	
+		return *this;
 	};
 
 	operator GE_RGBA*() const
@@ -160,6 +160,4 @@ static qxColor qxColorWhite( COLOR_WHITE );
 static qxColor qxColorBlack( COLOR_BLACK );
 
 
-
-
-#endif 
+#endif

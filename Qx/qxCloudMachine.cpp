@@ -21,8 +21,6 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 
-
-
 //////////////////////////////////////////////////////////////////////
 // qxCloudMachine
 //////////////////////////////////////////////////////////////////////
@@ -68,7 +66,7 @@ bool qxCloudMachine::Init()
 	VarianceDest		= 0;
 	BmpName				= "terrain\\white256.bmp";
 	BmpAlphaName		= "terrain\\a_clouds4.bmp";
-	
+
 	SetVisibilityFlags( 0 );
 
 	SizeStart			= 10;
@@ -82,25 +80,23 @@ bool qxCloudMachine::Init()
 	qxColor start;
 	start.SetRGB(255);
 
-	ColorStart			= start.rgba; 
+	ColorStart			= start.rgba;
 	qxColor end;
 	end.SetRGB(220);
 
-	ColorEnd				= end.rgba;
+	ColorEnd			= end.rgba;
 
 	DistanceMax			= 0;// Always visible.
 	DistanceMin			= 0;
 	SpeedMax			= 300;
 	SpeedMin			= 100;
 
-
 	geVec3d_Set(&QuadRotateDegreesMin,0, 0 , -1);
 	geVec3d_Set(&QuadRotateDegreesMax,0, 0 , 1 );
-	
 
 	// This is a quad that lays flat
 	// Slight tilt on the Z axis for variety
-	geVec3d_Set(&QuadRandInitialRotateDegreesMax, 90, 359 , 0); 
+	geVec3d_Set(&QuadRandInitialRotateDegreesMax, 90, 359 , 0);
 	geVec3d_Set(&QuadRandInitialRotateDegreesMin, 90, 0 , 0);
 	Quad				= true;
 
@@ -112,11 +108,12 @@ bool qxCloudMachine::Init()
 	return true;
 }
 
+
 void qxCloudMachine::Draw()
 {
 
-
 }
+
 
 int qxCloudMachine::Frame()
 {
@@ -133,9 +130,7 @@ int qxCloudMachine::Frame()
 	{
 		m_fTimeToKillParticles = TIME_TO_KILL_PARTICLES;
 		KillInvisibleParticles( CCD->Engine()->GetFogEnd()*2.0f );
-
 	}
-
 
 	UpdateColors();
 
@@ -145,31 +140,31 @@ int qxCloudMachine::Frame()
 	if(	m_fTimeToMoveOrigin < 0.0f )
 	{
 		m_fTimeToMoveOrigin = TIME_TO_MOVE_ORIGIN;
-		
-		
-		//Get the far limits of the fog. 
+
+
+		//Get the far limits of the fog.
 		//float fStart = CCD->Engine()->GetFogEnd()*2.0f;
 		float fStart = (float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f;
-		
+
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
 		const geVec3d* pCam = &thePosition;
-		
+
 		geVec3d v;
-		
+
 		v.X	= Frand( -fStart, fStart );
 		v.X	+= 	pCam->X;
 		v.Z	= Frand( -fStart, fStart );
 		v.Z	+= pCam->Z;
-		
+
 		v.Y	= Frand((float)m_nHeightMin,(float)m_nHeightMax);
-		
+
 		SetOriginAndDest(&v, NULL);
 	}
 
 	return 1;
-
 }
+
 
 void qxCloudMachine::DoCloudless()
 {
@@ -181,7 +176,6 @@ void qxCloudMachine::DoCloudless()
 
 	BmpName				= "terrain\\white256.bmp";
 	BmpAlphaName		= "terrain\\a_clouds4.bmp";
-	
 
 	SizeStart			= 4;
 	SizeEnd				= 10;
@@ -192,12 +186,11 @@ void qxCloudMachine::DoCloudless()
 
 	qxColor start;
 	start.SetRGB(255);
-	ColorStart			= start.rgba; 
+	ColorStart			= start.rgba;
 
 	qxColor end;
 	end.SetRGB(220);
 	ColorEnd			= end.rgba;
-
 
 	SpeedMax			= 30;
 	SpeedMin			= 2;
@@ -206,25 +199,24 @@ void qxCloudMachine::DoCloudless()
 	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
 
 	qxEffectParticleChamber::ReInit();
-	
-	SetAngles();
 
+	SetAngles();
 }
+
 
 void qxCloudMachine::SetNightBlueColor()
 {
-
 	qxColor start;
 	start.SetRGBA(90,128,255);
-	ColorStart			= start.rgba; 
+	ColorStart			= start.rgba;
 
 	qxColor end;
 	end.SetRGBA(90,128,160);
 	ColorEnd			= end.rgba;
 
 	qxEffectParticleChamber::ReInit();
-
 }
+
 
 void qxCloudMachine::DoWhiteFluffy()
 {
@@ -236,7 +228,6 @@ void qxCloudMachine::DoWhiteFluffy()
 
 	BmpName				= "terrain\\clouds_256.bmp";
 	BmpAlphaName		= "terrain\\a_clouds4.bmp";
-	
 
 	SizeStart			= 2;
 	SizeEnd				= 10;
@@ -247,7 +238,7 @@ void qxCloudMachine::DoWhiteFluffy()
 
 	qxColor start;
 	start.SetRGB(255);
-	ColorStart			= start.rgba; 
+	ColorStart			= start.rgba;
 
 	qxColor end;
 	end.SetRGB(220);
@@ -259,12 +250,11 @@ void qxCloudMachine::DoWhiteFluffy()
 	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
 	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
 
-
 	qxEffectParticleChamber::ReInit();
-	
-	SetAngles();
 
+	SetAngles();
 }
+
 
 void qxCloudMachine::DoGreyOvercast()
 {
@@ -276,7 +266,6 @@ void qxCloudMachine::DoGreyOvercast()
 
 	BmpName				= "terrain\\white256.bmp";
 	BmpAlphaName		= "terrain\\a_clouds4.bmp";
-	
 
 	SizeStart			= 40;
 	SizeEnd				= 100;
@@ -287,7 +276,7 @@ void qxCloudMachine::DoGreyOvercast()
 
 	qxColor start;
 	start.SetRGB(120);
-	ColorStart			= start.rgba; 
+	ColorStart			= start.rgba;
 
 	qxColor end;
 	end.SetRGB(64);
@@ -299,19 +288,17 @@ void qxCloudMachine::DoGreyOvercast()
 	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
 	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
 
-
 	qxEffectParticleChamber::ReInit();
 
 	SetAngles();
-
 }
+
 
 //
 // Helper to kill distant invisible particles
 //
 void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 {
-
 	m_nParticlesAlive = 0;
 
 	// update all particles that we own
@@ -321,14 +308,13 @@ void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 			continue;
 
 		geVec3d p = *((geVec3d*)&(m_pParticles[i]->m_vVertex.X));
-		
+
 		//Ignore the Y
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
 		p.Y = thePosition.Y;
 
 		float fDist = geVec3d_DistanceBetween( &p, &thePosition);
-	
 		if ( fDist >  fDistThreshold ) 
 		{
 			if(m_pParticles[i]->m_vVertex.a <= AlphaStart)
@@ -337,10 +323,11 @@ void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 				continue;
 			}
 		}
-		
+
 		m_nParticlesAlive++;
 	}
 }
+
 
 void qxCloudMachine::SetAngles()
 {
@@ -358,30 +345,29 @@ void qxCloudMachine::SetAngles()
 	case DIRECTION_NW:	qxEffectParticleChamber::SetAngles(&(ANGLE_NW)); break;
 	default: QXASSERT(0); break;
 	}
-
 }
+
 
 void qxCloudMachine::UpdateColors()
 {
-	
 	// Find the sun or moon
 	// and brighten the triangles with alpha
 	static const qxSun* pSun = CCD->TerrainMgr()->GetSun();
-	
+
 	if(!pSun)
 		return;
-	
+
 	qxColor SunColor( *(CCD->TerrainMgr()->GetSkyDome()->GetCurrentSunColor()) );
-	
+
 	for ( int i=0; i < ParticlesMax; i++ )
 	{
 		if ( m_pParticles[i]->m_fAge < 0.0f )
 			continue;
-		
+
 		GE_LVertex* pVect = &m_pParticles[i]->m_vVertex;
-		
+
 		float	fSunIntensity = CCD->TerrainMgr()->GetSkyDome()->GetSunIntensity();
-		
+
 		pVect->r = SunColor.rgba.r * fSunIntensity ;
 		pVect->g = SunColor.rgba.g * fSunIntensity;
 		pVect->b = SunColor.rgba.b * fSunIntensity;

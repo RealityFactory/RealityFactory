@@ -9,8 +9,6 @@ void ColorInit(GE_RGBA* p)
 	p->g = 255.0;
 	p->b = 255.0;
 	p->a = 255.0;
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -20,10 +18,8 @@ void ColorInit(GE_RGBA* p)
 //	Checks if a color struct contains valid data.
 //
 ////////////////////////////////////////////////////////////////////////////////////////
-geBoolean IsColorGood(
-	GE_RGBA	*Color )	// color to check
+geBoolean IsColorGood(GE_RGBA *Color)	// color to check
 {
-
 	// ensure valid data
 	QXASSERT( Color != NULL );
 
@@ -50,6 +46,7 @@ geBoolean IsColorGood(
 
 } // IsColorGood()
 
+
 float RandFloat()
 {
 	// pick a random float from whithin the range
@@ -57,32 +54,35 @@ float RandFloat()
 
 } // RandFloat()
 
+
 float FastScreenDistance( geVec3d* pVec )
 {
-	const geXForm3d* pCXF = 
+	const geXForm3d* pCXF =
 		geCamera_GetCameraSpaceXForm(CCD->CameraManager()->Camera());
 
 	return (float)(
-					( pVec->X * pCXF->CX) 
-				+	( pVec->Y * pCXF->CY) 
+					( pVec->X * pCXF->CX)
+				+	( pVec->Y * pCXF->CY)
 				+	( pVec->Z * pCXF->CZ)
 				+	pCXF->Translation.Z);
-
 }
+
 
 void GetViewVector( geVec3d* pVect )
 {
-		geXForm3d* p = ( geXForm3d*)geCamera_GetWorldSpaceXForm(CCD->CameraManager()->Camera());
-		geXForm3d_GetIn( p, pVect ) ;
+	geXForm3d* p = ( geXForm3d*)geCamera_GetWorldSpaceXForm(CCD->CameraManager()->Camera());
+	geXForm3d_GetIn( p, pVect ) ;
 }
+
 
 float randnum (float min, float max)
 {
 	int r;
-    float	x;
-    
+    float x;
+
 	r = rand();
     x = (float)(r & 0x7fff) /
 		(float)0x7fff;
-    return (x * (max - min) + min);
+
+	return (x * (max - min) + min);
 }

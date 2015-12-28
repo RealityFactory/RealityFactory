@@ -15,14 +15,11 @@
 #include "QxUser.h"
 
 
-
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
-
-
 
 
 qxTerrainPoly::qxTerrainPoly()
@@ -75,8 +72,8 @@ qxTerrainPoly::qxTerrainPoly(qxTerrainMapBase* pTerrainMap,
 ,m_pNext(0)
 ,m_pParent(0)
 {
-
 }
+
 
 qxTerrainPoly::~qxTerrainPoly()
 {
@@ -90,6 +87,7 @@ qxTerrainPoly::~qxTerrainPoly()
 	if(m_pSubVert)
 		delete m_pSubVert;
 }
+
 
 void qxTerrainPoly::ClearChildTree(void)
 {
@@ -183,7 +181,7 @@ void qxTerrainPoly::Render( )
 		//geEngine_RenderPoly(CCD->Engine()->Engine(), (GE_TLVertex *)verts, 3, CCD->TerrainMgr()->GetTexture(),
 			//CCD->TerrainMgr()->GetRender());
 
- 		//geTClip_Triangle(verts);
+		//geTClip_Triangle(verts);
 		return;
 	}
 
@@ -195,13 +193,9 @@ void qxTerrainPoly::Render( )
 								(geVec3d *)&(m_pSubVert->CurrentVert),
 								(geVec3d *)&(m_pSubVert->ProjectedVert));
 
-	// end change
 	m_pLeftChild->Render();
 	m_pRightChild->Render();
-
 }
-
-
 
 
 void qxTerrainPoly::RenderWireframe(void)
@@ -212,7 +206,6 @@ void qxTerrainPoly::RenderWireframe(void)
 
 	if(m_bActive)
 	{
-
 		// the ++'s on vert coords here just offset one of the vertices, so we can see the line drawn.
 
 		GE_LVertex verts[3];
@@ -279,9 +272,7 @@ void qxTerrainPoly::RenderWireframe(void)
 
 	m_pLeftChild->RenderWireframe();
 	m_pRightChild->RenderWireframe();
-
 }
-
 
 
 void qxTerrainPoly::UpdatePosition()
@@ -290,6 +281,7 @@ void qxTerrainPoly::UpdatePosition()
 	Position.Y = (m_pLeftVert->CurrentVert.Y + m_pRightVert->CurrentVert.Y + m_pTopVert->CurrentVert.Y) * ONE_OVER_THREE;//OneOverThree;
 	Position.Z = (m_pLeftVert->CurrentVert.Z + m_pRightVert->CurrentVert.Z + m_pTopVert->CurrentVert.Z) * ONE_OVER_THREE;//OneOverThree;
 }
+
 
 void qxTerrainPoly::UpdateWedgeBounds()
 {
@@ -336,9 +328,7 @@ void qxTerrainPoly::UpdateWedgeBounds()
 	TD.X = m_pTopVert->CurrentVert.X;
 	TD.Z = m_pTopVert->CurrentVert.Z;
 	TD.Y = m_pTopVert->CurrentVert.Y - variance;
-
 }
-
 
 
 void qxTerrainPoly::UpdateViewFlags(void)
@@ -348,7 +338,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 	// only recurse to children if theyr not already set correctly.
 
 	bool	New_All_In = true;
-
 
 	// if this is a base-grid tri, then calc new flags from scratch
 	if(m_pParent==NULL)
@@ -373,8 +362,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 								VF_IN_LEFT, New_All_In))
 			return;
 
-
-
 		//
 		// test Right
 		//
@@ -383,13 +370,11 @@ void qxTerrainPoly::UpdateViewFlags(void)
 			VF_IN_RIGHT, New_All_In ))
 			return;
 
-
 		//
 		// test Top
 		//
 		if(! TestHalfspace(&m_pTerrainMap->FrustrumTop, &m_pTerrainMap->NormalTop,
 							VF_IN_TOP, New_All_In))
-
 			return;
 
 		//
@@ -397,10 +382,7 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		//
 		if( !TestHalfspace(&m_pTerrainMap->FrustrumBottom, &m_pTerrainMap->NormalBottom,
 							VF_IN_BOTTOM, New_All_In))
-
-							return;
-
-
+			return;
 
 		//
 		// test Far
@@ -408,7 +390,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 		if(!TestHalfspace(&m_pTerrainMap->FrustrumFar, &m_pTerrainMap->NormalFar,
 								VF_IN_FAR, New_All_In ))
 			return;
-
 
 		//
 		// all halfspace tests are done, tri isnt all-out
@@ -502,7 +483,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 					VF_IN_BOTTOM, New_All_In) )
 				return;
 
-
 		//
 		// test Far
 		//
@@ -510,7 +490,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 			if( !TestHalfspace(&m_pTerrainMap->FrustrumFar, &m_pTerrainMap->NormalFar,
 					VF_IN_FAR, New_All_In) )
 					return;
-
 
 		// all halfspace tests are done, tri isnt all-out,
 		// so if all in, set flags, else, update children
@@ -551,7 +530,6 @@ void qxTerrainPoly::UpdateViewFlags(void)
 bool qxTerrainPoly::TestHalfspace(geVec3d *Point, geVec3d *Normal,
 								  int Flag, bool& bAllInFlag)
 {
-
 	// bounding box is defined as follows: geVec3d LU, LD, RU, RD, TU, TD;
 	geVec3d V;
 	geFloat Result;
@@ -677,6 +655,7 @@ goto_AnyIn:
 		return true;
 }
 
+
 inline void qxTerrainPoly::SetViewFlagsAllOut(void)
 {
 	VF_Halfspace_Flags = 0;
@@ -689,9 +668,9 @@ inline void qxTerrainPoly::SetViewFlagsAllOut(void)
 	}
 }
 
+
 void qxTerrainPoly::SetViewFlagsAllIn(void)
 {
-
 	VF_Halfspace_Flags = VF_IN_NEAR | VF_IN_FAR | VF_IN_LEFT | VF_IN_RIGHT | VF_IN_TOP | VF_IN_BOTTOM;
 	VF_Overall = VF_ALL_IN;
 
@@ -700,8 +679,8 @@ void qxTerrainPoly::SetViewFlagsAllIn(void)
 		m_pLeftChild->SetViewFlagsAllIn();
 		m_pRightChild->SetViewFlagsAllIn();
 	}
-
 }
+
 
 int qxTerrainPoly::CalcPriority(int nNearestIsHighest)
 {
@@ -763,6 +742,5 @@ int qxTerrainPoly::CalcPriority(int nNearestIsHighest)
 
 	return priority;
 }
-
 
 

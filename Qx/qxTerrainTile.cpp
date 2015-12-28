@@ -13,19 +13,16 @@
 #include "qxTerrainPoly.h"
 #include "qxTerrainTile.h"
 
-
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-
-
-qxTerrainTile::qxTerrainTile(	qxTerrainMapBase* pOwner, 
-								qxTerrainVert* tl, 
-								qxTerrainVert* tr, 
-								qxTerrainVert* bl, 
+qxTerrainTile::qxTerrainTile(	qxTerrainMapBase* pOwner,
+								qxTerrainVert* tl,
+								qxTerrainVert* tr,
+								qxTerrainVert* bl,
 								qxTerrainVert* br)
 :m_pOwner(pOwner)
 ,TL(tl)
@@ -35,7 +32,6 @@ qxTerrainTile::qxTerrainTile(	qxTerrainMapBase* pOwner,
 ,m_pBinTreeRT(0)
 ,m_pBinTreeLB(0)
 {
-
 	// l, r, t, tri verts
 	// make the diamond
 	m_pBinTreeRT = new qxBinTriTree(m_pOwner, TL, BR, TR);
@@ -47,14 +43,10 @@ qxTerrainTile::qxTerrainTile(	qxTerrainMapBase* pOwner,
 	return;
 }
 
+
 qxTerrainTile::~qxTerrainTile()
 {
 	delete m_pBinTreeRT;
 	delete m_pBinTreeLB;
-
 }
-
-
-
-
 
