@@ -355,7 +355,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 			// ..up to make it display correctly.  Thanks to Ernest
 			// ..Kleynhans for catching this little mistake 11/22/99.
 
-			pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+			pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
 
 			// Ok, we've got a _somewhat_ optimized version of the bitmap
 			// ..copy, it's far faster than memcpy() but it's not as
@@ -623,7 +623,7 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
 
-		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+		pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
 
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
@@ -797,7 +797,7 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
 
-		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+		pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
 
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
@@ -995,7 +995,7 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
 
-		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+		pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
 
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
@@ -1196,7 +1196,7 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		// ..up to make it display correctly.  Thanks to Ernest
 		// ..Kleynhans for catching this little mistake 11/22/99.
 
-		pptr += (nWidth * ((nHeight-1) * (pBmp->biBitCount/8)));
+		pptr += (nWidth * ((nHeight - 1) * (pBmp->biBitCount >> 3)));
 
 		// Ok, we've got a _somewhat_ optimized version of the bitmap
 		// ..copy, it's far faster than memcpy() but it's not as
