@@ -657,7 +657,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = theInv->Value(arguments[0].str().c_str());
 			return true;
@@ -685,12 +687,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				strcpy(param4, arguments[2].str());
 
 				if(!stricmp(param4, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
@@ -706,12 +714,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				strcpy(param4, arguments[2].str());
 
 				if(!stricmp(param4, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
@@ -1701,7 +1715,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(geWorld_Collision(CCD->World(), NULL, NULL, &OldPos, &Pos,
 				GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW, GE_COLLIDE_ALL,
 				0x0, NULL, NULL, &Collision))
+			{
 				gd = geVec3d_DistanceBetween(&OldPos, &Collision.Impact);
+			}
 
 			returnValue = gd;
 			return true;
@@ -2988,7 +3004,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
 			}
 			else
+			{
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
+			}
 
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 			returnValue = static_cast<int>(ScreenPos.X);
@@ -3015,7 +3033,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
 			}
 			else
+			{
 				CCD->ActorManager()->GetPosition(Actor, &Pos);
+			}
 
 			geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
 			returnValue = static_cast<int>(ScreenPos.Y);
@@ -3171,7 +3191,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				ClientToScreen(CCD->Engine()->WindowHandle(), &RectPos);
 			}
 			else
+			{
 				RectPos.x = 0;
+			}
 
 			GetCursorPos(&MousePos);
 			MousePos.x -= RectPos.x;
@@ -3194,7 +3216,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				ClientToScreen(CCD->Engine()->WindowHandle(), &RectPos);
 			}
 			else
+			{
 				RectPos.y = 0;
+			}
 
 			GetCursorPos(&MousePos);
 			MousePos.y -= RectPos.y;
@@ -3564,12 +3588,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				strcpy(param4, arguments[3].str());
 
 				if(!stricmp(param4, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			int NewHighLimit = theInv->High(param0) + arguments[1].intValue();;
 
@@ -3597,7 +3627,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = theInv->GetPowerUpLevel(arguments[0].str().c_str());
 
@@ -3694,12 +3726,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				strcpy(param4, arguments[arguments.entries()-1].str());
 
 				if(!stricmp(param4, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = (int)theInv->Add(param0);
 
@@ -3728,7 +3766,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param4));
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
 

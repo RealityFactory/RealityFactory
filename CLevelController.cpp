@@ -278,7 +278,9 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			CCD->Pawns()->TextMessage[Nr].ShowText = true;
 		}
 		else
+		{
 			CCD->Pawns()->TextMessage[Nr].ShowText = false;
+		}
 
 		return true;
 	}
@@ -414,7 +416,9 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			returnValue = geVec3d_DistanceBetween(&PlatformPos, &EntityPos);
 		}
 		else
+		{
 			returnValue = 0;
+		}
 
 		return true;
 	}
@@ -448,7 +452,9 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			returnValue = geVec3d_DistanceBetween(&DoorPos, &EntityPos);
 		}
 		else
+		{
 			returnValue = 0;
+		}
 
 		return true;
 	}
@@ -568,13 +574,21 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(string2, arguments[2].str());
 
 			if(!stricmp(string2, "Player"))
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+			}
 		}
 		else
+		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		}
+
 		returnValue = (int)theInv->Modify(string1, arguments[1].intValue());
+
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetAttribute"))
@@ -589,16 +603,23 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(string2, arguments[1].str());
 
 			if(!stricmp(string2, "Player"))
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+			}
 		}
 		else
+		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		}
+
 		returnValue = (int)theInv->Value(string1);
+
 		return true;
 	}
-
 	else if(IS_METHOD(methodName, "SetAttribute"))
 	{
 		PARMCHECK(2);
@@ -611,13 +632,21 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(string2, arguments[2].str());
 
 			if(!stricmp(string2, "Player"))
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+			}
 		}
 		else
+		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		}
+
 		returnValue = (int)theInv->Set(string1, arguments[1].intValue());
+
 		return true;
 	}
 	else if(IS_METHOD(methodName, "AddAttribute"))
@@ -637,12 +666,18 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(string2, arguments[arguments.entries()-1].str());
 
 			if(!stricmp(string2, "Player"))
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+			}
 		}
 		else
+		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		}
 
 		returnValue = (int)theInv->Add(string1);
 
@@ -668,12 +703,18 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			strcpy(string2, arguments[3].str());
 
 			if(!stricmp(string2, "Player"))
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+			}
 		}
 		else
+		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+		}
 
 		theInv->SetValueLimits(string1, arguments[1].intValue(), arguments[2].intValue());
 
@@ -891,7 +932,9 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 			value = (GetAsyncKeyState(VK_RBUTTON) < 0);
 		}
 		else
+		{
 			value = (GetAsyncKeyState(VK_LBUTTON) < 0);
+		}
 
 		return true;
 	}
@@ -906,7 +949,9 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 			value = (GetAsyncKeyState(VK_LBUTTON) < 0);
 		}
 		else
+		{
 			value = (GetAsyncKeyState(VK_RBUTTON) < 0);
+		}
 
 		return true;
 	}
@@ -944,7 +989,9 @@ bool ControllerObject::setValue(const skString& fieldName, const skString& attri
 		return true;
 	}
 	else
+	{
 		return skScriptedExecutable::setValue(fieldName, attribute, value);
+	}
 }
 
 

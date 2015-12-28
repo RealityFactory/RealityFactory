@@ -638,6 +638,7 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 	switch(Effects[k].Type)
 	{
 	case EFF_SPRAY:
+		{
 		Spray Sp;
 		geVec3d	In;
 		geXForm3d	Xf;
@@ -652,28 +653,36 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		geVec3d_Add(&(Sp.Source), &In, &(Sp.Dest));
 		index = CCD->EffectManager()->Item_Add(EFF_SPRAY, &Sp);
 		break;
+		}
 	case EFF_LIGHT:
+		{
 		Glow Lite;
 		memcpy(&Lite, Effects[k].Data, sizeof(Lite));
 		geVec3d_Copy(&(Position), &(Lite.Pos));
 		geVec3d_Add(&(Lite.Pos), &Offset,&(Lite.Pos));
 		index = CCD->EffectManager()->Item_Add(EFF_LIGHT, &Lite);
 		break;
+		}
 	case EFF_SND:
+		{
 		Snd Sound;
 		memcpy(&Sound, Effects[k].Data, sizeof(Sound));
 		geVec3d_Copy(&Position, &(Sound.Pos));
 		geVec3d_Add(&(Sound.Pos), &Offset, &(Sound.Pos));
 		index = CCD->EffectManager()->Item_Add(EFF_SND, &Sound);
 		break;
+		}
 	case EFF_SPRITE:
+		{
 		Sprite S;
 		memcpy(&S, Effects[k].Data, sizeof(S));
 		geVec3d_Copy(&Position, &(S.Pos));
 		geVec3d_Add(&(S.Pos), &Offset, &(S.Pos));
 		index = CCD->EffectManager()->Item_Add(EFF_SPRITE, &S);
 		break;
+		}
 	case EFF_CORONA:
+		{
 		EffCorona C;
 		memcpy(&C, Effects[k].Data, sizeof(C));
 		C.Vertex.X = Position.X + Offset.X;
@@ -681,7 +690,9 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		C.Vertex.Z = Position.Z + Offset.Z;
 		index = CCD->EffectManager()->Item_Add(EFF_CORONA, &C);
 		break;
+		}
 	case EFF_BOLT:
+		{
 		EBolt Bl;
 		memcpy(&Bl, Effects[k].Data, sizeof(Bl));
 		geVec3d_Copy(&Position, &(Bl.Start));
@@ -689,7 +700,9 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		geVec3d_Add(&(Bl.Start), &(Bl.EndOffset), &(Bl.End));
 		index = CCD->EffectManager()->Item_Add(EFF_BOLT, &Bl);
 		break;
+		}
 	case EFF_ACTORSPRAY:
+		{
 		ActorSpray aSp;
 		memcpy(&aSp, Effects[k].Data, sizeof(aSp));
 		geVec3d_Copy(&Position, &(aSp.Source));
@@ -702,6 +715,7 @@ int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
 		geVec3d_Add(&(aSp.Source), &In, &(aSp.Dest));
 		index = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, &aSp);
 		break;
+		}
 	}
 
 	return index;

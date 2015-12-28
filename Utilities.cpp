@@ -1040,7 +1040,9 @@ geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2)
 	geWorld_GetLeaf(CCD->World(), Pos2, &Leaf2);
 
 	if(geWorld_LeafMightSeeLeaf(CCD->World(), Leaf1, Leaf2, 0))
+	{
 		return !geWorld_Collision(CCD->World(), &RayMins, &RayMaxs, Pos1, Pos2, GE_CONTENTS_CANNOT_OCCUPY, GE_COLLIDE_MODELS, 0, NULL, NULL, &Collision);
+	}
 
 	return(GE_FALSE);
 }

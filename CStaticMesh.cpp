@@ -114,7 +114,9 @@ CStaticMesh::CStaticMesh() :
 			}
 		}
 		else
+		{
 			pMesh->ListIndex = Index;
+		}
 
 		pMesh->ColorLOD0 = NULL;
 		pMesh->ColorLOD1 = NULL;
@@ -356,7 +358,9 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				return false;
 			}
 			else
+			{
 				continue;
+			}
 		}
 
 		//open the actor file
@@ -387,7 +391,9 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 					return false;
 				}
 				else
+				{
 					continue;
+				}
 			}
 		}
 		else							// File didn't open, error out.
@@ -407,7 +413,9 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				return false;
 			}
 			else
+			{
 				continue;
+			}
 		}
 
 		geVFile_Close(ActorFile);
@@ -847,6 +855,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 	else if(LType == LIGHT_POINTLIGHT)
 	{
 		Color = &(static_cast<light*>(pLight)->color);
+	}
 
 	// prepare the transformation matrix
 	geXForm3d_SetScaling(&thePosition, pMesh->Scale, pMesh->Scale, pMesh->Scale);
@@ -1152,7 +1161,9 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 
 			// collision but not on segment?
 			if(s <= 0.0f)
+			{
 				continue;
+			}
 			else
 			{
 				if(Collision)
@@ -1362,11 +1373,14 @@ void CStaticMesh::Tick(geFloat dwTicks)
 					LOD = 4;
 			}
 			else
+			{
 				LOD = 5;
-
+			}
 
 			if(LOD < 4)
+			{
 				AddPoly(pMesh, LOD);
+			}
 			else if(LOD == 4)
 			{
 				GE_LVertex	Vertex;
@@ -1858,7 +1872,9 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					LOD = 4;
 			}
 			else
+			{
 				LOD = 5;
+			}
 		}
 
 		if(LOD > 3)
@@ -2221,7 +2237,9 @@ NO_COLLISION:;
 
 					// collision but not on segment?
 					if(s >= fL||s < 0.0f)
+					{
 						continue;
+					}
 					else
 					{
 						if(Collision)
@@ -2251,7 +2269,9 @@ NO_COLLISION:;
 		} // if(ColLevel)
 
 		if(ColResult)
+		{
 			GColResult = GE_TRUE;
+		}
 	}
 
 	return GColResult;

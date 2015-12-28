@@ -458,7 +458,9 @@ void CWeapon::Tick(geFloat dwTicks)
 				if(d->AttachActor && !EffectC_IsStringNull(BoneHit) && d->BoneLevel)
 					CCD->Explosions()->AddExplosion(d->ActorExplosion, Zero, Actor, BoneHit);
 				else
+				{
 					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos);
+				}
 
 				if(d->ShowBoth)
 					CCD->Explosions()->AddExplosion(d->Explosion, d->Pos);
@@ -469,7 +471,9 @@ void CWeapon::Tick(geFloat dwTicks)
 				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos);
 			}
 			else
+			{
 				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos);
+			}
 
 			// create explosion here
 			if(d->ShakeAmt>0.0f)
@@ -601,7 +605,9 @@ void CWeapon::DisplayThirdPerson(int index)
 		}
 	}
 	else
+	{
 		geActor_ClearPose(WeaponD[index].PActor, &XForm);
+	}
 
 	geFloat fAlpha;
 	CCD->ActorManager()->GetAlpha(Actor, &fAlpha);
@@ -986,7 +992,9 @@ void CWeapon::DisplayFirstPerson(int index)
 		geActor_SetPose(WeaponD[index].VActor, ActorMotion, VMCounter, &XForm);
 	}
 	else
+	{
 		geActor_ClearPose(WeaponD[index].VActor, &XForm);
+	}
 
 	VAnimTime = (float)CCD->FreeRunningCounter();
 }
@@ -1067,7 +1075,9 @@ void CWeapon::Holster()
 			AttackFlag = false;
 		}
 		else
+		{
 			CurrentWeapon = MAX_WEAPONS;
+		}
 	}
 	else
 	{
@@ -1888,13 +1898,19 @@ void CWeapon::MeleeAttack()
 					CCD->Damage()->DamageModel(Collision.Model, WeaponD[CurrentWeapon].MeleeDamage, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].MeleeAltDamage, WeaponD[CurrentWeapon].AltAttribute);
 			}
 			else
+			{
 				Sound(true, thePosition, false);
+			}
 		}
 		else
+		{
 			Sound(true, thePosition, false);
+		}
 	}
 	else
+	{
 		Sound(true, thePosition, false);
+	}
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1935,7 +1951,9 @@ void CWeapon::ProjectileAttack()
 				geActor_GetBoneTransform(theActor, WeaponD[CurrentWeapon].PBone, &Xf );
 		}
 		else
+		{
 			geActor_GetBoneTransform(theActor, RootBoneName(theActor), &Xf );
+		}
 
 		thePosition = Xf.Translation;
 		CCD->ActorManager()->GetRotate(theActor, &theRotation);
@@ -2085,7 +2103,9 @@ void CWeapon::ProjectileAttack()
 						MFlash = false;
 					}
 					else
+					{
 						CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash, Pos);
+					}
 				}
 			}
 			else
@@ -2120,7 +2140,9 @@ void CWeapon::ProjectileAttack()
 			Sound(true, thePosition, false);
 		}
 		else
+		{
 			Sound(true, thePosition, true);
+		}
 	}
 }
 

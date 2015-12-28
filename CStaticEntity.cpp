@@ -668,7 +668,9 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 			CCD->ActorManager()->Position(pProxy->Actor, pProxy->origin);
 		}
 		else
+		{
 			CCD->ActorManager()->RemoveActor(pProxy->Actor);
+		}
 	}
 
 	return RGF_SUCCESS;

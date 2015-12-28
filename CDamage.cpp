@@ -134,7 +134,9 @@ void CDamage::Tick(geFloat dwTicks)
 					CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
 			}
 			else
+			{
 				running = true;
+			}
 
 			if(pDestroy->Model1)
 			{
@@ -151,7 +153,9 @@ void CDamage::Tick(geFloat dwTicks)
 						CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
 				}
 				else
+				{
 					running = true;
+				}
 			}
 
 			if(pDestroy->Model2)
@@ -169,7 +173,9 @@ void CDamage::Tick(geFloat dwTicks)
 						CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
 				}
 				else
+				{
 					running = true;
+				}
 			}
 
 			if(pDestroy->Model3)
@@ -187,7 +193,9 @@ void CDamage::Tick(geFloat dwTicks)
 						CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
 				}
 				else
+				{
 					running = true;
+				}
 			}
 
 			if(pDestroy->Model4)
@@ -205,7 +213,9 @@ void CDamage::Tick(geFloat dwTicks)
 						CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
 				}
 				else
+				{
 					running = true;
+				}
 			}
 
 			if(!running)
@@ -227,7 +237,9 @@ void CDamage::Tick(geFloat dwTicks)
 				pDestroy->active = GE_FALSE;
 		}
 		else
+		{
 			pDestroy->active = GE_TRUE;
+		}
 
 		if(pDestroy->active == GE_TRUE && pDestroy->bState)
 		{

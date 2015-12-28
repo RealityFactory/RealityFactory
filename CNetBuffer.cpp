@@ -133,9 +133,13 @@ void *NetBuffer::Expand(int addsize)
 	Data = static_cast<uint8*>(realloc(Data, MaxSize + (addsize * sizeof(uint8))));
 
 	if(Data)
+	{
 		MaxSize += addsize;
+	}
 	else
+	{
 		MaxSize = 0;
+	}
 
 	return static_cast<void*>(Data);
 }
@@ -151,9 +155,13 @@ void *NetBuffer::CheckSize(int size)
 	Data = static_cast<uint8*>(realloc(Data, size * sizeof(uint8)));
 
 	if(Data)
+	{
 		MaxSize = size;
+	}
 	else
+	{
 		MaxSize = 0;
+	}
 
 	return static_cast<void*>(Data);
 }

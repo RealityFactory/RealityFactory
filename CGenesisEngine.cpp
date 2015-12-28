@@ -655,7 +655,9 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 								* (ClipRect.Right	- ClipRect.Left));
 		}
 		else
+		{
 			UseRect = ClipRect;
+		}
 	}
 
 	geFloat UVbreak = 0.0f;

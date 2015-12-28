@@ -1522,7 +1522,9 @@ void CAVIPlayer::GetVideoFrameAtTime(int nStreamNum, LONG lTimeInMilliSec, LPBIT
 	LONG lFrame;
 
 	if(lTimeInMilliSec <= m_lVideoEndTime[nStreamNum])
+	{
 		lFrame = AVIStreamTimeToSample(pStream, lTimeInMilliSec) + 1;
+	}
 	else
 	{
 		*ppbi = NULL; // video is done, no more frames

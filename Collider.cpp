@@ -85,7 +85,9 @@ int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 										theContents);
 
 	if(Result == GE_TRUE)
+	{
 		return RGF_SUCCESS;								// SOMETHING was there...
+	}
 	else
 	{
 		// Have to check for world models, feh
@@ -129,7 +131,9 @@ int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 	}
 
 	if(Result == GE_TRUE)
+	{
 		return RGF_SUCCESS;							// SOMETHING was there...
+	}
 	else
 	{
 		// Have to check for world models, feh
@@ -355,7 +359,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	if((Result == GE_FALSE) &&
 		(geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision) == GE_TRUE))
+	{
 		Result = GE_TRUE;
+	}
 
 	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, NULL))
 		Result = GE_TRUE;
@@ -373,7 +379,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			Result2 = 0;								// No real contents here
 	}
 	else
+	{
 		Result2 = 0;									// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -422,7 +430,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	if((Result == GE_FALSE) &&
 		(geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
+	{
 		Result = GE_TRUE;
+	}
 
 	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
 		Result = GE_TRUE;
@@ -436,9 +446,13 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 										&Contents);
 
 		if((Contents.Actor == NULL) && (Contents.Model == NULL) && (Contents.Mesh == NULL))
+		{
 			Result2 = 0;								// No real contents here
+		}
 		else if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result2 = 0;								// It's EMPTY, ignore it
+		}
 		else
 		{
 			// Fill collision struct with information
@@ -449,7 +463,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		}
 	}
 	else
+	{
 		Result2 = 0;									// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -498,7 +514,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	if((Result == GE_FALSE) &&
 		(geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, &Collision) == GE_TRUE))
+	{
 		Result = GE_TRUE;
+	}
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
 	{
@@ -509,12 +527,18 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 										Contents);
 
 		if((Contents->Actor == NULL) && (Contents->Model == NULL) && (Contents->Mesh == NULL))
+		{
 			Result2 = 0;								// No real contents here
+		}
 		else if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result2 = 0;								// Ignore empty models
+		}
 	}
 	else
+	{
 		Result2 = 0;									// No contents checking
+	}
 
 	//	Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -565,7 +589,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	if((Result == GE_FALSE) &&
 		(geWorld_Collision(CCD->World(), Min, Max, &OldPosition, &NewPosition,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE))
+	{
 		Result = GE_TRUE;
+	}
 
 	if((Min != NULL) && (Max != NULL) && (Result != 1) && (!m_IgnoreContents))
 	{
@@ -576,9 +602,13 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 										Contents);
 
 		if((Contents->Actor == NULL) && (Contents->Model == NULL) && (Contents->Mesh == NULL))
+		{
 			Result2 = 0;								// No real contents here
+		}
 		else if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result2 = 0;								// Ignore empty models
+		}
 		else
 		{
 			// Fill collision struct with information
@@ -589,7 +619,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		}
 	}
 	else
+	{
 		Result2 = 0;									// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -658,7 +690,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			Collision->Impact = OldPosition;
 		}
 		else
+		{
 			Collision->Model = NULL;
+		}
 	}
 	else
 	{
@@ -685,10 +719,14 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			Result2 = GE_TRUE;
 		}
 		else
+		{
 			Result2 = GE_FALSE;
+		}
 	}
 	else
+	{
 		Result2 = GE_FALSE;								// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -748,7 +786,9 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 			Result = GE_TRUE;
 		}
 		else
+		{
 			Collision->Model = NULL;
+		}
 	}
 	else
 	{
@@ -772,10 +812,14 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 			Result2 = GE_TRUE;
 		}
 		else
+		{
 			Result2 = GE_FALSE;
+		}
 	}
 	else
+	{
 		Result2 = GE_FALSE;								// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -920,7 +964,9 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox)
 		GE_COLLIDE_MODELS, 0xffffffff, NULL, NULL, &Contents) == GE_TRUE))
 	{
 		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result = GE_FALSE;
+		}
 		else if((Contents.Contents & GE_CONTENTS_HINT))
 		{
 			Result = GE_FALSE;
@@ -1012,7 +1058,9 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 		Contents.Actor = NULL;
 
 		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result = GE_FALSE;
+		}
 		else if((Contents.Contents & GE_CONTENTS_HINT))
 		{
 			Result = GE_FALSE;
@@ -1099,7 +1147,9 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 	{
 		Contents->Actor = NULL;
 		if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result = GE_FALSE;
+		}
 		else if((Contents->Contents & GE_CONTENTS_HINT))
 		{
 			Result = GE_FALSE;
@@ -1116,7 +1166,9 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 		}
 	}
 	else
+	{
 		Contents->Model = NULL;
+	}
 
 	if(Result == GE_FALSE)
 	{
@@ -1477,7 +1529,9 @@ geBoolean Collider::CheckSubCollision(const geVec3d *Start, const geVec3d *End, 
 		if((Collision->Actor != NULL) ||
 			(Collision->Model != NULL) ||
 			(Collision->Mesh  != NULL))
+		{
 			Collided = GE_TRUE;
+		}
 
 		if(geWorld_Collision(World, &theBoneBox.Min, &theBoneBox.Max,
 			&xStart, &xEnd, kCollideFlags, GE_COLLIDE_MODELS,
@@ -1771,7 +1825,9 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 	int aType = ENTITY_GENERIC;
 
 	if(!theActor)
+	{
 		bShoot = true;
+	}
 	else
 	{
 		CCD->ActorManager()->GetType(theActor, &aType);
@@ -2038,11 +2094,15 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 				Result2 = GE_TRUE;
 			}
 			else
+			{
 				Result2 = GE_FALSE;
+			}
 		}
 	}
 	else
+	{
 		Result2 = GE_FALSE;								// No contents checking
+	}
 
 	// Set collision reason
 	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
@@ -2063,9 +2123,7 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 	}
 
 	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
-	{
 		return true;							// Collision confirmed
-	}
 	else
 		return false;							// Naah, we didn't hit anything
 }
@@ -2112,7 +2170,9 @@ bool Collider::CanOccupyPositionD(const geVec3d *thePoint, geExtBox *theBox,
 		Contents->Actor = NULL;
 
 		if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result = GE_FALSE;
+		}
 		else if((Contents->Contents & GE_CONTENTS_HINT))
 		{
 			Result = GE_FALSE;
@@ -2452,7 +2512,9 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			Contents.Actor = NULL;
 
 			if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+			{
 				Result = GE_FALSE;
+			}
 			else if((Contents.Contents & GE_CONTENTS_HINT))
 			{
 				Result = GE_FALSE;
@@ -2523,7 +2585,9 @@ bool Collider::CheckSolid(geVec3d *thePoint, geExtBox *theBox, geActor * /*Actor
 		Contents.Actor = NULL;
 
 		if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
+		{
 			Result = GE_FALSE;
+		}
 		else if((Contents.Contents & GE_CONTENTS_HINT))
 		{
 			Result = GE_FALSE;

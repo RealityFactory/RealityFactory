@@ -79,7 +79,9 @@ CCDAudio::~CCDAudio()
 										MCI_WAIT, (DWORD)&mciClose);	// Shut it down!
 
 	if(theError != 0)
+	{
 		CCD->ReportError("[WARNING] CCDAudio: Failed to close MCI CD AUDIO device", false);
+	}
 
 	m_bActive = false;
 	m_mciDeviceID = 0;

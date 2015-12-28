@@ -489,7 +489,9 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 			strcpy(ParamWork, "list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
 		}
 		else if(NumColors < 2)
+		{
 			goto fail;
+		}
 
 		cstep = 256.0 / static_cast<double>(NumColors - 1);
 		nextc = 0.0;

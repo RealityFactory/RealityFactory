@@ -1159,8 +1159,10 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			strcat(param0, arguments[1].str());
 
 			if(arguments.entries() > 2)
+			{
 				for(int i=2; i<int(arguments.entries()); i++)
 					strcat(param0, arguments[i].str());
+			}
 
 			returnValue = skString(param0);
 			return true;
@@ -1176,12 +1178,18 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				strcpy(param7, arguments[1].str());
 
 				if(!stricmp(param7, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 			returnValue = theInv->Value(arguments[0].str().c_str());
 			return true;
 		}
@@ -1196,12 +1204,18 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				strcpy(param7, arguments[2].str());
 
 				if(!stricmp(param7, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
@@ -1216,12 +1230,19 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				strcpy(param7, arguments[2].str());
 
 				if(!stricmp(param7, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
+
 			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
@@ -1229,7 +1250,6 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		{
 			// USAGE:	AddAttribute(char *Attribute)
 			//			AddAttribute(char *Attribute, EntityName)
-
 			//			AddAttribute(char *Attribute, int LowValue, int HighValue)
 			//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
 			PARMCHECK(1);
@@ -1242,12 +1262,18 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				strcpy(param7, arguments[arguments.entries()-1].str());
 
 				if(!stricmp(param7, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			returnValue = theInv->Add(param0);
 
@@ -1272,12 +1298,18 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 				strcpy(param7, arguments[3].str());
 
 				if(!stricmp(param7, "Player"))
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				}
 				else
+				{
 					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+				}
 			}
 			else
+			{
 				theInv = CCD->ActorManager()->Inventory(Actor);
+			}
 
 			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
 

@@ -187,7 +187,9 @@ void CLogic::Tick(geFloat dwTicks)
 		case 9: // Stay on
 			state = GetLTriggerState(pSource->Trigger1Name);
 			if(pSource->bState || state)
+			{
 				pSource->bState = GE_TRUE;
+			}
 			break;
 		case 10: // Use attribute
 			pSource->bState = GE_FALSE;
