@@ -13,10 +13,8 @@
 #include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
-// changed QD 06/26/04
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
-// end change
 
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
@@ -88,28 +86,17 @@ ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName,C
 	collision			= false;
 	pushable			= false;
 	SoundLoop			= false;
-// Added QD FindPointOrder code
 	PointFind			= false;
-// changed QD 06/26/04
 	ShadowAlpha			= 0.0f;
 	ShadowBitmap[0]		= '\0';
 	ShadowAlphamap[0]	= '\0';
-// end change
-// begin change gekido
-// projected shadows
 	ProjectedShadows	= false;
-// changed QD Shadows
 	StencilShadows		= GE_FALSE;
-// end change
-// changed QD 07/21/04
 	AmbientLightFromFloor = true;
-// end change
-// changed Nout 12/15/05
 	Prev_HL_Actor		= NULL;
 	Prev_HL_FillColor.r	= Prev_HL_FillColor.g = Prev_HL_FillColor.b = Prev_HL_FillColor.a = 255.0f;
 	Prev_HL_AmbientColor.r = Prev_HL_AmbientColor.g = Prev_HL_AmbientColor.b = Prev_HL_AmbientColor.a = 255.0f;
 	Prev_HL_AmbientLightFromFloor = GE_TRUE;
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -216,11 +203,8 @@ CPawn::CPawn()
 
 	Background	= NULL;
 	Icon		= NULL;
-// changed Nout 16/09/2003
 	rBackground = NULL;
 	rIcon		= NULL;
-// end change
-// changed Nout 12/15/05
 	ReplyMenuBar= NULL;
 	int i;
 
@@ -234,7 +218,6 @@ CPawn::CPawn()
 		GifFile[i] = NULL;
 
 	GifX = GifY = 0;
-// end change
 	Events		= NULL;
 
 	for(i=0; i<MAXFLAGS; i++)
@@ -263,12 +246,10 @@ CPawn::CPawn()
 
 		geBitmap_Info	BmpInfo;
 		char szName[64];
-// changed Nout 12/15/05
 		char szNameAlpha[64];
 
 		for(i=0; i<MAXTEXT; i++)
 			TextMessage[i].ShowText = false;
-// end change
 
 		while(KeyName != "")
 		{
@@ -280,90 +261,36 @@ CPawn::CPawn()
 					Type = "conversation\\"+Type;
 					strcpy(szName, Type.c_str());
 
-// changed Nout 12/15/05
 					Type = AttrFile.GetValue(KeyName, "backgroundalpha");
 					if(Type != "")
 						Type = "conversation\\"+Type;
 					strcpy(szNameAlpha, Type.c_str());
 
 					Background = CreateFromFileAndAlphaNames(szName, szNameAlpha);
-/*
-					geBitmap *TB = CreateFromFileName(szName);
-					geBitmap_GetInfo(TB, &BmpInfo, NULL);
-
-					int TBw = BmpInfo.Width;
-					int TBh = BmpInfo.Height;
-					int TBx = (BmpInfo.Width - CCD->Engine()->Width()) / 2;
-
-					if(TBx < 0)
-						TBx = 0;
-					else
-						TBw = CCD->Engine()->Width();
-
-					int TBy = (BmpInfo.Height - CCD->Engine()->Height()) / 2;
-
-					if(TBy < 0)
-						TBy = 0;
-					else
-						TBh = CCD->Engine()->Height();
-
-					Background = geBitmap_Create(TBw, TBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
-					geBitmap_Blit(TB, TBx, TBy, Background, 0, 0, TBw, TBh);
-					geBitmap_Destroy(&TB);
-*/
-// end change
 					geEngine_AddBitmap(CCD->Engine()->Engine(), Background);
 					geBitmap_GetInfo(Background, &BmpInfo, NULL);
 					BackgroundX = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 					BackgroundY = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
 				}
 
-// begin add Nout 16/09/2003
 				Type = AttrFile.GetValue(KeyName, "replybackground");
 				if(Type != "")
 				{
 					Type = "conversation\\"+Type;
 					strcpy(szName, Type.c_str());
 
-// changed Nout 12/15/05
 					Type = AttrFile.GetValue(KeyName, "replybackgroundalpha");
 					if(Type!="")
 						Type = "conversation\\"+Type;
 					strcpy(szNameAlpha, Type.c_str());
 
 					rBackground = CreateFromFileAndAlphaNames(szName, szNameAlpha);
-/*
-					geBitmap *rTB = CreateFromFileName(szName);
-					geBitmap_GetInfo(rTB, &BmpInfo, NULL);
-
-					  int rTBw = BmpInfo.Width;
-					int rTBh = BmpInfo.Height;
-					int rTBx = (BmpInfo.Width - CCD->Engine()->Width()) / 2;
-
-					if(rTBx < 0)
-						rTBx = 0;
-					else
-						rTBw = CCD->Engine()->Width();
-
-					int rTBy = (BmpInfo.Height - CCD->Engine()->Height()) / 2;
-
-					if(rTBy < 0)
-						rTBy = 0;
-					else
-						rTBh = CCD->Engine()->Height();
-
-					rBackground = geBitmap_Create(rTBw, rTBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
-					geBitmap_Blit(rTB, rTBx, rTBy, rBackground, 0, 0, rTBw, rTBh);
-					geBitmap_Destroy(&rTB);
-*/
 					geEngine_AddBitmap(CCD->Engine()->Engine(), rBackground);
 					geBitmap_GetInfo(rBackground, &BmpInfo, NULL);
 					rBackgroundX = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 					rBackgroundY = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
 				}
-// end add Nout 16/09/2003
 
-// changed Nout 12/15/05
 				Type = AttrFile.GetValue(KeyName, "replymenubar");
 				if(Type!="")
 				{
@@ -378,7 +305,6 @@ CPawn::CPawn()
 					ReplyMenuBar = CreateFromFileAndAlphaNames(szName, szNameAlpha);
 
 					geEngine_AddBitmap(CCD->Engine()->Engine(), ReplyMenuBar);
-					//geBitmap_GetInfo(ReplyMenuBar, &BmpInfo, NULL);
 				}
 
 				//preload gif-files for MenuReply
@@ -397,7 +323,6 @@ CPawn::CPawn()
 				ReplyMenuFont = AttrFile.GetValueI(KeyName, "replymenufont");
 				GifX = AttrFile.GetValueI(KeyName, "gifx");
 				GifY = AttrFile.GetValueI(KeyName, "gify");
-// end change
 
 				IconX = AttrFile.GetValueI(KeyName, "iconx");
 				IconY = AttrFile.GetValueI(KeyName, "icony");
@@ -414,7 +339,6 @@ CPawn::CPawn()
 				ReplyHeight = AttrFile.GetValueI(KeyName, "replyheight");
 				ReplyFont = AttrFile.GetValueI(KeyName, "replyfont");
 
-// begin add Nout 16/09/2003
 				SpeachWindowX = AttrFile.GetValueI(KeyName, "speachwindowx");
 				if(SpeachWindowX >= 0)
 					BackgroundX = SpeachWindowX;
@@ -430,7 +354,6 @@ CPawn::CPawn()
 				ReplyWindowY = AttrFile.GetValueI(KeyName, "replywindowy");
 				if(SpeachWindowY >= 0)
 					rBackgroundY = ReplyWindowY;
-// end add Nout 16/09/2003
 				break;
 			}
 
@@ -497,14 +420,12 @@ CPawn::CPawn()
 				WeaponCache[keynum].AmbientColor.b = AmbientColor.Z;
 				WeaponCache[keynum].AmbientColor.a = 255.0f;
 
-// changed QD 07/21/04
 				WeaponCache[keynum].AmbientLightFromFloor = true;
 
 				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
 
 				if(Type == "false")
 					WeaponCache[keynum].AmbientLightFromFloor = false;
-// end change
 
 				WeaponCache[keynum].EnvironmentMapping = false;
 
@@ -681,11 +602,8 @@ CPawn::CPawn()
 				PreLoad(script);
 				ScriptedObject *Object = (ScriptedObject*)pSource->Data;
 
-// start change scripting
-// add global object
 				if(!EffectC_IsStringNull(pSource->szEntityName))
 					CCD->AddScriptedObject(pSource->szEntityName,Object);
-// end change scripting
 
 				strcpy(Object->szName, pSource->szEntityName);
 
@@ -755,13 +673,11 @@ CPawn::CPawn()
 							Object->AmbientColor.g = AmbientColor.Y;
 							Object->AmbientColor.b = AmbientColor.Z;
 							Object->AmbientColor.a = 255.0f;
-// changed QD 07/21/04
 							// ambient lighting
 							Object->AmbientLightFromFloor = true;
 							Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
 							if(Type == "false")
 								Object->AmbientLightFromFloor = false;
-// end change
 							// environment mapping
 							Object->EnvironmentMapping = false;
 							Type = AttrFile.GetValue(KeyName, "environmentmapping");
@@ -802,7 +718,6 @@ CPawn::CPawn()
 
 							// shadowmap
 							Object->ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
-// changed QD 06/26/04
 							Object->ShadowAlpha = (geFloat)AttrFile.GetValueF(KeyName, "shadowalpha");
 							Type = AttrFile.GetValue(KeyName, "shadowbitmap");
 							if(Type != "")
@@ -810,48 +725,28 @@ CPawn::CPawn()
 							Type = AttrFile.GetValue(KeyName, "shadowalphamap");
 							if(Type != "")
 								strcpy(Object->ShadowAlphamap, Type.c_str());
-// end change
-// begin change gekido
 							// projected shadows enabled per pawn type
-							// yes there is obscene amounts of output to the debug log, might want to trim this down
 							Type = AttrFile.GetValue(KeyName, "projectedshadows");
 							if(Type != "")
 							{
-								/* char szBug[256];
-								sprintf(szBug, "Setting Projected Shadows for %s", Object->szName);
-								CCD->ReportError(szBug, false);*/
-
 								if(!strcmp(Type.c_str(), "true"))
 								{
-									// char szBug[256];
 									Object->ProjectedShadows = true;
-									// sprintf(szBug, "   Projected Shadows : %s", Type);
-									// CCD->ReportError(szBug, false);
 								}
 								else
 								{
-									// char szBug[256];
 									Object->ProjectedShadows = false;
-									// sprintf(szBug, "   Projected Shadows : %s", Type);
-									// CCD->ReportError(szBug, false);
 								}
 							}
-// end change
-// changed QD Shadows
 							// stencil shadows enabled per pawn type
 							Type = AttrFile.GetValue(KeyName, "stencilshadows");
 							if(Type != "")
 							{
-								//char szBug[256];
-								//sprintf(szBug, "Setting Stencil Shadows for %s", Object->szName);
-								//CCD->ReportError(szBug, false);
-
 								if(!strcmp(Type.c_str(), "true"))
 									Object->StencilShadows = GE_TRUE;
 								else
 									Object->ProjectedShadows = GE_FALSE;
 							}
-// end change
 							// icon
 							Object->Icon = NULL;
 							Type = AttrFile.GetValue(KeyName, "icon");
@@ -860,7 +755,6 @@ CPawn::CPawn()
 								Type = "conversation\\"+Type;
 								strcpy(szName, Type.c_str());
 								Object->Icon = CreateFromFileName(szName);
-								// changed QD 07/15/06
 								if(Object->Icon == (geBitmap *)NULL)
 								{
 									char szError[256];
@@ -872,7 +766,6 @@ CPawn::CPawn()
 									geEngine_AddBitmap(CCD->Engine()->Engine(), Object->Icon);
 									geBitmap_SetColorKey(Object->Icon, GE_TRUE, 255, GE_FALSE);
 								}
-								// end change
 							}
 
 							Object->Location = pSource->origin;
@@ -983,7 +876,6 @@ CPawn::~CPawn()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-// changed QD 12/15/05
 	if(Background)
 	{
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), Background);
@@ -1011,7 +903,6 @@ CPawn::~CPawn()
 
 		}
 	}
-// end change
 
 	unsigned int keynum = BitmapCache.size();
 
@@ -1019,15 +910,11 @@ CPawn::~CPawn()
 	{
 		for(unsigned int i=0; i<keynum; i++)
 		{
-			// changed QD 07/15/06
 			if(BitmapCache[i].Bitmap)
 			{
-				// changed QD 12/15/05
 				geEngine_RemoveBitmap(CCD->Engine()->Engine(), BitmapCache[i].Bitmap);
-				// end change
 				geBitmap_Destroy(&(BitmapCache[i].Bitmap));
 			}
-			// end change
 		}
 	}
 
@@ -1275,11 +1162,7 @@ void CPawn::AnimateWeapon()
 					CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
 					CCD->ActorManager()->GetPosition(Object->Actor, &thePosition);
 
-					// changed QD 12/15/05
-					//geXForm3d_SetIdentity(&XForm);
-					//geXForm3d_RotateZ(&XForm, Object->WRotation.Z + theRotation.Z);
 					geXForm3d_SetZRotation(&XForm, Object->WRotation.Z + theRotation.Z);
-					// end change
 					geXForm3d_RotateX(&XForm, Object->WRotation.X + theRotation.X);
 					geXForm3d_RotateY(&XForm, Object->WRotation.Y + theRotation.Y);
 					geXForm3d_Translate(&XForm, thePosition.X, thePosition.Y, thePosition.Z);
@@ -1343,30 +1226,21 @@ void CPawn::Spawn(void *Data)
 	Object->Actor = CCD->ActorManager()->SpawnActor(Object->ActorName,
 		Object->Location, Object->Rotation, Object->BoxAnim, Object->BoxAnim, NULL);
 
-// changed QD 07/21/04
-//	CCD->ActorManager()->SetActorDynamicLighting(Object->Actor, Object->FillColor, Object->AmbientColor);
 	CCD->ActorManager()->SetActorDynamicLighting(Object->Actor, Object->FillColor,
 												 Object->AmbientColor, Object->AmbientLightFromFloor);
-// end change
 
 	CCD->ActorManager()->SetShadow(Object->Actor, Object->ShadowSize);
 
-// changed QD 06/26/04
 	if(Object->ShadowAlpha > 0.0f)
 		CCD->ActorManager()->SetShadowAlpha(Object->Actor, Object->ShadowAlpha);
 
 	if(!EffectC_IsStringNull(Object->ShadowBitmap))
 		CCD->ActorManager()->SetShadowBitmap(Object->Actor, TPool_Bitmap(Object->ShadowBitmap, Object->ShadowAlphamap, NULL, NULL));
-// end change
 
-// begin change gekido
 	// projected shadows per pawn type
 	CCD->ActorManager()->SetProjectedShadows(Object->Actor, Object->ProjectedShadows);
-// end change gekido
 
-// changed QD Shadows
 	CCD->ActorManager()->SetStencilShadows(Object->Actor, Object->StencilShadows);
-// end change
 
 	CCD->ActorManager()->SetHideRadar(Object->Actor, Object->HideFromRadar);
 	CCD->ActorManager()->SetScale(Object->Actor, Object->Scale);
@@ -1414,23 +1288,13 @@ void CPawn::Spawn(void *Data)
 /* ------------------------------------------------------------------------------------ */
 void CPawn::PreLoad(const char *filename)
 {
-// changed Nout 12/15/05
-	//FILE *fdInput = NULL;
 	geVFile *fdInput = NULL;
-// end change
 	char szInputString[1024] = {""};
 	std::string str;
 	int i, j;
 	char file[256];
 
-// changed Nout 12/15/05
-/*	fdInput = fopen(filename, "rt");
 
-	if(!fdInput)
-		return;
-
-	while(fgets(szInputString, 1024, fdInput) != NULL)
-*/
 	if(!CCD->OpenRFFile(&fdInput, kScriptFile, filename, GE_VFILE_OPEN_READONLY))
 	{
 		char szError[256];
@@ -1441,7 +1305,6 @@ void CPawn::PreLoad(const char *filename)
 	}
 
 	while(geVFile_GetS(fdInput, szInputString, 1024) == GE_TRUE)
-// end change
 	{
 		if(szInputString[0] == ';' || strlen(szInputString) <= 1)
 			continue;
@@ -1449,9 +1312,7 @@ void CPawn::PreLoad(const char *filename)
 		str = szInputString;
 		TrimRight(str);
 		MakeLower(str);
-// changed Nout 12/15/05 - just in case someone is typing the path this way...
 		Replace(str, "\\\\", "\\");
-// end change
 		i = str.find(".wav");
 
 		if(i >= 0 && i < (int)str.length())
@@ -1471,13 +1332,9 @@ void CPawn::PreLoad(const char *filename)
 		}
 	}
 
-// changed Nout 12/15/05
-	//fclose(fdInput);
 	geVFile_Close(fdInput);
-// end change
 }
 
-// changed Nout 12/15/05
 /* ------------------------------------------------------------------------------------ */
 //	ShowText
 /* ------------------------------------------------------------------------------------ */
@@ -1520,47 +1377,12 @@ void CPawn::ShowText(int Nr)
 		char Text[256];
 		strcpy(Text, TextMessage[Nr].TextString.c_str());
 	    int LineNr = 0;
-// changed QD 12/15/05 - use <CR> as indicator for a new line as it's done in conversation texts
-		/*char *result = NULL;
-		result = strtok(Text , "#");
 
-		while( result != NULL )
-		{
-			TextWidth = CCD->MenuManager()->FontWidth(TextMessage[Nr].FontNr, result);
 
-			if(strstr(TextMessage[Nr].Alignment, "Left"))
-			{
-				CCD->MenuManager()->WorldFontRect(result,
-					TextMessage[Nr].FontNr,
-					int(ScreenPos.X-TextWidth),
-					int(ScreenPos.Y+(LineNr*(2+CCD->MenuManager()->FontHeight(TextMessage[Nr].FontNr)))),
-					float(TextMessage[Nr].Alpha));
-			}
-			else if(strstr(TextMessage[Nr].Alignment, "Center"))
-			{
-				CCD->MenuManager()->WorldFontRect(result,
-					TextMessage[Nr].FontNr,
-					int(ScreenPos.X-(TextWidth/2)),
-					int(ScreenPos.Y+(LineNr*(2+CCD->MenuManager()->FontHeight(TextMessage[Nr].FontNr)))),
-					float(TextMessage[Nr].Alpha));
-			}
-			else
-			{
-				CCD->MenuManager()->WorldFontRect(result,
-					TextMessage[Nr].FontNr,
-					int(ScreenPos.X),
-					int(ScreenPos.Y+(LineNr*(2+CCD->MenuManager()->FontHeight(TextMessage[Nr].FontNr)))),
-					float(TextMessage[Nr].Alpha));
-			}
 
-			result = strtok(NULL, "#");
-			LineNr += 1;
-		}
-		*/
 		char *CR = NULL;
 		char *Line = Text;
 
-		//if(strstr(TextMessage[Nr].Alignment, "left"))
 		switch(TextMessage[Nr].Alignment)
 		{
 		case 'L':
@@ -1645,7 +1467,6 @@ void CPawn::ShowText(int Nr)
 				break;
 			}
 		}
-// end change
 	}
 }
 
@@ -1666,7 +1487,6 @@ void CPawn::FillScreenArea(int Nr)
 			FillScrArea[Nr].DoFillScreenArea = false;
 	}
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
 //	GetCache
@@ -1807,6 +1627,5 @@ int CPawn::RestoreFrom(FILE *RestoreFD, bool type)
 
 	return RGF_SUCCESS;
 }
-
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

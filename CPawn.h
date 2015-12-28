@@ -9,18 +9,15 @@
 #ifndef __RGF_CPAWN_H__
 #define __RGF_CPAWN_H__
 
-#include "Simkin\\skScriptedExecutable.h" // Update Simkin
+#include "Simkin\\skScriptedExecutable.h"
 
 #define DEBUGLINES	8
 #define MAXFLAGS  500
-// changed Nout 12/15/05
 #define MAXTEXT 20
 #define MAXFILLAREA 20
-// end change
 
 #define PARMCHECK(x) CCD->Pawns()->ParmCheck(arguments.entries(), x, Order, szName, methodName)
 
-// changed Nout 12/15/05
 typedef struct TxtMessage
 {
 	bool		ShowText;
@@ -45,7 +42,6 @@ typedef struct FillSArea
 	GE_RGBA	FillScreenAreaColor;
 
 } FillSArea;
-// end change
 
 typedef struct ActionList
 {
@@ -61,13 +57,16 @@ typedef struct ActionList
 
 } ActionList;
 
+
 typedef struct ActionStack
 {
 	ActionStack	*next;
 	ActionStack *prev;
+
 	ActionList	*Top;
 	ActionList	*Bottom;
 	ActionList	*Index;
+
 	char		Order[64];
 	char		Point[64];
 	char		NextOrder[64];
@@ -89,9 +88,7 @@ typedef enum
 	PDIST,
 	PSOUND,
 	PCOLLIDE,
-// changed Nout 12/15/05
 	PAREA,
-// end change
 	PEND
 };
 
@@ -134,16 +131,12 @@ public:
 	bool method(const skString& methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
 
 	int DoConversation(int charpersec);
-	// changed Nout
-	//int DoSoundConversation(int charpersec);
 	int DoSoundConversation(int charpersec, bool RenderHUD);
 
 
 	void TextDisplay(const char *Text, int Width, int Font);
 	int TextOut(int startline, int Height, int Font, int X, int Y);
-	// changed Nout 12/15/05
 	int TextOutLine(int startline, int Font, int X, int Y);
-	// end change
 
 	void CreateCamera()		{ M_Camera = geCamera_Create(2.0f, &M_CameraRect); }
 	void DestroyCamera()	{ geCamera_Destroy(&M_Camera); }
@@ -154,7 +147,6 @@ public:
 	geBitmap	*rBackground;	// changed Nout
 	geBitmap	*Icon;
 	geBitmap	*rIcon;			// changed Nout
-	// begin add 16/09/2003 Nout
 	int			SpeachWindowX;
 	int			SpeachWindowY;
 	int			ReplyWindowX;
@@ -168,13 +160,10 @@ public:
 	std::string	ReplySoundFileName[9];
 	bool		ClearScreen;
 	geVec3d		PawnPos;
-	// end add 16/09/2003 Nout
 
 	//Sound Conversation
-	//Begin add Nout 23092003
 	int SpeakShowTime;
 	int ReplyShowTime;
-	//End add Nout 23092003
 
 	int BackgroundX;
 	int BackgroundY;
@@ -194,25 +183,16 @@ public:
 	std::string Text;
 	StreamingAudio *m_Streams;
 
-	// changed Nout 12/15/05
 	int MyReplyWidth;
 	int MyReplyHeight;
 	bool ShowSelectedReply;
-	// end change
-
-	// Changed Nout 16/09/2003
-	// StreamingAudio *m_Streams_reply;
 
 	LPDIRECTSOUND m_dsPtr;
 	std::string Reply[9];
 
-	// changed Nout 16/09/2003
-	// CString ReplySoundFileName[9];
-
 	std::vector<std::string> TextLines;
 	bool ConvFlag;
 
-	// changed Nout 12/15/05
 	geBitmap *ReplyMenuBar;
 	bool MouseReply;
 	int	MouseRepPosX[9];
@@ -232,7 +212,6 @@ public:
 	std::string	SoundAtClick[9];
 	std::string	SoundMouseOver[9];
 	geBitmap	*MouseOverBitmap[9];
-	// end change
 
 private:
 	geCamera *M_Camera;
@@ -250,11 +229,11 @@ public:
 	ScriptedObject(char *fileName);
 	~ScriptedObject();
 
-	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
-	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
-	bool method(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);//change simkin
-	bool highmethod(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
-	bool lowmethod(const skString &methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
+	bool getValue(const skString& fieldName, const skString& attribute, skRValue& value);
+	bool setValue(const skString& fieldName, const skString& attribute, const skRValue& value);
+	bool method(const skString& methodName, skRValueArray& arguments, skRValue& returnValue, skExecutableContext& ctxt);
+	bool highmethod(const skString& methodName, skRValueArray& arguments, skRValue& returnValue, skExecutableContext& ctxt);
+	bool lowmethod(const skString& methodName, skRValueArray& arguments, skRValue& returnValue, skExecutableContext& ctxt);
 
 	void Push();
 	void Pop();
@@ -285,26 +264,18 @@ public:
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
-// changed QD 07/21/04
 	bool		AmbientLightFromFloor;
-// end change
 	bool		EnvironmentMapping;
 	bool		AllMaterial;
 	float		PercentMapping;
 	float		PercentMaterial;
 	float		ShadowSize;
-// changed QD 06/26/04
 	geFloat		ShadowAlpha;
 	char		ShadowBitmap[64];
 	char		ShadowAlphamap[64];
-// end change
-// begin change gekido
 	// projected shadows configurable per pawn type
 	bool		ProjectedShadows;
-// end change
-// changed QD Shadows
 	geBoolean	StencilShadows;
-// end change
 	bool		HideFromRadar;
 	char		ChangeMaterial[64];
 	char		Attribute[64];
@@ -368,23 +339,16 @@ public:
 	char		*ConsoleDebug[DEBUGLINES];
 	char		Indicate[2];
 	geVec3d		WRotation;
-// changed QD 12/15/05
-	//geFloat		WScale;
 	geVec3d		WScale;
-// end change
 	bool		SoundLoop;
 	float		Circle;
 
-	// FindPointOrder code.
-	// added QD RF07E
 	bool PointFind;
 	char PointOrder[64];
-	// changed Nout 12/15/05
 	geActor	*Prev_HL_Actor;
 	GE_RGBA Prev_HL_FillColor;
 	GE_RGBA Prev_HL_AmbientColor;
 	geBoolean Prev_HL_AmbientLightFromFloor;
-	// end change
 
 // Low Level variables
 	float		lowTime;
@@ -441,9 +405,7 @@ typedef struct ActorPreCache
 	geFloat		Scale;
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
-// changed QD 07/21/04
 	bool		AmbientLightFromFloor;
-// end change
 	bool		EnvironmentMapping;
 	bool		AllMaterial;
 	float		PercentMapping;
@@ -481,8 +443,6 @@ public:
 	void GetGifXY(int *pGifX, int *pGifY)	{ if(pGifX)*pGifX=GifX; if(pGifY)*pGifY=GifY; }
 
 	bool CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const char *Bone);
-	// FindPointOrder code
-	// Added QD RF07E
 	bool CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const char *Bone);
 
 	int GetBlock()	{ return ConsoleBlock;	}
@@ -504,7 +464,6 @@ public:
 	LPDIRECTSOUND	m_dsPtr;
 	FillSArea		FillScrArea[MAXFILLAREA];
 	CAnimGif		*GifFile[9];
-	// end change
 private:
 	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
 	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
@@ -535,21 +494,17 @@ private:
 	geBitmap	*Icon;
 	geBitmap	*rIcon;			// changed Nout
 
-	// begin add 16/09/2003 Nout
 	int SpeachWindowX;
 	int SpeachWindowY;
 	int ReplyWindowX;
 	int ReplyWindowY;
 	int rBackgroundX;
 	int rBackgroundY;
-	// end add 16/09/2003 Nout
 
-	// changed Nout 12/15/05
 	geBitmap *ReplyMenuBar;
 	int ReplyMenuFont;
 	int GifX;
 	int GifY;
-	// end changed
 
 	int BackgroundX;
 	int BackgroundY;

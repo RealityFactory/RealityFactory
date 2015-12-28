@@ -355,7 +355,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 		{
 			if(!Point)
 			{
-				value=skString("FALSE");
+				value = skString("FALSE");
 				return true;
 			}
 
@@ -392,7 +392,6 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			value = static_cast<int>(ScreenPos.Y);
 			return true;
 		}
-
 	case RGF_SM_PLAYER_SCREEN_X:
 		{
 			// Gets the ScreenX position of the player
@@ -402,7 +401,6 @@ bool ScriptedObject::getValue(const skString &fieldName,
 			value = static_cast<int>(ScreenPos.X);
 			return true;
 		}
-
 	case RGF_SM_PLAYER_SCREEN_Y:
 		{
 			// Gets the ScreenY position of the player
@@ -532,12 +530,11 @@ bool ScriptedObject::setValue(const skString &fieldName,
 bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &arguments,
 							   skRValue &returnValue, skExecutableContext &ctxt)
 {
-
-	char param0[128], param4[128], param5[128]; // pickles Jul 04
+	char param0[128], param4[128], param5[128];
 	float param1, param3;
 	param0[0] = '\0';
 	param4[0] = '\0';
-	param5[0] = '\0'; // pickles Jul 04
+	param5[0] = '\0';
 
 	long method = CCD->GetHashMethod(methodName.c_str());//change scripting
 
@@ -648,8 +645,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			//			GetAttribute(char *Attribute, char *EntityName)
 			// PARMCHECK(1);
 
-// changed QD 12/15/05
-			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			CPersistentAttributes *theInv;
 
 			if(arguments.entries() > 1)
@@ -663,31 +658,26 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
-// end change
-			returnValue = (int)theInv->Value(arguments[0].str().c_str());
+
+			returnValue = theInv->Value(arguments[0].str().c_str());
 			return true;
 		}
-// changed QD 01/2004
 	case RGF_SM_GETCURFLIPBOOK:
 		{
 			PARMCHECK(1);
 			FlipBook *pEntityData = NULL;
-// changed QD 04/23/2004
+
 			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData) == RGF_SUCCESS)
-// end change
 				returnValue = pEntityData->CurTex;
 			else
 				returnValue = 0;
 
 			return true;
 		}
-// end change
 	case RGF_SM_MODIFYATTRIBUTE:
 		{
 			PARMCHECK(2);
 
-// changed QD 12/15/05
-			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			CPersistentAttributes *theInv;
 
 			if(arguments.entries() > 2)
@@ -701,18 +691,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
-// end change
 
 			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
-// Added By Pickles to RF07D --------------------------
 	case RGF_SM_SETATTRIBUTE:
 		{
 			PARMCHECK(2);
 
-// changed QD 12/15/05
-			//CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			CPersistentAttributes *theInv;
 
 			if(arguments.entries() > 2)
@@ -726,7 +712,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			}
 			else
 				theInv = CCD->ActorManager()->Inventory(Actor);
-// end change
 
 			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
@@ -735,12 +720,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			PARMCHECK(1);
 			int temp = arguments[0].intValue();
-			// changed QD 07/15/06
 			if(temp<0 || temp>=MAX_WEAPONS)
 				CCD->Weapons()->Holster();
 			else
 				CCD->Weapons()->SetWeapon(temp);
-			// end change
 			return true;
 		}
 	case RGF_SM_SETUSEITEM:
@@ -770,7 +753,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			int length = arguments[1].intValue();
 			int slength = arguments[0].str().length();
 
-			if(length>slength)
+			if(length > slength)
 				length = slength;
 
 			returnValue = arguments[0].str().substr(0, length);
@@ -840,7 +823,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ISKEYDOWN:
 		{
-// Changed RF071A Picklkes
 			PARMCHECK(1);
 			returnValue = false;
 
@@ -909,7 +891,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-// ADDED TO RF071 BY PICKLES
 	case RGF_SM_GETPOINTYAW:
 		{
 			PARMCHECK(1);
@@ -971,7 +952,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-//END ADDED TO RF071 BY PICKLES
 	case RGF_SM_SETTARGET:
 		{
 			PARMCHECK(1);
@@ -1001,19 +981,17 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_TELEPORTENTITY:
 		{
-			// USAGE : TeleportEntity(EntityName, Point)
-			// TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ)
-			// TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ, UseAngle)
-			// PARMCHECK(2);
+			// USAGE:	TeleportEntity(EntityName, Point)
+			//			TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ)
+			//			TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ, UseAngle)
 			strcpy(param0, arguments[1].str());
 			strcpy(param4, arguments[0].str());
 			char *EType = CCD->EntityRegistry()->GetEntityType(param0);
 			geActor *tActor;
-// changed Nout 12/15/05
+
 			if(!stricmp(param4, "Player"))
 				tActor = CCD->Player()->GetActor();
 			else
-// end change
 				tActor = CCD->ActorManager()->GetByEntityName(param4);
 
 			if(!tActor)
@@ -1027,17 +1005,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					CCD->ScriptPoints()->LocateEntity(param0, (void**)&pProxy);
 					geVec3d Pos = pProxy->origin;
 
-// changed Nout 12/15/05
 					if(arguments.entries() > 4)
 					{
 						Pos.X += arguments[2].floatValue();
 						Pos.Y += arguments[3].floatValue();
 						Pos.Z += arguments[4].floatValue();
 					}
-// end change
 					CCD->ActorManager()->Position(tActor, Pos);
 
-// changed QD 12/15/05
 					if(arguments.entries() > 5)
 					{
 						if(arguments[5].boolValue())
@@ -1055,7 +1030,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 							}
 						}
 					}
-// end change
 
 					if(tActor == Actor && WeaponActor)
 						CCD->ActorManager()->Position(WeaponActor, Pos);
@@ -1093,14 +1067,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
 			Pos = OldPos;
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xf);
-			//geXForm3d_RotateZ(&Xf, theRotation.Z);
 			geXForm3d_SetZRotation(&Xf, theRotation.Z);
 			geXForm3d_RotateX(&Xf, theRotation.X);
 			geXForm3d_RotateY(&Xf, theRotation.Y);
-			//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-			// end change
 
 			geXForm3d_GetUp(&Xf, &Direction);
 			geVec3d_AddScaled(&Pos, &Direction, arguments[2].floatValue(), &Pos);
@@ -1227,7 +1196,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_POSITIONTOPLATFORM:
 		{
-// Changed Pickles rf07A
 			PARMCHECK(5);
 			geVec3d Pos,theRotation;
 			geXForm3d Xf;
@@ -1252,13 +1220,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(arguments[4].boolValue())
 				CCD->ActorManager()->Rotate(Actor, theRotation);
 
-// Added Pickles RF071
 			if(WeaponActor)
 				CCD->ActorManager()->Position(WeaponActor, Pos);
-// End Added Pickles RF071
 
 			return true;
-// End Changed Pickles rf07A
 		}
 	case RGF_SM_ACTIVATETRIGGER:
 		{
@@ -1266,7 +1231,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->Triggers()->HandleTriggerEvent(arguments[0].str().c_str());
 			return true;
 		}
-// Added Pickles to RF071A
 	case RGF_SM_UPDATEENEMYVIS:
 		{
 			GetAngles(true);
@@ -1290,9 +1254,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// PARMCHECK(6);
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction, Orient, tPoint;
-			strcpy(param0, arguments[1].str());// Bone
-			strcpy(param4, arguments[0].str());// Projectile
-			strcpy(param5, arguments[5].str());// Attribute
+			strcpy(param0, arguments[1].str());	// Bone
+			strcpy(param4, arguments[0].str());	// Projectile
+			strcpy(param5, arguments[5].str());	// Attribute
 			bool bone;
 
 			if(WeaponActor)
@@ -1306,13 +1270,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d_Copy(&(Xf.Translation), &Pos);
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xf);
-			//geXForm3d_RotateZ(&Xf, theRotation.Z);
 			geXForm3d_SetZRotation(&Xf, theRotation.Z);
 			geXForm3d_RotateX(&Xf, theRotation.X);
 			geXForm3d_RotateY(&Xf, theRotation.Y);
-			//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
 
 			geXForm3d_GetIn(&Xf, &Direction);
 			geVec3d_AddScaled(&Pos, &Direction, 1000.0f, &tPoint);
@@ -1323,9 +1283,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			geXForm3d_GetLeft(&Xf, &Direction);
 			geVec3d_AddScaled(&Pos, &Direction, arguments[2].floatValue(), &Pos);
-
-			//geXForm3d_GetIn(&Xf, &Direction);
-			//geVec3d_AddScaled(&Pos, &Direction, arguments[4].floatValue(), &Pos);
 
 			geVec3d_Subtract(&tPoint, &Pos, &Orient);
 			float l = geVec3d_Length(&Orient);
@@ -1378,11 +1335,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			UpdateTargetPoint = Pos;
 			return true;
 		}
-//-------------------- End Added by Pickles -----------------------------------
-// begin added pickles 042004
 	case RGF_SM_GETBONEX:
 		{
-			// USAGE: GetBoneX("ENTITY NAME","BONE NAME");
+			// USAGE: GetBoneX("ENTITY NAME", "BONE NAME");
 			PARMCHECK(1);
 			geVec3d Pos;
 			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
@@ -1392,7 +1347,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_GETBONEY:
 		{
-			// USAGE: GetBoneY("ENTITY NAME","BONE NAME");
+			// USAGE: GetBoneY("ENTITY NAME", "BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
 			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
@@ -1402,7 +1357,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_GETBONEZ:
 		{
-			// USAGE: GetBoneZ("ENTITY NAME","BONE NAME");
+			// USAGE: GetBoneZ("ENTITY NAME", "BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
 			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
@@ -1412,7 +1367,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_GETBONEYAW:
 		{
-			// USAGE: GetBoneYaw("ENTITY NAME","BONE NAME");
+			// USAGE: GetBoneYaw("ENTITY NAME", "BONE NAME");
 			PARMCHECK(2);
 			geVec3d Pos;
 			CCD->ActorManager()->GetBoneRotation(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
@@ -1422,7 +1377,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SETPOSITION:
 		{
-			// USAGE; SetPosition("ENTITY NAME",X, Y, Z);
+			// USAGE: SetPosition("ENTITY NAME", X, Y, Z);
 			PARMCHECK(4);
 			geVec3d Pos;
 			geVec3d_Set(&Pos, arguments[1].floatValue(), arguments[2].floatValue(), arguments[3].floatValue());
@@ -1430,8 +1385,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->ActorManager()->Position(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), Pos);
 			return true;
 		}
-// end added pickles 042004
-// start pickles Jul 04
 	case RGF_SM_ISBUTTONDOWN:
 		{
 			PARMCHECK(2);
@@ -1463,7 +1416,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SETBOUNDINGBOX:
 		{
-			// USAGE SetBoundingBox(ANIMATION,width);
+			// USAGE SetBoundingBox(ANIMATION, width);
 			// PARMCHECK(1);
 			float width = arguments[1].floatValue(); // width
 			CCD->ActorManager()->SetBoundingBox(Actor, arguments[0].str().c_str());
@@ -1626,7 +1579,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SETSHADOWFROMFLIP:
 		{
-			// USAGE: SetShadowFromFlip(FLIPBOOK szEntityName,ACTOR EntityName);
+			// USAGE: SetShadowFromFlip(FLIPBOOK szEntityName, ACTOR EntityName);
 			// PARMCHECK(2);
 			float tm;
 			int tb;
@@ -1651,7 +1604,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 /*	else if (IS_METHOD(methodName, "SaveActorAndSkins")) // PWX
 	{
-
 		PARMCHECK(2);
 		geVFile* df;
 		geActor_Def* aDef,*newDef;
@@ -1660,7 +1612,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		geMotion *Anim;
 		float R,G,B;
 
-		strcpy(param4,arguments[1].str());
+		strcpy(param4, arguments[1].str());
 
 		//tActor = CCD->ActorManager()->GetByEntityName(param4);
 
@@ -1675,19 +1627,19 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		// loop through the material sand copy them
 		int mc = geActor_GetMaterialCount(Actor);
 		int i;
-		for(i = 0;i<mc;i++)
+		for(i=0; i<mc; ++i)
 		{
 			geActor_GetMaterial(Actor, i, &Bitmap, &R, &G, &B);
-			geBody_SetMaterial(newBdy, i,Bitmap,R,G,B);
+			geBody_SetMaterial(newBdy, i, Bitmap, R, G, B);
 		}
 
 		// add the new bdy to the actor
-		geActor_SetBody(newDef,newBdy);
+		geActor_SetBody(newDef, newBdy);
 
 		//loop through the motions and copy them to the new actor
 		mc = geActor_GetMotionCount(aDef);
 		int nmc;
-		for(i = 0;i<mc-1;i++)
+		for(i=0; i<mc-1; ++i)
 		{
 			Anim = geActor_GetMotionByIndex(aDef, mc);
 			if(Anim)
@@ -1695,15 +1647,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 
 		// save to the wrestlers folder
-		strcpy(param0,"wrestlers\\");
-		strcat(param0,arguments[0].str());
-		df = geVFile_OpenNewSystem(NULL,GE_VFILE_TYPE_DOS,param0,NULL,GE_VFILE_OPEN_CREATE);
+		strcpy(param0, "wrestlers\\");
+		strcat(param0, arguments[0].str());
+		df = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, param0, NULL, GE_VFILE_OPEN_CREATE);
 
 		returnValue = false;
 		if(!df)
 			return true;
 		geActor_DefWriteToFile(newDef,df);
-		geVFile_Close(df);//close file
+		geVFile_Close(df); //close file
 		returnValue = true;
 
 		//destroy everything
@@ -1717,7 +1669,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 */
 	case RGF_SM_GETCOLLIDEDISTANCE:
 		{
-			// USAGE: GetCollideDistance(BONE_NAME ,Offset X,Offset Y, Offset Z);
+			// USAGE: GetCollideDistance(BONE_NAME, Offset X, Offset Y, Offset Z);
 			// PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, theRotation, Direction;
@@ -1732,16 +1684,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			geVec3d_Copy(&(Xf.Translation), &OldPos);
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
-			//Pos = OldPos;
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xf);
-			//geXForm3d_RotateZ(&Xf, theRotation.Z);
 			geXForm3d_SetZRotation(&Xf, theRotation.Z);
 			geXForm3d_RotateX(&Xf, theRotation.X);
 			geXForm3d_RotateY(&Xf, theRotation.Y);
-			//geXForm3d_Translate(&Xf, OldPos.X, OldPos.Y, OldPos.Z);
-			// end change
 
 			geXForm3d_GetUp(&Xf, &Direction);
 			geVec3d_AddScaled(&OldPos, &Direction, arguments[2].floatValue(), &Pos);
@@ -1752,9 +1698,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geXForm3d_GetIn(&Xf, &Direction);
 			geVec3d_AddScaled(&Pos, &Direction, arguments[3].floatValue(), &Pos);
 
-			if(geWorld_Collision(CCD->World(), NULL, NULL,
-				&OldPos, &Pos, GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW,
-				GE_COLLIDE_ALL, 0x0, NULL, NULL, &Collision))
+			if(geWorld_Collision(CCD->World(), NULL, NULL, &OldPos, &Pos,
+				GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW, GE_COLLIDE_ALL,
+				0x0, NULL, NULL, &Collision))
 				gd = geVec3d_DistanceBetween(&OldPos, &Collision.Impact);
 
 			returnValue = gd;
@@ -1775,7 +1721,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d Pos1, Pos2, temp, Rot;
 			geFloat fP, dP;
 
-			//strcpy(param0, arguments[0].str());
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
 			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Pos2);
 			geVec3d_Subtract(&Pos2, &Pos1, &temp);
@@ -1825,7 +1770,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d_Subtract(&Pos2, &Pos1, &temp);
 			geVec3d_Normalize(&temp);
 
-			//	Do dotproduct.  If it's positive, then Actor2 is in front of Actor1
+			// Do dotproduct.  If it's positive, then Actor2 is in front of Actor1
 			CCD->ActorManager()->InVector(Actor, &Rot);
 			dP = geVec3d_DotProduct(&temp, &Rot);
 			CCD->ActorManager()->LeftVector(Actor, &Rot);
@@ -1880,7 +1825,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			cMot = geActor_GetMotionByName(geActor_GetActorDef(Actor), CCD->ActorManager()->GetMotion(Actor));
 			EndTime = CCD->ActorManager()->GetAnimationTime(Actor,ANIMATION_CHANNEL_ROOT);
-			StartTime = EndTime - (CCD->GetTicksGoneBy() * 0.001f);
+			StartTime = EndTime - CCD->GetTicksGoneBy() * 0.001f;
 
 			if(StartTime < 0.0f)
 				StartTime = 0.0f;
@@ -1931,9 +1876,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-/*	else if (IS_METHOD(methodName, "LoadSkin")) // PWX
+/*	else if (IS_METHOD(methodName, "LoadSkin"))
 	{
-		//Usage: LoadSkin(Bitmap File Name in 'skins' Folder, Pawn Mat Index, R, G, B)
+		// Usage: LoadSkin(Bitmap File Name in 'skins' Folder, Pawn Mat Index, R, G, B)
 		PARMCHECK(5);
 		geVFile* file;
 		geBitmap* Map;
@@ -1954,7 +1899,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		returnValue = false;
 		if(file)
 		{
-			Map = geBitmap_CreateFromFile(file);// Load Bitmap
+			Map = geBitmap_CreateFromFile(file);	// Load Bitmap
 			if(!Map)
 				returnValue = false;
 			geActor_SetMaterial(Actor, MatIndex, Map, Red, Green, Blue); // Set Actor Material
@@ -1990,9 +1935,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = ind;
 			return true;
 		}
-/*	else if (IS_METHOD(methodName, "SaveAnimations")) // PWX
+/*	else if (IS_METHOD(methodName, "SaveAnimations"))
 	{
-
 		geVFile* df;
 		geActor_Def* aDef;
 		int Mc;
@@ -2001,13 +1945,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		aDef = geActor_GetActorDef(Actor);
 		nM = geActor_GetMotionCount(aDef);
 
-		for(Mc = 0;Mc < nM;Mc++)
+		for(Mc = 0; Mc < nM; ++Mc)
 		{
-			strcpy(param0,"motions\\");
-			strcat(param0,geActor_GetMotionName(aDef, Mc));
-			df = geVFile_OpenNewSystem(NULL,GE_VFILE_TYPE_DOS,param0,NULL,GE_VFILE_OPEN_CREATE);
-			geMotion_WriteToBinaryFile(geActor_GetMotionByIndex(aDef, Mc),df);
-			geVFile_Close(df);//close file
+			strcpy(param0, "motions\\");
+			strcat(param0, geActor_GetMotionName(aDef, Mc));
+			df = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, param0, NULL,GE_VFILE_OPEN_CREATE);
+			geMotion_WriteToBinaryFile(geActor_GetMotionByIndex(aDef, Mc), df);
+			geVFile_Close(df); //close file
 		}
 		returnValue = skString(param0);
 		return true;
@@ -2024,7 +1968,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			CCD->AudioStreams()->StopAll();
 			return true;
 		}
-// end pickles Jul 04
 	case RGF_SM_CHANGEYAW:
 		{
 			ChangeYaw();
@@ -2056,11 +1999,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d In, NewPosition, SavedPosition;
 			CCD->ActorManager()->GetPosition(Actor, &SavedPosition);
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xform);
-			//geXForm3d_RotateY(&Xform, arguments[0].floatValue());
-			//geXForm3d_Translate(&Xform, SavedPosition.X, SavedPosition.Y, SavedPosition.Z);
-			// end change
 			geXForm3d_SetYRotation(&Xform, arguments[0].floatValue());
 
 			geXForm3d_GetIn(&Xform, &In);
@@ -2075,18 +2013,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FLYMOVE:
 		{
 			PARMCHECK(3);
+
 			float amount = arguments[2].floatValue() * ElapseTime;
 			geXForm3d Xform;
 			geVec3d In, NewPosition, SavedPosition;
 			CCD->ActorManager()->GetPosition(Actor, &SavedPosition);
 
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xform);
-			//geXForm3d_RotateX(&Xform, -arguments[0].floatValue());
 			geXForm3d_SetXRotation(&Xform, -arguments[0].floatValue());
 			geXForm3d_RotateY(&Xform, arguments[1].floatValue());
-			//geXForm3d_Translate(&Xform, SavedPosition.X, SavedPosition.Y, SavedPosition.Z);
-			// end change
 
 			geXForm3d_GetIn(&Xform, &In);
 			geVec3d_AddScaled(&SavedPosition, &In, amount, &NewPosition);
@@ -2100,6 +2034,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_DAMAGE:
 		{
 			PARMCHECK(2);
+
 			float amount = arguments[0].floatValue();
 			strcpy(param0, arguments[1].str());
 			CCD->Damage()->DamageActor(TargetActor, amount, param0, amount, param0, "Melee");
@@ -2108,6 +2043,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_DAMAGEPLAYER:
 		{
 			// PARMCHECK(2);
+
 			float amount = arguments[0].floatValue();
 			strcpy(param0, arguments[1].str());
 			CCD->Damage()->DamageActor(CCD->Player()->GetActor(), amount, param0, amount, param0, "Melee");
@@ -2116,26 +2052,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_POSITIONTOPLAYER:
 		{
 			// PARMCHECK(3);
+
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction;
 
 			Pos = CCD->Player()->Position();
 
-// changed QD 12/15/05
-// added optional parameter to indicate whether the pawn should be rotatetd or not
-			// if(arguments.entries() == 4)
 			if(arguments.entries() > 3)
 			{
 				CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &theRotation);
 
 				if(arguments[3].boolValue())
 				{
-					//geXForm3d_SetIdentity(&Xf);
-					//geXForm3d_RotateZ(&Xf, theRotation.Z);
 					geXForm3d_SetZRotation(&Xf, theRotation.Z);
 					geXForm3d_RotateX(&Xf, theRotation.X);
 					geXForm3d_RotateY(&Xf, theRotation.Y);
-					//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
 
 					geXForm3d_GetUp(&Xf, &Direction);
 					geVec3d_AddScaled(&Pos, &Direction, arguments[1].floatValue(), &Pos);
@@ -2164,7 +2095,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				}
 
 				return true;
-// end change QD 12/15/05
 			}
 
 			Pos.X += arguments[0].floatValue();
@@ -2172,10 +2102,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			Pos.Z += arguments[2].floatValue();
 			CCD->ActorManager()->Position(Actor, Pos);
 
-// Added Pickles RF071
 			if(WeaponActor)
 				CCD->ActorManager()->Position(WeaponActor, Pos);
-// End Added Pickles RF071
 
 			return true;
 		}
@@ -2187,7 +2115,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
 
-			if(arguments.entries() > 3) // Changed by Pickles RF07D
+			if(arguments.entries() > 3)
 			{
 				bool flag = arguments[3].boolValue();
 
@@ -2195,14 +2123,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				{
 					CCD->ActorManager()->GetRotate(Actor, &theRotation);
 
-					// changed QD 12/15/05
-					//geXForm3d_SetIdentity(&Xf);
-					//geXForm3d_RotateZ(&Xf, theRotation.Z);
 					geXForm3d_SetZRotation(&Xf, theRotation.Z);
 					geXForm3d_RotateX(&Xf, theRotation.X);
 					geXForm3d_RotateY(&Xf, theRotation.Y);
-					//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-					// end change
 
 					geXForm3d_GetUp(&Xf, &Direction);
 					geVec3d_AddScaled(&Pos, &Direction, arguments[1].floatValue(), &Pos);
@@ -2215,7 +2138,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 					CCD->ActorManager()->Position(CCD->Player()->GetActor(), Pos);
 
-// Added By Pickles to RF07D
 					if(arguments.entries() == 5)
 					{
 						bool flag1 = arguments[4].boolValue();
@@ -2225,7 +2147,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					}
 					else
 						CCD->ActorManager()->Rotate(CCD->Player()->GetActor(), theRotation);
-// END Added By Pickles to RF07D
 
 					return true;
 				}
@@ -2251,12 +2172,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				return true;
 
 			CCD->ActorManager()->GetPosition(MasterActor, &Pos);
-// Start PWX - Camera Code
 			OldPos = Pos;
 			OldPos.Y += 16.f;
-// End PWX
 
-			if(arguments.entries() > 4) // Changed by Pickles RF07D
+			if(arguments.entries() > 4)
 			{
 				bool flag = arguments[4].boolValue();
 
@@ -2264,14 +2183,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				{
 					CCD->ActorManager()->GetRotate(MasterActor, &theRotation);
 
-					// changed QD 12/15/05
-					//geXForm3d_SetIdentity(&Xf);
-					//geXForm3d_RotateZ(&Xf, theRotation.Z);
 					geXForm3d_SetZRotation(&Xf, theRotation.Z);
 					geXForm3d_RotateX(&Xf, theRotation.X);
 					geXForm3d_RotateY(&Xf, theRotation.Y);
-					//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-					// end change
 
 					geXForm3d_GetUp(&Xf, &Direction);
 					geVec3d_AddScaled(&Pos, &Direction, arguments[2].floatValue(), &Pos);
@@ -2282,48 +2196,38 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 					geXForm3d_GetIn(&Xf, &Direction);
 					geVec3d_AddScaled(&Pos, &Direction, arguments[3].floatValue(), &Pos);
 
-// Start PWX - Camera Code
 					GE_Collision Collision;
 					geBoolean Result = geWorld_Collision(CCD->Engine()->World(), NULL, NULL, &OldPos, &Pos,
-						GE_CONTENTS_SOLID_CLIP , GE_COLLIDE_ALL, 0,
-						NULL, NULL, &Collision);
+										GE_CONTENTS_SOLID_CLIP , GE_COLLIDE_ALL, 0,
+										NULL, NULL, &Collision);
 
 					if(Result)
 					{
 						Pos = Collision.Impact;
 						geVec3d_AddScaled(&Pos, &(Collision.Plane.Normal), 2.0f, &Pos);
 					}
-// End PWX
 
 					CCD->ActorManager()->Position(Actor, Pos);
-// Added Pickles RF071
 					if(WeaponActor)
 						CCD->ActorManager()->Position(WeaponActor, Pos);
-// End Added Pickles RF071
 
-// Added by Pickles
 					if(arguments.entries() == 6)
 					{
 						if(arguments[5].boolValue())
 						{
 							CCD->ActorManager()->Rotate(Actor, theRotation);
 
-							// changed QD 12/15/05
 							if(WeaponActor)
 								CCD->ActorManager()->Rotate(WeaponActor, theRotation);
-							// end change
 						}
 					}
 					else
 					{
 						CCD->ActorManager()->Rotate(Actor, theRotation);
 
-						// changed QD 12/15/05
 						if(WeaponActor)
 							CCD->ActorManager()->Rotate(WeaponActor, theRotation);
-						// end change
 					}
-// END Added by Pickles
 
 					return true;
 				}
@@ -2334,10 +2238,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			Pos.Z += arguments[3].floatValue();
 			CCD->ActorManager()->Position(Actor, Pos);
 
-			// changed QD 12/15/05
 			if(WeaponActor)
 				CCD->ActorManager()->Position(WeaponActor, Pos);
-			// end change
 
 			return true;
 		}
@@ -2485,21 +2387,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geFloat x;
 			geExtBox theBox;
 
-			// changed QD 03/30/07
-			/*
-			CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox);
-			TargetPoint = UpdateTargetPoint;
-			// changed QD 12/15/05
-			TargetPoint.Y -= (theBox.Max.Y*0.5f);// /2.0f);
 
-			if(arguments.entries() == 7)
-			{
-				float height = arguments[6].floatValue();
-				TargetPoint.Y += (theBox.Max.Y*height);
-			}
-			else
-				TargetPoint.Y += (theBox.Max.Y*0.5f);
-			*/
 			TargetPoint = UpdateTargetPoint;
 
 			if(CCD->ActorManager()->GetBoundingBox(TargetActor, &theBox) != RGF_NOT_FOUND)
@@ -2526,17 +2414,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			if(bone)
 			{
-				geVec3d_Copy(&(Xf.Translation), &Pos);
+				geVec3d_Copy(&Xf.Translation, &Pos);
 				CCD->ActorManager()->GetRotate(Actor, &theRotation);
 
-				// changed QD 12/15/05
-				//geXForm3d_SetIdentity(&Xf);
-				//geXForm3d_RotateZ(&Xf, theRotation.Z);
 				geXForm3d_SetZRotation(&Xf, theRotation.Z);
 				geXForm3d_RotateX(&Xf, theRotation.X);
 				geXForm3d_RotateY(&Xf, theRotation.Y);
-				//geXForm3d_Translate(&Xf, Pos.X, Pos.Y, Pos.Z);
-				// end change
 
 				geXForm3d_GetUp(&Xf, &Direction);
 				geVec3d_AddScaled(&Pos, &Direction, FireOffsetY, &Pos);
@@ -2722,7 +2605,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 	case RGF_SM_LOOKATPAWN:
 		{
-			// USAGE: LookAtPawn(Pawn Name)
+			// USAGE: LookAtPawn(Pawn Name, Offset)
 			geVec3d Pos1 ,Pos2, Rot;
 
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
@@ -2741,12 +2624,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d In, NewPosition, SavedPosition, TestPos;
 
 			CCD->ActorManager()->GetPosition(Actor, &SavedPosition);
-			// changed QD 12/15/05
-			//geXForm3d_SetIdentity(&Xform);
-			//geXForm3d_RotateY(&Xform, arguments[0].floatValue());
 			geXForm3d_SetYRotation(&Xform, arguments[0].floatValue());
-			//geXForm3d_Translate(&Xform, SavedPosition.X, SavedPosition.Y, SavedPosition.Z);
-			// end change
 
 			geXForm3d_GetIn(&Xform, &In);
 			geVec3d_AddScaled(&SavedPosition, &In, amount, &NewPosition);
@@ -2828,7 +2706,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-// changed Nout/QD 12/15/05
 	case RGF_SM_SETCAMERAWINDOW:
 		{
 			// USAGE: SetCameraWindow(float FOV)
@@ -2917,15 +2794,16 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			PARMCHECK(3);
 
 			geVec3d Rot;
-			Rot.X = GE_PIOVER180*arguments[0].floatValue();
-			Rot.Y = GE_PIOVER180*arguments[1].floatValue();
-			Rot.Z = GE_PIOVER180*arguments[2].floatValue();
+			Rot.X = GE_PIOVER180 * arguments[0].floatValue();
+			Rot.Y = GE_PIOVER180 * arguments[1].floatValue();
+			Rot.Z = GE_PIOVER180 * arguments[2].floatValue();
 			CCD->FixedCameras()->Rotate(Rot);
 
 			return true;
 		}
 	case RGF_SM_DISTANCEBETWEENENTITIES:
 		{
+			// USAGE: DistanceBetweenEntities(FromEntity, ToEntity);
 			// USAGE: DistanceBetweenEntities(FromEntity, ToEntity, OnlyXZ);
 			// "Player" is a special Entity
 			PARMCHECK(3);
@@ -3080,9 +2958,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 						if(arguments.entries() > 7)
 						{
-							pProxy->Angle.X = arguments[5].intValue()*0.0174532925199433f;
-							pProxy->Angle.Y = arguments[6].intValue()*0.0174532925199433f;
-							pProxy->Angle.Z = arguments[7].intValue()*0.0174532925199433f;
+							pProxy->Angle.X = arguments[5].intValue()*GE_PIOVER180;
+							pProxy->Angle.Y = arguments[6].intValue()*GE_PIOVER180;
+							pProxy->Angle.Z = arguments[7].intValue()*GE_PIOVER180;
 						}
 					}
 				}
@@ -3093,6 +2971,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_GETENTITYSCREENX:
 		{
 			// USAGE:
+			// int = GetEntityScreenX()
 			// int = GetEntityScreenX(EntityName)
 			// Gets the screen position of any Pawn or Player. If EntityName="", the active pawn is used
 
@@ -3119,6 +2998,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_GETENTITYSCREENY:
 		{
 			// USAGE:
+			// int = GetEntityScreenY()
 			// int = GetEntityScreenY(EntityName)
 			// Gets the screen position of any Pawn or the Player. If EntityName="", the active pawn is used
 
@@ -3413,7 +3293,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SHOWTEXT:
 		{
-			// USAGE: ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound,
+			// USAGE: ShowText(Nr, EntityName, Animation, TextString, FontName, TextSound,
 			//					ScreenOffsetX, ScreenOffsetY, Align, Alpha);
 			// Shows a TextMessage on the screen, attached to a Pawn or Player
 			// Align can be Right, Left or Center.
@@ -3671,8 +3551,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			returnValue = CCD->Pawns()->GetPawnFlag(int1);
 			return true;
 		}
-// end change
-// changed QD 12/15/05
 	case RGF_SM_POWERUP:
 		{
 			// USAGE:	PowerUp(char *AttributeName, int Amount, bool SetMaximumAmount)
@@ -3804,8 +3682,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE:	AddAttribute(char *Attribute)
 			//			AddAttribute(char *Attribute, EntityName)
-
-			// changed QD 07/15/06 - add optional arguments
 			//			AddAttribute(char *Attribute, int LowValue, int HighValue)
 			//			AddAttribute(char *Attribute, int LowValue, int HighValue, char *EntityName)
 			PARMCHECK(1);
@@ -3831,17 +3707,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			{
 				theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
 			}
-			// end change QD 07/15/06
 
 			return true;
 		}
-// end change
-// changed QD 07/15/06
 	case RGF_SM_SETATTRIBUTEVALUELIMITS:
 		{
-			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
+			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue)
 			//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
-
 			PARMCHECK(3);
 
 			CPersistentAttributes *theInv;
@@ -3938,7 +3810,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// for quite a while now, so leave it like this...
 			// correct: FOV = GE_PIOVER2 - arguments[0].floatValue()*0.5f*GE_PIOVER180;
 
-			//FOV = (90.0f-arguments[0].floatValue()*0.5f)/90.0f;
 			FOV = (180.f - arguments[0].floatValue())/180.f;
 			FOVBone[0] = '\0';
 			if(arguments.entries()>1)
@@ -3946,8 +3817,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-// end change QD 07/15/06
-// changed QD 02/01/07
 	case RGF_SM_SIN:
 		{
 			PARMCHECK(1);
@@ -3990,7 +3859,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
-	// end change
 	case RGF_SM_SETGRAVITY:
 		{
 			PARMCHECK(3);
@@ -4125,34 +3993,27 @@ void ScriptedObject::GetAngles(bool flag)
 		Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
 		Orient.Y = atan2(x, Orient.Z) + GE_PI;
 	}
-	// changed QD 12/15/05
 	{
 
 		CCD->ActorManager()->GetRotate(Actor, &Pos);
 
 		while(Pos.Y < 0.0f)
 		{
-			// changed QD 12/15/05
 			Pos.Y += GE_2PI;
 		}
 
-		// changed QD 12/15/05
 		while(Pos.Y >= GE_2PI)
 		{
-			// changed QD 12/15/05
 			Pos.Y -= GE_2PI;
 		}
 
 		while(Pos.X < 0.0f)
 		{
-			// changed QD 12/15/05
 			Pos.X += GE_2PI;
 		}
 
-		// changed QD 12/15/05
 		while(Pos.X >= GE_2PI)
 		{
-			// changed QD 12/15/05
 			Pos.X -= GE_2PI;
 		}
 	}
@@ -4177,8 +4038,8 @@ bool ScriptedObject::CheckBottom()
 	TraceData trace;
 	GE_Collision Collision;
 	geFloat MaxStep;
-	float	mid, bottom;
-	int x,y;
+	float mid, bottom;
+	int x, y;
 
 	geActor_GetExtBox(Actor, &theBox);
 	Start.Y = theBox.Min.Y;
@@ -4311,9 +4172,7 @@ void ScriptedObject::ChangeYaw()
 	{
 		if(RotateAmt > GE_PI)
 		{
-			// changed QD 09/21/03
-			// changed QD 12/15/05
-			RotateAmt = GE_2PI - RotateAmt; //RotateAmt -= GE_PI;
+			RotateAmt = GE_2PI - RotateAmt;
 
 			if(RotateLeft)
 				RotateLeft = false;
@@ -4321,8 +4180,7 @@ void ScriptedObject::ChangeYaw()
 				RotateLeft = true;
 		}
 
-		// changed QD 12/15/05
-		RotateAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
+		RotateAmt *= GE_180OVERPI;
 
 		float amount = yaw_speed * ElapseTime;
 
@@ -4330,9 +4188,6 @@ void ScriptedObject::ChangeYaw()
 		{
 			amount = RotateAmt;
 		}
-
-		// changed QD 09/21/03
-		// RotateAmt -= amount;
 
 		if(RotateLeft)
 			CCD->ActorManager()->TurnRight(Actor, 0.0174532925199433f*amount);
@@ -4361,9 +4216,7 @@ void ScriptedObject::ChangePitch()
 	{
 		if(RotateAmt > GE_PI)
 		{
-			// changed QD 09/21/03
-			// changed QD 12/15/05
-			RotateAmt = GE_2PI - RotateAmt;// RotateAmt -= GE_PI;
+			RotateAmt = GE_2PI - RotateAmt;
 
 			if(RotateUp)
 				RotateUp = false;
@@ -4371,8 +4224,7 @@ void ScriptedObject::ChangePitch()
 				RotateUp = true;
 		}
 
-		// changed QD 12/15/05
-		RotateAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
+		RotateAmt *= GE_180OVERPI;
 
 		float amount = pitch_speed * ElapseTime;
 
@@ -4380,9 +4232,6 @@ void ScriptedObject::ChangePitch()
 		{
 			amount = RotateAmt;
 		}
-
-		// changed QD 09/21/03
-		// RotateAmt -= amount;
 
 		if(RotateUp)
 			CCD->ActorManager()->TiltUp(Actor, 0.0174532925199433f*amount);
@@ -4405,12 +4254,7 @@ bool ScriptedObject::StepDirection(float yaw, float dist)
 
 	CCD->ActorManager()->GetPosition(Actor, &oldorigin);
 
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xform);
-	//geXForm3d_RotateY(&Xform, ideal_yaw);
 	geXForm3d_SetYRotation(&Xform, ideal_yaw);
-	//geXForm3d_Translate(&Xform, oldorigin.X, oldorigin.Y, oldorigin.Z);
-	// end change
 
 	geXForm3d_GetIn(&Xform, &In);
 	geVec3d_Scale(&In, dist, &move);
@@ -4418,7 +4262,6 @@ bool ScriptedObject::StepDirection(float yaw, float dist)
 	if(MoveStep(move))
 	{
 		GetAngles(true);
-		// changed QD 12/15/05
 		float selfangle = anglemod(actoryaw*GE_180OVERPI);// /0.0174532925199433f);
 		float idealangle = anglemod(ideal_yaw*GE_180OVERPI);// /0.0174532925199433f);
 		float delta = anglemod(selfangle - idealangle);
@@ -4444,9 +4287,8 @@ void ScriptedObject::NewChaseDir(float dist)
 	float	deltax,deltay;
 	geVec3d	Pos;
 	float d[3];
-	float	tdir, olddir, turnaround;
+	float tdir, olddir, turnaround;
 
-	// changed QD 12/15/05
 	float yaw = ideal_yaw*GE_180OVERPI;// /0.0174532925199433f;
 	olddir = anglemod((int)(yaw/45.0f)*45.0f);
 	turnaround = anglemod(olddir - 180.0f);
@@ -4560,7 +4402,7 @@ void ScriptedObject::MoveToGoal(float dist)
 
 	if(!StepDirection(ideal_yaw/0.0174532925199433f, dist))
 	{
-		NewChaseDir (dist);
+		NewChaseDir(dist);
 	}
 }
 /* ------------------------------------------------------------------------------------ */
@@ -4573,7 +4415,7 @@ void ScriptedObject::MoveToGoal(float dist)
 /* ------------------------------------------------------------------------------------ */
 void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 {
-	skRValueArray args; //change simkin
+	skRValueArray args;
 	skRValue ret;
 
 	if(Object->console)
@@ -4583,12 +4425,6 @@ void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 		strcpy(Object->ConsoleHeader, szBug);
 	}
 
-// changed QD 07/15/06
-	/*
-	Object->lowTime += (dwTicks*0.001f);
-	Object->ElapseTime += (dwTicks*0.001f);
-	Object->ThinkTime -= (dwTicks*0.001f);
-	*/
 	dwTicks*=0.001f;
 	Object->lowTime += dwTicks;
 	Object->ElapseTime += dwTicks;
@@ -4621,7 +4457,7 @@ void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 		if(Object->console)
 			strcpy(Object->ConsoleError, e.toString());
 	}
-	catch (...)
+	catch(...)
 	{
 		char szBug[256];
 		sprintf(szBug, "Low Level Script Error for %s in Order %s", Object->szName, Object->Order);
