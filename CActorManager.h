@@ -13,14 +13,14 @@
 
 class CPersistentAttributes;			// Forward ref.
 
-//	Setup defines
+// Setup defines
 #define	ACTOR_LIST_SIZE		1024		///< Max # of actors per level
 #define	PASSENGER_LIST_SIZE	64			///< Max # of passengers in a vehicle
 #define ATTACHACTORS		16			///< Max # of attached actors
 #define ATTACHBLENDACTORS	16			///< Max # of attached blending actors
 
 /* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
+	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
 typedef enum CollideObjectLevels
@@ -32,17 +32,18 @@ typedef enum CollideObjectLevels
 
 } CollideObjectLevels;
 
+
 typedef struct CollideObjectInformation
 {
-	void    *CollideObject;
-	geFloat Percent;
-	geVec3d Normal;
-    CollideObjectInformation *PrevCollideObject;
-    CollideObjectInformation *NextCollideObject;
+	void*	CollideObject;
+	float	Percent;
+	geVec3d	Normal;
+	CollideObjectInformation *PrevCollideObject;
+	CollideObjectInformation *NextCollideObject;
 
 } CollideObjectInformation;
 
-// begin change gekido
+
 // ANIMATION CHANNELS
 #define ANIMATION_CHANNEL_ROOT 0		///< the default animation channel (lower-body)
 #define ANIMATION_CHANNEL_UPPERBODY 1	///< torso/upper body
@@ -84,7 +85,6 @@ struct ActorInstanceList
 	geMotion *pBMotion;
 
 #if 0
-// begin change gekido 02.22.2004
 // adding support for multiple animation 'channels' which
 // allow designers to create multi-threaded animations blended from sub-motions
 
@@ -112,16 +112,13 @@ struct ActorInstanceList
 	geMotion *pMotion4;
 	geMotion *pBMotion4;
 // end channel animation info
-// end change gekido 02.22.2004
 #endif
 	bool AllowTilt;						///< allow actor to tilt up/down
 	geFloat TiltX;
 	bool BoxChange;						///< allow BB to change
 	bool NoCollision;					///< allow no collision detection
 	geFloat ActorAnimationSpeed;		///< Speed of actor animation
-// changed Nout/QD 12/15/05
 	geVec3d Scale;						///< Actors current XYZ scale
-// end change
 	geFloat Health;						///< Actors health, 0 = destroyed
 	geVec3d Gravity;					///< Gravity acting on actor
 	geFloat GravityTime;				///< Time gravity has been effective (for falling)
@@ -131,13 +128,9 @@ struct ActorInstanceList
 	geFloat ForceLevel[4];				///< Current level force is acting at
 	geFloat ForceDecay[4];				///< Decay speed of force, in units/second
 	geVec3d PositionHistory[128];		///< Actors position history
-// changed RF063
 	float ShadowSize;					///< Size of bitmap shadow
-// changed QD 06/26/04
 	geFloat ShadowAlpha;				///< Alpha of shadow
 	geBitmap *ShadowBitmap;				///< Bitmap to use for shadow
-// end change
-// changed gekido Oct07.2004
 	bool ProjectedShadows;				///< flag to enable projected shadows for this actor
 	bool Moving;
 	int CurrentZone;
@@ -154,8 +147,6 @@ struct ActorInstanceList
 	geActor *AttachedBlendActors[ATTACHBLENDACTORS];
 
 	int RenderFlag;
-// end change RF063
-// changed RF064
 	geWorld_Model *PassengerModel;
 	float StartTime;
 	GE_Collision GravityCollision;
@@ -163,11 +154,8 @@ struct ActorInstanceList
 	char Group[64];
 	GE_RGBA FillColor;
 	GE_RGBA AmbientColor;
-// end change RF064
 
-// changed QD 07/21/04
 	geBoolean AmbientLightFromFloor;
-// end change
 
 	// default animation channel (channel 1)
 	char szMotionName[128];				///< Name of current motion
@@ -183,7 +171,6 @@ struct ActorInstanceList
 	bool TransitionFlag;
 
 #if 0
-// begin change gekido 02.22.2004
 // support for multiple animation channels
 // each channel provides full support for blending, etc
 
@@ -238,7 +225,6 @@ struct ActorInstanceList
 	bool BlendNextFlag4;
 	bool HoldAtEnd4;
 	bool TransitionFlag4;
-// end change gekido 02.22.2004
 #endif
 
 	int CollDetLevel;
@@ -253,10 +239,10 @@ struct ActorInstanceList
 	struct ActorInstanceList *pNext;			///< Next actor instance in list
 
 /* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
+	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
-	CollideObjectInformation *CollideObjects[COLMaxBBox];
+	CollideObjectInformation* CollideObjects[COLMaxBBox];
 	char LastBoneHit[256];						///< Name of last bone collided, if any
 };
 
@@ -294,9 +280,7 @@ public:
 	// COLLISION
 	// -----------------------------------------------------------------------------------
 
-	// changed RF064
 	int SetCollide(const geActor *theActor);
-	// end change RF064
 	int SetNoCollide(const geActor *theActor);
 	int SetColDetLevel(const geActor *theActor, int ColDetLevel);
 	int GetColDetLevel(const geActor *theActor, int *ColDetLevel);
@@ -314,7 +298,7 @@ public:
 
 
 	/* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
+	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
 	CollideObjectInformation *AddCollideObject(CollideObjectLevels CollideObjectLevel,
@@ -329,11 +313,9 @@ public:
 												ActorInstanceList *ActorInstance,
 												void *theCollideObject);
 
-	// changed RF064
 	geBoolean DoesRayHitActor(const geVec3d &OldPosition, const geVec3d &NewPosition,
 								geActor **theActor,	const geActor *ActorToExclude,
 								geFloat *Percent, geVec3d *Normal);
-	// end change RF064
 
 	geBoolean DoesRayHitActor(const geVec3d &OldPosition, const geVec3d &NewPosition,
 								geActor **theActor, const geActor *ActorToExclude,
@@ -356,6 +338,7 @@ public:
 	 * @brief Load an actor from a file
 	 */
 	geActor *LoadActor(const char *szFilename, geActor *OldActor);
+
 	/**
 	 * @brief Spawn an actor w/ parms
 	 */
@@ -380,6 +363,7 @@ public:
 	 * @brief Set actor type
 	 */
 	int SetType(const geActor *theActor, int nType);
+
 	/**
 	 * @brief Get actor type
 	 */
@@ -461,9 +445,6 @@ public:
 
 	int SetAnimationSpeed(const geActor *theActor, geFloat Speed);		// Set animation speed
 
-	// begin change gekido 02.22.2004
-	// support for animation channels
-	// also reorganized the animation functions so they are in one place
 	char *GetMotion(const geActor *theActor);
 	int SetMotion(const geActor *theActor, const char *MotionName, int Channel = ANIMATION_CHANNEL_ROOT);		///< Set actor motion
 	int SetNextMotion(const geActor *theActor, const char *MotionName, int Channel = ANIMATION_CHANNEL_ROOT);	///< Prepare next motion
@@ -503,21 +484,16 @@ public:
 								int Channel = ANIMATION_CHANNEL_ROOT);
 	float GetStartTime(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
 	bool GetTransitionFlag(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
-	// end change gekido
 
 	// -----------------------------------------------------------------------------------
 	// LIGHTING
 	// -----------------------------------------------------------------------------------
 
-	//	Actor lighting control, Oh Joy.
-	// changed QD 07/21/04
+	// Actor lighting control, Oh Joy.
 	int SetActorDynamicLighting(const geActor *theActor, const GE_RGBA &FillColor,
 								const GE_RGBA &AmbientColor, geBoolean AmbientLightFromFloor);
-	// end change
-	// changed QD 12/15/05
 	int GetActorDynamicLighting(const geActor *theActor, GE_RGBA *FillColor,
 								GE_RGBA *AmbientColor, geBoolean *AmbientLightFromFloor);
-	// end change
 	int ResetActorDynamicLighting(const geActor *theActor);
 
 	// -----------------------------------------------------------------------------------
@@ -528,37 +504,29 @@ public:
 	// ..effects an actors translation over time.
 	int SetForce(const geActor *theActor, int nForceNumber, const geVec3d &fVector,
 					geFloat InitialValue, geFloat Decay);
-	// changed RF063
 	int GetForce(const geActor *theActor, int nForceNumber, geVec3d *ForceVector,
 					geFloat *ForceLevel, geFloat *ForceDecay);
 
 	int RemoveForce(const geActor *theActor, int nForceNumber);
 	geBoolean ForceActive(const geActor *theActor, int nForceNumber);
-	// end change RF063
 	void SetForceEnabled(const geActor *theActor, bool enable);
 
 	// -----------------------------------------------------------------------------------
 	// ZONE
 	// -----------------------------------------------------------------------------------
 
-	// changed RF063
 	// Functions for probing the actors environment
 	int GetActorZone(const geActor *theActor, int *ZoneType);				///< Get actor's zone
 	int GetActorOldZone(const geActor *theActor, int *ZoneType);
 	Liquid *GetLiquid(const geActor *theActor);
-	// end change RF063
 
 	// -----------------------------------------------------------------------------------
 	// ENTITYNAME
 	// -----------------------------------------------------------------------------------
 
-	// changed RF063
 	int SetEntityName(const geActor *theActor, const char *name);
-	// Added By Pickles to RF07D
 	const char *GetEntityName(const geActor *theActor);
-	// End Added By Pickles to RF07D
 	geActor *GetByEntityName(const char *name);
-	// end change RF063
 
 	// -----------------------------------------------------------------------------------
 	// SCALE
@@ -568,7 +536,6 @@ public:
 	// ..of a specific type use nHandle = (-1).
 	int SetScale(const geActor *theActor, geFloat Scale);			///< Scale actor
 	int GetScale(const geActor *theActor, geFloat *Scale);			///< Get actor scale (max of x,y,z)
-	// changed Nout/QD 12/15/05
 	int SetScaleX(const geActor *theActor, geFloat Scale);
 	int SetScaleY(const geActor *theActor, geFloat Scale);
 	int SetScaleZ(const geActor *theActor, geFloat Scale);
@@ -578,7 +545,6 @@ public:
 	int GetScaleY(const geActor *theActor, geFloat *Scale);
 	int GetScaleZ(const geActor *theActor, geFloat *Scale);
 	int GetScaleXYZ(const geActor *theActor, geVec3d *Scale);
-	// end change
 
 	// -----------------------------------------------------------------------------------
 	// ALPHA
@@ -601,10 +567,8 @@ public:
 
 	int SetGravity(const geActor *theActor, geVec3d Gravity);	///< Set gravity for actor
 	int GetGravity(const geActor *theActor, geVec3d *Gravity);	///< Get gravity
-	// changed RF064
 	int SetGravityTime(const geActor *theActor, geFloat Gravitytime);
 	int GetGravityCollision(const geActor *theActor, GE_Collision *Collision);
-	// end change RF064
 
 	// -----------------------------------------------------------------------------------
 	// SPATIAL RELATION
@@ -666,19 +630,15 @@ public:
 	// RADAR
 	// -----------------------------------------------------------------------------------
 
-	// changed RF064
 	int SetHideRadar(const geActor *theActor, bool flag);
 	int GetHideRadar(const geActor *theActor, bool *flag);
-	// end change RF064
 
 	// -----------------------------------------------------------------------------------
 	// GROUP
 	// -----------------------------------------------------------------------------------
 
-	// changed RF064
 	int SetGroup(const geActor *theActor, const char *name);
 	const char *GetGroup(const geActor *theActor);
-	// end change RF064
 
 	// -----------------------------------------------------------------------------------
 	// SHADOWS
@@ -709,13 +669,12 @@ public:
 	// ATTACH/DETACH
 	// -----------------------------------------------------------------------------------
 
-	// changed RF064
 	/**
 	 * @brief Attach a slave actor to a master actor
 	 *
 	 * The slave actor is attached from the bone SlaveBoneName to the bone
 	 * MasterBoneName of the master actor. The offset AttachOffset is applied
-	 * to the attachment point and are calculated in the direction the master
+	 * to the attachment point and is calculated in the direction the master
 	 * actor is facing. The rotation Angle is applied to the base rotation of
 	 * the slave actor. The slave actor is initially aligned to face the same
 	 * direction as the master actor, before the rotations are applied. The
@@ -725,6 +684,7 @@ public:
 	void ActorAttach(geActor *Slave, const char *SlaveBoneName,
 					 const geActor *Master, const char *MasterBoneName,
 					 const geVec3d &AttachOffset, const geVec3d &Angle);
+
 	/**
 	 * @brief Detach a slave actor from its master actor
 	 */
@@ -734,23 +694,24 @@ public:
 	 * @brief Attach a slave actor to a master actor, using the master's animation
 	 */
 	void ActorAttachBlend(geActor *Slave, const geActor *Master);
+
 	/**
 	 * @brief Detach a blending slave actor from its master actor
 	 */
 	void DetachBlendFromActor(const geActor *Master, const geActor *Slave);
+
 private:
 	/**
 	 * @brief Detach a slave actor from its master when the master actor gets removed
 	 */
 	void ActorDetach(const geActor *Slave);
-	// end change RF064
+
 public:
 
 	// -----------------------------------------------------------------------------------
 	// LOD
 	// -----------------------------------------------------------------------------------
 
-	// changed RF064
 	/**
 	 * @brief Set level of detail distances of a particular actor
 	 */
@@ -760,7 +721,6 @@ public:
 	 * @brief Get the current level of detail of a particular actor
 	 */
 	int GetLODLevel(const geActor *theActor, int *Level);
-	// end change RF064
 
 	// -----------------------------------------------------------------------------------
 	// MISC METHODS
@@ -772,16 +732,14 @@ public:
 	geBoolean ValidateMove(const geVec3d &StartPos, const geVec3d &EndPos,
 							const geActor *theActor, bool slide);
 	int CountActors();
-	// changed RF064
 	int ChangeMaterial(const geActor *theActor, const char *Change);
 	int SetRoot(const geActor *theActor, const char *BoneName);
 	int SetActorFlags(const geActor *theActor, int Flag);
-	//  end change RF064
 
 
 private:
 	// -----------------------------------------------------------------------------------
-	//	Private member functions
+	// Private member functions
 	// -----------------------------------------------------------------------------------
 
 	geActor *AddNewInstance(LoadedActorList *theEntry, geActor *OldActor);
@@ -808,15 +766,13 @@ private:
 
 private:
 	// -----------------------------------------------------------------------------------
-	//	Private member variables
+	// Private member variables
 	// -----------------------------------------------------------------------------------
 
 	LoadedActorList *MainList[ACTOR_LIST_SIZE];	///< Database of loaded actors
 	int m_GlobalInstanceCount;					///< Level instance counter
-	// changed RF064
 	CIniFile AttrFile;
 	bool ValidAttr;
-	// end change RF064
 };
 
 #endif
