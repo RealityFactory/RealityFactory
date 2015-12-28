@@ -52,11 +52,18 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	if(Open(szFile) != RGF_SUCCESS)
 		return RGF_FAILURE;						// AVI didn't open.
 
-	StartVideoRetrieve(0);					// Start bringing it in
+	if(!StartVideoRetrieve(0))					// Start bringing it in
+	{
+		return RGF_FAILURE;
+	}
 
 	// Fine, the file opened, get the bitmap info for it.
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
+	if(!pVideoFormat)
+	{
+		return RGF_FAILURE;
+	}
 
 	// Ok, while we have frames, let's load 'em in, copy them into
 	// ..the engine, and blast up the bitmap.  Note that NOTHING
@@ -70,7 +77,7 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		YPos = (CCD->Engine()->Height() - nHeight) / 2;
 	}
 
-	gePixelFormat nFormat;
+	gePixelFormat nFormat = GE_PIXELFORMAT_NO_DATA;
 	int nAlignValue = 0;
 
 	// Here's how it shakes down: 16bit color is always RGB/555,
@@ -84,7 +91,6 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
-		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
 		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
@@ -103,10 +109,31 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 	geBitmap_Info Info;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
-	geBitmap_SetPreferredFormat(theBmp, nFormat);
-	geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp);
-	geBitmap_GetInfo(theBmp,&Info,NULL);
-	geBitmap_ClearMips(theBmp);
+	if(!theBmp)
+	{
+		EndVideoRetrieve(0);
+		Close();
+		return RGF_FAILURE;
+	}
+	if(geBitmap_SetPreferredFormat(theBmp, nFormat) == GE_FALSE)
+	{
+	}
+	if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
+	{
+		EndVideoRetrieve(0);
+		geBitmap_Destroy(&theBmp);
+		Close();
+		return RGF_FAILURE;
+	}
+	geBitmap_GetInfo(theBmp, &Info, NULL);
+	if(geBitmap_ClearMips(theBmp) == GE_FALSE)
+	{
+		EndVideoRetrieve(0);
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
+		geBitmap_Destroy(&theBmp);
+		Close();
+		return RGF_FAILURE;
+	}
 
 	// **NOTE**	11/23/1999
 	// All this is to force Genesis3D to get the bitmap loaded into
@@ -133,7 +160,13 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 		geBitmap_SetFormat(theBmp, nFormat, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(theBmp, &LockedBMP, 0, 0, nFormat);
 		if(LockedBMP == NULL)
+		{
+			EndVideoRetrieve(0);
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
+			geBitmap_Destroy(&theBmp);
+			Close();
 			return RGF_FAILURE;
+		}
 	}
 
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
@@ -301,7 +334,16 @@ int CAVIPlayer::Play(const char *szFile, int XPos, int YPos, bool Center)
 				geBitmap_LockForWriteFormat(theBmp,&LockedBMP,0,0, nFormat);
 
 				if(LockedBMP == NULL)
+				{
+					if(bAudioStreamPlaying)
+						DestroyStreamingAudioBuffer();
+
+					bAudioStreamPlaying = false;
+					EndVideoRetrieve(0);
+					Close();
+
 					return RGF_FAILURE;
+				}
 			}
 
 			wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
@@ -498,19 +540,22 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 	if(!CCD->GetHasFocus())
 		return RGF_SUCCESS;
 
-	StartVideoRetrieve(0);
+	if(!StartVideoRetrieve(0))
+		return RGF_FAILURE;
 
 	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
+	if(!pVideoFormat)
+		return RGF_FAILURE;
 
 	// Let's grab a frame and blit it, shall we?
 
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
-	gePixelFormat nFormat;
+	gePixelFormat nFormat = GE_PIXELFORMAT_NO_DATA;
 
 	// Here's how it shakes down: 16bit color is always RGB/555,
 	// ..24bit color is always BGR, and 32bit color is always
@@ -524,7 +569,6 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
-		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
 		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
@@ -670,18 +714,21 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 	if(!CCD->GetHasFocus())
 		return RGF_SUCCESS;
 
-	StartVideoRetrieve(0);
+	if(!StartVideoRetrieve(0))
+		return RGF_FAILURE;
 
 	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
+	if(!pVideoFormat)
+		return RGF_FAILURE;
 
 	// Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
-	gePixelFormat nFormat;
+	gePixelFormat nFormat = GE_PIXELFORMAT_NO_DATA;
 
 	// Here's how it shakes down: 16bit color is always RGB/555,
 	// ..24bit color is always BGR, and 32bit color is always
@@ -695,7 +742,6 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
-		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
 		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
@@ -889,18 +935,21 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 	// ..frame into the bitmap!
 	geBitmap_ClearMips(theBitmap);
 
-	StartVideoRetrieve(0);
+	if(!StartVideoRetrieve(0))
+		return RGF_FAILURE;
 
 	// Get the bitmap info for the file
 	LPBITMAPINFOHEADER pBmp;				// Will hold decompressed frame
 
 	LPBITMAPINFO pVideoFormat = GetVideoFormat(0);	// Video format
+	if(!pVideoFormat)
+		return RGF_FAILURE;
 
 	// Let's grab a frame and blit it, shall we?
 	int nWidth = pVideoFormat->bmiHeader.biWidth;
 	int nHeight = pVideoFormat->bmiHeader.biHeight;
 	int nAlignValue = 0;
-	gePixelFormat nFormat;
+	gePixelFormat nFormat = GE_PIXELFORMAT_NO_DATA;
 
 	// Here's how it shakes down: 16bit color is always RGB/555,
 	// ..24bit color is always BGR, and 32bit color is always
@@ -914,7 +963,6 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 		EndVideoRetrieve(0);
 		Close();
 		return RGF_FAILURE;
-		break;
 	case 16:
 		nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
 		nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
@@ -1074,7 +1122,8 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		OldTime = CCD->FreeRunningCounter();		// Prime the time
 		FrameTime = 0;								// No time passed yet
 
-		StartVideoRetrieve(0);					// Prime the video pump
+		if(!StartVideoRetrieve(0))					// Prime the video pump
+			return RGF_FAILURE;
 
 		// Locate the bitmap to be replaced in the world.
 		theBitmap = geWorld_GetBitmapByName(CCD->World(), szTextureName);
@@ -1086,6 +1135,8 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 		geBitmap_GetInfo(theBitmap,&Info,NULL);
 		geBitmap_ClearMips(theBitmap);
 		pVideoFormat = GetVideoFormat(0);	// Video format
+		if(!pVideoFormat)
+			return RGF_FAILURE;
 
 		nWidth = pVideoFormat->bmiHeader.biWidth;
 		nHeight = pVideoFormat->bmiHeader.biHeight;
@@ -1102,7 +1153,6 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 			EndVideoRetrieve(0);
 			Close();
 			return RGF_FAILURE;
-			break;
 		case 16:
 			nFormat = GE_PIXELFORMAT_16BIT_555_RGB;
 			nAlignValue = (nWidth * 2) + ((nWidth * 2) % 4);
@@ -1468,7 +1518,9 @@ bool CAVIPlayer::StartVideoRetrieve(int nStreamNum)
 	pgf = AVIStreamGetFrameOpen(pStream, NULL);
 
 	if(!pgf)
+	{
 		return false;
+	}
 
 	m_lVideoEndTime[nStreamNum] = AVIStreamEndTime(pStream);
 
@@ -1492,7 +1544,9 @@ bool CAVIPlayer::EndVideoRetrieve(int nStreamNum)
 	PGETFRAME &pgf = m_pVideoPGF[nStreamNum];
 
 	if(AVIStreamGetFrameClose(pgf))
+	{
 		return false;
+	}
 
 	pgf = NULL;
 
