@@ -23,19 +23,23 @@ public:
 	~CAnimGif();
 
 	int Play(int XPos, int YPos, bool Center);
+
 	geBitmap *NextFrame(bool repeat);
+
 	bool DisplayNextFrameTexture(const char *szTextureName, bool FFrame);
 
 private:
-
 	bool GetImage(bool repeat);
+
 	bool TakeIt(void);
+
 	void Output(BYTE bit);
+
 	BYTE GetByte(void);
+
 	WORD GetCode(void);
 
 private:
-
 	geVFile			*MainFS;
 	BYTE			buffer[1024];
 	bool			Active;

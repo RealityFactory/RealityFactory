@@ -21,7 +21,7 @@ typedef struct
 } GIFTABLE;
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CAnimGif::CAnimGif(const char *szFile, int fileformat)
 {
@@ -88,8 +88,9 @@ CAnimGif::CAnimGif(const char *szFile, int fileformat)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CAnimGif::~CAnimGif()
 {
@@ -103,17 +104,16 @@ CAnimGif::~CAnimGif()
 
 	if(theBmp && !Texture)
 	{
-// changed QD 12/15/05
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-// end change
 		geBitmap_Destroy(&theBmp);
 	}
 
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 /* ------------------------------------------------------------------------------------ */
 int CAnimGif::Play(int XPos, int YPos, bool Center)
 {
@@ -126,16 +126,15 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 		YPos = (CCD->Engine()->Height() - nHeight) / 2;
 	}
 
-
 	for(;;)
 	{
 		MSG msg;
 
-		//	If Winblows has something to say, take it in and pass it on in the
-		//	..off-chance someone cares.
-		while (PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
+		// If Winblows has something to say, take it in and pass it on in the
+		// ..off-chance someone cares.
+		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
-			GetMessage(&msg, NULL, 0, 0 );
+			GetMessage(&msg, NULL, 0, 0);
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
@@ -162,8 +161,9 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	NextFrame
+// NextFrame
 /* ------------------------------------------------------------------------------------ */
 geBitmap *CAnimGif::NextFrame(bool repeat)
 {
@@ -209,11 +209,13 @@ geBitmap *CAnimGif::NextFrame(bool repeat)
 		if(GetImage(repeat))
 			return theBmp;
 	}
+
 	return NULL;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DisplayNextFrameTexture
+// DisplayNextFrameTexture
 /* ------------------------------------------------------------------------------------ */
 bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 {
@@ -241,9 +243,7 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 
 		if(theBmp)
 		{
-// changed QD 12/15/05
 			geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-// end change
 			geBitmap_Destroy(&theBmp);
 		}
 
@@ -270,10 +270,11 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetImage
+// GetImage
 /* ------------------------------------------------------------------------------------ */
-bool CAnimGif::GetImage(bool repeat)
+bool CAnimGif::GetImage(bool /*repeat*/)
 {
 	if(!pcGif)
 		return false;
@@ -365,15 +366,16 @@ l1:
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	TakeIt
+// TakeIt
 /* ------------------------------------------------------------------------------------ */
 bool CAnimGif::TakeIt(void)
 {
 	UINT uLocalColorTableSize;
-	WORD code,oldcode,code1;
-	int iFinishCode,iResetCode;
-	int iPrimaryTableSize,iTableSize;
+	WORD code, oldcode=0, code1;
+	int iFinishCode, iResetCode;
+	int iPrimaryTableSize, iTableSize;
 	BYTE pcColorTable[4];
 	GIFTABLE *pcGifTable;
 
@@ -557,9 +559,7 @@ bool CAnimGif::TakeIt(void)
 		}
 	}
 
-// changed RF064
 	geBitmap_SetFormat(theBmp, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, Palette);
-// end change RF064
 
 	geBitmap_SetPalette(theBmp, Palette);
 	geBitmap_LockForWriteFormat(theBmp,&LockedBMP, 0, 0, GE_PIXELFORMAT_8BIT);
@@ -576,7 +576,7 @@ bool CAnimGif::TakeIt(void)
 
 			return false;
 		}
-    }
+	}
 
 	unsigned char *wptr, *pptr;
 
@@ -616,8 +616,9 @@ bool CAnimGif::TakeIt(void)
 	return true;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Output
+// Output
 /* ------------------------------------------------------------------------------------ */
 void CAnimGif::Output(BYTE bit)
 {
@@ -662,8 +663,9 @@ void CAnimGif::Output(BYTE bit)
 	pcBitmap[tmp] = bit;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetByte
+// GetByte
 /* ------------------------------------------------------------------------------------ */
 BYTE CAnimGif::GetByte(void)
 {
@@ -691,8 +693,9 @@ BYTE CAnimGif::GetByte(void)
 	return *pcGifTrack++;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	GetCode
+// GetCode
 /* ------------------------------------------------------------------------------------ */
 WORD CAnimGif::GetCode(void)
 {
