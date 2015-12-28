@@ -9,12 +9,11 @@
  * Copyright (c) 1999 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// Include the One True Header
 #include "RabidFramework.h"
 #include "Chaos.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 Chaos::Chaos()
 {
@@ -32,19 +31,17 @@ Chaos::Chaos()
 	{
 		EChaos *pTex = static_cast<EChaos*>(geEntity_GetUserData(pEntity));
 
-			pTex->SegmentSize = 1;
+		pTex->SegmentSize = 1;
 
-// changed QD 08/30/02
-			pTex->Actor = NULL;
-			pTex->CAttachBmp = NULL;
+		pTex->Actor = NULL;
+		pTex->CAttachBmp = NULL;
 
-			if(!EffectC_IsStringNull(pTex->EntityName))
-			{
-				pTex->Actor = GetEntityActor(pTex->EntityName);
+		if(!EffectC_IsStringNull(pTex->EntityName))
+		{
+			pTex->Actor = GetEntityActor(pTex->EntityName);
 
 				if(!pTex->Actor)
 				{
-					// changed QD 07/15/06
 					char szName[128];
 					char szError[256];
 					geEntity_GetName(pEntity, szName, 128);
@@ -52,15 +49,7 @@ Chaos::Chaos()
 					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 							__FILE__, __LINE__, szName, pTex->EntityName);
 					CCD->ReportError(szError, false);
-					/*
-					CCD->ShutdownLevel();
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, szError,"EChaos", MB_OK);
-					exit(-333);
-					*/
 					continue;
-					// end change
 				}
 			}
 
@@ -111,12 +100,6 @@ Chaos::Chaos()
 					CCD->ReportError(szError, false);
 					pTex->CAttachBmp = NULL;
 					continue;
-					/*
-					CCD->ShutdownLevel();
-					delete CCD;
-					MessageBox(NULL, szError,"EChaos", MB_OK);
-					exit(-333); //or continue
-					*/
 				}
 			}
 			else	// ...or a world bitmap
@@ -132,18 +115,9 @@ Chaos::Chaos()
 						__FILE__, __LINE__, szName, pTex->AttachBmp);
 					CCD->ReportError(szError, false);
 					continue;
-					/*
-					CCD->ShutdownLevel();
-					delete CCD;
-					MessageBox(NULL, szError,"EChaos", MB_OK);
-					exit(-333); //or continue
-					*/
                }
 			}
-// end change QD 08/30/02
 
-			//if(pTex->CAttachBmp == NULL)
-			//	continue;
 
 			geBitmap_SetFormatMin(pTex->CAttachBmp, CHAOS_FORMAT);
 			geBitmap_ClearMips(pTex->CAttachBmp);
@@ -157,25 +131,25 @@ Chaos::Chaos()
 			if((pTex->MaxXSway >= AttachInfo.Width) || (pTex->MaxYSway >= AttachInfo.Height))
 				continue;
 
-			pTex->OriginalBmp = geBitmap_Create(AttachInfo.Width, AttachInfo.Height, 1, CHAOS_FORMAT);
 
-			if(pTex->OriginalBmp == NULL)
-				continue;
+		pTex->OriginalBmp = geBitmap_Create(AttachInfo.Width, AttachInfo.Height, 1, CHAOS_FORMAT);
 
-			geBitmap_ClearMips( pTex->OriginalBmp );
-			geBitmap_BlitBitmap( pTex->CAttachBmp, pTex->OriginalBmp );
-			pTex->WorkBmp = geBitmap_Create( AttachInfo.Width, AttachInfo.Height, 1, CHAOS_FORMAT );
+		if(pTex->OriginalBmp == NULL)
+			continue;
 
-			if(pTex->WorkBmp != NULL)
-				geBitmap_ClearMips(pTex->WorkBmp );
+		geBitmap_ClearMips(pTex->OriginalBmp);
+		geBitmap_BlitBitmap(pTex->CAttachBmp, pTex->OriginalBmp);
+		pTex->WorkBmp = geBitmap_Create(AttachInfo.Width, AttachInfo.Height, 1, CHAOS_FORMAT);
+
+		if(pTex->WorkBmp != NULL)
+			geBitmap_ClearMips(pTex->WorkBmp);
 	}
-
 	// all done
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 Chaos::~Chaos()
 {
@@ -193,7 +167,7 @@ Chaos::~Chaos()
 		EChaos *pTex = static_cast<EChaos*>(geEntity_GetUserData(pEntity));
 
 		if((pTex->OriginalBmp != NULL) && (pTex->CAttachBmp != NULL))
-			geBitmap_BlitBitmap(pTex->OriginalBmp, pTex->CAttachBmp );
+			geBitmap_BlitBitmap(pTex->OriginalBmp, pTex->CAttachBmp);
 
 		if(pTex->OriginalBmp != NULL)
 			geBitmap_Destroy(&(pTex->OriginalBmp));
@@ -204,7 +178,7 @@ Chaos::~Chaos()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void Chaos::Tick(geFloat dwTicks)
 {
@@ -232,7 +206,6 @@ void Chaos::Tick(geFloat dwTicks)
 		if(!pTex->CAttachBmp)
 			continue;
 
-// changed QD 08/30/02
 		// do nothing further if the texture is not visible
 		if(pTex->Actor && !CCD->ActorManager()->IsActor(pTex->Actor))
 			continue;
@@ -247,7 +220,6 @@ void Chaos::Tick(geFloat dwTicks)
 			if(geWorld_IsActorPotentiallyVisible(CCD->World(), pTex->Actor, CCD->CameraManager()->Camera()) == GE_FALSE)
 				continue;
 		}
-// end change QD 08/30/02
 
 
 		if(geBitmap_GetInfo(pTex->CAttachBmp, &AttachInfo, NULL) == GE_FALSE)
@@ -275,7 +247,6 @@ void Chaos::Tick(geFloat dwTicks)
 			if(CurYOffset > GE_PI)
 			{
 				CosStep = -CosStep;
-				// changed QD 12/15/05
 				CurYOffset = GE_2PI - CurYOffset;
 			}
 			else if(CurYOffset < 0.0)
@@ -289,8 +260,8 @@ void Chaos::Tick(geFloat dwTicks)
 			YPos = static_cast<int>((cos(CurYOffset) + 1.0f) * pTex->MaxYSway * 0.5f);
 
 			// adjust bitmap
-			geBitmap_Blit(pTex->OriginalBmp, XPos, 0, pTex->WorkBmp, XPos, YPos, pTex->SegmentSize, AttachInfo.Height - YPos );
-			geBitmap_Blit(pTex->OriginalBmp, XPos, AttachInfo.Height - YPos, pTex->WorkBmp, XPos, 0, pTex->SegmentSize, YPos );
+			geBitmap_Blit(pTex->OriginalBmp, XPos, 0, pTex->WorkBmp, XPos, YPos, pTex->SegmentSize, AttachInfo.Height - YPos);
+			geBitmap_Blit(pTex->OriginalBmp, XPos, AttachInfo.Height - YPos, pTex->WorkBmp, XPos, 0, pTex->SegmentSize, YPos);
 		}
 
 		// compute horizontal offset
@@ -311,7 +282,6 @@ void Chaos::Tick(geFloat dwTicks)
 			if(CurXOffset > GE_PI)
 			{
 				CosStep = -CosStep;
-				// changed QD 12/15/05
 				CurXOffset = GE_2PI - CurXOffset;
 			}
 			else if(CurXOffset < 0.0f)
@@ -329,8 +299,7 @@ void Chaos::Tick(geFloat dwTicks)
 			geBitmap_Blit(pTex->WorkBmp, AttachInfo.Width - XPos, YPos, pTex->CAttachBmp, 0, YPos, XPos, pTex->SegmentSize);
 		}
 
-/* 04/23/2004 Wendell Buckner
-	 EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap */
+		// EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap
 		geBitmap_UpdateBumpMapAlt(pTex->CAttachBmp);
 	}
 

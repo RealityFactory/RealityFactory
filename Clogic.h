@@ -11,7 +11,7 @@
 #ifndef __RGF_CLOGIC_H_
 #define __RGF_CLOGIC_H_
 
-typedef struct	LState
+typedef struct LState
 {
 	LState	*next;
 	LState	*prev;
