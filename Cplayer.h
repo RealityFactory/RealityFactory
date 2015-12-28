@@ -22,11 +22,9 @@ enum
 	STARTJUMP,
 	FALL,
 	LAND,
-// changed QD 01/15/05
 	CLIMBIDLE,
 	CLIMBDOWN,
 	CLIMBUP,
-// end change
 	SLIDELEFT,
 	RUNSLIDELEFT,
 	SLIDERIGHT,
@@ -37,7 +35,6 @@ enum
 	CLAND,
 	SLIDECLEFT,
 	SLIDECRIGHT,
-// changed RF064
 	I2WALK,
 	I2RUN,
 	W2IDLE,
@@ -65,7 +62,6 @@ enum
 	W2TREAD,
 	FALL2RUN,
 	CRAWL2RUN,
-// end change RF064
 	SHOOT,
 	SHOOT1,
 	AIM,
@@ -96,10 +92,8 @@ enum
 	SLIDECLEFTSHOOT1,
 	SLIDECRIGHTSHOOT,
 	SLIDECRIGHTSHOOT1,
-// changed RF063
 	SWIM,
 	TREADWATER,
-// end change RF063
 	WALKBACK,
 	RUNBACK,
 	CRAWLBACK,
@@ -113,7 +107,6 @@ enum
 	ANIMMAX
 };
 
-// changed RF064
 enum
 {
 	I2WALKTIME = 0,
@@ -142,7 +135,6 @@ enum
 	IDLE2CRAWLTIME,
 	TRANSMAX
 };
-// end change RF064
 
 
 #define ANIMIDLE				CCD->Weapons()->PlayerAnim(IDLE)
@@ -152,19 +144,15 @@ enum
 #define ANIMSTARTJUMP			CCD->Weapons()->PlayerAnim(STARTJUMP)
 #define ANIMFALL				CCD->Weapons()->PlayerAnim(FALL)
 #define ANIMLAND				CCD->Weapons()->PlayerAnim(LAND)
-// changed QD 01/15/05
 #define ANIMCLIMB				CCD->Weapons()->PlayerAnim(CLIMBIDLE)
 #define ANIMCLIMBDOWN			CCD->Weapons()->PlayerAnim(CLIMBDOWN)
 #define ANIMCLIMBUP				CCD->Weapons()->PlayerAnim(CLIMBUP)
-// end change
 #define ANIMSLIDELEFT			CCD->Weapons()->PlayerAnim(SLIDELEFT)
 #define ANIMRUNSLIDELEFT		CCD->Weapons()->PlayerAnim(RUNSLIDELEFT)
 #define ANIMSLIDERIGHT			CCD->Weapons()->PlayerAnim(SLIDERIGHT)
 #define ANIMRUNSLIDERIGHT		CCD->Weapons()->PlayerAnim(RUNSLIDERIGHT)
 #define ANIMCRAWL				CCD->Weapons()->PlayerAnim(CRAWL)
 #define ANIMCIDLE				CCD->Weapons()->PlayerAnim(CIDLE)
-
-// changed RF064
 #define ANIMI2WALK				CCD->Weapons()->PlayerAnim(I2WALK)
 #define ANIMI2RUN				CCD->Weapons()->PlayerAnim(I2RUN)
 #define ANIMW2IDLE				CCD->Weapons()->PlayerAnim(W2IDLE)
@@ -192,8 +180,6 @@ enum
 #define ANIMW2TREAD				CCD->Weapons()->PlayerAnim(W2TREAD)
 #define ANIMFALL2RUN			CCD->Weapons()->PlayerAnim(FALL2RUN)
 #define ANIMCRAWL2RUN			CCD->Weapons()->PlayerAnim(CRAWL2RUN)
-// end change RF064
-
 #define ANIMCSTARTJUMP			CCD->Weapons()->PlayerAnim(CSTARTJUMP)
 #define ANIMCLAND				CCD->Weapons()->PlayerAnim(CLAND)
 #define ANIMSLIDECLEFT			CCD->Weapons()->PlayerAnim(SLIDECLEFT)
@@ -212,7 +198,7 @@ enum
 #define ANIMRUNSLIDELEFTSHOOT1	CCD->Weapons()->PlayerAnim(RUNSLIDELEFTSHOOT1)
 #define ANIMSLIDERIGHTSHOOT		CCD->Weapons()->PlayerAnim(SLIDERIGHTSHOOT)
 #define ANIMSLIDERIGHTSHOOT1	CCD->Weapons()->PlayerAnim(SLIDERIGHTSHOOT1)
-#define ANIMRUNSLIDERIGHTSHOOT 	CCD->Weapons()->PlayerAnim(RUNSLIDERIGHTSHOOT)
+#define ANIMRUNSLIDERIGHTSHOOT	CCD->Weapons()->PlayerAnim(RUNSLIDERIGHTSHOOT)
 #define ANIMRUNSLIDERIGHTSHOOT1	CCD->Weapons()->PlayerAnim(RUNSLIDERIGHTSHOOT1)
 #define ANIMJUMPSHOOT			CCD->Weapons()->PlayerAnim(JUMPSHOOT)
 #define ANIMJUMPSHOOT1			CCD->Weapons()->PlayerAnim(JUMPSHOOT1)
@@ -228,10 +214,8 @@ enum
 #define ANIMSLIDECLEFTSHOOT1	CCD->Weapons()->PlayerAnim(SLIDECLEFTSHOOT1)
 #define ANIMSLIDECRIGHTSHOOT	CCD->Weapons()->PlayerAnim(SLIDECRIGHTSHOOT)
 #define ANIMSLIDECRIGHTSHOOT1	CCD->Weapons()->PlayerAnim(SLIDECRIGHTSHOOT1)
-// changed RF063
 #define ANIMSWIM				CCD->Weapons()->PlayerAnim(SWIM)
 #define ANIMTREADWATER			CCD->Weapons()->PlayerAnim(TREADWATER)
-
 #define ANIMWALKBACK			CCD->Weapons()->PlayerAnim(WALKBACK)
 #define ANIMRUNBACK				CCD->Weapons()->PlayerAnim(RUNBACK)
 #define ANIMCRAWLBACK			CCD->Weapons()->PlayerAnim(CRAWLBACK)
@@ -243,11 +227,8 @@ enum
 #define ANIMCRAWLSHOOT1BACK		CCD->Weapons()->PlayerAnim(CRAWLSHOOT1BACK)
 #define ANIMSWIMBACK			CCD->Weapons()->PlayerAnim(SWIMBACK)
 
-// end change RF063
 #define ANIMDIE					GetDieAnim()
 #define ANIMINJURY				GetInjuryAnim()
-
-// changed RF064
 #define ANIMI2WALKTIME			TranTime[I2WALKTIME]
 #define ANIMI2RUNTIME			TranTime[I2RUNTIME]
 #define ANIMW2IDLETIME			TranTime[W2IDLETIME]
@@ -272,7 +253,6 @@ enum
 #define ANIMWALK2CRAWLTIME		TranTime[WALK2CRAWLTIME]
 #define ANIMCRAWL2WALKTIME		TranTime[CRAWL2WALKTIME]
 #define ANIMIDLE2CRAWLTIME		TranTime[IDLE2CRAWLTIME]
-// end change RF064
 
 class CAudioStream;
 class CPersistentAttributes;
@@ -286,9 +266,7 @@ public:
 	CPlayer();
 	~CPlayer();
 
-// changed QD 12/15/05
 	int LoadAvatar(const char *szFile, const char *Name);///< Load player character avatar
-// end change
 	int LoadConfiguration();				///< Load player configuration from PlayerSetup entity
 	int LoadEnvironmentalAudio();			///< Load sounds for player movement
 	int MoveToStart();						///< Move player to start
@@ -328,7 +306,9 @@ public:
 	void DisableClipPlane();				///< Unconditionally disable clip plane
 
 	bool DoMovements(void);
+
 	void UseItem();
+
 	char *GetDieAnim();
 	char *GetInjuryAnim();
 
@@ -340,10 +320,12 @@ public:
 	void SetSlideWalk(int value)		{ m_SlideWalk = value;			}
 	int GetMoving()						{ return m_Moving;				}
 	geFloat Speed()						{ return m_CurrentSpeed;		}	///< Get player speed
+
 	geVec3d Position();
 	geFloat LastMovementSpeed()			{ return m_LastMovementSpeed;	}
 	bool InFirstPerson()				{ return m_FirstPersonView;		}
 	bool FirstPersonView()				{ return m_FirstPersonView;		}
+
 	// Weapon
 	geActor	*GetActor()					{ return Actor;					}
 	geVec3d GetGravity()				{ return m_Gravity;				}
@@ -364,8 +346,6 @@ public:
 	char *GetAnimations(int index)		{ return Animations[index];		}
 	bool GetDying()						{ return Dying;					}
 	void FlipLight()					{ lighton = !lighton;			}
-// changed RF063
-// changed RF064
 	bool GetUseAttribute(const char *Attr);
 	bool SetUseAttribute(const char *Attr);
 	bool DelUseAttribute(const char *Attr);
@@ -379,23 +359,19 @@ public:
 	void SetRestoreOxy(bool flag)	{ restoreoxy = flag;			}
 	int GetHeadBobbing()			{ return HeadBobbing;			}
 	bool GetContinue()				{ return ContinueAfterDeath;	}
-// end change RF064
 	int LightValue()				{ return (int)CurrentLiteLife;	}
 	int LightLife()					{ return (int)LiteLife;			}
 	void ModifyLight(int amount);
+
 	float GetScale()				{ return m_Scale;				}
 	float GetHeight()				{ return m_CurrentHeight;		}
 	int PlayerViewPoint()			{ return m_PlayerViewPoint;		}
 	float GetSlideSlope()			{ return slideslope;			}
 	float GetSlideSpeed()			{ return slidespeed;			}
-// end change RF063
-// changed QD 12/15/05
-// start multiplayer
 	char *GetActorName()			{ return ActorName;				}
-// end multiplayer
 	void SetPlayerName(const char *Name);
 	char *GetPlayerName()			{ return m_PlayerName;			}
-// end change
+
 	void AddPosition();				///< Add current position to position history
 
 private:
@@ -452,12 +428,10 @@ private:
 	bool		lightactive;
 	bool		lighton;
 	int			lighteffect;
-// changed QD
 	bool		LiteSpot;
 	geFloat		LiteArc;
 	geVec3d		LiteOffset;
 	int			LiteStyle;
-// end change QD
 	geFloat		LiteRadiusMin;
 	geFloat		LiteRadiusMax;
 	GE_RGBA		LiteColorMin;
@@ -475,11 +449,9 @@ private:
 	char		StaminaName[64];
 	geFloat		StaminaDelay;
 	geFloat		StaminaTime;
-// changed RF064
 	char		StaminaName1[20][64];
 	geFloat		StaminaDelay1[20];
 	geFloat		StaminaTime1[20];
-// end change RF064
 
 	bool Allow3rdLook;
 	char Animations[ANIMMAX][64];
@@ -512,35 +484,22 @@ private:
 
 	GE_RGBA		FillColor;
 	GE_RGBA		AmbientColor;
-// changed QD 07/21/04
 	geBoolean	AmbientLightFromFloor;
-// end change
 	geBoolean	EnvironmentMapping;
 	geBoolean	AllMaterial;
 	geFloat		PercentMapping;
 	geFloat		PercentMaterial;
-// changed RF063
 	float		UseRange;
-// changed RF064
 	char		UseAttribute[10][64];
-// end change RF064
 	float		BoxWidth;
 	float		LiquidTime;
 	int			InLiquid;
 	int			SwimSound;
 	int			SurfaceSound;
 	int			InLiquidSound;
-// changed QD 01/2004
 	bool		OnLadder;
-// end change
-// end change RF063
-// changed QD 12/15/05
-// start multiplayer
 	char		ActorName[50];
-// end multiplayer
 	char		m_PlayerName[64];
-// end change
-// changed RF064
 	char		FallDamageAttr[64];
 	float		TranTime[TRANSMAX];
 	bool		alwaysrun;
@@ -568,7 +527,6 @@ private:
 	char		szMIDIFile[64];
 	char		szStreamingAudio[64];
 	bool		bSoundtrackLoops;
-// end change RF064
 };
 
 #endif

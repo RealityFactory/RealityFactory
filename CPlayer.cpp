@@ -10,7 +10,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// You only need the one, master include file.
 #include "RabidFramework.h"
 #include "IniFile.h"
 #include "CArmour.h"
@@ -34,15 +33,13 @@
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 extern geSound_Def *SPool_Sound(const char *SName);
-// changed RF064
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	CPlayer
+// CPlayer
 //
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CPlayer::CPlayer()
 {
@@ -52,7 +49,6 @@ CPlayer::CPlayer()
 	// ..up against the G3D 1.0 limit of 4096x4096x4096 maximum size.  The
 	// ..player CAN be scaled when the environment is loaded, though.
 
-//	03/22/2000 eaa3 Add Ralph Deane's scaling fixes
 	m_Speed = m_CurrentSpeed = 3.0f;
 	m_JumpSpeed				= 60.0f;
 	m_JumpActive			= false;
@@ -74,11 +70,9 @@ CPlayer::CPlayer()
 	m_InitialWind.X			= 0.0f;
 	m_InitialWind.Y			= 0.0f;
 	m_InitialWind.Z			= 0.0f;
-// changed RF064
 	alwaysrun = m_Running = m_run = false;
 	monitorstate = monitormode = false;
 	deathspace				= false;
-// end change RF064
 	m_Scale					= 1.0f;
 	m_lastdirection			= 0;
 	Alive					= true;
@@ -98,13 +92,11 @@ CPlayer::CPlayer()
 	StaminaDelay			= 1.0f;
 	StaminaTime				= 0.0f;
 
-// changed RF064
 	for(int sn=0; sn<20; sn++)
 	{
 		StaminaDelay1[sn] = 1.0f;
 		StaminaTime1[sn] = 0.0f;
 	}
-// end change RF064
 
 	Allow3rdLook			= true;
 	LastHealth				= -1;
@@ -114,14 +106,11 @@ CPlayer::CPlayer()
 	OldFalling = Falling = FallInjure = false;
 	MinFallDist = MaxFallDist = FallDamage = 0.0f;
 
-// changed RF063
-// changed RF064
 	for(int j=0;j<10;j++)
 		UseAttribute[j][0] = '\0';
 
 	LockView				= false;
 	restoreoxy				= true;
-// end change RF064
 
 	RealJumping				= false;
 	LiquidTime				= 0.0f;
@@ -131,21 +120,14 @@ CPlayer::CPlayer()
 	InLiquidSound			= -1;
 	slideslope				= 0.8f;
 	slidespeed				= 40.0f;
-// changed QD 01/2004
 	OnLadder				= false;
-// end change
-// changed QD 12/15/05
 	m_PlayerName[0]			= '\0';
-// end change
-// end change RF063
 	DefaultMotion[0]		= NULL;
 	DefaultMotion[1]		= NULL;
 	DefaultMotion[2]		= NULL;
-// changed QD 02/01/07
 	szCDTrack[0]			= '\0';
 	szMIDIFile[0]			= '\0';
 	szStreamingAudio[0]		= '\0';
-// end change
 
 	for(int nTemp=0; nTemp<16; nTemp++)
 		for(int j=0; j<3; j++)
@@ -189,14 +171,12 @@ CPlayer::CPlayer()
 			strcpy(Animations[FALL], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "land");
 			strcpy(Animations[LAND], Type.c_str());
-// changed QD 01/15/05
 			Type = AttrFile.GetValue(KeyName, "climbidle");
 			strcpy(Animations[CLIMBIDLE], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "climbdown");
 			strcpy(Animations[CLIMBDOWN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "climbup");
 			strcpy(Animations[CLIMBUP], Type.c_str());
-// end change
 			Type = AttrFile.GetValue(KeyName, "slidetoleft");
 			strcpy(Animations[SLIDELEFT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "slideruntoleft");
@@ -217,9 +197,7 @@ CPlayer::CPlayer()
 			strcpy(Animations[SLIDECLEFT], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetoright");
 			strcpy(Animations[SLIDECRIGHT], Type.c_str());
-// changed RF064
 
-// end change RF064
 			Type = AttrFile.GetValue(KeyName, "shootup");
 			strcpy(Animations[SHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "shootdwn");
@@ -280,13 +258,10 @@ CPlayer::CPlayer()
 			strcpy(Animations[SLIDECRIGHTSHOOT1], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootdwn");
 			strcpy(Animations[SLIDECRIGHTSHOOT], Type.c_str());
-// changed RF063
 			Type = AttrFile.GetValue(KeyName, "swim");
 			strcpy(Animations[SWIM], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "treadwater");
 			strcpy(Animations[TREADWATER], Type.c_str());
-// end change RF063
-// changed RF064
 			Type = AttrFile.GetValue(KeyName, "idletowalk");
 			strcpy(Animations[I2WALK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "idletorun");
@@ -341,7 +316,6 @@ CPlayer::CPlayer()
 			strcpy(Animations[FALL2RUN], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "crawltorun");
 			strcpy(Animations[CRAWL2RUN], Type.c_str());
-// end change RF064
 			Type = AttrFile.GetValue(KeyName, "walkback");
 			strcpy(Animations[WALKBACK], Type.c_str());
 			Type = AttrFile.GetValue(KeyName, "runback");
@@ -366,7 +340,6 @@ CPlayer::CPlayer()
 			char strip[256], *temp;
 			int i = 0;
 			DieAnimAmt = 0;
-// changed RF063
 			if(Type != "")
 			{
 				strcpy(strip, Type.c_str());
@@ -403,8 +376,6 @@ CPlayer::CPlayer()
 					temp = strtok(NULL," \n");
 				}
 			}
-// end change RF063
-// changed RF064
 			TranTime[I2WALKTIME]		= (float)AttrFile.GetValueF(KeyName, "idletowalktime");
 			TranTime[I2RUNTIME]			= (float)AttrFile.GetValueF(KeyName, "idletoruntime");
 			TranTime[W2IDLETIME]		= (float)AttrFile.GetValueF(KeyName, "walktoidletime");
@@ -430,12 +401,6 @@ CPlayer::CPlayer()
 			TranTime[CRAWL2WALKTIME]	= (float)AttrFile.GetValueF(KeyName, "crawltowalktime");
 			TranTime[IDLE2CRAWLTIME]	= (float)AttrFile.GetValueF(KeyName, "idletocrawltime");
 
-			//for(i=0;i<TRANSMAX;i++)
-			//{
-				//if(TranTime[i]==0.0f)
-					//TranTime[i] = 1.0f;
-			//}
-// end change RF064
 		}
 
 		if(KeyName == "Sounds")
@@ -511,7 +476,6 @@ CPlayer::CPlayer()
 				LiteColorMax.g = convert.Y;
 				LiteColorMax.b = convert.Z;
 			}
-// changed QD
 			Vector = AttrFile.GetValue(KeyName, "offsetangles");
 			if(Vector != "")
 			{
@@ -525,7 +489,6 @@ CPlayer::CPlayer()
 				LiteSpot = true;
 			LiteArc = (float)AttrFile.GetValueF(KeyName, "arc");
 			LiteStyle = AttrFile.GetValueI(KeyName, "style");
-// end change QD
 			LiteBone[0] = '\0';
 			Type = AttrFile.GetValue(KeyName, "attachtobone");
 			if(Type != "")
@@ -538,7 +501,6 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "attributename");
 			if(Type != "")
 				strcpy(StaminaName, Type.c_str());
-// changed RF064
 			char szSName[64];
 			for(int sn=0; sn<20; sn++)
 			{
@@ -554,15 +516,12 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "falldamageattribute");
 			if(Type != "")
 				strcpy(FallDamageAttr, Type.c_str());
-// end change RF064
 			StaminaDelay	= (float)AttrFile.GetValueF(KeyName, "recoverytime");
 			MinFallDist		= (float)AttrFile.GetValueF(KeyName, "minimumfalldistance");
 			MaxFallDist		= (float)AttrFile.GetValueF(KeyName, "maximumfalldistance");
 			FallDamage		= (float)AttrFile.GetValueF(KeyName, "falldamage");
-// changed RF063
 			UseRange = (float)AttrFile.GetValueF(KeyName, "userange");
 			BoxWidth = (float)AttrFile.GetValueF(KeyName, "boxsize");
-// changed RF064
 			alwaysrun = false;
 			Type = AttrFile.GetValue(KeyName, "alwaysrun");
 			if(Type == "true")
@@ -593,8 +552,6 @@ CPlayer::CPlayer()
 			Type = AttrFile.GetValue(KeyName, "changematerial");
 			if(Type != "")
 				strcpy(ChangeMaterial, Type.c_str());
-// end change RF064
-// end change RF063
 			geVec3d TFillColor = {0.0f, 0.0f, 0.0f};
 			geVec3d TAmbientColor = {0.0f, 0.0f, 0.0f};
 			Vector = AttrFile.GetValue(KeyName, "fillcolor");
@@ -617,12 +574,10 @@ CPlayer::CPlayer()
 			AmbientColor.g = TAmbientColor.Y;
 			AmbientColor.b = TAmbientColor.Z;
 			AmbientColor.a = 255.0f;
-// changed QD 07/21/04
 			AmbientLightFromFloor = true;
 			Vector = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
 			if(Vector == "false")
 				AmbientLightFromFloor = false;
-// end change
 			EnvironmentMapping = false;
 			Vector = AttrFile.GetValue(KeyName, "environmentmapping");
 			if(Vector == "true")
@@ -638,23 +593,21 @@ CPlayer::CPlayer()
 		}
 
 		KeyName = AttrFile.FindNextKey();
-	};
+	}
 
-/*  04/30/2004 Wendell Buckner
-	CRASHING - Get rid of crashing due to missing entity or entity parameters */
     Actor = NULL;
 
 	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~CPlayer
+// ~CPlayer
 //
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 CPlayer::~CPlayer()
 {
-	//	Release all the environmental audio sounds
+	// Release all the environmental audio sounds
 
 	if(DefaultMotion[0] != NULL)
 		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), DefaultMotion[0]);
@@ -674,9 +627,6 @@ CPlayer::~CPlayer()
 		}
 	}
 
-/*  04/30/2004 Wendell Buckner
-	CRASHING - Get rid of crashing due to missing entity or entity parameters
-	geActor_Destroy(&Actor); */
 	if(Actor)
 	{
 		geActor_Destroy(&Actor);
@@ -687,23 +637,19 @@ CPlayer::~CPlayer()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadAvatar
+// LoadAvatar
 //
-//	Load the actor file (.ACT) to be used as the players avatar.
-//	..In normal, first-person use this won't actually be seen except in mirrors.
+// Load the actor file (.ACT) to be used as the players avatar.
+// ..In normal, first-person use this won't actually be seen except in mirrors.
 /* ------------------------------------------------------------------------------------ */
-// changed QD 12/15/05
 int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 {
-// changed RF064
 	if(CCD->MenuManager()->GetUseSelect())
 	{
-		// changed QD 12/15/05
 		strcpy(ActorName, CCD->MenuManager()->GetCurrentActor());
 		Actor = CCD->ActorManager()->LoadActor(ActorName, NULL);
 
 		SetPlayerName(CCD->MenuManager()->GetCurrentName());
-		// end change
 
 		if(!Actor)
 		{
@@ -720,7 +666,6 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 	}
 	else
 	{
-// changed RF063
 		geEntity_EntitySet *pSet;
 		geEntity *pEntity;
 
@@ -743,16 +688,12 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 
 		if(EffectC_IsStringNull(pSetup->ActorName))
 		{
-			// changed QD 12/15/05
 			strcpy(ActorName, szFile);
-			// end change
 			Actor = CCD->ActorManager()->LoadActor(szFile, NULL);
 		}
 		else
 		{
-			// changed QD 12/15/05
 			strcpy(ActorName, pSetup->ActorName);
-			// end change
 			Actor = CCD->ActorManager()->LoadActor(pSetup->ActorName, NULL);
 		}
 
@@ -775,30 +716,23 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 			exit(-333);
 		}
 
-		// changed QD 12/15/05
 		SetPlayerName(Name);
-		// end change
 	}
 
-// changed QD 12/15/05
 	if(CCD->MenuManager()->GetUseNameSelect())
 		SetPlayerName(CCD->MenuManager()->GetSelectedName());
-// end changed
 
 	if(!EffectC_IsStringNull(ChangeMaterial))
 		CCD->ActorManager()->ChangeMaterial(Actor, ChangeMaterial);
 
 	if(EnvironmentMapping)
 		SetEnvironmentMapping(Actor, true, AllMaterial, PercentMapping, PercentMaterial);
-// end change RF064
-// end change RF063
 
 	CCD->CameraManager()->BindToActor(Actor);							// Bind the camera
 
 	return RGF_SUCCESS;
 }
 
-// changed QD 12/15/05
 /* ------------------------------------------------------------------------------------ */
 //	SetPlayerName
 /* ------------------------------------------------------------------------------------ */
@@ -809,27 +743,23 @@ void CPlayer::SetPlayerName(const char *Name)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadConfiguration
+// LoadConfiguration
 //
-//	Loads the attribute configuration from the player configuration file
-//	..defined in the PlayerSetup entity.
+// Loads the attribute configuration from the player configuration file
+// ..defined in the PlayerSetup entity.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::LoadConfiguration()
 {
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Loading Attributes and Player Configuration from PlayerSetup.ini", false);
-// 08.05.2004 - end change gekido
 
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	//	Load environmental audio
-// 08.05.2004 - begin change gekido
+	// Load environmental audio
 	CCD->ReportError("Loading Environmental Audio", false);
 	LoadEnvironmentalAudio();
 
 	CCD->ReportError("Parsing PlayerSetup Entity", false);
-// 08.05.2004 - end change gekido
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 
@@ -845,17 +775,13 @@ int CPlayer::LoadConfiguration()
 		exit(-333);
 	}
 
-	//	Ok, get the setup information.  There should only be one, so
-	//	we'll just take the first one we run into.
+	// Ok, get the setup information. There should only be one, so
+	// we'll just take the first one we run into.
 	pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
-// 08.05.2004 - begin change gekido
-//	CCD->ReportError("Set LevelViewpoint", false);
-// 08.05.2004 - begin change gekido
 
 	m_PlayerViewPoint = pSetup->LevelViewPoint;
-// changed RF064
 	LockView = pSetup->LockView;
 	monitormode = pSetup->MovieMode;
 
@@ -864,17 +790,12 @@ int CPlayer::LoadConfiguration()
 
 	geVec3d m_Rotation;
 	float ShadowSize;
-// changed QD 12/15/05
 	float ShadowAlpha;
 	char *ShadowBitmap;
 	char *ShadowAlphamap;
 	geBoolean UseProjectedShadows, UseStencilShadows;
-// end change
 
-// 08.05.2004 - begin change gekido
-//	CCD->ReportError("Set Initial Player Actor Scale, Rotation, Shadow and Lighting", false);
 	CCD->ReportError("Initialize Player Data", false);
-// 08.05.2004 - begin change gekido
 
 	if(CCD->MenuManager()->GetUseSelect())
 	{
@@ -883,17 +804,13 @@ int CPlayer::LoadConfiguration()
 		ShadowSize = CCD->MenuManager()->GetCurrentShadow();
 		FillColor = CCD->MenuManager()->GetCurrentFillColor();
 		AmbientColor = CCD->MenuManager()->GetCurrentAmbientColor();
-// changed QD 07/21/04
 		AmbientLightFromFloor = CCD->MenuManager()->GetCurrentAmbientLightFromFloor();
-// end change
 		CCD->ActorManager()->SetAnimationSpeed(Actor, CCD->MenuManager()->GetCurrentSpeed());
-// changed QD 12/15/05
 		ShadowAlpha = CCD->MenuManager()->GetCurrentShadowAlpha();
 		ShadowBitmap = CCD->MenuManager()->GetCurrentShadowBitmap();
 		ShadowAlphamap = CCD->MenuManager()->GetCurrentShadowAlphamap();
 		UseProjectedShadows = CCD->MenuManager()->GetCurrentPShadows();
 		UseStencilShadows = CCD->MenuManager()->GetCurrentSShadows();
-// end change
 	}
 	else
 	{
@@ -902,13 +819,11 @@ int CPlayer::LoadConfiguration()
 		m_Rotation.Y = 0.0174532925199433f*pSetup->ActorRotation.Y;
 		m_Rotation.Z = 0.0174532925199433f*pSetup->ActorRotation.Z;
 		ShadowSize = pSetup->ShadowSize;
-// changed QD 12/15/05
 		ShadowAlpha = pSetup->ShadowAlpha;
 		ShadowBitmap = pSetup->ShadowBitmap;
 		ShadowAlphamap = pSetup->ShadowAlphamap;
 		UseProjectedShadows = pSetup->UseProjectedShadows;
 		UseStencilShadows = pSetup->UseStencilShadows;
-// end change
 	}
 
 	float actscale = pSetup->ActorScaleFactor;
@@ -921,38 +836,23 @@ int CPlayer::LoadConfiguration()
 	CCD->ActorManager()->SetScale(Actor, m_Scale*actscale);
 	CCD->ActorManager()->SetBoundingBox(Actor, Animations[IDLE]);
 	CCD->ActorManager()->SetType(Actor, ENTITY_ACTOR);
-// changed QD 07/21/04
 	CCD->ActorManager()->SetActorDynamicLighting(Actor, FillColor, AmbientColor, AmbientLightFromFloor);
-// end change
 	CCD->ActorManager()->SetShadow(Actor, ShadowSize);
-// end change RF064
 
-// changed QD 06/26/04
 	if(pSetup->ShadowAlpha > 0.0f)
-		// changed QD 12/15/05
-		//CCD->ActorManager()->SetShadowAlpha(Actor, pSetup->ShadowAlpha);
 		CCD->ActorManager()->SetShadowAlpha(Actor, ShadowAlpha);
 
 	if(!EffectC_IsStringNull(pSetup->ShadowBitmap))
-		// changed QD 12/15/05
-		//CCD->ActorManager()->SetShadowBitmap(Actor, TPool_Bitmap(pSetup->ShadowBitmap, pSetup->ShadowAlphamap, NULL, NULL));
 		CCD->ActorManager()->SetShadowBitmap(Actor, TPool_Bitmap(ShadowBitmap, ShadowAlphamap, NULL, NULL));
-// end change
 
-// 08.05.2004 - begin change gekido
-//	CCD->ReportError("Set Player Bounding Box", false);
-// 08.05.2004 - begin change gekido
 
 	geExtBox theBox;
 	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 	m_CurrentHeight = theBox.Max.Y;
-// changed RF063
 	if(BoxWidth>0.0f)
 		CCD->ActorManager()->SetBBox(Actor, BoxWidth, -m_CurrentHeight*2.0f, BoxWidth);
-// end change RF063
 
 	int nFlags = 0;
-	// Mode
 	geVec3d theRotation = {0.0f, 0.0f, 0.0f};
 	CCD->ActorManager()->Rotate(Actor, theRotation);
 	geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
@@ -961,24 +861,16 @@ int CPlayer::LoadConfiguration()
 	{
 	case FIRSTPERSON:
 	default:
-//Start Nov2003DCS  Added rotation tracking
 		nFlags = kCameraTrackPosition + kCameraTrackRotation;
-//End Nov2003DCS
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight() != -1.0f)
-			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
-// changed QD 12/15/05 fixed Camera bug
+			theTranslation.Y = CCD->CameraManager()->GetViewHeight() * m_Scale;
 		m_Rotation.X = m_Rotation.Z = 0.0f;
-// end change QD
 		// Set offset
 		CCD->CameraManager()->SetCameraOffset(theTranslation, m_Rotation); //theRotation);
-// begin change gekido 12.27.2004
 		// no projected shadows in 1st person
 		CCD->ActorManager()->SetProjectedShadows(Actor, false);
-// end change gekido
-// changed QD Shadows
 		CCD->ActorManager()->SetStencilShadows(Actor, GE_FALSE);
-// end change
 		SwitchToFirstPerson();
 		break;
 	case THIRDPERSON:
@@ -990,19 +882,8 @@ int CPlayer::LoadConfiguration()
 		theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
 		// Set offset
 		CCD->CameraManager()->SetCameraOffset(theTranslation, m_Rotation); //theRotation);
-// begin change gekido
-// changed QD 12/15/05
-		//CCD->ReportError("Setting Projected Shadows for Player = False", false);
-		//CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
 		CCD->ActorManager()->SetProjectedShadows(Actor, UseProjectedShadows);
-// end change QD
-// end change gekido
-// changed QD Shadows
-// changed QD 12/15/05
-		//CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
 		CCD->ActorManager()->SetStencilShadows(Actor, UseStencilShadows);
-// end change
-// end change
 		Allow3rdLook = CCD->CameraManager()->GetPlayerAllowLook();
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
@@ -1013,23 +894,12 @@ int CPlayer::LoadConfiguration()
 		theRotation.Y = CCD->CameraManager()->GetIsoAngleAround();
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetIsoHeight() != -1.0f)
-			theTranslation.Y = CCD->CameraManager()->GetIsoHeight()*m_Scale;
+			theTranslation.Y = CCD->CameraManager()->GetIsoHeight() * m_Scale;
 		theTranslation.Z = CCD->CameraManager()->GetIsoDistance();
 		// Set offset
 		CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);
-// begin change gekido
-// changed QD 12/15/05
-		// CCD->ReportError("Setting Projected Shadows for Player", false);
-		//CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
 		CCD->ActorManager()->SetProjectedShadows(Actor, UseProjectedShadows);
-// end change QD
-// end change gekido
-// changed QD Shadows
-// changed QD 12/15/05
-		//CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
 		CCD->ActorManager()->SetStencilShadows(Actor, UseStencilShadows);
-// end change
-// end change
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		break;
@@ -1040,19 +910,11 @@ int CPlayer::LoadConfiguration()
 			sprintf(szError, "[WARNING] File %s - Line %d: No Fixed Cameras in Level",
 					__FILE__, __LINE__);
 			CCD->ReportError(szError, false);
-// changed QD 07/15/06 - default to 3rd person camera if no fixed camera is present
-			/*
-			CCD->ShutdownLevel();
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "Fixed Camera", MB_OK);
-			exit(-333);
-			*/
 			m_PlayerViewPoint = THIRDPERSON;
 			nFlags = kCameraTrackThirdPerson | kCameraTrackFree;
 			theTranslation.Y = m_CurrentHeight;
 			if(CCD->CameraManager()->GetPlayerHeight() != -1.0f)
-				theTranslation.Y = CCD->CameraManager()->GetPlayerHeight()*m_Scale;
+				theTranslation.Y = CCD->CameraManager()->GetPlayerHeight() * m_Scale;
 			theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
 			// Set offset
 			CCD->CameraManager()->SetCameraOffset(theTranslation, m_Rotation); //theRotation);
@@ -1063,26 +925,15 @@ int CPlayer::LoadConfiguration()
 			nFlags = kCameraTrackFixed;
 			CCD->CameraManager()->Unbind();
 		}
-// end change QD 07/15/06
-// begin change gekido
-// changed QD 12/15/05
-		//CCD->ReportError("Setting Projected Shadows for Player", false);
-		//CCD->ActorManager()->SetProjectedShadows(Actor, pSetup->UseProjectedShadows);
 		CCD->ActorManager()->SetProjectedShadows(Actor, UseProjectedShadows);
-// end change QD
-// end change gekido
-// changed QD Shadows
-// changed QD 12/15/05
-		//CCD->ActorManager()->SetStencilShadows(Actor, pSetup->UseStencilShadows);
 		CCD->ActorManager()->SetStencilShadows(Actor, UseStencilShadows);
-// end change 12/15/05
-// end change Shadows
+
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		break;
 	}
 
-// eaa3 12/18/2000 Head bob setup
+	// Head bob setup
 	m_HeadBobSpeed = pSetup->HeadBobSpeed;
 	m_HeadBobLimit = pSetup->HeadBobLimit;
 	HeadBobbing = pSetup->HeadBobbing;
@@ -1091,7 +942,6 @@ int CPlayer::LoadConfiguration()
 		CCD->CameraManager()->EnableHeadBob(true);
 	else
 		CCD->CameraManager()->EnableHeadBob(false);
-// eaa3 12/18/2000 end
 
 	CCD->CameraManager()->SetTrackingFlags(nFlags);		// Set tracking flags
 	CCD->ActorManager()->SetAutoStepUp(Actor, true);	// Allow stepping up
@@ -1100,7 +950,6 @@ int CPlayer::LoadConfiguration()
 	m_Speed = m_CurrentSpeed *= m_Scale;
 	m_JumpSpeed *= m_Scale;
 
-// changed RF064
 	if(monitormode)
 	{
 		CCD->ActorManager()->SetShadow(Actor, 0.0f);
@@ -1112,9 +961,7 @@ int CPlayer::LoadConfiguration()
 	geEntity_EntitySet *lEntitySet;
 	geEntity *lEntity;
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Parsing EnvironmentSetup Entity", false);
-// 08.05.2004 - begin change gekido
 
 	lEntitySet = geWorld_GetEntitySet(CCD->World(), "EnvironmentSetup");
 
@@ -1174,24 +1021,10 @@ int CPlayer::LoadConfiguration()
 
 			CCD->CameraManager()->SetShakeMin(theState->MinShakeDist);
 
-// changed QD Shadows
 			if(CCD->MenuManager()->GetStencilShadows())
 				geEngine_SetStencilShadowsEnable(CCD->Engine()->Engine(), GE_TRUE, theState->SShadowsMaxLightToUse,
 					theState->SShadowsColor.r, theState->SShadowsColor.g, theState->SShadowsColor.b, theState->SShadowsAlpha);
-// end change
-// changed QD 06/26/04
-/*			if(theState->ShadowAlpha > 0.0f)
-				CCD->ActorManager()->SetShadowAlpha(theState->ShadowAlpha);
 
-			if(!EffectC_IsStringNull(theState->ShadowBitmap))
-			{
-				if(!EffectC_IsStringNull(theState->ShadowAlphamap))
-					CCD->ActorManager()->SetShadowBitmap(TPool_Bitmap(theState->ShadowBitmap, theState->ShadowAlphamap, NULL, NULL));
-				else
-					CCD->ActorManager()->SetShadowBitmap(TPool_Bitmap(theState->ShadowBitmap, theState->ShadowBitmap, NULL, NULL));
-			}
-*/
-// end change
 		}
 	}
 
@@ -1250,21 +1083,19 @@ int CPlayer::LoadConfiguration()
 		m_Attr->SetValueLimits(szAttr, LowValue, HighValue);
 		KeyName = AttrFile.FindNextKey();
 	}
-// end change RF064
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadEnvironmentalAudio
+// LoadEnvironmentalAudio
 //
-//	Look up the environmental audio entity in the level, if there is one,
-//	..and load up all the sounds required for player motion audio.
+// Look up the environmental audio entity in the level, if there is one,
+// ..and load up all the sounds required for player motion audio.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::LoadEnvironmentalAudio()
 {
-	//	Cool, now load up all the audio and prep the motion audio for
-	//	..playback.
+	// Cool, now load up all the audio and prep the motion audio for playback.
 	DefaultMotion[0] = NULL;
 	DefaultMotion[1] = NULL;
 	DefaultMotion[2] = NULL;
@@ -1472,11 +1303,10 @@ int CPlayer::LoadEnvironmentalAudio()
 	return RGF_SUCCESS;
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	MoveToStart
+// MoveToStart
 //
-//	Move the player avatar to the first PlayerStart we find	in the world.
+// Move the player avatar to the first PlayerStart we find	in the world.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::MoveToStart()
 {
@@ -1507,7 +1337,7 @@ int CPlayer::MoveToStart()
 
 		if(CCD->ChangeLevel() && !EffectC_IsStringNull(CCD->StartName()))
 		{
-			if(!stricmp(CCD->StartName(),theStart->szEntityName))
+			if(!stricmp(CCD->StartName(), theStart->szEntityName))
 			{
 				flag = true;
 				break;
@@ -1579,7 +1409,6 @@ int CPlayer::MoveToStart()
 
 		CCD->ActorManager()->Position(Actor, m_Translation);
 
-// end change RF064
 		if(m_PlayerViewPoint == FIXEDCAMERA)
 		{
 			if(!CCD->FixedCameras()->GetFirstCamera())
@@ -1625,7 +1454,7 @@ int CPlayer::MoveToStart()
 		exit(-333);
 	}
 
-	//	Fill the position history with the new location
+	// Fill the position history with the new location
 	for(int nCtr=0; nCtr<50; nCtr++)
 		m_PositionHistory[nCtr] = m_Translation;
 
@@ -1633,9 +1462,9 @@ int CPlayer::MoveToStart()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CheckKeyLook
+// CheckKeyLook
 //
-//	Adjust the various rotation angles depending on the current key rotation.
+// Adjust the various rotation angles depending on the current key rotation.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::CheckKeyLook(int keyrotate)
 {
@@ -1696,7 +1525,7 @@ void CPlayer::CheckKeyLook(int keyrotate)
 				CCD->CameraManager()->TurnRight(TURN_SPEED);
 		}
 	}
-    else
+	else
 	{
 		if(keyrotate & 4)
 		{
@@ -1731,9 +1560,9 @@ void CPlayer::CheckKeyLook(int keyrotate)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CheckMouseLook
+// CheckMouseLook
 //
-//	Adjust the various rotation angles depending on the current position of the mouse.
+// Adjust the various rotation angles depending on the current position of the mouse.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::CheckMouseLook()
 {
@@ -1743,7 +1572,7 @@ void CPlayer::CheckMouseLook()
 	geFloat UPDOWN_SPEED;			// speed camera will move if looking up/down
 	POINT pos;
 
-	GetCursorPos(&temppos);	// get the mouse position in SCREEN coordinates
+	GetCursorPos(&temppos);			// get the mouse position in SCREEN coordinates
 
 	if(CCD->MenuManager()->GetMouseFilter())
 	{
@@ -1753,8 +1582,8 @@ void CPlayer::CheckMouseLook()
 		if(tempfilter.x == -1)
 			tempfilter = temppos;
 
-		temppos.x = (temppos.x+tempfilter.x)/2;
-		temppos.y = (temppos.y+tempfilter.y)/2;
+		temppos.x = (temppos.x + tempfilter.x)/2;
+		temppos.y = (temppos.y + tempfilter.y)/2;
 	}
 
 	if(CCD->Engine()->FullScreen())
@@ -1802,6 +1631,7 @@ void CPlayer::CheckMouseLook()
 
 			return;
 		}
+
 		if(m_FirstPersonView)
 		{
 			if(!CCD->CameraManager()->GetAllowMouse1st())
@@ -1813,7 +1643,7 @@ void CPlayer::CheckMouseLook()
 				if(CCD->ActorManager()->TiltDown(Actor, UPDOWN_SPEED) == RGF_SUCCESS)
 					CCD->CameraManager()->TiltDown(UPDOWN_SPEED);
 			}
-			else if (temppos.y < pos.y)						// is it to the bottom?
+			else if(temppos.y < pos.y)						// is it to the bottom?
 			{
 				if(CCD->ActorManager()->TiltUp(Actor, UPDOWN_SPEED) == RGF_SUCCESS)
 					CCD->CameraManager()->TiltUp(UPDOWN_SPEED);
@@ -1823,7 +1653,7 @@ void CPlayer::CheckMouseLook()
 				if(CCD->ActorManager()->TurnLeft(Actor, TURN_SPEED) == RGF_SUCCESS)
 					CCD->CameraManager()->TurnLeft(TURN_SPEED);
 			}
-			else if (temppos.x < pos.x)						// is it to the right?
+			else if(temppos.x < pos.x)						// is it to the right?
 			{
 				if(CCD->ActorManager()->TurnRight(Actor, TURN_SPEED) == RGF_SUCCESS)
 					CCD->CameraManager()->TurnRight(TURN_SPEED);
@@ -1914,21 +1744,21 @@ void CPlayer::CheckMouseLook()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProcessMove
+// ProcessMove
 //
-//	Check the contents of the current area to see if we need to play Something Special.
+// Check the contents of the current area to see if we need to play Something Special.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::ProcessMove(bool bPlayerMoved)
 {
-// eaa3 12/18/2000 head bob control
+	// head bob control
 	static bool BobUp = true;
 
 	float nBobValue = CCD->CameraManager()->GetHeadBobOffset();
 
 	if(!bPlayerMoved || CCD->ActorManager()->ForceActive(Actor, 0) || CCD->ActorManager()->Falling(Actor))
 	{
-// eaa3 12/18/2000 We need to "settle" the viewpoint down to a neutral
-// ..position if we're bobbing.
+		// We need to "settle" the viewpoint down to a neutral
+		// ..position if we're bobbing.
 		if(nBobValue != 0.0f)
 		{
 			nBobValue -= m_HeadBobSpeed;
@@ -1940,14 +1770,12 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 
 			CCD->CameraManager()->SetHeadBobOffset(nBobValue);	// Adjust it!
 		}
-// eaa3 12/18/2000 - End head settling code
 	}
 	else
 	{
-//	eaa3 12/18/2000
-//	Process "head bobbing"
-//	..Note that head bobbing only occurs when the camera is bound to an
-//	..actor, and has NOT been tested in third-person mode.
+		// Process "head bobbing"
+		// ..Note that head bobbing only occurs when the camera is bound to an
+		// ..actor, and has NOT been tested in third-person mode.
 		if(BobUp)
 		{
 			nBobValue += m_HeadBobSpeed;
@@ -1965,10 +1793,7 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 
 		CCD->CameraManager()->SetHeadBobOffset(nBobValue);
 	}
-//	End of "head bob" processing
-//	eaa3 12/18/2000
 
-// changed RF063
 	int ZoneType, ConType, OldZone;
 	bool liq = false;
 
@@ -2073,7 +1898,6 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 
 	if(liq)
 		return RGF_SUCCESS;
-// end change RF063
 
 	if(ZoneType & kWaterZone)
 	{
@@ -2111,20 +1935,16 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 	{
 		ConType = 8;
 	}
-// changed RF063
 	else if(ZoneType & kUnclimbableZone)
 	{
 		ConType = 9;
 	}
-// end change RF063
 	else
 	{
 		ConType = -1;
 	}
 
-// changed RF064
 	if(!(CCD->ActorManager()->ForceActive(Actor, 0) || CCD->ActorManager()->ReallyFall(Actor)))
-// end change RF064
 	{
 		if(ConType == -1)
 		{
@@ -2194,9 +2014,9 @@ int CPlayer::ProcessMove(bool bPlayerMoved)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Move
+// Move
 //
-//	Move the player forward/backward/left/right at a specific speed.
+// Move the player forward/backward/left/right at a specific speed.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::Move(int nHow, geFloat fSpeed)
 {
@@ -2206,10 +2026,8 @@ int CPlayer::Move(int nHow, geFloat fSpeed)
 	if(Injured)
 		return RGF_SUCCESS;
 
-// changed RF064
 	if(CCD->ActorManager()->CheckTransitionMotion(Actor, ANIMSWIM))
 		return RGF_SUCCESS;
-// end change RF064
 
 	m_LastMovementSpeed = fSpeed;
 	m_lastdirection = nHow;
@@ -2253,7 +2071,6 @@ int CPlayer::Move(int nHow, geFloat fSpeed)
 
 	m_run = (m_Running || alwaysrun);
 
-// changed RF063
 	CCD->ActorManager()->SetMoving(Actor);
 	int ZoneType;
 	float Step;
@@ -2280,15 +2097,14 @@ int CPlayer::Move(int nHow, geFloat fSpeed)
 	}
 
 	CCD->ActorManager()->SetStepHeight(Actor, Step);
-// end change RF063
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	StartJump
+// StartJump
 //
-//	Initiates a jump of the player.
+// Initiates a jump of the player.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::StartJump()
 {
@@ -2299,30 +2115,26 @@ void CPlayer::StartJump()
 
 	CCD->ActorManager()->GetActorZone(Actor, &theZone);
 
-// eaa 03/28/2000 You shouldn't be able to jump in certain
-// ..environments, like water, lava, or zero-G.
-// changed RF063
+	// You shouldn't be able to jump in certain
+	// ..environments, like water, lava, or zero-G.
 	int OldZone;
 	CCD->ActorManager()->GetActorOldZone(Actor, &OldZone);
 
-// changed RF064
 	if(((OldZone>0) && CCD->ActorManager()->GetMoving(Actor)) || (theZone & kLavaZone)
 		|| (theZone & kNoGravityZone) || (theZone & kUnclimbableZone)
 		|| (m_crouch && nocrouchjump))
 		return;					// Sorry, no jumping allowed
-// end change RF064
 
 	m_JumpActive = true;
 	return;
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetJump
+// SetJump
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SetJump()
 {
-	//	Jumping removes us as a passenger from any vehicle we're on.
+	// Jumping removes us as a passenger from any vehicle we're on.
 	geActor *theVehicle = CCD->ActorManager()->GetVehicle(Actor);
 
 	if(theVehicle != NULL)
@@ -2331,22 +2143,19 @@ void CPlayer::SetJump()
 	if(CCD->ActorManager()->Falling(Actor) == GE_TRUE)
 		return;						// No jumping in mid-air, heh heh heh
 
-// changed RF063
 	int theZone;
 	CCD->ActorManager()->GetActorZone(Actor, &theZone);
 
 	int OldZone;
 	CCD->ActorManager()->GetActorOldZone(Actor, &OldZone);
 
-// changed RF064
 	if(((OldZone>0) && CCD->ActorManager()->GetMoving(Actor)) || (theZone & kLavaZone)
 		|| (theZone & kNoGravityZone) || (theZone & kUnclimbableZone)
 		|| (m_crouch && nocrouchjump))
 		return;
-// end change RF064
 
-	//	Add a force to the player actor, aiming upwards, of our jump speed,
-	//	..decaying 10 units over time.
+	// Add a force to the player actor, aiming upwards, of our jump speed,
+	// ..decaying 10 units over time.
 	geVec3d theUp, theDir;
 	CCD->ActorManager()->UpVector(Actor, &theUp);
 
@@ -2373,7 +2182,6 @@ void CPlayer::SetJump()
 		CCD->ActorManager()->SetForce(Actor, 1, theDir, m_JumpSpeed, m_JumpSpeed);
 	}
 
-// changed QD 01/2004
 	if(!FIRSTPERSON && OnLadder)
 	{
 		// jump backwards if on ladder
@@ -2386,11 +2194,10 @@ void CPlayer::SetJump()
 	{
 		CCD->ActorManager()->SetForce(Actor, 0, theUp, m_JumpSpeed, m_JumpSpeed);
 	}
-// end change
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Position
+// Position
 /* ------------------------------------------------------------------------------------ */
 geVec3d CPlayer::Position()
 {
@@ -2399,17 +2206,15 @@ geVec3d CPlayer::Position()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SwitchCamera
+// SwitchCamera
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SwitchCamera(int mode)
 {
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-// changed RF064
 	if(LockView)
 		return;
-// end change RF064
 
 	int FixedView = CCD->Weapons()->GetFixedView();
 
@@ -2426,15 +2231,12 @@ void CPlayer::SwitchCamera(int mode)
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	// Mode
-// Start Nov2003DCS
 	geVec3d theRotation, theAlignRotation;
 	CCD->ActorManager()->GetAligningRotation(Actor, &theAlignRotation);
 	CCD->ActorManager()->GetRotate(Actor, &theRotation);
 	CCD->CameraManager()->Rotate(theRotation);
 	theAlignRotation.X = 0.0f;
-	//theAlignRotation.Y = 0.0f;
 	theAlignRotation.Z = 0.0f;
-// End Nov2003DCS
 	geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
 
 	switch(mode)
@@ -2443,44 +2245,38 @@ void CPlayer::SwitchCamera(int mode)
 		mode = FIRSTPERSON;
 	case FIRSTPERSON:
 		CCD->CameraManager()->BindToActor(Actor);
-// Start Nov2003DCS  Added rotation tracking
 		nFlags = kCameraTrackPosition + kCameraTrackRotation;
-// End Nov2003DCS
+
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetViewHeight()!=-1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetViewHeight()*m_Scale;
-// Start Nov2003DCS
-		// CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);	// Set offset
-		CCD->CameraManager()->SetCameraOffset(theTranslation, theAlignRotation);// Set offset
-// End Nov2003DCS
+
+		CCD->CameraManager()->SetCameraOffset(theTranslation, theAlignRotation);
 		SwitchToFirstPerson();
 		CCD->CameraManager()->ResetCamera();
+
 		m_HeadBobSpeed = pSetup->HeadBobSpeed;
 		m_HeadBobLimit = pSetup->HeadBobLimit;
 		if(pSetup->HeadBobbing == GE_TRUE)
 			CCD->CameraManager()->EnableHeadBob(true);
 		else
 			CCD->CameraManager()->EnableHeadBob(false);
-// changed RF063
+
 		CCD->CameraManager()->ResetCamera();
-// end change RF063
+
 		CCD->Weapons()->SetView(0);
 		break;
 	case THIRDPERSON:
 		CCD->CameraManager()->BindToActor(Actor);
 		nFlags = kCameraTrackThirdPerson | kCameraTrackFree;
-// Start Nov2003DCS
-		//theRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
 		theAlignRotation.X = CCD->CameraManager()->GetPlayerAngleUp();
-// End Nov2003DCS
+
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetPlayerHeight() != -1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetPlayerHeight()*m_Scale;
+
 		theTranslation.Z = CCD->CameraManager()->GetPlayerDistance();
-// Start Nov2003DCS
-		//CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);	// Set offset
-		CCD->CameraManager()->SetCameraOffset(theTranslation, theAlignRotation);// Set offset
-// End Nov2003DCS
+		CCD->CameraManager()->SetCameraOffset(theTranslation, theAlignRotation);
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		Allow3rdLook = CCD->CameraManager()->GetPlayerAllowLook();
@@ -2491,12 +2287,13 @@ void CPlayer::SwitchCamera(int mode)
 		nFlags = kCameraTrackIso;
 		theRotation.X = CCD->CameraManager()->GetIsoAngleUp();
 		theRotation.Y = CCD->CameraManager()->GetIsoAngleAround();
+
 		theTranslation.Y = m_CurrentHeight;
 		if(CCD->CameraManager()->GetIsoHeight() != -1.0f)
 			theTranslation.Y = CCD->CameraManager()->GetIsoHeight()*m_Scale;
+
 		theTranslation.Z = CCD->CameraManager()->GetIsoDistance();
-		CCD->CameraManager()->SetCameraOffset(theTranslation,
-			theRotation);				// Set offset
+		CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);
 		SwitchToThirdPerson();
 		CCD->CameraManager()->ResetCamera();
 		CCD->Weapons()->SetView(1);
@@ -2518,12 +2315,10 @@ void CPlayer::SwitchCamera(int mode)
 	m_PlayerViewPoint = mode;
 	CCD->CameraManager()->SetTrackingFlags(nFlags);
 	CCD->CameraManager()->TrackMotion();
-
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	ModifyLight
+// ModifyLight
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::ModifyLight(int amount)
 {
@@ -2537,10 +2332,9 @@ void CPlayer::ModifyLight(int amount)
 
 	DecayLite = false;
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//	GetDieAnim
+// GetDieAnim
 /* ------------------------------------------------------------------------------------ */
 char *CPlayer::GetDieAnim()
 {
@@ -2553,7 +2347,7 @@ char *CPlayer::GetDieAnim()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetInjuryAnim
+// GetInjuryAnim
 /* ------------------------------------------------------------------------------------ */
 char *CPlayer::GetInjuryAnim()
 {
@@ -2566,22 +2360,18 @@ char *CPlayer::GetInjuryAnim()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 //
-//	Process actor animation changes
+// Process actor animation changes
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::Tick(geFloat dwTicks)
 {
-// changed RF064
 	if(monitormode)
 	{
 		CCD->HUD()->Deactivate();
 		if(CCD->Input()->GetKeyboardInputNoWait() == KEY_ESC)
 		{
 			monitorstate = true;
-			//while(CCD->Input()->GetKeyboardInputNoWait() == KEY_ESC)
-			//{
-			//}
 		}
 	}
 
@@ -2615,7 +2405,6 @@ void CPlayer::Tick(geFloat dwTicks)
 	}
 
 	AddPosition();
-// end change RF064
 
 	float distance;
 	geVec3d FallEnd;
@@ -2624,7 +2413,7 @@ void CPlayer::Tick(geFloat dwTicks)
 	CCD->ActorManager()->GetActorZone(Actor, &Zone);
 	CCD->ActorManager()->GetActorOldZone(Actor, &OldZone);
 
-// play out dying animation
+	// play out dying animation
 	if(Dying)
 	{
 		if(CCD->ActorManager()->EndAnimation(Actor))
@@ -2670,7 +2459,6 @@ void CPlayer::Tick(geFloat dwTicks)
 	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
 	if(theInv->Value("health") <= 0)
 	{
-// changed RF063
 		bool Switch = true;
 		char *DA = CCD->Weapons()->DieAnim();
 
@@ -2687,7 +2475,6 @@ void CPlayer::Tick(geFloat dwTicks)
 			SwitchCamera(THIRDPERSON);
 
 		if(!Switch)
-// end change RF063
 		{
 			Alive = false;
 		}
@@ -2720,13 +2507,10 @@ void CPlayer::Tick(geFloat dwTicks)
 	}
 	else
 	{
-// changed RF064
 		if((LastHealth > theInv->Value("health") && !Injured)
 			&& (!m_JumpActive && CCD->ActorManager()->Falling(Actor) != GE_TRUE)
 			&& !CCD->ChangeAttributes()->GetActive())
-// end change RF064
 		{
-// changed RF063
 			if(InjurySoundAmt > 0 && OldZone == 0)
 			{
 				Snd Sound;
@@ -2759,7 +2543,6 @@ void CPlayer::Tick(geFloat dwTicks)
 						Injured = true;
 					}
 				}
-// end change RF063
 			}
 
 			FallInjure = false;
@@ -2774,7 +2557,6 @@ void CPlayer::Tick(geFloat dwTicks)
 		CCD->ActorManager()->GetPosition(Actor, &FallEnd);
 		distance = (float)fabs(FallEnd.Y-FallStart.Y);
 
-// changed RF063
 		if(Zone != kLiquidZone)
 		{
 			if(LandSoundAmt > 0 && distance > MinFallDist)
@@ -2794,7 +2576,6 @@ void CPlayer::Tick(geFloat dwTicks)
 					distance = MaxFallDist;
 
 				float damage = ((distance-MinFallDist)/(MaxFallDist-MinFallDist))*FallDamage;
-// changed RF064
 				CCD->Damage()->DamageActor(Actor, damage, FallDamageAttr, damage, FallDamageAttr, "Fall");
 				FallInjure = true;
 			}
@@ -2814,14 +2595,11 @@ void CPlayer::Tick(geFloat dwTicks)
 				if(Collision.Model)
 					CCD->Damage()->DamageModel(Collision.Model, damage, JumpOnDamageAttr, damage, JumpOnDamageAttr);
 			}
-// end change RF064
 		}
-// end change RF063
 	}
 
 	OldFalling = Falling;
 
-// changed RF063
 	// check auto increase attribute
 	if(!strcmp(StaminaName, "LightValue"))
 	{
@@ -2853,7 +2631,6 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 	}
 
-// changed RF064
 	for(int sn=0; sn<20; ++sn)
 	{
 		if(!strcmp(StaminaName1[sn], "LightValue"))
@@ -2893,12 +2670,9 @@ void CPlayer::Tick(geFloat dwTicks)
 			theInv->Modify("oxygen", theInv->High("oxygen"));
 	}
 	restoreoxy = true;
-// end change RF064
 
 	// check for damage in liquid
-// changed RF064
 	if(OldZone > 0 || Zone & kLiquidZone || Zone & kInLiquidZone)
-// end change RF064
 	{
 		Liquid *LQ = CCD->ActorManager()->GetLiquid(Actor);
 
@@ -2964,15 +2738,12 @@ void CPlayer::Tick(geFloat dwTicks)
 		LiquidTime = 0.0f;
 		InLiquid = -1;
 	}
-// end change RF063
 
-// changed QD 01/15/05
 	// TODO: rotate player to face the ladder
 	if(Zone & kClimbLaddersZone)
 		OnLadder = true;
 	else
 		OnLadder = false;
-// end change
 
 	if(theInv->Has("light"))
 	{
@@ -2980,9 +2751,8 @@ void CPlayer::Tick(geFloat dwTicks)
 		{
 			if(lightactive == false)
 			{
-				Glow	Gl;
+				Glow Gl;
 				geExtBox theBox;
-// changed QD
 				geXForm3d thePosition;
 				geVec3d Pos = Position();
 				CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
@@ -3005,9 +2775,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				geXForm3d_RotateY(&thePosition, LiteOffset.Y);
 				geXForm3d_GetEulerAngles(&thePosition, &Gl.Direction);
 				Gl.Direction.Z += LiteOffset.Z;
-				// changed QD 12/15/05
 				geVec3d_Scale(&(Gl.Direction), GE_180OVERPI, &(Gl.Direction));
-// end change QD
 				Gl.RadiusMin = LiteRadiusMin;
 				Gl.RadiusMax = LiteRadiusMax;
 				Gl.ColorMin.r = LiteColorMin.r;
@@ -3050,9 +2818,7 @@ void CPlayer::Tick(geFloat dwTicks)
 	{
 		Glow Gl;
 		geExtBox theBox;
-// changed QD
-		geXForm3d 	thePosition;
-		//geVec3d	theRotation;
+		geXForm3d thePosition;
 		geVec3d Pos = Position();
 		CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 		Pos.Y += theBox.Max.Y;
@@ -3069,11 +2835,8 @@ void CPlayer::Tick(geFloat dwTicks)
 		geXForm3d_RotateY(&thePosition, LiteOffset.Y);
 		geXForm3d_GetEulerAngles(&thePosition, &(Gl.Direction));
 		// move the light up/down when looking up/down
-		// CCD->CameraManager()->GetRotation(&theRotation);
-		// Gl.Direction.Z += theRotation.X;
 		Gl.Direction.Z += LiteOffset.Z;
 		geVec3d_Scale(&(Gl.Direction), 57.3f, &(Gl.Direction));
-// end change QD
 
 		if(!DecayLite)
 		{
@@ -3108,8 +2871,6 @@ void CPlayer::Tick(geFloat dwTicks)
 		}
 	}
 
-// changed RF064
-// changed QD 01/15/05
 #define CLIMBING (!strcmp(Motion, ANIMCLIMBUP) || !strcmp(Motion, ANIMCLIMBDOWN))
 #define JUMPING (!strcmp(Motion, ANIMJUMP) || !strcmp(Motion, ANIMJUMPSHOOT))
 #define FALLING (!strcmp(Motion, ANIMFALL) || !strcmp(Motion, ANIMFALLSHOOT))
@@ -3125,13 +2886,10 @@ void CPlayer::Tick(geFloat dwTicks)
 #define TRANS4 (!strcmp(Motion, ANIMIDLE2CRAWL) || !strcmp(Motion, ANIMAIM2CROUCH) || !strcmp(Motion, ANIMCROUCH2AIM) || !strcmp(Motion, ANIMW2TREAD) || !strcmp(Motion, ANIMFALL2RUN) || !strcmp(Motion, ANIMCRAWL2RUN))
 #define ALLBACK ( !strcmp(Motion, ANIMWALKBACK) || !strcmp(Motion, ANIMRUNBACK) || !strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK) || !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK))
 #define ALLTRANS (TRANS1 || TRANS2 || TRANS3 || TRANS4)
-//#define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
 #define ALLIDLE (ALLTRANS || JUMPING || FALLING || STARTLAND || CSTARTLAND || TREADING || IDLING || CIDLING || !strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMCSHOOT))
-//#define ALLWALK (SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
 #define ALLWALK (CLIMBING || SWIMING || ALLTRANS || TREADING || JUMPING || FALLING || ALLBACK || !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMRUN) || !strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMWALKSHOOT) || !strcmp(Motion, ANIMRUNSHOOT) || !strcmp(Motion, ANIMCRAWLSHOOT))
 #define ALLSLIDERIGHT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDERIGHT) || !strcmp(Motion, ANIMRUNSLIDERIGHT) || !strcmp(Motion, ANIMSLIDECRIGHT) || !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMSLIDECRIGHTSHOOT))
 #define ALLSLIDELEFT (ALLTRANS || JUMPING || FALLING || !strcmp(Motion, ANIMSLIDELEFT) || !strcmp(Motion, ANIMRUNSLIDELEFT) || !strcmp(Motion, ANIMSLIDECLEFT) || !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT) || !strcmp(Motion, ANIMSLIDECLEFTSHOOT))
-// end change
 
 	char *Motion;
 
@@ -3194,30 +2952,23 @@ void CPlayer::Tick(geFloat dwTicks)
 				if(OldZone > 0)
 				{
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMJUMP2TREADTIME, ANIMJUMP2TREAD);
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
-					// end change RF064
 				}
 				else
-				// changed RF064
 				{
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
 				}
-				// end change RF064
 
 				break;
 			}
 
-// changed RF063
 			if(SWIMING)
 			{
 				if(CCD->ActorManager()->CheckAnimation(Actor, ANIMIDLE) == GE_TRUE)
 				{
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMSWIM2TREADTIME, ANIMSWIM2TREAD);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 				}
@@ -3240,21 +2991,17 @@ void CPlayer::Tick(geFloat dwTicks)
 
 					if(OldZone > 0 || Zone & kLiquidZone)
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMFALL2TREADTIME, ANIMFALL2TREAD);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
-						// end change RF064
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 					}
 					else
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
-						// end change RF064
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
 					}
-// end change RF063
+
 					break;
 				}
 			}
@@ -3264,7 +3011,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Falling = false;
 
 				m_JumpActive = false;
-// changed QD 01/15/05
+
 				if(OnLadder)
 				{
 					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
@@ -3282,7 +3029,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					else
 					{
 						CCD->ActorManager()->SetMotion(Actor, ANIMLAND);
-// changed RF063
+
 						if(OldZone > 0)
 						{
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
@@ -3295,12 +3042,11 @@ void CPlayer::Tick(geFloat dwTicks)
 						}
 					}
 				}
-// end change QD 01/15/05
+
 				CCD->Weapons()->SetAttackFlag(false);
 				break;
 			}
 
-// changed RF063
 			if(!(JUMPING || STARTLAND))
 			{
 				if(OldZone > 0)
@@ -3309,9 +3055,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(CCD->ActorManager()->CheckAnimation(Actor, ANIMIDLE) == GE_TRUE)
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMCROUCH2IDLETIME, ANIMCROUCH2IDLE);
-							// end change RF064
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
 							CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 							m_crouch = false;
@@ -3319,9 +3063,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					}
 					else if(!TREADING)
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMIDLE2TREADTIME, ANIMIDLE2TREAD);
-						// end change RF064
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 						m_crouch = false;
@@ -3333,23 +3075,18 @@ void CPlayer::Tick(geFloat dwTicks)
 				{
 					if(TREADING)
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMTREAD2IDLETIME, ANIMTREAD2IDLE);
-						// end change RF064
 						CCD->ActorManager()->SetMotion(Actor, ANIMIDLE);
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 						break;
 					}
 				}
 			}
-// end change RF063
 
 			// crouch at idle
 			if(!strcmp(Motion, ANIMIDLE) && m_crouch && OldZone == 0)
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCIDLE, ANIMIDLE2CROUCHTIME, ANIMIDLE2CROUCH);
-				// end change RF064
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCIDLE);
 				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
 			}
@@ -3363,10 +3100,8 @@ void CPlayer::Tick(geFloat dwTicks)
 
 			if(!strcmp(Motion, ANIMAIM) && m_crouch && OldZone == 0)
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCAIM, ANIMIDLE2CROUCHTIME, ANIMAIM2CROUCH);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCAIM);
-				// end change RF064
 				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
 			}
 
@@ -3375,9 +3110,7 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(CCD->ActorManager()->CheckAnimation(Actor, ANIMIDLE) == GE_TRUE)
 				{
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMCROUCH2IDLETIME, ANIMCROUCH2IDLE);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 				}
@@ -3397,15 +3130,12 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(CCD->ActorManager()->CheckAnimation(Actor, ANIMIDLE) == GE_TRUE)
 				{
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMAIM, ANIMCROUCH2IDLETIME, ANIMCROUCH2AIM);
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMAIM);
-					// end change RF064
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 				}
 			}
 
-// changed RF063
 			// attack
 			if(CCD->Weapons()->GetAttackFlag())
 			{
@@ -3456,7 +3186,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					CCD->ActorManager()->SetBlendMot(Actor, ANIMFALLSHOOT, ANIMFALLSHOOT1, CCD->CameraManager()->GetTiltPercent());
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
 				}
-// end change RF063
+
 				break;
 			}
 
@@ -3479,7 +3209,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				|| !strcmp(Motion, ANIMWALKBACK)|| !strcmp(Motion, ANIMRUNBACK)
 				|| !strcmp(Motion, ANIMRUNSHOOTBACK) || !strcmp(Motion, ANIMWALKSHOOTBACK))
 			{
-// changed QD 01/15/05
 				if(OnLadder && !JUMPING)
 				{
 					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
@@ -3488,31 +3217,25 @@ void CPlayer::Tick(geFloat dwTicks)
 				{
 					if(OldZone > 0)
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMW2IDLETIME, ANIMW2TREAD);
-						// end change RF064
 						CCD->ActorManager()->SetMotion(Actor, ANIMTREADWATER);
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 					}
 					else
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMW2IDLETIME, ANIMW2IDLE);
-						// end change RF064
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 					}
 				}
-// end change QD 01/15/05
+
 				break;
 			}
 
 			if(!strcmp(Motion, ANIMCRAWL) || !strcmp(Motion, ANIMCRAWLSHOOT)
 				|| !strcmp(Motion, ANIMCRAWLBACK) || !strcmp(Motion, ANIMCRAWLSHOOTBACK))
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCIDLE, ANIMC2IDLETIME, ANIMC2IDLE);
-				// end change RF064
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCIDLE);
 				break;
 			}
@@ -3520,10 +3243,8 @@ void CPlayer::Tick(geFloat dwTicks)
 			if(!strcmp(Motion, ANIMSLIDECLEFT) || !strcmp(Motion, ANIMSLIDECRIGHT)
 				|| !strcmp(Motion, ANIMSLIDECLEFTSHOOT) || !strcmp(Motion, ANIMSLIDECRIGHTSHOOT))
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCIDLE, ANIMSLIDE2CROUCHTIME, NULL);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCIDLE);
-				// end change RF064
 				break;
 			}
 
@@ -3532,7 +3253,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 				|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 			{
-// changed QD 01/15/05
 				if(OnLadder)
 				{
 					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
@@ -3542,38 +3262,32 @@ void CPlayer::Tick(geFloat dwTicks)
 				{
 					if(OldZone > 0)
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMTREADWATER, ANIMSLIDE2IDLETIME, NULL);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMTREADWATER);
-						// end change RF064
 					}
 					else
-				// changed RF064
 					{
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMIDLE, ANIMSLIDE2IDLETIME, NULL);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMIDLE);
 					}
 				}
-// end change QD 01/15/05
+
 				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, false);
-				// end change RF064
+
 				break;
 			}
 
-// changed QD 01/15/05
 			if(OnLadder && CLIMBING)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMB);
 				break;
 			}
-// end change
 
-// changed RF064
 			if(!ALLIDLE)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMIDLE);
 			}
-// end change RF064
+
 			break;
 		}
 	case MOVEWALKFORWARD:
@@ -3587,16 +3301,13 @@ void CPlayer::Tick(geFloat dwTicks)
 						CCD->ActorManager()->GetPosition(Actor, &FallStart);
 						Falling = true;
 					}
-// changed RF063
+
 					if(!(Zone & kInLiquidZone || Zone & kLiquidZone) || !strcmp(Motion, ANIMJUMP))
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
-						// end change RF064
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
 					}
-// end change RF063
 
 					CCD->Weapons()->SetAttackFlag(false);
 					break;
@@ -3609,7 +3320,6 @@ void CPlayer::Tick(geFloat dwTicks)
 
 				if(!m_JumpActive)
 				{
-// changed QD 01/15/05
 					if(OnLadder)
 					{
 						CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
@@ -3620,16 +3330,13 @@ void CPlayer::Tick(geFloat dwTicks)
 						if(m_crouch)
 						{
 							CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWL, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
-							// end change RF063
 						}
 						else
 						{
 							CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 							if(!m_run)
-							// changed RF064
 							{
 								CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
 								CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
@@ -3639,20 +3346,16 @@ void CPlayer::Tick(geFloat dwTicks)
 								CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMFALL2WALKTIME, ANIMFALL2RUN);
 								CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
 							}
-							// end change RF064
 						}
 					}
-// end change QD 01/15/05
 				}
 				else
 				{
 					if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP) == GE_TRUE)
 					{
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMFALL2JUMPTIME, ANIMFALL2JUMP);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
-						// end change RF064
 						SetJump();
 					}
 
@@ -3667,22 +3370,19 @@ void CPlayer::Tick(geFloat dwTicks)
 				&& (CCD->ActorManager()->ForceActive(Actor, 0) == GE_FALSE))
 			{
 				m_JumpActive = false;
-// changed RF063
+
 				if(!SWIMING)
 				{
 					if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP) == GE_TRUE)
 					{
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMWALK2JUMPTIME, ANIMWALK2JUMP);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
-						// end change RF064
 						SetJump();
 						CCD->Weapons()->SetAttackFlag(false);
 						break;
 					}
 				}
-// end change RF063
 			}
 
 			if(!strcmp(Motion, ANIMJUMP))
@@ -3709,17 +3409,14 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed RF063
 			if(OldZone > 0)
 			{
 				if(!SWIMING)
 				{
 					if(!strcmp(Motion, ANIMTREADWATER))
-					// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIM, ANIMTREAD2SWIMTIME, ANIMTREAD2SWIM);
 					else
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIM, ANIMWALK2SWIMTIME, ANIMWALK2SWIM);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMSWIM);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMSWIM, true);
 				}
@@ -3728,17 +3425,12 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(SWIMING)
 				{
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMSWIM2WALKTIME, ANIMSWIM2WALK);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 				}
 			}
-// changed RF063
 			// walk from idle
-// changed QD 01/15/05
-			//if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 			if(!strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 			{
 				if(OnLadder)
@@ -3751,9 +3443,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMI2WALKTIME, ANIMI2WALK);
-							// end change RF064
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
 						}
 						else
@@ -3766,9 +3456,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMI2RUNTIME, ANIMI2RUN);
-							// end change RF064
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
 						}
 						else
@@ -3778,7 +3466,7 @@ void CPlayer::Tick(geFloat dwTicks)
 						}
 					}
 				}
-// end change QD 01/15/05
+
 				break;
 			}
 
@@ -3815,10 +3503,8 @@ void CPlayer::Tick(geFloat dwTicks)
 				&& m_crouch && OldZone == 0)
 			{
 				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWL, ANIMWALK2CRAWLTIME, ANIMWALK2CRAWL);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
-				// end change RF064
 				break;
 			}
 
@@ -3826,10 +3512,8 @@ void CPlayer::Tick(geFloat dwTicks)
 			if(!strcmp(Motion, ANIMCIDLE) || !strcmp(Motion, ANIMC2IDLE)
 				|| !strcmp(Motion, ANIMCSHOOT) || !strcmp(Motion, ANIMCAIM) || !strcmp(Motion, ANIMIDLE2CROUCH))
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWL, ANIMIDLE2CRAWLTIME, ANIMIDLE2CRAWL);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
-				// end change RF064
 				break;
 			}
 
@@ -3844,10 +3528,8 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALK, ANIMCRAWL2WALKTIME, ANIMCRAWL2WALK);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALK);
-							// end change RF064
 						}
 						else
 						{
@@ -3859,10 +3541,8 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUN, ANIMCRAWL2WALKTIME, ANIMCRAWL2RUN);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUN);
-							// end change RF064
 						}
 						else
 						{
@@ -3878,7 +3558,6 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(!m_run)
 				{
-// changed RF063
 					if(OldZone == 0)
 					{
 						if(!strcmp(Motion, ANIMWALKSHOOT))
@@ -3907,7 +3586,6 @@ void CPlayer::Tick(geFloat dwTicks)
 					CCD->ActorManager()->SetBlendMot(Actor, ANIMCRAWLSHOOT, ANIMCRAWLSHOOT1, CCD->CameraManager()->GetTiltPercent());
 				else
 					CCD->ActorManager()->SetBlendMotion(Actor, ANIMCRAWLSHOOT, ANIMCRAWLSHOOT1, CCD->CameraManager()->GetTiltPercent());
-// end change RF063
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWL);
 				break;
 			}
@@ -3917,7 +3595,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 				|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 			{
-// changed QD 01/15/05
 				if(OnLadder)
 				{
 					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
@@ -3946,7 +3623,7 @@ void CPlayer::Tick(geFloat dwTicks)
 						}
 					}
 				}
-// end change
+
 				break;
 			}
 
@@ -3957,7 +3634,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed QD 01/15/05
 			if(!strcmp(Motion, ANIMCLIMB))
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
@@ -3972,7 +3648,6 @@ void CPlayer::Tick(geFloat dwTicks)
 
 			if(CLIMBING && !OnLadder)
 				CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
-// end change
 
 			if(!strcmp(Motion, ANIMWALK) && m_run)
 			{
@@ -4010,7 +3685,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed RF064
 			if(!ALLWALK && !m_run)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMWALK);
@@ -4022,7 +3696,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->ActorManager()->SetMotion(Actor, ANIMRUN);
 				break;
 			}
-// end change RF064
 
 			break;
 		}
@@ -4038,16 +3711,13 @@ void CPlayer::Tick(geFloat dwTicks)
 						Falling = true;
 					}
 
-// changed RF063
 					if(!(Zone & kInLiquidZone || Zone & kLiquidZone) || !strcmp(Motion, ANIMJUMP))
 					{
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMFALL, ANIMJUMP2FALLTIME, ANIMJUMP2FALL);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMFALL);
-						// end change RF064
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMFALL, false);
 					}
-// end change RF063
+
 					CCD->Weapons()->SetAttackFlag(false);
 					break;
 				}
@@ -4059,7 +3729,6 @@ void CPlayer::Tick(geFloat dwTicks)
 
 				if(!m_JumpActive)
 				{
-// changed QD 01/15/05
 					if(OnLadder)
 					{
 						CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
@@ -4069,16 +3738,13 @@ void CPlayer::Tick(geFloat dwTicks)
 						if(m_crouch)
 						{
 							CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMFALL2CRAWLTIME, ANIMFALL2CRAWL);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
-							// end change RF063
 						}
 						else
 						{
 							CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 							if(!m_run)
-							// changed RF064
 							{
 								CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMFALL2WALKTIME, ANIMFALL2WALK);
 								CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
@@ -4088,20 +3754,16 @@ void CPlayer::Tick(geFloat dwTicks)
 								CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMFALL2WALKTIME, ANIMFALL2RUN);
 								CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
 							}
-							// end change RF064
 						}
 					}
-// end change QD 01/15/05
 				}
 				else
 				{
 					if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP) == GE_TRUE)
 					{
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMFALL2JUMPTIME, ANIMFALL2JUMP);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
-						// end change RF064
 						SetJump();
 					}
 
@@ -4116,22 +3778,19 @@ void CPlayer::Tick(geFloat dwTicks)
 				&& (CCD->ActorManager()->ForceActive(Actor, 0) == GE_FALSE))
 			{
 				m_JumpActive = false;
-// changed RF063
+
 				if(!SWIMING)
 				{
 					if(CCD->ActorManager()->CheckAnimation(Actor, ANIMJUMP) == GE_TRUE)
 					{
 						CCD->ActorManager()->SetAnimationHeight(Actor, ANIMJUMP, false);
-						// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMJUMP, ANIMWALK2JUMPTIME, ANIMWALK2JUMP);
 						CCD->ActorManager()->SetNextMotion(Actor, ANIMJUMP);
-						// end change RF064
 						SetJump();
 						CCD->Weapons()->SetAttackFlag(false);
 						break;
 					}
 				}
-// end change RF063
 			}
 
 			if(!strcmp(Motion, ANIMJUMP))
@@ -4160,17 +3819,14 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed RF063
 			if(OldZone > 0)
 			{
 				if(!SWIMING)
 				{
 					if(!strcmp(Motion, ANIMTREADWATER))
-					// changed RF064
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIMBACK, ANIMTREAD2SWIMTIME, ANIMTREAD2SWIM);
 					else
 						CCD->ActorManager()->SetTransitionMotion(Actor, ANIMSWIMBACK, ANIMWALK2SWIMTIME, ANIMWALK2SWIM);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMSWIMBACK);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMSWIMBACK, true);
 				}
@@ -4179,18 +3835,13 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(SWIMING)
 				{
-					// changed RF064
 					CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMSWIM2WALKTIME, ANIMSWIM2WALK);
-					// end change RF064
 					CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
 					CCD->ActorManager()->SetAnimationHeight(Actor, ANIMIDLE, true);
 				}
 			}
 
 			// walk from idle
-// changed RF063
-// changed QD 01/15/05
-			//if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 			if(!strcmp(Motion, ANIMCLIMB) || !strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE) || !strcmp(Motion, ANIMCROUCH2IDLE))
 			{
 				if(OnLadder)
@@ -4204,9 +3855,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMI2WALKTIME, ANIMI2WALK);
-							// end change RF064
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
 						}
 						else
@@ -4219,9 +3868,7 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMI2RUNTIME, ANIMI2RUN);
-							// end change RF064
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
 						}
 						else
@@ -4231,7 +3878,7 @@ void CPlayer::Tick(geFloat dwTicks)
 						}
 					}
 				}
-// end change QD 01/15/05
+
 				break;
 			}
 
@@ -4268,10 +3915,8 @@ void CPlayer::Tick(geFloat dwTicks)
 				&& m_crouch && OldZone == 0)
 			{
 				CCD->ActorManager()->SetAnimationHeight(Actor, ANIMCIDLE, true);
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMWALK2CRAWLTIME, ANIMWALK2CRAWL);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
-				// end change RF064
 				break;
 			}
 
@@ -4279,10 +3924,8 @@ void CPlayer::Tick(geFloat dwTicks)
 			if(!strcmp(Motion, ANIMCIDLE) || !strcmp(Motion, ANIMC2IDLE)
 				|| !strcmp(Motion, ANIMCSHOOT) || !strcmp(Motion, ANIMCAIM) || !strcmp(Motion, ANIMIDLE2CROUCH))
 			{
-				// changed RF064
 				CCD->ActorManager()->SetTransitionMotion(Actor, ANIMCRAWLBACK, ANIMIDLE2CRAWLTIME, ANIMIDLE2CRAWL);
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
-				// end change RF064
 				break;
 			}
 
@@ -4297,10 +3940,8 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMWALKBACK, ANIMCRAWL2WALKTIME, ANIMCRAWL2WALK);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMWALKBACK);
-							// end change RF064
 						}
 						else
 						{
@@ -4312,10 +3953,8 @@ void CPlayer::Tick(geFloat dwTicks)
 					{
 						if(!CCD->Weapons()->GetAttackFlag())
 						{
-							// changed RF064
 							CCD->ActorManager()->SetTransitionMotion(Actor, ANIMRUNBACK, ANIMCRAWL2WALKTIME, ANIMCRAWL2RUN);
 							CCD->ActorManager()->SetNextMotion(Actor, ANIMRUNBACK);
-							// end change RF064
 						}
 						else
 						{
@@ -4331,7 +3970,6 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(!m_run)
 				{
-// changed RF063
 					if(OldZone == 0)
 					{
 						if(!strcmp(Motion, ANIMWALKSHOOTBACK))
@@ -4361,7 +3999,6 @@ void CPlayer::Tick(geFloat dwTicks)
 					CCD->ActorManager()->SetBlendMot(Actor, ANIMCRAWLSHOOTBACK, ANIMCRAWLSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
 				else
 					CCD->ActorManager()->SetBlendMotion(Actor, ANIMCRAWLSHOOTBACK, ANIMCRAWLSHOOT1BACK, CCD->CameraManager()->GetTiltPercent());
-// end change RF063
 
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMCRAWLBACK);
 				break;
@@ -4372,7 +4009,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				|| !strcmp(Motion, ANIMSLIDELEFTSHOOT) || !strcmp(Motion, ANIMRUNSLIDELEFTSHOOT)
 				|| !strcmp(Motion, ANIMSLIDERIGHTSHOOT) || !strcmp(Motion, ANIMRUNSLIDERIGHTSHOOT))
 			{
-// changed QD 01/15/05
 				if(OnLadder)
 				{
 					CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBUP);
@@ -4401,7 +4037,7 @@ void CPlayer::Tick(geFloat dwTicks)
 						}
 					}
 				}
-// end change QD 01/15/05
+
 				break;
 			}
 
@@ -4412,7 +4048,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed QD 01/15/05
 			if(!strcmp(Motion, ANIMCLIMB))
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMCLIMBDOWN);
@@ -4427,7 +4062,6 @@ void CPlayer::Tick(geFloat dwTicks)
 
 			if(CLIMBING && !OnLadder)
 				CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
-// end change
 
 			if(!strcmp(Motion, ANIMWALKBACK) && m_run)
 			{
@@ -4465,7 +4099,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed RF064
 			if(!ALLWALK && !m_run)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMWALKBACK);
@@ -4477,14 +4110,13 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->ActorManager()->SetMotion(Actor, ANIMRUNBACK);
 				break;
 			}
-// end change RF064
 
 			break;
 		}
 	case MOVESLIDERIGHT:
 		{
 			m_JumpActive = false;
-// changed QD 08/29/03
+
 			if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor) == GE_TRUE))
 			{
 				if(CCD->ActorManager()->ReallyFall(Actor) == RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
@@ -4536,7 +4168,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->Weapons()->SetAttackFlag(false);
 				break;
 			}
-// end change 08/29/03
+
 			if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE)
 				|| !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMAIM)
 				|| !strcmp(Motion, ANIMWALK) || !strcmp(Motion, ANIMI2WALK)
@@ -4631,7 +4263,6 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(!m_run)
 				{
-// changed RF063
 					if(!strcmp(Motion, ANIMSLIDERIGHTSHOOT))
 						CCD->ActorManager()->SetBlendMot(Actor, ANIMSLIDERIGHTSHOOT, ANIMSLIDERIGHTSHOOT1, CCD->CameraManager()->GetTiltPercent());
 					else
@@ -4658,7 +4289,6 @@ void CPlayer::Tick(geFloat dwTicks)
 					CCD->ActorManager()->SetBlendMot(Actor, ANIMSLIDECRIGHTSHOOT, ANIMSLIDECRIGHTSHOOT1, CCD->CameraManager()->GetTiltPercent());
 				else
 					CCD->ActorManager()->SetBlendMotion(Actor, ANIMSLIDECRIGHTSHOOT, ANIMSLIDECRIGHTSHOOT1, CCD->CameraManager()->GetTiltPercent());
-// end change RF063
 
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDECRIGHT);
 				break;
@@ -4676,7 +4306,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				break;
 			}
 
-// changed RF064
 			if(!ALLSLIDERIGHT && !m_run)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMSLIDERIGHT);
@@ -4688,14 +4317,13 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->ActorManager()->SetMotion(Actor, ANIMRUNSLIDERIGHT);
 				break;
 			}
-// end change RF064
 
 			break;
 		}
 	case MOVESLIDELEFT:
 		{
 			m_JumpActive = false;
-// changed QD 08/29/03
+
 			if(strcmp(Motion, ANIMFALL) && (CCD->ActorManager()->Falling(Actor) == GE_TRUE))
 			{
 				if(CCD->ActorManager()->ReallyFall(Actor) == RGF_SUCCESS || !strcmp(Motion, ANIMJUMP))
@@ -4747,7 +4375,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->Weapons()->SetAttackFlag(false);
 				break;
 			}
-// end change 08/29/03
 
 			if(!strcmp(Motion, ANIMIDLE) || !strcmp(Motion, ANIMW2IDLE)
 				|| !strcmp(Motion, ANIMSHOOT) || !strcmp(Motion, ANIMAIM)
@@ -4845,7 +4472,6 @@ void CPlayer::Tick(geFloat dwTicks)
 			{
 				if(!m_run)
 				{
-// changed RF063
 					if(!strcmp(Motion, ANIMSLIDELEFTSHOOT))
 						CCD->ActorManager()->SetBlendMot(Actor, ANIMSLIDELEFTSHOOT, ANIMSLIDELEFTSHOOT1, CCD->CameraManager()->GetTiltPercent());
 					else
@@ -4873,7 +4499,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				else
 					CCD->ActorManager()->SetBlendMotion(Actor, ANIMSLIDECLEFTSHOOT, ANIMSLIDECLEFTSHOOT1, CCD->CameraManager()->GetTiltPercent());
 
-// changed RF063
 				CCD->ActorManager()->SetNextMotion(Actor, ANIMSLIDECLEFT);
 				break;
 			}
@@ -4888,7 +4513,6 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->ActorManager()->SetMotion(Actor, ANIMSLIDELEFT);
 			}
 
-// changed RF064
 			if(!ALLSLIDELEFT && !m_run)
 			{
 				CCD->ActorManager()->SetMotion(Actor, ANIMSLIDELEFT);
@@ -4900,18 +4524,16 @@ void CPlayer::Tick(geFloat dwTicks)
 				CCD->ActorManager()->SetMotion(Actor, ANIMRUNSLIDELEFT);
 				break;
 			}
-// end change RF064
 
 			break;
 		}
 	}
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ViewPoint
+// ViewPoint
 //
-//	Compute the players viewpoint and return it as a transform
+// Compute the players viewpoint and return it as a transform
 /* ------------------------------------------------------------------------------------ */
 geXForm3d CPlayer::ViewPoint()
 {
@@ -4922,11 +4544,7 @@ geXForm3d CPlayer::ViewPoint()
 	CCD->ActorManager()->GetPosition(Actor, &Translation);
 	CCD->ActorManager()->GetRotation(Actor, &Rotation);
 
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&theViewPoint); // Clear the matrix
-	//geXForm3d_RotateZ(&theViewPoint, Rotation.Z); // Rotate then translate
 	geXForm3d_SetZRotation(&theViewPoint, Rotation.Z); // Rotate then translate
-	// end change
 	geXForm3d_RotateX(&theViewPoint, Rotation.X);
 	geXForm3d_RotateY(&theViewPoint, Rotation.Y);
 
@@ -4936,9 +4554,9 @@ geXForm3d CPlayer::ViewPoint()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetExtBoxWS
+// GetExtBoxWS
 //
-//	Get the players ExtBox values (axially-aligned bounding box) in WORLD SPACE.
+// Get the players ExtBox values (axially-aligned bounding box) in WORLD SPACE.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::GetExtBoxWS(geExtBox *theBox)
 {
@@ -4946,9 +4564,9 @@ void CPlayer::GetExtBoxWS(geExtBox *theBox)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetIn
+// GetIn
 //
-//	Get the direction the player avatar is facing
+// Get the direction the player avatar is facing
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::GetIn(geVec3d *In)
 {
@@ -4956,7 +4574,7 @@ void CPlayer::GetIn(geVec3d *In)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetLeft
+// GetLeft
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::GetLeft(geVec3d *Left)
 {
@@ -4964,18 +4582,15 @@ void CPlayer::GetLeft(geVec3d *Left)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current player state to an open file.
+// Save the current player state to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::SaveTo(FILE *SaveFD)
 {
 	int i;
 
-// changed QD 12/15/05
 	fwrite(m_PlayerName, sizeof(char), 64, SaveFD);
-// end change
-// changed RF063
 	fwrite(&m_PlayerViewPoint, sizeof(int), 1, SaveFD);
 	geVec3d position = Position();
 	fwrite(&position, sizeof(geVec3d), 1, SaveFD);
@@ -4984,9 +4599,7 @@ int CPlayer::SaveTo(FILE *SaveFD)
 	fwrite(&m_JumpActive, sizeof(bool), 1, SaveFD);
 	fwrite(&m_Jumping, sizeof(geBoolean), 1, SaveFD);
 	fwrite(&m_run, sizeof(bool), 1, SaveFD);
-// changed Nout 12/15/05
 	fwrite(&m_Running, sizeof(geBoolean), 1, SaveFD);
-// end change
 	fwrite(&m_crouch, sizeof(bool), 1, SaveFD);
 	fwrite(&m_oldcrouch, sizeof(bool), 1, SaveFD);
 	fwrite(&m_lastdirection, sizeof(int), 1, SaveFD);
@@ -5021,7 +4634,6 @@ int CPlayer::SaveTo(FILE *SaveFD)
 		fwrite(&Level, sizeof(geFloat), 1, SaveFD);
 		fwrite(&Decay, sizeof(geFloat), 1, SaveFD);
 	}
-// end change RF063
 
 	//	If we have attributes, save them.
 	bool bAttributes = false;
@@ -5041,17 +4653,14 @@ int CPlayer::SaveTo(FILE *SaveFD)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the player state from an open file.
+// Restore the player state from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::RestoreFrom(FILE *RestoreFD)
 {
 	int i;
-// changed QD 12/15/05
 	fread(m_PlayerName, sizeof(char), 64, RestoreFD);
-// end change
-// changed RF063
 	fread(&m_PlayerViewPoint, sizeof(int), 1, RestoreFD);
 	SwitchCamera(m_PlayerViewPoint);
 	geVec3d position;
@@ -5062,9 +4671,7 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 	fread(&m_JumpActive, sizeof(bool), 1, RestoreFD);
 	fread(&m_Jumping, sizeof(geBoolean), 1, RestoreFD);
 	fread(&m_run, sizeof(bool), 1, RestoreFD);
-// changed Nout 12/15/05
 	fread(&m_Running, sizeof(geBoolean), 1, RestoreFD);
-// end change
 	fread(&m_crouch, sizeof(bool), 1, RestoreFD);
 	fread(&m_oldcrouch, sizeof(bool), 1, RestoreFD);
 	fread(&m_lastdirection, sizeof(int), 1, RestoreFD);
@@ -5102,7 +4709,6 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 		fread(&Decay, sizeof(geFloat), 1, RestoreFD);
 		CCD->ActorManager()->SetForce(Actor, i, position, Level, Decay);
 	}
-// end change RF063
 
 	bool bAttributes;
 	fread(&bAttributes, sizeof(bool), 1, RestoreFD);
@@ -5117,14 +4723,14 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LookMode
+// LookMode
 //
-//	If in third-person mode, set flags such that (temporarily) the camera locks
-//	into first-person perspective, although movement is NOT permitted while in LookMode.
+// If in third-person mode, set flags such that (temporarily) the camera locks
+// into first-person perspective, although movement is NOT permitted while in LookMode.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::LookMode(bool bLookOn)
 {
-	//	First, this is effective ONLY if we're in third-person mode..
+	// First, this is effective ONLY if we're in third-person mode..
 	if(m_FirstPersonView)
 		return;								// Ignore the call.
 
@@ -5142,7 +4748,7 @@ void CPlayer::LookMode(bool bLookOn)
 		CCD->CameraManager()->SetTrackingFlags(kCameraTrackPosition);
 		geVec3d theRotation = {0.0f, 0.0f, 0.0f};
 		geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
-		theTranslation.Y = theBox.Max.Y*0.75f;
+		theTranslation.Y = theBox.Max.Y * 0.75f;
 		CCD->CameraManager()->SetCameraOffset(theTranslation, theRotation);
 	}
 	else
@@ -5158,9 +4764,9 @@ void CPlayer::LookMode(bool bLookOn)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SwitchToFirstPerson
+// SwitchToFirstPerson
 //
-//	If the player is not in a first-person view already, switch to first-person mode.
+// If the player is not in a first-person view already, switch to first-person mode.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SwitchToFirstPerson()
 {
@@ -5172,9 +4778,9 @@ void CPlayer::SwitchToFirstPerson()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SwitchToThirdPerson
+// SwitchToThirdPerson
 //
-//	If the player is not in a third-person view already, switch to third-person mode.
+// If the player is not in a third-person view already, switch to third-person mode.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SwitchToThirdPerson()
 {
@@ -5186,10 +4792,10 @@ void CPlayer::SwitchToThirdPerson()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveAttributes
+// SaveAttributes
 //
-//	Save off all attributes and inventory to a file.  Mainly used to
-//	..preserve player data across level changes.
+// Save off all attributes and inventory to a file.  Mainly used to
+// ..preserve player data across level changes.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::SaveAttributes(const char *szSaveFile)
 {
@@ -5213,7 +4819,7 @@ int CPlayer::SaveAttributes(const char *szSaveFile)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveAttributesAscii
+// SaveAttributesAscii
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::SaveAttributesAscii(const char *szSaveFile)
 {
@@ -5237,10 +4843,10 @@ int CPlayer::SaveAttributesAscii(const char *szSaveFile)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadAttributes
+// LoadAttributes
 //
-//	Load all attributes and inventory from a file.  Mainly used to
-//	..restore player data after a level change.
+// Load all attributes and inventory from a file.  Mainly used to
+// ..restore player data after a level change.
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::LoadAttributes(const char *szSaveFile)
 {
@@ -5264,9 +4870,9 @@ int CPlayer::LoadAttributes(const char *szSaveFile)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Backtrack
+// Backtrack
 //
-//	Move player to the previous position in the position history.
+// Move player to the previous position in the position history.
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::Backtrack()
 {
@@ -5282,9 +4888,9 @@ void CPlayer::Backtrack()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddPosition
+// AddPosition
 //
-//	Add the players current position to the position history ring buffer
+// Add the players current position to the position history ring buffer
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::AddPosition()
 {
@@ -5303,9 +4909,9 @@ void CPlayer::AddPosition()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadAudioClip
+// LoadAudioClip
 //
-//	Load an audio clip and return the geSound pointer
+// Load an audio clip and return the geSound pointer
 /* ------------------------------------------------------------------------------------ */
 geSound_Def *CPlayer::LoadAudioClip(const char *szFilename)
 {
@@ -5367,7 +4973,7 @@ void CPlayer::DisableClipPlane()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetCrouch
+// SetCrouch
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SetCrouch(bool value)
 {
@@ -5376,16 +4982,14 @@ void CPlayer::SetCrouch(bool value)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DoMovements
+// DoMovements
 /* ------------------------------------------------------------------------------------ */
 bool CPlayer::DoMovements()
 {
-	//	Ok, if the player moved, handle any processing necessary to reflect
-	//	..that fact in the world.
-	//	03/22/2000 eaa3 Added Ralph Deane bug fixes.
+	// Ok, if the player moved, handle any processing necessary to reflect
+	// ..that fact in the world.
 	bool bPlayerMoved = false;
 	m_CoeffSpeed = 1.0f;		//Coef de course
-// changed RF063
 	int theZone, OldZone;
 	geFloat fTemp;
 
@@ -5408,16 +5012,13 @@ bool CPlayer::DoMovements()
 		m_CoeffSpeed = 2.0f;
 
 	// A little run wanted ?
-// changed RF064
 	if((m_Running || alwaysrun) && !GetCrouch() && OldZone == 0)	//Don't run when crouch
-// end change RF064
 	{
 		if(CCD->ActorManager()->Falling(Actor) != GE_TRUE)	//If we are not falling, adjust speed modifications
 			m_CoeffSpeed *= 2.0f;
 	}
-// end change RF063
 
-	//Want a jump ?
+	// Want a jump ?
 	if (m_Jumping)
 		StartJump();
 
@@ -5440,11 +5041,11 @@ bool CPlayer::DoMovements()
 				Move(RGF_K_LEFT, fTemp);
 			if(GetSlideWalk() == MOVESLIDERIGHT)
 				Move(RGF_K_RIGHT, fTemp);
+
 			Move(RGF_K_BACKWARD, fTemp);
 			bPlayerMoved = true;
 			break;
 		case MOVESLIDELEFT:
-// changed RF063
 			if(OldZone == 0)
 			{
 				fTemp = Speed() * ((CCD->LastElapsedTime_F()*0.05f) * (m_CoeffSpeed-0.25f));	//Some hard coding. todo : make configurable
@@ -5483,7 +5084,6 @@ bool CPlayer::DoMovements()
 			}
 			else
 				m_Moving = MOVEIDLE;
-// end change RF063
 			break;
 		default:
 			break;
@@ -5498,18 +5098,16 @@ bool CPlayer::DoMovements()
 	return bPlayerMoved;
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	UseItem
+// UseItem
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::UseItem()
 {
 	geVec3d theRotation;
 	geVec3d thePosition;
 	geXForm3d Xf;
-// changed RF064
 	geExtBox theBox, pBox;
-	geVec3d Direction, Front, Back;//, Pos;
+	geVec3d Direction, Front, Back;
 	GE_Collision Collision;
 
 	theBox.Min.X = theBox.Min.Y = theBox.Min.Z = -10.0f * m_Scale;
@@ -5521,42 +5119,27 @@ void CPlayer::UseItem()
 		CCD->CameraManager()->GetRotation(&theRotation);
 		CCD->CameraManager()->GetPosition(&thePosition);
 
-		// changed Qd 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateZ(&Xf, theRotation.Z);
 		geXForm3d_SetZRotation(&Xf, theRotation.Z);
 		geXForm3d_RotateX(&Xf, theRotation.X);
 		geXForm3d_RotateY(&Xf, theRotation.Y);
-		//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
-		// end change
 	}
 	else
 	{
 		CCD->ActorManager()->GetPosition(Actor, &thePosition);
 		CCD->ActorManager()->GetBoundingBox(Actor, &pBox);
 		thePosition.Y += (pBox.Max.Y*0.5f);
-// end change RF064
 		CCD->ActorManager()->GetRotate(Actor, &theRotation);
 		geVec3d CRotation, CPosition;
 		CCD->CameraManager()->GetCameraOffset(&CPosition, &CRotation);
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateZ(&Xf, theRotation.Z);
 		geXForm3d_SetZRotation(&Xf, theRotation.Z);
-		geXForm3d_RotateX(&Xf, theRotation.X-CCD->CameraManager()->GetTilt());
+		geXForm3d_RotateX(&Xf, theRotation.X - CCD->CameraManager()->GetTilt());
 		geXForm3d_RotateY(&Xf, theRotation.Y);
-		//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
-		// end change
 	}
 
-	//Pos = Xf.Translation;
 	geXForm3d_GetIn(&Xf, &Direction);
 	geVec3d_AddScaled(&thePosition, &Direction, UseRange, &Back);
-// changed QD 12/15/05
-	// geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&thePosition, &Front);
-// end change
 
 	Collision.Actor = NULL;
 	Collision.Model = NULL;
@@ -5576,12 +5159,8 @@ void CPlayer::UseItem()
 			if(CCD->Doors()->HandleCollision(Collision.Model, false, true, Actor))
 				return;
 
-// Start Aug2003DCS
 // We can't just return now, there may be triggers attached to the Moving Platform that use keys also
-//			if(CCD->Platforms()->HandleCollision(Collision.Model, false, true, Actor))
-//				return;
 			CCD->Platforms()->HandleCollision(Collision.Model, false, true, Actor);
-// End Aug2003DCS
 
 			if(CCD->Triggers()->HandleCollision(Collision.Model, false, true, Actor) == RGF_SUCCESS)
 				return;
@@ -5592,21 +5171,15 @@ void CPlayer::UseItem()
 			if(CCD->Props()->HandleCollision(Collision.Actor, Actor, true, true) == RGF_SUCCESS)
 				return;
 
-// changed QD 08/13/03
 			if(CCD->Attributes()->HandleCollision(Actor, Collision.Actor, true) == GE_TRUE)
 				return;
-// end change 08/13/03
 
-// changed RF064
 			if(CCD->Pawns()->Converse(Collision.Actor))
 				return;
-// end change RF064
 		}
 	}
 }
-// end change RF063
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 bool CPlayer::GetUseAttribute(const char *Attr)
@@ -5660,7 +5233,6 @@ bool CPlayer::DelUseAttribute(const char *Attr)
 
 	return false;
 }
-// end change RF064
 
 void CPlayer::SetGravity(const geVec3d *vec)
 {

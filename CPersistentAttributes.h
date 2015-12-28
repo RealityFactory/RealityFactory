@@ -24,12 +24,8 @@ struct PersistAttribute
 	int					Value;			///< Value of attribute
 	int					ValueLowLimit;	///< Value low limit
 	int					ValueHighLimit;	///< Value high limit
-// changed RF064
 	int					ModifyAmt;
-// end change RF064
-// changed QD 12/15/05
 	int					PowerUpLevel;	///< number of highlimit changes
-// end change
 	int					Count;			///< Instance count
 	int					UserDataSize;	///< Size of user data
 	unsigned char		*UserData;		///< Pointer to user-defined data
@@ -51,9 +47,7 @@ public:
 
 	int Clear();															///< Clear all attributes
 	int SetValueLimits(const char *szTag, int LowLimit, int HighLimit);		///< Set value limits
-// changed QD 12/15/05
 	int SetHighLimit(const char *szTag, int HighLimit);						///< Set value highlimit (Power Up)
-// end change
 	int Set(const char *szTag, int nValue);									///< Set attribute value
 	int SetIf(const char *szTag, int nHow, int nCompareValue, int nValue);	///< Set attribute value if test condition true
 	int Modify(const char *szTag, int nValue);								///< Modify value of attribute
@@ -70,12 +64,8 @@ public:
 	int High(const char *szTag);
 	int Count(const char *szTag);											///< Get attribute count
 	bool Compare(const char *szTag, int nHow, int nCompareValue);			///< Compare attribute value to a number
-// changed RF064
 	int GetModifyAmt(const char *szTag);
-// end change RF064
-// changed QD 12/15/05
 	int GetPowerUpLevel(const char *szTag);							///< Get number of highlimit changes (PowerUp Level)
-// end change
 	PersistAttribute *GetAttribute(PersistAttribute *pPrevious);	///< Get first/next attribute in list
 	int AllocateUserData(const char *szTag, int nDataSize);			///< Allocate some user data for attribute
 	int DeleteUserData(const char *szTag);							///< Delete an attributes user data
@@ -86,14 +76,12 @@ public:
 	void Dump();													///< Debug list dumper
 
 private:
-	//	Member functions
 	void ClampValue(PersistAttribute *pAttr);	///< Clamp value to limits
 	PersistAttribute *Locate(const char *szTag);
 	PersistAttribute *AddNew(const char *szTag, int nValue);
 	int Delete(const char *szTag);
 	bool LocalCompare(PersistAttribute *pAttr, int nHow, int nCompareValue);
 private:
-	//	Member variables
 	PersistAttribute *theList;					///< Attribute list
 	int m_nCount;								///< Count of unique attributes in list
 };

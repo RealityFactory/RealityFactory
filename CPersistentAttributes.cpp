@@ -20,7 +20,7 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 /* ------------------------------------------------------------------------------------ */
-//	Default constructor
+// Default constructor
 /* ------------------------------------------------------------------------------------ */
 CPersistentAttributes::CPersistentAttributes()
 {
@@ -30,8 +30,9 @@ CPersistentAttributes::CPersistentAttributes()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 CPersistentAttributes::~CPersistentAttributes()
 {
@@ -40,10 +41,11 @@ CPersistentAttributes::~CPersistentAttributes()
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Clear
+// Clear
 //
-//	Delete all attributes in this object
+// Delete all attributes in this object
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Clear()
 {
@@ -71,10 +73,11 @@ int CPersistentAttributes::Clear()
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetValueLimits
+// SetValueLimits
 //
-//	Set LOW and HIGH limits for attribute values
+// Set LOW and HIGH limits for attribute values
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::SetValueLimits(const char *szTag, int Low, int High)
 {
@@ -89,11 +92,11 @@ int CPersistentAttributes::SetValueLimits(const char *szTag, int Low, int High)
 	return RGF_SUCCESS;						// Limits set
 }
 
-// changed QD 12/15/05
+
 /* ------------------------------------------------------------------------------------ */
-//	SetValueLimits
+// SetValueLimits
 //
-//	Set HIGH limit for attribute values
+// Set HIGH limit for attribute values
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::SetHighLimit(const char *szTag, int HighLimit)
 {
@@ -107,13 +110,13 @@ int CPersistentAttributes::SetHighLimit(const char *szTag, int HighLimit)
 
 	return RGF_SUCCESS;						// Limits set
 }
-// end change
+
 
 /* ------------------------------------------------------------------------------------ */
-//	Set
+// Set
 //
-//	Locate the attribute identified by the tag and set its value to the desired value.
-//	If the attribute doesn't exist, create it and set the value.
+// Locate the attribute identified by the tag and set its value to the desired value.
+// If the attribute doesn't exist, create it and set the value.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Set(const char *szTag, int nValue)
 {
@@ -129,12 +132,13 @@ int CPersistentAttributes::Set(const char *szTag, int nValue)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SetIf
+// SetIf
 //
-//	Locate the attribute identified by the tag.  If it doesn't exist, return
-//	..an eror.  If it DOES exist, perform the test indicated by 'nHow'
-//	..and if the result is TRUE, set the attributes value to the desired value.
+// Locate the attribute identified by the tag.  If it doesn't exist, return
+// ..an eror.  If it DOES exist, perform the test indicated by 'nHow'
+// ..and if the result is TRUE, set the attributes value to the desired value.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::SetIf(const char *szTag, int nHow, int nCompareValue, int nValue)
 {
@@ -151,11 +155,12 @@ int CPersistentAttributes::SetIf(const char *szTag, int nHow, int nCompareValue,
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Modify
+// Modify
 //
-//	Locate the attribute identified by the tag.  If it doesn't exist, return
-//	..an error.  If it DOES exist, add 'nValue' to the attribute value.
+// Locate the attribute identified by the tag.  If it doesn't exist, return
+// ..an error.  If it DOES exist, add 'value' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Modify(const char *szTag, int nValue)
 {
@@ -166,21 +171,20 @@ int CPersistentAttributes::Modify(const char *szTag, int nValue)
 
 	pAttr->Value += nValue;				// MAke the mod
 
-// changed RF064
 	pAttr->ModifyAmt = nValue;
-// end change RF064
 
-    ClampValue(pAttr);					// Clamp the values to limits
+	ClampValue(pAttr);					// Clamp the values to limits
 
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	ModifyIf
+// ModifyIf
 //
-//	Locate the attribute identifided by the tag.  If it doesn't exist, return
-//	..an error.  If it does exist, perform the comparison indicated by
-//	..'nHow' and if true modify the value by adding 'nValue' to the attribute value.
+// Locate the attribute identifided by the tag.  If it doesn't exist, return
+// ..an error.  If it does exist, perform the comparison indicated by
+// ..'nHow' and if true modify the value by adding 'nValue' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::ModifyIf(const char *szTag, int nHow, int nCompareValue, int nValue)
 {
@@ -197,11 +201,12 @@ int CPersistentAttributes::ModifyIf(const char *szTag, int nHow, int nCompareVal
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Add
+// Add
 //
-//	Add a new attribute to the attribute list.  If the attribute already exists,
-//	..don't return an error but don't perform the add.
+// Add a new attribute to the attribute list.  If the attribute already exists,
+// ..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Add(const char *szTag)
 {
@@ -218,11 +223,12 @@ int CPersistentAttributes::Add(const char *szTag)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddAndSet
+// AddAndSet
 //
-//	Add a new attribute to the attribute list.  If the attribute already exists,
-//	..don't return an error but don't perform the add.
+// Add a new attribute to the attribute list.  If the attribute already exists,
+// ..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::AddAndSet(const char *szTag, int nValue)
 {
@@ -240,12 +246,13 @@ int CPersistentAttributes::AddAndSet(const char *szTag, int nValue)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddIf
+// AddIf
 //
-//	Add a new attribute to the list if the comparison indicated by 'nHow'
-//	..with the value of attribute 'szWhat' and 'nCompareValue' is true.
-//	..If the attribute already exists, take no action but return no error.
+// Add a new attribute to the list if the comparison indicated by 'nHow'
+// ..with the value of attribute 'szWhat' and 'nCompareValue' is true.
+// ..If the attribute already exists, take no action but return no error.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::AddIf(const char *szTag, int nHow, int nCompareValue, const char *szWhat)
 {
@@ -267,11 +274,12 @@ int CPersistentAttributes::AddIf(const char *szTag, int nHow, int nCompareValue,
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Remove
+// Remove
 //
-//	Remove an instance of the attribute 'szTag' from the list.  If the last
-//	..instance is removed, delete the attribute from the list.
+// Remove an instance of the attribute 'szTag' from the list.  If the last
+// ..instance is removed, delete the attribute from the list.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Remove(const char *szTag)
 {
@@ -288,12 +296,13 @@ int CPersistentAttributes::Remove(const char *szTag)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RemoveIf
+// RemoveIf
 //
-//	Remove an instance of the attribute 'szTag' if the compare indicated
-//	..by 'nHow' and 'nCompareValue' is true.  If the last instance is
-//	..removed, delete the attribute from the attribute list.
+// Remove an instance of the attribute 'szTag' if the compare indicated
+// ..by 'nHow' and 'nCompareValue' is true.  If the last instance is
+// ..removed, delete the attribute from the attribute list.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::RemoveIf(const char *szTag, int nHow, int nCompareValue)
 {
@@ -313,20 +322,22 @@ int CPersistentAttributes::RemoveIf(const char *szTag, int nHow, int nCompareVal
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RemoveAll
+// RemoveAll
 //
-//	Delete all instances of the indicated attribute from the list.
+// Delete all instances of the indicated attribute from the list.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::RemoveAll(const char *szTag)
 {
 	return Delete(szTag);
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Has
+// Has
 //
-//	Return true if the list has at least one instance of the attribute.
+// Return true if the list has at least one instance of the attribute.
 /* ------------------------------------------------------------------------------------ */
 bool CPersistentAttributes::Has(const char *szTag)
 {
@@ -336,10 +347,11 @@ bool CPersistentAttributes::Has(const char *szTag)
 		return false;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Value
+// Value
 //
-//	Return the value of an attribute, if it exists, otherwise 0.
+// Return the value of an attribute, if it exists, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Value(const char *szTag)
 {
@@ -351,7 +363,7 @@ int CPersistentAttributes::Value(const char *szTag)
 		return pAttr->Value;
 }
 
-// changed RF064
+
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::GetModifyAmt(const char *szTag)
@@ -363,13 +375,12 @@ int CPersistentAttributes::GetModifyAmt(const char *szTag)
 	else
 		return pAttr->ModifyAmt;
 }
-// end change RF064
 
-// changed QD 12/15/05
+
 /* ------------------------------------------------------------------------------------ */
-//	GetPowerUpLevel
+// GetPowerUpLevel
 //
-//	Get number of highlimit changes (PowerUp Level)
+// Get number of highlimit changes (PowerUp Level)
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::GetPowerUpLevel(const char *szTag)
 {
@@ -380,10 +391,10 @@ int CPersistentAttributes::GetPowerUpLevel(const char *szTag)
 	else
 		return pAttr->PowerUpLevel;
 }
-// end change
+
 
 /* ------------------------------------------------------------------------------------ */
-//	Low
+// Low
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Low(const char *szTag)
 {
@@ -395,8 +406,9 @@ int CPersistentAttributes::Low(const char *szTag)
 		return pAttr->ValueLowLimit;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	High
+// High
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::High(const char *szTag)
 {
@@ -408,10 +420,11 @@ int CPersistentAttributes::High(const char *szTag)
 		return pAttr->ValueHighLimit;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Count
+// Count
 //
-//	Return the count of instance of an attribute, otherwise 0.
+// Return the count of instance of an attribute, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Count(const char *szTag)
 {
@@ -423,12 +436,13 @@ int CPersistentAttributes::Count(const char *szTag)
 		return pAttr->Count;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Compare
+// Compare
 //
-//	Perform a comparison between the value of the attribute 'szTag' and
-//	..'nCompareValue' of the type indicated by 'nHow'.  Return the status
-//	..of the compare, true or false.
+// Perform a comparison between the value of the attribute 'szTag' and
+// ..'nCompareValue' of the type indicated by 'nHow'.  Return the status
+// ..of the compare, true or false.
 /* ------------------------------------------------------------------------------------ */
 bool CPersistentAttributes::Compare(const char *szTag, int nHow, int nCompareValue)
 {
@@ -456,9 +470,9 @@ PersistAttribute *CPersistentAttributes::GetAttribute(PersistAttribute *pPreviou
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AllocateUserData
+// AllocateUserData
 //
-//	Allocate user data to be associated with an attribute
+// Allocate user data to be associated with an attribute
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::AllocateUserData(const char *szTag, int nDataSize)
 {
@@ -476,10 +490,11 @@ int CPersistentAttributes::AllocateUserData(const char *szTag, int nDataSize)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	DeleteUserData
+// DeleteUserData
 //
-//	Delete the user data associated with an attribute.
+// Delete the user data associated with an attribute.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::DeleteUserData(const char *szTag)
 {
@@ -495,10 +510,11 @@ int CPersistentAttributes::DeleteUserData(const char *szTag)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	UserData
+// UserData
 //
-//	Return a pointer to the user data associated with an attribute
+// Return a pointer to the user data associated with an attribute
 /* ------------------------------------------------------------------------------------ */
 unsigned char *CPersistentAttributes::UserData(const char *szTag)
 {
@@ -510,10 +526,11 @@ unsigned char *CPersistentAttributes::UserData(const char *szTag)
 	return pAttr->UserData;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save all attributes in this object to the supplied file.
+// Save all attributes in this object to the supplied file.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 {
@@ -532,9 +549,7 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 		WRITEDATA(type, &(pAttr->Value),			sizeof(int), 1, SaveFD);
 		WRITEDATA(type, &(pAttr->ValueLowLimit),	sizeof(int), 1, SaveFD);
 		WRITEDATA(type, &(pAttr->ValueHighLimit),	sizeof(int), 1, SaveFD);
-// changed QD 12/15/05
 		WRITEDATA(type, &(pAttr->PowerUpLevel),		sizeof(int), 1, SaveFD);
-// end change
 		WRITEDATA(type, &(pAttr->UserDataSize),		sizeof(int), 1, SaveFD);
 
 		if(pAttr->UserDataSize != 0)
@@ -546,8 +561,9 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	SaveAscii
+// SaveAscii
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::SaveAscii(FILE *SaveFD)
 {
@@ -576,10 +592,11 @@ int CPersistentAttributes::SaveAscii(FILE *SaveFD)
 	return RGF_SUCCESS;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the attributes in this object from the supplied file.
+// Restore the attributes in this object from the supplied file.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 {
@@ -601,9 +618,7 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &nValue,			sizeof(int), 1, RestoreFD);
 		READDATA(type, &Low,			sizeof(int), 1, RestoreFD);
 		READDATA(type, &High,			sizeof(int), 1, RestoreFD);
-// changed QD 12/15/05
 		READDATA(type, &PowerUpLevel,	sizeof(int), 1, RestoreFD);
-// end change
 		READDATA(type, &nUserDataSize,	sizeof(int), 1, RestoreFD);
 
 		if(nUserDataSize != 0)
@@ -617,9 +632,7 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 		pTemp = AddNew(szTempTag, nValue);
 		pTemp->ValueLowLimit = Low;
 		pTemp->ValueHighLimit = High;
-// changed QD 12/15/05
 		pTemp->PowerUpLevel = PowerUpLevel;
-// end change
 		pTemp->Count = nCount;										// Adjust count
 		pTemp->UserDataSize = nUserDataSize;
 		pTemp->UserData = theUserData;
@@ -628,12 +641,13 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 	return RGF_SUCCESS;
 }
 
-//	************ PRIVATE MEMBER FUNCTIONS ***********
+
+// ************ PRIVATE MEMBER FUNCTIONS ***********
 
 /* ------------------------------------------------------------------------------------ */
-//	ClampValue
+// ClampValue
 //
-//	Clamp the value of an attribute to its limits
+// Clamp the value of an attribute to its limits
 /* ------------------------------------------------------------------------------------ */
 void CPersistentAttributes::ClampValue(PersistAttribute *pAttr)
 {
@@ -646,11 +660,12 @@ void CPersistentAttributes::ClampValue(PersistAttribute *pAttr)
 	return;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Locate
+// Locate
 //
-//	Search our internal list of a specific attribute, and return a
-//	..pointer to it if it exists.
+// Search our internal list of a specific attribute, and return a
+// ..pointer to it if it exists.
 /* ------------------------------------------------------------------------------------ */
 PersistAttribute *CPersistentAttributes::Locate(const char *szTag)
 {
@@ -668,9 +683,9 @@ PersistAttribute *CPersistentAttributes::Locate(const char *szTag)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	AddNew
+// AddNew
 //
-//	Add a new attribute on to the end of the list
+// Add a new attribute on to the end of the list
 /* ------------------------------------------------------------------------------------ */
 PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
 {
@@ -689,16 +704,10 @@ PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
 	pNew->pNext = NULL;
 	pNew->Count = 1;
 	pNew->Value = nValue;
-// changed RF064
 	pNew->ModifyAmt = 0;
-// end change RF064
-// changed QD 12/15/05
 	pNew->PowerUpLevel = 0;
-// end change
-// changed QD 07/15/05 - BUGFIX
 	pNew->ValueLowLimit = 0;
 	pNew->ValueHighLimit = 100;
-// end change
 	pNew->UserData = NULL;
 	pNew->UserDataSize = 0;
 
@@ -713,10 +722,11 @@ PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
 	return pNew;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Delete
+// Delete
 //
-//	Locate an attribute and delete it from the list.
+// Locate an attribute and delete it from the list.
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Delete(const char *szTag)
 {
@@ -753,10 +763,11 @@ int CPersistentAttributes::Delete(const char *szTag)
 	return RGF_FAILURE;								// Couldn't find it
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	LocalCompare
+// LocalCompare
 //
-//	Perform a compare with the passed-in PersistAttribute
+// Perform a compare with the passed-in PersistAttribute
 /* ------------------------------------------------------------------------------------ */
 bool CPersistentAttributes::LocalCompare(PersistAttribute *pAttr, int nHow,
 										 int nCompareValue)
@@ -794,11 +805,12 @@ bool CPersistentAttributes::LocalCompare(PersistAttribute *pAttr, int nHow,
 	return bResult;
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Dump
+// Dump
 //
-//	Dump the contents of the attribute list to the debug window and the debug file.
-//	Typically used for debugging.
+// Dump the contents of the attribute list to the debug window and the debug file.
+// Typically used for debugging.
 /* ------------------------------------------------------------------------------------ */
 void CPersistentAttributes::Dump()
 {
