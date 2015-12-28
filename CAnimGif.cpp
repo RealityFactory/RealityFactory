@@ -85,7 +85,6 @@ CAnimGif::CAnimGif(const char *szFile, int fileformat)
 	}
 
 	geVFile_Close(MainFS);
-	return;
 }
 
 
@@ -107,8 +106,6 @@ CAnimGif::~CAnimGif()
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
 		geBitmap_Destroy(&theBmp);
 	}
-
-	return;
 }
 
 

@@ -61,8 +61,6 @@ CSpout::CSpout()
 		S->Angles.Y = GE_PIOVER180*(S->Angles.Y-90.0f);
 		S->Angles.Z = GE_PIOVER180*(S->Angles.Z);
 	}
-
-	return;
 }
 
 
@@ -175,7 +173,6 @@ int CSpout::Create(Spout *S)
 /* ------------------------------------------------------------------------------------ */
 CSpout::~CSpout()
 {
-	return;
 }
 
 
@@ -409,8 +406,6 @@ CActorSpout::CActorSpout()
 			Actor = NULL;
 		}
 	}
-
-	return;
 }
 
 
@@ -512,7 +507,6 @@ int CActorSpout::Create(ActorSpout *S)
 /* ------------------------------------------------------------------------------------ */
 CActorSpout::~CActorSpout()
 {
-	return;
 }
 
 

@@ -58,8 +58,6 @@ CCDAudio::CCDAudio() :
 
 	theError = mciSendCommand(m_mciDeviceID, MCI_SET,
 				MCI_SET_TIME_FORMAT, (DWORD)&mciSet);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -85,8 +83,6 @@ CCDAudio::~CCDAudio()
 
 	m_bActive = false;
 	m_mciDeviceID = 0;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

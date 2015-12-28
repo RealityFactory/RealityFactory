@@ -178,10 +178,6 @@ CAutoDoors::CAutoDoors() :
 			}
 		}
 	}
-
-	//	Ok, we've counted the doors and reset 'em all to their default
-	//	..values.  Leave!
-	return;
 }
 
 

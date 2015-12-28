@@ -158,8 +158,6 @@ CStaticEntity::CStaticEntity() :
 			SPool_Sound(pProxy->szSoundFile);
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -197,9 +195,6 @@ CStaticEntity::~CStaticEntity()
 			pProxy->Actor = NULL;
 		}
 	}
-
-	//	All cleaned up, bail this mess.
-	return;
 }
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);

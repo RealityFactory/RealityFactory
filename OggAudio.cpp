@@ -27,7 +27,6 @@ OggAudio::OggAudio(LPDIRECTSOUND lpDS)
 	m_pDS			= lpDS;			// Save DSound pointer
 	m_fEOF			= false;		// Not at end of file
 	m_bLoops		= false;		// Assume no looping
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -53,8 +52,6 @@ OggAudio::~OggAudio()
 		m_pStream->Release();		// Drop the DSound buffer
 		m_pStream = NULL;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

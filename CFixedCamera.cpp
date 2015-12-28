@@ -57,8 +57,6 @@ CFixedCamera::CFixedCamera() :
 			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

@@ -55,8 +55,6 @@ Collider::Collider()
 	m_CheckLevel = RGF_COLLISIONLEVEL_1;		// Full collision checking
 
 	kCollideFlags = GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -64,7 +62,6 @@ Collider::Collider()
 /* ------------------------------------------------------------------------------------ */
 Collider::~Collider()
 {
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

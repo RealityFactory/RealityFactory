@@ -104,8 +104,6 @@ void CMp3Manager::StopMp3()
 		MCIWndStop(m_Video);
 		m_Active = false;
 	}
-
-	return ;
 }
 
 /* ------------------------------------------------------------------------------------ */

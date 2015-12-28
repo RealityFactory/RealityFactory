@@ -24,7 +24,6 @@
 CRGFComponent::CRGFComponent() :
 	m_Initialized(true)
 {
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -35,8 +34,6 @@ CRGFComponent::CRGFComponent() :
 CRGFComponent::~CRGFComponent()
 {
 	m_Initialized = false;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

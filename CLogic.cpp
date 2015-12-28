@@ -56,9 +56,8 @@ CLogic::CLogic() :
 		pSource->inDelay	= GE_FALSE;
 		pSource->time		= 0.0f;
 	}
-
-	return;
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 // Destructor

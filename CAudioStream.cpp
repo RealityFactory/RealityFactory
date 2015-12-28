@@ -50,8 +50,6 @@ CAudioStream::CAudioStream() :
 		pProxy->bActive = true;						// Trigger is active
 		pProxy->LastTimeTriggered = 0;				// Ready immediately
 	}
-
-	return;
 }
 
 

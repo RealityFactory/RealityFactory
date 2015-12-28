@@ -94,8 +94,6 @@ CMorphingFields::CMorphingFields() :
 			geVec3d_Subtract(&pField->origin, &ModelOrigin, &pField->OriginOffset);
 		}
 	}
-
-	return;
 }
 
 
@@ -129,9 +127,6 @@ CMorphingFields::~CMorphingFields()
 
 		pField->theFog = NULL;								// Fog cleared, heh heh
 	}
-
-	//	Morphing fields cleaned up.  Bail this mess.
-	return;
 }
 
 

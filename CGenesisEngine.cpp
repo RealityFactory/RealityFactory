@@ -232,8 +232,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	}
 
 	geSound_SetMasterVolume(m_Audio, 0.99f);			// 100% audio for now.
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -264,8 +262,6 @@ CGenesisEngine::~CGenesisEngine()
 		geEngine_ShutdownDriver(m_theEngine);
 		geEngine_Free(m_theEngine);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

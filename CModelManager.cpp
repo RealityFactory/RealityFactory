@@ -61,8 +61,6 @@ CModelManager::CModelManager()
 		if(!EffectC_IsStringNull(pMod->DamageAudioEffect))
 			pMod->theDSound = SPool_Sound(pMod->DamageAudioEffect);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -79,8 +77,6 @@ CModelManager::~CModelManager()
 		delete MainList[nTemp];
 		MainList[nTemp] = NULL;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

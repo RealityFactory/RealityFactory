@@ -102,10 +102,6 @@ CTeleporter::CTeleporter() :
 			CCD->EntityRegistry()->AddEntity(pTarget->Name, "TeleportTarget");
 		}
 	}
-
-	//	Ok, we've counted the teleporters and reset 'em all to their default
-	//	..values.  Leave!
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -143,9 +139,6 @@ CTeleporter::~CTeleporter()
 
 		pTeleport->theFog = NULL;						// Fog cleared, heh heh
 	}
-
-	//	Teleporters cleaned up.  Bail this mess.
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

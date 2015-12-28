@@ -27,8 +27,6 @@ static char THIS_FILE[]=__FILE__;
 CEntityRegistry::CEntityRegistry()
 {
 	m_pList = new CPersistentAttributes;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -41,8 +39,6 @@ CEntityRegistry::~CEntityRegistry()
 	m_pList->Clear();
 	delete m_pList;
 	m_pList = NULL;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

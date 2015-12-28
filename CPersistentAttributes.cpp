@@ -26,8 +26,6 @@ CPersistentAttributes::CPersistentAttributes()
 {
 	theList = NULL;					// Fast & easy.
 	m_nCount = 0;					// Nothing here.
-
-	return;
 }
 
 
@@ -37,8 +35,6 @@ CPersistentAttributes::CPersistentAttributes()
 CPersistentAttributes::~CPersistentAttributes()
 {
 	Clear();
-
-	return;
 }
 
 
@@ -823,8 +819,6 @@ void CPersistentAttributes::Dump()
 		CCD->ReportError(szDump, false);
 		pTemp = pTemp->pNext;
 	}
-
-	return;
 }
 
 

@@ -36,8 +36,6 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 	Ogg					= NULL;
 	mp3					= false;
 	ogg					= false;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -86,8 +84,6 @@ StreamingAudio::~StreamingAudio()
 		m_pStream->Release();			// Drop the DSound buffer
 		m_pStream = NULL;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

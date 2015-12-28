@@ -66,8 +66,6 @@ CDynalite::CDynalite()
 
 		pLight->IntervalWidth = pLight->RadiusSpeed / static_cast<geFloat>(pLight->NumFunctionValues);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -75,7 +73,6 @@ CDynalite::CDynalite()
 /* ------------------------------------------------------------------------------------ */
 CDynalite::~CDynalite()
 {
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

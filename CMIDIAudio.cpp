@@ -32,8 +32,6 @@ CMIDIAudio::CMIDIAudio() :
 	// All done.  The way the MCI sequencer works, there's no mechanism for loading
 	// ..in a new MIDI file without "opening" it anew, so we'll just open/close as
 	// ..part of the start/stop cycle.
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -60,8 +58,6 @@ CMIDIAudio::~CMIDIAudio()
 
 	m_bActive = false;
 	m_mciDeviceID = (-1);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

@@ -100,8 +100,6 @@ CWallDecal::CWallDecal()
 			pSource->ProgrammedTrigger = GE_FALSE;
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
