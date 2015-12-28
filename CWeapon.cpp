@@ -8,7 +8,6 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// Include the One True Header
 #include "RabidFramework.h"
 #include "IniFile.h"
 #include "CHeadsUpDisplay.h"
@@ -23,7 +22,7 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CWeapon::CWeapon()
 {
@@ -34,7 +33,6 @@ CWeapon::CWeapon()
 	for(i=0; i<MAX_WEAPONS; i++)
 		Slot[i] = -1;
 
-// changed QD 08/15/06 - moved from LoadDefaults
 	for(i=0; i<MAX_PROJD; i++)
 	{
 		memset(&ProjD[i], 0, sizeof(DefaultProj));
@@ -47,7 +45,6 @@ CWeapon::CWeapon()
 		WeaponD[i].active = false;
 		WeaponD[i].VAnimSpeed = 1.0f;
 	}
-// end change QD 08/15/06
 
 	CurrentWeapon	= -1;
 	Bottom			= (Proj *)NULL;
@@ -63,9 +60,7 @@ CWeapon::CWeapon()
 	VBDiff			= 0.0f;		// not used
 	VBOrigin		= 0.0f;		// not used
 	MFlash = false;
-// changed RF064
 	dropflag = false;
-// end change RF064
 
 	geVec3d_Clear(&CrossPoint); // not used
 	geVec3d_Clear(&ProjectedPoint);
@@ -85,9 +80,7 @@ CWeapon::CWeapon()
 	{
 		PlayerSetup *theStart = (PlayerSetup *)geEntity_GetUserData(pEntity);
 		ViewPoint = theStart->LevelViewPoint;
-// changed RF064
 		OldViewPoint = ViewPoint;
-// end change RF064
 	}
 	else
 	{
@@ -99,7 +92,7 @@ CWeapon::CWeapon()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CWeapon::~CWeapon()
 {
@@ -137,12 +130,10 @@ CWeapon::~CWeapon()
 
 			if(WeaponD[i].CrossHair)
 			{
-				// changed QD 12/15/05
 				if(WeaponD[i].CrossHairFixed)
 					geEngine_RemoveBitmap(CCD->Engine()->Engine(), WeaponD[i].CrossHair);
 				else
 					geWorld_RemoveBitmap(CCD->World(), WeaponD[i].CrossHair);
-				// end change
 
 				geBitmap_Destroy(&(WeaponD[i].CrossHair));
 				WeaponD[i].CrossHair = NULL;
@@ -172,7 +163,6 @@ CWeapon::~CWeapon()
 	}
 }
 
-// changed Rf063
 /* ------------------------------------------------------------------------------------ */
 //	ChangeWeapon
 /* ------------------------------------------------------------------------------------ */
@@ -192,10 +182,9 @@ void CWeapon::ChangeWeapon(const char *name)
 		}
 	}
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//	Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Tick(geFloat dwTicks)
 {
@@ -252,7 +241,6 @@ void CWeapon::Tick(geFloat dwTicks)
 
 	d = Bottom;
 
-	// changed QD 12/15/05
 	dwTicks *= 0.001f;
 
 	while(d != NULL)
@@ -263,28 +251,20 @@ void CWeapon::Tick(geFloat dwTicks)
 		GE_Collision Collision;
 		geActor *Actor = NULL;
 		geWorld_Model *Model = NULL;
-// changed RF064
 		char BoneHit[64];
 
 		BoneHit[0] = '\0';
-// end change RF064
 
 		next = d->prev;
-		// changed QD 12/15/05
-		// float dwTick = (float)(dwTicks) * 0.001f;
 		CCD->ActorManager()->GetPosition(d->Actor, &tempPos);
 
 		// Movement
-		// changed QD 12/15/05
-		// geVec3d_Scale(&(d->Direction), dwTick, &Distance) ;
 		geVec3d_Scale(&(d->Direction), dwTicks, &Distance);
 		geVec3d_Add(&tempPos, &Distance, &tempPos1);
 
 		// LifeTime Checking
 		bool Alive = true;
 
-		// changed QD 12/15/05
-		// d->LifeTime -= dwTicks *0.001f;
 		d->LifeTime -= dwTicks;
 
 		if(d->LifeTime <= 0.0f)
@@ -302,11 +282,6 @@ void CWeapon::Tick(geFloat dwTicks)
 			CCD->Collision()->IgnoreContents(false);
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 
-/* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
-	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
-	the bone bounding boxes until the whatever hit the overall bounding box no longer exists.
-			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel)) */
 			while(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel, d))
 			{
 				// Process hit here
@@ -316,7 +291,6 @@ void CWeapon::Tick(geFloat dwTicks)
 					break;
 
 				// impact damage
-// changed RF063
 				geVec3d Zero = {0.0f, 0.0f, 0.0f};
 
 				if(Collision.Actor)
@@ -331,7 +305,6 @@ void CWeapon::Tick(geFloat dwTicks)
 
 				if(Collision.Model)
 					CCD->Damage()->DamageModel(Collision.Model, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-// end change RF063
 
 				if(PSound)
 				{
@@ -365,10 +338,9 @@ void CWeapon::Tick(geFloat dwTicks)
 			CCD->Collision()->CheckLevel(RGF_COLLISIONLEVEL_1);
 
 /* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
+	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists.
-			//if(CCD->Collision()->CheckForCollisionD(&d->ExtBox.Min, &d->ExtBox.Max,
 			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max,tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel)) */
 			if(CCD->Collision()->CheckForBoneCollision(&d->ExtBox.Min, &d->ExtBox.Max, tempPos, tempPos1, &Collision, d->Actor, BoneHit, d->BoneLevel, d))
 			{
@@ -378,8 +350,6 @@ void CWeapon::Tick(geFloat dwTicks)
 				if(nHitType != kNoCollision)
 				{
 					Alive = false;
-					// changed QD 12/15/05
-					// d->Pos = Collision.Impact;
 					geVec3d_Add(&(Collision.Impact), &(Collision.Plane.Normal), &(d->Pos));
 					Actor = Collision.Actor;
 					Model = Collision.Model;
@@ -462,8 +432,7 @@ void CWeapon::Tick(geFloat dwTicks)
 				}
 			}
 		}
-		// Delete when done
-		else
+		else // Delete when done
 		{
 			if(d->MoveSoundEffect != -1)
 				CCD->EffectManager()->Item_Delete(EFF_SND, d->MoveSoundEffect);
@@ -478,11 +447,7 @@ void CWeapon::Tick(geFloat dwTicks)
 
 			PlaySound(d->ImpactSoundDef, d->Pos, false);
 
-			//
 			// inflict damage
-			//
-// changed RF064
-// changed RF063
 			geVec3d Zero = {0.0f, 0.0f, 0.0f};
 
 			if(Actor)
@@ -505,14 +470,10 @@ void CWeapon::Tick(geFloat dwTicks)
 			}
 			else
 				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos);
-// end change RF063
-// end change RF064
 
 			// create explosion here
-// changed RF063
 			if(d->ShakeAmt>0.0f)
 				CCD->CameraManager()->SetShake(d->ShakeAmt, d->ShakeDecay, d->Pos);
-// changed RF063
 
 
 			// Handle explosion damage here
@@ -532,7 +493,7 @@ void CWeapon::Tick(geFloat dwTicks)
 				d->next->prev = d->prev;
 
 /* 07/15/2004 Wendell Buckner
-    BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
+	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
 			CCD->ActorManager()->RemoveCollideObject(COLMaxBBox, NULL, (void*)d);
@@ -548,11 +509,10 @@ void CWeapon::Tick(geFloat dwTicks)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Display
+// Display
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Display()
 {
-// changed RF064
 	if(CCD->Player()->GetMonitorMode())
 		return;
 
@@ -570,7 +530,6 @@ void CWeapon::Display()
 
 		if(CCD->Player()->GetMirror()!=0 && WeaponD[index].PActor)
 			DisplayThirdPerson(index);
-// end change RF064
 	}
 	else
 	{
@@ -586,7 +545,7 @@ void CWeapon::Display()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayThirdPerson
+// DisplayThirdPerson
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DisplayThirdPerson(int index)
 {
@@ -601,27 +560,15 @@ void CWeapon::DisplayThirdPerson(int index)
 	CCD->ActorManager()->GetPosition(Actor, &thePosition);
 	geActor_SetScale(WeaponD[index].PActor, WeaponD[index].PScale, WeaponD[index].PScale, WeaponD[index].PScale);
 
-// changed QD 07/15/06 - PActorRotation converted to radians at load time
-/*
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity (&XForm);
-	//geXForm3d_RotateZ(&XForm, 0.0174532925199433f*(WeaponD[index].PActorRotation.Z) + theRotation.Z);
-	geXForm3d_SetZRotation(&XForm, 0.0174532925199433f*(WeaponD[index].PActorRotation.Z) + theRotation.Z);
-	// end change
-	geXForm3d_RotateX(&XForm, 0.0174532925199433f*(WeaponD[index].PActorRotation.X) + theRotation.X);
-	geXForm3d_RotateY(&XForm, 0.0174532925199433f*(WeaponD[index].PActorRotation.Y) + theRotation.Y);
-*/
 	geXForm3d_SetZRotation(&XForm, WeaponD[index].PActorRotation.Z + theRotation.Z);
 	geXForm3d_RotateX(&XForm, WeaponD[index].PActorRotation.X + theRotation.X);
 	geXForm3d_RotateY(&XForm, WeaponD[index].PActorRotation.Y + theRotation.Y);
 
-// end change
 	geXForm3d_Translate(&XForm, thePosition.X, thePosition.Y, thePosition.Z);
 
 	ActorMotion = CCD->ActorManager()->GetpMotion(Actor);
 	ActorBMotion = CCD->ActorManager()->GetpBMotion(Actor);
 
-// changed RF064
 	if(ActorMotion)
 	{
 		if(CCD->ActorManager()->GetTransitionFlag(Actor))
@@ -653,19 +600,15 @@ void CWeapon::DisplayThirdPerson(int index)
 			}
 		}
 	}
-// end change RF064
 	else
 		geActor_ClearPose(WeaponD[index].PActor, &XForm);
 
-// changed RF063
 	geFloat fAlpha;
 	CCD->ActorManager()->GetAlpha(Actor, &fAlpha);
 	geActor_SetAlpha(WeaponD[index].PActor, fAlpha);
 
-// changed RF064
 	if(ViewPoint == FIRSTPERSON)
 		return;
-// end change RF064
 
 	geXForm3d Xf;
 	geVec3d Front, Back;
@@ -689,44 +632,32 @@ void CWeapon::DisplayThirdPerson(int index)
 	geVec3d CRotation, CPosition;
 	CCD->CameraManager()->GetCameraOffset(&CPosition, &CRotation);
 
-// changed Qd 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateZ(&Xf, theRotation.Z);
 	geXForm3d_SetZRotation(&Xf, theRotation.Z);
 	geXForm3d_RotateX(&Xf, theRotation.X-CCD->CameraManager()->GetTilt());
 	geXForm3d_RotateY(&Xf, theRotation.Y);
-	//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
 
 	//Pos = Xf.Translation;
 	geXForm3d_GetIn(&Xf, &Direction);
 	geVec3d_AddScaled(&thePosition, &Direction, CurrentDistance, &Back);
 
-	// geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&thePosition, &Front);
 
 	if(geWorld_Collision(CCD->World(), &theBox.Min, &theBox.Max, &Front,
 		&Back, GE_VISIBLE_CONTENTS, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
     {
-		// can't be negative (sqrt!)
-		// CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
 		CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
 
-		//if(CurrentDistance < 0.0f)
-		//	CurrentDistance = 0.0f;
-		//else
 		if(CurrentDistance > 4000.0f)
 			CurrentDistance = 4000.0f;
 
 		geVec3d_AddScaled(&thePosition, &Direction, CurrentDistance, &Back);
-// end change
 	}
 
 	geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Back, &ProjectedPoint);
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayFirstPerson
+// DisplayFirstPerson
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DisplayFirstPerson(int index)
 {
@@ -735,7 +666,6 @@ void CWeapon::DisplayFirstPerson(int index)
 
 	if(CCD->WeaponPosition()) // used to move actor around in setup mode
 	{
-// changed RF064
 		if(!CCD->Player()->GetAlterKey())
 		{
 			if((GetAsyncKeyState(0x69) & 0x8000) != 0)
@@ -810,7 +740,6 @@ void CWeapon::DisplayFirstPerson(int index)
 			if((GetAsyncKeyState(0x50) & 0x8000) != 0 && (GetAsyncKeyState(0x59) & 0x8000) != 0)
 				WeaponD[index].Z -= 0.1f;
 		}
-// end change RF064
 	}
 
 	geXForm3d XForm;
@@ -826,16 +755,9 @@ void CWeapon::DisplayFirstPerson(int index)
 			WeaponD[index].VScale+WeaponD[index].G,
 			WeaponD[index].VScale+WeaponD[index].G,
 			WeaponD[index].VScale+WeaponD[index].G);
-		// changed QD 07/15/06 - VActorRotation converted to radians at load time
-		/*
-		geXForm3d_RotateX(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.X + WeaponD[index].K));
-		geXForm3d_RotateZ(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.Z + WeaponD[index].L));
-		geXForm3d_RotateY(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.Y + WeaponD[index].Z));
-		*/
 		geXForm3d_RotateX(&XForm, WeaponD[index].VActorRotation.X + WeaponD[index].K*GE_PIOVER180);
 		geXForm3d_RotateZ(&XForm, WeaponD[index].VActorRotation.Z + WeaponD[index].L*GE_PIOVER180);
 		geXForm3d_RotateY(&XForm, WeaponD[index].VActorRotation.Y + WeaponD[index].Z*GE_PIOVER180);
-		// end change
 	}
 	else
 	{
@@ -844,28 +766,14 @@ void CWeapon::DisplayFirstPerson(int index)
 			WeaponD[index].VScale,
 			WeaponD[index].VScale);
 		// rotate actor into place
-		// changed QD 07/15/06 - VActorRotation converted to radians at load time
-		/*
-		geXForm3d_RotateX(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.X));
-		geXForm3d_RotateZ(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.Z));
-		geXForm3d_RotateY(&XForm, 0.0174532925199433f*(WeaponD[index].VActorRotation.Y));
-		*/
 		geXForm3d_RotateX(&XForm, WeaponD[index].VActorRotation.X);
 		geXForm3d_RotateZ(&XForm, WeaponD[index].VActorRotation.Z);
 		geXForm3d_RotateY(&XForm, WeaponD[index].VActorRotation.Y);
-		// end change
 	}
 
-// changed QD 07/15/06
-/*
-	geXForm3d_RotateX(&XForm, theRotation.Z + (0.0174532925199433f*( 0.f)));	// rotate left/right
-	geXForm3d_RotateZ(&XForm, theRotation.X + (0.0174532925199433f*(-5.f)));	// rotate up/down
-	geXForm3d_RotateY(&XForm, theRotation.Y + (0.0174532925199433f*(90.f)));	// swing side to side
-*/
 	geXForm3d_RotateX(&XForm, theRotation.Z);						// rotate left/right
 	geXForm3d_RotateZ(&XForm, theRotation.X - 0.87266462599715f);	// rotate up/down
 	geXForm3d_RotateY(&XForm, theRotation.Y + GE_PIOVER2);			// swing side to side
-// end change
 
 	CCD->CameraManager()->GetPosition(&thePosition);
 	float shx, shy, shz;
@@ -911,10 +819,8 @@ void CWeapon::DisplayFirstPerson(int index)
 	geFloat deltaTime, tStart, tEnd; //, bStart, bEnd;
 	geMotion *ActorMotion;
 
-// changed RF063
 	if(VAnimTime < 0.0f)
 		VAnimTime = (float)CCD->FreeRunningCounter();
-// end change RF063
 	deltaTime = 0.001f * (geFloat)(CCD->FreeRunningCounter() - VAnimTime);
 	if(VSequence == VWEPHOLSTER)
 		VMCounter -= (deltaTime*WeaponD[index].VAnimSpeed);
@@ -926,14 +832,7 @@ void CWeapon::DisplayFirstPerson(int index)
 
 	if(VSequence == VWEPHOLSTER)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VArm);
-// cell division - moved below walking check
-//	if(VSequence == VWEPIDLE)
-//		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
-//	if(VSequence == VWEPATTACK)
-//		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
-// cell division - moved below walking check
 
-// changed RF064
 	if(VSequence == VWEPRELOAD)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VReload);
 
@@ -942,7 +841,6 @@ void CWeapon::DisplayFirstPerson(int index)
 
 	if(VSequence == VWEPATTACKEMPTY)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttackEmpty);
-// end change RF064
 
 	if(VSequence == VWEPALTATTACK)
 	{
@@ -973,13 +871,11 @@ void CWeapon::DisplayFirstPerson(int index)
 	if(VSequence == VWEPWALK)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VWalk);
 
-// cell division - originally above weapon walk
 	if(VSequence == VWEPIDLE)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
 
 	if(VSequence == VWEPATTACK)
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VAttack);
-// cell division - originally above weapon walk
 
 	if(!ActorMotion) // no animation so use default
 		ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
@@ -994,7 +890,6 @@ void CWeapon::DisplayFirstPerson(int index)
 			CurrentWeapon = MAX_WEAPONS;
 			geWorld_SetActorFlags(CCD->World(), WeaponD[index].VActor, 0);
 
-// changed RF064
 			if(dropflag)
 			{
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
@@ -1003,7 +898,6 @@ void CWeapon::DisplayFirstPerson(int index)
 				dropflag = false;
 				SpawnWeaponAttribute(index);
 			}
-// end change RF064
 		}
 
 		if(VMCounter > tEnd && VSequence == VWEPCHANGE) // switch from change to idle
@@ -1012,7 +906,6 @@ void CWeapon::DisplayFirstPerson(int index)
 			ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VIdle);
 		}
 
-// changed RF064
 		if(VMCounter > tEnd && (VSequence == VWEPATTACK || VSequence == VWEPATTACKEMPTY
 			|| VSequence == VWEPALTATTACK || VSequence == VWEPHIT || VSequence == VWEPUSE
 			|| VSequence == VWEPALTHIT || VSequence == VWEPRELOAD
@@ -1070,7 +963,6 @@ void CWeapon::DisplayFirstPerson(int index)
 					ActorMotion = geActor_GetMotionByName(WeaponD[index].VActorDef, WeaponD[index].VWalk);
 				}
 			}
-// end change RF064
 			VBlend = false;
 		}
 
@@ -1100,7 +992,7 @@ void CWeapon::DisplayFirstPerson(int index)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Rendering
+// Rendering
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Rendering(bool flag)
 {
@@ -1140,7 +1032,7 @@ void CWeapon::Rendering(bool flag)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Holster
+// Holster
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Holster()
 {
@@ -1169,9 +1061,7 @@ void CWeapon::Holster()
 			geMotion_GetTimeExtents(ActorMotion, &tStart, &tEnd);
 			VMCounter = tEnd;
 			VSequence = VWEPHOLSTER;
-// changed RF063
 			VAnimTime = -1.0f;
-// end change RF063
 			AttackTime = 0;
 			VBlend = false;
 			AttackFlag = false;
@@ -1198,7 +1088,7 @@ void CWeapon::Holster()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Use
+// Use
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Use()
 {
@@ -1240,7 +1130,7 @@ void CWeapon::Use()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DoAttack
+// DoAttack
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DoAttack()
 {
@@ -1263,7 +1153,7 @@ void CWeapon::DoAttack()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayZoom
+// DisplayZoom
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DisplayZoom()
 {
@@ -1286,9 +1176,8 @@ void CWeapon::DisplayZoom()
 	}
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 /* ------------------------------------------------------------------------------------ */
 int CWeapon::SaveTo(FILE *SaveFD)
 {
@@ -1300,7 +1189,7 @@ int CWeapon::SaveTo(FILE *SaveFD)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 /* ------------------------------------------------------------------------------------ */
 int CWeapon::RestoreFrom(FILE *RestoreFD)
 {
@@ -1311,12 +1200,11 @@ int CWeapon::RestoreFrom(FILE *RestoreFD)
 
 	return RGF_SUCCESS;
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//	SetWeapon
+// SetWeapon
 //
-//	change to new weapon
+// change to new weapon
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::SetWeapon(int value)
 {
@@ -1340,7 +1228,6 @@ void CWeapon::SetWeapon(int value)
 			CCD->HUD()->ActivateElement(WeaponD[CurrentWeapon].Ammunition, false);
 	}
 
-// changed RF063
 	char *Motion = CCD->ActorManager()->GetMotion(CCD->Player()->GetActor());
 	int index = -1;
 
@@ -1359,9 +1246,7 @@ void CWeapon::SetWeapon(int value)
 	{
 		CCD->ActorManager()->SetMotion(CCD->Player()->GetActor(), PlayerAnim(index));
 	}
-// end change RF063
 
-// changed RF064
 	if(WeaponD[CurrentWeapon].Catagory == PROJECTILE
 		|| (WeaponD[CurrentWeapon].Catagory == MELEE && WeaponD[CurrentWeapon].MeleeAmmo == true))
 	{
@@ -1383,20 +1268,16 @@ void CWeapon::SetWeapon(int value)
 	}
 
 	DoChange();
-// end change RF064
 	VSequence = VWEPCHANGE;
-// changed RF063
 	VAnimTime = -1.0f;
-// end change RF063
 	AttackTime = 0;
 	VMCounter = 0.0f;
 	VBlend = false;
 	AttackFlag = false;
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	DoChange
+// DoChange
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DoChange()
 {
@@ -1429,10 +1310,9 @@ void CWeapon::DoChange()
 			geWorld_SetActorFlags(CCD->World(), WeaponD[CurrentWeapon].PActor, GE_ACTOR_RENDER_NORMAL | GE_ACTOR_RENDER_MIRRORS);
 	}
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	ClearWeapon
+// ClearWeapon
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::ClearWeapon()
 {
@@ -1445,11 +1325,10 @@ void CWeapon::ClearWeapon()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSetWeapon
+// ResetWeapon
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::ReSetWeapon(int value)
 {
-// changed RF063
 	char *Motion = CCD->ActorManager()->GetMotion(CCD->Player()->GetActor());
 	int index = -1;
 
@@ -1472,11 +1351,9 @@ void CWeapon::ReSetWeapon(int value)
 		CCD->ActorManager()->SetMotion(CCD->Player()->GetActor(), PlayerAnim(index));
 	}
 
-// end change RF063
 	if(value == -1 || value == MAX_WEAPONS)
 		return;
 
-// changed RF064
 	if(WeaponD[CurrentWeapon].Catagory == PROJECTILE
 		|| (WeaponD[CurrentWeapon].Catagory == MELEE && WeaponD[CurrentWeapon].MeleeAmmo == true))
 	{
@@ -1498,11 +1375,8 @@ void CWeapon::ReSetWeapon(int value)
 	}
 
 	DoChange();
-// end change RF064
 	VSequence = VWEPCHANGE;
-// changed RF063
 	VAnimTime = -1.0f;
-// end change RF063
 	AttackTime = 0;
 	VMCounter = 0.0f;
 	VBlend = false;
@@ -1510,14 +1384,13 @@ void CWeapon::ReSetWeapon(int value)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CrossHair
+// CrossHair
 /* ------------------------------------------------------------------------------------ */
 bool CWeapon::CrossHair()
 {
 	if(CurrentWeapon == -1 || CurrentWeapon == MAX_WEAPONS)
 		return false;
 
-// changed RF063
 	if(WeaponD[CurrentWeapon].Catagory != PROJECTILE
 		|| !(ViewPoint == FIRSTPERSON || ViewPoint == THIRDPERSON))
 		return false;
@@ -1526,7 +1399,7 @@ bool CWeapon::CrossHair()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	CrossHairFixed
+// CrossHairFixed
 /* ------------------------------------------------------------------------------------ */
 bool CWeapon::CrossHairFixed()
 {
@@ -1534,14 +1407,13 @@ bool CWeapon::CrossHairFixed()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplayCrossHair
+// DisplayCrossHair
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DisplayCrossHair()
 {
 	geBitmap *theBmp;
 	geBitmap_Info	BmpInfo;
 	int x, y;
-// changed RF063
 	theBmp = WeaponD[CurrentWeapon].CrossHair;
 
 	if(theBmp)
@@ -1553,23 +1425,20 @@ void CWeapon::DisplayCrossHair()
 			geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y);
 		}
 	}
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetCrossHair
+// GetCrossHair
 /* ------------------------------------------------------------------------------------ */
 geBitmap *CWeapon::GetCrossHair()
 {
 	geBitmap *theBmp;
-// changed RF063
 	theBmp = WeaponD[CurrentWeapon].CrossHair;
 	return theBmp;
-// end change RF063
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlayerAnim
+// PlayerAnim
 /* ------------------------------------------------------------------------------------ */
 char *CWeapon::PlayerAnim(int index)
 {
@@ -1584,9 +1453,8 @@ char *CWeapon::PlayerAnim(int index)
 	return CCD->Player()->GetAnimations(index);
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	DieAnim
+// DieAnim
 /* ------------------------------------------------------------------------------------ */
 char *CWeapon::DieAnim()
 {
@@ -1602,7 +1470,7 @@ char *CWeapon::DieAnim()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	InjuryAnim
+// InjuryAnim
 /* ------------------------------------------------------------------------------------ */
 char *CWeapon::InjuryAnim()
 {
@@ -1616,10 +1484,9 @@ char *CWeapon::InjuryAnim()
 
 	return NULL;
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
-//	WeaponData
+// WeaponData
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::WeaponData()
 {
@@ -1629,19 +1496,12 @@ void CWeapon::WeaponData()
 	{
 		if(CCD->WeaponPosition())
 		{
-			// changed QD 07/15/06  - VActorRotation converted to radians at load time
+			// VActorRotation converted to radians at load time
 			// display rotation in degrees
-			/*
-			sprintf(szData,"Rotation : X= %.2f, Y= %.2f, Z= %.2f",
-				WeaponD[CurrentWeapon].VActorRotation.X + WeaponD[CurrentWeapon].K,
-				WeaponD[CurrentWeapon].VActorRotation.Y + WeaponD[CurrentWeapon].Z,
-				WeaponD[CurrentWeapon].VActorRotation.Z + WeaponD[CurrentWeapon].L);
-			*/
 			sprintf(szData,"Rotation : X= %.2f, Y= %.2f, Z= %.2f",
 				WeaponD[CurrentWeapon].VActorRotation.X*GE_180OVERPI + WeaponD[CurrentWeapon].K,
 				WeaponD[CurrentWeapon].VActorRotation.Y*GE_180OVERPI + WeaponD[CurrentWeapon].Z,
 				WeaponD[CurrentWeapon].VActorRotation.Z*GE_180OVERPI + WeaponD[CurrentWeapon].L);
-			// end change
 
 			CCD->MenuManager()->WorldFontRect(szData, FONT10, 5, CCD->Engine()->Height()- 40, 255.0f);
 
@@ -1658,9 +1518,8 @@ void CWeapon::WeaponData()
 	return;
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
-//	KeyReload
+// KeyReload
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::KeyReload()
 {
@@ -1714,7 +1573,7 @@ void CWeapon::KeyReload()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DropWeapon
+// DropWeapon
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::DropWeapon()
 {
@@ -1725,6 +1584,9 @@ void CWeapon::DropWeapon()
 	Holster();
 }
 
+/* ------------------------------------------------------------------------------------ */
+// SpawnWeaponAttribute
+/* ------------------------------------------------------------------------------------ */
 void CWeapon::SpawnWeaponAttribute(int index)
 {
 	if(WeaponD[index].DropActor[0])
@@ -1782,10 +1644,9 @@ void CWeapon::SpawnWeaponAttribute(int index)
 		CCD->Attributes()->AddAttributeEntity(&tmpAttr);
 	}
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
-//	Attack
+// Attack
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Attack(bool Alternate)
 {
@@ -1800,14 +1661,12 @@ void CWeapon::Attack(bool Alternate)
 		if(EffectC_IsStringNull(WeaponD[CurrentWeapon].VAttack))
 			return;
 
-// changed RF064
 		if(VSequence == VWEPCHANGE || VSequence == VWEPHOLSTER || VSequence == VWEPATTACKEMPTY
 			|| VSequence == VWEPRELOAD || VSequence == VWEPKEYRELOAD
 			|| (WeaponD[CurrentWeapon].Catagory==MELEE
 			&& (VSequence == VWEPATTACK || VSequence == VWEPALTATTACK
 			|| VSequence == VWEPHIT || VSequence == VWEPALTHIT || VSequence == VWEPUSE)))
 			return; // shooting or changing weapon
-// end change RF064
 
 		if(AttackTime != 0)
 		{
@@ -1816,7 +1675,6 @@ void CWeapon::Attack(bool Alternate)
 			if(dtime < (WeaponD[CurrentWeapon].FireRate*1000.0f))
 				return; // too soon
 		}
-// changed RF064
 
 		geActor *theActor = CCD->Player()->GetActor();
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
@@ -1837,8 +1695,6 @@ void CWeapon::Attack(bool Alternate)
 
 		if(WeaponD[CurrentWeapon].Catagory == MELEE)
 		{
-			// changed QD 07/15/06
-			//if(((geFloat)((rand() % 1000) + 1) / 1000.0f * 10.0f) >= 5.0f)
 			if(rand() % 2)
 				VSequence = VWEPALTATTACK;
 		}
@@ -1851,19 +1707,17 @@ void CWeapon::Attack(bool Alternate)
 					VSequence = VWEPATTACKEMPTY;
 			}
 		}
-// end change RF064
 
 		VMCounter = 0.0f;
 		AttackFlag = true;
 	}
-	else
+	else // 3rd person
 	{
 		if(!WeaponD[CurrentWeapon].PActor)
 			return;
 
 		if(AttackTime != 0)
 		{
-// changed RF064
 			if(WeaponD[CurrentWeapon].ShotperMag > 0
 				&& WeaponD[CurrentWeapon].ShotFired >= WeaponD[CurrentWeapon].ShotperMag)
 			{
@@ -1876,7 +1730,6 @@ void CWeapon::Attack(bool Alternate)
 				else
 					WeaponD[CurrentWeapon].MagAmt = theInv->Value(WeaponD[CurrentWeapon].Ammunition);
 			}
-// end change RF064
 
 			int dtime = CCD->FreeRunningCounter()-AttackTime;
 
@@ -1890,7 +1743,7 @@ void CWeapon::Attack(bool Alternate)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Sound
+// Sound
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Sound(bool Attack, const geVec3d &Origin, bool Empty)
 {
@@ -1940,7 +1793,7 @@ void CWeapon::Sound(bool Attack, const geVec3d &Origin, bool Empty)
 
 
 /* ------------------------------------------------------------------------------------ */
-//	MeleeAttack
+// MeleeAttack
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::MeleeAttack()
 {
@@ -1961,11 +1814,7 @@ void CWeapon::MeleeAttack()
 	float tiltp = (CCD->CameraManager()->GetTiltPercent()*2.0f)-1.0f;
 	thePosition.Y += (temp*tiltp);
 
-	// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateZ(&Xf, theRotation.Z);
 	geXForm3d_SetZRotation(&Xf, theRotation.Z);
-	// end change
 	geXForm3d_RotateX(&Xf, theRotation.X);
 	geXForm3d_RotateY(&Xf, theRotation.Y);
 	geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
@@ -1977,8 +1826,6 @@ void CWeapon::MeleeAttack()
 	Collision.Actor = NULL;
 	Collision.Model = NULL;
 
-	//DrawBoundBox(CCD->World(), &Pos, &theBox.Min, &theBox.Max);
-	//DrawBoundBox(CCD->World(), &Xf.Translation, &theBox.Min, &theBox.Max);
 
 	bool result = false;
 	geWorld_Model *pModel;
@@ -2031,7 +1878,6 @@ void CWeapon::MeleeAttack()
 				Sound(false, thePosition, false);
 
 				// Process damage here
-// changed RF063
 				if(Collision.Actor != NULL)
 				{
 					CCD->Damage()->DamageActor(Collision.Actor, WeaponD[CurrentWeapon].MeleeDamage, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].MeleeAltDamage, WeaponD[CurrentWeapon].AltAttribute, WeaponD[CurrentWeapon].Name);
@@ -2040,7 +1886,6 @@ void CWeapon::MeleeAttack()
 
 				if(Collision.Model)
 					CCD->Damage()->DamageModel(Collision.Model, WeaponD[CurrentWeapon].MeleeDamage, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].MeleeAltDamage, WeaponD[CurrentWeapon].AltAttribute);
-// end change RF063
 			}
 			else
 				Sound(true, thePosition, false);
@@ -2053,7 +1898,7 @@ void CWeapon::MeleeAttack()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProjectileAttack
+// ProjectileAttack
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::ProjectileAttack()
 {
@@ -2082,7 +1927,6 @@ void CWeapon::ProjectileAttack()
 	}
 	else
 	{
-// changed RF063
 		if(WeaponD[CurrentWeapon].PBone[0] != '\0')
 		{
 			if(WeaponD[CurrentWeapon].PActor)
@@ -2092,7 +1936,6 @@ void CWeapon::ProjectileAttack()
 		}
 		else
 			geActor_GetBoneTransform(theActor, RootBoneName(theActor), &Xf );
-// end change RF063
 
 		thePosition = Xf.Translation;
 		CCD->ActorManager()->GetRotate(theActor, &theRotation);
@@ -2109,28 +1952,21 @@ void CWeapon::ProjectileAttack()
 	geXForm3d_GetIn(&Xf, &Direction);
 	geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
 
-	// geVec3d_AddScaled(&Pos, &Direction, 0.0f, &Front);
 	geVec3d_Copy(&Pos, &Front);
 
 	if(geWorld_Collision(CCD->World(), &theBox.Min, &theBox.Max, &Front, &Back,
 		GE_VISIBLE_CONTENTS, GE_COLLIDE_ALL, 0, NULL, NULL, &Collision))
     {
-// changed QD 12/15/05
-		// can't be negative (sqrt!)
-		// CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Front));
 		CurrentDistance = geVec3d_DistanceBetween(&Collision.Impact, &Front);
 
-		//if(CurrentDistance < 0.0f)
-		//	CurrentDistance = 0.0f;
-		//else
 		if(CurrentDistance > 4000.0f)
 			CurrentDistance = 4000.0f;
-// end change
 
 		geVec3d_AddScaled(&Pos, &Direction, CurrentDistance, &Back);
 
 	}
 
+	// add launchoffsets to position
 	if(ViewPoint == FIRSTPERSON)
 	{
 		if(WeaponD[CurrentWeapon].VBone[0] != '\0')
@@ -2149,7 +1985,6 @@ void CWeapon::ProjectileAttack()
 				geXForm3d_GetLeft(&Xf, &Direction);
 				geVec3d_AddScaled(&Pos, &Direction, WeaponD[CurrentWeapon].VOffset.X, &Pos);
 			}
-			//WeaponD[CurrentWeapon].VMOffset = Pos;
 		}
 		else
 		{
@@ -2169,6 +2004,7 @@ void CWeapon::ProjectileAttack()
 		geVec3d_AddScaled(&Pos, &Direction, WeaponD[CurrentWeapon].POffset.X, &Pos);
 	}
 
+	// direction from actual launch point to target
 	geVec3d_Subtract(&Back, &Pos, &Orient);
 	float l = geVec3d_Length(&Orient);
 
@@ -2176,25 +2012,17 @@ void CWeapon::ProjectileAttack()
 	if(l > 0.0f)
 	{
 		x = Orient.X;
-		// changed QD 12/15/05
-		// Orient.X = (float)(GE_PI*0.5f) - (float)acos(Orient.Y / l);
 		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
 		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
 		Orient.Z = 0.0f;	// roll is zero - always!!?
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&Xf);
-		//geXForm3d_RotateZ(&Xf, Orient.Z);
 		geXForm3d_SetZRotation(&Xf, Orient.Z);
 		geXForm3d_RotateX(&Xf, Orient.X);
 		geXForm3d_RotateY(&Xf, Orient.Y);
 		geVec3d_Set(&(Xf.Translation), Pos.X, Pos.Y, Pos.Z);
 
 		geXForm3d_GetIn(&Xf, &Direction);
-		// changed QD 12/15/05
-		// geVec3d_AddScaled(&Pos, &Direction, 1.0f, &Front);
 		geVec3d_Add(&Pos, &Direction, &Front);
-		// end change QD
 		Collision.Actor = (geActor*)NULL;
 		CCD->Collision()->IgnoreContents(false);
 
@@ -2203,10 +2031,7 @@ void CWeapon::ProjectileAttack()
 			if(Collision.Actor != theActor)
 				break;
 
-			// changed QD 12/15/05
-			// geVec3d_AddScaled(&Front, &Direction, 1.0f, &Front);
 			geVec3d_Add(&Front, &Direction, &Front);
-			// end change QD
 			Collision.Actor = (geActor*)NULL;
 		}
 
@@ -2221,9 +2046,6 @@ void CWeapon::ProjectileAttack()
 		}
 
 		geVec3d_Subtract(&Pos, &thePosition, &WeaponD[CurrentWeapon].VMOffset);
-
-// changed RF063
-		//WeaponD[CurrentWeapon].VMOffset = Direction;
 
 		GE_Contents ZoneContents;
 
@@ -2241,17 +2063,13 @@ void CWeapon::ProjectileAttack()
 				}
 			}
 		}
-// end change RF063
 		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(theActor);
 
 		if(theInv->Value(WeaponD[CurrentWeapon].Ammunition) >= WeaponD[CurrentWeapon].AmmoPerShot)
 		{
 			theInv->Modify(WeaponD[CurrentWeapon].Ammunition, -WeaponD[CurrentWeapon].AmmoPerShot);
-// changed RF063
 			Add_Projectile(Pos, Front, Orient, WeaponD[CurrentWeapon].Projectile, WeaponD[CurrentWeapon].Attribute, WeaponD[CurrentWeapon].AltAttribute);
-// changed RF064
 			WeaponD[CurrentWeapon].ShotFired += WeaponD[CurrentWeapon].AmmoPerShot;
-// end change RF064
 			if(ViewPoint == FIRSTPERSON)
 			{
 				if(WeaponD[CurrentWeapon].JerkAmt > 0.0f)
@@ -2277,12 +2095,7 @@ void CWeapon::ProjectileAttack()
 					geVec3d theRotation, thePosition, Direction;
 					CCD->ActorManager()->GetRotate(theActor, &theRotation);
 					geXForm3d_SetIdentity(&Xf);
-					//geXForm3d_RotateZ(&Xf, theRotation.Z);
-					//geXForm3d_RotateX(&Xf, theRotation.X-CCD->CameraManager()->GetTilt());
-					//geXForm3d_RotateY(&Xf, theRotation.Y);
-					//geXForm3d_RotateZ(&Xf, theRotation.Z);
 					geXForm3d_RotateX(&Xf, CCD->CameraManager()->GetTilt());
-					//geXForm3d_RotateY(&Xf, theRotation.Y);
 					thePosition = Xf.Translation;
 
 					geXForm3d_GetIn(&Xf, &Direction);
@@ -2303,7 +2116,7 @@ void CWeapon::ProjectileAttack()
 					CCD->Explosions()->AddExplosion(WeaponD[CurrentWeapon].MuzzleFlash3rd, Front);
 				}
 			}
-// end change RF063
+
 			Sound(true, thePosition, false);
 		}
 		else
@@ -2312,7 +2125,7 @@ void CWeapon::ProjectileAttack()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Add_Projectile
+// AddProjectile
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geVec3d &Orient,
 							 const char *Projectile, char *PAttribute, char *PAltAttribute)
@@ -2365,40 +2178,27 @@ void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geV
 		d->Decal = ProjD[Type].Decal;
 		d->Explosion = ProjD[Type].Explosion;
 		d->ActorExplosion = ProjD[Type].ActorExplosion;
-// changed RF064
 		d->ShowBoth = ProjD[Type].ShowBoth;
 		d->AttachActor = ProjD[Type].AttachActor;
 		d->BoneLevel = ProjD[Type].BoneLevel;
-// end change RF064
 		d->ShakeAmt = ProjD[Type].ShakeAmt;
 		d->ShakeDecay = ProjD[Type].ShakeDecay;
 		d->Damage = ProjD[Type].Damage;
-// changed RF063
 		d->AltDamage = ProjD[Type].AltDamage;
 		d->AltAttribute = PAltAttribute;
-// end change RF063
 		d->RadiusDamage = ProjD[Type].RadiusDamage;
 		d->Radius = ProjD[Type].Radius;
 		d->Attribute = PAttribute;
 		d->Name = ProjD[Type].Name;
 
-		// changed QD 12/15/05
-		//geXForm3d_SetIdentity(&XForm);
-		//geXForm3d_RotateZ(&XForm, Orient.Z);
 		geXForm3d_SetZRotation(&XForm, Orient.Z);
 		geXForm3d_RotateX(&XForm, Orient.X);
 		geXForm3d_RotateY(&XForm, Orient.Y);
-		//geVec3d_Set(&XForm.Translation, Pos.X, Pos.Y, Pos.Z);
 
 		geXForm3d_GetIn(&XForm, &(d->Direction));
 		geVec3d_Scale(&(d->Direction), ProjD[Type].Speed, &(d->Direction));
 
-		//geXForm3d_SetIdentity(&XForm);
-		// geXForm3d_RotateX(&XForm, 0.0f);
-		// geXForm3d_RotateY(&XForm, (-90.0f) / 57.3f);
 		geXForm3d_SetYRotation(&XForm, -GE_PIOVER2);
-		// geXForm3d_RotateZ(&XForm, 0.0f);
-		// end change
 		geXForm3d_GetIn(&XForm, &(d->In));
 		geVec3d_Inverse(&(d->In));
 
@@ -2413,9 +2213,7 @@ void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geV
 		CCD->ActorManager()->SetBBox(d->Actor, ProjD[Type].BoxSize, ProjD[Type].BoxSize, ProjD[Type].BoxSize);
 		CCD->ActorManager()->GetBoundingBox(d->Actor, &d->ExtBox);
 		CCD->ActorManager()->SetStepHeight(d->Actor, -1.0f);
-// changed RF064
 		CCD->ActorManager()->SetHideRadar(d->Actor, true);
-// end change RF064
 
 		if(d->Gravity)
 			CCD->ActorManager()->SetGravity(d->Actor, CCD->Player()->GetGravity());
@@ -2439,32 +2237,26 @@ void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geV
 				PlaySound(d->ImpactSoundDef, d->Pos, false);
 
 				// inflict damage
-// changed RF063
 				if(Collision.Actor)
 					CCD->Damage()->DamageActor(Collision.Actor, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute, d->Name);
 
 				if(Collision.Model)
 					CCD->Damage()->DamageModel(Collision.Model, d->Damage, d->Attribute, d->AltDamage, d->AltAttribute);
-// end change RF063
 
 				// create explosion here
-// changed RF063
 				CCD->Explosions()->AddExplosion(d->Explosion, d->Pos);
 
 				if(d->ShakeAmt>0.0f)
 					CCD->CameraManager()->SetShake(d->ShakeAmt, d->ShakeDecay, d->Pos);
 
 				if(Collision.Actor)
-// changed RF063
 					CCD->Explosions()->AddExplosion(d->ActorExplosion, d->Pos);
 
 				// Handle explosion damage here
 				if(d->RadiusDamage > 0.0f)
 				{
-// changed RF063
 					CCD->Damage()->DamageActorInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->AltAttribute, "Explosion");
 					CCD->Damage()->DamageModelInRange(d->Pos, d->Radius, d->RadiusDamage, d->Attribute, d->RadiusDamage, d->AltAttribute);
-// end change RF063
 				}
 
 				CCD->ActorManager()->RemoveActor(d->Actor);
@@ -2518,9 +2310,8 @@ void CWeapon::Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geV
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlaySound
+// PlaySound
 /* ------------------------------------------------------------------------------------ */
-// changed QD 12/15/05 - changed 2nd argument from geVec3d to const geVec3d&
 int CWeapon::PlaySound(geSound_Def *SoundDef, const geVec3d &Pos, bool Loop)
 {
 	Snd Sound;
@@ -2529,16 +2320,16 @@ int CWeapon::PlaySound(geSound_Def *SoundDef, const geVec3d &Pos, bool Loop)
 		return -1;
 
 	memset(&Sound, 0, sizeof(Sound));
-    geVec3d_Copy(&Pos, &(Sound.Pos));
+	geVec3d_Copy(&Pos, &(Sound.Pos));
     Sound.Min = CCD->GetAudibleRadius();
-    Sound.Loop = Loop;
+	Sound.Loop = Loop;
 	Sound.SoundDef = SoundDef;
 
 	return CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ZoomAmount
+// ZoomAmount
 /* ------------------------------------------------------------------------------------ */
 int CWeapon::ZoomAmount()
 {
@@ -2557,9 +2348,8 @@ int CWeapon::ZoomAmount()
 }
 
 
-//start pickles Jul 04
 /* ------------------------------------------------------------------------------------ */
-//	GetVActor
+// GetVActor
 /* ------------------------------------------------------------------------------------ */
 geActor* CWeapon::GetVActor()
 {
@@ -2567,40 +2357,18 @@ geActor* CWeapon::GetVActor()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetPActor
+// GetPActor
 /* ------------------------------------------------------------------------------------ */
 geActor* CWeapon::GetPActor()
 {
 	return WeaponD[CurrentWeapon].PActor;
 }
-//End Pickles Jul 04
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadDefaults
+// LoadDefaults
 /* ------------------------------------------------------------------------------------ */
 void CWeapon::LoadDefaults()
 {
-// changed QD 08/15/06 - moved to constructor
-/*
-	int i;
-
-	for(i=0; i<MAX_PROJD; i++)
-	{
-		memset(&ProjD[i], 0, sizeof(DefaultProj));
-		ProjD[i].active = false;
-	}
-
-	for(i=0; i<MAX_WEAPONS;i++)
-	{
-		memset(&WeaponD[i], 0, sizeof(DefaultWeapons));
-		WeaponD[i].active = false;
-		WeaponD[i].VAnimSpeed = 1.0f;
-	}
-*/
-// end change QD 08/15/06
-
-	// changed QD 12/15/05
-	//CIniFile AttrFile("weapon.ini");
 	char weaponini[64];
 
 	if(CCD->MenuManager()->GetUseSelect())
@@ -2609,7 +2377,6 @@ void CWeapon::LoadDefaults()
 		strcpy(weaponini, "weapon.ini");
 
 	CIniFile AttrFile(weaponini);
-	// end change
 
 	if(!AttrFile.ReadFile())
 	{
@@ -2680,7 +2447,6 @@ void CWeapon::LoadDefaults()
 			Type = AttrFile.GetValue(KeyName, "actorexplosion");
 			strcpy(ProjD[projptr].ActorExplosion, Type.c_str());
 
-// changed RF064
 			ProjD[projptr].ShowBoth = false;
 			Vector = AttrFile.GetValue(KeyName, "showboth");
 			if(Vector == "true")
@@ -2695,15 +2461,12 @@ void CWeapon::LoadDefaults()
 			Vector = AttrFile.GetValue(KeyName, "bonelevel");
 			if(Vector == "false")
 				ProjD[projptr].BoneLevel = false;
-// end change RF064
 
 			ProjD[projptr].ShakeAmt		= (float)AttrFile.GetValueF(KeyName, "shakeamount");
 			ProjD[projptr].ShakeDecay	= (float)AttrFile.GetValueF(KeyName, "shakedecay");
 			ProjD[projptr].BoxSize		= (float)AttrFile.GetValueF(KeyName, "boundingbox");
 			ProjD[projptr].Damage		= (float)AttrFile.GetValueF(KeyName, "damage");
-// changed RF063
 			ProjD[projptr].AltDamage	= (float)AttrFile.GetValueF(KeyName, "altdamage");
-// end change RF063
 			ProjD[projptr].Radius		= (float)AttrFile.GetValueF(KeyName, "explosionradius");
 			ProjD[projptr].RadiusDamage = (float)AttrFile.GetValueF(KeyName, "explosiondamage");
 			ProjD[projptr].Decal = AttrFile.GetValueI(KeyName, "decal");
@@ -2803,9 +2566,7 @@ void CWeapon::LoadDefaults()
 			{
 			case MELEE:
 				WeaponD[weapptr].MeleeDamage = (float)AttrFile.GetValueF(KeyName, "damage");
-// changed RF063
 				WeaponD[weapptr].MeleeAltDamage = (float)AttrFile.GetValueF(KeyName, "altdamage");
-// end change RF063
 				Type = AttrFile.GetValue(KeyName, "hitsound");
 				strcpy(WeaponD[weapptr].HitSound, Type.c_str());
 				if(Type != "")
@@ -2825,21 +2586,17 @@ void CWeapon::LoadDefaults()
 
 				Vector = AttrFile.GetValue(KeyName, "muzzleflash");
 				strcpy(WeaponD[weapptr].MuzzleFlash, Vector.c_str());
-// changed RF064
 				Vector = AttrFile.GetValue(KeyName, "muzzleflash3rd");
 				if(Vector != "")
 					strcpy(WeaponD[weapptr].MuzzleFlash3rd, Vector.c_str());
 				else
 					strcpy(WeaponD[weapptr].MuzzleFlash3rd, WeaponD[weapptr].MuzzleFlash);
-// end change RF064
 
-// changed RF063
 				WeaponD[weapptr].WorksUnderwater = true;
 				Type = AttrFile.GetValue(KeyName, "worksunderwater");
 				if(Type == "false")
 					WeaponD[weapptr].WorksUnderwater = false;
 				WeaponD[weapptr].MeleeAmmo = false;
-// end change RF063
 				break;
 			case BEAM:
 				break;
@@ -2848,7 +2605,6 @@ void CWeapon::LoadDefaults()
 			// ---------------------------------------------------------------------------
 			//							Weapon ViewPoint
 			// ---------------------------------------------------------------------------
-// changed RF064
 			WeaponD[weapptr].FixedView = -1;
 			Type = AttrFile.GetValue(KeyName, "forceviewto");
 			if(Type == "firstperson")
@@ -2859,7 +2615,6 @@ void CWeapon::LoadDefaults()
 				WeaponD[weapptr].FixedView = ISOMETRIC;
 			else if(Type == "fixed")
 				WeaponD[weapptr].FixedView = FIXEDCAMERA;
-// end change RF064
 
 			// ---------------------------------------------------------------------------
 			//							Weapon Sounds
@@ -2882,17 +2637,13 @@ void CWeapon::LoadDefaults()
 
 			Type = AttrFile.GetValue(KeyName, "attribute");
 			strcpy(WeaponD[weapptr].Attribute, Type.c_str());
-// changed RF064
 			Type = AttrFile.GetValue(KeyName, "reloadsound");
 			strcpy(WeaponD[weapptr].ReloadSound, Type.c_str());
 			if(Type != "")
 				SPool_Sound(WeaponD[weapptr].ReloadSound);
-// end change RF064
 
-// changed RF063
 			Type = AttrFile.GetValue(KeyName, "altattribute");
 			strcpy(WeaponD[weapptr].AltAttribute, Type.c_str());
-// end change RF063
 			Type = AttrFile.GetValue(KeyName, "ammunition");
 			strcpy(WeaponD[weapptr].Ammunition, Type.c_str());
 			WeaponD[weapptr].AmmoPerShot = AttrFile.GetValueI(KeyName, "ammopershot");
@@ -3013,9 +2764,7 @@ void CWeapon::LoadDefaults()
 						geXForm3d	XfT;
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
-// changed QD 07/21/04
 						geBoolean AmbientLightFromFloor = GE_TRUE;
-// end change
 						geVec3d NewFillNormal;
 						geActor_GetBoneTransform(WeaponD[weapptr].VActor, RootBoneName(WeaponD[weapptr].VActor), &Xf );
 						geXForm3d_GetTranspose(&Xf, &XfT);
@@ -3035,7 +2784,6 @@ void CWeapon::LoadDefaults()
 							AmbientColor = Extract(szName);
 						}
 
-// changed QD 07/21/04
 						Vector = AttrFile.GetValue(KeyName, "viewambientlightfromfloor");
 						if(Vector == "false")
 							AmbientLightFromFloor = GE_FALSE;
@@ -3044,7 +2792,6 @@ void CWeapon::LoadDefaults()
 
 						geActor_SetLightingOptions(WeaponD[weapptr].VActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
 						AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
-// end change
 
 						Vector = AttrFile.GetValue(KeyName, "environmentmapping");
 						if(Vector == "true")
@@ -3065,9 +2812,7 @@ void CWeapon::LoadDefaults()
 						{
 							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].VActorRotation = Extract(szName);
-							// changed QD 07/15/06 - VActorRotation converted to radians at load time
 							geVec3d_Scale(&(WeaponD[weapptr].VActorRotation), GE_PIOVER180, &(WeaponD[weapptr].VActorRotation));
-							// end change
 						}
 
 						Vector = AttrFile.GetValue(KeyName, "viewoffset");
@@ -3115,7 +2860,6 @@ void CWeapon::LoadDefaults()
 								strcpy(szName, Vector.c_str());
 								WeaponD[weapptr].VOffset = Extract(szName);
 							}
-// changed RF064
 							WeaponD[weapptr].VReload[0] = '\0';
 							Vector = AttrFile.GetValue(KeyName, "viewreloadanim");
 							strcpy(WeaponD[weapptr].VReload, Vector.c_str());
@@ -3132,7 +2876,6 @@ void CWeapon::LoadDefaults()
 							Vector = AttrFile.GetValue(KeyName, "loosemag");
 							if(Vector == "true")
 								WeaponD[weapptr].LooseMag = true;
-// end change RF064
 							Vector = AttrFile.GetValue(KeyName, "viewlaunchbone");
 							if(Vector != "")
 								strcpy(WeaponD[weapptr].VBone, Vector.c_str());
@@ -3222,15 +2965,11 @@ void CWeapon::LoadDefaults()
 						geWorld_AddActor(CCD->World(), WeaponD[weapptr].PActor, 0, 0xffffffff);
 
 						geVec3d Fill = {0.0f, 1.0f, 0.0f};
-						// changed QD 12/15/05
-						// geVec3d_Normalize(&Fill);
 						geXForm3d	Xf;
 						geXForm3d	XfT;
 						geVec3d FillColor = {255.0f, 255.0f, 255.0f};
 						geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
-// changed QD 07/21/04
 						geBoolean AmbientLightFromFloor = GE_TRUE;
-// end change
 						geVec3d NewFillNormal;
 						geActor_GetBoneTransform(WeaponD[weapptr].PActor, RootBoneName(WeaponD[weapptr].PActor), &Xf);
 						geXForm3d_GetTranspose(&Xf, &XfT);
@@ -3249,7 +2988,7 @@ void CWeapon::LoadDefaults()
 							strcpy(szName, Vector.c_str());
 							AmbientColor = Extract(szName);
 						}
-// changed QD 07/21/04
+
 						Vector = AttrFile.GetValue(KeyName, "playerambientlightfromfloor");
 						if(Vector == "false")
 							AmbientLightFromFloor = GE_FALSE;
@@ -3258,7 +2997,6 @@ void CWeapon::LoadDefaults()
 
 						geActor_SetLightingOptions(WeaponD[weapptr].PActor, GE_TRUE, &NewFillNormal, FillColor.X, FillColor.Y, FillColor.Z,
 							AmbientColor.X, AmbientColor.Y, AmbientColor.Z, AmbientLightFromFloor, 6, NULL, GE_FALSE);
-// end change
 
 						Vector = AttrFile.GetValue(KeyName, "playerenvironmentmapping");
 						if(Vector == "true")
@@ -3279,9 +3017,7 @@ void CWeapon::LoadDefaults()
 						{
 							strcpy(szName, Vector.c_str());
 							WeaponD[weapptr].PActorRotation = Extract(szName);
-							// changed QD 07/15/06 - PActorRotation converted to radians at load time
 							geVec3d_Scale(&(WeaponD[weapptr].PActorRotation), GE_PIOVER180, &(WeaponD[weapptr].PActorRotation));
-							// end change
 						}
 
 						WeaponD[weapptr].PScale = CCD->Player()->GetScale() * (float)AttrFile.GetValueF(KeyName, "playerscale");
@@ -3333,9 +3069,7 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[SLIDECLEFT], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetoright");
 						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHT], Type.c_str());
-// changed RF064
 
-// end change RF064
 						Type = AttrFile.GetValue(KeyName, "shootup");
 						strcpy(WeaponD[weapptr].Animations[SHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "shootdwn");
@@ -3396,12 +3130,10 @@ void CWeapon::LoadDefaults()
 						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT1], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "crawlslidetorightshootdwn");
 						strcpy(WeaponD[weapptr].Animations[SLIDECRIGHTSHOOT], Type.c_str());
-// changed RF063
 						Type = AttrFile.GetValue(KeyName, "swim");
 						strcpy(WeaponD[weapptr].Animations[SWIM], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "treadwater");
 						strcpy(WeaponD[weapptr].Animations[TREADWATER], Type.c_str());
-// changed RF064
 						Type = AttrFile.GetValue(KeyName, "idletowalk");
 						strcpy(WeaponD[weapptr].Animations[I2WALK], Type.c_str());
 						Type = AttrFile.GetValue(KeyName, "idletorun");
@@ -3518,7 +3250,7 @@ void CWeapon::LoadDefaults()
 								temp = strtok(NULL, " \n");
 							}
 						}
-// end change RF063
+
 						activeflag = true;
 					}
 
@@ -3538,7 +3270,7 @@ void CWeapon::LoadDefaults()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetFixedView
+// GetFixedView
 /* ------------------------------------------------------------------------------------ */
 int CWeapon::GetFixedView()
 {

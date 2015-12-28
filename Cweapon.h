@@ -39,25 +39,21 @@ typedef struct Proj
 	int			Decal;
 	char		*Explosion;
 	char		*ActorExplosion;
-// changed Rf064
 	bool		ShowBoth;
 	bool		AttachActor;
 	bool		BoneLevel;
-// end change RF064
 	float		ShakeAmt;
 	float		ShakeDecay;
 	float		Damage;
 	float		RadiusDamage;
 	float		Radius;
 	char		*Attribute;
-// changed RF063
 	float		AltDamage;
 	char		*AltAttribute;
-// end change RF063
 } Proj;
 
 /**
- * @brief Default Projectile definition
+ * @brief Projectile definition
  */
 typedef struct DefaultProj
 {
@@ -75,17 +71,13 @@ typedef struct DefaultProj
 	int			Decal;
 	char		Explosion[64];
 	char		ActorExplosion[64];
-// changed Rf064
 	bool		ShowBoth;
 	bool		AttachActor;
 	bool		BoneLevel;
-// end change RF064
 	float		ShakeAmt;
 	float		ShakeDecay;
 	float		Damage;
-// changed RF063
 	float		AltDamage;
-// end change RF063
 	float		RadiusDamage;
 	float		Radius;
 	float		Scale;
@@ -125,12 +117,9 @@ typedef struct DefaultWeapons
 	float		MeleeDamage;
 	char		MeleeExplosion[64];
 	char		Attribute[64];
-// changed RF063
     char		AltAttribute[64];
 	float		MeleeAltDamage;
 	bool		WorksUnderwater;
-// end change RF063
-// changed RF064
 	int			FixedView;
 	int			ShotperMag;
 	int			ShotFired;
@@ -138,17 +127,16 @@ typedef struct DefaultWeapons
 	bool		LooseMag;
 	int			MagAmt;
 	char		MuzzleFlash3rd[64];
-// end change RF064
 	char		Ammunition[64];
 	int			AmmoPerShot;
 	bool		MeleeAmmo;
 	char		MuzzleFlash[64];
-	geBitmap	*CrossHair;
+	geBitmap*	CrossHair;
 	bool		CrossHairFixed;
 	bool		AllowLit;
 	geVec3d		LitColor;
 	int			ZoomAmt;
-	geBitmap	*ZoomOverlay;
+	geBitmap*	ZoomOverlay;
 	bool		MoveZoom;
 
 	char		DropActor[128];
@@ -165,8 +153,8 @@ typedef struct DefaultWeapons
 	geBoolean	DropGravity;
 	geBoolean	DropHideFromRadar;
 
-	geActor		*VActor;
-	geActor_Def	*VActorDef;
+	geActor*	VActor;
+	geActor_Def* VActorDef;
 	geVec3d		VActorRotation;
 	geVec3d		VActorOffset;
 	float		VScale;
@@ -178,20 +166,16 @@ typedef struct DefaultWeapons
 	char		VHit[64];
 	char		VAltHit[64];
 	char		VWalk[64];
-// changed RF064
 	char		VReload[64];
 	char		VKeyReload[64];
 	char		VAttackEmpty[64];
 	char		VUse[64];
-// end change RF064
 	geVec3d		VOffset;
 	geVec3d		VMOffset;
 	char		VBone[64];
-// changed RF063
 	float		JerkAmt;
 	float		JerkDecay;
 	float		BobAmt;
-// end change RF063
 
 	geActor		*PActor;
 	geActor_Def	*PActorDef;
@@ -200,13 +184,11 @@ typedef struct DefaultWeapons
 	char		PBone[64];
 	float		PScale;
 	char		Animations[ANIMMAX][64];
-// changed RF063
 	float		PMOffset;
 	char		DieAnim[5][64];
 	int			DieAnimAmt;
 	char		InjuryAnim[5][64];
 	int			InjuryAnimAmt;
-// end change RF063
 	geFloat		F, H, J;
 	geFloat		G, K, L, Z;
 
@@ -219,9 +201,9 @@ typedef struct DefaultWeapons
 #define MAX_WEAPONS		40
 #define MAX_PROJD       50
 
- /**
-  * @brief Possible actions of 1st person weapons
-  */
+/**
+ * @brief Possible actions of 1st person weapons
+ */
 typedef enum
 {
 	VWEPCHANGE = 0,
@@ -230,12 +212,10 @@ typedef enum
 	VWEPWALK,
 	VWEPATTACK,
 	VWEPALTATTACK,
-// changed RF064
 	VWEPRELOAD,
 	VWEPKEYRELOAD,
 	VWEPATTACKEMPTY,
 	VWEPUSE,
-// end change RF064
 	VWEPHIT,
 	VWEPALTHIT
 
@@ -264,33 +244,37 @@ public:
 
 	void DoAttack();
 
-	// changed RF063
 	int SaveTo(FILE *SaveFD);
 	int RestoreFrom(FILE *RestoreFD);
 
 	void ChangeWeapon(const char *name);
 	char *DieAnim();
 	char *InjuryAnim();
-	// end change RF063
 
 	void SetWeapon(int value);
 	void WeaponData();
+
 	void Attack(bool Alternate);
-	// changed RF063
+
 	void Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geVec3d &Orient,
 						const char *Projectile, char *PAttribute, char *PAltAttribute);
-	// end change RF063
 
 	bool CrossHair();
+
 	bool CrossHairFixed();
+
 	void DisplayCrossHair();
-	geBitmap *GetCrossHair();
+
+	geBitmap* GetCrossHair();
 
 	int ZoomAmount();
+
 	void DisplayZoom();
 
 	void Rendering(bool flag);
+
 	void ReSetWeapon(int value);
+
 	void ClearWeapon();
 	char *PlayerAnim(int index);
 	int GetSlot(int index)				{ return Slot[index];	}
@@ -298,16 +282,15 @@ public:
 	int GetCurrent()					{ return CurrentWeapon;	}
 	void SetCurrent(int value)			{ CurrentWeapon = value;}
 
-	//start pickles Jul 04
 	geActor	*GetVActor();
 	geActor	*GetPActor();
-	//end pickles Jul 04
 
 	geVec3d GetCrossPoint()			{ return CrossPoint; }
 
-	// changed RF064
 	void KeyReload();
+
 	void DropWeapon();
+
 	void Use();
 	void SetView(int value)			{ ViewPoint = value; OldViewPoint = value;	}
 	const char *GetWeaponName()		{ return WeaponD[CurrentWeapon].Name;		}
@@ -318,38 +301,36 @@ public:
 	geVec3d GetLitColor()			{ return WeaponD[CurrentWeapon].LitColor;	}
 	bool GetAllowLit()				{ return WeaponD[CurrentWeapon].AllowLit;	}
 	bool GetAllowMoveZoom()			{ return WeaponD[CurrentWeapon].MoveZoom;	}
-	// end change RF064
 
 	bool GetAttackFlag()			{ return AttackFlag;}
 	void SetAttackFlag(bool flag)	{ AttackFlag = flag;}
 
-	// changed RF063
 	geVec3d GetProjectedPoint()		{ return ProjectedPoint; }
+
 	int GetFixedView();
-	// end change RF063
 
 private:
 	void DisplayThirdPerson(int index);
 	void DisplayFirstPerson(int index);
 	void Sound(bool Attack, const geVec3d &Origin, bool Empty);
+
 	void MeleeAttack();
+
 	void ProjectileAttack();
+
 	int PlaySound(geSound_Def *SoundDef, const geVec3d &Pos, bool Loop);
+
 	void LoadDefaults();
-	// changed RF064
+
 	void DoChange();
-	// end change RF064
+
 	void SpawnWeaponAttribute(int index);
 
 private:
-	// changed QD 12/15/05
-	//int				Slot[10];
 	int				Slot[MAX_WEAPONS];
 	int				ViewPoint;
-	// changed RF064
 	int				OldViewPoint;
 	bool			dropflag;
-	// end change RF064
 	int				CurrentWeapon;
 	int				AttackTime;
 	bool			AttackFlag;
@@ -370,9 +351,7 @@ private:
 	DefaultWeapons	WeaponD[MAX_WEAPONS];
 
 	geVec3d			CrossPoint;
-	// changed RF063
 	geVec3d			ProjectedPoint;
-	// end change RF063
 };
 
 #endif
