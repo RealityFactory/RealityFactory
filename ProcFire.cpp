@@ -53,7 +53,7 @@ Procedural *Fire_Create(const char *TextureName, geWorld  *World, const char *Pa
 
 	if(!ppBitmap)
 	{
-		ppBitmap = geBitmap_Create(BM_WIDTH,BM_HEIGHT,1, GE_PIXELFORMAT_8BIT_PAL);
+		ppBitmap = geBitmap_Create(BM_WIDTH, BM_HEIGHT, 1, GE_PIXELFORMAT_8BIT_PAL);
 
 		if(!ppBitmap)
 		{
@@ -110,7 +110,7 @@ Procedural *Fire_Create(const char *TextureName, geWorld  *World, const char *Pa
 void Fire_Destroy(Procedural *P)
 {
 	if(!P)
-	  return;
+		return;
 
 	if(P->Bitmap)
 		geBitmap_Destroy(&(P->Bitmap));
@@ -120,7 +120,7 @@ void Fire_Destroy(Procedural *P)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-geBoolean Fire_Animate(Procedural *P, geFloat time)
+geBoolean Fire_Animate(Procedural *P, geFloat /*time*/)
 {
 	if(!FireAnimator_CreateFire(P))
 		return GE_FALSE;
@@ -266,7 +266,7 @@ static geBoolean FireAnimator_CreateFire(Procedural * Proc)
 	}
 	else
 	{
-		FireInfo.Height --;
+		FireInfo.Height--;
 
 		if(!geBitmapUtil_SmoothBits(&FireInfo, FireBits + s, FireBits, 2, SMOOTH_WRAP))
 			goto fail;

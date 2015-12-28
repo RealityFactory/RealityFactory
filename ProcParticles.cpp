@@ -59,15 +59,15 @@ static const char * Params_Explosion = "300, 1,fire,	1, 1, bounce, f, f,"
 #define PIXEL_COLOR(pel,nc)	((pel)%(nc))
 
 typedef struct Procedural	Procedural;
-typedef void (*CoordCapperFunc) (geFloat *x,geFloat *v, int size);
-typedef void (*PixelRGBAFunc) (Procedural *Proc,int c,int s,int *R,int *G,int *B,int *);
+typedef void (*CoordCapperFunc) (geFloat *x, geFloat *v, int size);
+typedef void (*PixelRGBAFunc) (Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A);
 
 typedef struct
 {
 	geFloat	p[3];			// position in pixels
 	geFloat	v[3];			// velocity in pixels per second
-	int		color,shade;	// shade < 0 for inactive
-	geFloat DeathTime,CurDeathTime;
+	int		color, shade;	// shade < 0 for inactive
+	geFloat DeathTime, CurDeathTime;
 	geFloat Drag;
 
 } Particle;
@@ -77,7 +77,7 @@ typedef struct
 	Particle	Base;
 	Particle	Random;
 	geFloat		RandomVMagnitude;
-	geFloat 	Delay,CurTime;
+	geFloat 	Delay, CurTime;
 
 } ParticleSource;
 
@@ -88,12 +88,12 @@ typedef struct Procedural
 	ParticleSource	*Sources;
 
 	int				NumActiveParticles;
-	int				SizeX,SizeY,SizeZ;
+	int				SizeX, SizeY, SizeZ;
 	geBitmap_Info	BmInfo;
 
-	int				NumParticles,NumSources;
-	int				NumColors,NumShades;
-	int				NumSmoothes,SmoothRadius;
+	int				NumParticles, NumSources;
+	int				NumColors, NumShades;
+	int				NumSmoothes, SmoothRadius;
 	geBoolean		SmoothWrap;
 
 	CoordCapperFunc Capper;
@@ -104,7 +104,7 @@ typedef struct Procedural
 
 	geBoolean		DoAttractor;
 	geBoolean		AttractorIsAxis;
-	geVec3d			AttractorPos,AttractorAxis;
+	geVec3d			AttractorPos, AttractorAxis;
 	geFloat			AttractorStrength;
 
 } Procedural;
@@ -114,49 +114,49 @@ typedef struct Procedural
 /* ------------------------------------------------------------------------------------ */
 
 static geBoolean Particles_InitBitmap(geBitmap *ppBitmap);
-static geBoolean Particles_InitPalette(Procedural * Proc);
-void Particles_Destroy(Procedural * Proc);
+static geBoolean Particles_InitPalette(Procedural *Proc);
+void Particles_Destroy(Procedural *Proc);
 
 static Particle * Particles_NewParticle(Procedural *Proc);
-static void Particles_EmitSources(Procedural *Proc,geFloat time);
-static void Particles_MoveParticles(Procedural * Proc,geFloat time);
+static void Particles_EmitSources(Procedural *Proc, geFloat time);
+static void Particles_MoveParticles(Procedural *Proc, geFloat time);
 static geBoolean Particles_Draw(Procedural *Proc);
 
-static void Capper_Wrap(geFloat *x,geFloat *v, int size);
-static void Capper_Hard(geFloat *x,geFloat *v, int size);
-static void Capper_Bounce(geFloat *x,geFloat *v, int size);
+static void Capper_Wrap(geFloat *x, geFloat *v, int size);
+static void Capper_Hard(geFloat *x, geFloat *v, int size);
+static void Capper_Bounce(geFloat *x, geFloat *v, int size);
 
-static void PixelRGBA_OilColor(Procedural *Proc,int c,int s,int *R,int *G,int *B,int *A);
-static void PixelRGBA_FireColor(Procedural *Proc,int c,int s,int *R,int *G,int *B,int *A);
-static void PixelRGBA_OpaqueFireColor(Procedural *Proc,int c,int s,int *R,int *G,int *B,int *A);
-static void PixelRGBA_SteamColor(Procedural *Proc,int c,int s,int *R,int *G,int *B,int *A);
+static void PixelRGBA_OilColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A);
+static void PixelRGBA_FireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A);
+static void PixelRGBA_OpaqueFireColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A);
+static void PixelRGBA_SteamColor(Procedural *Proc, int c, int s, int *R, int *G, int *B, int *A);
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 
-#define ABS(x)	( (x) < 0 ? (-(x)) : (x) )
-#define minmax(x,lo,hi) ( (x)<(lo)?(lo):( (x)>(hi)?(hi):(x)) )
-#define putminmax(x,lo,hi) x = minmax(x,lo,hi)
+#define ABS(x)				( (x) < 0 ? (-(x)) : (x) )
+#define minmax(x,lo,hi)		( (x)<(lo)?(lo):( (x)>(hi)?(hi):(x)) )
+#define putminmax(x,lo,hi)	x = minmax(x,lo,hi)
 
 static const char * strbreakers = " ,`\t\n\r\034\009";
 
 #define nextparam(pstr)		do{ pstr = strtok((char *)NULL,strbreakers); if ( ! pstr ) { Particles_Destroy(Proc);  return (Procedural *)NULL; } } while(0)
 #define getint(pstr)		atol(pstr); nextparam(pstr);
-#define getbool(pstr)		(toupper(*pstr) == 'T' ? GE_TRUE : (toupper(*pstr) == 'F' ? GE_FALSE : (atol(pstr)) ) ); nextparam(pstr);
-#define getvec(pstr,pvec)	do{ ((geVec3d *)pvec)->X = getfloat(pstr); ((geVec3d *)pvec)->Y = getfloat(pstr); ((geVec3d *)pvec)->Z = getfloat(pstr); } while(0)
+#define getbool(pstr)		(toupper(*(pstr)) == 'T' ? GE_TRUE : (toupper(*(pstr)) == 'F' ? GE_FALSE : (atol(pstr)))); nextparam(pstr);
 #define getfloat(pstr)		static_cast<float>(atof(pstr)); nextparam(pstr);
+#define getvec(pstr, pvec)	do{ ((geVec3d *)pvec)->X = getfloat(pstr); ((geVec3d *)pvec)->Y = getfloat(pstr); ((geVec3d *)pvec)->Z = getfloat(pstr); } while(0)
 #define scalevec(pvec)		do{ ((geVec3d *)pvec)->X *= Proc->SizeX; ((geVec3d *)pvec)->Y *= Proc->SizeY; ((geVec3d *)pvec)->Z *= Proc->SizeZ; } while(0)
 #define absvec(pvec)		do{ ((geVec3d *)pvec)->X = ABS(((geVec3d *)pvec)->X); ((geVec3d *)pvec)->Y = ABS(((geVec3d *)pvec)->Y); ((geVec3d *)pvec)->Z = ABS(((geVec3d *)pvec)->Z); } while(0)
-#define matchstr(str,vs)	(strnicmp(str, vs, strlen(vs)) == 0)
+#define matchstr(str, vs)	(strnicmp(str, vs, strlen(vs)) == 0)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 Procedural* Particles_Create(const char *TextureName, geWorld *World, const char *InputParams)
 {
-    Procedural *Proc;
-    int i;
-    char ParamWork[8192],*pstr;
-    geBitmap	*ppBitmap;
+	Procedural *Proc;
+	int i;
+	char ParamWork[8192],*pstr;
+	geBitmap	*ppBitmap;
 
 	Proc = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
@@ -169,30 +169,28 @@ Procedural* Particles_Create(const char *TextureName, geWorld *World, const char
 
 	/**** read Params *****/
 
-// changed RF064 by QD
 	if(!strcmp(InputParams, "Params_Oil"))
 	{
 		strcpy(ParamWork, Params_Oil);
 	}
 	else if(!strcmp(InputParams, "Params_Jet"))
 	{
-		strcpy(ParamWork,Params_Jet);
+		strcpy(ParamWork, Params_Jet);
 	}
 	else if(!strcmp(InputParams, "Params_Steam"))
 	{
-		strcpy(ParamWork,Params_Steam);
+		strcpy(ParamWork, Params_Steam);
 	}
 	else if(!strcmp(InputParams, "Params_Explosion") || strlen(InputParams) < 20 )
 	{
-		strcpy(ParamWork,DefaultParams);
+		strcpy(ParamWork, DefaultParams);
 	}
-// end change RF064 by QD
 	else
 	{
-		strcpy(ParamWork,InputParams);
+		strcpy(ParamWork, InputParams);
 	}
 
-	pstr = strtok(ParamWork,strbreakers);
+	pstr = strtok(ParamWork, strbreakers);
 
 	Proc->NumParticles = getint(pstr);
 	Proc->NumSources = getint(pstr);
@@ -284,12 +282,12 @@ Procedural* Particles_Create(const char *TextureName, geWorld *World, const char
 		Proc->Capper = Capper_Bounce;
 		Proc->SmoothWrap = GE_FALSE;
 	}
-	else if(matchstr(pstr,"wrap"))
+	else if(matchstr(pstr, "wrap"))
 	{
 		Proc->Capper = Capper_Wrap;
 		Proc->SmoothWrap = GE_TRUE;
 	}
-	else if(matchstr(pstr,"hard"))
+	else if(matchstr(pstr, "hard"))
 	{
 		Proc->Capper = Capper_Hard;
 		Proc->SmoothWrap = GE_FALSE;
@@ -354,8 +352,8 @@ Procedural* Particles_Create(const char *TextureName, geWorld *World, const char
 		// random
 		pParticle = &(pSource->Random);
 
-		getvec(pstr,pParticle->p);
-		getvec(pstr,pParticle->v);
+		getvec(pstr, pParticle->p);
+		getvec(pstr, pParticle->v);
 
 		scalevec(pParticle->p);
 		scalevec(pParticle->v);
@@ -444,7 +442,7 @@ static void Particles_DeleteParticle(Procedural *Proc, Particle *pP)
 {
 	Particle *pPNew;
 	pPNew = Proc->Particles + (Proc->NumActiveParticles - 1);
-	Proc->NumActiveParticles --;
+	Proc->NumActiveParticles--;
 	*pP = *pPNew;
 	pPNew->shade = -1;
 }

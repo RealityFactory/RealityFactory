@@ -51,9 +51,9 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural * Proc, double time);
 /* ------------------------------------------------------------------------------------ */
 Procedural *Plasma_Create(const char *TextureName, geWorld *World, const char *ParmStart)
 {
-    Procedural *P;
-    geBoolean DoAlpha = GE_FALSE;
-    geBitmap *ppBitmap;
+	Procedural *P;
+	geBoolean DoAlpha = GE_FALSE;
+	geBitmap *ppBitmap;
 
 	P = GE_RAM_ALLOCATE_STRUCT(Procedural);
 
@@ -115,7 +115,7 @@ Procedural *Plasma_Create(const char *TextureName, geWorld *World, const char *P
 	}
 	else
 	{
-		char * pstr;
+		char *pstr;
 		char ParmWork[1024];
 
 		P->PlasmaPalette = GE_FALSE;
@@ -180,7 +180,7 @@ Procedural *Plasma_Create(const char *TextureName, geWorld *World, const char *P
 	P->circle7 = ( rand() % 10 ) * 0.1;
 	P->circle8 = ( rand() % 10 ) * 0.1;
 
-    return P;
+	return P;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -212,7 +212,7 @@ geBoolean Plasma_Animate(Procedural *P, float time)
 	if(!PlasmaAnimator_CreatePlasma(P, time))
 		return GE_FALSE;
 
-    return GE_TRUE;
+	return GE_TRUE;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -247,8 +247,8 @@ static geBoolean PlasmaAnimator_CreatePalette(Procedural *P, double time)
 		goto fail;
 
 	{
-		int p,r,g,b;
-		uint8 * PalPtr;
+		int p, r, g, b;
+		uint8 *PalPtr;
 		double R,G,B;
 		geFloat u;
 
@@ -264,11 +264,11 @@ static geBoolean PlasmaAnimator_CreatePalette(Procedural *P, double time)
 
 			#define mycol(u, a) static_cast<int>((cos((u) + (a)) + 1.0) * 127.0)
 
-			r = mycol(u,R);
-			g = mycol(u,G);
-			b = mycol(u,B);
+			r = mycol(u, R);
+			g = mycol(u, G);
+			b = mycol(u, B);
 
-			gePixelFormat_PutColor(PalFormat,&PalPtr,r,g,b,0xFF);
+			gePixelFormat_PutColor(PalFormat, &PalPtr, r, g, b, 0xFF);
 		}
 
 		P->R += R_PAL_STEP * time * 30.0;
@@ -299,7 +299,7 @@ static int calculated = 0;
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-static void CalculateTables(Procedural * Proc)
+static void CalculateTables(Procedural * /*Proc*/)
 {
 	int x,y;
 	uint8 *ptab1,*ptab2;
@@ -351,7 +351,7 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 
 	geBitmap_SetGammaCorrection(Bitmap, 1.0f, GE_FALSE);
 
-	if(!geBitmap_LockForWriteFormat(Bitmap,&PlasmaLock,0,0,GE_PIXELFORMAT_8BIT_PAL))
+	if(!geBitmap_LockForWriteFormat(Bitmap, &PlasmaLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
 		geBitmap_SetFormat(Bitmap, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, NULL);
 		geBitmap_LockForWriteFormat(Bitmap, &PlasmaLock, 0, 0, GE_PIXELFORMAT_8BIT_PAL);
@@ -405,9 +405,9 @@ static geBoolean PlasmaAnimator_CreatePlasma(Procedural *Proc, double time)
 
 		// this is the inner loop;
 		// it's very lean, but also not blazing fast, cuz
-		//  this is very bad on the cache
-		// we have we have FIVE different active segments of memory,
-		//	(bptr,ptab1+o1,ptab2+o2,ptab2+o3,ptab2+o4) all of which are
+		// this is very bad on the cache
+		// we have FIVE different active segments of memory,
+		// (bptr,ptab1+o1,ptab2+o2,ptab2+o3,ptab2+o4) all of which are
 		// too large to fit in the L1 cache, so each mem-hit is 4 clocks
 
 		if(Proc->Displacer)

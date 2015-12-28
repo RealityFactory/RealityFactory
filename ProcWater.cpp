@@ -34,7 +34,7 @@ static geBoolean Water_ApplyToBitmap(Procedural *Water);
 static void Water_Update(Procedural *Water, geFloat Time);
 
 /* ------------------------------------------------------------------------------------ */
-//	Water_Create
+// Water_Create
 /* ------------------------------------------------------------------------------------ */
 Procedural *Water_Create(const char *TextureName, geWorld *World)
 {
@@ -53,10 +53,8 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 	if(Water->Bitmap == NULL)
 	{
-// changed QD 12/15/05
 		if(Water)
 		    Water_Destroy(Water);
-// end change
 
 		return NULL;
 	}
@@ -171,7 +169,7 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Water_Destroy
+// Water_Destroy
 /* ------------------------------------------------------------------------------------ */
 void Water_Destroy(Procedural *Water)
 {
@@ -197,9 +195,9 @@ void Water_Destroy(Procedural *Water)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Water_BuildRGBLuts
+// Water_BuildRGBLuts
 /* ------------------------------------------------------------------------------------ */
-static void Water_BuildRGBLuts(Procedural *Water, geFloat RScale, geFloat GScale, geFloat BScale)
+static void Water_BuildRGBLuts(Procedural *Water, geFloat /*RScale*/, geFloat /*GScale*/, geFloat /*BScale*/)
 {
 	int32		i, j;
 
@@ -341,7 +339,7 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 			else
 				Val = *(Dest + W * (H-1));
 
-			if(i < H-1)						// Get bottom
+			if(i < H-1)							// Get bottom
 				Val += *(Dest + W);
 			else
 				Val += *(Dest - W * (H-1));
@@ -351,7 +349,7 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 			else
 				Val += *(Dest + (W-1));
 
-			if(j < W-1)						// Get right
+			if(j < W-1)							// Get right
 				Val += *(Dest + 1);
 			else
 				Val += *(Dest - (W-1));
@@ -368,7 +366,7 @@ static void CalcRippleData(int16 *Src, int16 *Dest, int16 Density, int32 W, int3
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FloatMod
+// FloatMod
 /* ------------------------------------------------------------------------------------ */
 static geFloat FloatMod(geFloat In, geFloat Wrap)
 {
@@ -383,7 +381,7 @@ static geFloat FloatMod(geFloat In, geFloat Wrap)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Water_Update
+// Water_Update
 /* ------------------------------------------------------------------------------------ */
 static void Water_Update(Procedural *Water, geFloat Time)
 {

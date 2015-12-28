@@ -434,9 +434,9 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 	char *pstr;
 	const char * strbreakers = " ,\t\n\r\34\39\09";
 
-#define nextparam()	do{ if(!pstr) { goto fail; }; pstr = strtok((char*)NULL,strbreakers); }while(0)
-#define getint()	(pstr == NULL) ? 0 : atol(pstr); nextparam();
-#define getfloat()	(pstr == NULL) ? 0.0f : (geFloat)atof(pstr); nextparam();
+#define nextparam()	do{ if(!(pstr)) { goto fail; }; (pstr) = strtok(NULL, strbreakers); } while(0)
+#define getint()	((pstr) == NULL) ? 0 : atol(pstr); nextparam();
+#define getfloat()	((pstr) == NULL) ? 0.0f : static_cast<geFloat>(atof(pstr)); nextparam();
 
 	if(pParams)
 	{
@@ -444,10 +444,10 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 	}
 	else
 	{
-		strcpy(ParamWork,"list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
+		strcpy(ParamWork, "list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
 	}
 
-	pstr = strtok(ParamWork,strbreakers);
+	pstr = strtok(ParamWork, strbreakers);
 
 	Pal = geBitmap_Palette_Create(GE_PIXELFORMAT_32BIT_ARGB, 256);
 
@@ -473,11 +473,11 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 	if(strnicmp(pstr, "list", 4) == 0)
 	{
 		int p, lp, r, g, b, a;
-		uint8 * PalPtr;
+		uint8 *PalPtr;
 		int NumColors;
 		int pr, pg, pb, pa;
 		int nr, ng, nb, na;
-		double cstep,nextc,icstep;
+		double cstep, nextc, icstep;
 
 		nextparam();
 		NumColors = getint();
@@ -488,7 +488,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 			pParams = NULL;
 			strcpy(ParamWork, "list, 3, 0,0,0,0, 200,50,0,100, 255,100,50,255");
 		}
-		else if( NumColors < 2)
+		else if(NumColors < 2)
 			goto fail;
 
 		cstep = 256.0 / static_cast<double>(NumColors - 1);
@@ -526,7 +526,7 @@ geBoolean ProcUtil_SetPaletteFromString(geBitmap *Bitmap, char **pParams)
 			b = (int)(pb + (nb - pb)*(p - lp)*icstep);
 			a = (int)(pa + (na - pa)*(p - lp)*icstep);
 
-			gePixelFormat_PutColor(PalFormat,&PalPtr,min(r,255),min(g,255),min(b,255),min(a,255));
+			gePixelFormat_PutColor(PalFormat, &PalPtr, min(r,255), min(g,255), min(b,255), min(a,255));
 		}
 	}
 	else if(strnicmp(pstr, "pow", 4) == 0)

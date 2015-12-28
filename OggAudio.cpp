@@ -12,9 +12,9 @@
 #include "OggAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	OggAudio
+// OggAudio
 //
-//	Default constructor, takes a DirectSound pointer
+// Default constructor, takes a DirectSound pointer
 /* ------------------------------------------------------------------------------------ */
 OggAudio::OggAudio(LPDIRECTSOUND lpDS)
 {
@@ -31,9 +31,9 @@ OggAudio::OggAudio(LPDIRECTSOUND lpDS)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	~OggAudio
+// ~OggAudio
 //
-//	Default destructor
+// Default destructor
 /* ------------------------------------------------------------------------------------ */
 OggAudio::~OggAudio()
 {
@@ -58,27 +58,27 @@ OggAudio::~OggAudio()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Load
+// Load
 //
-//	Creates a new audio stream and sets up a timer for it.
+// Creates a new audio stream and sets up a timer for it.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Load(const char *szFileName)
 {
 	int nError = 0;
 
-	//	Sanity check parameters
+	// Sanity check parameters
 	if(szFileName == NULL)
 	{
 		return RGF_FAILURE;			// Wrong.
 	}
 
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream != NULL)
 	{
 		return RGF_FAILURE;		// Already loaded
 	}
 
-	//	Open up the WAVE file.
+	// Open up the OGG file.
 	vf = fopen(szFileName, "rb");
 
 	if(vf)
@@ -99,22 +99,22 @@ int OggAudio::Load(const char *szFileName)
 	LPDIRECTSOUND pDSIF;
 	nError = m_pDS->QueryInterface(IID_IDirectSound, reinterpret_cast<LPVOID*>(&pDSIF));
 
-	//	Create a DSound buffer to stream into
+	// Create a DSound buffer to stream into
 	DSBUFFERDESC theDesc;
 	vorbis_info *vi = ov_info(&ovf,-1);
 
-	memset (&theDesc, 0, sizeof (DSBUFFERDESC));
+	memset(&theDesc, 0, sizeof(DSBUFFERDESC));
 
-	theDesc.dwSize = sizeof (DSBUFFERDESC);
+	theDesc.dwSize = sizeof(DSBUFFERDESC);
 	theDesc.dwBufferBytes = kBufferSize;
 	theDesc.lpwfxFormat =(LPWAVEFORMATEX) malloc(sizeof(WAVEFORMATEX));
 	theDesc.lpwfxFormat->wFormatTag = WAVE_FORMAT_PCM;
 	theDesc.lpwfxFormat->nChannels = vi->channels;
 	theDesc.lpwfxFormat->nSamplesPerSec = vi->rate;
-	theDesc.lpwfxFormat->nBlockAlign = vi->channels*2;
+	theDesc.lpwfxFormat->nBlockAlign = vi->channels * 2;
 	theDesc.lpwfxFormat->wBitsPerSample = 16;
 	theDesc.lpwfxFormat->cbSize = 0;
-	theDesc.lpwfxFormat->nAvgBytesPerSec = theDesc.lpwfxFormat->nSamplesPerSec*theDesc.lpwfxFormat->nBlockAlign;
+	theDesc.lpwfxFormat->nAvgBytesPerSec = theDesc.lpwfxFormat->nSamplesPerSec * theDesc.lpwfxFormat->nBlockAlign;
 
 	nError = pDSIF->CreateSoundBuffer(&theDesc, &m_pStream, NULL);
 
@@ -137,7 +137,7 @@ int OggAudio::Load(const char *szFileName)
 
 	PumpWave(kBufferSize);					// Initial buffer load
 
-	//	Ok, file loaded and ready to rock, start a timer for this stream.
+	// Ok, file loaded and ready to rock, start a timer for this stream.
 	Pumping = false;
 	MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, (DWORD)this,
 									TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
@@ -153,13 +153,13 @@ int OggAudio::Load(const char *szFileName)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Play
+// Play
 //
-//	Start this stream buffer playing, with or without looping.
+// Start this stream buffer playing, with or without looping.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Play(bool bLooping)
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Play]: no stream", false);
@@ -169,18 +169,19 @@ int OggAudio::Play(bool bLooping)
 	m_fActive = true;
 	m_bLoops = bLooping;
 
-	m_pStream->Play(0, 0, DSBPLAY_LOOPING);		// Start playback
+	m_pStream->Play(0, 0, DSBPLAY_LOOPING);
+
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Stop
+// Stop
 //
-//	Stop this stream from playing back.
+// Stop this stream from playing back.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Stop()
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Stop]: no stream", false);
@@ -191,17 +192,18 @@ int OggAudio::Stop()
 
 	m_pStream->Stop();								// Stop playback
 	OggPcmPos = 0;
+
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Pause
+// Pause
 //
-//	Pause/unpause this stream's playback.
+// Pause/unpause this stream's playback.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Pause()
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Pause]: no stream", false);
@@ -217,13 +219,13 @@ int OggAudio::Pause()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Delete
+// Delete
 //
-//	Delete this stream - stop it and kill the timer, close file;
+// Delete this stream - stop it and kill the timer, close file;
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Delete()
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Delete]: no stream", false);
@@ -233,53 +235,55 @@ int OggAudio::Delete()
 	Stop();											// Stop playback
 
 	timeKillEvent(m_nTimerID);						// Kill timer
+
 	ov_clear(&ovf);
 	fclose(vf);
+
 	m_pStream->Release();
 	m_pStream = NULL;
+
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Rewind
+// Rewind
 //
-//	Reposition stream playback to the start of the wave data
+// Reposition stream playback to the start of the wave data
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::Rewind()
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Rewind]: no stream", false);
-		return RGF_FAILURE;								// No stream
+		return RGF_FAILURE;							// No stream
 	}
 
-	//	Check to be sure it's active
+	// Check to be sure it's active
 	if(m_fActive == false)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::Rewind]: attempting to rewind an inactive stream", false);
-		return RGF_FAILURE;								// Not an active stream
+		return RGF_FAILURE;							// Not an active stream
 	}
 
-	//	Ok, position to the start of the WAVE DATA
+	// Ok, position to the start of the WAVE DATA
 	ov_pcm_seek(&ovf, 0);
+	m_fEOF = false;									// Not EOF any longer
 
-	m_fEOF = false;										// Not EOF any longer
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	IsPlaying
+// IsPlaying
 //
-//	Returns TRUE if the stream is actively playing, FALSE otherwise
-//	..If the stream is at EOF that qualifies as "not playing".
+// Returns TRUE if the stream is actively playing, FALSE otherwise
 /* ------------------------------------------------------------------------------------ */
 bool OggAudio::IsPlaying()
 {
-	//	Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 	{
-		return false;										// No stream
+		return false;								// No stream
 	}
 
 	if((m_fEOF == true) || (m_fActive == false))
@@ -287,35 +291,35 @@ bool OggAudio::IsPlaying()
 		return false;										// Not playing
 	}
 
-	return true;											// Is playing
+	return true;									// Is playing
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetVolume
+// SetVolume
 //
-//	Set the playback volume of the audio stream.
+// Set the playback volume of the audio stream.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::SetVolume(int nVolume)
 {
-	//	Sanity check parameter
+	// Sanity check parameter
 	if(m_pStream == NULL)
 	{
 		CCD->ReportError("[WARNING] [OggAudio::SetVolume]: no stream", false);
-		return RGF_FAILURE;						// Bad parameter
+		return RGF_FAILURE;							// Bad parameter
 	}
 
 	m_pStream->SetVolume(nVolume);				// Set it!
 	return RGF_SUCCESS;
 }
 
-//	******************* PRIVATE MEMBER FUNCTIONS **********************
+// ******************* PRIVATE MEMBER FUNCTIONS **********************
 
 /* ------------------------------------------------------------------------------------ */
-//	PumpWave
+// PumpWave
 //
-//	Fill the streaming audio buffer from the ogg file, making sure that
-//	..there's always something (up to and including silence) in the
-//	..buffer for playback.
+// Fill the streaming audio buffer from the ogg file, making sure that
+// ..there's always something (up to and including silence) in the
+// ..buffer for playback.
 /* ------------------------------------------------------------------------------------ */
 int OggAudio::PumpWave(int nSize)
 {
@@ -324,18 +328,17 @@ int OggAudio::PumpWave(int nSize)
 	DWORD dwsize1 = 0, dwsize2 = 0;
 	UINT nBytesRead = 0;
 
-	//	Ok, we need to set up our "silence" value and adjust it for
-	//	..8bit samples if needed.
+	// Ok, we need to set up our "silence" value and adjust it for
+	// ..8bit samples if needed.
 	int nSilence = 0x0;
 
-	//	Ok, try to lock <n>K of the buffer.  If it fails, just bail this
-	//	..function.
+	// Ok, try to lock <n>K of the buffer.  If it fails, just bail this function.
 	hr = m_pStream->Lock(OggPcmPos, nSize, &lpbuf1, &dwsize1, &lpbuf2, &dwsize2, 0);
 
 	if(hr != DS_OK)
 	{
 		OutputDebugString("[OggAudio:Pumpwave]:error locking stream");
-		return RGF_FAILURE;								//  bail out
+		return RGF_FAILURE;								// bail out
 	}
 
 	if(lpbuf1 != NULL)
@@ -358,8 +361,8 @@ int OggAudio::PumpWave(int nSize)
 		return RGF_SUCCESS;								// Inactive, pump silence
 	}
 
-	//	Fine, read data into the circular buffer directly from the
-	//	..wave file if there's anything there.
+	// Fine, read data into the circular buffer directly from the
+	// ..wave file if there's anything there.
 	int Oggread;
 	char* lpb = (char*)lpbuf1;
 	nBytesRead = 0;
@@ -369,7 +372,7 @@ int OggAudio::PumpWave(int nSize)
 	{
 		Oggread = ov_read(&ovf, (char*)lpb, dwsize1-nBytesRead, 0, 2, 1, &cs);
 
-		if(Oggread >0 )
+		if(Oggread > 0)
 		{
 			nBytesRead += Oggread;
 			lpb += Oggread;
@@ -383,7 +386,7 @@ int OggAudio::PumpWave(int nSize)
 		nBytesRead = 0;
 		lpb = static_cast<char*>(lpbuf2);
 
-		while(nBytesRead<dwsize2 && !m_fEOF)
+		while(nBytesRead < dwsize2 && !m_fEOF)
 		{
 			Oggread = ov_read(&ovf, (char*)lpb, dwsize2-nBytesRead, 0, 2, 1, &cs);
 
@@ -397,12 +400,12 @@ int OggAudio::PumpWave(int nSize)
 		}
 	}
 
-	//	Unlock buffer, we're done with it for now.
+	// Unlock buffer, we're done with it for now.
 	m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
 
-	//	Ok, if we're at the end of file AND we're flagged to loop, rewind
-	//	..to the beginning of the buffer so we start from the top next
-	//	..time through.
+	// Ok, if we're at the end of file AND we're flagged to loop, rewind
+	// ..to the beginning of the buffer so we start from the top next
+	// ..time through.
 	if(m_fEOF && m_bLoops)
 		Rewind();					// Hope the sound designer looped the WAVE right!
 
@@ -410,9 +413,9 @@ int OggAudio::PumpWave(int nSize)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetMaxWriteSize
+// GetMaxWriteSize
 //
-//	Get the maximum number of bytes we can write into the current buffer.
+// Get the maximum number of bytes we can write into the current buffer.
 /* ------------------------------------------------------------------------------------ */
 DWORD OggAudio::GetMaxWriteSize()
 {
@@ -420,7 +423,7 @@ DWORD OggAudio::GetMaxWriteSize()
 
 	// Get current play position
 	if(m_pStream->GetCurrentPosition(&dwPlayCursor, &dwWriteCursor) == DS_OK)
-    {
+	{
 		if((UINT)OggPcmPos <= dwPlayCursor)
 		{
 			// Our write position trails play cursor
@@ -431,7 +434,7 @@ DWORD OggAudio::GetMaxWriteSize()
 			// Play cursor has wrapped
 			dwMaxSize = kBufferSize - OggPcmPos + dwPlayCursor;
 		}
-    }
+	}
 	else
 		dwMaxSize = 0;
 
@@ -439,17 +442,17 @@ DWORD OggAudio::GetMaxWriteSize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	TimerFunction
+// TimerFunction
 //
-//	This function takes care of periodically pumping audio into
-//	..the playback buffer for streaming waves.  Based on the
-//	..user information passed in (set up when the wave file was
-//	..started streaming) it calls into the instance that is needed.
-//	..Yeah, this is a little wacky, but it let's me stream the wave
-//	..out without having to continually poll and stuff buffers.
+// This function takes care of periodically pumping audio into
+// ..the playback buffer for streaming waves.  Based on the
+// ..user information passed in (set up when the wave file was
+// ..started streaming) it calls into the instance that is needed.
+// ..Yeah, this is a little wacky, but it let's me stream the wave
+// ..out without having to continually poll and stuff buffers.
 /* ------------------------------------------------------------------------------------ */
-void CALLBACK OggAudio::TimerFunction(UINT uID, UINT uMsg,
-									  DWORD dwUser, DWORD dw1, DWORD dw2)
+void CALLBACK OggAudio::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
+									  DWORD dwUser, DWORD /*dw1*/, DWORD /*dw2*/)
 {
 	OggAudio *thePointer = reinterpret_cast<OggAudio*>(dwUser);
 

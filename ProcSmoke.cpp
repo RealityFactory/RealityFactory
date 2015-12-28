@@ -13,12 +13,12 @@
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
 // 3D Smoke effect
-#define     NSMPARTICLES   1024
+#define NSMPARTICLES	1024
 
 typedef struct
 {
-   int32	Velocity[3];
-   int32	Position[3];
+	int32	Velocity[3];
+	int32	Position[3];
 
 } Smoke_Data;
 
@@ -70,7 +70,7 @@ static geBoolean Smoke_InitBitmap(Procedural *Proc, geBitmap *ppBitmap);
 static geBoolean Smoke_InitPalette(Procedural *Proc);
 
 /* ------------------------------------------------------------------------------------ */
-//	Smoke_Create
+// Smoke_Create
 /* ------------------------------------------------------------------------------------ */
 Procedural *Smoke_Create(const char *TextureName, geWorld *World, const char *StrParms)
 {
@@ -110,7 +110,7 @@ Procedural *Smoke_Create(const char *TextureName, geWorld *World, const char *St
 
 		TokenNum = 0;
 
-		Token = strtok(Parms," \t,+\n\r");
+		Token = strtok(Parms, " \t,+\n\r");
 
 		while(Token)
 		{
@@ -174,13 +174,13 @@ Procedural *Smoke_Create(const char *TextureName, geWorld *World, const char *St
 ExitWithError:
 
 	if(Proc)
-	  Smoke_Destroy(Proc);
+		Smoke_Destroy(Proc);
 
 	return NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Smoke_Destroy
+// Smoke_Destroy
 /* ------------------------------------------------------------------------------------ */
 void Smoke_Destroy(Procedural *Proc)
 {
@@ -206,9 +206,9 @@ void Smoke_Destroy(Procedural *Proc)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Smoke_Animate
+// Smoke_Animate
 /* ------------------------------------------------------------------------------------ */
-geBoolean Smoke_Animate(Procedural *Smoke, geFloat ElapsedTime)
+geBoolean Smoke_Animate(Procedural *Smoke, geFloat /*ElapsedTime*/)
 {
 	if(!Smoke->Bitmap)
 		return GE_TRUE;
@@ -224,14 +224,14 @@ geBoolean Smoke_Animate(Procedural *Smoke, geFloat ElapsedTime)
 // but with a small random deviation
 /* ------------------------------------------------------------------------------------ */
 static void  Smoke_FillParticle(Smoke_Data *particle,
-                         geFloat xp,
-                         geFloat yp,
-                         geFloat zp,
-                         geFloat xv,
-                         geFloat yv,
-                         geFloat zv)
+								geFloat xp,
+								geFloat yp,
+								geFloat zp,
+								geFloat xv,
+								geFloat yv,
+								geFloat zv)
 {
-	int   tmp;
+	int tmp;
 
 	particle->Position[0] = (int32)((xp * 0x10000) + ((rand()&1) ? (rand() * xp) : (-rand() * xp)));
 
@@ -269,7 +269,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 	uint8	*Bits;
 	int		i;
 
-	geBitmap	*Lock;
+	geBitmap *Lock;
 
 	if(!geBitmap_LockForWriteFormat(Smoke->Bitmap, &Lock, 0, 0, GE_PIXELFORMAT_8BIT_PAL))
 	{
@@ -302,7 +302,7 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 
 		Val = *ZBuffer;
 
-		Result = Val - *(ZBuffer-1);
+		Result = Val - *(ZBuffer - 1);
 		Result >>= 16;
 
 		Result += 128;
@@ -318,15 +318,15 @@ static geBoolean Smoke_Shade(Procedural *Smoke)
 		Bits[i] = static_cast<uint8>(min(Result + Bits[i], 255));
 
 		if(Val > ZBuffer[1])
-			Bits[i+1] = max(Bits[i+1]-3,0);
+			Bits[i+1] = max(Bits[i+1] - 3, 0);
 		if(Val > ZBuffer[2])
-			Bits[i+2] = max(Bits[i+2]-7,0); // changed QD 12/15/05
+			Bits[i+2] = max(Bits[i+2] - 7, 0);
 		if(Val > ZBuffer[3])
-			Bits[i+3] = max(Bits[i+3]-10,0);
+			Bits[i+3] = max(Bits[i+3] - 10, 0);
 		if(Val > ZBuffer[4])
-			Bits[i+4] = max(Bits[i+4]-15,0);
+			Bits[i+4] = max(Bits[i+4] - 15, 0);
 		if(Val > ZBuffer[5])
-			Bits[i+5] = max(Bits[i+5]-7,0);
+			Bits[i+5] = max(Bits[i+5] - 7, 0);
 	}
 
 	// Smoth the bitmap
@@ -358,7 +358,7 @@ static geBoolean Smoke_Update(	Procedural *Smoke,
 								geFloat xv,
 								geFloat yv,
 								geFloat zv,
-								int lightdir)
+								int /*lightdir*/)
 {
 	int32		*ZBuffer;
 	geFloat		*ZAge;
@@ -370,19 +370,19 @@ static geBoolean Smoke_Update(	Procedural *Smoke,
 	Smbuf = Smoke->Smbuf;
 
 	// Zero the destination buffer
-	memset(ZBuffer, 0, Smoke->Size*sizeof(int32));
-	memset(ZAge, 0, Smoke->Size*sizeof(geFloat));
+	memset(ZBuffer, 0, Smoke->Size * sizeof(int32));
+	memset(ZAge, 0, Smoke->Size * sizeof(geFloat));
 
 	// Update Positions for all the particles in the smoke
 	// and update the data in the destination buffer
 	for(i=0; i<nparticles; ++i)
 	{
-		int   x,y;
+		int x, y;
 
 		if(Smbuf[i].Velocity[0] < 0x1000)
 		{
 			// recreate the smoke particle if it is too old
-			Smoke_FillParticle(&Smbuf[i],xp,yp,zp,xv,yv,zv);
+			Smoke_FillParticle(&Smbuf[i], xp, yp, zp, xv, yv, zv);
 			continue;
 		}
 
@@ -398,11 +398,11 @@ static geBoolean Smoke_Update(	Procedural *Smoke,
 
 		// Check if particle has moved off the texture map, and if so, recreate it
 		if((Smbuf[i].Position[0]>>16) > (Smoke->Width-1))
-			Smoke_FillParticle(&(Smbuf[i]),xp,yp,zp,xv,yv,zv);
+			Smoke_FillParticle(&(Smbuf[i]), xp, yp, zp, xv, yv, zv);
 		else if((Smbuf[i].Position[0]>>16) < 0)
-			Smoke_FillParticle(&(Smbuf[i]),xp,yp,zp,xv,yv,zv);
+			Smoke_FillParticle(&(Smbuf[i]), xp, yp, zp, xv, yv, zv);
 		else if((Smbuf[i].Position[1]>>16) > (Smoke->Height-1) || (Smbuf[i].Position[1]>>16) < 0)
-			Smoke_FillParticle((&Smbuf[i]),xp,yp,zp,xv,yv,zv);
+			Smoke_FillParticle((&Smbuf[i]), xp, yp, zp, xv, yv, zv);
 
 		// Now plot this particle into the destination buffer if its Z is
 		// nearer than the one currently there
@@ -466,7 +466,7 @@ static uint16 Smoke_LerpColor(geFloat c1, geFloat c2, geFloat Ratio)
 {
 	geFloat	Val;
 
-	Val = c1 + (c2 - c1)*Ratio;
+	Val = c1 + (c2 - c1) * Ratio;
 
 	Val *= 8.0f;
 
@@ -477,7 +477,7 @@ static uint16 Smoke_LerpColor(geFloat c1, geFloat c2, geFloat Ratio)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Smoke_GetPalIndexFromString
+// Smoke_GetPalIndexFromString
 /* ------------------------------------------------------------------------------------ */
 static int32 Smoke_GetPalIndexFromString(const char *Str)
 {
@@ -506,7 +506,7 @@ static geBoolean Smoke_InitBitmap(Procedural *Proc, geBitmap *ppBitmap)
 	else
 	{
 		geBitmap_CreateRef(ppBitmap);
-		geBitmap_SetColorKey(ppBitmap,GE_FALSE,0,0);
+		geBitmap_SetColorKey(ppBitmap, GE_FALSE, 0, 0);
 	}
 
 	if(!geBitmap_SetFormat(ppBitmap, GE_PIXELFORMAT_8BIT_PAL, GE_FALSE, 0, NULL))
@@ -618,13 +618,13 @@ static geBoolean Smoke_InitPalette(Procedural *Proc)
 		{
 			geFloat	Ratio;
 			int32	Next;
-			uint32	R,G,B,A;
+			uint32	R, G, B, A;
 			uint8	*PalPtr;
 
 			Next = Current+1;
 
-			if(Next > NumControlPoints-1)
-				Next = NumControlPoints-1;
+			if(Next > NumControlPoints - 1)
+				Next = NumControlPoints - 1;
 
 			Ratio = (static_cast<geFloat>(i) - pPoint[Current].f) / pPoint[Next].f;
 

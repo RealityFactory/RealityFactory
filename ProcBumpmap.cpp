@@ -24,9 +24,9 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap, geVec3d *Horizontal,g
 /* ------------------------------------------------------------------------------------ */
 Procedural *BumpMap_Create(const char *TextureName, geWorld  *World, const char * /*ParmStart*/)
 {
-    Procedural	*P;
-    geBitmap	*HeightMap;
-    geBitmap	*ppBitmap;
+	Procedural	*P;
+	geBitmap	*HeightMap;
+	geBitmap	*ppBitmap;
 
 	ppBitmap = geWorld_GetBitmapByName(World, TextureName);
 
@@ -46,7 +46,7 @@ Procedural *BumpMap_Create(const char *TextureName, geWorld  *World, const char 
 
 	if(geBitmap_ClearMips(P->Bitmap))
 	{
-		if(geBitmap_SetColorKey(P->Bitmap,GE_FALSE,0,GE_FALSE))
+		if(geBitmap_SetColorKey(P->Bitmap, GE_FALSE, 0, GE_FALSE))
 		{
 			HeightMap = geBitmap_Create(geBitmap_Width(P->Bitmap), geBitmap_Height(P->Bitmap), 1, GE_PIXELFORMAT_8BIT_GRAY);
 
@@ -82,7 +82,7 @@ void BumpMap_Destroy(Procedural *P)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-geBoolean BumpMap_Animate(Procedural *P,geFloat time)
+geBoolean BumpMap_Animate(Procedural *P, geFloat /*time*/)
 {
 	geVec3d Pos,LightPos,Horizontal,Vertical;
 	geBoolean Ret;
@@ -107,7 +107,7 @@ geBoolean BumpMap_Animate(Procedural *P,geFloat time)
 
 	Ret = BumpMap_ComputePalette(P->Bitmap, &Horizontal,&Vertical, &Pos, &LightPos );
 
-	P->Frame ++;
+	P->Frame++;
 
 	return Ret;
 }
@@ -221,8 +221,8 @@ static geBoolean BumpMap_CreateFromHeightMap(geBitmap *HeightMap,geBitmap *BumpM
 				NE = hp[0];
 				SE = hp[hs];
 
-				vx = ((NW - NE) + (SW - SE) + 1)>>1;
-				vy = ((NW - SW) + (NE - SE) + 1)>>1;
+				vx = ((NW - NE) + (SW - SE) + 1) >> 1;
+				vy = ((NW - SW) + (NE - SE) + 1) >> 1;
 
 				scale = 1.0f/static_cast<float>(1 + vx*vx + vy*vy );
 				scale = sqrt(scale);
@@ -323,7 +323,7 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 										geVec3d *pPos, geVec3d *pLightPos)
 {
 	geBitmap_Palette *Pal;
-	geVec3d LightRelPos,PlaneZ;
+	geVec3d LightRelPos, PlaneZ;
 	geFloat LightDist;
 	void *PalData = NULL;
 	gePixelFormat PalFormat;
@@ -331,7 +331,7 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 
 	geBitmap_SetGammaCorrection(BumpMap, 1.0f, GE_FALSE);
 
-	geVec3d_Subtract(pLightPos, pPos,&LightRelPos);
+	geVec3d_Subtract(pLightPos, pPos, &LightRelPos);
 	geVec3d_CrossProduct(pPlaneX, pPlaneY, &PlaneZ);
 
 	geVec3d_Normalize(pPlaneX);
@@ -344,7 +344,7 @@ static geBoolean BumpMap_ComputePalette(geBitmap *BumpMap,
 		goto fail;
 
 	// if BumpMap is attached to a driver, then this Pal is actually on hardware!
-	if(!geBitmap_Palette_Lock(Pal,&PalData, &PalFormat, &PalSize))
+	if(!geBitmap_Palette_Lock(Pal, &PalData, &PalFormat, &PalSize))
 		goto fail;
 
 	if(PalSize < 256)

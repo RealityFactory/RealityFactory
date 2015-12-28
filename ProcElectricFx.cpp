@@ -3,17 +3,17 @@
  * @brief Procedural Electric Fx
  ****************************************************************************************/
 
-// Disable unsafe warning
+// Disable unsafe warning for stricmp
 #pragma warning (disable : 4996)
 
 #include "ProcUtil.h"
 
 #define SMOOTH_WRAP GE_TRUE
 
-#define		ELECTRICFX_MAX_FX_TYPES	128
-#define		ELECTRICFX_MAX_VECS	128
+#define	ELECTRICFX_MAX_FX_TYPES	128
+#define	ELECTRICFX_MAX_VECS		128
 
-#define		TOKEN_SEPERATOR		" ,"
+#define	TOKEN_SEPERATOR			" ,"
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
@@ -85,15 +85,15 @@ void		ElectricFx_Destroy(Procedural *Proc);
 geBoolean	ElectricFx_Animate(Procedural *Fx, geFloat ElapsedTime);
 
 static geBoolean	ElectricFx_Shade(Procedural *Fx);
-static void		ElectricFx_Update(Procedural *Fx, geFloat Time);
+static void			ElectricFx_Update(Procedural *Fx, geFloat Time);
 static ElectricFx_TypeData *ElectricFx_GetFxTypeDataFromString(const char *Str);
-static int32 ElectricFx_GetPalIndexFromString(const char *Str);
+static int32		ElectricFx_GetPalIndexFromString(const char *Str);
 static geBoolean	ElectricFx_FxParseData(ElectricFx_Fx *Fx);
 static geBoolean	ElectricFx_InitPalette(Procedural *Proc);
 static geBoolean	ElectricFx_InitBitmap(Procedural *Fx, geBitmap *ppBitmap);
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_Create
+// ElectricFx_Create
 /* ------------------------------------------------------------------------------------ */
 Procedural *ElectricFx_Create(const char *TextureName, geWorld  *World, const char *StrParms)
 {
@@ -110,18 +110,18 @@ Procedural *ElectricFx_Create(const char *TextureName, geWorld  *World, const ch
 	Bitmap = geWorld_GetBitmapByName(World, TextureName);
 
 	if(!Bitmap)
-	  goto ExitWithError;
+		goto ExitWithError;
 
 	// Parse the params...
 	{
-		char		*Token;
-		char		Parms[1024];
+		char *Token;
+		char Parms[1024];
 
 		strcpy(Parms, StrParms);
 
 		Token = strtok(Parms, TOKEN_SEPERATOR);
 
-		if (!Token)		// If nothing was passed in, then default it to something cool
+		if(!Token)		// If nothing was passed in, then default it to something cool
 		{
 			strcpy(Parms, "Fx_PalSlime, Fx_EnergySpin, 63, 63");
 			Token = strtok(Parms, TOKEN_SEPERATOR);
@@ -170,7 +170,7 @@ ExitWithError:
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_Destroy
+// ElectricFx_Destroy
 /* ------------------------------------------------------------------------------------ */
 void ElectricFx_Destroy(Procedural *Proc)
 {
@@ -190,7 +190,7 @@ void ElectricFx_Destroy(Procedural *Proc)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_Animate
+// ElectricFx_Animate
 /* ------------------------------------------------------------------------------------ */
 geBoolean ElectricFx_Animate(Procedural *Fx, geFloat ElapsedTime)
 {
@@ -209,7 +209,7 @@ geBoolean ElectricFx_Animate(Procedural *Fx, geFloat ElapsedTime)
 /* ------------------------------------------------------------------------------------ */
 // sgn() - This function is used by Line() to determine the sign of a long //
 /* ------------------------------------------------------------------------------------ */
-static int sgn (long a)
+static int sgn(long a)
 {
 	if(a > 0)
 		return +1;
@@ -222,7 +222,7 @@ static int sgn (long a)
 /* ------------------------------------------------------------------------------------ */
 // round() - This function is used by Line() to round a long to the        //
 /* ------------------------------------------------------------------------------------ */
-static int round (geFloat a)
+static int round(geFloat a)
 {
 	if((a - static_cast<int>(a)) < 0.5f)
 		return static_cast<int>(floor(a));
@@ -233,9 +233,9 @@ static int round (geFloat a)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-static void ElectricFx_PutZ(Procedural *Fx, int x, int y, int ZVal, geFloat ZAge)
+static void ElectricFx_PutZ(Procedural *Fx, int x, int y, int ZVal, geFloat /*ZAge*/)
 {
-	Fx->ZBuffer[(y&Fx->HMask)*Fx->Width+(x&Fx->WMask)] = ZVal;
+	Fx->ZBuffer[(y & Fx->HMask) * Fx->Width + (x & Fx->WMask)] = ZVal;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -295,14 +295,14 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 
 	xlength = abs(x1-x2);
 
-	if((x1-x2) < 0)
+	if((x1 - x2) < 0)
 		dx = -1;
-	else if((x1-x2) > 0)
+	else if((x1 - x2) > 0)
 		dx = +1;
 	else
 		dx =  0;
 
-	ylength = abs(y1-y2);
+	ylength = abs(y1 - y2);
 
 	if((y1-y2) < 0)
 		dy = -1;
@@ -391,7 +391,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_ElectricZLine_r
+// ElectricFx_ElectricZLine_r
 /* ------------------------------------------------------------------------------------ */
 static void ElectricFx_ElectricZLine_r( Procedural *Fx,
 										int32 x1, int32 y1,
@@ -403,8 +403,8 @@ static void ElectricFx_ElectricZLine_r( Procedural *Fx,
 	{
 		int32	MidX, MidY;
 
-		MidX = (x1+x2)>>1;
-		MidY = (y1+y2)>>1;
+		MidX = (x1 + x2) >> 1;
+		MidY = (y1 + y2) >> 1;
 
 		MidX += 8 - (rand()&15);
 		MidY += 8 - (rand()&15);
@@ -420,8 +420,8 @@ static void ElectricFx_ElectricZLine_r( Procedural *Fx,
 			MidY = Fx->Height-1;
 		*/
 
-		ElectricFx_ElectricZLine_r(Fx, x1, y1, MidX, MidY, ZVal, ZAge, Recursion>>1);
-		ElectricFx_ElectricZLine_r(Fx, MidX, MidY, x2, y2, ZVal, ZAge, Recursion>>1);
+		ElectricFx_ElectricZLine_r(Fx, x1, y1, MidX, MidY, ZVal, ZAge, Recursion >> 1);
+		ElectricFx_ElectricZLine_r(Fx, MidX, MidY, x2, y2, ZVal, ZAge, Recursion >> 1);
 	}
 	else
 	{
@@ -475,7 +475,7 @@ static geBoolean ElectricFx_Shade(Procedural *Fx)
 		if(Val > ZBuffer[1])
 			Bits[i+1] = max(Bits[i+1]-3, 0);
 		if(Val > ZBuffer[2])
-			Bits[i+2] = max(Bits[i+2]-7, 0); // changed QD 12/15/05
+			Bits[i+2] = max(Bits[i+2]-7, 0);
 		if(Val > ZBuffer[3])
 			Bits[i+3] = max(Bits[i+3]-10, 0);
 		if(Val > ZBuffer[4])
@@ -514,7 +514,7 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 	ZBuffer = EFx->ZBuffer;
 
 	// Zero the destination buffer
-	memset(ZBuffer,0, EFx->Size*sizeof(uint8));
+	memset(ZBuffer, 0, EFx->Size * sizeof(uint8));
 
 	Fx = EFx->Fx;
 
@@ -590,9 +590,8 @@ static void ElectricFx_Update(Procedural *EFx, geFloat Time)
 
 				Fx->Rotation += 2.0f*Time;		// 2 radians per sec
 
-				// changed QD 12/15/05
-				if(Fx->Rotation > GE_2PI) //PI_2)
-					Fx->Rotation -= GE_2PI; //PI_2;
+				if(Fx->Rotation > GE_2PI)
+					Fx->Rotation -= GE_2PI;
 
 				break;
 			}
@@ -658,7 +657,7 @@ static uint16 LerpColor(geFloat c1, geFloat c2, geFloat Ratio)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_GetPalIndexFromString
+// ElectricFx_GetPalIndexFromString
 /* ------------------------------------------------------------------------------------ */
 static int32 ElectricFx_GetPalIndexFromString(const char *Str)
 {
@@ -674,7 +673,7 @@ static int32 ElectricFx_GetPalIndexFromString(const char *Str)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_GetFxTypeDataFromString
+// ElectricFx_GetFxTypeDataFromString
 /* ------------------------------------------------------------------------------------ */
 static ElectricFx_TypeData	*ElectricFx_GetFxTypeDataFromString(const char *Str)
 {
@@ -690,7 +689,7 @@ static ElectricFx_TypeData	*ElectricFx_GetFxTypeDataFromString(const char *Str)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ElectricFx_FxParseData
+// ElectricFx_FxParseData
 /* ------------------------------------------------------------------------------------ */
 static geBoolean ElectricFx_FxParseData(ElectricFx_Fx *Fx)
 {
@@ -806,7 +805,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 	if(!(Pal = geBitmap_GetPalette(Proc->Bitmap)))
 		goto fail;
 
-	if(!geBitmap_Palette_Lock(Pal,&PalData, &PalFormat, &PalSize))
+	if(!geBitmap_Palette_Lock(Pal, &PalData, &PalFormat, &PalSize))
 		goto fail;
 
 	if(PalSize < 256)
@@ -828,7 +827,7 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 		{
 			geFloat	Ratio;
 			int32	Next;
-			uint32	R,G,B,A;
+			uint32	R, G, B, A;
 			uint8	*PalPtr;
 
 			Next = Current+1;
@@ -856,8 +855,8 @@ static geBoolean ElectricFx_InitPalette(Procedural *Proc)
 			{
 				++Current;
 
-				if(Current > NumControlPoints-1)
-					Current = NumControlPoints-1;
+				if(Current > NumControlPoints - 1)
+					Current = NumControlPoints - 1;
 			}
 		}
 	}

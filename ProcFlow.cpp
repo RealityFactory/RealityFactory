@@ -22,7 +22,7 @@ typedef struct Procedural
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Color struct
+// Color struct
 /* ------------------------------------------------------------------------------------ */
 typedef struct ColorRGBA
 {
@@ -34,9 +34,9 @@ typedef struct ColorRGBA
 } ColorRGBA;
 
 /* ------------------------------------------------------------------------------------ */
-//	Flow_CreateColorTable()
+// Flow_CreateColorTable()
 //
-//	Creates a color lookup table.
+// Creates a color lookup table.
 /* ------------------------------------------------------------------------------------ */
 static uint8 Flow_FindBestColorMatch(
 	ColorRGBA	*ColorTable,	// color table to use
@@ -77,9 +77,9 @@ static uint8 Flow_FindBestColorMatch(
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Flow_CreateColorTable()
+// Flow_CreateColorTable()
 //
-//	Creates a color lookup table.
+// Creates a color lookup table.
 /* ------------------------------------------------------------------------------------ */
 static geBoolean Flow_CreateColorTable(Procedural *P)	// procedural struct
 {
@@ -130,9 +130,9 @@ static geBoolean Flow_CreateColorTable(Procedural *P)	// procedural struct
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Flow_Create()
+// Flow_Create()
 //
-//	Create the procedural.
+// Create the procedural.
 /* ------------------------------------------------------------------------------------ */
 Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Parameters)
 {
@@ -140,7 +140,6 @@ Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Pa
 	geBoolean		Result;
 	geBitmap_Info	DestInfo;
 	geBitmap		*ppBitmap;
-
 
 	ppBitmap = geWorld_GetBitmapByName(World, TextureName);
 
@@ -153,7 +152,7 @@ Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Pa
 	if(!P)
 		return NULL;
 
-	memset(P,0,sizeof(Procedural));
+	memset(P, 0, sizeof(Procedural));
 
 	// set offsets
 	if(strlen(Parameters) < 2)
@@ -164,8 +163,8 @@ Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Pa
 	else
 	{
 		// locals
-		char	*pstr;
-		char	ParmWork[100];
+		char *pstr;
+		char ParmWork[100];
 
 		// make a work copy of parameters string
 		strcpy(ParmWork, Parameters);
@@ -211,7 +210,7 @@ Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Pa
 	geBitmap_CreateRef(P->Bitmap);
 
 	// keep a copy of the original one
-	P->Original = geBitmap_Create( DestInfo.Width, DestInfo.Height, 1, P->PixelFormat );
+	P->Original = geBitmap_Create(DestInfo.Width, DestInfo.Height, 1, P->PixelFormat);
 
 	if(P->Original == NULL)
 	{
@@ -241,11 +240,11 @@ Procedural * Flow_Create(const char *TextureName, geWorld *World, const char *Pa
 
 
 /* ------------------------------------------------------------------------------------ */
-//	Flow_Destroy()
+// Flow_Destroy()
 //
-//	Destroy the procedural.
+// Destroy the procedural.
 /* ------------------------------------------------------------------------------------ */
-void Flow_Destroy(Procedural	*P )	// procedural to destroy
+void Flow_Destroy(Procedural *P)	// procedural to destroy
 {
 	// do nothing if its a null pointer
 	if(P == NULL)
@@ -271,9 +270,9 @@ void Flow_Destroy(Procedural	*P )	// procedural to destroy
 } // Flow_Destroy()
 
 /* ------------------------------------------------------------------------------------ */
-//	Flow_Animate()
+// Flow_Animate()
 //
-//	Animate the procedural.
+// Animate the procedural.
 /* ------------------------------------------------------------------------------------ */
 geBoolean Flow_Animate(Procedural *P, geFloat Time)
 {
@@ -437,7 +436,7 @@ geBoolean Flow_Animate(Procedural *P, geFloat Time)
 	}
 
 	// adjust offsets
-	P->X += ( Time * P->XOffset );
+	P->X += (Time * P->XOffset);
 
 	if(P->X >= SrcInfo.Width)
 	{
