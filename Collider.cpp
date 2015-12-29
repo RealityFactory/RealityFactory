@@ -1885,7 +1885,7 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 
 		int Result = CCD->Triggers()->HandleCollision(theCollision.Model, bShoot, false, theActor);
 
-		CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
+		int Result1 = CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 
 		if(Result == RGF_SUCCESS)
 			return kCollideWorldModel;
@@ -1902,7 +1902,6 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 			if(CCD->Teleporters()->HandleCollision(theCollision.Model, theActor))
 				return kCollideTrigger;	// Hit, and processed
 
-			int Result1 = CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 
 			if(Result1 == RGF_SUCCESS)
 				return kCollideWorldModel;	// Hit, and processed
