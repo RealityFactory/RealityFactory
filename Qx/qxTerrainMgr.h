@@ -73,30 +73,31 @@ public:
 	CIniFile *GetIniFile()
 	{ return &AttrFile; }
 
-	geVec3d* GetLightSource()		{ return &m_vLightSource; }
-	float GetLightAmbient()			{ return m_fLightAmbient; }
-	float GetLightIntensity()		{ return m_fLightIntensity; }
 
-	int GetFarPlane()				{ return m_nFarPlane; }
-	int GetHeightFieldSourceType()	{ return m_nHeightFieldSourceType; }
-	qxPolyPool*	GetPolyPoolQX()		{ return m_pqxPolyPool; }
-	qxVertPool* GetVertPoolQX()		{ return m_pqxVertPool; }
+	geVec3d* GetLightSource()				{ return &m_vLightSource; }
+	float GetLightAmbient() const			{ return m_fLightAmbient; }
+	float GetLightIntensity() const			{ return m_fLightIntensity; }
 
-	int GetDesiredTriangles()		{ return m_nDesiredTriangles; }
-	int GetLandscapeSize()			{ return m_nLandscapeSize * (int)m_fScaleXZ; }
-	float GetScaleY()				{ return m_fScaleY; }
-	float GetScaleXZ()				{ return m_fScaleXZ; }
-	int GetOffsetY()				{ return m_OffsetY; }
-	int GetSkyDomeOffsetY()			{ return m_SkyDomeOffsetY; }
-	int GetShadingMethod()			{ return m_nShadingMethod; }
-	int GetDistanceDetail()			{ return m_nDistanceDetail; }
-	gePixelFormat GetPixelFormatFinal() { return m_PixelFormatFinal; }
-	float GetScaleSun()				{ return m_SunScale; }
-	bool GetAllowSun()				{ return AllowSun; }
-	bool GetAllowCloud()			{ return AllowCloud; }
-	void SetAllowSun(bool flag)		{ AllowSun = flag; }
-	void SetAllowCloud(bool flag)	{ AllowCloud = flag; }
-	bool GetAllowSkyFog()			{ return skyfog; }
+	int GetFarPlane() const					{ return m_nFarPlane; }
+	int GetHeightFieldSourceType() const	{ return m_nHeightFieldSourceType; }
+	qxPolyPool* GetPolyPoolQX()				{ return m_pqxPolyPool; }
+	qxVertPool* GetVertPoolQX()				{ return m_pqxVertPool; }
+
+	int GetDesiredTriangles() const			{ return m_nDesiredTriangles; }
+	int GetLandscapeSize() const			{ return m_nLandscapeSize * (int)m_fScaleXZ; }
+	float GetScaleY() const					{ return m_fScaleY; }
+	float GetScaleXZ() const				{ return m_fScaleXZ; }
+	int GetOffsetY() const					{ return m_OffsetY; }
+	int GetSkyDomeOffsetY() const			{ return m_SkyDomeOffsetY; }
+	int GetShadingMethod() const			{ return m_nShadingMethod; }
+	int GetDistanceDetail() const			{ return m_nDistanceDetail; }
+	gePixelFormat GetPixelFormatFinal()		{ return m_PixelFormatFinal; }
+	float GetScaleSun() const				{ return m_SunScale; }
+	bool GetAllowSun() const				{ return AllowSun; }
+	bool GetAllowCloud() const				{ return AllowCloud; }
+	void SetAllowSun(bool flag)				{ AllowSun = flag; }
+	void SetAllowCloud(bool flag)			{ AllowCloud = flag; }
+	bool GetAllowSkyFog() const				{ return skyfog; }
 	void SetAllowSkyFog(bool flag)			{ skyfog = flag; }
 
 	void SetSunScale(float value)			{ m_SunScale = value; }
@@ -146,23 +147,23 @@ public:
 	  mooncolor.b = b;
 	  mooncolor.a = a;}
 	void SetMoonPhase(int value)	{MoonPhase = value; }
-	int GetMoonPhase()  { return MoonPhase; }
+	int GetMoonPhase() const		{ return MoonPhase; }
 
 	GE_RGBA Getrgba()					{ return rgba; }
-	float GetMinBlueSkyColor()  { return m_fMinBlueSkyColor; }
-	float GetDistanceFromSunFactor()  { return m_fDistanceFromSunFactor; }
+	float GetMinBlueSkyColor() const	{ return m_fMinBlueSkyColor; }
+	float GetDistanceFromSunFactor() const	{ return m_fDistanceFromSunFactor; }
 	GE_RGBA Getcolor()  { return color; }
 	GE_RGBA GetSuncolor()  { return suncolor; }
 	GE_RGBA GetMooncolor()  { return mooncolor; }
-	float GetColorUpdateTime()  { return m_fColorUpdateTime; }
-	bool GetTextureFlow()  { return TextureFlow; }
-	float GetElapsedTime() { return ElapsedTime; }
-	float GetTerrainTime() { return TerrainTime; }
+	float GetColorUpdateTime() const	{ return m_fColorUpdateTime; }
+	bool GetTextureFlow() const		{ return TextureFlow; }
+	float GetElapsedTime() const	{ return ElapsedTime; }
+	float GetTerrainTime() const	{ return TerrainTime; }
 	eDirection GetWindDir() { return WindDir; }
 	void SetWindDir(eDirection Dir) { WindDir = Dir; }
 
 	void SetNormalDistanceToCamera( float f );
-	float GetNormalDistanceToCamera() { return m_fNormalDistanceToCamera; }
+	float GetNormalDistanceToCamera() const	{ return m_fNormalDistanceToCamera; }
 
 	void ToggleRenderWireframe();
 	void RebuildAllTextures();
@@ -181,17 +182,16 @@ public:
 	qxTerrainMapBase* GetMap( int OffsetX, int OffsetZ );
 
 
+	const	geXForm3d* GetEarthRotation() const { return &m_matEarthRotation; }
 
-	const	geXForm3d* GetEarthRotation(){ return &m_matEarthRotation; }
-
-	float	GetTwilightDistanceFromHorizon() { return m_fTwilightDistanceFromHorizon; }
-	float	GetSunPercentToZenith();
-	float	GetTwilightPercent() { return m_fTwilightPercent; }
+	float	GetTwilightDistanceFromHorizon() const { return m_fTwilightDistanceFromHorizon; }
+	float	GetSunPercentToZenith() const;
+	float	GetTwilightPercent() const { return m_fTwilightPercent; }
 
 	qxSun*	GetSun(){ return m_pSun; }
 
 	void	SetWorldBounds( int X, int Z ) { m_nWorldBoundsX = X, m_nWorldBoundsZ = Z; }
-	bool	GetRenderWireframe() { return m_bRenderWireframe; }
+	bool	GetRenderWireframe() const { return m_bRenderWireframe; }
 	void	SetRenderWireframe(bool flag) { m_bRenderWireframe = flag; }
 	void	SetRenderLandscape(bool flag) { m_bRenderLandscape = flag; }
 
@@ -201,7 +201,7 @@ public:
 	geBitmap *GetTexture() { return PolyTex; }
 	void SetTexture(geBitmap *Bitmap) { PolyTex = Bitmap; }
 	void SetRender(int value) { nRenderflag = value; }
-	int GetRender() { return nRenderflag; }
+	int GetRender() const { return nRenderflag; }
 
 private:
 

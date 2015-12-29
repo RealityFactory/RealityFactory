@@ -1145,7 +1145,7 @@ void qxTerrainMgr::UpdateFog()
 }
 
 
-float qxTerrainMgr::GetSunPercentToZenith()
+float qxTerrainMgr::GetSunPercentToZenith() const
 {
 	if(m_pSun)
 		return m_pSun->GetPercentToZenith();

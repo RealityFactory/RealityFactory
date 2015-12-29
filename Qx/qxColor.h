@@ -91,9 +91,9 @@ public:
 	~qxColor() { }
 
 
-	inline float GetH() { return m_hue; }
-	inline float GetS() { return m_saturation; }
-	inline float GetV() { return m_value; }
+	inline float GetH() const { return m_hue; }
+	inline float GetS() const { return m_saturation; }
+	inline float GetV() const { return m_value; }
 
 
 	void SetH(float h);
@@ -133,11 +133,11 @@ public:
 
 protected:
 
-	inline float p(float f)
+	inline float p(float /*f*/) const
 		{ return (float)(m_value * (1.0 - m_saturation) * 255.0); }
-	inline float q(float f)
+	inline float q(float f) const
 		{ return (float)(m_value * (1.0 - (m_saturation * f)) * 255.0); }
-	inline float t(float f)
+	inline float t(float f) const
 		{ return (float)(m_value * (1.0 - (m_saturation * (1.0 - f))) * 255.0); }
 
 private:
