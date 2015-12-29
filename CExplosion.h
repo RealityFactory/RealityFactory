@@ -74,8 +74,8 @@ class CExplosion : public CRGFComponent
 public:
 	CExplosion();
 	~CExplosion();
+
 	void Tick(geFloat dwTicks);
-private:
 };
 
 #endif

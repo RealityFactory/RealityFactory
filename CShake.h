@@ -22,7 +22,6 @@ public:
 	~CShake();
 
 	void Tick(geFloat dwTicks);
-private:
 };
 
 #endif

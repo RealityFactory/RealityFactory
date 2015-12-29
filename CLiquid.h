@@ -21,9 +21,6 @@ public:
 	~CLiquid();
 
 	Liquid *IsLiquid(const geWorld_Model *theModel);
-
-private:
-
 };
 
 #endif

@@ -24,8 +24,6 @@ public:
 	~Chaos();
 
 	void Tick(geFloat dwTick);
-
-private:
 };
 
 #endif
