@@ -37,15 +37,12 @@
 #endif
 
 const float qxColor::UNDEFINED = -1.0;
+
 ///////////////////////////////////////////////////////////////////////////
 //      METHOD: constructor
 //              ===========
 // DESCRIPTION: Construct the qxColor object.
 ///////////////////////////////////////////////////////////////////////////
-
-
-
-
 qxColor::qxColor(InitType initType, float rh, float gs, float bv,
 	float a)
 {

@@ -23,7 +23,6 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-
 qxTerrainMap::qxTerrainMap(	qxTerrainDefinition& TerrainDef )
 
 :	qxTerrainMapBase(	TerrainDef )

@@ -31,7 +31,7 @@ qxCloudMachine::qxCloudMachine()
 ,m_eWindDir( DIRECTION_S )
 {
 	//prevents flicker, but may slow system down
-	m_nRenderStyle = GE_RENDER_DO_NOT_OCCLUDE_OTHERS|GE_RENDER_DEPTH_SORT_BF|GE_RENDER_NO_CLIP|GE_RENDER_NO_FOG;
+	m_nRenderStyle = GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF | GE_RENDER_NO_CLIP | GE_RENDER_NO_FOG;
 	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
 	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
 }
