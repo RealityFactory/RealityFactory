@@ -83,8 +83,8 @@ private:
 
 private:
 	// Private member variables
-	AudioInstanceList *MainList[512];		// Database of managed audio
-	int PlayingChannels[32][2];				// 32 concurrent playing audio entities
+	AudioInstanceList *m_MainList[512];		///< Database of managed audio
+	int m_PlayingChannels[32][2];			///< 32 concurrent playing audio entities
 	int m_InstanceCount;					///< Global instance counter
 };
 

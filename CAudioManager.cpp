@@ -17,19 +17,13 @@
 /* ------------------------------------------------------------------------------------ */
 // Default constructor
 /* ------------------------------------------------------------------------------------ */
-CAudioManager::CAudioManager()
+CAudioManager::CAudioManager() :
+	m_InstanceCount(0)
 {
-	int nTemp;
+	memset(m_MainList, 0, sizeof(AudioInstanceList*)*512);
 
-	for(nTemp=0; nTemp<512; nTemp++)
-		MainList[nTemp] = NULL;
-
-	m_InstanceCount = 0;
-
-	for(nTemp=0; nTemp<32; nTemp++)
-		PlayingChannels[nTemp][0] = -1;				// Free channel
-
-	return;
+	for(int nTemp=0; nTemp<32; ++nTemp)
+		m_PlayingChannels[nTemp][0] = -1;				// Free channel
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -217,7 +211,7 @@ int CAudioManager::FindFreeChannel()
 {
 	for(int nTemp=0; nTemp<32; ++nTemp)
 	{
-		if(PlayingChannels[nTemp][0] < 0)
+		if(m_PlayingChannels[nTemp][0] < 0)
 			return nTemp;				// A free channel!
 	}
 
@@ -233,10 +227,10 @@ int CAudioManager::GetPlaybackChannel(int nHandle)
 {
 	for(int nTemp=0; nTemp<512; ++nTemp)
 	{
-		if(MainList[nTemp] == NULL)
+		if(m_MainList[nTemp] == NULL)
 			continue;						// Ignore the empty slots
 
-		AudioInstance *pTemp = MainList[nTemp]->IList;
+		AudioInstance *pTemp = m_MainList[nTemp]->IList;
 
 		while(pTemp != NULL)
 		{
@@ -257,7 +251,7 @@ int CAudioManager::ChannelFromHandle(int nHandle)
 {
 	for(int nTemp=0; nTemp<32; ++nTemp)
 	{
-		if(PlayingChannels[nTemp][1] == nHandle)
+		if(m_PlayingChannels[nTemp][1] == nHandle)
 			return nTemp;				// Handle is playing on this channel
 	}
 
