@@ -357,7 +357,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 {
 	GE_Collision Collision;
 	GE_Contents Contents;
-	int Result, Result2;
+	geBoolean Result, Result2;
 
 	Result = geWorld_Collision(CCD->World(), Min, Max,
 								&OldPosition, &NewPosition,
@@ -385,20 +385,20 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		Result2 = GetContentsOf(NewPosition, &pBox, &Contents);
 
 		if((Contents.Actor == NULL) && (Contents.Model == NULL) && (Contents.Mesh == NULL))
-			Result2 = 0;								// No real contents here
+			Result2 = GE_FALSE;							// No real contents here
 	}
 	else
 	{
-		Result2 = 0;									// No contents checking
+		Result2 = GE_FALSE;								// No contents checking
 	}
 
 	// Set collision reason
 	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
-	if(Result == 1)
+	if(Result == GE_TRUE)
 		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
-	if(Result2 == 1)
+	if(Result2 == GE_TRUE)
 	{
 		if(Contents.Actor != NULL)
 			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
@@ -410,7 +410,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
-	if((Result == 1) || (Result2 == 1))
+	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
 		return true;									// Collision confirmed
 	else
 		return false;									// Naah, we didn't hit anything
@@ -428,7 +428,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 								 GE_Collision *Collision)
 {
 	GE_Contents Contents;
-	int Result, Result2;
+	geBoolean Result, Result2 = GE_FALSE;
 
 	Result = geWorld_Collision(CCD->World(), Min, Max,
 								&OldPosition, &NewPosition,
@@ -456,11 +456,11 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 
 		if((Contents.Actor == NULL) && (Contents.Model == NULL) && (Contents.Mesh == NULL))
 		{
-			Result2 = 0;								// No real contents here
+			Result2 = GE_FALSE;							// No real contents here
 		}
 		else if((Contents.Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 		{
-			Result2 = 0;								// It's EMPTY, ignore it
+			Result2 = GE_FALSE;							// It's EMPTY, ignore it
 		}
 		else
 		{
@@ -473,16 +473,16 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 	else
 	{
-		Result2 = 0;									// No contents checking
+		Result2 = GE_FALSE;								// No contents checking
 	}
 
 	// Set collision reason
 	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
-	if(Result == 1)
+	if(Result == GE_TRUE)
 		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
-	if(Result2 == 1)
+	if(Result2 == GE_TRUE)
 	{
 		if(Contents.Actor != NULL)
 			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
@@ -492,7 +492,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
-	if((Result == 1) || (Result2 == 1))
+	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
 		return true;									// Collision confirmed
 	else
 		return false;									// Naah, we didn't hit anything
@@ -512,7 +512,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	assert(Contents);
 
 	GE_Collision Collision;
-	int Result, Result2;
+	geBoolean Result, Result2;
 
 	memset(Contents, 0, sizeof(GE_Contents));
 
@@ -539,25 +539,25 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 
 		if((Contents->Actor == NULL) && (Contents->Model == NULL) && (Contents->Mesh == NULL))
 		{
-			Result2 = 0;								// No real contents here
+			Result2 = GE_FALSE;							// No real contents here
 		}
 		else if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 		{
-			Result2 = 0;								// Ignore empty models
+			Result2 = GE_FALSE;							// Ignore empty models
 		}
 	}
 	else
 	{
-		Result2 = 0;									// No contents checking
+		Result2 = GE_FALSE;								// No contents checking
 	}
 
 	//	Set collision reason
 	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
-	if(Result == 1)
+	if(Result == GE_TRUE)
 		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
-	if(Result2 == 1)
+	if(Result2 == GE_TRUE)
 	{
 		if(Contents->Actor != NULL)
 			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
@@ -569,7 +569,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
-	if((Result == 1) || (Result2 == 1))
+	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
 		return true;									// Collision confirmed
 	else
 		return false;									// Naah, we didn't hit anything
@@ -589,7 +589,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	assert(Collision);
 	assert(Contents);
 
-	int Result, Result2;
+	geBoolean Result, Result2;
 
 	memset(Contents, 0, sizeof(GE_Contents));
 	memset(Collision, 0, sizeof(GE_Collision));
@@ -617,11 +617,11 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 
 		if((Contents->Actor == NULL) && (Contents->Model == NULL) && (Contents->Mesh == NULL))
 		{
-			Result2 = 0;								// No real contents here
+			Result2 = GE_FALSE;							// No real contents here
 		}
 		else if((Contents->Contents & (GE_CONTENTS_EMPTY | GE_CONTENTS_SOLID)) == GE_CONTENTS_EMPTY)
 		{
-			Result2 = 0;								// Ignore empty models
+			Result2 = GE_FALSE;							// Ignore empty models
 		}
 		else
 		{
@@ -634,16 +634,16 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 	else
 	{
-		Result2 = 0;									// No contents checking
+		Result2 = GE_FALSE;								// No contents checking
 	}
 
 	// Set collision reason
 	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
-	if(Result == 1)
+	if(Result == GE_TRUE)
 		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
-	if(Result2 == 1)
+	if(Result2 == GE_TRUE)
 	{
 		if(Contents->Actor != NULL)
 			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
@@ -655,7 +655,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
-	if((Result == 1) || (Result2 == 1))
+	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
 		return true;									// Collision confirmed
 	else
 		return false;									// Naah, we didn't hit anything
@@ -676,7 +676,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	assert(Collision);
 
 	GE_Contents Contents;
-	int Result, Result2;
+	geBoolean Result, Result2;
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
@@ -783,7 +783,7 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 	assert(Collision);
 
 	GE_Contents Contents;
-	int Result, Result2;
+	geBoolean Result, Result2;
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
@@ -887,9 +887,9 @@ bool Collider::CheckModelMotion(geWorld_Model *theModel, geXForm3d *ModelPositio
 	// ..your object if it's not going to crush it, and you'll tear your
 	// ..hair out for weeks wondering why it doesn't work right.
 
-	int nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
-										&ObstructionSize->Min, &ObstructionSize->Max,
-										ObstructionPosition, OutputObstructionPosition);
+	geBoolean nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
+											&ObstructionSize->Min, &ObstructionSize->Max,
+											ObstructionPosition, OutputObstructionPosition);
 
 	if(nResult == GE_TRUE)
 		return true;							// Fine, model can move
@@ -918,9 +918,9 @@ bool Collider::CheckModelMotion(geWorld_Model *theModel, geXForm3d *ModelPositio
 	// ..your object if it's not going to crush it, and you'll tear your
 	// ..hair out for weeks wondering why it doesn't work right.
 
-	int nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
-										ObstructionMin, ObstructionMax,
-										ObstructionPosition, OutputObstructionPosition);
+	geBoolean nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
+											ObstructionMin, ObstructionMax,
+											ObstructionPosition, OutputObstructionPosition);
 
 	if(nResult == GE_TRUE)
 		return true;							// Fine, model can move
@@ -951,9 +951,9 @@ bool Collider::CheckModelMotionActor(geWorld_Model *theModel, geXForm3d *ModelPo
 	// ..your object if it's not going to crush it, and you'll tear your
 	// ..hair out for weeks wondering why it doesn't work right.
 
-	int nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
-										&ActorBox.Min, &ActorBox.Max,
-										ActorPosition, OutputActorPosition);
+	geBoolean nResult = geWorld_TestModelMove(CCD->World(), theModel, ModelPosition,
+											&ActorBox.Min, &ActorBox.Max,
+											ActorPosition, OutputActorPosition);
 
 	if(nResult == GE_TRUE)
 		return true;							// Fine, model can move
@@ -971,11 +971,11 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox)
 
 	memset(&Contents, 0, sizeof(GE_Contents));
 
-	int Result = geWorld_GetContents(CCD->World(), thePoint,
-										&theBox->Min, &theBox->Max,
-										GE_COLLIDE_ALL, 0xffffffff,
-										NULL, NULL,
-										&Contents);
+	geBoolean Result = geWorld_GetContents(CCD->World(), thePoint,
+											&theBox->Min, &theBox->Max,
+											GE_COLLIDE_ALL, 0xffffffff,
+											NULL, NULL,
+											&Contents);
 
 	if((Result == GE_FALSE) &&
 		(geWorld_GetContents(CCD->World(), thePoint, &theBox->Min, &theBox->Max,
@@ -1054,11 +1054,11 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 	memset(&Contents, 0, sizeof(GE_Contents));
 
 
-	int Result = geWorld_GetContents(CCD->World(), thePoint,
-										&theBox->Min, &theBox->Max,
-										GE_COLLIDE_ACTORS,
-										0xffffffff, CBExclusion, Actor,
-										&Contents);
+	geBoolean Result = geWorld_GetContents(CCD->World(), thePoint,
+											&theBox->Min, &theBox->Max,
+											GE_COLLIDE_ACTORS,
+											0xffffffff, CBExclusion, Actor,
+											&Contents);
 
 	geVec3d temp;
 	geVec3d_Add(thePoint, &theBox->Max, &temp);
@@ -1149,17 +1149,17 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 {
 	memset(Contents, 0, sizeof(GE_Contents));
 
-	int Result = geWorld_GetContents(CCD->World(), thePoint,
-										&theBox->Min, &theBox->Max,
-										GE_COLLIDE_ACTORS, 0xffffffff,
-										CBExclusion, Actor,
-										Contents);
+	geBoolean Result = geWorld_GetContents(CCD->World(), thePoint,
+											&theBox->Min, &theBox->Max,
+											GE_COLLIDE_ACTORS, 0xffffffff,
+											CBExclusion, Actor,
+											Contents);
 
-	int Result1 = geWorld_GetContents(CCD->World(), thePoint,
-										&theBox->Min, &theBox->Max,
-										GE_COLLIDE_MODELS, 0xffffffff,
-										NULL, NULL,
-										Contents);
+	geBoolean Result1 = geWorld_GetContents(CCD->World(), thePoint,
+											&theBox->Min, &theBox->Max,
+											GE_COLLIDE_MODELS, 0xffffffff,
+											NULL, NULL,
+											Contents);
 
 	if((Result == GE_FALSE) && (Result1 == GE_TRUE))
 	{
@@ -1373,9 +1373,9 @@ geBoolean Collider::CheckIntersection(const geVec3d * /*Position*/, geActor *Act
 		theBoneBox.Max.Z += 2.0f;
 
 		memset(&Contents, 0, sizeof(GE_Contents));
-		int Result = CanOccupyPosition(&(theTransform.Translation), &theBoneBox, Actor, &Contents);
+		bool Result = CanOccupyPosition(&(theTransform.Translation), &theBoneBox, Actor, &Contents);
 
-		if(Result == GE_FALSE)
+		if(Result == false)
 			Collided = GE_TRUE;
 
 		// Ok, if we hit ANYTHING, we can take the early exit.
@@ -1812,11 +1812,11 @@ TraceData Collider::Trace(geVec3d *Start, geVec3d *End, geVec3d *Min, geVec3d *M
 		return Data;
 	}
 
-	bool ItHit = geWorld_Collision(CCD->World(), Min, Max,
-									Start, End,
-									kCollideFlags, GE_COLLIDE_MODELS,
-									0x0, NULL, NULL,
-									Collision);
+	geBoolean ItHit = geWorld_Collision(CCD->World(), Min, Max,
+										Start, End,
+										kCollideFlags, GE_COLLIDE_MODELS,
+										0x0, NULL, NULL,
+										Collision);
 
 	if(ItHit)
 	{
@@ -2155,11 +2155,11 @@ bool Collider::CanOccupyPositionD(const geVec3d *thePoint, geExtBox *theBox,
 
 	memset(Contents, 0, sizeof(GE_Contents));
 
-	int Result = geWorld_GetContents(CCD->World(), thePoint,
-										&theBox->Min, &theBox->Max,
-										GE_COLLIDE_ACTORS, 0xffffffff,
-										CBExclusion, Actor,
-										Contents);
+	geBoolean Result = geWorld_GetContents(CCD->World(), thePoint,
+											&theBox->Min, &theBox->Max,
+											GE_COLLIDE_ACTORS, 0xffffffff,
+											CBExclusion, Actor,
+											Contents);
 
 	Contents->Model = NULL;
 	int ColDetLevel;
@@ -2295,7 +2295,6 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 								 void *CollisionObject )
 {
 	GE_Contents Contents;
-	int Result, Result1;
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
@@ -2357,7 +2356,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
-	Result = GE_FALSE;
+	geBoolean Result = GE_FALSE;
 
 	if(geWorld_Collision(CCD->World(), NULL, NULL, &OldPosition, &NewPosition,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
@@ -2371,9 +2370,11 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
 	{
-		Result1 = geWorld_GetContents(CCD->World(),
-			&NewPosition, Min, Max, GE_COLLIDE_MODELS,
-			0xffffffff, NULL, NULL, &Contents);
+		geBoolean Result1 = geWorld_GetContents(CCD->World(), &NewPosition,
+										Min, Max,
+										GE_COLLIDE_MODELS, 0xffffffff,
+										NULL, NULL,
+										&Contents);
 
 		if(Result1 == GE_TRUE)
 		{
