@@ -41,6 +41,8 @@ inline bool EndsWith(const std::string &str, const std::string &suffix)
 			str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
+geVec3d ToVec3d(const std::string &source);
+GE_RGBA ToRGBA(const std::string &source);
 
 bool SetOriginOffset(const char *EntityName, const char *BoneName,
 					 const geWorld_Model *Model, geVec3d *OriginOffset);

@@ -1010,6 +1010,36 @@ geVec3d Extract(char *Vector)
 }
 
 /* ------------------------------------------------------------------------------------ */
+// ToVec3d
+/* ------------------------------------------------------------------------------------ */
+geVec3d ToVec3d(const std::string &source)
+{
+	geVec3d values = {0.0f, 0.0f, 0.0f};
+
+	char *temp = NULL;
+	values.X = static_cast<geFloat>(strtod(source.c_str(), &temp));
+	values.Y = static_cast<geFloat>(strtod(temp, &temp));
+	values.Z = static_cast<geFloat>(strtod(temp, NULL));
+
+	return values;
+}
+
+/* ------------------------------------------------------------------------------------ */
+// ToRGBA
+/* ------------------------------------------------------------------------------------ */
+GE_RGBA ToRGBA(const std::string &source)
+{
+	GE_RGBA values = {255.0f, 255.0f, 255.0f, 255.0f};
+
+	char *temp = NULL;
+	values.r = static_cast<geFloat>(strtod(source.c_str(), &temp));
+	values.g = static_cast<geFloat>(strtod(temp, &temp));
+	values.b = static_cast<geFloat>(strtod(temp, NULL));
+
+	return values;
+}
+
+/* ------------------------------------------------------------------------------------ */
 // Ang2Vec
 /* ------------------------------------------------------------------------------------ */
 void Ang2Vec(float ang, geVec3d *vec)
