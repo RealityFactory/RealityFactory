@@ -126,7 +126,7 @@ public:
 	 * @brief ProcessCollision handles dispatching collisions to entities
 	 */
 	int ProcessCollision(const GE_Collision &theCollision, geActor *theActor, bool Gravity);
-	int GetLastCollisionCause() { return LastCollisionReason;};
+	int GetLastCollisionCause() const { return m_LastCollisionReason; }
 
 	// Debug Routines
 	bool CheckActorCollisionD(const geVec3d &Start, const geVec3d &End,
@@ -151,7 +151,7 @@ private:
 								geWorld *World, GE_Collision *Collision);
 
 private:
-	int LastCollisionReason;		///< Reason for last collision
+	int m_LastCollisionReason;		///< Reason for last collision
 	int m_CheckLevel;				///< Collision check level
 	bool m_IgnoreContents;			///< Ignore collision zone contents
 };

@@ -51,7 +51,7 @@ geBoolean CBExclusion(geWorld_Model * /*Model*/, geActor *Actor, void *Context)
 Collider::Collider()
 {
 	m_IgnoreContents = false;					// Do contents checking
-	LastCollisionReason = RGF_NO_COLLISION;		// Nothing happened yet
+	m_LastCollisionReason = RGF_NO_COLLISION;	// Nothing happened yet
 	m_CheckLevel = RGF_COLLISIONLEVEL_1;		// Full collision checking
 
 	kCollideFlags = GE_CONTENTS_SOLID_CLIP | GE_CONTENTS_WINDOW;
@@ -381,21 +381,21 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == 1)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == 1)
 	{
 		if(Contents.Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents.Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents.Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == 1) || (Result2 == 1))
@@ -465,19 +465,19 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == 1)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == 1)
 	{
 		if(Contents.Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 		if(Contents.Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 		if(Contents.Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == 1) || (Result2 == 1))
@@ -538,21 +538,21 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	//	Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == 1)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == 1)
 	{
 		if(Contents->Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents->Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents->Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == 1) || (Result2 == 1))
@@ -621,21 +621,21 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == 1)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == 1)
 	{
 		if(Contents->Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents->Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents->Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == 1) || (Result2 == 1))
@@ -726,21 +726,21 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == GE_FALSE)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == GE_TRUE)
 	{
 		if(Contents.Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents.Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents.Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
@@ -819,21 +819,21 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == GE_FALSE)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == GE_FALSE)
 	{
 		if(Contents.Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents.Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents.Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
@@ -2099,21 +2099,21 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 	}
 
 	// Set collision reason
-	LastCollisionReason = RGF_NO_COLLISION;				// Assume no hit
+	m_LastCollisionReason = RGF_NO_COLLISION;			// Assume no hit
 
 	if(Result == GE_TRUE)
-		LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
+		m_LastCollisionReason |= RGF_COLLIDE_AABB;		// Bounding-box hit
 
 	if(Result2 == GE_TRUE)
 	{
 		if(Contents.Actor != NULL)
-			LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
+			m_LastCollisionReason |= RGF_COLLIDE_ACTOR;	// Hit an actor
 
 		if(Contents.Model != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
+			m_LastCollisionReason |= RGF_COLLIDE_MODEL;	// Hit a model
 
 		if(Contents.Mesh != NULL)
-			LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
+			m_LastCollisionReason |= RGF_COLLIDE_MESH;	// Hit a mesh
 	}
 
 	if((Result == GE_TRUE) || (Result2 == GE_TRUE))
