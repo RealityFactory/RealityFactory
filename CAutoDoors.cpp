@@ -511,18 +511,21 @@ void CAutoDoors::Tick(geFloat /*dwTicks*/)
 		}
 
 		// Handle the case where the model is animating on command from a script
-		if(CCD->ModelManager()->IsRunning(pDoor->Model)
-			&& (pDoor->bInAnimation == GE_FALSE)
-			&& (pDoor->SoundHandle == -1))
+		if(CCD->ModelManager()->IsRunning(pDoor->Model))
 		{
-			pDoor->SoundHandle = PlaySound(pDoor->theSound, pDoor->origin, pDoor->bAudioLoops);
+			if((pDoor->bInAnimation == GE_FALSE) &&
+				(pDoor->SoundHandle == -1))
+			{
+				pDoor->SoundHandle = PlaySound(pDoor->theSound, pDoor->origin, pDoor->bAudioLoops);
+			}
 		}
-
-		if(!CCD->ModelManager()->IsRunning(pDoor->Model)
-			&& (pDoor->SoundHandle != -1))
+		else
 		{
-			CCD->EffectManager()->Item_Delete(EFF_SND, pDoor->SoundHandle);
-			pDoor->SoundHandle = -1;
+			if(pDoor->SoundHandle != -1)
+			{
+				CCD->EffectManager()->Item_Delete(EFF_SND, pDoor->SoundHandle);
+				pDoor->SoundHandle = -1;
+			}
 		}
 	}
 }
