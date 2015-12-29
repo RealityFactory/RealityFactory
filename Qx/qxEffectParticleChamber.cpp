@@ -712,12 +712,9 @@ void qxEffectParticleChamber::KillInvisibleParticles( float fDistThreshold )
 
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
-		float fDist = geVec3d_DistanceBetween( p, &thePosition);
+		float fDistSq = geVec3d_DistanceBetweenSquared(p, &thePosition);
 
-		float fDistance = FastScreenDistance( p );
-		fDistance = (float)fabs(fDistance);
-
-		if ( fDist >  fDistThreshold )
+		if ( fDistSq >  fDistThreshold*fDistThreshold )
 		{
 			m_pParticles[i]->Die();
 			//QXSTR("DIE");

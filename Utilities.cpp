@@ -467,9 +467,9 @@ geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const g
 
 		if(CCD->CameraManager()->GetClipEnable())
 		{
-			float dist = geVec3d_DistanceBetween(Target, &CameraXf->Translation);
+			float distSq = geVec3d_DistanceBetweenSquared(Target, &CameraXf->Translation);
 
-			if(dist > CCD->CameraManager()->GetFarClipPlane())
+			if(distSq > CCD->CameraManager()->GetFarClipPlane()*CCD->CameraManager()->GetFarClipPlane())
 				return GE_FALSE;
 		}
 	}

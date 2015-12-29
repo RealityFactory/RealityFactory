@@ -309,8 +309,9 @@ void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 		CCD->CameraManager()->GetPosition(&thePosition);
 		p.Y = thePosition.Y;
 
-		float fDist = geVec3d_DistanceBetween( &p, &thePosition);
-		if ( fDist >  fDistThreshold ) 
+		float fDistSq = geVec3d_DistanceBetweenSquared(&p, &thePosition);
+
+		if ( fDistSq >  fDistThreshold*fDistThreshold )
 		{
 			if(m_pParticles[i]->m_vVertex.a <= AlphaStart)
 			{
