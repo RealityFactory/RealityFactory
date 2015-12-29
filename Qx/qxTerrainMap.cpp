@@ -43,7 +43,6 @@ qxTerrainMap::qxTerrainMap(	qxTerrainDefinition& TerrainDef )
 
 qxTerrainMap::~qxTerrainMap()
 {
-	if( m_pHeightMapData )
 	{
 		delete [] m_pHeightMapData;
 	}
@@ -297,7 +296,6 @@ bool qxTerrainMap::LoadHeightMap()
 
 	geBitmap	*pHeightBMP = 0;
 
-	if( m_pHeightMapData )
 	{
 		delete [] m_pHeightMapData;
 		m_pHeightMapData = 0;

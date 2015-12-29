@@ -204,7 +204,6 @@ geBitmap* qxSkyDome::GetTexture(int i)
 
 bool qxSkyDome::LoadHeightMap()
 {
-	if( m_pHeightMapData )
 	{
 		delete [] m_pHeightMapData;
 		m_pHeightMapData = 0;

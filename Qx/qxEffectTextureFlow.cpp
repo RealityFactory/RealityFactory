@@ -40,10 +40,8 @@ qxEffectTextureFlow::~qxEffectTextureFlow()
 		geBitmap_Destroy( &m_pBmp );
 	}
 
-	if(BmpName)
-		delete BmpName;
-	if(AlphaName)
-		delete AlphaName;
+	delete BmpName;
+	delete AlphaName;
 }
 
 
