@@ -29,10 +29,9 @@
 #include "..//RabidFramework.h"
 #include "qxColor.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
+#ifndef QXASSERT
+#include <assert.h>
+#define QXASSERT assert
 #endif
 
 const float qxColor::UNDEFINED = -1.0;

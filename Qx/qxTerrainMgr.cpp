@@ -33,12 +33,6 @@
 #include "..\\Simkin\\skBoundsException.h"
 #include "..\\Simkin\\skTreeNode.h"
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
-#endif
-
 
 TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName, CCD->GetskContext()) //change simkin
 {

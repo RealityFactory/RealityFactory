@@ -18,12 +18,6 @@
 #include "QxUser.h"	//Genesis
 
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
-#endif
-
 qxParticleBase::qxParticleBase()
 :
 m_pPoly(0)

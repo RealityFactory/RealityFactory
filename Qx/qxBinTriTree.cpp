@@ -14,10 +14,9 @@
 #include "qxTerrainMapBase.h"
 #include "qxTerrainPoly.h"
 
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]=__FILE__;
-#define new DEBUG_NEW
+#ifndef QXASSERT
+#include <assert.h>
+#define QXASSERT assert
 #endif
 
 qxBinTriTree::qxBinTriTree(qxTerrainMapBase* newOwner,
