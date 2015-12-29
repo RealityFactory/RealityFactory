@@ -71,7 +71,7 @@ class qxTerrainDefinitionFile// : public CStdioFile
 {
 public:
 
-	qxTerrainDefinitionFile( const char* pFileName );
+	explicit qxTerrainDefinitionFile( const char* pFileName );
 	~qxTerrainDefinitionFile();
 	bool Load( int X, int Y);
 	bool GetNextHeader();

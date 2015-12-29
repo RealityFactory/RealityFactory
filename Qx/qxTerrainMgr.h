@@ -41,7 +41,7 @@ class qxColor;
 class TerrainObject : public skScriptedExecutable
 {
 public:
-	TerrainObject(char *fileName);
+	explicit TerrainObject(char *fileName);
 	~TerrainObject();
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
     bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);

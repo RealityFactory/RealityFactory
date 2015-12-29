@@ -35,7 +35,7 @@ class qxTerrainMapBase
 public:
 
 	qxTerrainMapBase() {}
-	qxTerrainMapBase( qxTerrainDefinition& TerrainDef );
+	explicit qxTerrainMapBase( qxTerrainDefinition& TerrainDef );
 	virtual ~qxTerrainMapBase();
 
 	virtual	bool	Render();

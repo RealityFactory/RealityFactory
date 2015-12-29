@@ -27,7 +27,7 @@ class qxTerrainMap : public qxTerrainMapBase
 {
 public:
 
-	qxTerrainMap(	qxTerrainDefinition& TerrainDef );
+	explicit qxTerrainMap(qxTerrainDefinition& TerrainDef);
 
 	virtual			~qxTerrainMap();
 
