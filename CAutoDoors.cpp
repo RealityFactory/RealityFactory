@@ -205,10 +205,7 @@ bool CAutoDoors::HandleCollision(geWorld_Model *pModel, bool bTriggerCall, bool 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
-	{
-		CCD->ReportError("CAutoDoors.cpp: HandleCollision: no doors", false);
 		return false;
-	}
 
 	geEntity *pEntity;
 
@@ -337,10 +334,7 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel, bool bTriggerCall)
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Door");
 
 	if(!pSet)
-	{
-		CCD->ReportError("CAutoDoors.cpp: TriggerNextDoor: no doors", false);
 		return;
-	}
 
 	geEntity *pEntity;
 
