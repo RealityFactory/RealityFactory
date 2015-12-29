@@ -103,7 +103,7 @@ void CFoliage::Tick(geFloat dwTicks)
 			GE_Collision Collision;
 			geVec3d fPos,tPos;
 			int sc;
-			float scale;
+			float scale = 1.f;
 
 			// Randomize using specified Seed
 			srand(S->Seed);
