@@ -736,7 +736,9 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	// format, read the next word, and thats how many extra
 	// bytes to allocate.
 	if(pcmWaveFormat.wf.wFormatTag == WAVE_FORMAT_PCM)
+	{
 		cbExtraAlloc = 0;
+	}
 	else
 	{
 		// Read in length of extra bytes.

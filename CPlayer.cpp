@@ -2827,7 +2827,9 @@ void CPlayer::Tick(geFloat dwTicks)
 				Pos = thePosition.Translation;
 		}
 		else
+		{
 			geActor_GetBoneTransform(Actor, RootBoneName(Actor), &thePosition);
+		}
 
 		geVec3d_Copy(&Pos, &(Gl.Pos));
 		geXForm3d_RotateY(&thePosition, LiteOffset.Y);
@@ -4645,7 +4647,9 @@ int CPlayer::SaveTo(FILE *SaveFD)
 		m_Attr->SaveTo(SaveFD, false);
 	}
 	else
+	{
 		fwrite(&bAttributes, sizeof(bool), 1, SaveFD);
+	}
 
 	return RGF_SUCCESS;
 }
@@ -4986,11 +4990,17 @@ bool CPlayer::DoMovements()
 		}
 	}
 	else if(theZone & kLavaZone)
+	{
 		m_CoeffSpeed = 0.55f;
+	}
 	else if(theZone & kSlowMotionZone)
+	{
 		m_CoeffSpeed = 0.25f;
+	}
 	else if(theZone & kFastMotionZone)
+	{
 		m_CoeffSpeed = 2.0f;
+	}
 
 	// A little run wanted ?
 	if((m_Running || alwaysrun) && !GetCrouch() && OldZone == 0)	//Don't run when crouch
@@ -5044,7 +5054,9 @@ bool CPlayer::DoMovements()
 				bPlayerMoved = true;
 			}
 			else
+			{
 				m_Moving = MOVEIDLE;
+			}
 			break;
 		case MOVESLIDERIGHT:
 			if(OldZone == 0)
@@ -5064,7 +5076,9 @@ bool CPlayer::DoMovements()
 				bPlayerMoved = true;
 			}
 			else
+			{
 				m_Moving = MOVEIDLE;
+			}
 			break;
 		default:
 			break;
@@ -5074,7 +5088,9 @@ bool CPlayer::DoMovements()
 			CCD->CameraManager()->CancelZoom();
 	}
 	else
+	{
 		Move(RGF_K_FORWARD, 0);
+	}
 
 	return bPlayerMoved;
 }

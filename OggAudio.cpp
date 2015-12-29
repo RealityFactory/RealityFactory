@@ -433,7 +433,9 @@ DWORD OggAudio::GetMaxWriteSize()
 		}
 	}
 	else
+	{
 		dwMaxSize = 0;
+	}
 
 	return (dwMaxSize & 0xfffffffe);
 }
