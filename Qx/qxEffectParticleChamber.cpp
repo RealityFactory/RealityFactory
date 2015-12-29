@@ -616,7 +616,7 @@ bool qxEffectParticleChamber::ReInit()
 	m_pParticles.clear();
 	m_pParticles.resize(ParticlesMax);
 
-	for(int j = 0; j < ParticlesMax; j++)
+	for(int j = 0; j < ParticlesMax; ++j)
 	{
 		qxParticleBase* p = 0;
 

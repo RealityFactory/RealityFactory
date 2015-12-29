@@ -335,8 +335,8 @@ bool qxTerrainMap::LoadHeightMap()
 
 	if(bIsDivisibleBy32)
 	{
-		m_nHeightMapWidth++;
-		m_nHeightMapLength++;
+		++m_nHeightMapWidth;
+		++m_nHeightMapLength;
 	}
 
 	m_nHeightMapSize = m_nHeightMapWidth* m_nHeightMapLength;
