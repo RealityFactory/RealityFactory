@@ -544,30 +544,28 @@ CElectric::CElectric()
 int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 {
 	int effect = -1;
-	/*
-	Snd Sound;
-	memset( &Sound, 0, sizeof( Sound ) );
-    geVec3d_Copy( &(Origin), &( Sound.Pos ) );
-    Sound.Min=pBolt->fRadius;
-    Sound.Loop=!pBolt->Intermittent;
-	if(EffectC_IsStringNull(pBolt->SoundFile))
+
+	if(!EffectC_IsStringNull(pBolt->SoundFile))
 	{
-		if(!pBolt->Intermittent)
-			Sound.SoundDef=SPool_Sound("loopbzzt.wav");
+		Snd Sound;
+		memset(&Sound, 0, sizeof(Sound));
+		geVec3d_Copy(&Origin, &Sound.Pos);
+		Sound.Min = pBolt->fRadius;
+		Sound.Loop = !pBolt->Intermittent;
+
+		Sound.SoundDef = SPool_Sound(pBolt->SoundFile);
+
+		if(!Sound.SoundDef)
+		{
+			char szError[256];
+			sprintf(szError, "Failed to open audio file '%s'\n", pBolt->SoundFile);
+			CCD->ReportError(szError, false);
+		}
 		else
-			Sound.SoundDef=SPool_Sound("onebzzt.wav");
+		{
+			effect = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
+		}
 	}
-	else
-		Sound.SoundDef=SPool_Sound(pBolt->SoundFile);
-	if(!Sound.SoundDef)
-	{
-		char szError[256];
-		sprintf(szError,"Can't open audio file '%s'\n", pBolt->SoundFile);
-		CCD->ReportError(szError, false);
-	}
-	if(Sound.SoundDef!=NULL)
-		effect = CCD->EffectManager()->Item_Add(EFF_SND, (void *)&Sound);
-	*/
 
 	return effect;
 }
