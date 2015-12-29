@@ -12,8 +12,9 @@
 
 
 qxTerrainVert::qxTerrainVert()
-:
-m_pNext(0)
+: m_pNext(0),
+  hX(0),
+  hZ(0)
 {
 }
 
