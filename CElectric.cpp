@@ -596,18 +596,6 @@ CElectric::~CElectric()
 	}
 }
 
-/* ------------------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------------------ */
-static geFloat frand(geFloat Low, geFloat High)
-{
-	geFloat	Range;
-
-	//assert(High > Low);
-
-	Range = High - Low;
-
-	return ((geFloat)(((rand() % 1000) + 1))) / 1000.0f * Range + Low;
-}
 
 /* ------------------------------------------------------------------------------------ */
 // Tick - do time based actions
@@ -704,7 +692,7 @@ geBoolean CElectric::Tick(geFloat dwTicks)
 			Bolt->LastTime += dwTicks;
 
 			if((Bolt->Intermittent == GE_FALSE) ||
-				(Bolt->LastTime - Bolt->LastBoltTime > frand(Bolt->MaxFrequency, Bolt->MinFrequency)))
+				(Bolt->LastTime - Bolt->LastBoltTime > EffectC_Frand(Bolt->MaxFrequency, Bolt->MinFrequency)))
 			{
 				Electric_BoltEffectAnimate(Bolt->Bolt,
 											&Bolt->origin,
