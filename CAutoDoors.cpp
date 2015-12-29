@@ -401,8 +401,6 @@ void CAutoDoors::TriggerNextDoor(geWorld_Model *pModel, bool bTriggerCall)
 			return;					// Hmmph, we hit an automatic door.
 		}
 	}
-
-	return;							// We hit no known doors
 }
 
 
@@ -533,8 +531,6 @@ void CAutoDoors::Tick(geFloat /*dwTicks*/)
 			pDoor->SoundHandle = -1;
 		}
 	}
-
-	return;
 }
 
 

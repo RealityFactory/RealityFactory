@@ -130,9 +130,6 @@ CParticleSystem::CParticleSystem()
 			Pause(psHandle, false);	// Start it
 		}
 	}
-
-	// Everyone set up, let's go!
-	return;
 }
 
 
@@ -1066,8 +1063,6 @@ void CParticleSystem::Tick(geFloat dwTicks)
 			SetEmitter(pProxy->psHandle, pProxy->origin);
 		}
 	}
-
-	return;
 }
 
 
@@ -1452,8 +1447,6 @@ void CParticleSystem::Sweep(int nHandle, float dwMsec)
 			break;
 		}
 	}
-
-	return;
 }
 
 
@@ -1486,8 +1479,6 @@ void CParticleSystem::ApplyGravity(int nHandle, theParticle *myParticle)
 	myParticle->Vertex.X = NewPosition.X;
 	myParticle->Vertex.Y = NewPosition.Y;
 	myParticle->Vertex.Z = NewPosition.Z;
-
-	return;
 }
 
 
@@ -1528,8 +1519,6 @@ void CParticleSystem::RenderSystem(int nHandle, const geVec3d & /*PlayerPos*/)
 
 		myParticle = myParticle->Next;
 	}
-
-	return;
 }
 
 
@@ -1551,8 +1540,6 @@ void CParticleSystem::SetupShockwave(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1589,8 +1576,6 @@ void CParticleSystem::AddShockwaveParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -1611,8 +1596,6 @@ void CParticleSystem::SetupSpiralArm(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / static_cast<float>(theList[nHandle]->Lifetime);
-
-	return;
 }
 
 
@@ -1650,8 +1633,6 @@ void CParticleSystem::AddSpiralArmParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -1669,8 +1650,6 @@ void CParticleSystem::SetupFountain(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1699,8 +1678,6 @@ void CParticleSystem::AddFountainParticle(int nHandle)
 		vRot.Y = 0.0f;				// Wrap around. more or less
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -1717,8 +1694,6 @@ void CParticleSystem::SetupRain(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1755,8 +1730,6 @@ void CParticleSystem::AddRainParticle(int nHandle)
 			vRot, theList[nHandle]->InitialVelocity);
 
 	theList[nHandle]->Count++;					// One more particle in the party.
-
-	return;
 }
 
 
@@ -1774,8 +1747,6 @@ void CParticleSystem::SetupSphere(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1817,8 +1788,6 @@ void CParticleSystem::AddSphereParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -1834,8 +1803,6 @@ void CParticleSystem::SetupTrail(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1881,8 +1848,6 @@ void CParticleSystem::AddTrailParticle(int nHandle)
 			vRot, theList[nHandle]->InitialVelocity);
 
 	theList[nHandle]->Count++;					// One more particle in the party.
-
-	return;
 }
 
 
@@ -1900,8 +1865,6 @@ void CParticleSystem::SetupGuardian(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -1943,8 +1906,6 @@ void CParticleSystem::AddGuardianParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -1962,8 +1923,6 @@ void CParticleSystem::SetupImplodeSphere(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2004,8 +1963,6 @@ void CParticleSystem::AddImplodeSphereParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -2023,8 +1980,6 @@ void CParticleSystem::SetupImplodeShockwave(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -2061,8 +2016,6 @@ void CParticleSystem::AddImplodeShockwaveParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 
@@ -2082,8 +2035,6 @@ void CParticleSystem::SetupImplodeSpiralArm(int nHandle)
 
 	// Particle alpha decay speed
 	theList[nHandle]->AlphaDecay = 255.0f / theList[nHandle]->Lifetime;
-
-	return;
 }
 
 
@@ -2120,8 +2071,6 @@ void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 	fToggle = !fToggle;				// Switch to opposite side next call
 
 	theList[nHandle]->Count++;		// One more particle in the party.
-
-	return;
 }
 
 

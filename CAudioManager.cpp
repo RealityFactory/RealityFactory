@@ -203,7 +203,6 @@ geFloat CAudioManager::GetPan(int nHandle)
 /* ------------------------------------------------------------------------------------ */
 void CAudioManager::Tick(geFloat dwTicks)
 {
-	return;
 }
 
 // *** PRIVATE MEMBER FUNCTIONS ***

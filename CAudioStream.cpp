@@ -288,8 +288,6 @@ void CAudioStream::Tick(geFloat /*dwTicks*/)
 		if(pProxy->bOneShot == GE_TRUE)
 			pProxy->bActive = false;				// Turn it off!
 	}
-
-	return;
 }
 
 
@@ -312,8 +310,6 @@ void CAudioStream::SetVolume(LONG nVolume)
 			}
 		}
 	}
-
-	return;
 }
 
 
@@ -329,8 +325,6 @@ void CAudioStream::StopAll()
 		SAFE_DELETE_A(m_FileList[nTemp]);
 		SAFE_DELETE(m_Streams[nTemp]);
 	}
-
-	return;
 }
 
 
@@ -349,8 +343,6 @@ void CAudioStream::PauseAll()
 			m_Streams[nTemp]->Pause();
 		}
 	}
-
-	return;
 }
 
 
@@ -420,8 +412,6 @@ void CAudioStream::Sweep()
 			}
 		}
 	}
-
-	return;
 }
 
 

@@ -236,8 +236,6 @@ CCommonData::~CCommonData()
 		fprintf(fd, "Successful Shutdown");
 		fclose(fd);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -896,8 +894,6 @@ void CCommonData::ShutdownCommon()
 	m_MouseControl = true;
 
 	CloseJoysticks(); // pwx
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1630,8 +1626,6 @@ void CCommonData::ShutdownLevel()
 	SAFE_DELETE(theEffect);
 	SAFE_DELETE(theDamage);
 	SAFE_DELETE(theWindGenerator);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2569,8 +2563,6 @@ void CCommonData::RenderComponents()
 
 	theOverlay->Render();
 	theTerrainMgr->Render();
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3036,8 +3028,6 @@ void CCommonData::InitJoysticks()
         joysticks[j] = new Joystick(j);
         joysticks[j]->open();
     }
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3120,8 +3110,6 @@ void CCommonData::CloseJoysticks()
 			joysticks[i] = NULL;
 		}
     }
-
-	return;
 }
 
 
@@ -3149,8 +3137,6 @@ void CCommonData::PlayOpeningCutScene()
 	{
 		Play(pSetup->OpeningCutScene, 160, 120, true);
 	}
-
-	return;
 }
 
 
@@ -3192,8 +3178,6 @@ void CCommonData::CheckMediaPlayers()
 
 	if(theMIDIPlayer)
 		theMIDIPlayer->Check();						// If we have a MIDI player, check it.
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3566,8 +3550,6 @@ void CALLBACK CCommonData::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
 
 	if(thePointer->HasFocus)
 		thePointer->TimeCounter += 1;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3619,8 +3601,6 @@ void CCommonData::ResetClock()
 
 	LastTimePassed_D = (DWORD)0;
 	LastTimePassed_F = (geFloat)0.0f;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3666,8 +3646,6 @@ void CCommonData::Spin(DWORD dwMilliseconds)
 		if((fCurrent - fStart) > dwMilliseconds)
 			break;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3728,8 +3706,6 @@ void CCommonData::SetChangeLevelData(struct _ChangeLevel *pItem)
 
 	UseEffect = pItem->UseEffect;
 	cColor = pItem->EffectColor;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3775,8 +3751,6 @@ void CCommonData::SetLevelData()
 	CurrentWeapon = theWeapon->GetCurrent();
 	KeepAttributes = true;
 	SplashHold = false;
-
-	return;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

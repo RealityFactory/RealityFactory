@@ -259,8 +259,6 @@ void NetBuffer::GetRaw(void *pointer, int len)
 	memcpy(pointer, dataptr, len);
 	dataptr += len;
 	Pos += len;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

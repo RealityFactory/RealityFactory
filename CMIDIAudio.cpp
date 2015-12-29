@@ -313,8 +313,6 @@ void CMIDIAudio::Check()
 
 	// Otherwise, play the next song in the ol' jukebox....
 	Play(m_szList[m_Position], false);			// Start the next song.
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

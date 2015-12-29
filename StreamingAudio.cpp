@@ -672,8 +672,6 @@ void CALLBACK StreamingAudio::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
 
 	if(nSize != 0)
 		thePointer->PumpWave(nSize);					// Pump stream
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

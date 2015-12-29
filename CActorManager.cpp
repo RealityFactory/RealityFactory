@@ -82,7 +82,6 @@ CActorManager::~CActorManager()
 		MainList[nTemp] = NULL;
 	}
 
-	return;
 }
 
 /*
@@ -3203,8 +3202,6 @@ void CActorManager::SetVehicle(const geActor *theActor, geActor *theVehicle)
 		return;									// Actor not found?!?!
 
 	pEntry->Vehicle = theVehicle;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3593,8 +3590,6 @@ void CActorManager::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 
@@ -3640,7 +3635,6 @@ void CActorManager::RemoveAllActors(LoadedActorList *theEntry)
 
 	theEntry->IList = NULL;			// Entire list killed
 
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -3977,8 +3971,6 @@ void CActorManager::TimeAdvanceAllInstances(LoadedActorList *theEntry,
 
 		pTemp = pTemp->pNext;							// Next?
 	}
-
-	return;
 }
 
 // start multiplayer
@@ -4714,8 +4706,6 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 	{
 		CCD->PlyShdw()->DrawShadow(theEntry->Actor);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4779,8 +4769,6 @@ void CActorManager::UpdateActorState(ActorInstanceList *theEntry)
 			}
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4943,8 +4931,6 @@ void CActorManager::ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks)
 	theEntry->OldTranslation = theEntry->localTranslation;
 	theEntry->localTranslation = newpos;
 	UpdateActorState(theEntry);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4992,8 +4978,6 @@ void CActorManager::ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks)
 	}
 
 	UpdateActorState(theEntry);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -5695,8 +5679,6 @@ void CActorManager::MoveAllVehicles(LoadedActorList *theEntry, float dwTicks)
 
 		pTemp = pTemp->pNext;						// Next?
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -5853,8 +5835,6 @@ void CActorManager::SetBoundingBox(const geActor *theActor, const char *Animatio
 	maxExtBox.Min.Y = 0.0f;
 	geActor_SetExtBox(theEntry->Actor, &maxExtBox, NULL);
 	geActor_SetRenderHintExtBox(theEntry->Actor, &maxExtBox, NULL);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

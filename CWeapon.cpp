@@ -1524,8 +1524,6 @@ void CWeapon::WeaponData()
 			CCD->MenuManager()->WorldFontRect(szData, FONT10, 5, CCD->Engine()->Height()- 30, 255.0f);
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

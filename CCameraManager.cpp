@@ -43,7 +43,6 @@ CCameraManager::CCameraManager()
 	}
 
 	geCamera_SetZScale(EngineCamera, 1.0f);
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -264,7 +263,6 @@ CCameraManager::~CCameraManager()
 
 	EngineCamera = NULL;
 
-	return;
 }
 
 
@@ -1107,7 +1105,6 @@ void CCameraManager::EnableFarClipPlane(geBoolean ClipOn)
 {
 	geCamera_SetFarClipPlane(EngineCamera, ClipOn, FarClipPlaneDistance);
 	ClipEnable = ClipOn;
-	return;
 }
 
 
@@ -1314,7 +1311,6 @@ void CCameraManager::DoThirdPersonTracking()
 	Rotation = Orient;										// Set camera orientation
 	Translation = Back;										// Set camera translation
 
-	return;
 }
 
 
@@ -1421,7 +1417,6 @@ void CCameraManager::DoIsoTracking()
 	Rotation = Orient;										// Set camera orientation
 	Translation = Back;										// Set camera translation
 
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

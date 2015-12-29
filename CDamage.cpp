@@ -443,8 +443,6 @@ void CDamage::DamageActor(const geActor *Actor,
 			}
 		}
 	}
-
-	return;
 }
 
 

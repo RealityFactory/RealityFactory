@@ -169,8 +169,6 @@ void CCorona::Tick(geFloat /*dwTicks*/)
 			}
 		}
 	}
-
-	return;
 }
 
 //	******************** CRGF Overrides ********************

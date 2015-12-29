@@ -125,8 +125,6 @@ void CCutScene::Tick(geFloat /*dwTicks*/)
 			CCD->Engine()->ResetSystem();
 		}
 	}
-
-	return;
 }
 
 

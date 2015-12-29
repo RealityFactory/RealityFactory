@@ -228,9 +228,6 @@ void CVideoTexture::Tick(geFloat /*dwTicks*/)
 
 		++nSlot;
 	}
-
-	// Whew, all done!  Let's get outta here...
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

@@ -197,8 +197,6 @@ void C3DAudioSource::Tick(geFloat /*dwTicks*/)
 			}
 		}
 	}
-
-	return;
 }
 
 

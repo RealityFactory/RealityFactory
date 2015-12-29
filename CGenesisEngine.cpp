@@ -950,7 +950,6 @@ void CGenesisEngine::DeleteCompleteTexture(CompleteTexture cp)
 
 	delete cp.TextureArray;
 	cp.TextureArray = NULL;
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1174,8 +1173,6 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 void CGenesisEngine::ShowFrameRate(bool bHow)
 {
 	geEngine_EnableFrameRateCounter(m_theEngine, bHow);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1406,8 +1403,6 @@ void CGenesisEngine::EnableFog(geBoolean FogOn)
 	geEngine_SetFogEnable(m_theEngine, FogOn,
 		FogColor.r, FogColor.g, FogColor.b,
 		fFogStart, fFogEnd);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

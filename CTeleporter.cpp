@@ -425,8 +425,6 @@ void CTeleporter::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 

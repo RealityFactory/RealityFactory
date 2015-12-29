@@ -537,9 +537,8 @@ CElectric::CElectric()
 			geVec3d_Subtract(&pTerminus->origin, &ModelOrigin, &pTerminus->OriginOffset);
 		}
 	}
-
-	return;
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
@@ -596,8 +595,6 @@ CElectric::~CElectric()
 		if(pBolt->Bolt)
 			Electric_BoltEffectDestroy(pBolt->Bolt);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

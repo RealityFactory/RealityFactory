@@ -1306,8 +1306,6 @@ void CAVIPlayer::Init()
 	}
 
 	m_bVideoPrimed = false;
-
-	return;
 }
 
 
@@ -1869,8 +1867,6 @@ void CAVIPlayer::PumpBuffer(int nAudioStreamID, bool ForceLoad)
 
 	// Unlock buffer, we're done with it for now.
 	m_pStream->Unlock(lpbuf1, dwsize1, lpbuf2, dwsize2);
-
-	return;
 }
 
 

@@ -206,8 +206,6 @@ void CDecal::Tick(geFloat dwTicks)
 
 		d = next;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -374,8 +372,6 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 			return;
 		}
 	}
-
-	return;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

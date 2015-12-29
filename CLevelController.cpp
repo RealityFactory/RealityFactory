@@ -1129,9 +1129,6 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				Object->Order[0] = '\0';
 		}
 	}
-
-	//Ok, we're done!
-	return;
 }
 
 
@@ -1260,8 +1257,6 @@ void CLevelController::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 

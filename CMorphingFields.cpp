@@ -328,8 +328,6 @@ void CMorphingFields::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 

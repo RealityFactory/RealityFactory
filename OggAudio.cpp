@@ -464,7 +464,6 @@ void CALLBACK OggAudio::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
 		thePointer->Pumping = false;
 	}
 
-	return;
 }
 
 

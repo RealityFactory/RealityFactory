@@ -118,8 +118,6 @@ CFloat::CFloat()
 			S->EffectList[i] = CCD->EffectManager()->Item_Add(EFF_SPRITE, static_cast<void*>(&Spr));
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

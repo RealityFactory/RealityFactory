@@ -446,8 +446,6 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 			return;							// Hmmph, we hit a platform
 		}
 	}
-
-	return;									// We hit no known platforms
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -622,8 +620,6 @@ void CMovingPlatforms::Tick(geFloat /*dwTicks*/)
 			pPlatform->SoundHandle = -1;
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

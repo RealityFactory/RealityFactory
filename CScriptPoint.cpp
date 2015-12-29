@@ -269,8 +269,6 @@ void CScriptPoint::SetOrigin()
 		pool->Name = strdup(pSource->szEntityName);
 		pool->origin = pSource->origin;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

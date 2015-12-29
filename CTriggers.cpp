@@ -407,8 +407,6 @@ void CTriggers::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -585,8 +583,6 @@ void CTriggers::SetState()
 		pool->Name = strdup(pSource->szEntityName);
 		pool->state = pSource->bState;
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

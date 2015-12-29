@@ -325,8 +325,6 @@ void CLogic::Tick(geFloat dwTicks)
 		geRam_Free(pool);
 		pool = temp;
 	}
-
-	return;
 }
 
 
@@ -482,8 +480,6 @@ void CLogic::SetState()
 		pool->Name = strdup(pSource->szEntityName);
 		pool->state = pSource->bState;
 	}
-
-	return;
 }
 
 

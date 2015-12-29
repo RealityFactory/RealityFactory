@@ -277,8 +277,6 @@ void COverlay::Render()
 								GE_RENDER_DO_NOT_OCCLUDE_SELF, 2.0f);
 		}
 	}
-
-	return;
 }
 
 

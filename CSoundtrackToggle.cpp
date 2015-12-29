@@ -132,8 +132,6 @@ void CSoundtrackToggle::Tick(geFloat /*dwTicks*/)
 		if(pToggle->bOneShot)
 			pToggle->bActive = GE_FALSE;					// Deactivate after use
 	}
-
-	return;								// All done.
 }
 
 /* ------------------------------------------------------------------------------------ */

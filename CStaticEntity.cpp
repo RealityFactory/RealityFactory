@@ -239,8 +239,6 @@ void CStaticEntity::Render(geXForm3d /*ViewPoint*/, DWORD /*dwTime*/)
 			DrawBoundBox(CCD->World(), &pProxy->origin, &ExtBox.Min, &ExtBox.Max);
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -551,8 +549,6 @@ void CStaticEntity::Tick(geFloat dwTicks)
 			CCD->ActorManager()->ValidateMove(pPosition, pProxy->origin, pProxy->Actor, true);
 		}
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

@@ -597,7 +597,6 @@ CPlayer::CPlayer()
 
     Actor = NULL;
 
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -633,7 +632,6 @@ CPlayer::~CPlayer()
 		Actor = NULL;
 	}
 
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4759,8 +4757,6 @@ void CPlayer::LookMode(bool bLookOn)
 		CCD->CameraManager()->SetTrackingFlags(LookFlags);
 		CCD->CameraManager()->SetCameraOffset(LookPosition, LookRotation);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4773,8 +4769,6 @@ void CPlayer::SwitchToFirstPerson()
 	m_FirstPersonView = true;
 	m_LookMode = false;
 	CCD->ActorManager()->SetActorFlags(Actor, GE_ACTOR_COLLIDE | mirror);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4788,7 +4782,6 @@ void CPlayer::SwitchToThirdPerson()
 	m_LookMode = false;
 	CCD->ActorManager()->SetActorFlags(Actor,
 		GE_ACTOR_RENDER_NORMAL | GE_ACTOR_COLLIDE | GE_ACTOR_RENDER_MIRRORS);
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4883,8 +4876,6 @@ void CPlayer::Backtrack()
 
 	m_Translation = m_PositionHistory[m_PositionHistoryPtr];
 	CCD->ActorManager()->Position(Actor, m_Translation);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4904,8 +4895,6 @@ void CPlayer::AddPosition()
 		m_PositionHistoryPtr = 0;
 
 	m_PositionHistory[m_PositionHistoryPtr] = m_Translation;
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4932,8 +4921,6 @@ geSound_Def *CPlayer::LoadAudioClip(const char *szFilename)
 void CPlayer::ShowFog()
 {
 	CCD->Engine()->EnableFog(m_FogActive);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4944,8 +4931,6 @@ void CPlayer::ShowFog()
 void CPlayer::DisableFog()
 {
 	CCD->Engine()->EnableFog(GE_FALSE);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4956,8 +4941,6 @@ void CPlayer::DisableFog()
 void CPlayer::ActivateClipPlane()
 {
 	CCD->CameraManager()->EnableFarClipPlane(m_ClipActive);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -4968,8 +4951,6 @@ void CPlayer::ActivateClipPlane()
 void CPlayer::DisableClipPlane()
 {
 	CCD->CameraManager()->EnableFarClipPlane(GE_FALSE);
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */

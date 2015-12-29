@@ -542,8 +542,6 @@ void CMessage::Display()
 			}
 		}
 	}
-
-	return;
 }
 
 

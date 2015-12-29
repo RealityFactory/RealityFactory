@@ -159,8 +159,6 @@ void CFirePoint::Tick(geFloat dwTicks)
 			}
 		}
 	}
-
-	return;
 }
 
 

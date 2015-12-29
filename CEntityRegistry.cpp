@@ -101,8 +101,6 @@ void CEntityRegistry::Dump()
 {
 	if(m_pList != NULL)
 		m_pList->Dump();
-
-	return;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

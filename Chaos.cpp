@@ -144,8 +144,6 @@ Chaos::Chaos()
 		if(pTex->WorkBmp != NULL)
 			geBitmap_ClearMips(pTex->WorkBmp);
 	}
-	// all done
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -302,9 +300,6 @@ void Chaos::Tick(geFloat dwTicks)
 		// EMBM CHAOS - force an update to the real bumpmap texture attached to this bitmap
 		geBitmap_UpdateBumpMapAlt(pTex->CAttachBmp);
 	}
-
-	// all done
-	return;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */

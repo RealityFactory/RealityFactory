@@ -247,8 +247,6 @@ void CCDAudio::Check()
 
 		Play(m_PlayList[m_nPlayIndex], false);			// Play next track in list
 	}
-
-	return;												// CD audio handling dealt with
 }
 
 /* ------------------------------------------------------------------------------------ */
