@@ -108,22 +108,20 @@ void CDecal::Tick(geFloat dwTicks)
 
 					int major = 0;
 
-					#define fab(a) (a > 0 ? a : -a)
-
-					if(fab(direction.Y) > fab(direction.X))
+					if(fabs(direction.Y) > fabs(direction.X))
 					{
 						major = 1;
 
-						if(fab(direction.Z) > fab(direction.Y))
+						if(fabs(direction.Z) > fabs(direction.Y))
 							major = 2;
 					}
 					else
 					{
-						if(fab(direction.Z) > fab(direction.X))
+						if(fabs(direction.Z) > fabs(direction.X))
 							major = 2;
 					}
 
-					if(fab(direction.X) > 0.999f || fab(direction.Y) > 0.999f || fab(direction.Z) > 0.999f)
+					if(fabs(direction.X) > 0.999f || fabs(direction.Y) > 0.999f || fabs(direction.Z) > 0.999f)
 					{
 						if((major == 0 && direction.X > 0.0f) || major == 1)
 						{
@@ -293,22 +291,20 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 
 			int major = 0;
 
-			#define fab(a) (a > 0 ? a : -a)
-
-			if(fab(normal->Y) > fab(normal->X))
+			if(fabs(normal->Y) > fabs(normal->X))
 			{
 				major = 1;
 
-				if(fab(normal->Z) > fab(normal->Y))
+				if(fabs(normal->Z) > fabs(normal->Y))
 					major = 2;
 			}
 			else
 			{
-				if(fab(normal->Z) > fab(normal->X))
+				if(fabs(normal->Z) > fabs(normal->X))
 					major = 2;
 			}
 
-			if(fab(normal->X) > 0.999f || fab(normal->Y) > 0.999f || fab(normal->Z) > 0.999f)
+			if(fabs(normal->X) > 0.999f || fabs(normal->Y) > 0.999f || fabs(normal->Z) > 0.999f)
 			{
 				if((major == 0 && normal->X > 0.0f) || major == 1)
 				{
