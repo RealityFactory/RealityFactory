@@ -1086,7 +1086,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	switch( TerrainDef.m_eType )
 	{
 	case TT_LAND:
-		pMap	= (qxTerrainMapBase*) new qxTerrainMap(	TerrainDef );
+		pMap	= static_cast<qxTerrainMapBase*>(new qxTerrainMap(TerrainDef));
 		break;
 
 	default:
@@ -1224,7 +1224,7 @@ void qxTerrainMgr::CalculatePlayerLatitude()
 	}
 	nDay += Day;
 	float fDayRads = RADIANS( nDay );
-	float fDayFactor = (float) cos( fDayRads  );
+	float fDayFactor = cos( fDayRads );
 
 
 	float f = fDayFactor*23.5f;

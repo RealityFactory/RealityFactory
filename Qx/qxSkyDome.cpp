@@ -247,8 +247,8 @@ bool qxSkyDome::LoadHeightMap()
 	{
 		for(int x = 0; x < m_nHeightMapWidth; x++)	// z loop
 		{
-			float xdist = (-0.5f * planesize) + ((float)x*fDelta);
-			float zdist = (-0.5f * planesize) + ((float)z*fDelta);
+			float xdist = (-0.5f * planesize) + (static_cast<float>(x)*fDelta);
+			float zdist = (-0.5f * planesize) + (static_cast<float>(z)*fDelta);
 
 			float xheight = (xdist*xdist) / m_fMaxHeight;
 			float zheight = (zdist*zdist) / m_fMaxHeight;
@@ -261,7 +261,7 @@ bool qxSkyDome::LoadHeightMap()
 				height = 0.0f;
 
 			height += (float)CCD->TerrainMgr()->GetSkyDomeOffsetY();
-			SetElementHeight( x, z, (int)height);
+			SetElementHeight(x, z, static_cast<int16>(height));
 		}
 	}
 
