@@ -26,7 +26,7 @@ public:
 
 	void SetEnabled(bool enable);
 
-	bool GetEnabled() { return m_bEnabled; }
+	bool GetEnabled() const { return m_bEnabled; }
 
 private:
 	bool	m_bEnabled;

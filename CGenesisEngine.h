@@ -118,11 +118,11 @@ public:
 
 	//	Accessor functions
 	geEngine *Engine()				{ return m_theEngine;	}	///< Get Genesis3D engine pointer
-	bool FullScreen()				{ return m_fFullScreen;	}	///< Get fullscreen/windowed status
+	bool FullScreen() const			{ return m_fFullScreen;	}	///< Get fullscreen/windowed status
 	geWorld *World()				{ return m_World;		}	///< Get Genesis3D World
 	HWND WindowHandle()				{ return m_wndMain;		}	///< Get main window handle
-	int Width()						{ return m_nWidth;		}	///< Window width
-	int Height()					{ return m_nHeight;		}	///< Window height
+	int Width() const				{ return m_nWidth;		}	///< Window width
+	int Height() const				{ return m_nHeight;		}	///< Window height
 	geSound_System *AudioSystem()	{ return m_Audio;		}	///< Audio system pointer
 	char *LevelName()				{ return m_CurrentLevel;}	///< Current level name
 

@@ -81,7 +81,9 @@ public:
 	int Render();								///< Render the HUD out
 
 	void Tick(geFloat dwTick);
-	bool GetActive() { return m_bHUDActive; }
+
+	bool GetActive() const { return m_bHUDActive; }
+
 	int SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop);
 	int SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset);
 	int SetElementDisplayTime(const char *szAttributeName, float DisplayTime);

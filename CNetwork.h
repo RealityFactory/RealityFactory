@@ -61,7 +61,7 @@ public:
 	~NetPlayer();
 
 	void Create(char *actorname);
-	int GetId()											{ return Id;						}
+	int GetId() const									{ return Id;						}
 	void SetId(int id)									{ Id = id;							}
 	void SetBaseRotation(const geVec3d &Rotation)		{ BaseRotation = Rotation;			}
 	void SetlocalRotation(const geVec3d &Rotation)		{ localRotation = Rotation;			}

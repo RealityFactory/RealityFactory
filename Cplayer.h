@@ -316,15 +316,18 @@ public:
 	bool GetCrouch()					{ return m_crouch;				}
 	void FlipCrouch()					{ m_crouch = !m_crouch;			}
 	void Moving(int nValue)				{ m_Moving = nValue;			}
-	int GetSlideWalk()					{ return m_SlideWalk;			}
+	int GetMoving() const				{ return m_Moving;				}
+
+	int GetSlideWalk() const			{ return m_SlideWalk;			}
 	void SetSlideWalk(int value)		{ m_SlideWalk = value;			}
-	int GetMoving()						{ return m_Moving;				}
-	geFloat Speed()						{ return m_CurrentSpeed;		}	///< Get player speed
+
+	float Speed() const					{ return m_CurrentSpeed;		}	///< Get player speed
 
 	geVec3d Position();
-	geFloat LastMovementSpeed()			{ return m_LastMovementSpeed;	}
+	float LastMovementSpeed() const		{ return m_LastMovementSpeed;	}
 	bool InFirstPerson()				{ return m_FirstPersonView;		}
-	bool FirstPersonView()				{ return m_FirstPersonView;		}
+
+	bool FirstPersonView() const		{ return m_FirstPersonView;		}
 
 	// Weapon
 	geActor	*GetActor()					{ return Actor;					}
@@ -363,8 +366,9 @@ public:
 	int LightLife()					{ return (int)LiteLife;			}
 	void ModifyLight(int amount);
 
-	float GetScale()				{ return m_Scale;				}
-	float GetHeight()				{ return m_CurrentHeight;		}
+	float GetScale() const			{ return m_Scale;				}
+	float GetHeight() const			{ return m_CurrentHeight;		}
+
 	int PlayerViewPoint()			{ return m_PlayerViewPoint;		}
 	float GetSlideSlope()			{ return slideslope;			}
 	float GetSlideSpeed()			{ return slidespeed;			}
