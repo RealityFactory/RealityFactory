@@ -72,6 +72,8 @@ Collider::~Collider()
 int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 							GE_Contents *theContents)
 {
+	assert(theBox);
+	assert(theContents);
 
 	memset(theContents, 0, sizeof(GE_Contents));
 
@@ -109,6 +111,9 @@ int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 int Collider::GetContentsOf(const geVec3d &Position, geExtBox *theBox,
 							geActor *theActor, GE_Contents *theContents)
 {
+	assert(theBox);
+	assert(theContents);
+
 	memset(theContents, 0, sizeof(GE_Contents));
 
 	int Result = geWorld_GetContents(CCD->World(), &Position,
@@ -201,6 +206,9 @@ void Collider::CheckLevel(int nLevel)
 /* ------------------------------------------------------------------------------------ */
 bool Collider::CheckActorCollision(geVec3d *Position, geActor *theActor)
 {
+	assert(Position);
+	assert(theActor);
+
 	// First, check to see if the bounding box will hit, and if not, we
 	// ..need not go to a Stage II collision test
 
@@ -240,6 +248,8 @@ bool Collider::CheckActorCollision(geVec3d *Position, geActor *theActor)
 /* ------------------------------------------------------------------------------------ */
 bool Collider::CheckActorCollision(const geVec3d &Start, const geVec3d &End, geActor *theActor)
 {
+	assert(theActor);
+
 	// First, check to see if the bounding box will hit, and if not, we
 	// ..need not go to a Stage II collision test
 	geExtBox theBox;
@@ -285,6 +295,8 @@ bool Collider::CheckActorCollision(const geVec3d &Start, const geVec3d &End, geA
 bool Collider::CheckActorCollision(const geVec3d &Start, const geVec3d &End, geActor *theActor,
 								   GE_Collision *Collision)
 {
+	assert(theActor);
+
 	// First, check to see if the bounding box will hit, and if not, we
 	// ..need not go to a Stage II collision test
 	geExtBox theBox;
@@ -497,6 +509,8 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Contents *Contents)
 {
+	assert(Contents);
+
 	GE_Collision Collision;
 	int Result, Result2;
 
@@ -572,6 +586,9 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Collision *Collision, GE_Contents *Contents)
 {
+	assert(Collision);
+	assert(Contents);
+
 	int Result, Result2;
 
 	memset(Contents, 0, sizeof(GE_Contents));
@@ -656,6 +673,8 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Collision *Collision, geActor *Actor)
 {
+	assert(Collision);
+
 	GE_Contents Contents;
 	int Result, Result2;
 
@@ -761,6 +780,8 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Collision *Collision, geActor *Actor)
 {
+	assert(Collision);
+
 	GE_Contents Contents;
 	int Result, Result2;
 
@@ -2019,6 +2040,8 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 								  const geVec3d &OldPosition, const geVec3d &NewPosition,
 								  GE_Collision *Collision, geActor *Actor)
 {
+	assert(Collision);
+
 	GE_Contents Contents;
 	int Result, Result2;
 	geVec3d OMins, OMaxs;
@@ -2128,6 +2151,8 @@ bool Collider::CheckForCollisionD(geVec3d *Min, geVec3d *Max,
 bool Collider::CanOccupyPositionD(const geVec3d *thePoint, geExtBox *theBox,
 								 geActor *Actor, GE_Contents *Contents)
 {
+	assert(Contents);
+
 	memset(Contents, 0, sizeof(GE_Contents));
 
 	int Result = geWorld_GetContents(CCD->World(), thePoint,
