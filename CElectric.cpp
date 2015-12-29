@@ -98,9 +98,9 @@ Electric_BoltEffect* Electric_BoltEffectCreate(geBitmap	*Bitmap,
 	be = new Electric_BoltEffect;
 
 	if(!be)
-		return be;
+		return NULL;
 
-	memset(be, 0, sizeof(*be));
+	memset(be, 0, sizeof(Electric_BoltEffect));
 
 	be->beCenterPoints = new geVec3d[NumPolys + 1];
 
