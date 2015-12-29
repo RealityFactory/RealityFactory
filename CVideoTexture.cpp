@@ -110,14 +110,9 @@ CVideoTexture::~CVideoTexture()
 		{
 			m_VidList[nTemp]->Close();
 			delete m_VidList[nTemp];
-			m_VidList[nTemp] = NULL;
 		}
 
-		if(m_GifList[nTemp] != NULL)
-		{
-			delete m_GifList[nTemp];
-			m_GifList[nTemp] = NULL;
-		}
+		delete m_GifList[nTemp];
 	}
 }
 

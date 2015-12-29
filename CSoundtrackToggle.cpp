@@ -21,8 +21,7 @@
 CSoundtrackToggle::CSoundtrackToggle() :
 	m_EntityCount(0)
 {
-	m_Streams = NULL;
-	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();;
+	m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
 	m_MIDIPlayer = new CMIDIAudio();
 	m_Streams = new StreamingAudio(m_dsPtr);
 

@@ -53,8 +53,7 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 	if(Water->Bitmap == NULL)
 	{
-		if(Water)
-		    Water_Destroy(Water);
+		Water_Destroy(Water);
 
 		return NULL;
 	}
@@ -64,8 +63,7 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 	// We need this to be only 1 miplevel!!!
 	if(!geBitmap_ClearMips(Water->Bitmap))
 	{
-		if(Water)
-			Water_Destroy(Water);
+		Water_Destroy(Water);
 
 		return NULL;
 	}
@@ -80,16 +78,14 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 		if(!geBitmap_SetFormat(Water->Bitmap, Format, GE_FALSE, 0, NULL))
 		{
-			if(Water)
-				Water_Destroy(Water);
+			Water_Destroy(Water);
 
 			return NULL;
 		}
 
 		if(!geBitmap_GetInfo(Water->Bitmap, &Info, NULL))
 		{
-			if(Water)
-				Water_Destroy(Water);
+			Water_Destroy(Water);
 
 			return NULL;
 		}
@@ -102,8 +98,7 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 		if(!Water->OriginalBits)
 		{
-			if(Water)
-				Water_Destroy(Water);
+			Water_Destroy(Water);
 
 			return NULL;
 		}
@@ -114,8 +109,7 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 			if(!Water->WaterData[i])
 			{
-				if (Water)
-					Water_Destroy(Water);
+				Water_Destroy(Water);
 
 				return NULL;
 			}
@@ -134,16 +128,14 @@ Procedural *Water_Create(const char *TextureName, geWorld *World)
 
 		if(!geBitmap_GetInfo(Water->Bitmap, &Info, NULL))
 		{
-			if(Water)
-				Water_Destroy(Water);
+			Water_Destroy(Water);
 
 			return NULL;
 		}
 
 		if(!geBitmap_LockForRead(Water->Bitmap, &Src, 0, 0, Info.Format, GE_TRUE, 255))
 		{
-			if(Water)
-				Water_Destroy(Water);
+			Water_Destroy(Water);
 
 			return NULL;
 		}
@@ -385,12 +377,10 @@ static geFloat FloatMod(geFloat In, geFloat Wrap)
 /* ------------------------------------------------------------------------------------ */
 static void Water_Update(Procedural *Water, geFloat Time)
 {
-	int16		*Page1, *Page2, *Page3;
+	int16 *Page1, *Page2;
 
 	Page1 = Water->WaterData[Water->NPage];
 	Page2 = Water->WaterData[!Water->NPage];
-
-	Page3 = Page2;
 
 	Water->TimeToSplashWater += Time;
 

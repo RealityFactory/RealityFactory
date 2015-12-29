@@ -71,11 +71,7 @@ CModelManager::~CModelManager()
 {
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
-		if(MainList[nTemp] == NULL)
-			continue;					// Empty slot, ignore
-
 		delete MainList[nTemp];
-		MainList[nTemp] = NULL;
 	}
 }
 
@@ -2152,7 +2148,6 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 	geXForm3d xfmDest, xfmOldPosition;
 	geFloat theTime;
 	geXForm3d ParentXfm, ResultXfm;
-	int i;
 
 	// Get the old transform for this model. (Note: this includes any motion due to a parent)
 	geWorld_GetModelXForm(CCD->World(), theEntry->Model, &xfmOldPosition);
@@ -2286,8 +2281,6 @@ int CModelManager::MoveModel(ModelInstanceList *theEntry, const gePath *pPath)
 			(theEntry->bReverseOnCollision == true))
 			theEntry->bForward = !theEntry->bForward;		// Switch direction
 
-		if(memcmp(&ActorPosition, &NewActorPosition, sizeof(geVec3d)) != 0)
-			i = 0;
 	}
 
 	// If we made it this far the model CAN move so let's move the affected actors

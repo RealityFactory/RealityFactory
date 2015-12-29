@@ -154,10 +154,8 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Teleporter");
 
 	if(!pSet)
-	{
-		CCD->ReportError("CTeleporter: HandleCollision: no teleporters", false);
 		return false;
-	}
+
 	geEntity *pEntity;
 
 	// Once more we scan the teleporter list.  Does this get old, or what?

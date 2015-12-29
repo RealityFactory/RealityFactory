@@ -578,7 +578,7 @@ int CStaticEntity::SaveTo(FILE *SaveFD, bool type)
 		if(!pProxy->Actor)
 			continue;
 
-		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
+		if(pProxy->alive || !pProxy->DeathDissappear)
 		{
 			CCD->ActorManager()->GetPosition(pProxy->Actor, &pProxy->origin);
 		}
@@ -645,7 +645,7 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 		READDATA(type, &pProxy->IsHit,			sizeof(geBoolean),	1, RestoreFD);
 		READDATA(type, &pProxy->bInitialized,	sizeof(geBoolean),	1, RestoreFD);
 
-		if(pProxy->alive || (!pProxy->alive && !pProxy->DeathDissappear))
+		if(pProxy->alive || !pProxy->DeathDissappear)
 		{
 			int health;
 			READDATA(type, &health, sizeof(int), 1, RestoreFD);

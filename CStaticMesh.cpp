@@ -90,8 +90,6 @@ CStaticMesh::CStaticMesh() :
 					CCD->ReportError(szError, false);
 					CCD->ShutdownLevel();
 					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, szError,"StaticMesh", MB_OK);
 					exit(-333);
 				}
 
@@ -108,8 +106,6 @@ CStaticMesh::CStaticMesh() :
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError,"StaticMesh", MB_OK);
 				exit(-333);
 			}
 		}

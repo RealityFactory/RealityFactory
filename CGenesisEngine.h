@@ -149,7 +149,6 @@ private:
 	//	Private member variables
 	int			m_nWidth, m_nHeight;		///< Window dimensions
 	bool		m_fFullScreen;				///< Fullscreen/windowed flag
-	bool		m_fUseSoftware;				///< Software rendering
 	char		m_SelectedDriverID;			///< Driver selection ID, Genesis style
 	RECT		m_ScreenRect;				///< Screen size rectangle
 	HWND		m_wndMain;					///< Main window handle

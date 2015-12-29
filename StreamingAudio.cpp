@@ -76,13 +76,11 @@ StreamingAudio::~StreamingAudio()
 		mmioClose(m_hWaveFile, 0);
 		m_hWaveFile = NULL;
 		delete m_pWaveFormat;
-		m_pWaveFormat = NULL;
 	}
 
 	if(m_pStream != NULL)
 	{
 		m_pStream->Release();			// Drop the DSound buffer
-		m_pStream = NULL;
 	}
 }
 
@@ -687,7 +685,6 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	MMCKINFO ckIn;					// chunk info. for general use.
 	PCMWAVEFORMAT pcmWaveFormat;	// Temp PCM structure to load in.
 	WORD cbExtraAlloc = 0;			// Extra bytes for waveformatex
-	int nError = 0;					// Return value.
 
 	// Set up for the job
 	*ppwfxInfo = NULL;

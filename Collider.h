@@ -154,10 +154,6 @@ private:
 	int LastCollisionReason;		///< Reason for last collision
 	int m_CheckLevel;				///< Collision check level
 	bool m_IgnoreContents;			///< Ignore collision zone contents
-	char szLastBoneCollision[256];	///< Name of last bone collided, if any
-	// Debug Variables
-	char Flag1[256];
-	int Flag2, Flag3;
 };
 
 #endif

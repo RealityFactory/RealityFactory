@@ -1978,9 +1978,6 @@ bool Collider::CheckActorCollisionD(const geVec3d &Start, const geVec3d &End,
 	if(CCD->MenuManager()->GetBoundBox())
 		DrawBoundBox(CCD->World(), &End, &theBox.Min, &theBox.Max);
 
-	Flag2 = 0;
-	Flag3 = 0;
-
 	if((CheckForCollisionD(&theBox.Min, &theBox.Max, Start, End, Collision, theActor)) == false)
 	{
 		if(!(m_CheckLevel <= RGF_COLLISIONLEVEL_1))
@@ -2160,7 +2157,6 @@ bool Collider::CanOccupyPositionD(const geVec3d *thePoint, geExtBox *theBox,
 										NULL, NULL,
 										Contents);
 
-	Flag2 = Contents->Contents & GE_CONTENTS_HINT;
 
 	if((Result == GE_FALSE) && (Result1 == GE_TRUE))
 	{

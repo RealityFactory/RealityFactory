@@ -89,17 +89,13 @@ NetPlayerMgr::~NetPlayerMgr()
 	if(!isServer)
 		SendDelete();
 
-	if(Buffer)
-		delete Buffer;
+	delete Buffer;
 
-	if(outbuffer)
-		delete outbuffer;
+	delete outbuffer;
 
-	if(inbuffer)
-		delete inbuffer;
+	delete inbuffer;
 
-	if(updatebuffer)
-		delete updatebuffer;
+	delete updatebuffer;
 
 	if(!serverstop && isServer)
 	{
@@ -124,11 +120,8 @@ void NetPlayerMgr::DeletePlayers()
 {
 	for(int i=0; i<MAXPLAYERS; ++i)
 	{
-		if(Player[i])
-		{
-			delete Player[i];
-			Player[i] = NULL;
-		}
+		delete Player[i];
+		Player[i] = NULL;
 	}
 }
 

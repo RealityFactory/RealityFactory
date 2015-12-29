@@ -57,10 +57,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				if(CCD->Engine() != NULL)
 					geEngine_Activate(CCD->Engine()->Engine(), true);
 
-				if(CCD->MenuManager())
-				{
-				}
-
 				return 0;
 			}
 		}
@@ -374,7 +370,6 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 bool CGenesisEngine::FindDriver()
 {
 	long Height = 0, Width = 0;
-	const char *modename = NULL;
 	const char *drvname = NULL;
 
 	if(m_fFullScreen)
@@ -938,7 +933,6 @@ bool CGenesisEngine::AddCompleteTextureToWorld(const CompleteTexture &cp)
 void CGenesisEngine::DeleteCompleteTexture(CompleteTexture cp)
 {
 	int i, bmpcount;
-	bool retval = true;
 
 	bmpcount = cp.TexturesHigh * cp.TexturesWide;
 
@@ -1244,7 +1238,6 @@ int CGenesisEngine::BeginFrame()
 	{
 		ReportError("[ERROR] CGenesisEngine::BeginFrame failed", false);
 		exit(-1);
-		return RGF_FAILURE;
 	}
 
 	m_fInFramePass = true;

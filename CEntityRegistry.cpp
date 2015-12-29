@@ -32,7 +32,6 @@ CEntityRegistry::~CEntityRegistry()
 {
 	m_pList->Clear();
 	delete m_pList;
-	m_pList = NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */

@@ -176,7 +176,6 @@ CParticleSystem::~CParticleSystem()
 		{
 			Clear(nTemp);
 			delete theList[nTemp];
-			theList[nTemp] = NULL;
 		}
 	}
 }

@@ -1366,17 +1366,15 @@ static geBoolean Snd_Get3dSoundValues(Snd		*Data,
 									  geFloat	*Pan,
 									  geFloat	*Frequency)
 {
-	const geXForm3d	*SoundXf;
 	geXForm3d CamXf;
 	geFloat VolDelta, PanDelta;
 
 	// get the camera xform
 	CamXf = CCD->CameraManager()->ViewPoint();
-	SoundXf = &CamXf;
 
 	// get 3d sound values
 	geSound3D_GetConfig(CCD->World(),
-						SoundXf,
+						&CamXf,
 						&(Data->Pos),
 						Data->Min,
 						0,

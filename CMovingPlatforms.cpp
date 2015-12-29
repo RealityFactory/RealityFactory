@@ -183,9 +183,6 @@ CMovingPlatforms::CMovingPlatforms() :
 	// Run through the platforms again to see if any are attached to another model
 	pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
-	if(!pSet)
-		return;									// No platforms, how odd...
-
 	// Ok, we have platforms somewhere.  Dig through 'em all.
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
@@ -386,10 +383,8 @@ void CMovingPlatforms::TriggerNextPlatform(const geWorld_Model *pModel, bool bTr
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "MovingPlatform");
 
 	if(!pSet)
-	{
-		CCD->ReportError("CMovingPlatforms: TriggerNextPlatform: no platforms", false);
 		return;
-	}
+
 	geEntity *pEntity;
 
 	// Once more we scan the platform list.  Does this get old, or what?

@@ -396,8 +396,6 @@ CActorSpout::CActorSpout()
 				CCD->ReportError(szError, false);
 				CCD->ShutdownLevel();
 				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError,"ActorSpout", MB_OK);
 				exit(-333);
 			}
 

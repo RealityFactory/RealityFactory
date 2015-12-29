@@ -122,10 +122,8 @@ int CTriggers::HandleCollision(const geWorld_Model *pModel, bool HitType, bool U
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Trigger");
 
 	if(!pSet)
-	{
-		CCD->ReportError("CTriggers: handlecollision: no triggers", false);
 		return RGF_FAILURE;
-	}
+
 	geEntity *pEntity;
 	bool state;
 

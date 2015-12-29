@@ -59,7 +59,6 @@ CMorphingFields::CMorphingFields() :
 		pField->clrCurrent	= pField->clrStart;				// Current color
 		pField->SoundHandle = -1;							// No sound yet
 		pField->active		= GE_FALSE;
-		pField->theSound	= NULL;
 
 		if(!EffectC_IsStringNull(pField->szSoundFile))
 		{
