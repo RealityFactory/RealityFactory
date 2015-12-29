@@ -108,7 +108,7 @@ public:
 	void ConvertRGBtoHSV();
 
 
-	const qxColor& operator=(const qxColor& qx)
+	qxColor& operator=(const qxColor& qx)
 	{
 		rgba.r = qx.rgba.r;
 		rgba.g = qx.rgba.g;
