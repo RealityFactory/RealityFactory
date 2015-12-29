@@ -648,10 +648,10 @@ void qxTerrainMgr::Shutdown()
 	delete m_pSkyDome;
 	delete m_pCloudMachine;
 
-	for(unsigned int i = 0; i < m_pMaps.size(); i++)
+	std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+	for(; it != m_pMaps.end(); ++it)
 	{
-		qxTerrainMapBase* p = m_pMaps[i];
-		delete p;
+		delete *it;
 	}
 
 	m_pMaps.clear();
@@ -831,10 +831,10 @@ bool qxTerrainMgr::Frame()
 	UpdateFog();
 
 
-	for(unsigned int i = 0; i < m_pMaps.size(); i++)
+	std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+	for(; it != m_pMaps.end(); ++it)
 	{
-		qxTerrainMapBase* p = m_pMaps[i];
-		p->Frame();
+		(*it)->Frame();
 	}
 
 	return true;
@@ -859,18 +859,18 @@ bool qxTerrainMgr::Render()
 	{
 		if(!m_bRenderWireframe)
 		{
-			for(unsigned int i = 0; i < m_pMaps.size(); i++)
+			std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+			for(; it != m_pMaps.end(); ++it)
 			{
-				qxTerrainMapBase* p = m_pMaps[i];
-				p->Render();
+				(*it)->Render();
 			}
 		}
 		else
 		{
-			for(unsigned int i = 0; i < m_pMaps.size(); i++)
+			std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+			for(; it != m_pMaps.end(); ++it)
 			{
-				qxTerrainMapBase* p = m_pMaps[i];
-				p->RenderWireframe();
+				(*it)->RenderWireframe();
 			}
 		}
 	}
@@ -887,10 +887,10 @@ void qxTerrainMgr::Draw()
 	if( m_pCloudMachine)
 		m_pCloudMachine->Draw();
 
-	for(unsigned int i = 0; i < m_pMaps.size(); i++)
+	std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+	for(; it != m_pMaps.end(); ++it)
 	{
-		qxTerrainMapBase* p = m_pMaps[i];
-		p->Draw();
+		(*it)->Draw();
 	}
 
 	if(m_pSun)
@@ -1040,12 +1040,12 @@ qxTerrainMapBase* qxTerrainMgr::GetMap( int OffsetX, int OffsetZ )
 	if( OffsetX < 0 || OffsetZ < 0)
 		return NULL;
 
-	for(unsigned int i = 0; i < m_pMaps.size(); i++)
+	std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+	for(; it != m_pMaps.end(); ++it)
 	{
-		qxTerrainMapBase* p = m_pMaps[i];
-		if(	p->GetMapOffsetIndexX() == OffsetX
-			&& p->GetMapOffsetIndexZ() == OffsetZ)
-			return p;
+		if(	(*it)->GetMapOffsetIndexX() == OffsetX &&
+			(*it)->GetMapOffsetIndexZ() == OffsetZ)
+			return *it;
 	}
 
 	return NULL;
@@ -1059,11 +1059,11 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 		return true;
 
 	// See if it's loaded already
-	for(unsigned int i = 0; i < m_pMaps.size(); i++)
+	std::vector<qxTerrainMapBase*>::iterator it = m_pMaps.begin();
+	for(; it != m_pMaps.end(); ++it)
 	{
-		qxTerrainMapBase* p = m_pMaps[i];
-		if(	p->GetMapOffsetIndexX() == OffsetX
-			&& p->GetMapOffsetIndexZ() == OffsetZ)
+		if(	(*it)->GetMapOffsetIndexX() == OffsetX &&
+			(*it)->GetMapOffsetIndexZ() == OffsetZ)
 			return true;
 	}
 

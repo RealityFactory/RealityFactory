@@ -84,9 +84,10 @@ qxEffectBase(strName)
 
 qxEffectParticleChamber::~qxEffectParticleChamber()
 {
-	for(unsigned int i = 0; i < m_pParticles.size(); i++)
+	std::vector<qxParticleBase*>::const_iterator it = m_pParticles.begin();
+	for(;it != m_pParticles.end(); ++it)
 	{
-		delete m_pParticles[i];
+		delete *it;
 	}
 }
 
@@ -608,9 +609,10 @@ bool qxEffectParticleChamber::ReInit()
 
 	QXASSERT(m_pBmp);
 
-	for(unsigned int i = 0; i < m_pParticles.size(); i++)
+	std::vector<qxParticleBase*>::const_iterator it = m_pParticles.begin();
+	for(;it != m_pParticles.end(); ++it)
 	{
-		delete m_pParticles[i];
+		delete *it;
 	}
 
 	m_pParticles.clear();
