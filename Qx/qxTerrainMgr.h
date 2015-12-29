@@ -70,9 +70,6 @@ public:
 	void DistanceDetailLower();
 	void DistanceDetailRaise();
 
-	CIniFile *GetIniFile()
-	{ return &AttrFile; }
-
 
 	geVec3d* GetLightSource()				{ return &m_vLightSource; }
 	float GetLightAmbient() const			{ return m_fLightAmbient; }
@@ -320,7 +317,6 @@ private:
 	qxColor		m_ColorFog;
 
 	float		m_fTwilightPercent;
-	CIniFile AttrFile;
 };
 
 #endif
