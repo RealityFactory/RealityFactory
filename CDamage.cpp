@@ -123,15 +123,15 @@ void CDamage::Tick(geFloat dwTicks)
 
 			if(!CCD->ModelManager()->IsRunning(pDestroy->Model))
 			{
-				geXForm3d Xf1;
-				geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-				Xf1.Translation.X = 10000.0f;
-				Xf1.Translation.Y = 10000.0f;
-				Xf1.Translation.Z = 10000.0f;
-				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
+				geXForm3d xForm;
+				geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &xForm);
+				xForm.Translation.X = 10000.0f;
+				xForm.Translation.Y = 10000.0f;
+				xForm.Translation.Z = 10000.0f;
+				geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &xForm);
 
 				if(!pDestroy->NoRemove)
-					CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
+					CCD->ModelManager()->SetPosition(pDestroy->Model, xForm.Translation);
 			}
 			else
 			{
@@ -142,15 +142,15 @@ void CDamage::Tick(geFloat dwTicks)
 			{
 				if(!CCD->ModelManager()->IsRunning(pDestroy->Model1))
 				{
-					geXForm3d Xf1;
-					geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
-					Xf1.Translation.X = 10000.0f;
-					Xf1.Translation.Y = 10000.0f;
-					Xf1.Translation.Z = 10000.0f;
-					geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+					geXForm3d xForm;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &xForm);
+					xForm.Translation.X = 10000.0f;
+					xForm.Translation.Y = 10000.0f;
+					xForm.Translation.Z = 10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &xForm);
 
 					if(!pDestroy->NoRemove)
-						CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+						CCD->ModelManager()->SetPosition(pDestroy->Model1, xForm.Translation);
 				}
 				else
 				{
@@ -162,15 +162,15 @@ void CDamage::Tick(geFloat dwTicks)
 			{
 				if(!CCD->ModelManager()->IsRunning(pDestroy->Model2))
 				{
-					geXForm3d Xf1;
-					geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
-					Xf1.Translation.X = 10000.0f;
-					Xf1.Translation.Y = 10000.0f;
-					Xf1.Translation.Z = 10000.0f;
-					geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+					geXForm3d xForm;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &xForm);
+					xForm.Translation.X = 10000.0f;
+					xForm.Translation.Y = 10000.0f;
+					xForm.Translation.Z = 10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &xForm);
 
 					if(!pDestroy->NoRemove)
-						CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+						CCD->ModelManager()->SetPosition(pDestroy->Model2, xForm.Translation);
 				}
 				else
 				{
@@ -182,15 +182,15 @@ void CDamage::Tick(geFloat dwTicks)
 			{
 				if(!CCD->ModelManager()->IsRunning(pDestroy->Model3))
 				{
-					geXForm3d Xf1;
-					geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
-					Xf1.Translation.X = 10000.0f;
-					Xf1.Translation.Y = 10000.0f;
-					Xf1.Translation.Z = 10000.0f;
-					geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+					geXForm3d xForm;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &xForm);
+					xForm.Translation.X = 10000.0f;
+					xForm.Translation.Y = 10000.0f;
+					xForm.Translation.Z = 10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &xForm);
 
 					if(!pDestroy->NoRemove)
-						CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+						CCD->ModelManager()->SetPosition(pDestroy->Model3, xForm.Translation);
 				}
 				else
 				{
@@ -202,15 +202,15 @@ void CDamage::Tick(geFloat dwTicks)
 			{
 				if(!CCD->ModelManager()->IsRunning(pDestroy->Model4))
 				{
-					geXForm3d Xf1;
-					geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
-					Xf1.Translation.X = 10000.0f;
-					Xf1.Translation.Y = 10000.0f;
-					Xf1.Translation.Z = 10000.0f;
-					geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+					geXForm3d xForm;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &xForm);
+					xForm.Translation.X = 10000.0f;
+					xForm.Translation.Y = 10000.0f;
+					xForm.Translation.Z = 10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &xForm);
 
 					if(!pDestroy->NoRemove)
-						CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+						CCD->ModelManager()->SetPosition(pDestroy->Model4, xForm.Translation);
 				}
 				else
 				{
@@ -268,64 +268,64 @@ void CDamage::Tick(geFloat dwTicks)
 					pDestroy->CallBack = GE_TRUE;
 					pDestroy->CallBackCount = 2;
 
-					geXForm3d Xf1;
-					geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-					Xf1.Translation.X = 10000.0f;
-					Xf1.Translation.Y = 10000.0f;
-					Xf1.Translation.Z = 10000.0f;
-					geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &Xf1);
-					CCD->ModelManager()->SetPosition(pDestroy->Model, Xf1.Translation);
+					geXForm3d xForm;
+					geWorld_GetModelXForm(CCD->World(), pDestroy->Model, &xForm);
+					xForm.Translation.X = 10000.0f;
+					xForm.Translation.Y = 10000.0f;
+					xForm.Translation.Z = 10000.0f;
+					geWorld_SetModelXForm(CCD->World(), pDestroy->Model, &xForm);
+					CCD->ModelManager()->SetPosition(pDestroy->Model, xForm.Translation);
 
 					if(pDestroy->Model1)
 					{
-						geXForm3d Xf1;
-						geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
-						Xf1.Translation.X = 10000.0f;
-						Xf1.Translation.Y = 10000.0f;
-						Xf1.Translation.Z = 10000.0f;
-						geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &Xf1);
+						geXForm3d xForm;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model1, &xForm);
+						xForm.Translation.X = 10000.0f;
+						xForm.Translation.Y = 10000.0f;
+						xForm.Translation.Z = 10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model1, &xForm);
 
 						if(!pDestroy->NoRemove)
-							CCD->ModelManager()->SetPosition(pDestroy->Model1, Xf1.Translation);
+							CCD->ModelManager()->SetPosition(pDestroy->Model1, xForm.Translation);
 					}
 
 					if(pDestroy->Model2)
 					{
-						geXForm3d Xf1;
-						geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
-						Xf1.Translation.X = 10000.0f;
-						Xf1.Translation.Y = 10000.0f;
-						Xf1.Translation.Z = 10000.0f;
-						geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &Xf1);
+						geXForm3d xForm;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model2, &xForm);
+						xForm.Translation.X = 10000.0f;
+						xForm.Translation.Y = 10000.0f;
+						xForm.Translation.Z = 10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model2, &xForm);
 
 						if(!pDestroy->NoRemove)
-							CCD->ModelManager()->SetPosition(pDestroy->Model2, Xf1.Translation);
+							CCD->ModelManager()->SetPosition(pDestroy->Model2, xForm.Translation);
 					}
 
 					if(pDestroy->Model3)
 					{
-						geXForm3d Xf1;
-						geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
-						Xf1.Translation.X = 10000.0f;
-						Xf1.Translation.Y = 10000.0f;
-						Xf1.Translation.Z = 10000.0f;
-						geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &Xf1);
+						geXForm3d xForm;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model3, &xForm);
+						xForm.Translation.X = 10000.0f;
+						xForm.Translation.Y = 10000.0f;
+						xForm.Translation.Z = 10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model3, &xForm);
 
 						if(!pDestroy->NoRemove)
-							CCD->ModelManager()->SetPosition(pDestroy->Model3, Xf1.Translation);
+							CCD->ModelManager()->SetPosition(pDestroy->Model3, xForm.Translation);
 					}
 
 					if(pDestroy->Model4)
 					{
-						geXForm3d Xf1;
-						geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
-						Xf1.Translation.X = 10000.0f;
-						Xf1.Translation.Y = 10000.0f;
-						Xf1.Translation.Z = 10000.0f;
-						geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &Xf1);
+						geXForm3d xForm;
+						geWorld_GetModelXForm(CCD->World(), pDestroy->Model4, &xForm);
+						xForm.Translation.X = 10000.0f;
+						xForm.Translation.Y = 10000.0f;
+						xForm.Translation.Z = 10000.0f;
+						geWorld_SetModelXForm(CCD->World(), pDestroy->Model4, &xForm);
 
 						if(!pDestroy->NoRemove)
-							CCD->ModelManager()->SetPosition(pDestroy->Model4, Xf1.Translation);
+							CCD->ModelManager()->SetPosition(pDestroy->Model4, xForm.Translation);
 					}
 				}
 
