@@ -270,7 +270,7 @@ private:
 	// Terrain definition
 	//
 
-	bool LoadTerrainDefinitionFile(char* pStr);
+	bool LoadTerrainDefinitionFile(const char* pStr);
 	qxTerrainDefinitionFile* m_pTerrainDefinitionFile;
 
 	std::vector<qxTerrainMapBase*> m_pMaps;

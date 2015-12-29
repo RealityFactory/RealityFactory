@@ -1107,7 +1107,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 }
 
 
-bool qxTerrainMgr::LoadTerrainDefinitionFile(char* pStr)
+bool qxTerrainMgr::LoadTerrainDefinitionFile(const char* pStr)
 {
 	QXASSERT(pStr);
 
