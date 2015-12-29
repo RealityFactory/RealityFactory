@@ -836,8 +836,6 @@ int CElectric::LocateEntity(const char *szName, void **pEntityData)
 
 		return RGF_NOT_FOUND;						// Not an electric bolt
 	}
-
-	return RGF_NOT_FOUND;								// Sorry, no such entity here
 }
 
 
