@@ -23,68 +23,75 @@ typedef struct
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-CAnimGif::CAnimGif(const char *szFile, int fileformat)
+CAnimGif::CAnimGif(const char *szFile, int fileformat) :
+	m_MainFS(NULL),
+	m_Active(false),
+	m_Texture(false),
+	m_FirstFrame(true),
+	m_nWidth(-1),
+	m_nHeight(-1),
+	m_BackgroundColor(-1),
+	m_GlobalColorSize(0),
+	m_GlobalColorTable(NULL),
+	m_GifSize(0),
+	m_pcGif(NULL),
+	m_pcGifTrack(NULL),
+	m_TotalReadByte(0),
+	m_VAnimTime(0.0f)
 {
-	GifSize = GlobalColorSize = 0;
-	Active = false;
-	Texture = false;
-	GlobalColorTable = NULL;
-
 	if(!CCD->OpenRFFile(&MainFS, fileformat, szFile, GE_VFILE_OPEN_READONLY))
 		return;
 
 	long Size;
-	geVFile_Size(MainFS, &Size);
+	geVFile_Size(m_MainFS, &Size);
 
-	Palette = geBitmap_Palette_Create(GE_PIXELFORMAT_32BIT_XRGB, 256);
-	theBmp = NULL;
-	pcGif = NULL;
+	m_Palette = geBitmap_Palette_Create(GE_PIXELFORMAT_32BIT_XRGB, 256);
+	m_Bmp = NULL;
+	m_pcGif = NULL;
 
-	if(geVFile_Read(MainFS, buffer, 13) == GE_TRUE)
+	if(geVFile_Read(m_MainFS, m_buffer, 13) == GE_TRUE)
 	{
-		if(!strncmp((char *)buffer, "GIF89a", 6) || !strncmp((char *)buffer, "GIF87a", 6))
+		if( !strncmp(reinterpret_cast<char*>(m_buffer), "GIF89a", 6) ||
+			!strncmp(reinterpret_cast<char*>(m_buffer), "GIF87a", 6))
 		{
-			nWidth = *(WORD*)(buffer+6);
-			nWidth = ((nWidth-1)|0x3)+1;
-			nHeight = *(WORD*)(buffer+8);
-			BackgroundColor = *(buffer+11);
+			m_nWidth = *reinterpret_cast<WORD*>(m_buffer + 6);
+			m_nWidth = ((m_nWidth - 1) | 0x3) + 1;
+			m_nHeight = *reinterpret_cast<WORD*>(m_buffer + 8);
+			m_BackgroundColor = *(m_buffer + 11);
 
-			if(buffer[10]&0x80)
+			if(m_buffer[10] & 0x80)
 			{
-				GlobalColorSize = 0x01<<((buffer[10]&0x07)+1);
-				GlobalColorTable = new BYTE[3*GlobalColorSize];
-				if(geVFile_Read(MainFS, GlobalColorTable, 3*GlobalColorSize) != GE_TRUE)
+				m_GlobalColorSize = 0x01 << ((m_buffer[10] & 0x07) + 1);
+				m_GlobalColorTable = new BYTE[3 * m_GlobalColorSize];
+				if(geVFile_Read(m_MainFS, m_GlobalColorTable, 3 * m_GlobalColorSize) != GE_TRUE)
 				{
-					delete[] GlobalColorTable;
-					geVFile_Close(MainFS);
-					geBitmap_Palette_Destroy(&Palette);
+					delete[] m_GlobalColorTable;
+					geVFile_Close(m_MainFS);
+					geBitmap_Palette_Destroy(&m_Palette);
 					return;
 				}
 			}
 
-			GifSize = Size-3*GlobalColorSize-12;
-			pcGifTrack=pcGif = new BYTE[GifSize];
+			m_GifSize = Size - 3 * m_GlobalColorSize - 12;
+			m_pcGifTrack = m_pcGif = new BYTE[m_GifSize];
 
-			if(geVFile_Read(MainFS, pcGif, GifSize) == GE_TRUE)
+			if(geVFile_Read(m_MainFS, m_pcGif, m_GifSize) == GE_TRUE)
 			{
-				TotalReadByte = 0;
-				FirstFrame = true;
-
-				theBmp = geBitmap_Create(nWidth, nHeight, 1, GE_PIXELFORMAT_8BIT);
-				geBitmap_SetPreferredFormat(theBmp, GE_PIXELFORMAT_8BIT);
-				geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp);
-				geBitmap_GetInfo(theBmp,&Info,NULL);
-				geBitmap_ClearMips(theBmp);
+				m_Bmp = geBitmap_Create(m_nWidth, m_nHeight, 1, GE_PIXELFORMAT_8BIT);
+				geBitmap_SetPreferredFormat(m_Bmp, GE_PIXELFORMAT_8BIT);
+				geEngine_AddBitmap(CCD->Engine()->Engine(), m_Bmp);
+				geBitmap_GetInfo(m_Bmp, &m_Info, NULL);
+				geBitmap_ClearMips(m_Bmp);
 
 				if(GetImage(false))
 				{
-					Active = true;
+					m_Active = true;
 				}
 			}
 		}
 	}
 
-	geVFile_Close(MainFS);
+	geVFile_Close(m_MainFS);
 }
 
 
@@ -93,18 +100,15 @@ CAnimGif::CAnimGif(const char *szFile, int fileformat)
 /* ------------------------------------------------------------------------------------ */
 CAnimGif::~CAnimGif()
 {
-	if(GlobalColorTable)
-		delete[] GlobalColorTable;
+	delete[] m_GlobalColorTable;
+	delete[] m_pcGif;
 
-	if(pcGif)
-		delete[] pcGif;
+	geBitmap_Palette_Destroy(&m_Palette);
 
-	geBitmap_Palette_Destroy(&Palette);
-
-	if(theBmp && !Texture)
+	if(m_Bmp && !m_Texture)
 	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-		geBitmap_Destroy(&theBmp);
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), m_Bmp);
+		geBitmap_Destroy(&m_Bmp);
 	}
 }
 
@@ -114,13 +118,13 @@ CAnimGif::~CAnimGif()
 /* ------------------------------------------------------------------------------------ */
 int CAnimGif::Play(int XPos, int YPos, bool Center)
 {
-	if(!Active)
+	if(!m_Active)
 		return RGF_FAILURE;
 
 	if(Center)
 	{
-		XPos = (CCD->Engine()->Width() - nWidth) / 2;
-		YPos = (CCD->Engine()->Height() - nHeight) / 2;
+		XPos = (CCD->Engine()->Width() - m_nWidth) / 2;
+		YPos = (CCD->Engine()->Height() - m_nHeight) / 2;
 	}
 
 	for(;;)
@@ -143,7 +147,7 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 			break;
 
 		geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_TRUE);
-		geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, XPos, YPos);
+		geEngine_DrawBitmap(CCD->Engine()->Engine(), m_Bmp, NULL, XPos, YPos);
 		geEngine_EndFrame(CCD->Engine()->Engine());
 
 		if((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0)
@@ -164,47 +168,47 @@ int CAnimGif::Play(int XPos, int YPos, bool Center)
 /* ------------------------------------------------------------------------------------ */
 geBitmap *CAnimGif::NextFrame(bool repeat)
 {
-	if(!Active)
+	if(!m_Active)
 		return NULL;
 
-	if(FirstFrame)
+	if(m_FirstFrame)
 	{
-		TotalReadByte = 0;
-		pcGifTrack = pcGif;
-		VAnimTime = (float)CCD->FreeRunningCounter();
+		m_TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_VAnimTime = CCD->FreeRunningCounter_F();
 
 		if(GetImage(repeat))
 		{
-			FirstFrame = false;
-			return theBmp;
+			m_FirstFrame = false;
+			return m_Bmp;
 		}
 
-		FirstFrame = false;
+		m_FirstFrame = false;
 		return NULL;
 	}
 
-	int deltaTime = (int)(0.1f * (float)(CCD->FreeRunningCounter() - VAnimTime));
+	int deltaTime = static_cast<int>(0.1f * (CCD->FreeRunningCounter_F() - m_VAnimTime));
 
-	if(deltaTime<0)
-		deltaTime = DelayTime;
+	if(deltaTime < 0)
+		deltaTime = m_DelayTime;
 
-	if(deltaTime<DelayTime)
-		return theBmp;
+	if(deltaTime < m_DelayTime)
+		return m_Bmp;
 
-	VAnimTime = (float)CCD->FreeRunningCounter();
+	m_VAnimTime = CCD->FreeRunningCounter_F();
 
 	if(GetImage(repeat))
-		return theBmp;
+		return m_Bmp;
 
 	if(repeat)
 	{
-		TotalReadByte = 0;
-		pcGifTrack=pcGif;
-		FirstFrame = false;
-		VAnimTime = (float)CCD->FreeRunningCounter();
+		m_TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_FirstFrame = false;
+		m_VAnimTime = CCD->FreeRunningCounter_F();
 
 		if(GetImage(repeat))
-			return theBmp;
+			return m_Bmp;
 	}
 
 	return NULL;
@@ -216,7 +220,7 @@ geBitmap *CAnimGif::NextFrame(bool repeat)
 /* ------------------------------------------------------------------------------------ */
 bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 {
-	if(!Active)
+	if(!m_Active)
 		return false;
 
 	if(FFrame)
@@ -225,38 +229,38 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 
 		if(!theBitmap)
 		{
-			Active = false;
+			m_Active = false;
 			return false;
 		}
 
 		geBitmap_Info Info;
 		geBitmap_GetInfo(theBitmap, &Info, NULL);
 
-		if(nWidth!=Info.Width || nHeight!=Info.Height)
+		if(m_nWidth != Info.Width || m_nHeight != Info.Height)
 		{
-			Active = false;
+			m_Active = false;
 			return false;
 		}
 
-		if(theBmp)
+		if(m_Bmp)
 		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-			geBitmap_Destroy(&theBmp);
+			geEngine_RemoveBitmap(CCD->Engine()->Engine(), m_Bmp);
+			geBitmap_Destroy(&m_Bmp);
 		}
 
-		theBmp = theBitmap;
-		Texture = true;
-		TotalReadByte = 0;
-		pcGifTrack=pcGif;
-		VAnimTime = (float)CCD->FreeRunningCounter();
+		m_Bmp = theBitmap;
+		m_Texture = true;
+		m_TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_VAnimTime = CCD->FreeRunningCounter_F();
 
 		if(GetImage(true))
 		{
-			FirstFrame = false;
+			m_FirstFrame = false;
 			return true;
 		}
 
-		FirstFrame = false;
+		m_FirstFrame = false;
 		return false;
 	}
 	else
@@ -273,68 +277,68 @@ bool CAnimGif::DisplayNextFrameTexture(const char *szTextureName, bool FFrame)
 /* ------------------------------------------------------------------------------------ */
 bool CAnimGif::GetImage(bool /*repeat*/)
 {
-	if(!pcGif)
+	if(!m_pcGif)
 		return false;
 
 l1:
-	if(TotalReadByte > GifSize)
+	if(m_TotalReadByte > m_GifSize)
 	{
-		pcGifTrack = pcGif;
-		TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_TotalReadByte = 0;
 		return false;
 	}
 
-	TotalReadByte++;
+	++m_TotalReadByte;
 
-	switch(*pcGifTrack++)
+	switch(*m_pcGifTrack++)
 	{
 	case 0x2C:
 		return TakeIt();
 		break;
 	case 0x21:
 		BYTE cSize;
-		TotalReadByte++;
-		switch(*pcGifTrack++)
+		++m_TotalReadByte;
+		switch(*m_pcGifTrack++)
 		{
 		case 0xF9:
-			pcGifTrack++;//block size
-			DisposalMethod = (*pcGifTrack)&28;
-			bTransparentIndex = (*pcGifTrack++)&1;
-			DelayTime = *(WORD*)pcGifTrack;
-			pcGifTrack += 2;
-			TransparentIndex = *pcGifTrack++;
-			TotalReadByte += 5;
+			++m_pcGifTrack;	// block size
+			m_DisposalMethod = (*m_pcGifTrack) & 28;
+			m_bTransparentIndex = (*m_pcGifTrack++) & 1;
+			m_DelayTime = *reinterpret_cast<WORD*>(m_pcGifTrack);
+			m_pcGifTrack += 2;
+			m_TransparentIndex = *m_pcGifTrack++;
+			m_TotalReadByte += 5;
 			break;
 		case 0xFE:
-			while((cSize = *pcGifTrack) != 0)
+			while((cSize = *m_pcGifTrack) != 0)
 			{
-				pcGifTrack += cSize+1;
-				TotalReadByte += cSize+1;
+				m_pcGifTrack += cSize + 1;
+				m_TotalReadByte += cSize + 1;
 
-				if(TotalReadByte > GifSize)
+				if(m_TotalReadByte > m_GifSize)
 					return false;
 			}
 			break;
 		case 0x01:
-			pcGifTrack += 13;
-			TotalReadByte += 13;
-			while((cSize = *pcGifTrack) != 0)
+			m_pcGifTrack += 13;
+			m_TotalReadByte += 13;
+			while((cSize = *m_pcGifTrack) != 0)
 			{
-				pcGifTrack += cSize+1;
-				TotalReadByte += cSize+1;
+				m_pcGifTrack += cSize + 1;
+				m_TotalReadByte += cSize + 1;
 
-				if(TotalReadByte > GifSize)
+				if(m_TotalReadByte > m_GifSize)
 					return false;
 			}
 			break;
 		case 0xFF:
-			pcGifTrack += 12;
-			TotalReadByte += 12;
-			while((cSize = *pcGifTrack) != 0)
+			m_pcGifTrack += 12;
+			m_TotalReadByte += 12;
+			while((cSize = *m_pcGifTrack) != 0)
 			{
-				pcGifTrack += cSize+1;
-				TotalReadByte += cSize+1;
-				if(TotalReadByte > GifSize)
+				m_pcGifTrack += cSize + 1;
+				m_TotalReadByte += cSize + 1;
+				if(m_TotalReadByte > m_GifSize)
 					return false;
 			}
 			break;
@@ -342,21 +346,21 @@ l1:
 			return false;
 		}
 
-		pcGifTrack++;
-		TotalReadByte++;
+		++m_pcGifTrack;
+		++m_TotalReadByte;
 
-		if(TotalReadByte > GifSize)
+		if(m_TotalReadByte > m_GifSize)
 			return false;
 
 		goto l1;
 		break;
 	case 0x3B:
-		pcGifTrack = pcGif;
-		TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_TotalReadByte = 0;
 		return false;
 	case 0:
-		pcGifTrack = pcGif;
-		TotalReadByte = 0;
+		m_pcGifTrack = m_pcGif;
+		m_TotalReadByte = 0;
 		return false;
 	default:
 		return false;
@@ -376,47 +380,47 @@ bool CAnimGif::TakeIt(void)
 	BYTE pcColorTable[4];
 	GIFTABLE *pcGifTable;
 
-	iLeft = *(WORD*)pcGifTrack;
-	pcGifTrack += 2;
+	m_iLeft = *reinterpret_cast<WORD*>(m_pcGifTrack);
+	m_pcGifTrack += 2;
 
-	iTop = *(WORD*)pcGifTrack;
-	pcGifTrack += 2;
+	m_iTop = *reinterpret_cast<WORD*>(m_pcGifTrack);
+	m_pcGifTrack += 2;
 
-	iWidth = *(WORD*)pcGifTrack;
-	pcGifTrack += 2;
+	m_iWidth = *reinterpret_cast<WORD*>(m_pcGifTrack);
+	m_pcGifTrack += 2;
 
-	iWidth1 = ((iWidth-1)|0x3)+1;
+	m_iWidth1 = ((m_iWidth - 1) | 0x3) + 1;
 
-	iHeight = *(WORD*)pcGifTrack;
-	pcGifTrack += 2;
+	m_iHeight = *reinterpret_cast<WORD*>(m_pcGifTrack);
+	m_pcGifTrack += 2;
 
-	cPackedField = *pcGifTrack++;
-	TotalReadByte += 9;
+	m_cPackedField = *m_pcGifTrack++;
+	m_TotalReadByte += 9;
 
-	iMaxByte = iWidth1*iHeight;
+	m_iMaxByte = m_iWidth1 * m_iHeight;
 
-	BYTE *pcbmp = pcBitmap = new BYTE[iMaxByte];
+	BYTE *pcbmp = m_pcBitmap = new BYTE[m_iMaxByte];
+	memset(m_pcBitmap, m_TransparentIndex, m_iMaxByte);
 
-	memset(pcBitmap, TransparentIndex, iMaxByte);
-	pcGifTable=(GIFTABLE*)new BYTE[sizeof(GIFTABLE)*4096];
+	pcGifTable = new GIFTABLE[4096];
 
 	for(int i=0; i<4096; ++i)
 		pcGifTable[i].previouscode = pcGifTable[i].nextcode = 0;
 
-	if(cPackedField&0x80)
+	if(m_cPackedField & 0x80)
 	{
 		uLocalColorTableSize = 1;
-		uLocalColorTableSize <<= (cPackedField&7)+1;
-		TotalReadByte += uLocalColorTableSize*3;
+		uLocalColorTableSize <<= (m_cPackedField & 7) + 1;
+		m_TotalReadByte += uLocalColorTableSize * 3;
 
 		for(UINT i=0; i<uLocalColorTableSize; ++i)
 		{
-			pcColorTable[0] = *pcGifTrack++;
-			pcColorTable[1] = *pcGifTrack++;
-			pcColorTable[2] = *pcGifTrack++;
+			pcColorTable[0] = *m_pcGifTrack++;
+			pcColorTable[1] = *m_pcGifTrack++;
+			pcColorTable[2] = *m_pcGifTrack++;
 			pcColorTable[3] = 255;
 
-			geBitmap_Palette_SetEntryColor(Palette, i,
+			geBitmap_Palette_SetEntryColor(m_Palette, i,
 				pcColorTable[0], pcColorTable[1],
 				pcColorTable[2], pcColorTable[3]);
 		}
@@ -424,54 +428,54 @@ bool CAnimGif::TakeIt(void)
 	}
 	else
 	{
-		BYTE *pcGlobalColor = GlobalColorTable;
+		BYTE *pcGlobalColor = m_GlobalColorTable;
 
-		for(int i=0; i<GlobalColorSize; i++)
+		for(int i=0; i<m_GlobalColorSize; ++i)
 		{
 			pcColorTable[0] = *pcGlobalColor++;
 			pcColorTable[1] = *pcGlobalColor++;
 			pcColorTable[2] = *pcGlobalColor++;
 			pcColorTable[3] = 255;
 
-			geBitmap_Palette_SetEntryColor(Palette, i,
+			geBitmap_Palette_SetEntryColor(m_Palette, i,
 				pcColorTable[0], pcColorTable[1],
 				pcColorTable[2], pcColorTable[3]);
 		}
 	}
 
-	uPrimaryBitSize = uBitSize = (*pcGifTrack++);
-	TotalReadByte++;
+	m_uPrimaryBitSize = m_uBitSize = (*m_pcGifTrack++);
+	++m_TotalReadByte;
 
-	iPrimaryTableSize = iTableSize = (1<<uBitSize)+2;
-	iFinishCode = iTableSize-1;
-	iResetCode = iFinishCode-1;
+	iPrimaryTableSize = iTableSize = (1 << m_uBitSize) + 2;
+	iFinishCode = iTableSize - 1;
+	iResetCode = iFinishCode - 1;
 
-	uPrimaryBitSize++;
-	uBitSize++;
-	uRemain = 0;
-	cCurentByte = 0;
-	uBlockSize = 0;
-	uReadByte = 1;
-	x = y = 0;
-	iPass = 1;
-	iRow = 0;
+	++m_uPrimaryBitSize;
+	++m_uBitSize;
+	m_uRemain = 0;
+	m_cCurentByte = 0;
+	m_uBlockSize = 0;
+	m_uReadByte = 1;
+	m_x = m_y = 0;
+	m_iPass = 1;
+	m_iRow = 0;
 
 	while((code = GetCode()) != iFinishCode)
 	{
 		if(code == iResetCode)
 		{
-			uBitSize = uPrimaryBitSize;
+			m_uBitSize = m_uPrimaryBitSize;
 			iTableSize = iPrimaryTableSize;
 			oldcode = GetCode();
 
 			if(oldcode > iTableSize)
 			{
-				delete pcBitmap;
-				delete pcGifTable;
+				SAFE_DELETE_A(m_pcBitmap);
+				SAFE_DELETE_A(pcGifTable);
 				return false;
 			}
 
-			Output((BYTE)oldcode);
+			Output(static_cast<BYTE>(oldcode));
 			continue;
 		}
 
@@ -488,13 +492,13 @@ bool CAnimGif::TakeIt(void)
 
 				if(code1 >= code2)
 				{
-					delete pcBitmap;
-					delete pcGifTable;
+					SAFE_DELETE_A(m_pcBitmap);
+					SAFE_DELETE_A(pcGifTable);
 					return false;
 				}
 			}
 
-			Output((BYTE)code1);
+			Output(static_cast<BYTE>(code1));
 
 			while(code2 != 0)
 			{
@@ -502,15 +506,15 @@ bool CAnimGif::TakeIt(void)
 				code2 = pcGifTable[code2].nextcode;
 			}
 
-			pcGifTable[iTableSize].bit = (BYTE)code1;
+			pcGifTable[iTableSize].bit = static_cast<BYTE>(code1);
 			pcGifTable[iTableSize].previouscode = oldcode;
 			++iTableSize;
 
-			if(iTableSize == (0x0001<<uBitSize))
-				uBitSize++;
+			if(iTableSize == (0x0001 << m_uBitSize))
+				++m_uBitSize;
 
-			if(uBitSize > 12)
-				uBitSize = 12;
+			if(m_uBitSize > 12)
+				m_uBitSize = 12;
 
 			oldcode = code;
 		}
@@ -527,13 +531,13 @@ bool CAnimGif::TakeIt(void)
 
 				if(code1 >= code2)
 				{
-					delete pcBitmap;
-					delete pcGifTable;
+					SAFE_DELETE_A(m_pcBitmap);
+					SAFE_DELETE_A(pcGifTable);
 					return false;
 				}
 			}
 
-			Output((BYTE)code1);
+			Output(static_cast<BYTE>(code1));
 
 			while(code2 != 0)
 			{
@@ -541,51 +545,50 @@ bool CAnimGif::TakeIt(void)
 				code2 = pcGifTable[code2].nextcode;
 			}
 
-			Output((BYTE)code1);
-			pcGifTable[iTableSize].bit = (BYTE)code1;
+			Output(static_cast<BYTE>(code1));
+			pcGifTable[iTableSize].bit = static_cast<BYTE>(code1);
 			pcGifTable[iTableSize].previouscode = oldcode;
 			++iTableSize;
 
-			if(iTableSize == (0x0001<<uBitSize))
-				uBitSize++;
+			if(iTableSize == (0x0001 << m_uBitSize))
+				++m_uBitSize;
 
-			if(uBitSize > 12)
-				uBitSize = 12;
+			if(m_uBitSize > 12)
+				m_uBitSize = 12;
 
-			oldcode=code;
+			oldcode = code;
 		}
 	}
 
-	geBitmap_SetFormat(theBmp, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, Palette);
+	geBitmap_SetFormat(m_Bmp, GE_PIXELFORMAT_8BIT_PAL, GE_TRUE, 0, m_Palette);
 
-	geBitmap_SetPalette(theBmp, Palette);
-	geBitmap_LockForWriteFormat(theBmp,&LockedBMP, 0, 0, GE_PIXELFORMAT_8BIT);
+	geBitmap_SetPalette(m_Bmp, m_Palette);
+	geBitmap_LockForWriteFormat(m_Bmp, &m_LockedBMP, 0, 0, GE_PIXELFORMAT_8BIT);
 
-	if(LockedBMP == NULL)
-    {
-		geBitmap_SetFormat(theBmp, GE_PIXELFORMAT_8BIT,GE_TRUE, 0, Palette);
-		geBitmap_LockForWriteFormat(theBmp, &LockedBMP, 0, 0, GE_PIXELFORMAT_8BIT);
+	if(m_LockedBMP == NULL)
+	{
+		geBitmap_SetFormat(m_Bmp, GE_PIXELFORMAT_8BIT, GE_TRUE, 0, m_Palette);
+		geBitmap_LockForWriteFormat(m_Bmp, &m_LockedBMP, 0, 0, GE_PIXELFORMAT_8BIT);
 
-		if(LockedBMP == NULL)
+		if(m_LockedBMP == NULL)
 		{
-			delete pcBitmap;
-			delete pcGifTable;
-
+			SAFE_DELETE_A(m_pcBitmap);
+			SAFE_DELETE_A(pcGifTable);
 			return false;
 		}
 	}
 
 	unsigned char *wptr, *pptr;
 
-	wptr = (LPBYTE)geBitmap_GetBits(LockedBMP);
-	pptr = (LPBYTE)pcbmp;
+	wptr = static_cast<unsigned char*>(geBitmap_GetBits(m_LockedBMP));
+	pptr = pcbmp;
 
-	memset(wptr, TransparentIndex, nWidth*nHeight);
+	memset(wptr, m_TransparentIndex, m_nWidth * m_nHeight);
 
-	wptr += ((iTop*nWidth)+iLeft);
-	int Temp1 = iWidth1;
+	wptr += ((m_iTop * m_nWidth) + m_iLeft);
+	int Temp1 = m_iWidth1;
 
-	for(int yy=0; yy < iHeight; yy++)
+	for(int yy=0; yy<m_iHeight; ++yy)
 	{
 		__asm
 		{
@@ -595,20 +598,20 @@ bool CAnimGif::TakeIt(void)
 			rep movs
 		}
 
-		wptr += nWidth;
-		pptr += iWidth1;
+		wptr += m_nWidth;
+		pptr += m_iWidth1;
 	}
 
-	geBitmap_UnLock(LockedBMP);
+	geBitmap_UnLock(m_LockedBMP);
 
-	if(bTransparentIndex)
-		geBitmap_SetColorKey(theBmp, GE_TRUE, TransparentIndex, GE_FALSE);
+	if(m_bTransparentIndex)
+		geBitmap_SetColorKey(m_Bmp, GE_TRUE, m_TransparentIndex, GE_FALSE);
 
-	pcGifTrack++;
-	TotalReadByte++;
+	++m_pcGifTrack;
+	++m_TotalReadByte;
 
-	delete pcBitmap;
-	delete pcGifTable;
+	SAFE_DELETE_A(m_pcBitmap);
+	SAFE_DELETE_A(pcGifTable);
 
 	return true;
 }
@@ -621,43 +624,52 @@ void CAnimGif::Output(BYTE bit)
 {
 	int tmp;
 
-	if(cPackedField&0x40)
+	if(m_cPackedField&0x40)
 	{
-		if(x == iWidth)
+		if(m_x == m_iWidth)
 		{
-			x = 0;
-			if(iPass == 1) iRow += 8;
-			if(iPass == 2) iRow += 8;
-			if(iPass == 3) iRow += 4;
-			if(iPass == 4) iRow += 2;
-
-			if(iRow  >= iHeight)
+			m_x = 0;
+			switch(m_iPass)
 			{
-				iPass += 1;
-				iRow = 16>>iPass;
+			case 1:
+			case 2:
+				m_iRow += 8;
+				break;
+			case 3:
+				m_iRow += 4;
+				break;
+			case 4:
+				m_iRow += 2;
+				break;
+			}
+
+			if(m_iRow >= m_iHeight)
+			{
+				m_iPass += 1;
+				m_iRow = 16 >> m_iPass;
 			}
 		}
 
-		tmp = iRow*iWidth1+x;
-		pcBitmap[tmp] = bit;
-		x++;
+		tmp = m_iRow * m_iWidth1 + m_x;
+		m_pcBitmap[tmp] = bit;
+		++m_x;
 	}
 	else
 	{
-		if(x == iWidth)
+		if(m_x == m_iWidth)
 		{
-			x = 0;
-			y++;
+			m_x = 0;
+			++m_y;
 		}
 
-		tmp = y*iWidth1+x;
-		x++;
+		tmp = m_y * m_iWidth1 + m_x;
+		++m_x;
 	}
 
-	if(tmp > iMaxByte)
+	if(tmp > m_iMaxByte)
 		return;
 
-	pcBitmap[tmp] = bit;
+	m_pcBitmap[tmp] = bit;
 }
 
 
@@ -666,28 +678,28 @@ void CAnimGif::Output(BYTE bit)
 /* ------------------------------------------------------------------------------------ */
 BYTE CAnimGif::GetByte(void)
 {
-	if(uReadByte >= uBlockSize)
+	if(m_uReadByte >= m_uBlockSize)
 	{
-		uBlockSize = *pcGifTrack++;
-		uReadByte = 0;
-		TotalReadByte += uBlockSize+1;
+		m_uBlockSize = *m_pcGifTrack++;
+		m_uReadByte = 0;
+		m_TotalReadByte += m_uBlockSize + 1;
 
-		if(TotalReadByte > GifSize)
+		if(m_TotalReadByte > m_GifSize)
 		{
-			TotalReadByte -= uBlockSize+1;
+			m_TotalReadByte -= m_uBlockSize + 1;
 			return 0xFF;
 		}
 
-		if(uBlockSize == 0)
+		if(m_uBlockSize == 0)
 		{
-			pcGifTrack--;
-			TotalReadByte--;
+			--m_pcGifTrack;
+			--m_TotalReadByte;
 			return 0xFF;
 		}
 	}
 
-	uReadByte++;
-	return *pcGifTrack++;
+	++m_uReadByte;
+	return *m_pcGifTrack++;
 }
 
 
@@ -697,42 +709,39 @@ BYTE CAnimGif::GetByte(void)
 WORD CAnimGif::GetCode(void)
 {
 	UINT tmp1;
-	BYTE tmp;
-	tmp = 1;
+	BYTE tmp = 1;
 
-	if(uRemain >= uBitSize)
+	if(m_uRemain >= m_uBitSize)
 	{
-		tmp <<= uBitSize;
-		tmp--;
-		tmp1 = cCurentByte&tmp;
-		cCurentByte >>= uBitSize;
-		uRemain -= uBitSize;
+		tmp <<= m_uBitSize;
+		--tmp;
+		tmp1 = m_cCurentByte & tmp;
+		m_cCurentByte >>= m_uBitSize;
+		m_uRemain -= m_uBitSize;
 	}
 	else
 	{
-		tmp <<= uRemain;
-		tmp--;
-		tmp1 = cCurentByte;
-		cCurentByte = GetByte();
+		tmp1 = m_cCurentByte;
+		m_cCurentByte = GetByte();
 		tmp = 1;
 
-		if(8 >= (uBitSize-uRemain))
+		if(8 >= (m_uBitSize - m_uRemain))
 		{
-			tmp <<= (uBitSize-uRemain);
-			tmp--;
-			tmp1 = (((UINT)(cCurentByte&tmp))<<uRemain)+tmp1;
-			cCurentByte >>= (uBitSize-uRemain);
-			uRemain = 8-(uBitSize-uRemain);
+			tmp <<= (m_uBitSize - m_uRemain);
+			--tmp;
+			tmp1 = ((static_cast<UINT>(m_cCurentByte & tmp)) << m_uRemain) + tmp1;
+			m_cCurentByte >>= (m_uBitSize - m_uRemain);
+			m_uRemain = 8 - (m_uBitSize - m_uRemain);
 		}
 		else
 		{
-			tmp1 = (((UINT)(cCurentByte))<<uRemain)+tmp1;
-			cCurentByte = GetByte();
-			tmp <<= uBitSize-uRemain-8;
-			tmp--;
-			tmp1 = (((UINT)(cCurentByte&tmp))<<(uRemain+8))+tmp1;
-			cCurentByte >>= uBitSize-uRemain-8;
-			uRemain = 8-(uBitSize-uRemain-8);
+			tmp1 = ((static_cast<UINT>(m_cCurentByte)) << m_uRemain) + tmp1;
+			m_cCurentByte = GetByte();
+			tmp <<= m_uBitSize - m_uRemain - 8;
+			--tmp;
+			tmp1 = ((static_cast<UINT>(m_cCurentByte & tmp)) << (m_uRemain + 8)) + tmp1;
+			m_cCurentByte >>= m_uBitSize - m_uRemain - 8;
+			m_uRemain = 8 - (m_uBitSize - m_uRemain - 8);
 		}
 	}
 
