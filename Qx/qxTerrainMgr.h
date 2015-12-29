@@ -44,8 +44,8 @@ public:
 	explicit TerrainObject(char *fileName);
 	~TerrainObject();
 	bool getValue (const skString& fieldName, const skString& attribute, skRValue& value);
-    bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
-    bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);//change simkin
+	bool setValue (const skString& fieldName, const skString& attribute, const skRValue& value);
+	bool method (const skString& methodName, skRValueArray& arguments,skRValue& returnValue,skExecutableContext &ctxt);
 
 	char	Order[64];
 	float	ElapseTime;
@@ -275,7 +275,6 @@ private:
 
 	bool LoadTerrainDefinitionFile(char* pStr);
 	qxTerrainDefinitionFile* m_pTerrainDefinitionFile;
-
 
 	std::vector<qxTerrainMapBase*> m_pMaps;
 	bool LoadMap( int OffsetX, int OffsetZ );
