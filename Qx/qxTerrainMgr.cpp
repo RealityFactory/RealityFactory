@@ -654,7 +654,7 @@ void qxTerrainMgr::Shutdown()
 		delete p;
 	}
 
-	m_pMaps.erase(m_pMaps.begin(), m_pMaps.end());
+	m_pMaps.clear();
 
 
 	delete m_pqxPolyPool;

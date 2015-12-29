@@ -613,7 +613,7 @@ bool qxEffectParticleChamber::ReInit()
 		delete m_pParticles[i];
 	}
 
-	m_pParticles.erase(m_pParticles.begin(), m_pParticles.end());
+	m_pParticles.clear();
 	m_pParticles.resize(ParticlesMax);
 
 	for(int j = 0; j < ParticlesMax; j++)
