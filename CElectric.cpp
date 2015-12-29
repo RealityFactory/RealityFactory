@@ -587,7 +587,7 @@ CElectric::~CElectric()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		ElectricBolt *pBolt = (ElectricBolt*)geEntity_GetUserData(pEntity);
+		ElectricBolt *pBolt = static_cast<ElectricBolt*>(geEntity_GetUserData(pEntity));
 
 		if(pBolt->Bolt)
 			Electric_BoltEffectDestroy(pBolt->Bolt);
