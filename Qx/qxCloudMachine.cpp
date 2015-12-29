@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "..\\RabidFramework.h"
+#include "qxTerrainMgr.h"
 #include "qxCloudMachine.h"
 #include "qxColor.h"
 #include "qxParticle.h"

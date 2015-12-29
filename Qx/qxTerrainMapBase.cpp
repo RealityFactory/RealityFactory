@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "..\\RabidFramework.h"
+#include "qxTerrainMgr.h"
 #include "qxTerrainMapBase.h"
 #include "qxTerrainVert.h"
 #include "qxTerrainTile.h"

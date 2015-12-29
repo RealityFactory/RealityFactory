@@ -15,7 +15,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\\RabidFramework.h"
 #include "qxTerrainDefinitionFile.h"
 #include "qxTerrainMapBase.h"
 

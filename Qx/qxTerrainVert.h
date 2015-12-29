@@ -10,7 +10,6 @@
 #ifndef qxTerrainVert_H
 #define qxTerrainVert_H
 
-#include "..\\RabidFramework.h"
 
 class qxTerrainVert
 {

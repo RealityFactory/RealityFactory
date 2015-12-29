@@ -7,8 +7,7 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-#include "..\\RabidFramework.h"
-#include "qxTerrainMapBase.h"
+#include "genesis.h"
 #include "qxTerrainVert.h"
 
 

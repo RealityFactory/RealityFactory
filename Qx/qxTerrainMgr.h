@@ -21,7 +21,6 @@
 
 #define PRIORITIES 512
 
-#include "..\\RabidFramework.h"
 #include "qxColor.h"
 #include "QxUser.h"
 #include "..\\Simkin\\skScriptedExecutable.h"

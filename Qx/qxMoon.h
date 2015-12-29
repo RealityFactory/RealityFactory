@@ -23,8 +23,6 @@ enum eMOON_PHASE
 	MOON_PHASE_OLD
 };
 
-#include "..\\RabidFramework.h"
-
 
 class qxMoon
 {

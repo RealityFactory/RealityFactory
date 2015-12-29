@@ -15,7 +15,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\\RabidFramework.h"
 #include "qxTerrainDefinitionFile.h"
 #include "qxTerrainMap.h"
 
@@ -23,6 +22,7 @@ class qxTerrainMgr;
 class qxTerrainTile;
 class qxTerrainVert;
 class qxTerrainMap;
+class qxEffectTextureFlow;
 
 
 class qxSkyDome : public qxTerrainMap

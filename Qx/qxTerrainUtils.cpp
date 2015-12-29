@@ -7,7 +7,7 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-#include "..\\RabidFramework.h"
+#include "genesis.h"
 #include "QxUser.h"
 #include "qxTerrainUtils.h"
 #include "qxTerrainPoly.h"

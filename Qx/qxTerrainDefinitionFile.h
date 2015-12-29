@@ -2,6 +2,7 @@
 #ifndef qxTERRAIN_DEFINITION_FILE_H
 #define qxTERRAIN_DEFINITION_FILE_H
 
+#include <string>
 
 enum eTerrainType
 {

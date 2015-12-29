@@ -1,5 +1,4 @@
 
-#include "..\\RabidFramework.h"
 #include "qxTerrainDefinitionFile.h"
 
 qxTerrainDefinitionFile::qxTerrainDefinitionFile( const char* pFileName )

@@ -14,15 +14,16 @@
 /****************************************************************************************/
 
 #include "..\\RabidFramework.h"
+#include "qxTerrainMgr.h"
 #include "qxTerrainMapBase.h"
 #include "qxTerrainMap.h"
+#include "qxColor.h"
 #include "qxSkyDome.h"
 #include "qxTerrainVert.h"
 #include "qxTerrainTile.h"
 #include "QxUser.h"
 #include "qxEffectTextureFlow.h"
 #include "qxSun.h"
-#include "qxColor.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

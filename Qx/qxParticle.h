@@ -2,7 +2,6 @@
 #define QX_PARTICLE_H
 
 
-#include "..\\RabidFramework.h"
 #include "QxUser.h" //genesis
 #include "qxEffectParticleChamber.h"
 

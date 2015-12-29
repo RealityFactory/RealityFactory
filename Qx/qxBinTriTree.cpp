@@ -7,7 +7,9 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-#include "..\\RabidFramework.h"
+#include <math.h>
+#include <algorithm>
+#include "genesis.h"
 #include "qxBinTriTree.h"
 #include "qxTerrainVert.h"
 #include "qxTerrainTile.h"
@@ -116,9 +118,9 @@ int qxBinTriTree::CalcVariance( int id,
 	if(id < ((m_pOwner->GetMaxVarianceLookupId() + 1)/2))
 	{
 		// left child
-		v = max( v, CalcVariance((id * 2), tx, tz, lx, lz, (lx+rx)/2, (lz+rz)/2) );
+		v = std::max( v, CalcVariance((id * 2), tx, tz, lx, lz, (lx+rx)/2, (lz+rz)/2) );
 		// right child
-		v = max( v, CalcVariance((id * 2 + 1), rx, rz, tx, tz, (lx+rx)/2, (lz+rz)/2) );
+		v = std::max( v, CalcVariance((id * 2 + 1), rx, rz, tx, tz, (lx+rx)/2, (lz+rz)/2) );
 	}
 
 	if(v > 255)

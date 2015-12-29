@@ -12,6 +12,7 @@
 /****************************************************************************************/
 
 #include "..\\RabidFramework.h"
+#include "qxTerrainMgr.h"
 #include "qxTerrainUtils.h"
 #include "qxTerrainMap.h"
 #include "qxTerrainMapBase.h"

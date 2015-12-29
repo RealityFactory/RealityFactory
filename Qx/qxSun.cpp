@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "..\\RabidFramework.h"
+#include "qxTerrainMgr.h"
 #include "qxSun.h"
 #include "qxColor.h"
 #include "QxUser.h" //genesis

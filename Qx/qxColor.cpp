@@ -26,7 +26,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 
-#include "..//RabidFramework.h"
+#include <stdlib.h>
+#include <math.h>
+#include "genesis.h"
 #include "qxColor.h"
 
 #ifndef QXASSERT

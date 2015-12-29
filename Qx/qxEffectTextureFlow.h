@@ -12,7 +12,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\\RabidFramework.h"
 #include "qxEffectBase.h"
 
 typedef struct ColorRGBA

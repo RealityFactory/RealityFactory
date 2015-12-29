@@ -9,13 +9,12 @@
 
 #ifndef qxTerrainMapBase_H
 #define qxTerrainMapBase_H
-#include "qxTerrainVert.h"
 
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "..\\RabidFramework.h"
+#include "qxTerrainVert.h"
 #include "qxTerrainUtils.h"
 #include "qxTerrainDefinitionFile.h"
 

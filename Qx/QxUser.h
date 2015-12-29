@@ -2,8 +2,6 @@
 #ifndef QX_USER_H
 #define QX_USER_H
 
-#include "..\\RabidFramework.h"
-
 #define RADIANS(x) 0.0174532925199433f*x
 #define RANDOM_ONE_TO_ZERO    (((FLOAT)rand()-(FLOAT)rand())/RAND_MAX)
 #define MAX_USER_VERTS				4
