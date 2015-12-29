@@ -188,7 +188,7 @@ CStaticEntity::~CStaticEntity()
 		{
 			if(pProxy->alive == GE_TRUE || !pProxy->DeathDissappear)
 			{
-				CCD->ActorManager()->RemoveActor(pProxy->Actor);
+				CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
 			}
 
 			geActor_Destroy(&pProxy->Actor);
@@ -660,7 +660,7 @@ int CStaticEntity::RestoreFrom(FILE *RestoreFD, bool type)
 		}
 		else
 		{
-			CCD->ActorManager()->RemoveActor(pProxy->Actor);
+			CCD->ActorManager()->RemoveActorCheck(pProxy->Actor);
 		}
 	}
 

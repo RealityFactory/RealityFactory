@@ -176,7 +176,7 @@ CAttribute::~CAttribute()
 			if(pSource->Actor)
 			{
 				if(pSource->active == GE_TRUE)
-					CCD->ActorManager()->RemoveActor(pSource->Actor);
+					CCD->ActorManager()->RemoveActorCheck(pSource->Actor);
 
 				geActor_Destroy(&pSource->Actor);
 				pSource->Actor = NULL;
@@ -184,6 +184,7 @@ CAttribute::~CAttribute()
 		}
 	}
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 // Tick
@@ -301,7 +302,7 @@ void CAttribute::Tick(geFloat dwTicks)
 				{
 					if(pSource->active == GE_TRUE)
 					{
-						CCD->ActorManager()->RemoveActor(pSource->Actor);
+						CCD->ActorManager()->RemoveActorCheck(pSource->Actor);
 						geActor_Destroy(&pSource->Actor);
 						pSource->Actor = NULL;
 						pSource->active = GE_FALSE;
@@ -520,7 +521,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 
 		if(flag)
 		{
-			CCD->ActorManager()->RemoveActor(pSource->Actor);
+			CCD->ActorManager()->RemoveActorCheck(pSource->Actor);
 			geActor_Destroy(&pSource->Actor);
 			pSource->Actor = NULL;
 

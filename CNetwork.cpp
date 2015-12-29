@@ -42,7 +42,7 @@ NetPlayer::~NetPlayer()
 {
 	if(Actor)
 	{
-		CCD->ActorManager()->RemoveActor(Actor);
+		CCD->ActorManager()->RemoveActorCheck(Actor);
 		geActor_Destroy(&Actor);
 		Actor = NULL;
 	}

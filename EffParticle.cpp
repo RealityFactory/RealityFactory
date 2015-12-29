@@ -526,7 +526,7 @@ static void ActorDestroyParticle(ActorParticle_System * /*ps*/, ActorParticle *p
 {
 	if(p->Actor)
 	{
-		CCD->ActorManager()->RemoveActor(p->Actor);
+		CCD->ActorManager()->RemoveActorCheck(p->Actor);
 		geActor_Destroy(&p->Actor);
 		p->Actor = NULL;
 	}

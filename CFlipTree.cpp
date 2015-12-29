@@ -107,7 +107,7 @@ CFlipTree::~CFlipTree()
 
 		if(S->fActor)
 		{
-			CCD->ActorManager()->RemoveActor(S->fActor);
+			CCD->ActorManager()->RemoveActorCheck(S->fActor);
 			geActor_Destroy(&(S->fActor));
 			S->fActor = NULL;
 		}
