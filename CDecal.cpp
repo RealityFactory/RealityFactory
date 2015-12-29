@@ -344,21 +344,21 @@ void CDecal::AddDecal(int type, geVec3d *impact, geVec3d *normal, geWorld_Model 
 			geVec3d_MA(impact, 0.1f, normal, impact);
 
 			// Calculate vertices from corners
-			d->vertex[1].X = impact->X + ((-right.X - up.X));
-			d->vertex[1].Y = impact->Y + ((-right.Y - up.Y));
-			d->vertex[1].Z = impact->Z + ((-right.Z - up.Z));
+			d->vertex[1].X = impact->X + (-right.X - up.X);
+			d->vertex[1].Y = impact->Y + (-right.Y - up.Y);
+			d->vertex[1].Z = impact->Z + (-right.Z - up.Z);
 
-			d->vertex[2].X = impact->X + ((right.X - up.X));
-			d->vertex[2].Y = impact->Y + ((right.Y - up.Y));
-			d->vertex[2].Z = impact->Z + ((right.Z - up.Z));
+			d->vertex[2].X = impact->X + (right.X - up.X);
+			d->vertex[2].Y = impact->Y + (right.Y - up.Y);
+			d->vertex[2].Z = impact->Z + (right.Z - up.Z);
 
-			d->vertex[3].X = impact->X + ((right.X + up.X));
-			d->vertex[3].Y = impact->Y + ((right.Y + up.Y));
-			d->vertex[3].Z = impact->Z + ((right.Z + up.Z));
+			d->vertex[3].X = impact->X + (right.X + up.X);
+			d->vertex[3].Y = impact->Y + (right.Y + up.Y);
+			d->vertex[3].Z = impact->Z + (right.Z + up.Z);
 
-			d->vertex[0].X = impact->X + ((-right.X + up.X));
-			d->vertex[0].Y = impact->Y + ((-right.Y + up.Y));
-			d->vertex[0].Z = impact->Z + ((-right.Z + up.Z));
+			d->vertex[0].X = impact->X + (-right.X + up.X);
+			d->vertex[0].Y = impact->Y + (-right.Y + up.Y);
+			d->vertex[0].Z = impact->Z + (-right.Z + up.Z);
 
 			d->next = NULL;
 			d->prev = Bottom;
