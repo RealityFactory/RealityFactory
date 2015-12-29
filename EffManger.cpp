@@ -67,13 +67,11 @@ extern void Electric_BoltEffectRender(
 /* ------------------------------------------------------------------------------------ */
 EffManager::EffManager()
 {
-	int i;
-
 	TPool_Initalize(); // initalize the texture manager
 	SPool_Initalize(); // initalize the sound manager
 
 	// clear out all items
-	for(i=0; i<MAX_EFF_ITEMS; i++)
+	for(int i=0; i<MAX_EFF_ITEMS; ++i)
 	{
 		Item[i].Active = GE_FALSE;
 		Item[i].Pause = GE_FALSE;
@@ -92,7 +90,7 @@ EffManager::~EffManager()
 {
 	int i;
 
-	for(i=0; i<MAX_EFF_ITEMS; i++)
+	for(i=0; i<MAX_EFF_ITEMS; ++i)
 	{
 		// do only if item is currently active
 		if(Item[i].Active == GE_TRUE)
@@ -161,7 +159,7 @@ void EffManager::Tick(geFloat dwTicks)
 	// get time in seconds since last pass
 	dwTicks *= 0.001f;
 
-	for(i=0; i<MAX_EFF_ITEMS; i++)
+	for(i=0; i<MAX_EFF_ITEMS; ++i)
 	{
 		// process if active and not paused
 		if(Item[i].Active == GE_TRUE && Item[i].RemoveNext == GE_TRUE)
@@ -177,7 +175,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				L++;// += 1;
+				++L;
 				break;
 			case EFF_SPRAY:
 				{
@@ -185,7 +183,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				SP++;// += 1;
+				++SP;
 				break;
 			case EFF_SPRITE:
 				{
@@ -193,7 +191,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				Sr++;// += 1;
+				++Sr;
 				break;
 			case EFF_SND:
 				{
@@ -201,7 +199,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				Sn++;// += 1;
+				++Sn;
 				break;
 			case EFF_BOLT:
 				{
@@ -209,7 +207,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				Bl++;// += 1;
+				++Bl;
 				break;
 			case EFF_CORONA:
 				{
@@ -217,7 +215,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				C++;// += 1;
+				++C;
 				break;
 			case EFF_ACTORSPRAY:
 				{
@@ -225,7 +223,7 @@ void EffManager::Tick(geFloat dwTicks)
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
-				AS++;// += 1;
+				++AS;
 				break;
 			default:
 				break;
@@ -233,12 +231,12 @@ void EffManager::Tick(geFloat dwTicks)
 		}
 	}
 
-	for(i=0; i<MAX_EFF_ITEMS; i++)
+	for(i=0; i<MAX_EFF_ITEMS; ++i)
 	{
 		// process if active and not paused
 		if(Item[i].Active == GE_TRUE && Item[i].Pause == GE_FALSE)
 		{
-			j++;// += 1;
+			++j;
 
 			// if effect process returns false then remove it
 			switch(Item[i].Type)
@@ -248,49 +246,49 @@ void EffManager::Tick(geFloat dwTicks)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				L++;// += 1;
+				++L;
 				break;
 			case EFF_SPRAY:
 				if(Spray_Process((Spray*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				SP++;// += 1;
+				++SP;
 				break;
 			case EFF_SPRITE:
 				if(Sprite_Process((Sprite*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				Sr++;// += 1;
+				++Sr;
 				break;
 			case EFF_SND:
 				if(Snd_Process((Snd*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				Sn++;// += 1;
+				++Sn;
 				break;
 			case EFF_BOLT:
 				if(Bolt_Process((EBolt*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				Bl++;// += 1;
+				++Bl;
 				break;
 			case EFF_CORONA:
 				if(Corona_Process((EffCorona*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				C++;// += 1;
+				++C;
 				break;
 			case EFF_ACTORSPRAY:
 				if(ActorSpray_Process((ActorSpray*)Item[i].Data, dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
-				AS++;// += 1;
+				++AS;
 				break;
 			default:
 				break;
@@ -315,7 +313,7 @@ int EffManager::Item_Add(int Itype, void *Idata)
 {
 	int i;
 
-	for(i=0; i<MAX_EFF_ITEMS; i++)
+	for(i=0; i<MAX_EFF_ITEMS; ++i)
 	{
 		// find a empty slot to store it in
 		if(Item[i].Active == GE_FALSE)
@@ -1022,7 +1020,7 @@ void* EffManager::Sprite_Add(void *Data)
 
 	NewData->Rotation = 0.0f;
 
-	for(i=0; i<4; i++)
+	for(i=0; i<4; ++i)
 	{
 		NewData->Vertex[i].r = NewData->Color.r;
 		NewData->Vertex[i].g = NewData->Color.g;
@@ -1068,8 +1066,6 @@ void EffManager::Sprite_Remove(Sprite *Data)
 /* ------------------------------------------------------------------------------------ */
 geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 {
-	int i;
-
 	if(Data->Pause == GE_TRUE)
 		return GE_TRUE;
 
@@ -1104,7 +1100,7 @@ geBoolean EffManager::Sprite_Process(Sprite *Data, float TimeDelta)
 		}
 
 		// adjust all verts with new alpha
-		for(i=0; i<4; i++)
+		for(int i=0; i<4; ++i)
 		{
 			Data->Vertex[i].a = Data->Color.a;
 		}
@@ -1337,7 +1333,7 @@ geBoolean EffManager::Sprite_Modify(Sprite *Data, Sprite *NewData, uint32 Flags)
 		Data->Color.a = NewData->Color.a;
 
 		// apply it to all verts
-		for(i=0; i<4; i++)
+		for(i=0; i<4; ++i)
 		{
 			Data->Vertex[i].r = NewData->Color.r;
 			Data->Vertex[i].g = NewData->Color.g;

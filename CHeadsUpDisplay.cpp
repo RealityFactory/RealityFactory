@@ -967,7 +967,7 @@ int CHeadsUpDisplay::Render()
 						RPos.Y -= GE_2PI;
 					}
 
-					for(int nTemp=0; nTemp<nActorCount; nTemp++)
+					for(int nTemp=0; nTemp<nActorCount; ++nTemp)
 					{
 						if(ActorsInRange[nTemp] != CCD->Player()->GetActor())
 						{

@@ -1244,7 +1244,7 @@ geBoolean Collider::CheckIntersection(geActor *Actor, geWorld *World)
 
 	Collided = GE_FALSE;
 
-	for(int BoneIndex=0; BoneIndex<TotalBoneCount; BoneIndex++)
+	for(int BoneIndex=0; BoneIndex<TotalBoneCount; ++BoneIndex)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(Actor, BoneIndex, &theBoneBox) != GE_TRUE)
@@ -1326,7 +1326,7 @@ geBoolean Collider::CheckIntersection(const geVec3d * /*Position*/, geActor *Act
 
 	Collided = GE_FALSE;
 
-	for(int BoneIndex=0; BoneIndex<TotalBoneCount; BoneIndex++)
+	for(int BoneIndex=0; BoneIndex<TotalBoneCount; ++BoneIndex)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(Actor, BoneIndex, &theBoneBox) != GE_TRUE)
@@ -1392,7 +1392,7 @@ geBoolean Collider::CheckSubCollision(const geVec3d *Start, const geVec3d *End, 
 	lStart = *Start;
 	lEnd =  *End;
 
-	for(int BoneIndex=0; BoneIndex<TotalBoneCount; BoneIndex++)
+	for(int BoneIndex=0; BoneIndex<TotalBoneCount; ++BoneIndex)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(Actor, BoneIndex, &theBoneBox) != GE_TRUE)
@@ -1478,7 +1478,7 @@ geBoolean Collider::CheckSubCollision(const geVec3d *Start, const geVec3d *End, 
 	memcpy(&lStart, Start, sizeof(geVec3d));
 	memcpy(&lEnd, End, sizeof(geVec3d));
 
-	for(int BoneIndex=0; BoneIndex<TotalBoneCount; BoneIndex++)
+	for(int BoneIndex=0; BoneIndex<TotalBoneCount; ++BoneIndex)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(Actor, BoneIndex, &theBoneBox) != GE_TRUE)
@@ -1572,7 +1572,7 @@ geBoolean Collider::CheckSubCollision(geWorld * /*World*/, geActor *Actor, geAct
 
 	// Ok, for EACH static bone in the non-moving actor check the
 	// ..motion of EACH bone in the moving actor and see if it hit.
-	for(int nStatic=0; nStatic<TotalStaticBoneCount; nStatic++)
+	for(int nStatic=0; nStatic<TotalStaticBoneCount; ++nStatic)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(StaticActor, nStatic, &theStaticBoneBox) != GE_TRUE)
@@ -1581,7 +1581,7 @@ geBoolean Collider::CheckSubCollision(geWorld * /*World*/, geActor *Actor, geAct
 		// We have the worldspace extbox for the static bone.  Go through
 		// ..each and every bone in the moving actor and check to see if
 		// ..its extbox overlaps ours.
-		for(int BoneIndex=0; BoneIndex<TotalBoneCount; BoneIndex++)
+		for(int BoneIndex=0; BoneIndex<TotalBoneCount; ++BoneIndex)
 		{
 			// The bone bounding box comes back in worldspace coordinates...
 			if(geActor_GetBoneExtBoxByIndex(Actor, BoneIndex, &theBoneBox) != GE_TRUE)
@@ -1652,7 +1652,7 @@ geBoolean Collider::CheckBoneCollision(geWorld * /*World*/, geActor *StaticActor
 
 	// Ok, for EACH static bone in the non-moving actor check the
 	// ..motion of EACH bone in the moving actor and see if it hit.
-	for(int nStatic=0; nStatic<TotalStaticBoneCount; nStatic++)
+	for(int nStatic=0; nStatic<TotalStaticBoneCount; ++nStatic)
 	{
 		// The bone bounding box comes back in worldspace coordinates...
 		if(geActor_GetBoneExtBoxByIndex(StaticActor, nStatic, &theStaticBoneBox) != GE_TRUE)
@@ -2304,7 +2304,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 		int TotalStaticBoneCount = geActor_GetBoneCount(Collision->Actor);
 		geExtBox theStaticBoneBox;
 
-		for(int nStatic=0; nStatic<TotalStaticBoneCount; nStatic++)
+		for(int nStatic=0; nStatic<TotalStaticBoneCount; ++nStatic)
 		{
 			// The bone bounding box comes back in worldspace coordinates...
 			if(geActor_GetBoneExtBoxByIndex(Collision->Actor, nStatic, &theStaticBoneBox) != GE_TRUE)

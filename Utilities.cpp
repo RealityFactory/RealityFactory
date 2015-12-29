@@ -794,7 +794,7 @@ geBitmap *CreateFromFileName(const char *BmName)
 
 					unsigned char *fptr = FreeImage_GetBits(Fbmp32);
 
-					for(int y=0; y<Info.Height; y++)
+					for(int y=0; y<Info.Height; ++y)
 					{
 						if(nFormat == GE_PIXELFORMAT_32BIT_BGRA)
 						{
