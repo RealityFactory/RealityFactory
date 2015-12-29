@@ -56,7 +56,7 @@ CRain::CRain()
 		R->EffectCount = static_cast<int>(R->Radius) / RAINM_RADIUSTOEFFECTRATIO;
 
 		// create dynamic array to hold effect indexes
-		R->EffectList = (int*)malloc(sizeof(int)*R->EffectCount);
+		R->EffectList = new int[R->EffectCount];
 
 		// make sure data is valid
 		if(R->Severity < 0.0f)
@@ -133,8 +133,7 @@ CRain::~CRain()
 		Rain *R = static_cast<Rain*>(geEntity_GetUserData(pEntity));
 
 		// free dynamic array
-		if(R->EffectList)	// changed QD 07/15/06
-			free(R->EffectList);
+		SAFE_DELETE_A(R->EffectList);
 	}
 }
 

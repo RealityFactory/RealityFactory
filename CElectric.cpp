@@ -95,19 +95,18 @@ Electric_BoltEffect* Electric_BoltEffectCreate(geBitmap	*Bitmap,
 	Electric_BoltEffect *be;
 	GE_RGBA				color;
 
-	be = (Electric_BoltEffect*)malloc(sizeof(*be));
+	be = new Electric_BoltEffect;
 
 	if(!be)
 		return be;
 
 	memset(be, 0, sizeof(*be));
 
-	be->beCenterPoints = (geVec3d*)malloc(sizeof(*be->beCenterPoints) * (NumPolys + 1));
+	be->beCenterPoints = new geVec3d[NumPolys + 1];
 
 	if(!be->beCenterPoints)
 	{
-		if(be->beCenterPoints)
-			free(be->beCenterPoints);
+		delete be;
 
 		return NULL;
 	}
@@ -132,8 +131,8 @@ Electric_BoltEffect* Electric_BoltEffectCreate(geBitmap	*Bitmap,
 /* ------------------------------------------------------------------------------------ */
 void Electric_BoltEffectDestroy(Electric_BoltEffect *Effect)
 {
-	free(Effect->beCenterPoints);
-	free(Effect);
+	SAFE_DELETE_A(Effect->beCenterPoints);
+	delete Effect;
 }
 
 

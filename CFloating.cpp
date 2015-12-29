@@ -58,11 +58,11 @@ CFloat::CFloat()
 		S->EffectCount = S->ParticleCount;
 
 		// create dynamic array to hold index numbers
-		S->EffectList = (int*)malloc(sizeof(int) * S->EffectCount);
+		S->EffectList = new int[S->EffectCount];
 		// create dynamic xform array
-		S->Xf = (geXForm3d*)calloc(S->ParticleCount * sizeof(*(S->Xf)) ,1);
+		S->Xf = new geXForm3d[S->ParticleCount]();
 		// create dynamic speed array
-		S->Speed = (float*)calloc(S->ParticleCount * sizeof(*(S->Speed)) ,1);
+		S->Speed = new float[S->ParticleCount]();
 
 		// get the bitmap used as the sprite
 		// g_bubble/A__bubble are default bitmap names
@@ -137,15 +137,10 @@ CFloat::~CFloat()
 	{
 		FloatingParticles *R = static_cast<FloatingParticles*>(geEntity_GetUserData(pEntity));
 
-		// free any dynamic arrays
-		if(R->EffectList != NULL)	// changed QD 12/15/05
-			free(R->EffectList);
-
-		if(R->Xf != NULL)
-			free(R->Xf);
-
-		if(R->Speed != NULL)
-			free(R->Speed);
+		// delete any dynamic arrays
+		SAFE_DELETE_A(R->EffectList);
+		SAFE_DELETE_A(R->Xf);
+		SAFE_DELETE_A(R->Speed);
 	}
 }
 
