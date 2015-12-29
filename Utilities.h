@@ -16,12 +16,12 @@
 inline void Replace(std::string &source, const std::string &strold, const std::string &strnew)
 {
 	if(strold == strnew) return;
-	for(int found = source.find(strold); found != -1; found = source.find(strold, found+strnew.length()))
+	for(std::size_t found = source.find(strold); found != std::string::npos; found = source.find(strold, found+strnew.length()))
 		source.replace(found, strold.length(), strnew);
 }
 
 inline void MakeLower(std::string &source)
-{ for(unsigned int i=source.size(); i--!=0; source[i] = tolower(source[i])); }
+{ for(std::size_t i=source.size(); i--!=0; source[i] = tolower(source[i])); }
 
 inline void TrimRight(std::string &source)
 { source.erase(source.find_last_not_of(" \r\t\n")+1); }

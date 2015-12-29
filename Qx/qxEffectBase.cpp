@@ -201,7 +201,7 @@ bool qxEffectBase::AttachWorldBmp(char* pBmpName)
 
 	//Genesis doesn't want extension
 	std::string s = pBmpName;
-	if(s.find(".bmp") != -1) s.erase(s.find(".bmp"));
+	if(s.find(".bmp") != std::string::npos) s.erase(s.find(".bmp"));
 	m_pBmp = geWorld_GetBitmapByName(CCD->Engine()->World(), s.c_str());
 	QXASSERT(m_pBmp);
 
