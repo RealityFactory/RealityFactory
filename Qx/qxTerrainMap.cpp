@@ -331,7 +331,7 @@ bool qxTerrainMap::LoadHeightMap()
 	QXASSERT(m_nHeightMapWidth == m_nHeightMapLength); // for now...
 
 	//Probably not divisible by 32. If not, add another column and row.
-	bool bIsDivisibleBy32 = !(m_nHeightMapWidth%32);
+	bool bIsDivisibleBy32 = !(m_nHeightMapWidth & 31);
 
 	if(bIsDivisibleBy32)
 	{

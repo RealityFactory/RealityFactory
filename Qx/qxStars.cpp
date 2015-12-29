@@ -219,7 +219,7 @@ int qxStarField::Frame()
 
 void qxStarField::GetRandomStarColor(GE_RGBA* p)
 {
-	int Color = rand()%16;
+	int Color = rand() & 15;
 
 	switch( Color )
 	{
