@@ -787,7 +787,7 @@ void CModelManager::Tick(geFloat dwTicks)
 			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 		{
 			// Get the entity data so we can compare models
-			ModelStateModifier *pMod = (ModelStateModifier*)geEntity_GetUserData(pEntity);
+			ModelStateModifier *pMod = static_cast<ModelStateModifier*>(geEntity_GetUserData(pEntity));
 
 			if(pMod->DoForce)
 			{
