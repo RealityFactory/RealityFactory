@@ -13,8 +13,8 @@
 
 #define CONNECTIONPACKETS  4	///< # of packets sent during connection handshake
 
-#define WRITEDATA(type, a, b, c, d) CCD->NetPlayerManager()->WriteData(type, (void*)a, b, c, d)
-#define READDATA(type, a, b, c, d) CCD->NetPlayerManager()->ReadData(type, (void*)a, b, c, d)
+#define WRITEDATA(type, a, b, c, d) CCD->NetPlayerManager()->WriteData(type, static_cast<void*>(a), b, c, d)
+#define READDATA(type, a, b, c, d) CCD->NetPlayerManager()->ReadData(type, static_cast<void*>(a), b, c, d)
 
 #define MAXPLAYERS 10
 

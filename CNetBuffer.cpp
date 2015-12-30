@@ -350,7 +350,7 @@ char* NetBuffer::GetString()
 	char *rv;
 
 	len = GetInt();
-	rv=(char*)malloc(sizeof(char) * (len+1));
+	rv = static_cast<char*>(malloc(sizeof(char) * (len+1)));
 
 	memcpy(rv, dataptr, len);
 	dataptr += len;
