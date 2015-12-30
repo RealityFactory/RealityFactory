@@ -352,21 +352,10 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 				// Compute a new random target in the range sphere.
 				srand(CCD->FreeRunningCounter());
 				geVec3d RandomPosition;
-				RandomPosition.X = (geFloat)(rand() % (int)pFollower->PointRange);
-				if(rand()%2 == 1)
-					RandomPosition.X = -(RandomPosition.X);
 
-				RandomPosition.Y = (geFloat)(rand() % (int)pFollower->PointRange);
-				if(rand()%2 == 1)
-					RandomPosition.Y = -(RandomPosition.Y);
-
-				RandomPosition.Z = (geFloat)(rand() % (int)pFollower->PointRange);
-				if(rand()%2 == 1)
-					RandomPosition.Z = -(RandomPosition.Z);
-
-				RandomPosition.X += pFollower->PathOrigin.X;
-				RandomPosition.Y += pFollower->PathOrigin.Y;
-				RandomPosition.Z += pFollower->PathOrigin.Z;
+				RandomPosition.X = EffectC_Frand(-pFollower->PointRange, pFollower->PointRange) + pFollower->PathOrigin.X;
+				RandomPosition.Y = EffectC_Frand(-pFollower->PointRange, pFollower->PointRange) + pFollower->PathOrigin.Y;
+				RandomPosition.Z = EffectC_Frand(-pFollower->PointRange, pFollower->PointRange) + pFollower->PathOrigin.Z;
 
 				pFollower->CurrentTarget = RandomPosition;
 				pFollower->TimeInMotion = 0.0f;				// Clear re-seek time
