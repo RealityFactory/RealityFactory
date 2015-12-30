@@ -55,9 +55,6 @@ CMIDIAudio::~CMIDIAudio()
 
 	if(theError != 0)
 		CCD->ReportError("[WARNING] CMIDIAudio: Failed to close MCI MIDI SEQUENCER device\n", false);
-
-	m_bActive = false;
-	m_mciDeviceID = (-1);
 }
 
 /* ------------------------------------------------------------------------------------ */
