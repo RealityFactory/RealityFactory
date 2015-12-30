@@ -448,7 +448,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			if(arguments.entries() > 2)
 				if(arguments[2].boolValue())
 					DoorPos.Y = EntityPos.Y;
-				if(arguments.entries() > 2)
+
 			returnValue = geVec3d_DistanceBetween(&DoorPos, &EntityPos);
 		}
 		else
