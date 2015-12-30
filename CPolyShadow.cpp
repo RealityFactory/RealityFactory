@@ -21,7 +21,7 @@ CPolyShadow::CPolyShadow()
 	m_Vertex[0].r = m_Vertex[1].r = m_Vertex[2].r = 0.f;
 	m_Vertex[0].g = m_Vertex[1].g = m_Vertex[2].g = 0.f;
 	m_Vertex[0].b = m_Vertex[1].b = m_Vertex[2].b = 0.f;
-	m_Vertex[0].a = m_Vertex[1].a = m_Vertex[2].a = 255.f;
+	m_Vertex[0].a = m_Vertex[1].a = m_Vertex[2].a = 200.f;
 }
 
 /* ------------------------------------------------------------------------------------ */
