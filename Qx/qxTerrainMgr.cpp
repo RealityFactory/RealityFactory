@@ -559,7 +559,6 @@ bool qxTerrainMgr::Init()
 				CCD->ShutdownLevel();
 				delete CCD;
 				CCD = NULL;
-				MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 				exit(-333);
 			}
 
@@ -574,7 +573,6 @@ bool qxTerrainMgr::Init()
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 
@@ -587,7 +585,6 @@ bool qxTerrainMgr::Init()
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 
@@ -600,7 +597,6 @@ bool qxTerrainMgr::Init()
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 			}
@@ -616,7 +612,6 @@ bool qxTerrainMgr::Init()
 					CCD->ShutdownLevel();
 					delete CCD;
 					CCD = NULL;
-					MessageBox(NULL, szError, "Terrain Manager", MB_OK);
 					exit(-333);
 				}
 				m_pCloudMachine->DoWhiteFluffy();
