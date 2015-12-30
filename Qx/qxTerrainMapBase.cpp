@@ -99,14 +99,10 @@ bool qxTerrainMapBase::Init()
 
 bool qxTerrainMapBase::LoadTexture(const char* strTextureFile, const char* strAlphaFile)
 {
-	char TextureFile[64], AlphaFile[64];
-	strcpy(TextureFile, strTextureFile);
-	strcpy(AlphaFile, strAlphaFile);
-
 	m_strTextureFile = strTextureFile;
 	m_strAlphaFile = strAlphaFile;
 
-	m_pTexture = TPool_Bitmap(TextureFile, AlphaFile, NULL, NULL);
+	m_pTexture = TPool_Bitmap(strTextureFile, strAlphaFile, NULL, NULL);
 
 	if( !m_pTexture )
 		return false;
