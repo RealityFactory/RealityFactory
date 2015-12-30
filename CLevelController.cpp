@@ -245,7 +245,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			Sound.SoundDef = SPool_Sound(string1);
 
 			if(Sound.SoundDef != NULL)
-				CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+				CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 		}
 
 		return true;
