@@ -36,10 +36,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				CCD->SetHasFocus(false);
 
 				if(CCD->Engine() != NULL)
-					geEngine_Activate(CCD->Engine()->Engine(), false);
-
-				if(CCD->MenuManager())
 				{
+					geEngine_Activate(CCD->Engine()->Engine(), false);
 				}
 
 				return 0;
