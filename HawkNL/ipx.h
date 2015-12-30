@@ -30,28 +30,27 @@ extern "C" {
 NLboolean ipx_Init(void);
 void ipx_Shutdown(void);
 NLboolean ipx_Listen(NLsocket socket);
-NLulong ipx_Peek(NLsocket socket);
 NLsocket ipx_AcceptConnection(NLsocket socket);
 NLsocket ipx_Open(NLushort port, NLenum type);
-NLboolean ipx_Connect(NLsocket socket, NLaddress *address);
+NLboolean ipx_Connect(NLsocket socket, const NLaddress *address);
 void ipx_Close(NLsocket socket);
 NLint ipx_Read(NLsocket socket, /*@out@*/ NLvoid *buffer, NLint nbytes);
-NLint ipx_Write(NLsocket socket, NLvoid *buffer, NLint nbytes);
-NLbyte *ipx_AddrToString(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *string);
-void ipx_StringToAddr(NLbyte *string, /*@out@*/ NLaddress *address);
-void ipx_GetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
-void ipx_SetLocalAddr(NLaddress *address);
-NLbyte *ipx_GetNameFromAddr(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *name);
-void ipx_GetNameFromAddrAsync(NLaddress *address, /*@out@*/ NLbyte *name);
-void ipx_GetAddrFromName(NLbyte *name, /*@out@*/ NLaddress *address);
-void ipx_GetAddrFromNameAsync(NLbyte *name, /*@out@*/ NLaddress *address);
-NLboolean ipx_AddrCompare(NLaddress *address1, NLaddress *address2);
-NLushort ipx_GetPortFromAddr(NLaddress *address);
+NLint ipx_Write(NLsocket socket, const NLvoid *buffer, NLint nbytes);
+NLchar *ipx_AddrToString(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *string);
+NLboolean ipx_StringToAddr(const NLchar *string, /*@out@*/ NLaddress *address);
+NLboolean ipx_GetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
+NLaddress *ipx_GetAllLocalAddr(NLint *count);
+NLboolean ipx_SetLocalAddr(const NLaddress *address);
+NLchar *ipx_GetNameFromAddr(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *name);
+NLboolean ipx_GetNameFromAddrAsync(const NLaddress *address, /*@out@*/ NLchar *name);
+NLboolean ipx_GetAddrFromName(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean ipx_GetAddrFromNameAsync(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean ipx_AddrCompare(const NLaddress *address1, const NLaddress *address2);
+NLushort ipx_GetPortFromAddr(const NLaddress *address);
 void ipx_SetAddrPort(NLaddress *address, NLushort port);
 NLint ipx_GetSystemError(void);
 NLint ipx_PollGroup(NLint group, NLenum name, /*@out@*/ NLsocket *sockets, NLint number, NLint timeout);
-void ipx_Hint(NLenum name, NLint arg);
-
+NLboolean ipx_Hint(NLenum name, NLint arg);
 
 #ifdef __cplusplus
 }  /* extern "C" */

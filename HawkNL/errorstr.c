@@ -24,10 +24,11 @@
   Based on code supplied by Ryan Haksi <cryogen@infoserve.net>
 */
 
-#if defined WIN32 || defined WIN64
+#if defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
+#if !defined (_WIN32_WCE)
 #include <errno.h>
+#endif
 #include "wsock.h"
-
 #elif macintosh
 /* POSIX compat Mac systems ie pre OSX with GUSI2 installed */
 #include <unistd.h>
@@ -53,302 +54,314 @@
 #include "nlinternal.h"
 
 
-NL_EXP const /*@observer@*/  NLbyte* NL_APIENTRY nlGetSystemErrorStr(NLint err)
+NL_EXP const /*@observer@*/  NLchar* NL_APIENTRY nlGetSystemErrorStr(NLint err)
 {
-    NLbyte *lpszRetStr;
-    
+    NLchar *lpszRetStr;
     switch(err) {
-#if defined WIN32 || defined WIN64
+#ifdef WINDOWS_APP
     case WSABASEERR:
-        lpszRetStr="No error, you should never see this.";
+        lpszRetStr=(NLchar *)TEXT("No error.");
         break;
     case WSAVERNOTSUPPORTED:
-        lpszRetStr="Version of WinSock not supported.";
+        lpszRetStr=(NLchar *)TEXT("Version of WinSock not supported.");
         break;
     case WSASYSNOTREADY:
-        lpszRetStr="WinSock not present or not responding.";
+        lpszRetStr=(NLchar *)TEXT("WinSock not present or not responding.");
         break;
     case WSANOTINITIALISED:
-        lpszRetStr="WSA Startup not initialized.";
+        lpszRetStr=(NLchar *)TEXT("WinSock not initialized.");
         break;
 #endif
         /* ELOOK is used on some Macs */
 #ifdef ELOOK
     case ELOOK:
-        lpszRetStr="Internal mapping for kOTLookErr, don't return to client.";
+        lpszRetStr=(NLchar *)TEXT("Internal mapping for kOTLookErr, don't return to client.");
         break;
 #endif
         /* EPROCLIM not defined in some UNIXs */
 #ifdef EPROCLIM
     case EPROCLIM:
-        lpszRetStr="Too many processes.";
+        lpszRetStr=(NLchar *)TEXT("Too many processes.");
         break;
 #endif
         /* On some UNIXs, EINTR and NO_DATA have the same value */
 #if (EINTR != NO_DATA)
     case EINTR:
-        lpszRetStr="Interrupted function call.";
+        lpszRetStr=(NLchar *)TEXT("Interrupted function call.");
         break;
-#if defined(NO_DATA)       
+#if defined(NO_DATA)
     case NO_DATA:
-        lpszRetStr="Valid name, no data record for type.";
+        lpszRetStr=(NLchar *)TEXT("Valid name, no data record for type.");
         break;
-#endif        
+#endif
 #else
     case NO_DATA:
-        lpszRetStr="Interrupted function call or no data record for type.";
+        lpszRetStr=(NLchar *)TEXT("Interrupted function call or no data record for type.");
         break;
 #endif
     case EBADF:
-        lpszRetStr="Bad file descriptor.";
+        lpszRetStr=(NLchar *)TEXT("Bad file descriptor.");
         break;
     case EFAULT:
-        lpszRetStr="The namelen argument is incorrect.";
+        lpszRetStr=(NLchar *)TEXT("The namelen argument is incorrect.");
         break;
     case EMFILE:
-        lpszRetStr="Too many open files.";
+        lpszRetStr=(NLchar *)TEXT("Too many open files.");
         break;
     case EINVAL:
-        lpszRetStr="App version not supported by DLL.";
+        lpszRetStr=(NLchar *)TEXT("App version not supported by DLL.");
         break;
-#if defined(TRY_AGAIN)        
+#if defined(TRY_AGAIN)
     case TRY_AGAIN:
-        lpszRetStr="Non-authoritive: host not found or server failure.";
-        break;
-#endif        
-#if defined(NO_RECOVERY)
-    case NO_RECOVERY:
-        lpszRetStr="Non-recoverable: refused or not implemented.";
+        lpszRetStr=(NLchar *)TEXT("Non-authoritive: host not found or server failure.");
         break;
 #endif
-#if defined(HOST_NOT_FOUND)        
-    case HOST_NOT_FOUND:
-        lpszRetStr="Authoritive: Host not found.";
+#if defined(NO_RECOVERY)
+    case NO_RECOVERY:
+        lpszRetStr=(NLchar *)TEXT("Non-recoverable: refused or not implemented.");
         break;
-#endif        
+#endif
+#if defined(HOST_NOT_FOUND)
+    case HOST_NOT_FOUND:
+        lpszRetStr=(NLchar *)TEXT("Authoritive: Host not found.");
+        break;
+#endif
     case EACCES:
-        lpszRetStr="Permission to access socket denied.";
+        lpszRetStr=(NLchar *)TEXT("Permission to access socket denied.");
         break;
     case ENETDOWN:
-        lpszRetStr="Network subsystem failed.";
+        lpszRetStr=(NLchar *)TEXT("Network subsystem failed.");
         break;
     case EAFNOSUPPORT:
-        lpszRetStr="Address family not supported.";
+        lpszRetStr=(NLchar *)TEXT("Address family not supported.");
         break;
     case ENOBUFS:
-        lpszRetStr="No buffer space available.";
+        lpszRetStr=(NLchar *)TEXT("No buffer space available.");
         break;
     case EPROTONOSUPPORT:
-        lpszRetStr="Specified protocol not supported.";
+        lpszRetStr=(NLchar *)TEXT("Specified protocol not supported.");
         break;
     case EPROTOTYPE:
-        lpszRetStr="Protocol wrong type for this socket.";
+        lpszRetStr=(NLchar *)TEXT("Protocol wrong type for this socket.");
         break;
     case ESOCKTNOSUPPORT:
-        lpszRetStr="Socket type not supported for address family.";
+        lpszRetStr=(NLchar *)TEXT("Socket type not supported for address family.");
         break;
     case ENOTSOCK:
-        lpszRetStr="Descriptor is not a socket.";
+        lpszRetStr=(NLchar *)TEXT("Descriptor is not a socket.");
         break;
     case EWOULDBLOCK:
-        lpszRetStr="Socket marked as non-blocking and SO_LINGER set not 0.";
+        lpszRetStr=(NLchar *)TEXT("Non-blocking socket would block.");
         break;
     case EADDRINUSE:
-        lpszRetStr="Address already in use.";
+        lpszRetStr=(NLchar *)TEXT("Address already in use.");
         break;
     case ECONNABORTED:
-        lpszRetStr="Connection aborted.";
+        lpszRetStr=(NLchar *)TEXT("Connection aborted.");
         break;
     case ECONNRESET:
-        lpszRetStr="Connection reset.";
+        lpszRetStr=(NLchar *)TEXT("Connection reset.");
         break;
     case ENOTCONN:
-        lpszRetStr="Not connected.";
+        lpszRetStr=(NLchar *)TEXT("Not connected.");
         break;
     case ETIMEDOUT:
-        lpszRetStr="Connection timed out.";
+        lpszRetStr=(NLchar *)TEXT("Connection timed out.");
         break;
     case ECONNREFUSED:
-        lpszRetStr="Connection was refused.";
+        lpszRetStr=(NLchar *)TEXT("Connection was refused.");
         break;
     case EHOSTDOWN:
-        lpszRetStr="Host is down.";
+        lpszRetStr=(NLchar *)TEXT("Host is down.");
         break;
     case ENETUNREACH:
-        lpszRetStr="Network unreachable.";
+        lpszRetStr=(NLchar *)TEXT("Network unreachable.");
         break;
     case EHOSTUNREACH:
-        lpszRetStr="Host unreachable.";
+        lpszRetStr=(NLchar *)TEXT("Host unreachable.");
         break;
     case EADDRNOTAVAIL:
-        lpszRetStr="Address not available.";
+        lpszRetStr=(NLchar *)TEXT("Address not available.");
         break;
     case EINPROGRESS:
-#if defined WIN32 || defined WIN64
-        lpszRetStr="A blocking sockets call is in progress.";
+#ifdef WINDOWS_APP
+        lpszRetStr=(NLchar *)TEXT("A blocking sockets call is in progress.");
 #else
-        lpszRetStr="The socket is non-blocking and the connection could not be established immediately.";
+        lpszRetStr=(NLchar *)TEXT("The socket is non-blocking and the connection could not be established immediately.");
 #endif
         break;
     case EDESTADDRREQ:
-        lpszRetStr="Destination address is required.";
+        lpszRetStr=(NLchar *)TEXT("Destination address is required.");
         break;
     case EISCONN:
-        lpszRetStr="Socket is already connected.";
+        lpszRetStr=(NLchar *)TEXT("Socket is already connected.");
         break;
     case ENETRESET:
-        lpszRetStr="Connection has been broken due to the remote host resetting.";
+        lpszRetStr=(NLchar *)TEXT("Connection has been broken due to the remote host resetting.");
         break;
     case EOPNOTSUPP:
-        lpszRetStr="Operation not supported on socket";
+        lpszRetStr=(NLchar *)TEXT("Operation not supported on socket");
         break;
     case ESHUTDOWN:
-        lpszRetStr="Socket has been shut down.";
+        lpszRetStr=(NLchar *)TEXT("Socket has been shut down.");
         break;
     case EMSGSIZE:
-        lpszRetStr="The message was too large to fit into the specified buffer and was truncated.";
+        lpszRetStr=(NLchar *)TEXT("The message was too large to fit into the specified buffer and was truncated.");
         break;
     case EALREADY:
-        lpszRetStr="A non-blocking connect call is in progress on the specified socket.";
+        lpszRetStr=(NLchar *)TEXT("A non-blocking connect call is in progress on the specified socket.");
         break;
     case ENOPROTOOPT:
-        lpszRetStr="Bad protocol option.";
+        lpszRetStr=(NLchar *)TEXT("Bad protocol option.");
         break;
     case EPFNOSUPPORT:
-        lpszRetStr="Protocol family not supported.";
+        lpszRetStr=(NLchar *)TEXT("Protocol family not supported.");
         break;
     case ETOOMANYREFS:
-        lpszRetStr="Too many references; can't splice.";
+        lpszRetStr=(NLchar *)TEXT("Too many references; can't splice.");
         break;
     case ELOOP:
-        lpszRetStr="Too many levels of symbolic links.";
+        lpszRetStr=(NLchar *)TEXT("Too many levels of symbolic links.");
         break;
     case ENAMETOOLONG:
-        lpszRetStr="File name too long.";
+        lpszRetStr=(NLchar *)TEXT("File name too long.");
         break;
     case ENOTEMPTY:
-        lpszRetStr="Directory not empty.";
+        lpszRetStr=(NLchar *)TEXT("Directory not empty.");
         break;
-        
+
 #if !defined(macintosh)
     case EUSERS:
-        lpszRetStr="Too many users.";
+        lpszRetStr=(NLchar *)TEXT("Too many users.");
         break;
     case EDQUOT:
-        lpszRetStr="Disc quota exceeded.";
+        lpszRetStr=(NLchar *)TEXT("Disc quota exceeded.");
         break;
     case ESTALE:
-        lpszRetStr="Stale NFS file handle.";
+        lpszRetStr=(NLchar *)TEXT("Stale NFS file handle.");
         break;
     case EREMOTE:
-        lpszRetStr="Too many levels of remote in path.";
+        lpszRetStr=(NLchar *)TEXT("Too many levels of remote in path.");
         break;
-#endif        
-
+#endif
     default:
+#ifdef WINDOWS_APP
+        {
+            static NLchar temp[256];
+
+            /* FormatMessage is unicode compliant */
+            FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, err,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)temp, 256, NULL);
+            lpszRetStr = temp;
+        }
+#else
         lpszRetStr=strerror(err);
+#endif
         break;
   }
-  return (const NLbyte*)lpszRetStr;
+  return (const NLchar*)lpszRetStr;
 }
 
-NL_EXP const /*@observer@*/ NLbyte* NL_APIENTRY nlGetErrorStr(NLenum err)
+NL_EXP const /*@observer@*/ NLchar* NL_APIENTRY nlGetErrorStr(NLenum err)
 {
-    NLbyte *retStr;
-    
+    NLchar *retStr;
+
     switch(err) {
     case NL_NO_ERROR:
-        retStr = "No HawkNL error.";
+        retStr = (NLchar *)TEXT("No HawkNL error.");
         break;
     case NL_NO_NETWORK:
-        retStr = "No network was found on init.";
+        retStr = (NLchar *)TEXT("No network was found on init.");
         break;
     case NL_OUT_OF_MEMORY:
-        retStr = "Out of memory.";
+        retStr = (NLchar *)TEXT("Out of memory.");
         break;
     case NL_INVALID_ENUM:
-        retStr = "Invalid NLenum.";
+        retStr = (NLchar *)TEXT("Invalid NLenum.");
         break;
     case NL_INVALID_SOCKET:
-        retStr = "Socket is not valid, or has been terminated.";
+        retStr = (NLchar *)TEXT("Socket is not valid.");
         break;
     case NL_INVALID_PORT:
-        retStr = "Port could not be opened.";
+        retStr = (NLchar *)TEXT("Port could not be opened.");
         break;
     case NL_INVALID_TYPE:
-        retStr = "Network type is not available.";
+        retStr = (NLchar *)TEXT("Network type is not available.");
         break;
-    case NL_SOCKET_ERROR:
-        retStr = "A system error occurred, call nlGetSystemError.";
+    case NL_SYSTEM_ERROR:
+        retStr = (NLchar *)TEXT("A system error occurred, call nlGetSystemError.");
         break;
     case NL_SOCK_DISCONNECT:
-        retStr = "Connection error: Close socket.";
+        retStr = (NLchar *)TEXT("Connection error: Close socket.");
         break;
     case NL_NOT_LISTEN:
-        retStr = "Socket has not been set to listen.";
-        break;
-    case NL_NO_BROADCAST:
-        retStr = "Could not broadcast.";
+        retStr = (NLchar *)TEXT("Socket has not been set to listen.");
         break;
     case NL_CON_REFUSED:
-        retStr = "Connection refused.";
-        break;
-    case NL_NO_MULTICAST:
-        retStr = "Could not set multicast.";
+        retStr = (NLchar *)TEXT("Connection refused.");
         break;
     case NL_NO_PENDING:
-        retStr = "No pending connections to accept.";
+        retStr = (NLchar *)TEXT("No pending connections to accept.");
         break;
     case NL_BAD_ADDR:
-        retStr = "The address or port are not valid.";
-        break;
-    case NL_OUT_OF_SOCKETS:
-        retStr = "Out of socket objects.";
+        retStr = (NLchar *)TEXT("The address or port are not valid.");
         break;
     case NL_MESSAGE_END:
-        retStr = "TCP message end.";
+        retStr = (NLchar *)TEXT("TCP message end.");
         break;
     case NL_NULL_POINTER:
-        retStr = "A NULL pointer was passed to a function.";
+        retStr = (NLchar *)TEXT("A NULL pointer was passed to a function.");
         break;
     case NL_INVALID_GROUP:
-        retStr = "The group is not valid, or has been destroyed.";
+        retStr = (NLchar *)TEXT("The group is not valid.");
         break;
     case NL_OUT_OF_GROUPS:
-        retStr = "Out of internal group objects.";
+        retStr = (NLchar *)TEXT("Out of groups.");
         break;
     case NL_OUT_OF_GROUP_SOCKETS:
-        retStr = "The group is full.";
+        retStr = (NLchar *)TEXT("The group is full.");
         break;
     case NL_BUFFER_SIZE:
-        retStr = "The buffer was too small for the packet.";
+        retStr = (NLchar *)TEXT("The buffer is too small.");
         break;
     case NL_PACKET_SIZE:
-        retStr = "The packet is too large to send.";
+        retStr = (NLchar *)TEXT("The packet is too large.");
         break;
     case NL_WRONG_TYPE:
-        retStr = "The function does not support the socket type.";
+        retStr = (NLchar *)TEXT("Wrong socket type.");
         break;
     case NL_CON_PENDING:
-        retStr = "A non-blocking connection is still pending.";
+        retStr = (NLchar *)TEXT("A non-blocking connection is still pending.");
         break;
     case NL_SELECT_NET_ERROR:
-        retStr = "A network type is already selected.";
-        break;
-    case NL_CON_TERM:
-        retStr = "The connection has been terminated.";
+        retStr = (NLchar *)TEXT("A network type is already selected.");
         break;
     case NL_PACKET_SYNC:
-        retStr = "The NL_RELIABLE_PACKET stream is out of sync.";
+        retStr = (NLchar *)TEXT("The NL_RELIABLE_PACKET stream is out of sync.");
         break;
     case NL_TLS_ERROR:
-        retStr = "Thread local storage could not be created.";
+        retStr = (NLchar *)TEXT("Thread local storage could not be created.");
+        break;
+    case NL_TIMED_OUT:
+        retStr = (NLchar *)TEXT("The function timed out.");
+        break;
+    case NL_SOCKET_NOT_FOUND:
+        retStr = (NLchar *)TEXT("The socket was not found in the group.");
+        break;
+    case NL_STRING_OVER_RUN:
+        retStr = (NLchar *)TEXT("The string could cause a buffer over-run or corrupt memory.");
+        break;
+    case NL_MUTEX_RECURSION:
+        retStr = (NLchar *)TEXT("The mutex was recursivly locked by a single thread.");
+        break;
+    case NL_MUTEX_OWNER:
+        retStr = (NLchar *)TEXT("The mutex is not owned by the thread.");
         break;
 
     default:
-        retStr = "Undefined HawkNL error.";
+        retStr = (NLchar *)TEXT("Undefined HawkNL error.");
         break;
     }
-    return (const NLbyte*)retStr;
+    return (const NLchar*)retStr;
 }
 

@@ -32,24 +32,25 @@ void sock_Shutdown(void);
 NLboolean sock_Listen(NLsocket socket);
 NLsocket sock_AcceptConnection(NLsocket socket);
 NLsocket sock_Open(NLushort port, NLenum type);
-NLboolean sock_Connect(NLsocket socket, NLaddress *address);
+NLboolean sock_Connect(NLsocket socket, const NLaddress *address);
 void sock_Close(NLsocket socket);
 NLint sock_Read(NLsocket socket, /*@out@*/ NLvoid *buffer, NLint nbytes);
-NLint sock_Write(NLsocket socket, NLvoid *buffer, NLint nbytes);
-NLbyte *sock_AddrToString(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *string);
-void sock_StringToAddr(NLbyte *string, /*@out@*/ NLaddress *address);
-void sock_GetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
-void sock_SetLocalAddr(NLaddress *address);
-NLbyte *sock_GetNameFromAddr(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *name);
-void sock_GetNameFromAddrAsync(NLaddress *address, /*@out@*/ NLbyte *name);
-void sock_GetAddrFromName(NLbyte *name, /*@out@*/ NLaddress *address);
-void sock_GetAddrFromNameAsync(NLbyte *name, /*@out@*/ NLaddress *address);
-NLboolean sock_AddrCompare(NLaddress *address1, NLaddress *address2);
-NLushort sock_GetPortFromAddr(NLaddress *address);
+NLint sock_Write(NLsocket socket, const NLvoid *buffer, NLint nbytes);
+NLchar *sock_AddrToString(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *string);
+NLboolean sock_StringToAddr(const NLchar *string, /*@out@*/ NLaddress *address);
+NLboolean sock_GetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
+NLaddress *sock_GetAllLocalAddr(/*@out@*/ NLint *count);
+NLboolean sock_SetLocalAddr(const NLaddress *address);
+NLchar *sock_GetNameFromAddr(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *name);
+NLboolean sock_GetNameFromAddrAsync(const NLaddress *address, /*@out@*/ NLchar *name);
+NLboolean sock_GetAddrFromName(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean sock_GetAddrFromNameAsync(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean sock_AddrCompare(const NLaddress *address1, const NLaddress *address2);
+NLushort sock_GetPortFromAddr(const NLaddress *address);
 void sock_SetAddrPort(NLaddress *address, NLushort port);
 NLint sock_GetSystemError(void);
 NLint sock_PollGroup(NLint group, NLenum name, /*@out@*/ NLsocket *sockets, NLint number, NLint timeout);
-void sock_Hint(NLenum name, NLint arg);
+NLboolean sock_Hint(NLenum name, NLint arg);
 
 #ifdef __cplusplus
 }  /* extern "C" */

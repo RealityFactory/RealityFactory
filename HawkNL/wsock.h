@@ -23,13 +23,13 @@
 #ifndef WSOCK_H
 #define WSOCK_H
 
+#include "nl.h"
+
 /* Windows systems */
 #ifdef _MSC_VER
 #pragma warning (disable:4201)
 #pragma warning (disable:4214)
-#pragma warning (disable:4115)
-#pragma warning (disable:4514)
-#pragma warning (disable:4127)
+#pragma warning (disable:4127) /* bogus FD_SET warning */
 #endif /* _MSC_VER */
 
 #define WIN32_LEAN_AND_MEAN
@@ -38,10 +38,9 @@
 #ifdef _MSC_VER
 #pragma warning (default:4201)
 #pragma warning (default:4214)
-#pragma warning (default:4115)
 #endif /* _MSC_VER */
 
-#define ioctl ioctlsocket 
+#define ioctl ioctlsocket
 
 #undef  EBADF
 #define EBADF                   WSAEBADF
@@ -71,6 +70,10 @@
 
 #ifndef ETIMEDOUT
 #define ETIMEDOUT               WSAETIMEDOUT
+#endif
+
+#ifndef EREMOTE
+#define EREMOTE                 WSAEREMOTE
 #endif
 
 #define TRY_AGAIN               WSATRY_AGAIN
@@ -110,7 +113,6 @@
 #define EUSERS                  WSAEUSERS
 #define EDQUOT                  WSAEDQUOT
 #define ESTALE                  WSAESTALE
-#define EREMOTE                 WSAEREMOTE
 #define sockerrno   WSAGetLastError()
 /* get rid of some nasty LCLint messages */
 #undef  FIONBIO
@@ -129,6 +131,56 @@ typedef struct sockaddr_ipx
 #define NSPROTO_IPX      1000
 #define NSPROTO_SPX      1256
 #define NSPROTO_SPXII    1257
+
+/* These replacement inlined functions are replacements for */
+/* the Winsock macros, but compile without errors :) */
+#undef FD_CLR
+#define FD_CLR      nlFD_CLR
+
+NL_INLINE void nlFD_CLR(SOCKET fd, fd_set *set)
+{
+    u_int i;
+
+    for(i=0;i<set->fd_count;i++)
+    {
+        if(set->fd_array[i] == fd)
+        {
+            while(i < set->fd_count-1)
+            {
+                set->fd_array[i] = set->fd_array[i+1];
+                i++;
+            }
+            set->fd_count--;
+            break;
+        }
+    }
+}
+
+#undef FD_SET
+#define FD_SET      nlFD_SET
+
+NL_INLINE void nlFD_SET(SOCKET fd, fd_set *set)
+{
+    if(set->fd_count < FD_SETSIZE)
+        set->fd_array[set->fd_count++]=fd;
+}
+
+/* This function is inlined for speed over the Winsock function */
+
+#undef FD_ISSET
+#define FD_ISSET(fd, set)      nlWSAFDIsSet((SOCKET)(fd), set)
+
+NL_INLINE int nlWSAFDIsSet(SOCKET fd, fd_set *set)
+{
+    int i = (int)set->fd_count;
+
+    while(i-- != 0)
+    {
+        if (set->fd_array[i] == fd)
+            return 1;
+    }
+    return 0;
+}
 
 #endif /* WSOCK_H */
 

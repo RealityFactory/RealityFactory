@@ -1,6 +1,6 @@
 /*
   HawkNL cross platform network library
-  Copyright (C) 2000-2002 Phil Frisbie, Jr. (phil@hawksoft.com)
+  Copyright (C) 2000-2003 Phil Frisbie, Jr. (phil@hawksoft.com)
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Library General Public
@@ -21,43 +21,32 @@
 */
 
 
-#include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
+
+#if defined (_WIN32_WCE)
+#define errno GetLastError()
+#else
+#include <errno.h>
+#endif
+
 #include "nlinternal.h"
 
-#if defined WIN32 || defined WIN64
+#ifdef WINDOWS_APP
 /* Windows systems */
-#ifdef _MSC_VER
-#pragma warning (disable:4201)
-#pragma warning (disable:4214)
-#pragma warning (disable:4115)
-#pragma warning (disable:4514)
-#pragma warning (disable:4127)
-#endif /* _MSC_VER */
 
-#define WIN32_LEAN_AND_MEAN
-#include <winsock.h>
-
-#ifdef _MSC_VER
-#pragma warning (default:4201)
-#pragma warning (default:4214)
-#pragma warning (default:4115)
-#endif /* _MSC_VER */
+#include "wsock.h"
 
 #else
 /* Unix-style systems or macs with posix support */
 #include <netinet/in.h> /* for ntohs and htons */
 #endif
 
-#ifdef _MSC_VER
-#pragma warning (disable:4100) /* disable "unreferenced formal parameter" */
-#endif
+#ifdef NL_INCLUDE_LOOPBACK
+#include "loopback.h"
 
-
+static NLaddress loopback_ouraddress;
 static NLint loopgroup;
-static NLbyte localname[] = "localhost";
 static volatile NLboolean reuseaddress = NL_FALSE;
 
 static NLmutex  portlock; /* In memory of my step-father, Don Portlock,
@@ -67,12 +56,12 @@ static volatile NLushort newport = 1024;
 
 static NLushort loopback_getNextPort(void)
 {
-    nlMutexLock(&portlock);
+    (void)nlMutexLock(&portlock);
     if(++newport > 65535)
     {
         newport = 1024;
     }
-    nlMutexUnlock(&portlock);
+    (void)nlMutexUnlock(&portlock);
     return newport;
 }
 
@@ -85,8 +74,7 @@ static NLboolean loopback_ScanPort(NLushort port, NLenum type)
     {
         return NL_TRUE;
     }
-    nlGroupGetSockets(loopgroup, (NLint *)&temp, &numsockets);
-    if(numsockets < 0)
+    if(nlGroupGetSockets(loopgroup, (NLsocket *)&temp, &numsockets) == NL_FALSE)
     {
         return NL_FALSE;
     }
@@ -146,7 +134,7 @@ NLboolean loopback_Init(void)
 
 void loopback_Shutdown(void)
 {
-    nlGroupDestroy(loopgroup);
+    (void)nlGroupDestroy(loopgroup);
 }
 
 NLboolean loopback_Listen(NLsocket socket)
@@ -162,7 +150,7 @@ NLboolean loopback_Listen(NLsocket socket)
     sock->listen = NL_TRUE;
     while(i-- > 0)
     {
-        sock->accept[i] = NL_INVALID;
+        sock->ext->accept[i] = NL_INVALID;
     }
     return NL_TRUE;
 }
@@ -170,41 +158,75 @@ NLboolean loopback_Listen(NLsocket socket)
 NLsocket loopback_AcceptConnection(NLsocket socket)
 {
     nl_socket_t *sock = nlSockets[socket];
-    NLint       i;
 
     if(sock->listen == NL_FALSE)
     {
         nlSetError(NL_NOT_LISTEN);
         return NL_INVALID;
     }
-    /* look for a valid socket */
-    for(i=0;i<NL_MAX_ACCEPT;i++)
+    if(sock->inuse == NL_FALSE)
     {
-        if(sock->accept[i] != NL_INVALID)
+        /* socket was closed by nlShutdown */
+        nlSetError(NL_INVALID_SOCKET);
+        return NL_INVALID;
+    }
+    if(sock->ext == NULL)
+    {
+        /* socket was closed on another thread */
+        nlSetError(NL_INVALID_SOCKET);
+        return NL_INVALID;
+    }
+    if(sock->ext->accept[0] != NL_INVALID)
+    {
+        NLsocket    newsocket;
+        NLsocket    osock = sock->ext->accept[0];
+        nl_socket_t *othersock = nlSockets[osock];
+
+        /* make sure the other socket is valid */
+        if(nlIsValidSocket(osock) == NL_FALSE)
         {
-            NLsocket    newsocket = loopback_Open(0, sock->type);
-            NLsocket    osock = sock->accept[i];
-            nl_socket_t *othersock = nlSockets[osock];
+            NLint       i;
 
-            sock->accept[i] = NL_INVALID;
-            if(newsocket != NL_INVALID)
+            for(i=1;i<NL_MAX_ACCEPT;i++)
             {
-                nl_socket_t *newsock = nlSockets[newsocket];
-
-                nlLockSocket(osock, NL_BOTH);
-                /* do the connecting */
-                newsock->consock = osock;
-                newsock->remoteport = othersock->localport;
-                othersock->consock = newsocket;
-                othersock->remoteport = newsock->localport;
-                newsock->connected = NL_TRUE;
-                othersock->connected = NL_TRUE;
-                othersock->connecting = NL_FALSE;
-                loopback_SetAddrPort(&othersock->address, othersock->remoteport);
-                loopback_SetAddrPort(&newsock->address, newsock->remoteport);
-                nlUnlockSocket(osock, NL_BOTH);
-                return newsocket;
+                sock->ext->accept[i-1] = sock->ext->accept[i];
             }
+            sock->ext->accept[NL_MAX_ACCEPT-1] = NL_INVALID;
+            return loopback_AcceptConnection(socket);
+        }
+        newsocket = loopback_Open(0, sock->type);
+        if(newsocket != NL_INVALID)
+        {
+            NLint       i;
+            nl_socket_t *newsock = nlSockets[newsocket];
+
+            /* we must unlock the socket briefly or else nlConnect will deadlock */
+            nlUnlockSocket(socket, NL_BOTH);
+            if(nlLockSocket(osock, NL_READ) == NL_FALSE)
+            {
+                return NL_INVALID;
+            }
+            (void)nlLockSocket(socket, NL_BOTH);
+            /* do the connecting */
+            newsock->ext->consock = osock;
+            newsock->remoteport = othersock->localport;
+            othersock->ext->consock = newsocket;
+            othersock->remoteport = newsock->localport;
+            newsock->connected = NL_TRUE;
+            loopback_SetAddrPort(&othersock->addressin, othersock->remoteport);
+            loopback_SetAddrPort(&newsock->addressin, newsock->remoteport);
+            othersock->connected = NL_TRUE;
+            othersock->connecting = NL_FALSE;
+            /* move the accept que down one */
+            for(i=1;i<NL_MAX_ACCEPT;i++)
+            {
+                sock->ext->accept[i-1] = sock->ext->accept[i];
+            }
+            sock->ext->accept[NL_MAX_ACCEPT-1] = NL_INVALID;
+            nlUnlockSocket(socket, NL_BOTH);
+            nlUnlockSocket(osock, NL_READ);
+            (void)nlLockSocket(socket, NL_BOTH);
+            return newsocket;
         }
     }
     nlSetError(NL_NO_PENDING);
@@ -242,6 +264,10 @@ NLsocket loopback_Open(NLushort port, NLenum type)
     {
         return NL_INVALID;
     }
+    if(nlLockSocket(newsocket, NL_BOTH) == NL_FALSE)
+    {
+        return NL_INVALID;
+    }
     newsock = nlSockets[newsocket];
     newsock->type = type;
     newsock->localport = lport;
@@ -250,12 +276,21 @@ NLsocket loopback_Open(NLushort port, NLenum type)
         newsock->remoteport = lport;
     }
 
+    if((newsock->ext = (nl_extra_t *)malloc(sizeof(nl_extra_t))) == NULL)
+    {
+        nlSetError(NL_OUT_OF_MEMORY);
+        nlUnlockSocket(newsocket, NL_BOTH);
+        loopback_Close(newsocket);
+        return NL_INVALID;
+    }
+    /* clear out the structure */
+    memset(newsock->ext, 0, sizeof(nl_extra_t));
     for(i=0;i<NL_NUM_PACKETS;i++)
     {
         NLboolean err = NL_FALSE;
 
         /* malloc the max packet length plus two bytes for the port number */
-        if((newsock->inpacket[i] = (NLbyte *)malloc((size_t)(NL_MAX_PACKET_LENGTH + 2))) == NULL)
+        if((newsock->ext->inpacket[i] = (NLbyte *)malloc((size_t)(NL_MAX_PACKET_LENGTH + 2))) == NULL)
         {
             nlSetError(NL_OUT_OF_MEMORY);
             err = NL_TRUE;
@@ -264,19 +299,21 @@ NLsocket loopback_Open(NLushort port, NLenum type)
         {
             while(i-- > 0)
             {
-                free(newsock->inpacket[i]);
+                free(newsock->ext->inpacket[i]);
             }
-            sock_Close(newsocket);
+            nlUnlockSocket(newsocket, NL_BOTH);
+            loopback_Close(newsocket);
             return NL_INVALID;
         }
     }
 
     (void)nlGroupAddSocket(loopgroup, newsocket);
+    nlUnlockSocket(newsocket, NL_BOTH);
 
     return newsocket;
 }
 
-NLboolean loopback_Connect(NLsocket socket, NLaddress *address)
+NLboolean loopback_Connect(NLsocket socket, const NLaddress *address)
 {
     nl_socket_t *sock = nlSockets[socket];
     NLushort    port;
@@ -295,14 +332,18 @@ NLboolean loopback_Connect(NLsocket socket, NLaddress *address)
         nlSetError(NL_CON_REFUSED);
         return NL_FALSE;
     }
-    nlGroupGetSockets(loopgroup, (NLint *)&temp, &numsockets);
-    if(numsockets <= 0)
+    if(nlGroupGetSockets(loopgroup, (NLsocket *)&temp, &numsockets) == NL_FALSE)
+    {
+        return NL_FALSE;
+    }
+    if(numsockets == 0)
     {
         return NL_FALSE;
     }
     while(numsockets-- > 0)
     {
-        nl_socket_t *othersock = nlSockets[temp[numsockets]];
+        NLsocket    s = temp[numsockets];
+        nl_socket_t *othersock = nlSockets[s];
 
         if(sock->type == othersock->type && port == othersock->localport
             && othersock->listen == NL_TRUE && othersock->connected == NL_FALSE
@@ -311,16 +352,38 @@ NLboolean loopback_Connect(NLsocket socket, NLaddress *address)
             /* we found the right socket, so connect */
             NLint i;
 
+            if(nlLockSocket(s, NL_BOTH) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
             for(i=0;i<NL_MAX_ACCEPT;i++)
             {
-                if(othersock->accept[i] == NL_INVALID)
+                if(othersock->ext->accept[i] == NL_INVALID)
                 {
-                    othersock->accept[i] = socket;
+                    othersock->ext->accept[i] = socket;
                     sock->connecting = NL_TRUE;
-                    sock->consock = temp[numsockets];
+                    sock->ext->consock = s;
+                    nlUnlockSocket(s, NL_BOTH);
+                    if(sock->blocking == NL_TRUE)
+                    {
+                        nlUnlockSocket(socket, NL_BOTH);
+                        /* wait for nlAccept to be called */
+                        while(sock->connecting == NL_TRUE)
+                        {
+                            if(sock->inuse == NL_FALSE)
+                            {
+                                /* nlShutdown has been called */
+                                nlSetError(NL_INVALID_SOCKET);
+                                return NL_FALSE;
+                            }
+                            nlThreadSleep(NL_CONNECT_SLEEP);
+                        }
+                        (void)nlLockSocket(socket, NL_BOTH);
+                    }
                     return NL_TRUE;
                 }
             }
+            nlUnlockSocket(s, NL_BOTH);
         }
     }
     nlSetError(NL_CON_REFUSED);
@@ -335,26 +398,59 @@ void loopback_Close(NLsocket socket)
     if(sock->connected == NL_TRUE || sock->connecting == NL_TRUE)
     {
         /* break the connection */
-        nl_socket_t *othersock = nlSockets[sock->consock];
+        nl_socket_t *othersock = nlSockets[sock->ext->consock];
 
-        othersock->consock = NL_INVALID;
+        if(othersock->ext != NULL)
+        {
+            othersock->ext->consock = NL_INVALID;
+        }
+        othersock->connected = NL_FALSE;
+        sock->connected = NL_FALSE;
+        sock->listen = NL_FALSE;
+        if(sock->type != NL_BROADCAST)
+        {
+            /* this allows nlPollGroup to report socket is readable */
+            /* so that the app can get the NL_SOCK_DISCONNECT message*/
+            if(othersock->ext != NULL)
+            {
+                othersock->ext->inlen[othersock->ext->nextinused] = -1;
+            }
+        }
     }
     for(i=0;i<NL_NUM_PACKETS;i++)
     {
-        void /*@owned@*/*t = sock->inpacket[i];
+        void /*@owned@*/*t = sock->ext->inpacket[i];
 
         free(t);
+        sock->ext->inpacket[i] = NULL;
     }
-    nlFreeSocket(socket);
+    free(sock->ext);
+    sock->ext = NULL;
 }
 
 NLint loopback_Read(NLsocket socket, NLvoid *buffer, NLint nbytes)
 {
     nl_socket_t *sock = nlSockets[socket];
-    NLint       len = sock->inlen[sock->nextinused];
+    NLint       len = sock->ext->inlen[sock->ext->nextinused];
     NLint       c = 0;
     NLushort    port;
 
+    if(sock->blocking == NL_TRUE)
+    {
+        while(len == 0)
+        {
+            nlUnlockSocket(socket, NL_READ);
+            nlThreadSleep(10);
+            if(sock->inuse == NL_FALSE)
+            {
+                /* nlShutdown has been called */
+                nlSetError(NL_INVALID_SOCKET);
+                return NL_INVALID;
+            }
+            (void)nlLockSocket(socket, NL_READ);
+            len = sock->ext->inlen[sock->ext->nextinused];
+        }
+    }
     if(len > 0)
     {
         if(len > nbytes)
@@ -368,28 +464,29 @@ NLint loopback_Read(NLsocket socket, NLvoid *buffer, NLint nbytes)
             return NL_INVALID;
         }
         /* get the port number */
-        readShort(sock->inpacket[sock->nextinused], c, port);
-        loopback_SetAddrPort(&sock->address, port);
+        readShort(sock->ext->inpacket[sock->ext->nextinused], c, port);
+        loopback_SetAddrPort(&sock->addressin, port);
         /* copy the packet */
-        memcpy(buffer, sock->inpacket[sock->nextinused] + 2, (size_t)len);
+        memcpy(buffer, sock->ext->inpacket[sock->ext->nextinused] + 2, (size_t)len);
         /* zero out length and set up for next packet */
-        sock->inlen[sock->nextinused] = 0;
-        sock->nextinused++;
-        if(sock->nextinused >= NL_NUM_PACKETS)
+        sock->ext->inlen[sock->ext->nextinused] = 0;
+        sock->ext->nextinused++;
+        if(sock->ext->nextinused >= NL_NUM_PACKETS)
         {
-            sock->nextinused = 0;
+            sock->ext->nextinused = 0;
         }
     }
     /* check for broken connection */
-    if(sock->connected == NL_TRUE && sock->consock == NL_INVALID)
+    else if((len == -1) || (sock->connected == NL_TRUE && sock->ext->consock == NL_INVALID)
+        || (sock->connected == NL_FALSE && sock->type != NL_BROADCAST))
     {
-        nlSetError(NL_CON_TERM);
+        nlSetError(NL_SOCK_DISCONNECT);
         return NL_INVALID;
     }
     return len;
 }
 
-static NLint loopback_WritePacket(NLsocket to, NLvoid *buffer, NLint nbytes, NLushort fromport)
+static NLint loopback_WritePacket(NLsocket to, const NLvoid *buffer, NLint nbytes, NLushort fromport)
 {
     nl_socket_t *sock = nlSockets[to];
     NLint       i, j;
@@ -401,21 +498,24 @@ static NLint loopback_WritePacket(NLsocket to, NLvoid *buffer, NLint nbytes, NLu
         nlSetError(NL_PACKET_SIZE);
         return NL_INVALID;
     }
-    nlLockSocket(to, NL_READ);
+    if(nlLockSocket(to, NL_READ) == NL_FALSE)
+    {
+        return NL_INVALID;
+    }
     /* make sure we have an empty packet buffer */
-    if(sock->nextinfree == NL_INVALID)
+    if(sock->ext->nextinfree == NL_INVALID)
     {
         /* all buffers were filled by last write */
         /* check to see if any were emptied by a read */
         i = NL_NUM_PACKETS;
-        j = sock->nextinused;
+        j = sock->ext->nextinused;
 
         while(i-- > 0)
         {
-            if(sock->inlen[j] == 0)
+            if(sock->ext->inlen[j] == 0)
             {
                 /* found the first free */
-                sock->nextinfree = j;
+                sock->ext->nextinfree = j;
                 break;
             }
             j++;
@@ -424,7 +524,7 @@ static NLint loopback_WritePacket(NLsocket to, NLvoid *buffer, NLint nbytes, NLu
                 j = 0;
             }
         }
-        if(sock->nextinfree == NL_INVALID)
+        if(sock->ext->nextinfree == NL_INVALID)
         {
             nlUnlockSocket(to, NL_READ);
             /* none are free */
@@ -440,29 +540,29 @@ static NLint loopback_WritePacket(NLsocket to, NLvoid *buffer, NLint nbytes, NLu
         }
     }
     /* write the port number */
-    writeShort(sock->inpacket[sock->nextinfree], c, fromport);
+    writeShort(sock->ext->inpacket[sock->ext->nextinfree], c, fromport);
     /* copy the packet buffer */
-    memcpy(sock->inpacket[sock->nextinfree] + 2, buffer, (size_t)nbytes);
-    sock->inlen[sock->nextinfree] = nbytes;
-    sock->nextinfree++;
-    if(sock->nextinfree >= NL_NUM_PACKETS)
+    memcpy(sock->ext->inpacket[sock->ext->nextinfree] + 2, buffer, (size_t)nbytes);
+    sock->ext->inlen[sock->ext->nextinfree] = nbytes;
+    sock->ext->nextinfree++;
+    if(sock->ext->nextinfree >= NL_NUM_PACKETS)
     {
-        sock->nextinfree = 0;
+        sock->ext->nextinfree = 0;
     }
     /* check for full packet buffers */
-    if(sock->inlen[sock->nextinfree] != 0)
+    if(sock->ext->inlen[sock->ext->nextinfree] != 0)
     {
-        sock->nextinfree = NL_INVALID;
+        sock->ext->nextinfree = NL_INVALID;
     }
     nlUnlockSocket(to, NL_READ);
     return nbytes;
 }
 
-NLint loopback_Write(NLsocket socket, NLvoid *buffer, NLint nbytes)
+NLint loopback_Write(NLsocket socket, const NLvoid *buffer, NLint nbytes)
 {
     nl_socket_t *sock = nlSockets[socket];
     nl_socket_t *othersock;
-    NLint       s[NL_MAX_GROUP_SOCKETS];
+    NLsocket    s[NL_MAX_GROUP_SOCKETS];
     NLint       number = NL_MAX_GROUP_SOCKETS;
     NLint       i;
     NLint       count;
@@ -470,27 +570,51 @@ NLint loopback_Write(NLsocket socket, NLvoid *buffer, NLint nbytes)
     switch (sock->type) {
 
     case NL_RELIABLE:
-    case NL_UNRELIABLE:
     case NL_RELIABLE_PACKETS:
     default:
         {
             if(sock->connected == NL_TRUE)
             {
                 /* check for broken connection */
-                if(sock->consock == NL_INVALID)
+                if(sock->ext->consock == NL_INVALID)
                 {
-                    nlSetError(NL_CON_TERM);
+                    nlSetError(NL_SOCK_DISCONNECT);
                     return NL_INVALID;
                 }
-                count = loopback_WritePacket(sock->consock, buffer, nbytes, sock->localport);
+                count = loopback_WritePacket(sock->ext->consock, buffer, nbytes, sock->localport);
             }
             else if(sock->connecting == NL_TRUE)
             {
                 nlSetError(NL_CON_PENDING);
                 return NL_INVALID;
             }
+            else
+            {
+                nlSetError(NL_SOCK_DISCONNECT);
+                return NL_INVALID;
+            }
+        }
+        break;
+    case NL_UNRELIABLE:
+        {
+            if(sock->connected == NL_TRUE)
+            {
+                /* check for broken connection */
+                if(sock->ext->consock == NL_INVALID)
+                {
+                    nlSetError(NL_SOCK_DISCONNECT);
+                    return NL_INVALID;
+                }
+                count = loopback_WritePacket(sock->ext->consock, buffer, nbytes, sock->localport);
+            }
+            else if(sock->connecting == NL_TRUE)
+            {
+                nlSetError(NL_CON_PENDING);
+                return NL_INVALID;
+            }
+            /* unconnected UDP emulation */
             count = nbytes;
-            nlGroupGetSockets(loopgroup, s, &number);
+            (void)nlGroupGetSockets(loopgroup, (NLsocket *)s, &number);
             for(i=0;i<number;i++)
             {
                 if(nlIsValidSocket(s[i]) == NL_TRUE)
@@ -510,7 +634,7 @@ NLint loopback_Write(NLsocket socket, NLvoid *buffer, NLint nbytes)
     case NL_BROADCAST:
         {
             count = nbytes;
-            nlGroupGetSockets(loopgroup, s, &number);
+            (void)nlGroupGetSockets(loopgroup, (NLsocket *)s, &number);
             for(i=0;i<number;i++)
             {
                 if(nlIsValidSocket(s[i]) == NL_TRUE)
@@ -530,87 +654,104 @@ NLint loopback_Write(NLsocket socket, NLvoid *buffer, NLint nbytes)
     return count;
 }
 
-NLbyte *loopback_AddrToString(NLaddress *address, NLbyte *string)
+NLchar *loopback_AddrToString(const NLaddress *address, NLchar *string)
 {
-    sprintf(string, "127.0.0.1:%u", loopback_GetPortFromAddr(address));
+    _stprintf(string, TEXT("127.0.0.1:%u"), loopback_GetPortFromAddr(address));
 
     return string;
 }
 
-void loopback_StringToAddr(NLbyte *string, NLaddress *address)
+NLboolean loopback_StringToAddr(const NLchar *string, NLaddress *address)
 {
-    NLbyte      *st;
+    NLchar      *st;
     NLint       port;
 
     memset(address, 0, sizeof(NLaddress));
     address->valid = NL_TRUE;
     /* check for a port number */
-    st = strchr(string, ':');
+    st = _tcschr(string, TEXT(':'));
     if(st != NULL)
     {
         st++;
-        port = atoi(st);
-        if(port < 0)
+        port = _ttoi(st);
+        if(port < 0 || port > 65535)
         {
-            port = 0;
-        }
-        else if(port > 65535)
-        {
-            port = 0;
+            nlSetError(NL_BAD_ADDR);
+            address->valid = NL_FALSE;
+            return NL_FALSE;
         }
         loopback_SetAddrPort(address, (NLushort)port);
     }
+    return NL_TRUE;
 }
 
-void loopback_GetLocalAddr(NLsocket socket, NLaddress *address)
+NLboolean loopback_GetLocalAddr(NLsocket socket, NLaddress *address)
 {
+    nl_socket_t *sock = nlSockets[socket];
+
     memset(address, 0, sizeof(NLaddress));
+    loopback_SetAddrPort(address, sock->localport);
     address->valid = NL_TRUE;
+    return NL_TRUE;
 }
 
-void loopback_SetLocalAddr(NLaddress *address)
+NLaddress *loopback_GetAllLocalAddr(NLint *count)
 {
+    *count = 1;
+    memset(&loopback_ouraddress, 0, sizeof(NLaddress));
+    loopback_ouraddress.valid = NL_TRUE;
+    return &loopback_ouraddress;
 }
 
-NLbyte *loopback_GetNameFromAddr(NLaddress *address, NLbyte *name)
+NLboolean loopback_SetLocalAddr(const NLaddress *address)
 {
-    sprintf(name, "%s:%u", localname, loopback_GetPortFromAddr(address));
+    /* this is just to keep compilers happy */
+    if(address == NULL)
+    {
+        return NL_FALSE;
+    }
+    return NL_TRUE;
+}
+
+NLchar *loopback_GetNameFromAddr(const NLaddress *address, NLchar *name)
+{
+    _stprintf(name, TEXT("%s:%u"), TEXT("localhost"), loopback_GetPortFromAddr(address));
     return name;
 }
 
-void loopback_GetNameFromAddrAsync(NLaddress *address, NLbyte *name)
+NLboolean loopback_GetNameFromAddrAsync(const NLaddress *address, NLchar *name)
 {
     (void)loopback_GetNameFromAddr(address, name);
+    return NL_TRUE;
 }
 
-void loopback_GetAddrFromName(NLbyte *name, NLaddress *address)
+NLboolean loopback_GetAddrFromName(const NLchar *name, NLaddress *address)
 {
-    loopback_StringToAddr(name, address);
-    address->valid = NL_TRUE;
+    return loopback_StringToAddr(name, address);
 }
 
-void loopback_GetAddrFromNameAsync(NLbyte *name, NLaddress *address)
+NLboolean loopback_GetAddrFromNameAsync(const NLchar *name, NLaddress *address)
 {
-    loopback_GetAddrFromName(name, address);
+    return loopback_GetAddrFromName(name, address);
 }
 
-NLboolean loopback_AddrCompare(NLaddress *address1, NLaddress *address2)
+NLboolean loopback_AddrCompare(const NLaddress *address1, const NLaddress *address2)
 {
-    if(*(NLushort *)(&address1->sa_data[0]) == *(NLushort *)(&address2->sa_data[0]))
+    if(*(NLushort *)(&address1->addr[0]) == *(NLushort *)(&address2->addr[0]))
     {
         return NL_TRUE;
     }
     return NL_FALSE;
 }
 
-NLushort loopback_GetPortFromAddr(NLaddress *address)
+NLushort loopback_GetPortFromAddr(const NLaddress *address)
 {
-    return *(NLushort *)(&address->sa_data[0]);
+    return *(NLushort *)(&address->addr[0]);
 }
 
 void loopback_SetAddrPort(NLaddress *address, NLushort port)
 {
-    *(NLushort *)(&address->sa_data[0]) = port;
+    *(NLushort *)(&address->addr[0]) = port;
 }
 
 NLint loopback_GetSystemError(void)
@@ -623,38 +764,99 @@ NLint loopback_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint numb
     NLint           count = 0;
     NLint           numsockets = NL_MAX_GROUP_SOCKETS;
     NLsocket        temp[NL_MAX_GROUP_SOCKETS];
+    NLtime          end, now;
 
-    nlGroupGetSockets(group, (NLint *)&temp, &numsockets);
-    if(numsockets < 0)
+    nlGroupLock();
+    if(nlGroupGetSocketsINT(group, (NLsocket *)&temp, &numsockets) == NL_FALSE)
     {
         /* any error is set by nlGroupGetSockets */
+        nlGroupUnlock();
         return NL_INVALID;
     }
+    nlGroupUnlock();
     if(numsockets == 0)
     {
         return 0;
     }
 
-    switch(name) {
-
-    case NL_READ_STATUS:
+    (void)nlTime(&now);
+    end.seconds = now.seconds;
+    end.mseconds = now.mseconds;
+    if(timeout > 0)
+    {
+        end.mseconds += timeout;
+        while(end.mseconds > 999)
         {
-            NLint   i = 0;
+            end.mseconds -= 1000;
+            end.seconds++;
+        }
+    }
 
-            while(numsockets-- > 0)
+    while(count == 0)
+    {
+        switch(name) {
+
+        case NL_READ_STATUS:
             {
-                /* check for a packet */
-                nl_socket_t *sock;
+                NLint   i = 0;
+                NLint   j = numsockets;
 
-                if(nlIsValidSocket(temp[i]) != NL_TRUE)
+                while(j-- > 0)
                 {
-                    nlSetError(NL_INVALID_SOCKET);
-                    return NL_INVALID;
+                    /* check for a packet */
+                    nl_socket_t *sock;
+
+                    if(nlIsValidSocket(temp[i]) != NL_TRUE)
+                    {
+                        nlSetError(NL_INVALID_SOCKET);
+                        return NL_INVALID;
+                    }
+                    sock = nlSockets[temp[i]];
+
+                    if(sock->ext->inlen[sock->ext->nextinused] != 0)
+                    {
+                        *sockets = temp[i];
+                        sockets++;
+                        count++;
+                        if(count > number)
+                        {
+                            nlSetError(NL_BUFFER_SIZE);
+                            return NL_INVALID;
+                        }
+                    }
+                    i++;
                 }
-                sock = nlSockets[temp[i]];
+            }
+            break;
 
-                if(sock->inlen[sock->nextinused] > 0)
+        case NL_WRITE_STATUS:
+            {
+                NLint   i = 0;
+                NLint   j = numsockets;
+
+                while(j-- > 0)
                 {
+                    nl_socket_t *sock;
+
+                    if(nlIsValidSocket(temp[i]) != NL_TRUE)
+                    {
+                        nlSetError(NL_INVALID_SOCKET);
+                        return NL_INVALID;
+                    }
+                    sock = nlSockets[temp[i]];
+
+                    /* check for a free packet if reliable and connected */
+                    if((sock->type == NL_TCP || sock->type == NL_TCP_PACKETS)
+                        && (sock->connecting == NL_TRUE || sock->connected == NL_TRUE))
+                    {
+                        nl_socket_t *othersock = nlSockets[sock->ext->consock];
+
+                        if(othersock->ext->nextinfree == NL_INVALID)
+                        {
+                            continue;
+                        }
+                    }
+                    /* add the socket to the list */
                     *sockets = temp[i];
                     sockets++;
                     count++;
@@ -663,60 +865,64 @@ NLint loopback_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint numb
                         nlSetError(NL_BUFFER_SIZE);
                         return NL_INVALID;
                     }
+                    i++;
                 }
-                i++;
             }
-        }
-        break;
+            break;
 
-    case NL_WRITE_STATUS:
-        {
-            NLint   i = 0;
-
-            while(numsockets-- > 0)
+        case NL_ERROR_STATUS:
             {
-                nl_socket_t *sock;
+                NLint   i = 0;
+                NLint   j = numsockets;
 
-                if(nlIsValidSocket(temp[i]) != NL_TRUE)
+                while(j-- > 0)
                 {
-                    nlSetError(NL_INVALID_SOCKET);
-                    return NL_INVALID;
-                }
-                sock = nlSockets[temp[i]];
+                    nl_socket_t *sock;
 
-                /* check for a free packet if reliable and connected */
-                if((sock->type == NL_RELIABLE || sock->type == NL_RELIABLE_PACKETS)
-                    && (sock->connecting == NL_TRUE || sock->connected == NL_TRUE))
-                {
-                    nl_socket_t *othersock = nlSockets[sock->consock];
-
-                    if(othersock->nextinfree == NL_INVALID)
+                    if(nlIsValidSocket(temp[i]) != NL_TRUE)
                     {
-                        continue;
+                        nlSetError(NL_INVALID_SOCKET);
+                        return NL_INVALID;
+                    }
+                    sock = nlSockets[temp[i]];
+
+                    if(sock->connected == NL_FALSE && sock->type != NL_UDP_BROADCAST)
+                    {
+                        /* add the socket to the list */
+                        *sockets = temp[i];
+                        sockets++;
+                        count++;
+                        if(count > number)
+                        {
+                            nlSetError(NL_BUFFER_SIZE);
+                            return NL_INVALID;
+                        }
+                        i++;
                     }
                 }
-                /* add the socket to the list */
-                *sockets = temp[i];
-                sockets++;
-                count++;
-                if(count > number)
-                {
-                    nlSetError(NL_BUFFER_SIZE);
-                    return NL_INVALID;
-                }
-                i++;
             }
-        }
-        break;
+            break;
 
-    default:
-        nlSetError(NL_INVALID_ENUM);
-        return NL_INVALID;
+        default:
+            nlSetError(NL_INVALID_ENUM);
+            return NL_INVALID;
+        }
+        if(timeout != 0)
+        {
+            nlThreadSleep(1);
+            (void)nlTime(&now);
+            if(timeout > 0 && (now.seconds > end.seconds || (now.seconds == end.seconds && now.mseconds > end.mseconds)))
+                break;
+        }
+        else
+        {
+            break;
+        }
     }
     return count;
 }
 
-void loopback_Hint(NLenum name, NLint arg)
+NLboolean loopback_Hint(NLenum name, NLint arg)
 {
     switch (name) {
 
@@ -726,9 +932,10 @@ void loopback_Hint(NLenum name, NLint arg)
 
     default:
         nlSetError(NL_INVALID_ENUM);
-        break;
+        return NL_FALSE;
     }
+    return NL_TRUE;
 }
 
-
+#endif /* NL_INCLUDE_LOOPBACK */
 

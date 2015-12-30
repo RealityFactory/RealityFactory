@@ -20,12 +20,6 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
-/*
-  The low level API, and some of the code, was inspired from the
-  Quake source code release, courtesy of id Software. However,
-  it has been heavily modified for use in HawkNL.
-*/
-
 #ifndef NL_H
 #define NL_H
 
@@ -35,18 +29,19 @@
 extern "C" {
 #endif
 
-
 #define NL_MAJOR_VERSION 1
-#define NL_MINOR_VERSION 5
-#define NL_VERSION_STRING "HawkNL 1.5 beta 1"
-
+#define NL_MINOR_VERSION 68
+#define NL_VERSION_STRING "HawkNL 1.68"
 
 /* define NL_SAFE_COPY for Sparc and other processors that do not allow non-aligned
-   memory access. Needed for nlRead and nlWrite macros */
+   memory access. Needed for read* and write* macros */
 /*#define NL_SAFE_COPY */
 
 /* undefine this to remove IPX code, Windows only  */
 #define NL_INCLUDE_IPX
+
+/* undefine this to remove loopback code */
+#define NL_INCLUDE_LOOPBACK
 
 /* undefine this to remove serial code */
 #define NL_INCLUDE_SERIAL
@@ -57,12 +52,21 @@ extern "C" {
 /* undefine this to remove parallel code */
 #define NL_INCLUDE_PARALLEL
 
-/* undefine this to remove mutex locks and per-thread error codes */
-#define NL_THREAD_SAFE
+#if defined (WIN32) || defined (WIN64) || defined (_WIN32_WCE)
+#define WINDOWS_APP
+#endif
 
-#if defined WIN32 || defined WIN64
+/* use native Windows threads and remove IPX support for WinCE */
+/* also, many CE devices will not allow non-aligned memory access */
+#if defined (_WIN32_WCE)
+#define NL_WIN_THREADS
+#define NL_SAFE_COPY
+#undef NL_INCLUDE_IPX
+#endif
+
+#ifdef WINDOWS_APP
   /* define NL_WIN_THREADS to use native Windows threads instead of pthreads */
-#define NL_WIN_THREADS 
+  #define NL_WIN_THREADS
   #ifdef _MSC_VER
     #pragma warning (disable:4514) /* disable "unreferenced inline function has
                                     been removed" warning */
@@ -72,7 +76,7 @@ extern "C" {
   #ifdef WIN_STATIC_LIB
     #define NL_EXP
   #else
-    #if defined __LCC__
+    #if defined (__LCC__)
      #define NL_EXP extern
     #else
      #define NL_EXP __declspec(dllexport)
@@ -85,7 +89,7 @@ extern "C" {
   #else
     #define NL_INLINE __inline
   #endif /* __GNUC__ */
-#else
+#else /* !WINDOWS_APP */
   #define NL_EXP extern
   #define NL_APIENTRY
   #define NL_CALLBACK
@@ -94,7 +98,7 @@ extern "C" {
   #else
     #define NL_INLINE inline /* assuming C99 compliant compiler */
   #endif /* __GNUC__ */
-#endif /* WIN32 || WIN64 */
+#endif /* !WINDOWS_APP */
 
 /* Any more needed here? */
 #if defined WIN32 || defined WIN64 || defined __i386__ || defined __alpha__ || defined __mips__
@@ -116,6 +120,7 @@ typedef unsigned char NLboolean;
 typedef short NLshort;
 typedef unsigned short NLushort;
 /* 32 bit */
+typedef float NLfloat;
 #ifdef IS_64_BIT
 typedef int NLlong;             /* Longs are 64 bit on a 64 bit CPU, but integers are still 32 bit. */
 typedef unsigned int NLulong;   /* This is, of course, not true on Windows (yet another exception), */
@@ -124,34 +129,45 @@ typedef unsigned int NLulong;   /* This is, of course, not true on Windows (yet 
 typedef long NLlong;
 typedef unsigned long NLulong;
 #endif
-
-typedef float NLfloat;
 /* 64 bit */
 typedef double NLdouble;
+/* multithread */
+typedef void *(*NLThreadFunc)(void *data);
+typedef void *NLthreadID;
+typedef struct nl_mutex_t *NLmutex;
+typedef struct nl_cond_t *NLcond;
 /* misc. */
 typedef int NLint;
 typedef unsigned int NLuint;
 typedef unsigned int NLenum;
 typedef void NLvoid;
-typedef int NLsocket;
-
-#if defined(__sgi)
-  #undef sa_family
-  #undef sa_data
+typedef NLlong NLsocket;
+/* NOTE: NLchar is only to be used for external strings
+   that might be unicode */
+#if defined _UNICODE
+typedef wchar_t NLchar;
+#else
+typedef char NLchar;
 #endif
 
-typedef struct _NLaddress NLaddress;
-
-struct _NLaddress
+typedef struct _NLaddress
 {
-     NLshort     sa_family;      /* same as struct sockaddr */
-     NLubyte     sa_data[14];    /* same as struct sockaddr */
-     NLboolean   valid;          /* set to true by nlGetAddrFromNameAsync */
-};
+     NLubyte    addr[32];       /* large enough to hold IPv6 address */
+     NLenum     driver;         /* driver type, not used yet */
+     NLboolean  valid;          /* set to NL_TRUE when address is valid */
+} NLaddress;
+
 /* for backwards compatability */
 #if !defined(address_t)
    typedef struct _NLaddress address_t;
 #endif
+
+typedef struct _NLtime
+{
+	NLlong seconds;     /* seconds since 12:00AM, 1 January, 1970 */
+	NLlong mseconds;    /* milliseconds added to the seconds */
+    NLlong useconds;    /* microseconds added to the seconds */
+} NLtime;
 
 /* max string size limited to 256 (255 plus NULL termination) for MacOS */
 #define NL_MAX_STRING_LENGTH   256
@@ -159,42 +175,47 @@ struct _NLaddress
 /* max packet size for NL_UNRELIABLE and NL_RELIABLE_PACKETS */
 #define NL_MAX_PACKET_LENGTH   16384
 
-#if defined (macintosh)
-  /* WARNING: Macs only allow up to 32K of local data, don't exceed 4096 */
-  #define NL_MAX_INT_SOCKETS      4096
-
-#else
-  /* max number of sockets NL will handle */
-  #define NL_MAX_INT_SOCKETS      8192    /* Should be high enough for most games */
-
-#endif
-
-
 /* max number groups and sockets per group */
 #define NL_MAX_GROUPS           128
-#define NL_MAX_GROUP_SOCKETS    NL_MAX_INT_SOCKETS
+#if defined (macintosh)
+  /* WARNING: Macs only allow up to 32K of local data, don't exceed 4096 */
+  /* Does NOT apply to Mac OSX */
+  #define NL_MAX_GROUP_SOCKETS      4096
+#else
+  /* max number of sockets per group NL will handle */
+  #define NL_MAX_GROUP_SOCKETS      8192
+#endif
+
+#define NL_INVALID              (-1)
 
 /* Boolean values */
-#define NL_INVALID              (-1)
-#define NL_FALSE                (NLboolean)(0)
-#define NL_TRUE                 (NLboolean)(1)
+#define NL_FALSE                ((NLboolean)(0))
+#define NL_TRUE                 ((NLboolean)(1))
 
 /* Network types */
 /* Only one can be selected at a time */
 #define NL_IP                   0x0003  /* all platforms */
-#define NL_LOOP_BACK            0x0004  /* all platforms, for single player client/server emulation with no network */
-#define NL_IPX                  0x0005  /* Windows */
-#define NL_SERIAL               0x0006  /* Windows and Linux only? */
-#define NL_MODEM                0x0007  /* Windows and Linux only? */
-#define NL_PARALLEL             0x0008  /* Windows and Linux only? */
+#define NL_IPV6                 0x0004  /* not yet implemented, IPv6 address family */
+#define NL_LOOP_BACK            0x0005  /* all platforms, for single player client/server emulation with no network */
+#define NL_IPX                  0x0006  /* Windows only */
+#define NL_SERIAL               0x0007  /* not yet implemented, Windows and Linux only? */
+#define NL_MODEM                0x0008  /* not yet implemented, Windows and Linux only? */
+#define NL_PARALLEL             0x0009  /* not yet implemented, Windows and Linux only? */
 
 /* Connection types */
 #define NL_RELIABLE             0x0010  /* NL_IP (TCP), NL_IPX (SPX), NL_LOOP_BACK */
 #define NL_UNRELIABLE           0x0011  /* NL_IP (UDP), NL_IPX, NL_LOOP_BACK */
 #define NL_RELIABLE_PACKETS     0x0012  /* NL_IP (TCP), NL_IPX (SPX), NL_LOOP_BACK */
 #define NL_BROADCAST            0x0013  /* NL_IP (UDP), NL_IPX, or NL_LOOP_BACK broadcast packets */
-#define NL_MULTICAST            0x0014  /* NL_IP (UDP) multicast */
+#define NL_UDP_MULTICAST        0x0014  /* NL_IP (UDP) multicast */
 #define NL_RAW                  0x0015  /* NL_SERIAL or NL_PARALLEL */
+/* TCP/IP specific aliases for connection types */
+#define NL_TCP                  NL_RELIABLE
+#define NL_TCP_PACKETS          NL_RELIABLE_PACKETS
+#define NL_UDP                  NL_UNRELIABLE
+#define NL_UDP_BROADCAST        NL_BROADCAST
+/* for backwards compatability */
+#define NL_MULTICAST            NL_UDP_MULTICAST
 
 /* nlGetString */
 #define NL_VERSION              0x0020  /* the version string */
@@ -212,26 +233,25 @@ struct _NLaddress
 #define NL_AVE_BYTES_RECEIVED   0x0036  /* average bytes received per second for the last 8 seconds */
 #define NL_HIGH_BYTES_RECEIVED  0x0037  /* highest bytes per second ever received */
 #define NL_ALL_STATS            0x0038  /* nlClear only, clears out all counters */
-#define NL_MAX_SOCKETS          0x0039  /* max sockets that can be opened by HawkNL, actual allowed by the system may be less */
-#define NL_OPEN_SOCKETS         0x003a  /* number of open sockets */
+#define NL_OPEN_SOCKETS         0x0039  /* number of open sockets */
 
 /* nlEnable, nlDisable */
 #define NL_BLOCKING_IO          0x0040  /* set IO to blocking, default is NL_FALSE for non-blocking IO */
 #define NL_SOCKET_STATS         0x0041  /* enable collection of socket read/write statistics, default disabled */
 #define NL_BIG_ENDIAN_DATA      0x0042  /* enable big endian data for nlSwap* and read/write macros, default enabled */
 #define NL_LITTLE_ENDIAN_DATA   0x0043  /* enable little endian data for nlSwap* and read/write macros, default disabled */
+#define NL_MULTIPLE_DRIVERS     0x0044  /* enable multiple drivers to be selected */
 
 /* nlPollGroup */
 #define NL_READ_STATUS          0x0050  /* poll the read status for all sockets in the group */
 #define NL_WRITE_STATUS         0x0051  /* poll the write status for all sockets in the group */
+#define NL_ERROR_STATUS         0x0052  /* poll the error status for all sockets in the group */
 
 /* nlHint, advanced network settings for experienced developers */
 #define NL_LISTEN_BACKLOG       0x0060  /* TCP, SPX: the backlog of connections for listen */
-#define NL_KEEPALIVE            0x0061  /* TCP : enable the use of "keep-alive" packets. Default : NL_FALSE */
-#define NL_MULTICAST_TTL        0x0062  /* UDP : The multicast TTL value. Default : 1 */
-#define NL_REUSE_ADDRESS        0x0063  /* TCP, UDP : Allow IP address to be reused. Default : NL_FALSE */
-#define NL_TCP_NO_DELAY         0x0064  /* TCP : disable Nagle algorithm */
-
+#define NL_MULTICAST_TTL        0x0061  /* UDP : The multicast TTL value. Default : 1 */
+#define NL_REUSE_ADDRESS        0x0062  /* TCP, UDP : Allow IP address to be reused. Default : NL_FALSE */
+#define NL_TCP_NO_DELAY         0x0063  /* TCP : disable Nagle algorithm, arg != 0 to disable, 0 to enable */
 
 /* errors */
 #define NL_NO_ERROR             0x0000  /* no error is stored */
@@ -241,28 +261,32 @@ struct _NLaddress
 #define NL_INVALID_SOCKET       0x0103  /* socket is not valid, or has been terminated */
 #define NL_INVALID_PORT         0x0104  /* the port could not be opened */
 #define NL_INVALID_TYPE         0x0105  /* the network type is not available */
-#define NL_SOCKET_ERROR         0x0106  /* a system error occurred, call nlGetSystemError */
+#define NL_SYSTEM_ERROR         0x0106  /* a system error occurred, call nlGetSystemError */
 #define NL_SOCK_DISCONNECT      0x0107  /* the socket should be closed because of a connection loss or error */
 #define NL_NOT_LISTEN           0x0108  /* the socket has not been set to listen */
-#define NL_NO_BROADCAST         0x0109  /* could not broadcast, or tried to broadcast on a TCP stream */
-#define NL_CON_REFUSED          0x010a  /* connection refused, or socket already connected */
-#define NL_NO_MULTICAST         0x010b  /* could not set multicast, or tried to set multicast on a TCP stream */
-#define NL_NO_PENDING           0x010c  /* there are no pending connections to accept */
-#define NL_BAD_ADDR             0x010d  /* the address or port are not valid */
-#define NL_OUT_OF_SOCKETS       0x010e  /* out of internal socket objects */
-#define NL_MESSAGE_END          0x010f  /* the end of a reliable stream (TCP) message has been reached */
-#define NL_NULL_POINTER         0x0110  /* a NULL pointer was passed to a function */
-#define NL_INVALID_GROUP        0x0111  /* the group is not valid, or has been destroyed */
-#define NL_OUT_OF_GROUPS        0x0112  /* out of internal group objects */
-#define NL_OUT_OF_GROUP_SOCKETS 0x0113  /* the group has no more room for sockets */
-#define NL_BUFFER_SIZE          0x0114  /* the buffer was too small to store the data, retry with a larger buffer */
-#define NL_PACKET_SIZE          0x0115  /* the size of the packet exceeds NL_MAX_PACKET_LENGTH or the protocol max */
-#define NL_WRONG_TYPE           0x0116  /* the function does not support the socket type */
-#define NL_CON_PENDING          0x0117  /* a non-blocking connection is still pending */
-#define NL_SELECT_NET_ERROR     0x0118  /* a network is already selected, call nlShutDown and nlInit first */
-#define NL_CON_TERM             0x0119  /* the connection has been terminated */
-#define NL_PACKET_SYNC          0x011a  /* the NL_RELIABLE_PACKET stream is out of sync */
-#define NL_TLS_ERROR            0x011b  /* thread local storage could not be created */
+#define NL_CON_REFUSED          0x0109  /* connection refused, or socket already connected */
+#define NL_NO_PENDING           0x010a  /* there are no pending connections to accept */
+#define NL_BAD_ADDR             0x010b  /* the address or port are not valid */
+#define NL_MESSAGE_END          0x010c  /* the end of a reliable stream (TCP) message has been reached */
+#define NL_NULL_POINTER         0x010d  /* a NULL pointer was passed to a function */
+#define NL_INVALID_GROUP        0x010e  /* the group is not valid, or has been destroyed */
+#define NL_OUT_OF_GROUPS        0x010f  /* out of internal group objects */
+#define NL_OUT_OF_GROUP_SOCKETS 0x0110  /* the group has no more room for sockets */
+#define NL_BUFFER_SIZE          0x0111  /* the buffer was too small to store the data, retry with a larger buffer */
+#define NL_PACKET_SIZE          0x0112  /* the size of the packet exceeds NL_MAX_PACKET_LENGTH or the protocol max */
+#define NL_WRONG_TYPE           0x0113  /* the function does not support the socket type */
+#define NL_CON_PENDING          0x0114  /* a non-blocking connection is still pending */
+#define NL_SELECT_NET_ERROR     0x0115  /* a network is already selected, and NL_MULTIPLE_DRIVERS is not enabled, call nlShutDown and nlInit first */
+#define NL_PACKET_SYNC          0x0116  /* the NL_RELIABLE_PACKET stream is out of sync */
+#define NL_TLS_ERROR            0x0117  /* thread local storage could not be created */
+#define NL_TIMED_OUT            0x0118  /* the function timed out */
+#define NL_SOCKET_NOT_FOUND     0x0119  /* the socket was not found in the group */
+#define NL_STRING_OVER_RUN      0x011a  /* the string is not null terminated, or is longer than NL_MAX_STRING_LENGTH */
+#define NL_MUTEX_RECURSION      0x011b  /* the mutex was recursivly locked */
+#define NL_MUTEX_OWNER          0x011c  /* the mutex is not owned by thread */
+/* for backwards compatability */
+#define NL_SOCKET_ERROR         NL_SYSTEM_ERROR
+#define NL_CON_TERM             NL_SOCK_DISCONNECT
 
 /* standard multicast TTL settings as recommended by the */
 /* white paper at http://www.ipmulticast.com/community/whitepapers/howipmcworks.html */
@@ -283,56 +307,58 @@ NL_EXP NLsocket  NL_APIENTRY nlAcceptConnection(NLsocket socket);
 
 NL_EXP NLsocket  NL_APIENTRY nlOpen(NLushort port, NLenum type);
 
-NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, const NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlClose(NLsocket socket);
+NL_EXP NLboolean NL_APIENTRY nlClose(NLsocket socket);
 
 NL_EXP NLint     NL_APIENTRY nlRead(NLsocket socket, /*@out@*/ NLvoid *buffer, NLint nbytes);
 
-NL_EXP NLint     NL_APIENTRY nlWrite(NLsocket socket, NLvoid *buffer, NLint nbytes);
+NL_EXP NLint     NL_APIENTRY nlWrite(NLsocket socket, const NLvoid *buffer, NLint nbytes);
 
 NL_EXP NLlong    NL_APIENTRY nlGetSocketStat(NLsocket socket, NLenum name);
 
-NL_EXP void      NL_APIENTRY nlClearSocketStat(NLsocket socket, NLenum name);
+NL_EXP NLboolean NL_APIENTRY nlClearSocketStat(NLsocket socket, NLenum name);
 
 NL_EXP NLint     NL_APIENTRY nlPollGroup(NLint group, NLenum name, /*@out@*/ NLsocket *sockets, NLint number, NLint timeout);
 
-NL_EXP void      NL_APIENTRY nlHint(NLenum name, NLint arg);
+NL_EXP NLboolean NL_APIENTRY nlHint(NLenum name, NLint arg);
 
-/* 
+/*
 
   Address management API
 
 */
 
-NL_EXP /*@null@*/ NLbyte*   NL_APIENTRY nlAddrToString(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *string);
+NL_EXP /*@null@*/ NLchar*   NL_APIENTRY nlAddrToString(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *string);
 
-NL_EXP void      NL_APIENTRY nlStringToAddr(NLbyte *string, /*@out@*/ NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlStringToAddr(const NLchar *string, /*@out@*/ NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlGetRemoteAddr(NLsocket socket, /*@out@*/ NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlGetRemoteAddr(NLsocket socket, /*@out@*/ NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlSetRemoteAddr(NLsocket socket, NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlSetRemoteAddr(NLsocket socket, const NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlGetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlGetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlSetLocalAddr(NLaddress *address);
+NL_EXP NLaddress* NL_APIENTRY nlGetAllLocalAddr(/*@out@*/ NLint *count);
 
-NL_EXP /*@null@*/ NLbyte* NL_APIENTRY nlGetNameFromAddr(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *name);
+NL_EXP NLboolean NL_APIENTRY nlSetLocalAddr(const NLaddress *address);
 
-NL_EXP void      NL_APIENTRY nlGetNameFromAddrAsync(NLaddress *address, /*@out@*/ NLbyte *name);
+NL_EXP /*@null@*/ NLchar* NL_APIENTRY nlGetNameFromAddr(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *name);
 
-NL_EXP void      NL_APIENTRY nlGetAddrFromName(NLbyte *name, /*@out@*/ NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlGetNameFromAddrAsync(const NLaddress *address, /*@out@*/ NLchar *name);
 
-NL_EXP void      NL_APIENTRY nlGetAddrFromNameAsync(NLbyte *name, /*@out@*/ NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlGetAddrFromName(const NLchar *name, /*@out@*/ NLaddress *address);
 
-NL_EXP NLboolean NL_APIENTRY nlAddrCompare(NLaddress *address1, NLaddress *address2);
+NL_EXP NLboolean NL_APIENTRY nlGetAddrFromNameAsync(const NLchar *name, /*@out@*/ NLaddress *address);
 
-NL_EXP NLushort  NL_APIENTRY nlGetPortFromAddr(NLaddress *address);
+NL_EXP NLboolean NL_APIENTRY nlAddrCompare(const NLaddress *address1, const NLaddress *address2);
 
-NL_EXP void      NL_APIENTRY nlSetAddrPort(NLaddress *address, NLushort port);
+NL_EXP NLushort  NL_APIENTRY nlGetPortFromAddr(const NLaddress *address);
+
+NL_EXP NLboolean NL_APIENTRY nlSetAddrPort(NLaddress *address, NLushort port);
 
 
-/* 
+/*
 
   Group management API
 
@@ -340,13 +366,51 @@ NL_EXP void      NL_APIENTRY nlSetAddrPort(NLaddress *address, NLushort port);
 
 NL_EXP NLint     NL_APIENTRY nlGroupCreate(void);
 
-NL_EXP void      NL_APIENTRY nlGroupDestroy(NLint group);
+NL_EXP NLboolean NL_APIENTRY nlGroupDestroy(NLint group);
 
 NL_EXP NLboolean NL_APIENTRY nlGroupAddSocket(NLint group, NLsocket socket);
 
-NL_EXP void      NL_APIENTRY nlGroupGetSockets(NLint group, /*@out@*/ NLsocket *sockets, /*@out@*/ NLint *number);
+NL_EXP NLboolean NL_APIENTRY nlGroupGetSockets(NLint group, /*@out@*/ NLsocket *sockets, /*@in@*/ NLint *number);
 
-NL_EXP void      NL_APIENTRY nlGroupDeleteSocket(NLint group, NLsocket socket);
+NL_EXP NLboolean NL_APIENTRY nlGroupDeleteSocket(NLint group, NLsocket socket);
+
+/*
+
+  Multithreading API
+
+*/
+
+NL_EXP NLthreadID NL_APIENTRY nlThreadCreate(NLThreadFunc func, void *data, NLboolean joinable);
+
+NL_EXP void      NL_APIENTRY nlThreadYield(void);
+
+NL_EXP NLboolean NL_APIENTRY nlThreadJoin(NLthreadID threadID, void **status);
+
+NL_EXP NLboolean NL_APIENTRY nlMutexInit(NLmutex *mutex);
+
+NL_EXP NLboolean NL_APIENTRY nlMutexLock(NLmutex *mutex);
+
+NL_EXP NLboolean NL_APIENTRY nlMutexUnlock(NLmutex *mutex);
+
+NL_EXP NLboolean NL_APIENTRY nlMutexDestroy(NLmutex *mutex);
+
+NL_EXP NLboolean NL_APIENTRY nlCondInit(NLcond *cond);
+
+NL_EXP NLboolean NL_APIENTRY nlCondWait(NLcond *cond, NLint timeout);
+
+NL_EXP NLboolean NL_APIENTRY nlCondSignal(NLcond *cond);
+
+NL_EXP NLboolean NL_APIENTRY nlCondBroadcast(NLcond *cond);
+
+NL_EXP NLboolean NL_APIENTRY nlCondDestroy(NLcond *cond);
+
+/*
+
+  Time API
+
+*/
+
+NL_EXP NLboolean NL_APIENTRY nlTime(NLtime *ts);
 
 /*
 
@@ -360,25 +424,25 @@ NL_EXP void      NL_APIENTRY nlShutdown(void);
 
 NL_EXP NLboolean NL_APIENTRY nlSelectNetwork(NLenum network);
 
-NL_EXP const /*@observer@*//*@null@*/ NLbyte* NL_APIENTRY nlGetString(NLenum name);
+NL_EXP const /*@observer@*//*@null@*/ NLchar* NL_APIENTRY nlGetString(NLenum name);
 
 NL_EXP NLlong    NL_APIENTRY nlGetInteger(NLenum name);
 
 NL_EXP NLboolean NL_APIENTRY nlGetBoolean(NLenum name);
 
-NL_EXP void      NL_APIENTRY nlClear(NLenum name);
+NL_EXP NLboolean NL_APIENTRY nlClear(NLenum name);
 
 NL_EXP NLenum    NL_APIENTRY nlGetError(void);
 
-NL_EXP const /*@observer@*/ NLbyte* NL_APIENTRY nlGetErrorStr(NLenum err);
+NL_EXP const /*@observer@*/ NLchar* NL_APIENTRY nlGetErrorStr(NLenum err);
 
 NL_EXP NLint     NL_APIENTRY nlGetSystemError(void);
 
-NL_EXP const /*@observer@*/ NLbyte* NL_APIENTRY nlGetSystemErrorStr(NLint err);
+NL_EXP const /*@observer@*/ NLchar* NL_APIENTRY nlGetSystemErrorStr(NLint err);
 
-NL_EXP void      NL_APIENTRY nlEnable(NLenum name);
+NL_EXP NLboolean NL_APIENTRY nlEnable(NLenum name);
 
-NL_EXP void      NL_APIENTRY nlDisable(NLenum name);
+NL_EXP NLboolean NL_APIENTRY nlDisable(NLenum name);
 
 NL_EXP NLushort  NL_APIENTRY nlGetCRC16(NLubyte *data, NLint len);
 
@@ -407,7 +471,7 @@ NL_EXP NLdouble  NL_APIENTRY nlSwapd(NLdouble d);
 #define readFloat(x, y, z)      {memcpy((char *)&z, (char *)&x[y], 4); z = nlSwapf(z); y += 4;}
 #define readDouble(x, y, z)     {memcpy((char *)&z, (char *)&x[y], 8); z = nlSwapd(z); y += 8;}
 
-#else
+#else /* !NL_SAFE_COPY */
 #define writeShort(x, y, z)     {*((NLushort *)((NLbyte *)&x[y])) = nlSwaps(z); y += 2;}
 #define writeLong(x, y, z)      {*((NLulong  *)((NLbyte *)&x[y])) = nlSwapl(z); y += 4;}
 #define writeFloat(x, y, z)     {*((NLfloat  *)((NLbyte *)&x[y])) = nlSwapf(z); y += 4;}
@@ -416,14 +480,62 @@ NL_EXP NLdouble  NL_APIENTRY nlSwapd(NLdouble d);
 #define readLong(x, y, z)       {z = nlSwapl(*(NLulong  *)((NLbyte *)&x[y])); y += 4;}
 #define readFloat(x, y, z)      {z = nlSwapf(*(NLfloat  *)((NLbyte *)&x[y])); y += 4;}
 #define readDouble(x, y, z)     {z = nlSwapd(*(NLdouble *)((NLbyte *)&x[y])); y += 8;}
-#endif
+#endif /* !NL_SAFE_COPY */
 
 #define writeByte(x, y, z)      (*(NLbyte *)&x[y++] = (NLbyte)z)
-#define writeString(x, y, z)    {strcpy((char *)&x[y], (char *)z); y += (strlen((char *)z) + 1);}
 #define writeBlock(x, y, z, a)  {memcpy((char *)&x[y], (char *)z, a);y += a;}
 #define readByte(x, y, z)       (z = *(NLbyte *)&x[y++])
-#define readString(x, y, z)     {strcpy((char *)z, (char *)&x[y]); y += (strlen((char *)z) + 1);}
 #define readBlock(x, y, z, a)   {memcpy((char *)z, (char *)&x[y], a);y += a;}
+
+#ifdef _UNICODE
+#include <stdlib.h>
+
+#define writeString(x, y, z)    writeStringWC(x, &y, z)
+#define readString(x, y, z)     readStringWC(x, &y, z)
+
+NL_INLINE void writeStringWC(NLbyte *x, NLint *y, NLchar *z)
+{
+    int len = (int)wcstombs(&x[*y], z, (size_t)NL_MAX_STRING_LENGTH);
+
+    if(len == NL_MAX_STRING_LENGTH)
+    {
+        /* must null terminate string */
+        x[*y + NL_MAX_STRING_LENGTH] = '\0';
+        *y += NL_MAX_STRING_LENGTH;
+    }
+    else if(len > 0)
+    {
+        *y += (len + 1);
+    }
+    else
+    {
+        /* there was an error in wcstombs, so just add a 0 length string to the buffer */
+        x[*y] = '\0';
+        (*y)++;
+    }
+}
+
+NL_INLINE void readStringWC(NLbyte *x, NLint *y, NLchar *z)
+{
+    int len = (int)mbstowcs(z, &x[*y], (size_t)NL_MAX_STRING_LENGTH);
+
+    if(len == NL_MAX_STRING_LENGTH)
+    {
+        /* must null terminate string */
+        z[NL_MAX_STRING_LENGTH] = L'\0';
+    }
+    else if(len < 0)
+    {
+        /* must null terminate string */
+        z[0] = L'\0';
+    }
+    *y += (strlen((char *)&x[*y]) + 1);
+}
+
+#else /* !_UNICODE */
+#define writeString(x, y, z)    {strcpy((char *)&x[y], (char *)z); y += (strlen((char *)z) + 1);}
+#define readString(x, y, z)     {strcpy((char *)z, (char *)&x[y]); y += (strlen((char *)z) + 1);}
+#endif /* !_UNICODE */
 
 #ifdef __cplusplus
 }  /* extern "C" */

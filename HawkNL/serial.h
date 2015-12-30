@@ -33,23 +33,23 @@ NLboolean serial_Listen(NLsocket socket);
 NLsocket serial_AcceptConnection(NLsocket socket);
 NLsocket serial_Open(NLushort port, NLenum type);
 NLboolean serial_Connect(NLsocket socket, NLaddress *address);
-void serial_Close(NLsocket socket);
+NLboolean serial_Close(NLsocket socket);
 NLint serial_Read(NLsocket socket, NLvoid *buffer, NLint nbytes);
 NLint serial_Write(NLsocket socket, NLvoid *buffer, NLint nbytes);
 NLbyte *serial_AddrToString(NLaddress *address, NLbyte *string);
-void serial_StringToAddr(NLbyte *string, NLaddress *address);
-void serial_GetLocalAddr(NLsocket socket, NLaddress *address);
-void serial_SetLocalAddr(NLaddress *address);
+NLboolean serial_StringToAddr(NLbyte *string, NLaddress *address);
+NLboolean serial_GetLocalAddr(NLsocket socket, NLaddress *address);
+NLboolean serial_SetLocalAddr(NLaddress *address);
 NLbyte *serial_GetNameFromAddr(NLaddress *address, NLbyte *name);
-void serial_GetNameFromAddrAsync(NLaddress *address, NLbyte *name);
-void serial_GetAddrFromName(NLbyte *name, NLaddress *address);
-void serial_GetAddrFromNameAsync(NLbyte *name, NLaddress *address);
+NLboolean serial_GetNameFromAddrAsync(NLaddress *address, NLbyte *name);
+NLboolean serial_GetAddrFromName(NLbyte *name, NLaddress *address);
+NLboolean serial_GetAddrFromNameAsync(NLbyte *name, NLaddress *address);
 NLboolean serial_AddrCompare(NLaddress *address1, NLaddress *address2);
 NLushort serial_GetPortFromAddr(NLaddress *address);
 void serial_SetAddrPort(NLaddress *address, NLushort port);
 NLint serial_GetSystemError(void);
 NLint serial_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, NLint timeout);
-void serial_Hint(NLenum name, NLint arg);
+NLboolean serial_Hint(NLenum name, NLint arg);
 
 #ifdef __cplusplus
 }  /* extern "C" */

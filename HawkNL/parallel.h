@@ -33,23 +33,23 @@ NLboolean parallel_Listen(NLsocket socket);
 NLsocket parallel_AcceptConnection(NLsocket socket);
 NLsocket parallel_Open(NLushort port, NLenum type);
 NLboolean parallel_Connect(NLsocket socket, NLaddress *address);
-void parallel_Close(NLsocket socket);
+NLboolean parallel_Close(NLsocket socket);
 NLint parallel_Read(NLsocket socket, NLvoid *buffer, NLint nbytes);
 NLint parallel_Write(NLsocket socket, NLvoid *buffer, NLint nbytes);
 NLbyte *parallel_AddrToString(NLaddress *address, NLbyte *string);
-void parallel_StringToAddr(NLbyte *string, NLaddress *address);
-void parallel_GetLocalAddr(NLsocket socket, NLaddress *address);
-void parallel_SetLocalAddr(NLaddress *address);
+NLboolean parallel_StringToAddr(NLbyte *string, NLaddress *address);
+NLboolean parallel_GetLocalAddr(NLsocket socket, NLaddress *address);
+NLboolean parallel_SetLocalAddr(NLaddress *address);
 NLbyte *parallel_GetNameFromAddr(NLaddress *address, NLbyte *name);
-void parallel_GetNameFromAddrAsync(NLaddress *address, NLbyte *name);
-void parallel_GetAddrFromName(NLbyte *name, NLaddress *address);
-void parallel_GetAddrFromNameAsync(NLbyte *name, NLaddress *address);
+NLboolean parallel_GetNameFromAddrAsync(NLaddress *address, NLbyte *name);
+NLboolean parallel_GetAddrFromName(NLbyte *name, NLaddress *address);
+NLboolean parallel_GetAddrFromNameAsync(NLbyte *name, NLaddress *address);
 NLboolean parallel_AddrCompare(NLaddress *address1, NLaddress *address2);
 NLushort parallel_GetPortFromAddr(NLaddress *address);
 void parallel_SetAddrPort(NLaddress *address, NLushort port);
 NLint parallel_GetSystemError(void);
 NLint parallel_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, NLint timeout);
-void parallel_Hint(NLenum name, NLint arg);
+NLboolean parallel_Hint(NLenum name, NLint arg);
 
 #ifdef __cplusplus
 }  /* extern "C" */

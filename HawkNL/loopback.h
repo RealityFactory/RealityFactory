@@ -32,24 +32,25 @@ void loopback_Shutdown(void);
 NLboolean loopback_Listen(NLsocket socket);
 NLsocket loopback_AcceptConnection(NLsocket socket);
 NLsocket loopback_Open(NLushort port, NLenum type);
-NLboolean loopback_Connect(NLsocket socket, NLaddress *address);
+NLboolean loopback_Connect(NLsocket socket, const NLaddress *address);
 void loopback_Close(NLsocket socket);
 NLint loopback_Read(NLsocket socket, /*@out@*/ NLvoid *buffer, NLint nbytes);
-NLint loopback_Write(NLsocket socket, NLvoid *buffer, NLint nbytes);
-NLbyte *loopback_AddrToString(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *string);
-void loopback_StringToAddr(NLbyte *string, /*@out@*/ NLaddress *address);
-void loopback_GetLocalAddr(NLsocket socket, /*@out@*/ NLaddress *address);
-void loopback_SetLocalAddr(NLaddress *address);
-NLbyte *loopback_GetNameFromAddr(NLaddress *address, /*@returned@*/ /*@out@*/ NLbyte *name);
-void loopback_GetNameFromAddrAsync(NLaddress *address, /*@out@*/ NLbyte *name);
-void loopback_GetAddrFromName(NLbyte *name, /*@out@*/ NLaddress *address);
-void loopback_GetAddrFromNameAsync(NLbyte *name, /*@out@*/ NLaddress *address);
-NLboolean loopback_AddrCompare(NLaddress *address1, NLaddress *address2);
-NLushort loopback_GetPortFromAddr(NLaddress *address);
+NLint loopback_Write(NLsocket socket, const NLvoid *buffer, NLint nbytes);
+NLchar *loopback_AddrToString(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *string);
+NLboolean loopback_StringToAddr(const NLchar *string, /*@out@*/ NLaddress *address);
+NLboolean loopback_GetLocalAddr(/*@unused@*/ NLsocket socket, /*@out@*/ NLaddress *address);
+NLaddress *loopback_GetAllLocalAddr(/*@out@*/ NLint *count);
+NLboolean loopback_SetLocalAddr(/*@unused@*/ const NLaddress *address);
+NLchar *loopback_GetNameFromAddr(const NLaddress *address, /*@returned@*/ /*@out@*/ NLchar *name);
+NLboolean loopback_GetNameFromAddrAsync(const NLaddress *address, /*@out@*/ NLchar *name);
+NLboolean loopback_GetAddrFromName(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean loopback_GetAddrFromNameAsync(const NLchar *name, /*@out@*/ NLaddress *address);
+NLboolean loopback_AddrCompare(const NLaddress *address1, const NLaddress *address2);
+NLushort loopback_GetPortFromAddr(const NLaddress *address);
 void loopback_SetAddrPort(NLaddress *address, NLushort port);
 NLint loopback_GetSystemError(void);
 NLint loopback_PollGroup(NLint group, NLenum name, /*@out@*/ NLsocket *sockets, NLint number, NLint timeout);
-void loopback_Hint(NLenum name, NLint arg);
+NLboolean loopback_Hint(NLenum name, NLint arg);
 
 #ifdef __cplusplus
 }  /* extern "C" */

@@ -20,13 +20,6 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
-/*
-  The low level API, and some of the code, was inspired from the
-  Quake source code release, courtesy of id Software. However,
-  it has been heavily modified for use in HawkNL.
-*/
-
-
 #include <memory.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,7 +32,9 @@
 #if defined WIN32 || defined WIN64
 
 #include "wsock.h"
+#ifndef sleep
 #define sleep(x)    Sleep((DWORD)(1000 * (x)))
+#endif
 
 #ifdef _MSC_VER
 #pragma warning (disable:4100) /* disable "unreferenced formal parameter" */
@@ -71,6 +66,14 @@
 #include "nlinternal.h"
 
 #ifdef NL_INCLUDE_IPX
+#include "ipx.h"
+
+typedef struct
+{
+    NLaddress   /*@temp@*/*address;
+    NLchar      /*@temp@*/*name;
+    NLsocket    socket;
+} NLaddress_ex_t;
 
 extern SOCKET nlGroupGetFdset(NLint group, /*@out@*/ fd_set *fd);
 
@@ -78,10 +81,105 @@ extern SOCKET nlGroupGetFdset(NLint group, /*@out@*/ fd_set *fd);
 #define NL_CONNECT_STRING   "HawkNL request connection."
 #define NL_REPLY_STRING     "HawkNL connection OK."
 
-static NLaddress *ipx_ouraddress;
+static NLaddress ipx_ouraddress;
+static NLaddress ipx_ouraddress_copy;
 static NLint ipxport = 0;
 static volatile int backlog = SOMAXCONN;
 static volatile NLboolean reuseaddress = NL_FALSE;
+
+#ifdef WINDOWS_APP
+
+static NLmutex  ipxportlock;
+
+static volatile NLushort ipxnextport = 1024;
+
+static NLushort ipx_getNextPort(void)
+{
+    NLlong temp;
+
+    (void)nlMutexLock(&ipxportlock);
+    temp = (NLlong)ipxnextport;
+    if(++temp > 65535)
+    {
+        /* skip the well known ports */
+        temp = 1024;
+    }
+    ipxnextport = (NLushort)temp;
+    (void)nlMutexUnlock(&ipxportlock);
+    return ipxnextport;
+}
+
+static NLint ipx_bind(SOCKET socket, const struct sockaddr *a, int len)
+{
+    struct sockaddr_ipx *addr = (struct sockaddr_ipx *)a;
+    int                 ntries = 500; /* this is to prevent an infinite loop */
+    NLboolean           found = NL_FALSE;
+
+    /* check to see if the port is already specified */
+    if(addr->sa_socket != 0)
+    {
+        /* do the normal bind */
+        return bind(socket, a, len);
+    }
+
+    /* let's find our own port number */
+    while(ntries-- > 0)
+    {
+        addr->sa_socket = htons(ipx_getNextPort());
+        if(bind(socket, (struct sockaddr *)addr, len) != SOCKET_ERROR)
+        {
+            found = NL_TRUE;
+            break;
+        }
+    }
+    if(found == NL_TRUE)
+    {
+        return 0;
+    }
+    /* could not find a port, restore the port number back to 0 */
+    addr->sa_socket = 0;
+    /*  return error */
+    return SOCKET_ERROR;
+}
+
+#else
+#define sock_bind bind
+#endif /* WINDOWS_APP */
+
+/*
+handle some common connection errors so the app knows when a connection has been dropped
+*/
+
+static NLint ipx_Error(void)
+{
+    int err = sockerrno;
+
+    switch (err) {
+
+#ifdef WINDOWS_APP
+    case WSABASEERR:
+        return 0;
+#endif
+
+    case EWOULDBLOCK:
+        return 0;
+
+    case ENETRESET:
+    case EHOSTUNREACH:
+    case ECONNABORTED:
+    case ECONNRESET:
+    case ENETUNREACH:
+    case ETIMEDOUT:
+        nlSetError(NL_SOCK_DISCONNECT);
+        break;
+
+    default:
+        nlSetError(NL_SYSTEM_ERROR);
+        break;
+    }
+
+    return NL_INVALID;
+}
 
 static void ipx_SetReuseAddr(SOCKET socket)
 {
@@ -93,14 +191,14 @@ static void ipx_SetReuseAddr(SOCKET socket)
     }
     if(setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&i, (int)sizeof(i)) == SOCKET_ERROR)
     {
-        nlSetError(NL_SOCKET_ERROR);
+        nlSetError(NL_SYSTEM_ERROR);
     }
 }
 
 static NLboolean ipx_SetNonBlocking(SOCKET socket)
 {
     unsigned long i = 1;
-    
+
     if(ioctl(socket, FIONBIO, &i) == SOCKET_ERROR)
     {
         return NL_FALSE;
@@ -111,7 +209,7 @@ static NLboolean ipx_SetNonBlocking(SOCKET socket)
 static NLboolean ipx_SetBlocking(SOCKET socket)
 {
     unsigned long i = 0;
-    
+
     if(ioctl(socket, FIONBIO, &i) == SOCKET_ERROR)
     {
         return NL_FALSE;
@@ -125,7 +223,7 @@ static NLboolean ipx_SetBroadcast(SOCKET socket)
 
     if(setsockopt(socket, SOL_SOCKET, SO_BROADCAST, (char *)&i, (int)sizeof(i)) == SOCKET_ERROR)
     {
-        nlSetError(NL_SOCKET_ERROR);
+        nlSetError(NL_SYSTEM_ERROR);
         return NL_FALSE;
     }
     return NL_TRUE;
@@ -133,9 +231,8 @@ static NLboolean ipx_SetBroadcast(SOCKET socket)
 }
 
 /* is there a better way to get our address? */
-static NLaddress /*@null@*/ *ipx_GetHostAddress(void)
+static NLboolean ipx_GetHostAddress(NLaddress *address)
 {
-    static NLaddress    address;
     NLint               addrlen = (NLint)sizeof(NLaddress);
     SOCKET              sock;
 
@@ -144,50 +241,50 @@ static NLaddress /*@null@*/ *ipx_GetHostAddress(void)
     if(sock == INVALID_SOCKET)
     {
         nlSetError(NL_NO_NETWORK);
-        return NULL;
+        return NL_FALSE;
     }
 
-    ((struct sockaddr_ipx *)&address)->sa_family = AF_IPX;
-    memset(((struct sockaddr_ipx *)&address)->sa_netnum, 0, 4);
-    memset(((struct sockaddr_ipx *)&address)->sa_nodenum, 0, 6);
-    ((struct sockaddr_ipx *)&address)->sa_socket = 0;
+    ((struct sockaddr_ipx *)address)->sa_family = AF_IPX;
+    memset(((struct sockaddr_ipx *)address)->sa_netnum, 0, 4);
+    memset(((struct sockaddr_ipx *)address)->sa_nodenum, 0, 6);
+    ((struct sockaddr_ipx *)address)->sa_socket = 0;
 
-    if(bind(sock, (struct sockaddr *)&address, (int)sizeof(NLaddress)) == SOCKET_ERROR)
+    if(ipx_bind(sock, (struct sockaddr *)address, (int)sizeof(NLaddress)) == SOCKET_ERROR)
     {
         nlSetError(NL_NO_NETWORK);
         (void)closesocket(sock);
-        return NULL;
+        return NL_FALSE;
     }
 
-    if(getsockname(sock, (struct sockaddr *)&address, &addrlen) != 0)
+    if(getsockname(sock, (struct sockaddr *)address, &addrlen) != 0)
     {
         nlSetError(NL_NO_NETWORK);
         (void)closesocket(sock);
-        return NULL;
+        return NL_FALSE;
     }
 
     (void)closesocket(sock);
-    return (NLaddress *)&address;
+    return NL_TRUE;
 }
 
 static NLushort ipx_GetPort(SOCKET socket)
 {
     struct sockaddr_ipx   addr;
     int                  len;
-    
-    len = (int)sizeof(struct sockaddr_in);
+
+    len = (int)sizeof(struct sockaddr_ipx);
     if(getsockname(socket, (struct sockaddr *)&addr, &len) != 0)
     {
         return 0;
     }
-    
+
     return ntohs(addr.sa_socket);
 }
 
 
 NLboolean ipx_Init(void)
 {
-#if defined WIN32 || defined WIN64
+#ifdef WINDOWS_APP
     WSADATA libmibWSAdata;
 
     if(WSAStartup(0x101,&libmibWSAdata) != 0)
@@ -195,9 +292,7 @@ NLboolean ipx_Init(void)
         return NL_FALSE;
     }
 #endif
-    ipx_ouraddress = ipx_GetHostAddress();
-
-    if(ipx_ouraddress == NULL)
+    if(ipx_GetHostAddress(&ipx_ouraddress) == NL_FALSE)
     {
         ipx_Shutdown();
         return NL_FALSE;
@@ -208,7 +303,7 @@ NLboolean ipx_Init(void)
 
 void ipx_Shutdown(void)
 {
-#if defined WIN32 || defined WIN64
+#ifdef WINDOWS_APP
     (void)WSACleanup();
 #endif
 }
@@ -221,7 +316,7 @@ NLboolean ipx_Listen(NLsocket socket)
     {
         if(listen((SOCKET)sock->realsocket, backlog) != 0)
         {
-            nlSetError(NL_SOCKET_ERROR);
+            nlSetError(NL_SYSTEM_ERROR);
             return NL_FALSE;
         }
     }
@@ -233,30 +328,35 @@ NLboolean ipx_Listen(NLsocket socket)
 static SOCKET ipx_AcceptIPX(NLsocket nlsocket, struct sockaddr_ipx /*@out@*/ *newaddr)
 {
     nl_socket_t         *sock = nlSockets[nlsocket];
-    struct sockaddr_ipx ouraddr;
-    SOCKET              realsocket;
-    NLbyte              buffer[512];
-    NLint               len = (NLint)sizeof(struct sockaddr_ipx);
+    struct sockaddr_ipx  ouraddr;
+    SOCKET              newsocket;
+    NLushort            localport;
+    NLbyte              buffer[NL_MAX_STRING_LENGTH];
+    socklen_t           len = (socklen_t)sizeof(struct sockaddr_ipx);
     NLint               slen = (NLint)sizeof(NL_CONNECT_STRING);
+    NLbyte              reply = (NLbyte)0x00;
+    NLint               count = 0;
 
     /* Get the packet and remote host address */
-    if(recvfrom((SOCKET)sock->realsocket, buffer, (int)sizeof(buffer), 0, 
-            (struct sockaddr *)newaddr, &len) < (int)sizeof(NL_CONNECT_STRING))
+    if(recvfrom((SOCKET)sock->realsocket, buffer, (int)sizeof(buffer), 0,
+        (struct sockaddr *)newaddr, &len) < (int)sizeof(NL_CONNECT_STRING))
     {
+        nlSetError(NL_NO_PENDING);
         return INVALID_SOCKET;
     }
-    /* Lets check for the connection string */
+    /* Let's check for the connection string */
     buffer[slen - 1] = (NLbyte)0; /* null terminate for peace of mind */
     if(strcmp(buffer, NL_CONNECT_STRING) != 0)
     {
+        nlSetError(NL_NO_PENDING);
         return INVALID_SOCKET;
     }
-    /* open up a new socket on this end, system assigned port number */
-    realsocket = socket(PF_IPX, SOCK_DGRAM, NSPROTO_IPX);
-    if(realsocket == INVALID_SOCKET)
+    /* open up a new socket on this end */
+    newsocket = socket(PF_IPX, SOCK_DGRAM, NSPROTO_IPX);
+    if(newsocket == INVALID_SOCKET)
     {
-        nlSetError(NL_SOCKET_ERROR);
-        (void)closesocket(realsocket);
+        nlSetError(NL_SYSTEM_ERROR);
+        (void)closesocket(newsocket);
         return INVALID_SOCKET;
     }
 
@@ -265,24 +365,46 @@ static SOCKET ipx_AcceptIPX(NLsocket nlsocket, struct sockaddr_ipx /*@out@*/ *ne
     memset(&ouraddr.sa_nodenum, 0, 6);
     ouraddr.sa_socket = 0;
 
-    if(bind(realsocket, (struct sockaddr *)&ouraddr, len) == SOCKET_ERROR)
+    if(ipx_bind(newsocket, (struct sockaddr *)&ouraddr, len) == SOCKET_ERROR)
     {
-        nlSetError(NL_SOCKET_ERROR);
-        (void)closesocket(realsocket);
+        nlSetError(NL_SYSTEM_ERROR);
+        (void)closesocket(newsocket);
+        return INVALID_SOCKET;
+    }
+    /* get the new port */
+    localport = ipx_GetPort(newsocket);
+
+    /* create the return message */
+    writeShort(buffer, count, localport);
+    writeString(buffer, count, (NLchar *)TEXT(NL_REPLY_STRING));
+
+    /* send back the reply with our new port */
+    if(sendto((SOCKET)sock->realsocket, buffer, count, 0, (struct sockaddr *)newaddr,
+        (int)sizeof(struct sockaddr_ipx)) < count)
+    {
+        nlSetError(NL_SYSTEM_ERROR);
+        (void)closesocket(newsocket);
+        return INVALID_SOCKET;
+    }
+    /* send back a 0 length packet from our new port, needed for firewalls */
+    if(sendto(newsocket, &reply, 0, 0,
+        (struct sockaddr *)newaddr,
+        (int)sizeof(struct sockaddr_ipx)) < 0)
+    {
+        nlSetError(NL_SYSTEM_ERROR);
+        (void)closesocket(newsocket);
+        return INVALID_SOCKET;
+    }
+    /* connect the socket */
+    if(connect(newsocket, (struct sockaddr *)newaddr,
+        (int)sizeof(struct sockaddr_ipx)) == SOCKET_ERROR)
+    {
+        nlSetError(NL_SYSTEM_ERROR);
+        (void)closesocket(newsocket);
         return INVALID_SOCKET;
     }
 
-    /* send back a packet so the client knows our new port */
-    if(sendto(realsocket, NL_REPLY_STRING, (int)sizeof(NL_REPLY_STRING), 0, 
-                        (struct sockaddr *)newaddr,
-                        (int)sizeof(struct sockaddr_in)) < (NLint)sizeof(NL_REPLY_STRING))
-    {
-        nlSetError(NL_SOCKET_ERROR);
-        (void)closesocket(realsocket);
-        return INVALID_SOCKET;
-    }
-
-    return realsocket;
+    return newsocket;
 }
 
 NLsocket ipx_AcceptConnection(NLsocket socket)
@@ -299,24 +421,39 @@ NLsocket ipx_AcceptConnection(NLsocket socket)
         return NL_INVALID;
     }
 
-    if(sock->reliable == NL_TRUE)
+    if(sock->type == NL_RELIABLE || sock->type == NL_RELIABLE_PACKETS)
     {
         NLint   len = (NLint)sizeof(newaddr);
 
         realsocket = accept((SOCKET)sock->realsocket,
                                     (struct sockaddr *)&newaddr, &len);
+
+        if(realsocket == INVALID_SOCKET)
+        {
+            if(sockerrno == EWOULDBLOCK || errno == EAGAIN)/* yes, we need to use errno here */
+            {
+                nlSetError(NL_NO_PENDING);
+            }
+            else
+            {
+                nlSetError(NL_SYSTEM_ERROR);
+            }
+            return NL_INVALID;
+        }
+    }
+    else if(sock->type == NL_UNRELIABLE)
+    {
+        realsocket = ipx_AcceptIPX(socket, &newaddr);
+
+        if(realsocket == INVALID_SOCKET)
+        {
+            /* error is already set in sock_AcceptUDP */
+            return NL_INVALID;
+        }
     }
     else
     {
-        realsocket = ipx_AcceptIPX(socket, &newaddr);
-    }
-
-    if(realsocket == INVALID_SOCKET)
-    {
-        if(sockerrno != EWOULDBLOCK)
-        {
-            nlSetError(NL_SOCKET_ERROR);
-        }
+        nlSetError(NL_WRONG_TYPE);
         return NL_INVALID;
     }
 
@@ -325,19 +462,23 @@ NLsocket ipx_AcceptConnection(NLsocket socket)
     {
         return NL_INVALID;
     }
+    if(nlLockSocket(newsocket, NL_BOTH) == NL_FALSE)
+    {
+        return NL_INVALID;
+    }
     newsock = nlSockets[newsocket];
 
     /* update the remote address */
-    memcpy((char *)&newsock->address, (char *)&newaddr, sizeof(struct sockaddr_ipx));
+    memcpy((char *)&newsock->addressin, (char *)&newaddr, sizeof(struct sockaddr_ipx));
     newsock->realsocket = (NLint)realsocket;
     newsock->localport = ipx_GetPort(realsocket);
-    newsock->remoteport = ipx_GetPortFromAddr((NLaddress *)&newsock->address);
+    newsock->remoteport = ipx_GetPortFromAddr((NLaddress *)&newsock->addressin);
 
     if(newsock->blocking == NL_FALSE)
     {
         if(ipx_SetNonBlocking((SOCKET)newsock->realsocket) == NL_FALSE)
         {
-            nlSetError(NL_SOCKET_ERROR);
+            nlSetError(NL_SYSTEM_ERROR);
             ipx_Close(newsocket);
             return NL_INVALID;
         }
@@ -373,12 +514,16 @@ NLsocket ipx_Open(NLushort port, NLenum type)
 
     if(realsocket == INVALID_SOCKET)
     {
-        nlSetError(NL_SOCKET_ERROR);
+        nlSetError(NL_SYSTEM_ERROR);
         return NL_INVALID;
     }
 
     newsocket = nlGetNewSocket();
     if(newsocket == NL_INVALID)
+    {
+        return NL_INVALID;
+    }
+    if(nlLockSocket(newsocket, NL_BOTH) == NL_FALSE)
     {
         return NL_INVALID;
     }
@@ -400,117 +545,237 @@ NLsocket ipx_Open(NLushort port, NLenum type)
     {
         if(ipx_SetNonBlocking(realsocket) == NL_FALSE)
         {
-            nlSetError(NL_SOCKET_ERROR);
+            nlSetError(NL_SYSTEM_ERROR);
+            nlUnlockSocket(newsocket, NL_BOTH);
             ipx_Close(newsocket);
             return NL_INVALID;
         }
     }
 
-    ((struct sockaddr_ipx *)&newsock->address)->sa_family = AF_IPX;
-    memset(((struct sockaddr_ipx *)&newsock->address)->sa_netnum, 0, 4);
-    memset(((struct sockaddr_ipx *)&newsock->address)->sa_nodenum, 0, 6);
-    ((struct sockaddr_ipx *)&newsock->address)->sa_socket = htons((unsigned short)port);
+    ((struct sockaddr_ipx *)&newsock->addressin)->sa_family = AF_IPX;
+    memset(((struct sockaddr_ipx *)&newsock->addressin)->sa_netnum, 0, 4);
+    memset(((struct sockaddr_ipx *)&newsock->addressin)->sa_nodenum, 0, 6);
+    ((struct sockaddr_ipx *)&newsock->addressin)->sa_socket = htons((unsigned short)port);
 
-    if(bind((SOCKET)realsocket, (struct sockaddr *)&newsock->address, (int)sizeof(newsock->address)) == SOCKET_ERROR)
+    if(ipx_bind((SOCKET)realsocket, (struct sockaddr *)&newsock->addressin, (int)sizeof(newsock->addressin)) == SOCKET_ERROR)
     {
-        nlSetError(NL_SOCKET_ERROR);
+        nlSetError(NL_SYSTEM_ERROR);
+        nlUnlockSocket(newsocket, NL_BOTH);
         ipx_Close(newsocket);
         return NL_INVALID;
     }
     if(type == NL_BROADCAST)
     {
+        ((struct sockaddr_ipx *)&newsock->addressout)->sa_family = AF_IPX;
+        memset(((struct sockaddr_ipx *)&newsock->addressout)->sa_netnum, 0, 4);
+        memset(((struct sockaddr_ipx *)&newsock->addressout)->sa_nodenum, 0xff, 6);
+        ((struct sockaddr_ipx *)&newsock->addressout)->sa_socket = htons((unsigned short)port);
         if(ipx_SetBroadcast(realsocket) == NL_FALSE)
         {
-            nlSetError(NL_SOCKET_ERROR);
+            nlSetError(NL_SYSTEM_ERROR);
+            nlUnlockSocket(newsocket, NL_BOTH);
             return NL_INVALID;
         }
     }
 
     newsock->localport = ipx_GetPort(realsocket);
     newsock->type = type;
+    nlUnlockSocket(newsocket, NL_BOTH);
     return newsocket;
 }
 
-static NLboolean ipx_ConnectIPX(NLsocket socket)
+static NLboolean ipx_ConnectIPX(NLsocket socket, const NLaddress *address)
 {
-    NLint               retries = 3;
-    nl_socket_t         *sock = nlSockets[socket];
+    nl_socket_t     *sock = nlSockets[socket];
+    time_t          begin, t;
 
-
-    if(ipx_Write(socket, (NLvoid *)NL_CONNECT_STRING, (NLint)sizeof(NL_CONNECT_STRING))
-        < (NLint)sizeof(NL_CONNECT_STRING))
+    if(sendto((SOCKET)sock->realsocket, (char *)NL_CONNECT_STRING, (NLint)sizeof(NL_CONNECT_STRING),
+        0, (struct sockaddr *)address, (int)sizeof(struct sockaddr_ipx))
+        == SOCKET_ERROR)
     {
+        if(sock->blocking == NL_TRUE)
+        {
+            nlSetError(NL_SYSTEM_ERROR);
+        }
+        else
+        {
+            sock->conerror = NL_TRUE;
+        }
         return NL_FALSE;
     }
 
-    sleep(1);
+    (void)time(&begin);
 
-    while(retries-- > 0)
+    /* try for six seconds */
+    while((time(&t) - begin) < 6)
     {
-        NLbyte              buffer[512];
-        NLint               len = (NLint)sizeof(struct sockaddr_in);
-        NLint               slen = (NLint)sizeof(NL_REPLY_STRING);
+        NLbyte              buffer[NL_MAX_STRING_LENGTH];
+        NLbyte              *pbuffer = buffer;
+        NLushort            newport;
+        NLint               slen = (NLint)(sizeof(NL_REPLY_STRING) + sizeof(newport));
         NLint               received;
+        NLbyte              reply = (NLbyte)0;
+        socklen_t           len = (socklen_t)sizeof(struct sockaddr_ipx);
 
-        /* Get the packet and remote host address */
-        received = recvfrom((SOCKET)sock->realsocket, buffer, (int)sizeof(buffer), 0, 
-                (struct sockaddr *)&sock->address, &len);
-        
+        received = recvfrom((SOCKET)sock->realsocket, (char *)buffer, (int)sizeof(buffer), 0,
+            (struct sockaddr *)&sock->addressin, &len);
+
+        if(received == SOCKET_ERROR)
+        {
+            if(sockerrno != EWOULDBLOCK)
+            {
+                if(sock->blocking == NL_TRUE)
+                {
+                    nlSetError(NL_CON_REFUSED);
+                }
+                else
+                {
+                    sock->conerror = NL_TRUE;
+                }
+                return NL_FALSE;
+            }
+        }
         if(received >= slen)
         {
+            NLint count = 0;
+
+            /* retrieve the port number */
+            readShort(buffer, count, newport);
+            ((struct sockaddr_ipx *)&sock->addressin)->sa_socket = htons(newport);
             /* Lets check for the reply string */
-            buffer[slen - 1] = (NLbyte)0; /* null terminate for peace of mind */
-            if(strcmp(buffer, NL_REPLY_STRING) != 0)
+            pbuffer[slen - 1] = (NLbyte)0; /* null terminate for peace of mind */
+            pbuffer += sizeof(newport);
+            if(strcmp(pbuffer, NL_REPLY_STRING) == 0)
             {
-                if(connect((SOCKET)sock->realsocket, (struct sockaddr *)&sock->address,
-                            (int)sizeof(struct sockaddr_in)) != 0)
+                if(connect((SOCKET)sock->realsocket, (struct sockaddr *)&sock->addressin,
+                    (int)sizeof(struct sockaddr_ipx)) == SOCKET_ERROR)
                 {
-                    nlSetError(NL_SOCKET_ERROR);
+                    if(sock->blocking == NL_TRUE)
+                    {
+                        nlSetError(NL_SYSTEM_ERROR);
+                    }
+                    else
+                    {
+                        sock->conerror = NL_TRUE;
+                    }
                     return NL_FALSE;
                 }
+                /* send back a 0 length packet to the new port, needed for firewalls */
+                if(send((SOCKET)sock->realsocket, &reply, 0, 0) == SOCKET_ERROR)
+                {
+                    if(sock->blocking == NL_TRUE)
+                    {
+                        nlSetError(NL_SYSTEM_ERROR);
+                    }
+                    else
+                    {
+                        sock->conerror = NL_TRUE;
+                    }
+                    return NL_FALSE;
+                }
+                /* success! */
+                sock->localport = ipx_GetPort((SOCKET)sock->realsocket);
+                sock->remoteport = ipx_GetPortFromAddr((NLaddress *)&sock->addressin);
+                sock->connected = NL_TRUE;
+                sock->connecting = NL_FALSE;
                 return NL_TRUE;
             }
         }
-        sleep(1);
+        nlThreadSleep(NL_CONNECT_SLEEP);
     }
 
+    if(sock->blocking == NL_TRUE)
+    {
+        nlSetError(NL_CON_REFUSED);
+    }
+    else
+    {
+        sock->conerror = NL_TRUE;
+    }
     return NL_FALSE;
 }
 
-NLboolean ipx_Connect(NLsocket socket, NLaddress *address)
+static void *ipx_ConnectIPXAsynchInt(void /*@owned@*/*addr)
+{
+    NLaddress_ex_t *address = (NLaddress_ex_t *)addr;
+
+    (void)ipx_ConnectIPX(address->socket, address->address);
+    free(addr);
+    return NULL;
+}
+
+static NLboolean ipx_ConnectIPXAsynch(NLsocket socket, const NLaddress *address)
+{
+    NLaddress_ex_t  /*@dependent@*/*addr;
+    nl_socket_t     *sock = nlSockets[socket];
+
+    addr = (NLaddress_ex_t *)malloc(sizeof(NLaddress_ex_t));
+    if(addr == NULL)
+    {
+        nlSetError(NL_OUT_OF_MEMORY);
+        return NL_FALSE;
+    }
+    addr->address = (NLaddress *)address;
+    addr->socket = socket;
+    sock->connecting = NL_TRUE;
+    sock->conerror = NL_FALSE;
+    if(nlThreadCreate(ipx_ConnectIPXAsynchInt, (void *)addr, NL_FALSE) == (NLthreadID)NL_INVALID)
+    {
+        return NL_FALSE;
+    }
+    return NL_TRUE;
+}
+
+NLboolean ipx_Connect(NLsocket socket, const NLaddress *address)
 {
     nl_socket_t *sock = nlSockets[socket];
 
-    memcpy((char *)&sock->address, (char *)address, sizeof(struct sockaddr_in));
+    memcpy((char *)&sock->addressin, (char *)address, sizeof(struct sockaddr_ipx));
 
-    if(sock->reliable == NL_TRUE)
+    if((sock->type == NL_RELIABLE) || (sock->type == NL_RELIABLE_PACKETS))
     {
         if(sock->blocking == NL_FALSE)
         {
             (void)ipx_SetBlocking((SOCKET)sock->realsocket);
         }
 
-        if(connect((SOCKET)sock->realsocket, (struct sockaddr *)&sock->address,
-                    (int)sizeof(struct sockaddr_in)) != 0)
+        if(connect((SOCKET)sock->realsocket, (struct sockaddr *)&sock->addressin,
+                    (int)sizeof(struct sockaddr_ipx)) != 0)
         {
-            nlSetError(NL_SOCKET_ERROR);
-            return NL_FALSE;
+            if(sock->blocking == NL_FALSE &&
+                (sockerrno == EWOULDBLOCK || sockerrno == EINPROGRESS))
+            {
+                sock->connecting = NL_TRUE;
+            }
+            else
+            {
+                nlSetError(NL_SYSTEM_ERROR);
+                return NL_FALSE;
+            }
         }
         if(sock->blocking == NL_FALSE)
         {
             (void)ipx_SetNonBlocking((SOCKET)sock->realsocket);
         }
+        sock->localport = ipx_GetPort((SOCKET)sock->realsocket);
+        sock->remoteport = ipx_GetPortFromAddr((NLaddress *)&sock->addressin);
+        sock->connected = NL_TRUE;
+    }
+    else if(sock->type == NL_UNRELIABLE)
+    {
+        if(sock->blocking == NL_TRUE)
+        {
+            return ipx_ConnectIPX(socket, &sock->addressin);
+        }
+        else
+        {
+            return ipx_ConnectIPXAsynch(socket, &sock->addressin);
+        }
     }
     else
     {
-        if(ipx_ConnectIPX(socket) == NL_FALSE)
-        {
-            return NL_FALSE;
-        }
+        nlSetError(NL_WRONG_TYPE);
     }
-
-    sock->localport = ipx_GetPort((SOCKET)sock->realsocket);
-    sock->remoteport = ipx_GetPortFromAddr((NLaddress *)&sock->address);
 
     return NL_TRUE;
 }
@@ -519,80 +784,165 @@ void ipx_Close(NLsocket socket)
 {
     nl_socket_t *sock = nlSockets[socket];
 
+    if((sock->type == NL_RELIABLE_PACKETS || sock->type == NL_RELIABLE) && sock->listen == NL_FALSE)
+    {
+        struct linger l = {1, 10};
+
+        (void)setsockopt((SOCKET)sock->realsocket, SOL_SOCKET, SO_LINGER, (const char *)&l, (int)sizeof(l));
+    }
     (void)closesocket((SOCKET)sock->realsocket);
-    nlFreeSocket(socket);
 }
 
 NLint ipx_Read(NLsocket socket, NLvoid *buffer, NLint nbytes)
 {
     nl_socket_t *sock = nlSockets[socket];
     NLint       count;
-    NLint       len = (NLint)sizeof(struct sockaddr_ipx);
 
-
-    if(sock->reliable == NL_TRUE)
+    if(sock->type == NL_RELIABLE || sock->type == NL_RELIABLE_PACKETS)
     {
+        /* check for a non-blocking connection pending */
+        if(sock->connecting == NL_TRUE)
+        {
+            fd_set          fdset;
+            struct timeval  t = {0,0};
+
+            FD_ZERO(&fdset);
+            FD_SET((SOCKET)sock->realsocket, &fdset);
+            if(select(sock->realsocket + 1, NULL, &fdset, NULL, &t) == 1)
+            {
+                /* the connect has completed */
+                sock->connected = NL_TRUE;
+                sock->connecting = NL_FALSE;
+            }
+            else
+            {
+                /* check for a failed connect */
+                FD_ZERO(&fdset);
+                FD_SET((SOCKET)sock->realsocket, &fdset);
+                if(select(sock->realsocket + 1, NULL, NULL, &fdset, &t) == 1)
+                {
+                    nlSetError(NL_CON_REFUSED);
+                }
+                else
+                {
+                    nlSetError(NL_CON_PENDING);
+                }
+                return NL_INVALID;
+            }
+        }
         count = recv((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0);
     }
     else
     {
-        count = recvfrom((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0, 
-                        (struct sockaddr *)&sock->address, &len);
-    }
-
-    if(count < 0)
-    {
-        if(sockerrno == EWOULDBLOCK)
+        /* check for a non-blocking connection pending */
+        if(sock->connecting == NL_TRUE)
         {
-            return 0;
+            nlSetError(NL_CON_PENDING);
+            return NL_INVALID;
         }
+        /* check for a connection error */
+        if(sock->conerror == NL_TRUE)
+        {
+            nlSetError(NL_CON_REFUSED);
+            return NL_INVALID;
+        }
+        if(sock->connected == NL_TRUE)
+        {
+            count = recv((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0);
+        }
+        else
+        {
+            socklen_t   len = (socklen_t)sizeof(struct sockaddr_ipx);
+
+            count = recvfrom((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0,
+                (struct sockaddr *)&sock->addressin, &len);
+        }
+    }
+    if(count == SOCKET_ERROR)
+    {
+        return ipx_Error();
     }
     return count;
 }
 
-NLint ipx_Write(NLsocket socket, NLvoid *buffer, NLint nbytes)
+NLint ipx_Write(NLsocket socket, const NLvoid *buffer, NLint nbytes)
 {
     nl_socket_t *sock = nlSockets[socket];
     NLint       count;
 
     if(sock->type == NL_RELIABLE || sock->type == NL_RELIABLE_PACKETS)
     {
+        if(sock->connecting == NL_TRUE)
+        {
+            fd_set          fdset;
+            struct timeval  t = {0,0};
+
+            FD_ZERO(&fdset);
+            FD_SET((SOCKET)(sock->realsocket), &fdset);
+            if(select(sock->realsocket + 1, NULL, &fdset, NULL, &t) == 1)
+            {
+                /* the connect has completed */
+                sock->connected = NL_TRUE;
+                sock->connecting = NL_FALSE;
+            }
+            else
+            {
+                /* check for a failed connect */
+                FD_ZERO(&fdset);
+                FD_SET((SOCKET)sock->realsocket, &fdset);
+                if(select(sock->realsocket + 1, NULL, NULL, &fdset, &t) == 1)
+                {
+                    nlSetError(NL_CON_REFUSED);
+                }
+                else
+                {
+                    nlSetError(NL_CON_PENDING);
+                }
+                return NL_INVALID;
+            }
+        }
         count = send((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0);
     }
     else /* IPX */
     {
+        /* check for a non-blocking connection pending */
+        if(sock->connecting == NL_TRUE)
+        {
+            nlSetError(NL_CON_PENDING);
+            return NL_INVALID;
+        }
+        /* check for a connection error */
+        if(sock->conerror == NL_TRUE)
+        {
+            nlSetError(NL_CON_REFUSED);
+            return NL_INVALID;
+        }
         if(nbytes > 1466)
         {
             nlSetError(NL_PACKET_SIZE);
             return NL_INVALID;
         }
-        if(sock->type == NL_BROADCAST)
+        if(sock->connected == NL_TRUE)
         {
-            memset(((struct sockaddr_ipx *)&sock->address)->sa_nodenum, 0xff, 6);
-        }
-        count = sendto((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0, 
-                        (struct sockaddr *)&sock->address,
-                        (int)sizeof(struct sockaddr_ipx));
-    }
-
-    if(count < 0)
-    {
-        if(sockerrno == EWOULDBLOCK)
-        {
-            return 0;
+            count = send((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0);
         }
         else
         {
-            nlSetError(NL_SOCKET_ERROR);
-            return NL_INVALID;
+            count = sendto((SOCKET)sock->realsocket, (char *)buffer, nbytes, 0,
+                (struct sockaddr *)&sock->addressout,
+                (int)sizeof(struct sockaddr_ipx));
         }
+    }
+    if(count == SOCKET_ERROR)
+    {
+        return ipx_Error();
     }
     return count;
 }
 
-NLbyte *ipx_AddrToString(NLaddress *address, NLbyte *string)
+NLchar *ipx_AddrToString(const NLaddress *address, NLchar *string)
 {
-    sprintf(string, "%02x%02x%02x%02x:%02x%02x%02x%02x%02x%02x:%u",
+    _stprintf(string, TEXT("%02x%02x%02x%02x:%02x%02x%02x%02x%02x%02x:%u"),
         (unsigned int)((struct sockaddr_ipx *)address)->sa_netnum[0] & 0xff,
         (unsigned int)((struct sockaddr_ipx *)address)->sa_netnum[1] & 0xff,
         (unsigned int)((struct sockaddr_ipx *)address)->sa_netnum[2] & 0xff,
@@ -607,21 +957,21 @@ NLbyte *ipx_AddrToString(NLaddress *address, NLbyte *string)
     return string;
 }
 
-void ipx_StringToAddr(NLbyte *string, NLaddress *address)
+NLboolean ipx_StringToAddr(const NLchar *string, NLaddress *address)
 {
     int  val;
-    char buffer[3];
+    NLchar buffer[3];
 
-    buffer[2] = (char)0;
+    buffer[2] = (NLchar)0;
     memset(address, 0, sizeof(NLaddress));
-    address->sa_family = AF_IPX;
-    address->valid = NL_TRUE;
+    ((struct sockaddr_ipx *)address)->sa_family = AF_IPX;
+    address->valid = NL_FALSE;
 
 #define DO(src,dest)    \
-    buffer[0] = string[src];    \
+    buffer[0] = string[(sizeof(NLchar) * src)];    \
     buffer[1] = string[src + 1];    \
-    if(sscanf (buffer, "%x", &val) != 1)   \
-        return; \
+    if(_stscanf (buffer, (const NLchar *)TEXT("%x"), &val) != 1)   \
+        return NL_FALSE; \
     ((struct sockaddr_ipx *)address)->dest = (char)val
 
     DO(0, sa_netnum[0]);
@@ -636,73 +986,82 @@ void ipx_StringToAddr(NLbyte *string, NLaddress *address)
     DO(19, sa_nodenum[5]);
 #undef DO
 
-    (void)sscanf(&string[22], "%d", &val);
+    (void)_stscanf(&string[(sizeof(NLchar) * 22)], (const NLchar *)TEXT("%d"), &val);
     ((struct sockaddr_ipx *)address)->sa_socket = htons((unsigned short)val);
+    address->valid = NL_TRUE;
+    return NL_TRUE;
 }
 
-void ipx_GetLocalAddr(NLsocket socket, NLaddress *address)
+NLboolean ipx_GetLocalAddr(NLsocket socket, NLaddress *address)
 {
     nl_socket_t *sock = nlSockets[socket];
 
-    memcpy(address, ipx_ouraddress, sizeof(NLaddress));
+    memcpy(address, &ipx_ouraddress, sizeof(NLaddress));
 	ipx_SetAddrPort(address, sock->localport);
     address->valid = NL_TRUE;
+    return NL_TRUE;
 }
 
-void ipx_SetLocalAddr(NLaddress *address)
+NLaddress *ipx_GetAllLocalAddr(NLint *count)
 {
-    memcpy(ipx_ouraddress, address, sizeof(NLaddress));
+    *count = 1;
+    memcpy(&ipx_ouraddress_copy, &ipx_ouraddress, sizeof(NLaddress));
+    ipx_ouraddress_copy.valid = NL_TRUE;
+    return &ipx_ouraddress_copy;
 }
 
-NLbyte *ipx_GetNameFromAddr(NLaddress *address, NLbyte *name)
+NLboolean ipx_SetLocalAddr(const NLaddress *address)
+{
+    memcpy(&ipx_ouraddress, address, sizeof(NLaddress));
+    return NL_TRUE;
+}
+
+NLchar *ipx_GetNameFromAddr(const NLaddress *address, NLchar *name)
 {
     return ipx_AddrToString(address, name);
 }
 
-void ipx_GetNameFromAddrAsync(NLaddress *address, NLbyte *name)
+NLboolean ipx_GetNameFromAddrAsync(const NLaddress *address, NLchar *name)
 {
     (void)ipx_AddrToString(address, name);
+    return NL_TRUE;
 }
 
-void ipx_GetAddrFromName(NLbyte *name, NLaddress *address)
+NLboolean ipx_GetAddrFromName(const NLchar *name, NLaddress *address)
 {
     NLint n;
-    char buffer[32];
+    NLchar buffer[(sizeof(NLchar) * 32)];
 
     address->valid = NL_TRUE;
-    n = (NLint)strlen(name);
+    n = (NLint)_tcslen(name);
 
-    if(n == 12)
+    if(n == (sizeof(NLchar) * 12))
     {
-        sprintf(buffer, "00000000:%s:%d", name, ipxport);
-        ipx_StringToAddr (buffer, address);
-        return;
+        _stprintf(buffer, TEXT("00000000:%s:%d"), name, ipxport);
+        return ipx_StringToAddr (buffer, address);
     }
-    if(n == 21)
+    if(n == (sizeof(NLchar) * 21))
     {
-        sprintf(buffer, "%s:%d", name, ipxport);
-        ipx_StringToAddr (buffer, address);
-        return;
+        _stprintf(buffer, TEXT("%s:%d"), name, ipxport);
+        return ipx_StringToAddr (buffer, address);
     }
-    if((n > 21) && (n <= 27))
+    if((n > (sizeof(NLchar) * 21)) && (n <= (sizeof(NLchar) * 27)))
     {
-        ipx_StringToAddr (name, address);
-        return;
+        return ipx_StringToAddr (name, address);
     }
     memset(address, 0, sizeof(NLaddress));
     address->valid = NL_FALSE;
-    return;
+    return NL_FALSE;
 }
 
-void ipx_GetAddrFromNameAsync(NLbyte *name, NLaddress *address)
+NLboolean ipx_GetAddrFromNameAsync(const NLchar *name, NLaddress *address)
 {
-    ipx_GetAddrFromName(name, address);
-	address->valid = NL_TRUE;
+    return ipx_GetAddrFromName(name, address);
 }
 
-NLboolean ipx_AddrCompare(NLaddress *address1, NLaddress *address2)
+NLboolean ipx_AddrCompare(const NLaddress *address1, const NLaddress *address2)
 {
-    if(address1->sa_family != address2->sa_family)
+    if(((struct sockaddr_ipx *)address1)->sa_family != ((struct sockaddr_ipx *)address2)->sa_family)
         return NL_FALSE;
 
     if(memcmp(((struct sockaddr_ipx *)address1)->sa_netnum, ((struct sockaddr_ipx *)address2)->sa_netnum, 4) != 0)
@@ -716,7 +1075,7 @@ NLboolean ipx_AddrCompare(NLaddress *address1, NLaddress *address2)
     return NL_TRUE;
 }
 
-NLushort ipx_GetPortFromAddr(NLaddress *address)
+NLushort ipx_GetPortFromAddr(const NLaddress *address)
 {
     return ntohs(((struct sockaddr_ipx *)address)->sa_socket);
 }
@@ -728,7 +1087,18 @@ void ipx_SetAddrPort(NLaddress *address, NLushort port)
 
 NLint ipx_GetSystemError(void)
 {
-    return sockerrno;
+    NLint err = sockerrno;
+
+#ifdef WINDOWS_APP
+    if(err < WSABASEERR)
+    {
+        if(errno > 0)
+        {
+            err = errno;
+        }
+    }
+#endif
+    return err;
 }
 
 NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, NLint timeout)
@@ -741,6 +1111,7 @@ NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, N
     SOCKET          highest;
     struct timeval  t = {0,0}; /* {seconds, useconds}*/
     struct timeval  *tp = &t;
+    NLboolean       result;
 
     nlGroupLock();
     highest = nlGroupGetFdset(group, &fdset);
@@ -752,10 +1123,10 @@ NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, N
         return NL_INVALID;
     }
 
-    nlGroupGetSockets(group, ptemp, &numsockets);
+    result = nlGroupGetSocketsINT(group, ptemp, &numsockets);
     nlGroupUnlock();
 
-    if(numsockets < 0)
+    if(result == NL_FALSE)
     {
         /* any error is set by nlGroupGetSockets */
         return NL_INVALID;
@@ -780,11 +1151,15 @@ NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, N
     switch(name) {
 
     case NL_READ_STATUS:
-        numselect = select(highest + 1, &fdset, NULL, NULL, tp);
+        numselect = select((int)highest, &fdset, NULL, NULL, tp);
         break;
 
     case NL_WRITE_STATUS:
-        numselect = select(highest + 1, NULL, &fdset, NULL, tp);
+        numselect = select((int)highest, NULL, &fdset, NULL, tp);
+        break;
+
+    case NL_ERROR_STATUS:
+        numselect = select((int)highest, NULL, NULL, &fdset, tp);
         break;
 
     default:
@@ -795,11 +1170,17 @@ NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, N
     {
         if(sockerrno == ENOTSOCK)
         {
+            /* one of the sockets has been closed */
             nlSetError(NL_INVALID_SOCKET);
+        }
+        else if(sockerrno == EINTR)
+        {
+            /* select was interrupted by the system, maybe because the app is exiting */
+            return 0;
         }
         else
         {
-            nlSetError(NL_SOCKET_ERROR);
+            nlSetError(NL_SYSTEM_ERROR);
         }
         return NL_INVALID;
     }
@@ -823,7 +1204,7 @@ NLint ipx_PollGroup(NLint group, NLenum name, NLsocket *sockets, NLint number, N
     return count;
 }
 
-void ipx_Hint(NLenum name, NLint arg)
+NLboolean ipx_Hint(NLenum name, NLint arg)
 {
     switch(name) {
 
@@ -837,7 +1218,9 @@ void ipx_Hint(NLenum name, NLint arg)
 
     default:
         nlSetError(NL_INVALID_ENUM);
+        return NL_FALSE;
     }
+    return NL_TRUE;
 }
 
 #endif /* NL_INCLUDE_IPX */

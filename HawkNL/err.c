@@ -22,38 +22,33 @@
 
 #include "nlinternal.h"
 
-
-#ifdef NL_THREAD_SAFE
-
+#ifdef WINDOWS_APP
 /* Windows systems */
-#if defined WIN32 || defined WIN64
-  #ifdef _MSC_VER
-    #pragma warning (disable:4201)
-    #pragma warning (disable:4214)
-	#pragma warning (disable:4115)
-	#pragma warning (disable:4514)
-	#pragma warning (disable:4127)
-  #endif /* _MSC_VER */
+#define NL_WIN_THREADS
 
-  #define WIN32_LEAN_AND_MEAN
-  #include <windows.h>
-  #include <winsock.h>
+#ifdef _MSC_VER
+#pragma warning (disable:4201)
+#pragma warning (disable:4214)
+#endif /* _MSC_VER */
 
-  #ifdef _MSC_VER
-    #pragma warning (default:4201)
-    #pragma warning (default:4214)
-    #pragma warning (default:4115)
-  #endif /* _MSC_VER */
+#define WIN32_LEAN_AND_MEAN
+#include <winsock.h>
+
+#ifdef _MSC_VER
+#pragma warning (default:4201)
+#pragma warning (default:4214)
+#endif /* _MSC_VER */
+
 #endif
 
 #ifdef NL_WIN_THREADS
 /* native Windows */
-DWORD key = 0xFFFFFFFF;
+static DWORD key = (DWORD)0xFFFFFFFF;
 #else
 /* POSIX systems */
 #include <pthread.h>
 
-#define KEY_NULL    ((pthread_key_t)0)
+#define KEY_NULL    ((pthread_key_t)-1)
 static pthread_key_t key = KEY_NULL;
 #endif
 
@@ -62,13 +57,13 @@ void nlSetError(NLenum err)
 
 #ifdef NL_WIN_THREADS
     /* check to see if we need to initialize */
-    if(key == 0xFFFFFFFF)
+    if(key == (DWORD)0xFFFFFFFF)
     {
         key = TlsAlloc();
     }
-    if(key != 0xFFFFFFFF)
+    if(key != (DWORD)0xFFFFFFFF)
     {
-        int  result = TlsSetValue(key, (LPVOID)err);
+        (void)TlsSetValue(key, (LPVOID)err);
     }
 #else
     /* check to see if we need to initialize */
@@ -85,57 +80,40 @@ void nlSetError(NLenum err)
 
 NL_EXP NLenum NL_APIENTRY nlGetError(void)
 {
+    NLenum  result;
 #ifdef NL_WIN_THREADS
     /* check to see if we need to initialize */
-    if(key == 0xFFFFFFFF)
+    if(key == (DWORD)0xFFFFFFFF)
     {
         key = TlsAlloc();
+        if(key == (DWORD)0xFFFFFFFF)
+            return NL_TLS_ERROR;
+        else
+            return NL_NO_ERROR;
     }
-    if(key != 0xFFFFFFFF)
+    else
     {
         int     lasterror = WSAGetLastError();
-        NLenum  result;
 
         result = (NLenum)TlsGetValue(key);
         WSASetLastError(lasterror);
         return result;
     }
-    return NL_TLS_ERROR;
 #else
     /* check to see if we need to initialize */
     if(key == KEY_NULL)
     {
-        (void)pthread_key_create(&key, NULL);
+        if(pthread_key_create(&key, NULL) != 0)
+            return NL_TLS_ERROR;
+        else
+            return NL_NO_ERROR;
     }
-    if(key != KEY_NULL)
+    else
     {
-#if defined WIN32 || defined WIN64
-        int     lasterror = WSAGetLastError();
-#endif
-        NLenum  result;
-
         result = (NLenum)pthread_getspecific(key);
-#if defined WIN32 || defined WIN64
-        WSASetLastError(lasterror);
-#endif
         return result;
     }
-    return NL_TLS_ERROR;
 #endif
 }
 
-#else
-/* not thread safe */
-static NLenum error;
 
-void nlSetError(NLenum err)
-{
-    error = err;
-}
-
-NL_EXP NLenum NL_APIENTRY nlGetError(void)
-{
-    return error;
-}
-
-#endif /* NL_THREAD_SAFE */

@@ -20,23 +20,23 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
-/*
-  The low level API, and some of the code, was inspired from the
-  Quake source code release, courtesy of id Software. However,
-  it has been heavily modified for use in HawkNL.
-*/
-
-#include <stdlib.h>
 #include <string.h>
 #include "nlinternal.h"
+#include "sock.h"
+#include "serial.h"
+#include "parallel.h"
 
-#if (defined WIN32 || defined WIN64) && defined NL_INCLUDE_IPX
-#define MAX_NET_DRIVERS     3
-#else
-#define MAX_NET_DRIVERS     2
+#ifdef NL_INCLUDE_LOOPBACK
+#include "loopback.h"
 #endif
 
-volatile nl_state_t nlState = {NL_FALSE};
+#if defined WINDOWS_APP && defined NL_INCLUDE_IPX
+  #include "ipx.h"
+#endif
+
+#define MAX_NET_DRIVERS     6
+
+volatile nl_state_t nlState = {NL_FALSE, NL_TRUE};
 
 /* mutexes for global variables */
 static NLmutex  socklock, instatlock, outstatlock;
@@ -48,18 +48,19 @@ static volatile nl_stats_t nlOutstats;
 
 static volatile NLsocket nlNextsocket = 0;
 static volatile NLint nlNumsockets = 0;
+static volatile NLint nlMaxNumsockets = NL_MIN_SOCKETS; /* this is dynamic, and can grow as needed */
 static volatile NLint nlInitCount = 0;
 
-nl_socket_t **nlSockets;
+pnl_socket_t *nlSockets = NULL;
 
 /* the current selected driver */
 static nl_netdriver_t /*@null@*/*driver = NULL;
 
-static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
+static nl_netdriver_t netdrivers[] =
 {
     {
-        (NLbyte*)"NL_IP",
-        (NLbyte*)"NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST NL_MULTICAST",
+        (NLchar*)TEXT("NL_IP"),
+        (NLchar*)TEXT("NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST NL_UDP_MULTICAST NL_MULTICAST"),
         NL_IP,
         NL_FALSE,
         sock_Init,
@@ -74,6 +75,7 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         sock_AddrToString,
         sock_StringToAddr,
         sock_GetLocalAddr,
+        sock_GetAllLocalAddr,
         sock_SetLocalAddr,
         sock_GetNameFromAddr,
         sock_GetNameFromAddrAsync,
@@ -86,10 +88,11 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         sock_PollGroup,
         sock_Hint
     }
+#ifdef NL_INCLUDE_LOOPBACK
     ,
     {
-        (NLbyte*)"NL_LOOP_BACK",
-        (NLbyte*)"NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST",
+        (NLchar*)TEXT("NL_LOOP_BACK"),
+        (NLchar*)TEXT("NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST"),
         NL_LOOP_BACK,
         NL_FALSE,
         loopback_Init,
@@ -104,6 +107,7 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         loopback_AddrToString,
         loopback_StringToAddr,
         loopback_GetLocalAddr,
+        loopback_GetAllLocalAddr,
         loopback_SetLocalAddr,
         loopback_GetNameFromAddr,
         loopback_GetNameFromAddrAsync,
@@ -116,11 +120,12 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         loopback_PollGroup,
         loopback_Hint
     }
-#if (defined WIN32 || defined WIN64) && defined NL_INCLUDE_IPX
+#endif /* NL_INCLUDE_LOOPBACK */
+#if defined WINDOWS_APP && defined NL_INCLUDE_IPX
     ,
     {
-        (NLbyte*)"NL_IPX",
-        (NLbyte*)"NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST",
+        (NLchar*)TEXT("NL_IPX"),
+        (NLchar*)TEXT("NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST"),
         NL_IPX,
         NL_FALSE,
         ipx_Init,
@@ -135,6 +140,7 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         ipx_AddrToString,
         ipx_StringToAddr,
         ipx_GetLocalAddr,
+        ipx_GetAllLocalAddr,
         ipx_SetLocalAddr,
         ipx_GetNameFromAddr,
         ipx_GetNameFromAddrAsync,
@@ -147,7 +153,11 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
         ipx_PollGroup,
         ipx_Hint
     }
-#endif
+#endif /* WINDOWS_APP && NL_INCLUDE_IPX */
+    ,
+    {
+        (NLchar*)NULL,
+    }
 };
 
 /*
@@ -156,39 +166,105 @@ static nl_netdriver_t netdrivers[MAX_NET_DRIVERS] =
 
 */
 
+static NLboolean isSafeString(const NLchar *string)
+{
+    int i;
+    NLboolean   nullfound = NL_FALSE;
+
+    /* make sure string is null terminated at less than NL_MAX_STRING_LENGTH */
+    for(i=0;i<NL_MAX_STRING_LENGTH;i++)
+    {
+        if(string[i] == (NLchar)'\0')
+        {
+            nullfound = NL_TRUE;
+            break;
+        }
+    }
+    if(nullfound == NL_FALSE)
+    {
+        return NL_FALSE;
+    }
+    /* check for formating characters */
+    if(_tcsrchr(string, '%') != NULL)
+    {
+        return NL_FALSE;
+    }
+    return NL_TRUE;
+}
+
+static void safecat(NLchar *dest, const NLchar *src)
+{
+    int len;
+
+    if(isSafeString(dest) != NL_TRUE || isSafeString(src) != NL_TRUE)
+    {
+        /* don't do anything */
+        return;
+    }
+    len = (int)_tcslen(dest);
+    if( len < (NL_MAX_STRING_LENGTH - 1))
+    {
+        _tcsncat(dest, src, (size_t)(NL_MAX_STRING_LENGTH - len));
+        dest[NL_MAX_STRING_LENGTH - 1] = (NLchar)'\0';
+    }
+}
+
 NLsocket nlGetNewSocket(void)
 {
     NLsocket    newsocket = NL_INVALID;
     nl_socket_t *sock = NULL;
 
-    nlMutexLock(&socklock);
-    if(nlNumsockets == NL_MAX_INT_SOCKETS)
+    if(nlMutexLock(&socklock) == NL_FALSE)
     {
-        nlSetError(NL_OUT_OF_SOCKETS);
-        nlMutexUnlock(&socklock);
         return NL_INVALID;
     }
+    if(nlNumsockets == nlMaxNumsockets)
+    {
+        nl_socket_t **temp;
+        NLint       tempmaxnumsockets = nlMaxNumsockets;
+
+        /* expand the list of sockets pointers */
+        tempmaxnumsockets *= 2;
+        temp = (nl_socket_t **)realloc((void *)nlSockets, tempmaxnumsockets * sizeof(nl_socket_t *));
+        if(temp == NULL)
+        {
+            (void)nlMutexUnlock(&socklock);
+            nlSetError(NL_OUT_OF_MEMORY);
+            return NL_INVALID;
+        }
+        nlSockets = temp;
+        nlMaxNumsockets = tempmaxnumsockets;
+    }
     /* get a socket number */
-    if(nlNumsockets == nlNextsocket)
+    if(nlNumsockets == (NLint)nlNextsocket)
     {
         newsocket = nlNextsocket++;
         /* allocate the memory */
         sock = (nl_socket_t *)malloc(sizeof(nl_socket_t));
         if(sock == NULL)
         {
+            (void)nlMutexUnlock(&socklock);
             nlSetError(NL_OUT_OF_MEMORY);
-            nlMutexUnlock(&socklock);
             return NL_INVALID;
         }
         else
         {
             nlSockets[newsocket] = sock;
         }
+        /* clear the structure */
+        memset(sock, 0, sizeof(nl_socket_t));
+
+        if(nlMutexInit(&sock->readlock) == NL_FALSE || nlMutexInit(&sock->writelock) == NL_FALSE)
+        {
+            (void)nlMutexUnlock(&socklock);
+            return NL_INVALID;
+        }
     }
     else
     /* there is an open socket slot somewhere below nlNextsocket */
     {
-        NLint   i;
+        NLsocket    i;
+        NLmutex     readlock, writelock;
 
         for(i=0;i<nlNextsocket;i++)
         {
@@ -197,39 +273,59 @@ NLsocket nlGetNewSocket(void)
                 /* found an open socket slot */
                 newsocket = i;
                 sock = nlSockets[i];
+                break;
             }
         }
         /* let's check just to make sure we did find a socket */
         if(sock == NULL)
         {
+            (void)nlMutexUnlock(&socklock);
             nlSetError(NL_OUT_OF_MEMORY);
-            nlMutexUnlock(&socklock);
             return NL_INVALID;
         }
+        readlock = sock->readlock;
+        writelock = sock->writelock;
+        /* clear the structure */
+        memset(sock, 0, sizeof(nl_socket_t));
+        sock->readlock = readlock;
+        sock->writelock = writelock;
     }
-
-    /* clear the structure */
-    memset(sock, 0, sizeof(nl_socket_t));
 
     /* sockets are blocking until set for non-blocking */
     sock->blocking = nlBlocking;
-    nlMutexInit(&sock->readlock);
-    nlMutexInit(&sock->writelock);
-    nlLockSocket(newsocket, NL_BOTH);
     sock->inuse = NL_TRUE;
     nlNumsockets++;
-    nlMutexUnlock(&socklock);
+    (void)nlMutexUnlock(&socklock);
     return newsocket;
+}
+
+static void nlReturnSocket(NLsocket socket)
+{
+    nl_socket_t     *sock = nlSockets[socket];
+
+    if((sock != NULL) && (sock->inuse == NL_TRUE))
+    {
+        sock->inuse = NL_FALSE;
+        if(sock->inbuf != NULL)
+        {
+            free(sock->inbuf);
+            sock->inbuf = NULL;
+        }
+        if(sock->outbuf != NULL)
+        {
+            free(sock->outbuf);
+            sock->outbuf = NULL;
+        }
+        nlNumsockets--;
+    }
 }
 
 void nlFreeSocket(NLsocket socket)
 {
     nl_socket_t     *sock = nlSockets[socket];
 
-    if((sock != NULL) && (sock->inuse == NL_TRUE))
+    if(sock != NULL)
     {
-        nlMutexLock(&socklock);
-        sock->inuse = NL_FALSE;
         if(sock->inbuf != NULL)
         {
             free(sock->inbuf);
@@ -238,10 +334,9 @@ void nlFreeSocket(NLsocket socket)
         {
             free(sock->outbuf);
         }
-        nlMutexDestroy(&sock->readlock);
-        nlMutexDestroy(&sock->writelock);
-        nlNumsockets--;
-        nlMutexUnlock(&socklock);
+        (void)nlMutexDestroy(&sock->readlock);
+        (void)nlMutexDestroy(&sock->writelock);
+        free(sock);
     }
 }
 
@@ -249,7 +344,7 @@ NLboolean nlIsValidSocket(NLsocket socket)
 {
     nl_socket_t *sock;
 
-    if(socket < 0 || socket > NL_MAX_INT_SOCKETS)
+    if(socket < 0 || socket > nlMaxNumsockets)
     {
         nlSetError(NL_INVALID_SOCKET);
         return NL_FALSE;
@@ -268,31 +363,42 @@ NLboolean nlIsValidSocket(NLsocket socket)
     return NL_TRUE;
 }
 
-void nlLockSocket(NLsocket socket, NLint which)
+NLboolean nlLockSocket(NLsocket socket, NLint which)
 {
     nl_socket_t     *sock = nlSockets[socket];
 
     if((which&NL_READ) > 0)
     {
-        nlMutexLock(&sock->readlock);
+        if(nlMutexLock(&sock->readlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
     }
     if((which&NL_WRITE) > 0)
     {
-        nlMutexLock(&sock->writelock);
+        if(nlMutexLock(&sock->writelock) == NL_FALSE)
+        {
+            if((which&NL_READ) > 0)
+            {
+                (void)nlMutexUnlock(&sock->readlock);
+            }
+            return NL_FALSE;
+        }
     }
+    return NL_TRUE;
 }
 
 void nlUnlockSocket(NLsocket socket, NLint which)
 {
     nl_socket_t     *sock = nlSockets[socket];
 
-    if((which&NL_READ) > 0)
-    {
-        nlMutexUnlock(&sock->readlock);
-    }
     if((which&NL_WRITE) > 0)
     {
-        nlMutexUnlock(&sock->writelock);
+        (void)nlMutexUnlock(&sock->writelock);
+    }
+    if((which&NL_READ) > 0)
+    {
+        (void)nlMutexUnlock(&sock->readlock);
     }
 }
 
@@ -306,6 +412,7 @@ static void nlUpdateStats(volatile nl_stats_t *stats, NLint nbytes, NLint npacke
         /* must be the first time through */
         stats->stime = t;
         stats->lastbucket = -1;
+        stats->firstround = NL_TRUE;
     }
     /* do the basic update */
     stats->packets += npackets;
@@ -344,8 +451,17 @@ static void nlUpdateStats(volatile nl_stats_t *stats, NLint nbytes, NLint npacke
         if(stats->lastbucket == NL_NUM_BUCKETS)
         {
             stats->lastbucket = 0;
+            stats->firstround = NL_FALSE;
         }
         stats->bucket[stats->lastbucket] = stats->curbytes;
+        if(stats->firstround == NL_TRUE)
+        {
+            /* this corrects the stats for the first second */
+            for(i=stats->lastbucket + 1;i<NL_NUM_BUCKETS;i++)
+            {
+                stats->bucket[i] = stats->curbytes;
+            }
+        }
         stats->curbytes = 0;
 
         for(i=0;i<NL_NUM_BUCKETS;i++)
@@ -363,9 +479,9 @@ static void nlUpdateInStats(NLint nbytes, NLint npackets)
     {
         return;
     }
-    nlMutexLock(&instatlock);
+    (void)nlMutexLock(&instatlock);
     nlUpdateStats(&nlInstats, nbytes, npackets);
-    nlMutexUnlock(&instatlock);
+    (void)nlMutexUnlock(&instatlock);
 }
 
 static void nlUpdateOutStats(NLint nbytes, NLint npackets)
@@ -374,9 +490,9 @@ static void nlUpdateOutStats(NLint nbytes, NLint npackets)
     {
         return;
     }
-    nlMutexLock(&outstatlock);
+    (void)nlMutexLock(&outstatlock);
     nlUpdateStats(&nlOutstats, nbytes, npackets);
-    nlMutexUnlock(&outstatlock);
+    (void)nlMutexUnlock(&outstatlock);
 }
 
 static void nlUpdateSocketInStats(NLsocket socket, NLint nbytes, NLint npackets)
@@ -393,7 +509,7 @@ static void nlUpdateSocketInStats(NLsocket socket, NLint nbytes, NLint npackets)
 static void nlUpdateSocketOutStats(NLsocket socket, NLint nbytes, NLint npackets)
 {
     nl_socket_t     *sock = nlSockets[socket];
-    
+
     if(nlState.socketStats == NL_FALSE)
     {
         return;
@@ -415,52 +531,60 @@ NL_EXP NLboolean NL_APIENTRY nlInit(void)
 {
     int i, numdrivers = 0;
 
+    nlSetError(NL_NO_ERROR);
+    /* init socket memory, mutexes, and global variables */
     if(nlInitCount == 0)
     {
-        nlSockets = (nl_socket_t **)malloc(NL_MAX_INT_SOCKETS * sizeof(nl_socket_t *));
-        memset(nlSockets, 0, NL_MAX_INT_SOCKETS * sizeof(nl_socket_t *));
-    }
-    if(nlSockets == NULL)
-    {
-        nlSetError(NL_OUT_OF_MEMORY);
-        nlShutdown();
-        return NL_FALSE;
-    }
-    if(nlGroupInit() == NL_FALSE)
-    {
-        nlShutdown();
-        return NL_FALSE;
-    }
-    /* init the mutexes and global variables */
-    if(nlInitCount == 0)
-    {
-        nlMutexInit(&socklock);
-        nlMutexInit(&instatlock);
-        nlMutexInit(&outstatlock);
+        nlMaxNumsockets = NL_MIN_SOCKETS;
+        if(nlSockets == NULL)
+        {
+            nlSockets = (nl_socket_t **)malloc(nlMaxNumsockets * sizeof(nl_socket_t *));
+        }
+        if(nlSockets == NULL)
+        {
+            nlSetError(NL_OUT_OF_MEMORY);
+            nlShutdown();
+            return NL_FALSE;
+        }
+        if(nlGroupInit() == NL_FALSE)
+        {
+            nlShutdown();
+            return NL_FALSE;
+        }
+        if(nlMutexInit(&socklock) == NL_FALSE || nlMutexInit(&instatlock) == NL_FALSE ||
+            nlMutexInit(&outstatlock) == NL_FALSE)
+        {
+            nlShutdown();
+            return NL_FALSE;
+        }
         nlNumsockets = 0;
         nlNextsocket = 0;
         nlBlocking = NL_FALSE;
         nlState.socketStats = NL_FALSE;
         nlState.nl_big_endian_data = NL_TRUE;
-    }
 
-    for(i=0;i<MAX_NET_DRIVERS;i++)
-    {
-        if(netdrivers[i].initialized == NL_TRUE)
+        for(i=0;i<MAX_NET_DRIVERS;i++)
         {
-            numdrivers++;
+            if(netdrivers[i].name == NULL)
+            {
+                break;
+            }
+            if(netdrivers[i].initialized == NL_TRUE)
+            {
+                numdrivers++;
+            }
+            else if(netdrivers[i].Init() == NL_TRUE)
+            {
+                netdrivers[i].initialized = NL_TRUE;
+                numdrivers++;
+            }
         }
-        else if(netdrivers[i].Init() == NL_TRUE)
+        if(numdrivers == 0)
         {
-            netdrivers[i].initialized = NL_TRUE;
-            numdrivers++;
+            nlSetError(NL_NO_NETWORK);
+            nlShutdown();
+            return NL_FALSE;
         }
-    }
-    if(numdrivers == 0)
-    {
-        nlSetError(NL_NO_NETWORK);
-        nlShutdown();
-        return NL_FALSE;
     }
     nlInitCount++;
     return NL_TRUE;
@@ -478,25 +602,27 @@ NL_EXP void NL_APIENTRY nlShutdown(void)
     {
         return;
     }
-    /* close any open sockets */
-    if(nlSockets != NULL)
-    {
-        NLint i;
-
-        for(i=0;i<NL_MAX_INT_SOCKETS;i++)
-        {
-            if(nlSockets[i] != NULL)
-            {
-                nlClose(i);
-                free(nlSockets[i]);
-            }
-        }
-        free(nlSockets);
-        nlSockets = NULL;
-    }
-    /* now we can shutdown the driver */
     if(driver != NULL)
     {
+        /* close any open sockets */
+        (void)nlMutexLock(&socklock);
+        if(nlSockets != NULL)
+        {
+            NLsocket i;
+
+            for(i=0;i<nlNextsocket;i++)
+            {
+                if(nlSockets[i] != NULL)
+                {
+                    if(nlIsValidSocket(i) == NL_TRUE)
+                    {
+                        driver->Close(i);
+                        nlThreadYield();
+                    }
+                }
+            }
+        }
+        /* now we can shutdown the driver */
         driver->Shutdown();
         driver->initialized = NL_FALSE;
         driver = NULL;
@@ -505,11 +631,37 @@ NL_EXP void NL_APIENTRY nlShutdown(void)
     {
         nlSetError(NL_NO_NETWORK);
     }
+
+    nlThreadSleep(1);
+
+    /* now free all the socket structures */
+    if(nlSockets != NULL)
+    {
+        NLsocket i;
+
+        for(i=0;i<nlNextsocket;i++)
+        {
+            if(nlSockets[i] != NULL)
+            {
+                if(nlIsValidSocket(i) == NL_TRUE)
+                {
+                    (void)nlLockSocket(i, NL_BOTH);
+                    nlReturnSocket(i);
+                    nlUnlockSocket(i, NL_BOTH);
+                    nlThreadYield();
+                }
+                nlFreeSocket(i);
+            }
+        }
+        free(nlSockets);
+        nlSockets = NULL;
+    }
+    (void)nlMutexUnlock(&socklock);
     nlGroupShutdown();
     /* destroy the mutexes */
-    nlMutexDestroy(&socklock);
-    nlMutexDestroy(&instatlock);
-    nlMutexDestroy(&outstatlock);
+    (void)nlMutexDestroy(&socklock);
+    (void)nlMutexDestroy(&instatlock);
+    (void)nlMutexDestroy(&outstatlock);
 }
 
 /*
@@ -524,7 +676,10 @@ NL_EXP NLboolean NL_APIENTRY nlListen(NLsocket socket)
         {
             NLboolean result;
 
-            nlLockSocket(socket, NL_BOTH);
+            if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
             result = driver->Listen(socket);
             nlUnlockSocket(socket, NL_BOTH);
             return result;
@@ -549,7 +704,10 @@ NL_EXP NLsocket NL_APIENTRY nlAcceptConnection(NLsocket socket)
         {
             NLsocket newsocket;
 
-            nlLockSocket(socket, NL_BOTH);
+            if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+            {
+                return NL_INVALID;
+            }
             newsocket = driver->AcceptConnection(socket);
             nlUnlockSocket(socket, NL_BOTH);
             if(newsocket != NL_INVALID)
@@ -576,15 +734,7 @@ NL_EXP NLsocket NL_APIENTRY nlOpen(NLushort port, NLenum type)
 {
     if(driver)
     {
-        NLsocket socket;
-
-        socket = driver->Open(port, type);
-        if(socket != NL_INVALID)
-        {
-            /* the new socket was locked when it is created */
-            nlUnlockSocket(socket, NL_BOTH);
-        }
-        return socket;
+        return (driver->Open(port, type));
     }
 
     nlSetError(NL_NO_NETWORK);
@@ -595,7 +745,7 @@ NL_EXP NLsocket NL_APIENTRY nlOpen(NLushort port, NLenum type)
    Connect a socket to a remote address.
 */
 
-NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, const NLaddress *address)
 {
     if(driver)
     {
@@ -609,7 +759,10 @@ NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, NLaddress *address)
             {
                 NLboolean result;
 
-                nlLockSocket(socket, NL_BOTH);
+                if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+                {
+                    return NL_FALSE;
+                }
                 result = driver->Connect(socket, address);
                 nlUnlockSocket(socket, NL_BOTH);
                 return result;
@@ -629,24 +782,38 @@ NL_EXP NLboolean NL_APIENTRY nlConnect(NLsocket socket, NLaddress *address)
    Close the socket.
 */
 
-NL_EXP void NL_APIENTRY nlClose(NLsocket socket)
+NL_EXP NLboolean NL_APIENTRY nlClose(NLsocket socket)
 {
     if(driver)
     {
         if(nlIsValidSocket(socket) == NL_TRUE)
         {
-            nlLockSocket(socket, NL_BOTH);
+            if(nlMutexLock(&socklock) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
+            if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
             driver->Close(socket);
+            /* return the socket for reuse */
+            nlReturnSocket(socket);
             nlUnlockSocket(socket, NL_BOTH);
-            nlFreeSocket(socket);
+            if(nlMutexUnlock(&socklock) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
+            return NL_TRUE;
         }
         else
         {
             nlSetError(NL_INVALID_SOCKET);
+            return NL_TRUE;
         }
-        return;
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
@@ -667,7 +834,10 @@ NL_EXP NLint NL_APIENTRY nlRead(NLsocket socket, NLvoid *buffer, NLint nbytes)
             {
                 NLint received;
 
-                nlLockSocket(socket, NL_READ);
+                if(nlLockSocket(socket, NL_READ) == NL_FALSE)
+                {
+                    return NL_INVALID;
+                }
                 received = driver->Read(socket, buffer, nbytes);
 
                 if(received > 0)
@@ -693,20 +863,23 @@ NL_EXP NLint NL_APIENTRY nlRead(NLsocket socket, NLvoid *buffer, NLint nbytes)
    Writes to a socket.
 */
 
-NL_EXP NLint NL_APIENTRY nlWrite(NLsocket socket, NLvoid *buffer, NLint nbytes)
+NL_EXP NLint NL_APIENTRY nlWrite(NLsocket socket, const NLvoid *buffer, NLint nbytes)
 {
     if(driver)
     {
         /* check for group */
         if(socket >= NL_FIRST_GROUP)
         {
-            NLint   number = NL_MAX_GROUP_SOCKETS;
-            NLint   s[NL_MAX_GROUP_SOCKETS];
-            NLint   i;
-            NLint   sent = nbytes;
-            
-            nlGroupGetSockets(socket, s, &number);
-            
+            NLint       number = NL_MAX_GROUP_SOCKETS;
+            NLsocket    s[NL_MAX_GROUP_SOCKETS];
+            NLint       i;
+            NLint       sent = nbytes;
+
+            if(nlGroupGetSockets((NLint)socket, (NLsocket *)s, &number) == NL_FALSE)
+            {
+                return NL_INVALID;
+            }
+
             for(i=0;i<number;i++)
             {
                 NLint result;
@@ -734,7 +907,10 @@ NL_EXP NLint NL_APIENTRY nlWrite(NLsocket socket, NLvoid *buffer, NLint nbytes)
                 {
                     NLint sent;
 
-                    nlLockSocket(socket, NL_WRITE);
+                    if(nlLockSocket(socket, NL_WRITE) == NL_FALSE)
+                    {
+                        return NL_INVALID;
+                    }
                     sent = driver->Write(socket, buffer, nbytes);
                     if(sent > 0)
                     {
@@ -778,14 +954,14 @@ NL_EXP NLint NL_APIENTRY nlPollGroup(NLint group, NLenum name, /*@out@*/ NLsocke
     return 0;
 }
 
-NL_EXP void NL_APIENTRY nlHint(NLenum name, NLint arg)
+NL_EXP NLboolean NL_APIENTRY nlHint(NLenum name, NLint arg)
 {
     if(driver)
     {
-        driver->Hint(name, arg);
-        return;
+        return driver->Hint(name, arg);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 
@@ -793,7 +969,7 @@ NL_EXP void NL_APIENTRY nlHint(NLenum name, NLint arg)
    Converts the numeric address in the NLaddress structure to a string.
 */
 
-NL_EXP /*@null@*/ NLbyte* NL_APIENTRY nlAddrToString(NLaddress *address, NLbyte *string)
+NL_EXP /*@null@*/ NLchar* NL_APIENTRY nlAddrToString(const NLaddress *address, NLchar *string)
 {
     if(driver)
     {
@@ -813,19 +989,24 @@ NL_EXP /*@null@*/ NLbyte* NL_APIENTRY nlAddrToString(NLaddress *address, NLbyte 
    and adds it to the NLaddress structure.
 */
 
-NL_EXP void NL_APIENTRY nlStringToAddr(NLbyte *string, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlStringToAddr(const NLchar *string, NLaddress *address)
 {
     if(driver)
     {
         if((string == NULL) || (address == NULL))
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
-        driver->StringToAddr(string, address);
-        return;
+        if(isSafeString(string) == NL_FALSE)
+        {
+            nlSetError(NL_STRING_OVER_RUN);
+            return NL_FALSE;
+        }
+        return driver->StringToAddr(string, address);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
@@ -834,21 +1015,24 @@ NL_EXP void NL_APIENTRY nlStringToAddr(NLbyte *string, NLaddress *address)
 */
 
 /* Note: the drivers put a copy of address in nl_socket_t, so we just need to copy it */
-NL_EXP void NL_APIENTRY nlGetRemoteAddr(NLsocket socket, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlGetRemoteAddr(NLsocket socket, NLaddress *address)
 {
     if(driver)
     {
         if(address == NULL)
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
         if(nlIsValidSocket(socket) == NL_TRUE)
         {
             nl_socket_t *sock = nlSockets[socket];
 
-            nlLockSocket(socket, NL_READ);
-            memcpy(address, &sock->address, sizeof(NLaddress));
+            if(nlLockSocket(socket, NL_READ) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
+            memcpy(address, &sock->addressin, sizeof(NLaddress));
 			address->valid = NL_TRUE;
             nlUnlockSocket(socket, NL_READ);
         }
@@ -856,17 +1040,19 @@ NL_EXP void NL_APIENTRY nlGetRemoteAddr(NLsocket socket, NLaddress *address)
         {
             nlSetError(NL_INVALID_SOCKET);
             memset(address, 0, sizeof(NLaddress));
+            return NL_FALSE;
         }
-        return;
+        return NL_TRUE;
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Sets the remote address of an unconnected UDP socket.
 */
 
-NL_EXP void NL_APIENTRY nlSetRemoteAddr(NLsocket socket, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlSetRemoteAddr(NLsocket socket, const NLaddress *address)
 {
     if(driver)
     {
@@ -875,32 +1061,36 @@ NL_EXP void NL_APIENTRY nlSetRemoteAddr(NLsocket socket, NLaddress *address)
             if(address == NULL)
             {
                 nlSetError(NL_NULL_POINTER);
-                return;
+                return NL_FALSE;
             }
             else
             {
                 nl_socket_t *sock = nlSockets[socket];
 
-                nlLockSocket(socket, NL_BOTH);
-                memcpy(&sock->address, address, sizeof(NLaddress));
-                nlUnlockSocket(socket, NL_BOTH);
+                if(nlLockSocket(socket, NL_WRITE) == NL_FALSE)
+                {
+                    return NL_FALSE;
+                }
+                memcpy(&sock->addressout, address, sizeof(NLaddress));
+                nlUnlockSocket(socket, NL_WRITE);
             }
         }
         else
         {
             nlSetError(NL_INVALID_SOCKET);
-            memset(address, 0, sizeof(NLaddress));
+            return NL_FALSE;
         }
-        return;
+        return NL_TRUE;
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Gets the local address.
 */
 
-NL_EXP void NL_APIENTRY nlGetLocalAddr(NLsocket socket, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlGetLocalAddr(NLsocket socket, NLaddress *address)
 {
     if(driver)
     {
@@ -909,41 +1099,65 @@ NL_EXP void NL_APIENTRY nlGetLocalAddr(NLsocket socket, NLaddress *address)
             if(address == NULL)
             {
                 nlSetError(NL_NULL_POINTER);
-                return;
+                return NL_FALSE;
             }
-            nlLockSocket(socket, NL_READ);
-            driver->GetLocalAddr(socket, address);
+            if(nlLockSocket(socket, NL_READ) == NL_FALSE)
+            {
+                return NL_FALSE;
+            }
+            if(driver->GetLocalAddr(socket, address) == NL_FALSE)
+            {
+                nlUnlockSocket(socket, NL_READ);
+                return NL_FALSE;
+            }
             nlUnlockSocket(socket, NL_READ);
         }
         else
         {
             nlSetError(NL_INVALID_SOCKET);
+            return NL_FALSE;
         }
-        return;
+        return NL_TRUE;
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
-NL_EXP void NL_APIENTRY nlSetLocalAddr(NLaddress *address)
+NL_EXP NLaddress * NL_APIENTRY nlGetAllLocalAddr(/*@out@*/ NLint *count)
+{
+    if(driver)
+    {
+        if(count == NULL)
+        {
+            nlSetError(NL_NULL_POINTER);
+            return NULL;
+        }
+        return driver->GetAllLocalAddr(count);
+    }
+    nlSetError(NL_NO_NETWORK);
+    return NULL;
+}
+
+NL_EXP NLboolean NL_APIENTRY nlSetLocalAddr(const NLaddress *address)
 {
     if(driver)
     {
         if(address == NULL)
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
-        driver->SetLocalAddr(address);
-        return;
+        return driver->SetLocalAddr(address);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Resolves the name from the address.
 */
 
-NL_EXP /*@null@*/ NLbyte* NL_APIENTRY nlGetNameFromAddr(NLaddress *address, NLbyte *name)
+NL_EXP /*@null@*/ NLchar* NL_APIENTRY nlGetNameFromAddr(const NLaddress *address, NLchar *name)
 {
     if(driver)
     {
@@ -962,63 +1176,74 @@ NL_EXP /*@null@*/ NLbyte* NL_APIENTRY nlGetNameFromAddr(NLaddress *address, NLby
    Resolves the name from the address asynchronously.
 */
 
-NL_EXP void NL_APIENTRY nlGetNameFromAddrAsync(NLaddress *address, NLbyte *name)
+NL_EXP NLboolean NL_APIENTRY nlGetNameFromAddrAsync(const NLaddress *address, NLchar *name)
 {
     if(driver)
     {
         if((name == NULL) || (address == NULL))
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
-        driver->GetNameFromAddrAsync(address, name);
+        return driver->GetNameFromAddrAsync(address, name);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Get the address from a host name.
 */
 
-NL_EXP void NL_APIENTRY nlGetAddrFromName(NLbyte *name, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlGetAddrFromName(const NLchar *name, NLaddress *address)
 {
     if(driver)
     {
         if((name == NULL) || (address == NULL))
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
-        driver->GetAddrFromName(name, address);
-        return;
+        if(isSafeString(name) == NL_FALSE)
+        {
+            nlSetError(NL_STRING_OVER_RUN);
+            return NL_FALSE;
+        }
+        return driver->GetAddrFromName(name, address);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Get the address from a host name asynchronously.
 */
 
-NL_EXP void NL_APIENTRY nlGetAddrFromNameAsync(NLbyte *name, NLaddress *address)
+NL_EXP NLboolean NL_APIENTRY nlGetAddrFromNameAsync(const NLchar *name, NLaddress *address)
 {
     if(driver)
     {
         if((name == NULL) || (address == NULL))
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
-        driver->GetAddrFromNameAsync(name, address);
-        return;
+        if(isSafeString(name) == NL_FALSE)
+        {
+            nlSetError(NL_STRING_OVER_RUN);
+            return NL_FALSE;
+        }
+        return driver->GetAddrFromNameAsync(name, address);
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 /*
    Compare two addresses.
 */
 
-NL_EXP NLboolean NL_APIENTRY nlAddrCompare(NLaddress *address1, NLaddress *address2)
+NL_EXP NLboolean NL_APIENTRY nlAddrCompare(const NLaddress *address1, const NLaddress *address2)
 {
     if(driver)
     {
@@ -1037,7 +1262,7 @@ NL_EXP NLboolean NL_APIENTRY nlAddrCompare(NLaddress *address1, NLaddress *addre
    Get the port number from an address.
 */
 
-NL_EXP NLushort NL_APIENTRY nlGetPortFromAddr(NLaddress *address)
+NL_EXP NLushort NL_APIENTRY nlGetPortFromAddr(const NLaddress *address)
 {
     if(driver)
     {
@@ -1056,19 +1281,20 @@ NL_EXP NLushort NL_APIENTRY nlGetPortFromAddr(NLaddress *address)
    Set the port number in the address.
 */
 
-NL_EXP void NL_APIENTRY nlSetAddrPort(NLaddress *address, NLushort port)
+NL_EXP NLboolean NL_APIENTRY nlSetAddrPort(NLaddress *address, NLushort port)
 {
     if(driver)
     {
         if(address == NULL)
         {
             nlSetError(NL_NULL_POINTER);
-            return;
+            return NL_FALSE;
         }
         driver->SetAddrPort(address, port);
-        return;
+        return NL_TRUE;
     }
     nlSetError(NL_NO_NETWORK);
+    return NL_FALSE;
 }
 
 
@@ -1095,6 +1321,10 @@ NL_EXP NLboolean NL_APIENTRY nlSelectNetwork(NLenum network)
 
     for(i=0;i<MAX_NET_DRIVERS;i++)
     {
+        if(netdrivers[i].name == NULL)
+        {
+            break;
+        }
         if(netdrivers[i].type == network)
         {
             found++;
@@ -1120,36 +1350,47 @@ NL_EXP NLboolean NL_APIENTRY nlSelectNetwork(NLenum network)
    Returns a string corresponding to the NLenum.
 */
 
-NL_EXP const /*@observer@*//*@null@*/ NLbyte* NL_APIENTRY nlGetString(NLenum name)
+NL_EXP const /*@observer@*//*@null@*/ NLchar* NL_APIENTRY nlGetString(NLenum name)
 {
 	/* use seperate strings for thread safety */
-    static NLbyte vstring[] = NL_VERSION_STRING;
-    static NLbyte tstring[NL_MAX_STRING_LENGTH];
+    static NLchar   vstring[NL_MAX_STRING_LENGTH];
+    static NLchar   tstring[NL_MAX_STRING_LENGTH];
     NLint i;
 
+    /* intitialize the version string */
+    _tcsncpy(vstring, (NLchar *)TEXT(NL_VERSION_STRING), (size_t)NL_MAX_STRING_LENGTH);
+    vstring[NL_MAX_STRING_LENGTH - 1] = (NLchar) '\0';
+#ifdef _UNICODE
+    /* add the UNICODE string */
+    safecat(vstring, (NLchar *)TEXT(" UNICODE version"));
+#endif
     /* intitialize the network types string */
-    memset(tstring, 0, NL_MAX_STRING_LENGTH);
+    memset(tstring, 0, sizeof(NLchar) * NL_MAX_STRING_LENGTH);
     for(i=0;i<MAX_NET_DRIVERS;i++)
     {
+        if(netdrivers[i].name == NULL)
+        {
+            break;
+        }
         if(netdrivers[i].initialized == NL_TRUE)
         {
-            strcat((char *)tstring, (const char *)netdrivers[i].name);
-            strcat((char *)tstring, " ");
+            safecat((NLchar *)tstring, (const NLchar *)netdrivers[i].name);
+            safecat((NLchar *)tstring, (NLchar *)TEXT(" "));
         }
     }
 
     switch (name) {
 
     case NL_VERSION:
-		return (const NLbyte*)vstring;
+		return (const NLchar*)vstring;
 
     case NL_NETWORK_TYPES:
-		return (const NLbyte*)tstring;
+		return (const NLchar*)tstring;
 
     case NL_CONNECTION_TYPES:
         if(driver != NULL)
         {
-		    return (const NLbyte*)(driver->connections);
+		    return (const NLchar*)(driver->connections);
         }
         break;
 
@@ -1194,9 +1435,6 @@ NL_EXP NLlong NL_APIENTRY nlGetInteger(NLenum name)
     case NL_HIGH_BYTES_RECEIVED:
         return nlInstats.highest;
 
-    case NL_MAX_SOCKETS:
-        return NL_MAX_INT_SOCKETS;
-
     case NL_OPEN_SOCKETS:
         return nlNumsockets;
 
@@ -1210,74 +1448,124 @@ NL_EXP NLlong NL_APIENTRY nlGetInteger(NLenum name)
    Clears the stat corresponding to the NLenum.
 */
 
-NL_EXP void NL_APIENTRY nlClear(NLenum name)
+NL_EXP NLboolean NL_APIENTRY nlClear(NLenum name)
 {
     switch (name) {
 
     case NL_PACKETS_SENT:
-        nlMutexLock(&outstatlock);
+        if(nlMutexLock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlOutstats.packets = 0;
-        nlMutexUnlock(&outstatlock);
+        if(nlMutexUnlock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_BYTES_SENT:
-        nlMutexLock(&outstatlock);
+        if(nlMutexLock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlOutstats.bytes = 0;
-        nlMutexUnlock(&outstatlock);
+        if(nlMutexUnlock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_AVE_BYTES_SENT:
-        nlMutexLock(&outstatlock);
+        if(nlMutexLock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlOutstats.average = 0;
         memset((NLbyte *)nlOutstats.bucket, 0, sizeof(NLlong) * NL_NUM_BUCKETS);
-        nlMutexUnlock(&outstatlock);
+        if(nlMutexUnlock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_HIGH_BYTES_SENT:
-        nlMutexLock(&outstatlock);
+        if(nlMutexLock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlOutstats.highest = 0;
-        nlMutexUnlock(&outstatlock);
+        if(nlMutexUnlock(&outstatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_PACKETS_RECEIVED:
-        nlMutexLock(&instatlock);
+        if(nlMutexLock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlInstats.packets = 0;
-        nlMutexUnlock(&instatlock);
+        if(nlMutexUnlock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_BYTES_RECEIVED:
-        nlMutexLock(&instatlock);
+        if(nlMutexLock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlInstats.bytes = 0;
-        nlMutexUnlock(&instatlock);
+        if(nlMutexUnlock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_AVE_BYTES_RECEIVED:
-        nlMutexLock(&instatlock);
+        if(nlMutexLock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlInstats.average = 0;
         memset((NLbyte *)nlInstats.bucket, 0, sizeof(NLlong) * NL_NUM_BUCKETS);
-        nlMutexUnlock(&instatlock);
+        if(nlMutexUnlock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_HIGH_BYTES_RECEIVED:
-        nlMutexLock(&instatlock);
+        if(nlMutexLock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         nlInstats.highest = 0;
-        nlMutexUnlock(&instatlock);
+        if(nlMutexUnlock(&instatlock) == NL_FALSE)
+        {
+            return NL_FALSE;
+        }
         break;
 
     case NL_ALL_STATS:
-        nlClear(NL_PACKETS_SENT);
-        nlClear(NL_BYTES_SENT);
-        nlClear(NL_AVE_BYTES_SENT);
-        nlClear(NL_HIGH_BYTES_SENT);
-        nlClear(NL_PACKETS_RECEIVED);
-        nlClear(NL_BYTES_RECEIVED);
-        nlClear(NL_AVE_BYTES_RECEIVED);
-        nlClear(NL_HIGH_BYTES_RECEIVED);
+        (void)nlClear(NL_PACKETS_SENT);
+        (void)nlClear(NL_BYTES_SENT);
+        (void)nlClear(NL_AVE_BYTES_SENT);
+        (void)nlClear(NL_HIGH_BYTES_SENT);
+        (void)nlClear(NL_PACKETS_RECEIVED);
+        (void)nlClear(NL_BYTES_RECEIVED);
+        (void)nlClear(NL_AVE_BYTES_RECEIVED);
+        (void)nlClear(NL_HIGH_BYTES_RECEIVED);
         break;
 
     default:
         nlSetError(NL_INVALID_ENUM);
+        return NL_FALSE;
     }
+    return NL_TRUE;
 }
 
 /*
@@ -1290,11 +1578,10 @@ NL_EXP NLint NL_APIENTRY nlGetSystemError(void)
     {
         return driver->GetSystemError();
     }
-    nlSetError(NL_NO_NETWORK);
-    return 0;
+    return NL_NO_NETWORK;
 }
 
-NL_EXP void NL_APIENTRY nlEnable(NLenum name)
+NL_EXP NLboolean NL_APIENTRY nlEnable(NLenum name)
 {
     switch (name) {
 
@@ -1303,8 +1590,7 @@ NL_EXP void NL_APIENTRY nlEnable(NLenum name)
         break;
 
     case NL_TCP_NO_DELAY:
-        nlHint(NL_TCP_NO_DELAY, (NLint)NL_TRUE);
-        break;
+        return nlHint(NL_TCP_NO_DELAY, (NLint)NL_TRUE);
 
     case NL_SOCKET_STATS:
         nlState.socketStats = NL_TRUE;
@@ -1320,10 +1606,12 @@ NL_EXP void NL_APIENTRY nlEnable(NLenum name)
 
     default:
         nlSetError(NL_INVALID_ENUM);
+        return NL_FALSE;
     }
+    return NL_TRUE;
 }
 
-NL_EXP void NL_APIENTRY nlDisable(NLenum name)
+NL_EXP NLboolean NL_APIENTRY nlDisable(NLenum name)
 {
     switch (name) {
 
@@ -1332,8 +1620,7 @@ NL_EXP void NL_APIENTRY nlDisable(NLenum name)
         break;
 
     case NL_TCP_NO_DELAY:
-        nlHint(NL_TCP_NO_DELAY, NL_FALSE);
-        break;
+        return nlHint(NL_TCP_NO_DELAY, NL_FALSE);
 
     case NL_SOCKET_STATS:
         nlState.socketStats = NL_FALSE;
@@ -1349,7 +1636,9 @@ NL_EXP void NL_APIENTRY nlDisable(NLenum name)
 
     default:
         nlSetError(NL_INVALID_ENUM);
+        return NL_FALSE;
     }
+    return NL_TRUE;
 }
 
 NL_EXP NLboolean NL_APIENTRY nlGetBoolean(NLenum name)
@@ -1366,7 +1655,7 @@ NL_EXP NLboolean NL_APIENTRY nlGetBoolean(NLenum name)
         return nlState.nl_big_endian_data;
 
     case NL_LITTLE_ENDIAN_DATA:
-        return (NLboolean)(!nlState.nl_big_endian_data);
+        return (NLboolean)(nlState.nl_big_endian_data == NL_TRUE ? NL_FALSE:NL_TRUE);
 
     default:
         nlSetError(NL_INVALID_ENUM);
@@ -1384,7 +1673,10 @@ NL_EXP NLlong NL_APIENTRY nlGetSocketStat(NLsocket socket, NLenum name)
         nlSetError(NL_INVALID_SOCKET);
         return 0;
     }
-    nlLockSocket(socket, NL_BOTH);
+    if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+    {
+        return 0;
+    }
     sock = nlSockets[socket];
 
     switch (name) {
@@ -1400,6 +1692,11 @@ NL_EXP NLlong NL_APIENTRY nlGetSocketStat(NLsocket socket, NLenum name)
     case NL_AVE_BYTES_SENT:
         nlUpdateSocketOutStats(socket, 0, 0);
         result = sock->outstats.average;
+        if(result == 0)
+        {
+            /* this corrects the stats for the first second */
+            result = sock->outstats.curbytes;
+        }
         break;
 
     case NL_HIGH_BYTES_SENT:
@@ -1417,6 +1714,11 @@ NL_EXP NLlong NL_APIENTRY nlGetSocketStat(NLsocket socket, NLenum name)
     case NL_AVE_BYTES_RECEIVED:
         nlUpdateSocketInStats(socket, 0, 0);
         result = sock->instats.average;
+        if(result == 0)
+        {
+            /* this corrects the stats for the first second */
+            result = sock->instats.curbytes;
+        }
         break;
 
     case NL_HIGH_BYTES_RECEIVED:
@@ -1430,16 +1732,19 @@ NL_EXP NLlong NL_APIENTRY nlGetSocketStat(NLsocket socket, NLenum name)
     return result;
 }
 
-NL_EXP void NL_APIENTRY nlClearSocketStat(NLsocket socket, NLenum name)
+NL_EXP NLboolean NL_APIENTRY nlClearSocketStat(NLsocket socket, NLenum name)
 {
     nl_socket_t     *sock;
 
     if(nlIsValidSocket(socket) == NL_FALSE)
     {
         nlSetError(NL_INVALID_SOCKET);
-        return;
+        return NL_FALSE;
     }
-    nlLockSocket(socket, NL_BOTH);
+    if(nlLockSocket(socket, NL_BOTH) == NL_FALSE)
+    {
+        return NL_FALSE;
+    }
     sock = nlSockets[socket];
 
     switch (name) {
@@ -1493,8 +1798,11 @@ NL_EXP void NL_APIENTRY nlClearSocketStat(NLsocket socket, NLenum name)
 
     default:
         nlSetError(NL_INVALID_ENUM);
+        nlUnlockSocket(socket, NL_BOTH);
+        return NL_FALSE;
     }
     nlUnlockSocket(socket, NL_BOTH);
+    return NL_TRUE;
 }
 
 NL_EXP NLushort  NL_APIENTRY nlSwaps(NLushort x)
@@ -1552,3 +1860,9 @@ NL_EXP NLdouble  NL_APIENTRY nlSwapd(NLdouble d)
     }
 }
 
+#if defined (__LCC__)
+BOOL WINAPI __declspec(dllexport) LibMain(/*@unused@*/HINSTANCE hinstDLL, /*@unused@*/DWORD fdwReason, /*@unused@*/LPVOID lpvReserved)
+{
+    return TRUE;
+}
+#endif /* WINDOWS APP */

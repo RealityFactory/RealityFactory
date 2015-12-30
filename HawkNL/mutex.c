@@ -20,51 +20,214 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
-/* 
-  This basic mutex code originally contributed by Ryan Haksi:
-*/
+#include "nlinternal.h"
 
-#include "nl.h"
-#include "mutex.h"
+#ifdef NL_WIN_THREADS
 
-void nlMutexInit(NLmutex *mutex)
+struct nl_mutex_t
 {
-#ifdef NL_WIN_THREADS
-    /* native Windows */
-    InitializeCriticalSection(mutex);
-#else
-    /* POSIX */
-    (void)pthread_mutex_init(mutex, NULL);
-#endif
-}
+  CRITICAL_SECTION  mutex;
+  DWORD             thread;
+};
+#else /* !NL_WIN_THREADS */
+#include <pthread.h>
+#ifndef WINDOWS_APP
+#include <sys/errno.h>
+#endif /* WINDOWS_APP */
 
-void nlMutexLock(NLmutex *mutex)
+
+struct nl_mutex_t
 {
+  pthread_mutex_t   mutex;
+};
+#endif /* NL_WIN_THREADS */
+
+NL_EXP NLboolean NL_APIENTRY nlMutexInit(NLmutex *mutex)
+{
+	if(mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+    else
+    {
+        NLmutex mx;
 #ifdef NL_WIN_THREADS
-    /* native Windows */
-    EnterCriticalSection(mutex);
+        /* native Windows */
+
+        mx = (NLmutex)malloc(sizeof(struct nl_mutex_t));
+	    if(mx == NULL)
+	    {
+		    nlSetError(NL_OUT_OF_MEMORY);
+            return NL_FALSE;
+	    }
+        InitializeCriticalSection(&mx->mutex);
+        mx->thread = 0;
 #else
-    /* POSIX */
-    (void)pthread_mutex_lock(mutex);
+        /* POSIX */
+        pthread_mutexattr_t attr;
+        int                 result;
+
+        mx = (NLmutex)malloc(sizeof(struct nl_mutex_t));
+	    if(mx == NULL)
+	    {
+		    nlSetError(NL_OUT_OF_MEMORY);
+            return NL_FALSE;
+	    }
+        (void)pthread_mutexattr_init(&attr);
+#if defined Macintosh
+        /* GUSI is not fully POSIX compliant, and does not define PTHREAD_MUTEX_ERRORCHECK */
+        (void)pthread_mutexattr_settype(&attr, NULL);
+#else
+        (void)pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
 #endif
+        result = pthread_mutex_init((pthread_mutex_t *)&mx->mutex, &attr);
+        (void)pthread_mutexattr_destroy(&attr);
+        if(result != 0)
+        {
+#ifdef WINDOWS_APP
+            SetLastError((DWORD)result);
+#endif
+		    nlSetError(NL_SYSTEM_ERROR);
+            return NL_FALSE;
+        }
+#endif
+        *mutex = mx;
+    }
+    return NL_TRUE;
 }
 
-void nlMutexUnlock(NLmutex *mutex) {
+NL_EXP NLboolean NL_APIENTRY nlMutexLock(NLmutex *mutex)
+{
+	if(mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+	if(*mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+    else
+    {
+        NLmutex mx = *mutex;
 #ifdef NL_WIN_THREADS
-    /* native Windows */
-    LeaveCriticalSection(mutex);
+        DWORD threadid = GetCurrentThreadId();
+
+        /* native Windows */
+        /* this call will not stop recursion on a single thread */
+        EnterCriticalSection(&mx->mutex);
+        /* check for recursion */
+        if(mx->thread == threadid)
+        {
+		    nlSetError(NL_MUTEX_RECURSION);
+            /* must call LeaveCriticalSection for each EnterCriticalSection */
+            /* so this nullifies the above call to EnterCriticalSection*/
+            LeaveCriticalSection(&mx->mutex);
+		    return NL_FALSE;
+        }
+        else
+        {
+            mx->thread = threadid;
+        }
 #else
-    /* POSIX */
-    (void)pthread_mutex_unlock(mutex);
+        int result;
+
+        /* POSIX */
+        result = pthread_mutex_lock((pthread_mutex_t *)&mx->mutex);
+        if(result == EDEADLK)
+        {
+		    nlSetError(NL_MUTEX_RECURSION);
+		    return NL_FALSE;
+        }
+        else if(result != 0)
+        {
+#ifdef WINDOWS_APP
+            SetLastError((DWORD)result);
 #endif
+		    nlSetError(NL_SYSTEM_ERROR);
+            return NL_FALSE;
+        }
+#endif
+    }
+    return NL_TRUE;
 }
 
-void nlMutexDestroy(NLmutex *mutex) {
+NL_EXP NLboolean NL_APIENTRY nlMutexUnlock(NLmutex *mutex)
+{
+	if(mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+	if(*mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+    else
+    {
+        NLmutex mx = *mutex;
 #ifdef NL_WIN_THREADS
-    /* native Windows */
-    DeleteCriticalSection(mutex);
+        DWORD threadid = GetCurrentThreadId();
+
+        /* native Windows */
+        if((mx->thread == 0) ||(mx->thread != threadid))
+        {
+		    nlSetError(NL_MUTEX_OWNER);
+		    return NL_FALSE;
+        }
+        mx->thread = 0;
+        LeaveCriticalSection(&mx->mutex);
 #else
-    /* POSIX */
-    (void)pthread_mutex_destroy(mutex);
+        int result;
+
+        /* POSIX */
+        result = pthread_mutex_unlock((pthread_mutex_t *)&mx->mutex);
+        if(result == EPERM)
+        {
+		    nlSetError(NL_MUTEX_OWNER);
+		    return NL_FALSE;
+        }
+        else if(result != 0)
+        {
+#ifdef WINDOWS_APP
+            SetLastError((DWORD)result);
 #endif
+		    nlSetError(NL_SYSTEM_ERROR);
+            return NL_FALSE;
+        }
+#endif
+    }
+    return NL_TRUE;
 }
+
+NL_EXP NLboolean NL_APIENTRY nlMutexDestroy(NLmutex *mutex)
+{
+	if(mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+	if(*mutex == NULL)
+	{
+		nlSetError(NL_NULL_POINTER);
+		return NL_FALSE;
+	}
+    else
+    {
+        NLmutex mx = *mutex;
+#ifdef NL_WIN_THREADS
+        /* native Windows */
+        DeleteCriticalSection(&mx->mutex);
+#else
+        /* POSIX */
+        (void)pthread_mutex_destroy((pthread_mutex_t *)&mx->mutex);
+#endif
+    }
+    free(*mutex);
+    *mutex = NULL;
+    return NL_TRUE;
+}
+
