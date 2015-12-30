@@ -454,7 +454,7 @@ bool qxTerrainMgr::Init()
 				{
 					Object = new TerrainObject(script);
 				}
-				catch(skParseException e)
+				catch(skParseException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Parse Script Error for SkyDome script");
@@ -463,7 +463,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szBug, false);
 					return false;
 				}
-				catch(skBoundsException e)
+				catch(skBoundsException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Bounds Script Error for SkyDome script");
@@ -472,7 +472,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szBug, false);
 					return false;
 				}
-				catch(skRuntimeException e)
+				catch(skRuntimeException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Runtime Script Error for SkyDome script");
@@ -481,7 +481,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szBug, false);
 					return false;
 				}
-				catch(skTreeNodeReaderException e)
+				catch(skTreeNodeReaderException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Reader Script Error for SkyDome script");
@@ -490,7 +490,7 @@ bool qxTerrainMgr::Init()
 					CCD->ReportError(szBug, false);
 					return false;
 				}
-				catch (...)
+				catch(...)
 				{
 					char szBug[256];
 					sprintf(szBug, "Script Error for SkyDome script");
@@ -507,7 +507,7 @@ bool qxTerrainMgr::Init()
 					{
 						Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
 					}
-					catch(skRuntimeException e)
+					catch(skRuntimeException &e)
 					{
 						char szBug[256];
 						sprintf(szBug, "Runtime Script Error for SkyDome script");
@@ -516,7 +516,7 @@ bool qxTerrainMgr::Init()
 						CCD->ReportError(szBug, false);
 						return false;
 					}
-					catch(skParseException e)
+					catch(skParseException &e)
 					{
 						char szBug[256];
 						sprintf(szBug, "Parse Script Error for SkyDome script");
@@ -525,7 +525,7 @@ bool qxTerrainMgr::Init()
 						CCD->ReportError(szBug, false);
 						return false;
 					}
-					catch (...)
+					catch(...)
 					{
 						char szBug[256];
 						sprintf(szBug, "Script Error for SkyDome script");
@@ -675,7 +675,7 @@ bool qxTerrainMgr::Frame()
 			{
 				Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
 			}
-			catch(skRuntimeException e)
+			catch(skRuntimeException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Runtime Script Error for SkyDome script");
@@ -684,7 +684,7 @@ bool qxTerrainMgr::Frame()
 				CCD->ReportError(szBug, false);
 				return false;
 			}
-			catch(skParseException e)
+			catch(skParseException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Parse Script Error for SkyDome script");
@@ -693,7 +693,7 @@ bool qxTerrainMgr::Frame()
 				CCD->ReportError(szBug, false);
 				return false;
 			}
-			catch (...)
+			catch(...)
 			{
 				char szBug[256];
 				sprintf(szBug, "Script Error for SkyDome script");

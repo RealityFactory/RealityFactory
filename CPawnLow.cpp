@@ -4482,7 +4482,7 @@ void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 	{
 		Object->method(skString(Object->Order), args, ret,CCD->GetskContext()); //change simkin
 	}
-	catch(skRuntimeException e)
+	catch(skRuntimeException & e)
 	{
 		if(!strcmp(Object->Indicate, "+"))
 			strcpy(Object->Indicate, " ");
@@ -4491,7 +4491,7 @@ void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 		if(Object->console)
 			strcpy(Object->ConsoleError, e.toString());
 	}
-	catch(skParseException e)
+	catch(skParseException & e)
 	{
 		if(!strcmp(Object->Indicate, "+"))
 			strcpy(Object->Indicate, " ");

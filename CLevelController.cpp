@@ -1090,7 +1090,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				{
 					Object->method(skString(Object->Order), args, ret,CCD->GetskContext()); //change simkin
 				}
-				catch(skRuntimeException e)
+				catch(skRuntimeException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Runtime Script Error for Controller script");
@@ -1099,7 +1099,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 					CCD->ReportError(szBug, false);
 					return;
 				}
-				catch(skParseException e)
+				catch(skParseException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Parse Script Error for Controller script");
@@ -1108,7 +1108,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 					CCD->ReportError(szBug, false);
 					return;
 				}
-				catch (...)
+				catch(...)
 				{
 					char szBug[256];
 					sprintf(szBug, "Script Error for Controller script");
@@ -1223,7 +1223,7 @@ void CLevelController::Tick(geFloat dwTicks)
 				{
 					Object->method(skString(Object->Order), args, ret,CCD->GetskContext());
 				}
-				catch(skRuntimeException e)
+				catch(skRuntimeException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Runtime Script Error for Controller script");
@@ -1232,7 +1232,7 @@ void CLevelController::Tick(geFloat dwTicks)
 					CCD->ReportError(szBug, false);
 					return;
 				}
-				catch(skParseException e)
+				catch(skParseException &e)
 				{
 					char szBug[256];
 					sprintf(szBug, "Parse Script Error for Controller script");
@@ -1241,7 +1241,7 @@ void CLevelController::Tick(geFloat dwTicks)
 					CCD->ReportError(szBug, false);
 					return;
 				}
-				catch (...)
+				catch(...)
 				{
 					char szBug[256];
 					sprintf(szBug, "Script Error for Controller script");
