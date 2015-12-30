@@ -376,6 +376,9 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 			temp.Y = pFollower->CurrentPosition.Y + DirectionVector.Y;
 			temp.Z = pFollower->CurrentPosition.Z + DirectionVector.Z;
 			break;
+		default:
+			geVec3d_Clear(&temp);
+			break;
 		}
 
 		// Ok, we have a new point to move to!  Let's do a basic ray
