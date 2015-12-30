@@ -190,8 +190,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "GetEventState"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		returnValue = (bool)GetTriggerState(string1);
+		returnValue = GetTriggerState(arguments[0].str().c_str());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetEventState"))
@@ -540,8 +539,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "StringCopy"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		returnValue = skString(string1);
+		returnValue = arguments[0].str();
 		return true;
 	}
 	else if(IS_METHOD(methodName, "LeftCopy"))
@@ -574,28 +572,26 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "Integer"))
 	{
 		PARMCHECK(1);
-		int temp = arguments[0].intValue();
-		returnValue = (int)temp;
+		returnValue = arguments[0].intValue();
 		return true;
 	}
 	else if(IS_METHOD(methodName, "ModifyAttribute"))
 	{
 		PARMCHECK(2);
 
-		strcpy(string1, arguments[0].str());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
 		{
-			strcpy(string2, arguments[2].str());
+			strcpy(string1, arguments[2].str());
 
-			if(!stricmp(string2, "Player"))
+			if(!stricmp(string1, "Player"))
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
 		else
@@ -603,7 +599,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		}
 
-		returnValue = (int)theInv->Modify(string1, arguments[1].intValue());
+		returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 
 		return true;
 	}
@@ -611,20 +607,19 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	{
 		PARMCHECK(1);
 
-		strcpy(string1, arguments[0].str());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 1)
 		{
-			strcpy(string2, arguments[1].str());
+			strcpy(string1, arguments[1].str());
 
-			if(!stricmp(string2, "Player"))
+			if(!stricmp(string1, "Player"))
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
 		else
@@ -632,7 +627,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		}
 
-		returnValue = (int)theInv->Value(string1);
+		returnValue = theInv->Value(arguments[0].str().c_str());
 
 		return true;
 	}
@@ -640,20 +635,19 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	{
 		PARMCHECK(2);
 
-		strcpy(string1, arguments[0].str());
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 2)
 		{
-			strcpy(string2, arguments[2].str());
+			strcpy(string1, arguments[2].str());
 
-			if(!stricmp(string2, "Player"))
+			if(!stricmp(string1, "Player"))
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
 		else
@@ -661,7 +655,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		}
 
-		returnValue = (int)theInv->Set(string1, arguments[1].intValue());
+		returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
 
 		return true;
 	}
@@ -710,21 +704,20 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
 		PARMCHECK(3);
-		strcpy(string1, arguments[0].str());
 
 		CPersistentAttributes *theInv;
 
 		if(arguments.entries() > 3)
 		{
-			strcpy(string2, arguments[3].str());
+			strcpy(string1, arguments[3].str());
 
-			if(!stricmp(string2, "Player"))
+			if(!stricmp(string1, "Player"))
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
+				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
 		else
@@ -732,7 +725,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		}
 
-		theInv->SetValueLimits(string1, arguments[1].intValue(), arguments[2].intValue());
+		theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
 
 		return true;
 	}
@@ -781,8 +774,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "SetPlayerWeapon"))
 	{
 		PARMCHECK(1);
-		int temp = arguments[0].intValue();
-		CCD->Weapons()->SetWeapon(temp);
+		CCD->Weapons()->SetWeapon(arguments[0].intValue());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetUseItem"))
