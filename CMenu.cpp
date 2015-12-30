@@ -3,13 +3,10 @@
  * @brief Menu class implementation
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include "Ram.h"
 
-// start multiplayer
 #include "HawkNL\\nl.h"
-// end multiplayer
 #include "IniFile.h"
 #include "Mixer.h"
 #include "CHeadsUpDisplay.h"
@@ -41,24 +38,18 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 
 // #define BLIT
 
-// start add Nout - Show save game image
 static void CopyImageFile(const char *srcPath, const char *destPath);
 void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height);
-// end add Nout
 
 static int GetGammaPercent();
 static void SetGamma(int percent);
 static void SetDetail(int percent);
-// changed QD Shadows
 static void SetStencilShadows(int current);
-// end change
 static void SetSens(int percent);
 static void SetVol(int percent);
 static void SetmVol(int percent);
-// Start Multiplayer
 static void RunJoinGame();
 static void RunHostGame();
-// end Multiplayer
 static void RunGame();
 static void SetCDPlayer(int current);
 static void SetReverse(int current);
@@ -69,24 +60,15 @@ static void SetClipping(int current);
 static void ResetAction();
 static void SetSlot();
 static void GetSlot();
-// changed RF063
 static void PrevChar();
 static void NextChar();
-// end change RF063
-// changed QD 12/15/05
 static void AcceptChar();
 static void SetName();
 static void ResetName();
-// end change
-// change QD Language Menu
 static void ChangeMenu();
 static void LanguageRadio(int ID);
-// end change QD
-// Start Multiplayer
 char ServerIP[50];
-//char PlayerName[50];
 char IP[NL_MAX_STRING_LENGTH]="";
-// end Multiplayer
 
 #define GAMMAMIN	0.0f
 #define GAMMAMAX	2.0f
@@ -167,7 +149,6 @@ typedef struct Clickable
 	// Action type 4 - execute function if SaveBox line is not empty, exit menu when done (Load)
 	void (*proc)();
 	int LoopOnce;		// render screen once more before executing function but without cursor
-// changed RF063
 	int Animation;
 	int AnimationOver;
 
@@ -183,7 +164,6 @@ typedef struct Image
 	int Image_Number;	// index of Images bitmap to use
 	int Image_X;		// X location on bitmap of graphic
 	int Image_Y;		// Y location on bitmap of graphic
-// changed RF063
 	int Animation;
 
 } Image;
@@ -223,7 +203,6 @@ typedef struct Box
 	int Set_Y;					// Y location of set box graphic
 	int Current;				// state of the box (on/off)
 	void (*proc)(int current);	// function to call when current changes
-// changed RF063
 	int Animation;
 	int AnimationOver;
 	int AnimationLit;
@@ -295,7 +274,6 @@ typedef struct Keyname
 
 } Keyname;
 
-// start Multiplayer
 //--------------------------
 // TextEdit menu type
 //--------------------------
@@ -309,7 +287,6 @@ typedef struct TextEdit
 	Keyname *keyname;
 
 } TextEdit;
-// end Multiplayer
 
 //--------------------------
 // Scroll bar menu type
@@ -340,7 +317,6 @@ typedef struct ScrollBar
 	int *Max;			// pointer to max value of scroll bar
 	int *Current;		// pointer to current value of scroll bar
 	int Show;			// maximum # of lines that show on screen
-// changed RF063
 	int AnimationUp;
 	int AnimationUpOver;
 	int AnimationUpPush;
@@ -419,7 +395,6 @@ typedef struct LSBox
 } LSBox;
 
 
-// start change Nout - Show save game image
 //-----------------------------
 // structure of SaveGameImage
 //-----------------------------
@@ -434,7 +409,6 @@ typedef struct SaveGameImage
 	char EmptySlotImage[64];// name of bitmap of graphic to be displayed when the slot is empty
 
 } SaveGameImage;
-// end change Nout
 
 //-----------------------------
 // structure of menu titles
@@ -448,9 +422,7 @@ typedef struct MenuTitle
 	int Image_Number; // index of Titles bitmap to use
 	int Image_X;      // X location on bitmap of graphic
 	int Image_Y;      // Y location on bitmap of graphic
-// changed RF063
 	int Animation;
-// end change RF063
 
 } MenuTitle;
 
@@ -574,7 +546,6 @@ Keyname Rename[] =
 	{NULL}
 };
 
-// start Multiplayer
 Keyname TextEditKeys[] =
 {
 	{"1", KEY_1},
@@ -653,7 +624,6 @@ Keyname TextEditKeys[] =
 	{"", KEY_MAXIMUM},
 	{NULL}
 };
-// end Multiplayer
 
 // names of all actions
 char* RedefNames[50];
@@ -689,7 +659,6 @@ Slider Gamma_Slide  = {0, 0, 0, 0, 0, 0, 1, 0, 0, SetGamma, -1};
 Text det_text		= {0, "", 0};
 Image Detail_Img    = {0, 0, 0, 0, 0, -1};
 Slider Detail_Slide = {0, 0, 0, 0, 0, 0, 1, 0, 0, SetDetail, -1};
-// changed QD Shadows
 Box ShadowBox		= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetStencilShadows, -1, -1, -1};
 Text shadow_text	= {0, "", 0};
 
@@ -706,7 +675,6 @@ MenuItem VideoMenu[] =
 	{TEXT,		0, 0, (void*)&shadow_text},
 	{END_LIST,	0, 0, NULL}
 };
-// end change
 
 //-------------------------------------
 // Audio Menu
@@ -822,14 +790,10 @@ MenuItem OptionMenu[] =
 //---------------------
 // saved game default
 //---------------------
-// changed RF063
 Savedef SavedGame[16];
-// end change RF063
 
-// begin add Nout - Show save game image
 SaveGameImage SaveScreen = {0, 0, 0, 0, 0, 0, NULL};
 geBoolean LoadSGImage;
-// end add Nout
 
 //-------------------------------------
 // Save Game Menu
@@ -846,9 +810,6 @@ MenuItem SaveMenu[] =
 	{CLICKABLE,		0, 0, (void*)&SaveSlot},
 	{LSBOX,			0, 0, (void*)&SaveBox},
 	{SCROLLBAR,		0, 0, (void*)&SaveBar},
-// begin add Nout - Show save game image
-//	{SAVEGAMEIMAGE, 0, 0, (void*)&SaveScreen},
-// end add Nout
 	{END_LIST,		0, 0, NULL}
 };
 
@@ -898,7 +859,6 @@ MenuItem ModsMenu[] =
 //-------------------------------------
 // Multiplayer Game Menu
 //-------------------------------------
-// start Multiplayer
 //
 // Join Game menu
 //
@@ -936,16 +896,11 @@ MenuItem MultiMenu[] =
 	{TEXT,		0, 0, (void*)&PlayerIP1},
 	{END_LIST,	0, 0, NULL}
 };
-// end Multiplayer
 
-// changed RF063
 //-------------------------------------
 // Character Selection Menu
 //-------------------------------------
-// changed QD 12/15/05
-//Clickable AcceptSelect	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
 Clickable AcceptSelect	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, AcceptChar, 1, -1, -1};
-// end change
 Clickable CancelSelect	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
 Clickable PrevSelect	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, PrevChar, 0, -1, -1};
 Clickable NextSelect	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, NextChar, 0, -1, -1};
@@ -959,9 +914,7 @@ MenuItem SelectMenu[] =
 	{CHARIMAGE,		0, 0, NULL},
 	{END_LIST,		0, 0, NULL}
 };
-// end change RF063
 
-// changed QD 12/15/05
 //-------------------------------------
 // PlayerName Menu
 //-------------------------------------
@@ -978,7 +931,6 @@ MenuItem PlayerNameMenu[] =
 	{CLICKABLE,		0, 0, (void*)&DefaultName},
 	{END_LIST,		0, 0, NULL}
 };
-// end change
 
 //-------------------------------------
 // Difficulty Selection Menu
@@ -1025,10 +977,8 @@ MenuItem MainMenu[] =
 //-------------------------------------
 // Titles
 //-------------------------------------
-// changed RF063
 MenuTitle MTitles[NUM_TITLES];
 char errortext[256];
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
 //	FirstToken
@@ -1170,18 +1120,12 @@ int NextFont()
 /* ------------------------------------------------------------------------------------ */
 //	Constructor
 /* ------------------------------------------------------------------------------------ */
-// changed QD 12/15/05
-//CRFMenu::CRFMenu()
 CRFMenu::CRFMenu(const char *szStartLevel)
-// end change
 {
 	int i;
 
-// start multiplayer
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Initializing Network...", false);
-// 08.05.2004 - end change gekido
 
 	if(CCD->GetNetwork())
 	{
@@ -1198,13 +1142,10 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 			}
 		}
 	}
-// end multiplayer
 
 	bShowCursor		= false;
-// changed QD 07/15/06
 	theMIDIPlayer	= NULL;
 	m_Streams		= NULL;
-// end change QD 07/15/06
 	Bottom			= (SoundList*)NULL;
 	Screen			= 0;
 	ScrnWait		= false;
@@ -1218,13 +1159,9 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	TimeFade		= FADETIME;
 	MusicFade		= false;
 	fontloaded		= false;
-// changed RF064
 	theMIDIPlayer	= NULL;
 	strcpy(Loading, "menu\\loading.bmp");
-// end change RF064
-// MENUFIX
 	ingame			= 0;
-// changed QD Language Menu
 	CurrentLanguage = 0;
 
 	for(i=0; i<5; i++)
@@ -1261,24 +1198,17 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	L4text.text = NULL;
 	L5text.text = NULL;
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Loading Menu.ini...", false);
-// 08.05.2004 - end change gekido
 
 	LoadMenuIni(CCD->MenuIni());
-// end change QD Language Menu
 
-// changed RF063
 	for(i=0; i<16; i++)
 	{
 		SavedGame[i].empty = 0;
 		SavedGame[i].text = NULL;
-// changed QD 12/15/05
 		SavedGame[i].SGImage = NULL;
-// end change
 	}
 
-// changed QD 12/15/05
 	// Note: SavedGame[15].text must be NULL,
 	// ..otherwise SaveBox.Max won't be calculated correctly
 	SavedGame[0].text	= strdup("<Slot 1>"	);
@@ -1298,14 +1228,10 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	SavedGame[14].text	= strdup("<Slot 15>");
 
 	strcpy(PlayerName.text, CCD->GetDefaultPlayerName());
-//end change
 
-// changed RF064
 	if(CCD->GetCSelect())
 	{
-// 08.05.2004 - begin change gekido
 		CCD->ReportError("Loading Character.ini...", false);
-// 08.05.2004 - end change gekido
 		CIniFile AttrFile("character.ini");
 
 		if(!AttrFile.ReadFile())
@@ -1379,8 +1305,6 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				if(Type != "")
 					CharSelect[MaxSelect].AnimSpeed = (float)AttrFile.GetValueF(KeyName, "animationspeed");
 
-// changed QD 12/15/05
-				// CharSelect[MaxSelect].ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
 				CharSelect[MaxSelect].ShadowSize = 0.0f;
 				Type = AttrFile.GetValue(KeyName, "shadowsize");
 				if(Type != "")
@@ -1422,7 +1346,6 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				Type = AttrFile.GetValue(KeyName, "weaponfile");
 				if(Type != "")
 					strcpy(CharSelect[MaxSelect].Weapon, Type.c_str());
-// end change
 				geVec3d FillColor	 = {255.0f, 255.0f, 255.0f};
 				geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
 
@@ -1450,12 +1373,10 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 				CharSelect[MaxSelect].AmbientColor.b = AmbientColor.Z;
 				CharSelect[MaxSelect].AmbientColor.a = 255.0f;
 
-// changed QD 07/21/04
 				CharSelect[MaxSelect].AmbientLightFromFloor = GE_TRUE;
 				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
 				if(Type == "false")
 					CharSelect[MaxSelect].AmbientLightFromFloor = GE_FALSE;
-// end change
 
 
 				CharSelect[MaxSelect].Attribute[0] = '\0';
@@ -1527,7 +1448,6 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 
 	if(mixer.IsOk())
 		WinVol = mixer.GetControlValue();
-// end change RF064
 
 #ifdef BLIT
 	ScreenBmp = geBitmap_Create(DesignX, DesignY, 1, GE_PIXELFORMAT_16BIT_4444_ARGB);
@@ -1535,25 +1455,20 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 	geBitmap_ClearMips(ScreenBmp);
 	geEngine_AddBitmap(CCD->Engine()->Engine(), ScreenBmp);
 #endif
-// end change RF063
 
 	// initalize all menu items that need it
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Initializing Menu", false);
-// 08.05.2004 - end change gekido
 
 	MenuInitalize();
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	LoadMenuIni
+// LoadConfiguration
 /* ------------------------------------------------------------------------------------ */
-// changed QD Language Menu
 void CRFMenu::LoadMenuIni(const char *menuini)
 {
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Parsing Menu.ini...", false);
-// 08.05.2004 - end change gekido
 
 	geVFile *MainFS;
 	geVFile *SecondFS;
@@ -1575,9 +1490,7 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 	for(i=0; i<NUM_ANIM; i++)
 		Animation[i] = NULL;
 
-// changed QD 12/15/05
 	EmptySlotImage = NULL;
-// end change
 
 	if(CCD->OpenRFFile(&SecondFS, kInstallFile, menuini, GE_VFILE_OPEN_READONLY))
 	{
@@ -1586,9 +1499,7 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 		char *szAtom;
 		char menuline[256], menuline2[256];
 
-// changed RF063
 		while(geVFile_GetS(SecondFS, szInputLine, 256) == GE_TRUE)
-// end change RF063
 		{
 			if(szInputLine[0] == ';')
 				continue;				// Comment line
@@ -1596,7 +1507,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 			if(strlen(szInputLine) <= 5)
 				continue;				// Skip blank lines
 
-// changed RF063
 			strcpy(errortext,szInputLine);
 			// All config commands are "thing=value"
 			szAtom = FirstToken(szInputLine, " =");
@@ -1636,7 +1546,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Backgrounds[index] = geBitmap_Create(TBw, TBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
 				geBitmap_Blit(TB, TBx, TBy, Backgrounds[index], 0, 0, TBw, TBh);
 				geBitmap_Destroy(&TB);
-				//Backgrounds[index] = CreateFromFileName(menuline);
 
 				if(Backgrounds[index] == (geBitmap*)NULL)
 				{
@@ -1744,20 +1653,17 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 
 				geVFile_Close(datFile);
 			}
-// changed RF063
 			else if(!stricmp(szAtom, "animation"))
 			{
 				int index = NextValue();
 				strcpy(menuline, "menu\\");
 				strcat(menuline, NextToken());
 
-				// changed QD 07/15/06
 				if(Animation[index])
 				{
 					delete Animation[index];
 					Animation[index] = 0;
 				}
-				// end change
 
 				Animation[index] = new CAnimGif(menuline, kVideoFile);
 			}
@@ -1787,14 +1693,11 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 			{
 				TimeFade = ((float)NextValue())*0.001f;
 			}
-// end change RF063
-// changed RF064
 			else if(!stricmp(szAtom, "loadscreen"))
 			{
 				strcpy(Loading, "menu\\");
 				strcat(Loading, NextToken());
 			}
-// end change RF064
 			else if(!stricmp(szAtom, "cursor"))
 			{
 				strcpy(menuline, "menu\\");
@@ -1849,7 +1752,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				NewGame.Image_Y			= NextValue();
 				NewGame.Mover_X			= NextValue();
 				NewGame.Mover_Y			= NextValue();
-				// changed RF063
 				NewGame.Animation		= NextValue();
 				NewGame.AnimationOver	= NextValue();
 			}
@@ -1866,7 +1768,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				MultiPlayer.Mover_Y			= NextValue();
 				MultiPlayer.background		= NextValue();
 				MultiPlayer.title			= NextValue();
-				// changed RF063
 				MultiPlayer.Animation		= NextValue();
 				MultiPlayer.AnimationOver	= NextValue();
 			}
@@ -1883,7 +1784,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				LoadGame.Mover_Y		= NextValue();
 				LoadGame.background		= NextValue();
 				LoadGame.title			= NextValue();
-				// changed RF063
 				LoadGame.Animation		= NextValue();
 				LoadGame.AnimationOver	= NextValue();
 			}
@@ -1900,7 +1800,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SaveGame.Mover_Y		= NextValue();
 				SaveGame.background		= NextValue();
 				SaveGame.title			= NextValue();
-				// changed RF063
 				SaveGame.Animation		= NextValue();
 				SaveGame.AnimationOver	= NextValue();
 			}
@@ -1917,7 +1816,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Options.Mover_Y			= NextValue();
 				Options.background		= NextValue();
 				Options.title			= NextValue();
-				// changed RF063
 				Options.Animation		= NextValue();
 				Options.AnimationOver	= NextValue();
 			}
@@ -1934,7 +1832,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Credits.Mover_Y			= NextValue();
 				Credits.background		= NextValue();
 				Credits.title			= NextValue();
-				// changed RF063
 				Credits.Animation		= NextValue();
 				Credits.AnimationOver	= NextValue();
 			}
@@ -1965,7 +1862,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitGame.Image_Y		= NextValue();
 				QuitGame.Mover_X		= NextValue();
 				QuitGame.Mover_Y		= NextValue();
-				// changed RF063
 				QuitGame.Animation		= NextValue();
 				QuitGame.AnimationOver	= NextValue();
 			}
@@ -1975,7 +1871,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				MainMenu[7].Y		= NextValue();
 				return_text.Font	= NextFont();
 			}
-// start multiplayer
 			else if(!stricmp(szAtom, "hostnewgame"))
 			{
 				MultiMenu[0].X				= NextValue();
@@ -2019,7 +1914,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitMulti.Image_Y		= NextValue();
 				QuitMulti.Mover_X		= NextValue();
 				QuitMulti.Mover_Y		= NextValue();
-				// changed RF063
 				QuitMulti.Animation		= NextValue();
 				QuitMulti.AnimationOver = NextValue();
 			}
@@ -2085,7 +1979,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				JoinGameMenu[4].Y			= NextValue();
 				MultiplayerHelp_Text.Font	= NextFont();
 			}
-// end multiplayer
 			else if(!stricmp(szAtom, "quitload"))
 			{
 				LoadGMenu[0].X			= NextValue();
@@ -2097,7 +1990,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitLoad.Image_Y		= NextValue();
 				QuitLoad.Mover_X		= NextValue();
 				QuitLoad.Mover_Y		= NextValue();
-				// changed RF063
 				QuitLoad.Animation		= NextValue();
 				QuitLoad.AnimationOver	= NextValue();
 			}
@@ -2112,7 +2004,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				LoadSlot.Image_Y		= NextValue();
 				LoadSlot.Mover_X		= NextValue();
 				LoadSlot.Mover_Y		= NextValue();
-				// changed RF063
 				LoadSlot.Animation		= NextValue();
 				LoadSlot.AnimationOver	= NextValue();
 			}
@@ -2182,7 +2073,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitSave.Image_Y		= NextValue();
 				QuitSave.Mover_X		= NextValue();
 				QuitSave.Mover_Y		= NextValue();
-				// changed RF063
 				QuitSave.Animation		= NextValue();
 				QuitSave.AnimationOver	= NextValue();
 			}
@@ -2197,7 +2087,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SaveSlot.Image_Y		= NextValue();
 				SaveSlot.Mover_X		= NextValue();
 				SaveSlot.Mover_Y		= NextValue();
-				// changed RF063
 				SaveSlot.Animation		= NextValue();
 				SaveSlot.AnimationOver	= NextValue();
 			}
@@ -2256,7 +2145,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SaveBar.AnimationDwnOver	= NextValue();
 				SaveBar.AnimationDwnPush	= NextValue();
 			}
-			// start change Nout - Show save game image
 			else if(!stricmp(szAtom, "savegameimage"))
 			{
 				SaveScreen.X		= NextValue();
@@ -2265,13 +2153,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SaveScreen.Height	= NextValue();
 				SaveScreen.Image_X	= NextValue();
 				SaveScreen.Image_Y	= NextValue();
-
-				// changed QD 12/15/05
-				/*
-				strcpy(SaveScreen.EmptySlotImage,NextToken());
-				if(strlen(SaveScreen.EmptySlotImage)<5) //if param empty, use the SaveScreen bitmap
-					strcpy(SaveScreen.EmptySlotImage,"Media\\Bitmaps\\SaveScreen.bmp");
-				*/
 
 				SaveScreen.EmptySlotImage[0] = '\0';
 
@@ -2295,9 +2176,7 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 					geBitmap_SetColorKey(EmptySlotImage, GE_TRUE, 255, GE_FALSE);
 					geEngine_AddBitmap(CCD->Engine()->Engine(), EmptySlotImage);
 				}
-				// end change
 			}
-			// end change Nout
 			else if(!stricmp(szAtom, "audio"))
 			{
 				OptionMenu[0].X			= NextValue();
@@ -2311,7 +2190,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				AudioItem.Mover_Y		= NextValue();
 				AudioItem.background	= NextValue();
 				AudioItem.title			= NextValue();
-				// changed RF063
 				AudioItem.Animation		= NextValue();
 				AudioItem.AnimationOver = NextValue();
 			}
@@ -2328,7 +2206,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				VideoItem.Mover_Y		= NextValue();
 				VideoItem.background	= NextValue();
 				VideoItem.title			= NextValue();
-				// changed RF063
 				VideoItem.Animation		= NextValue();
 				VideoItem.AnimationOver = NextValue();
 			}
@@ -2345,11 +2222,9 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				ControlItem.Mover_Y			= NextValue();
 				ControlItem.background		= NextValue();
 				ControlItem.title			= NextValue();
-				// changed RF063
 				ControlItem.Animation		= NextValue();
 				ControlItem.AnimationOver	= NextValue();
 			}
-// changed QD Language Menu
 			else if(!stricmp(szAtom, "language"))
 			{
 				OptionMenu[3].X				= NextValue();
@@ -2370,7 +2245,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 			{
 				OptionMenu[4].X			= NextValue();
 				OptionMenu[4].Y			= NextValue();
-// end change QD
 				DebugItem.Image_Number	= NextValue();
 				DebugItem.Width			= NextValue();
 				DebugItem.Height		= NextValue();
@@ -2395,11 +2269,9 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitOption.Image_Y			= NextValue();
 				QuitOption.Mover_X			= NextValue();
 				QuitOption.Mover_Y			= NextValue();
-				// changed RF063
 				QuitOption.Animation		= NextValue();
 				QuitOption.AnimationOver	= NextValue();
 			}
-// changed QD Language Menu
 			else if(!stricmp(szAtom, "quitlanguage"))
 			{
 				LanguageMenu[0].X			= NextValue();
@@ -2531,7 +2403,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 			}
 			else if(!stricmp(szAtom, "languagetext"))
 			{
-				// changed QD 12/15/05 - default is a better indicator ;-)
 				char *language = NextToken();
 				if(!stricmp("standard", language) || !stricmp("default", language))
 					L1text.text = strdup("English");
@@ -2561,7 +2432,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 					L5text.text = strdup("Italiano");
 				else
 					L5text.text = strdup(language);
-				// end change
 			}
 			else if(!stricmp(szAtom, "menuinis"))
 			{
@@ -2587,7 +2457,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				strcpy(Messagetxts[3], NextToken());
 				strcpy(Messagetxts[4], NextToken());
 			}
-// end change QD
 			else if(!stricmp(szAtom, "quitdebug"))
 			{
 				DebugMenu[0].X			= NextValue();
@@ -2599,7 +2468,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitDebug.Image_Y		= NextValue();
 				QuitDebug.Mover_X		= NextValue();
 				QuitDebug.Mover_Y		= NextValue();
-				// changed RF063
 				QuitDebug.Animation		= NextValue();
 				QuitDebug.AnimationOver = NextValue();
 			}
@@ -2729,7 +2597,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitCredit.Image_Y		= NextValue();
 				QuitCredit.Mover_X		= NextValue();
 				QuitCredit.Mover_Y		= NextValue();
-				// changed RF063
 				QuitCredit.Animation	= NextValue();
 				QuitCredit.AnimationOver= NextValue();
 			}
@@ -2769,7 +2636,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitAudio.Image_Y		= NextValue();
 				QuitAudio.Mover_X		= NextValue();
 				QuitAudio.Mover_Y		= NextValue();
-				// changed RF063
 				QuitAudio.Animation		= NextValue();
 				QuitAudio.AnimationOver = NextValue();
 			}
@@ -2801,7 +2667,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Vol_Slide.Image_Y		= NextValue();
 				Vol_Slide.Min_X			= NextValue();
 				Vol_Slide.Max_X			= NextValue();
-				// changed RF063
 				Vol_Slide.Animation		= NextValue();
 			}
 			else if(!stricmp(szAtom, "mvoltext"))
@@ -2868,7 +2733,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitVideo.Image_Y		= NextValue();
 				QuitVideo.Mover_X		= NextValue();
 				QuitVideo.Mover_Y		= NextValue();
-				// changed RF063
 				QuitVideo.Animation		= NextValue();
 				QuitVideo.AnimationOver = NextValue();
 			}
@@ -2900,7 +2764,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Gamma_Slide.Image_Y			= NextValue();
 				Gamma_Slide.Min_X			= NextValue();
 				Gamma_Slide.Max_X			= NextValue();
-				// changed RF063
 				Gamma_Slide.Animation		= NextValue();
 			}
 			else if(!stricmp(szAtom, "detailtext"))
@@ -2931,10 +2794,8 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Detail_Slide.Image_Y		= NextValue();
 				Detail_Slide.Min_X			= NextValue();
 				Detail_Slide.Max_X			= NextValue();
-				// changed RF063
 				Detail_Slide.Animation		= NextValue();
 			}
-// changed QD Shadows
 			else if(!stricmp(szAtom, "shadowbox"))
 			{
 				VideoMenu[7].X			= NextValue();
@@ -2958,7 +2819,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				VideoMenu[8].Y		= NextValue();
 				shadow_text.Font	= NextFont();
 			}
-// end change
 			else if(!stricmp(szAtom, "advance"))
 			{
 				ControlMenu[0].X			= NextValue();
@@ -2972,7 +2832,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				AdvancedItem.Mover_Y		= NextValue();
 				AdvancedItem.background		= NextValue();
 				AdvancedItem.title			= NextValue();
-				// changed RF063
 				AdvancedItem.Animation		= NextValue();
 				AdvancedItem.AnimationOver	= NextValue();
 			}
@@ -2987,7 +2846,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitControl.Image_Y			= NextValue();
 				QuitControl.Mover_X			= NextValue();
 				QuitControl.Mover_Y			= NextValue();
-				// changed RF063
 				QuitControl.Animation		= NextValue();
 				QuitControl.AnimationOver	= NextValue();
 			}
@@ -3062,7 +2920,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				ResetKey.Image_Y		= NextValue();
 				ResetKey.Mover_X		= NextValue();
 				ResetKey.Mover_Y		= NextValue();
-				// changed RF063
 				ResetKey.Animation		= NextValue();
 				ResetKey.AnimationOver	= NextValue();
 			}
@@ -3077,7 +2934,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				QuitAdvanced.Image_Y		= NextValue();
 				QuitAdvanced.Mover_X		= NextValue();
 				QuitAdvanced.Mover_Y		= NextValue();
-				// changed RF063
 				QuitAdvanced.Animation		= NextValue();
 				QuitAdvanced.AnimationOver	= NextValue();
 			}
@@ -3178,7 +3034,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				Sens_Slide.Image_Y		= NextValue();
 				Sens_Slide.Min_X		= NextValue();
 				Sens_Slide.Max_X		= NextValue();
-				// changed RF063
 				Sens_Slide.Animation	= NextValue();
 			}
 			else if(!stricmp(szAtom, "mouseclick"))
@@ -3250,14 +3105,11 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				if(stricmp((musicname+len),".mid")==0)
 				{
 					strcpy(music, musicname);
-// changed RF064
-					// changed QD 07/15/06
 					if(theMIDIPlayer)
 					{
 						delete theMIDIPlayer;
 						theMIDIPlayer = 0;
 					}
-					// end change
 
 					theMIDIPlayer = new CMIDIAudio();
 
@@ -3267,7 +3119,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 					{
 						musictype = 1;
 					}
-// end change RF064
 				}
 				else
 				{
@@ -3276,13 +3127,11 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 					strcat(music, musicname);
 					m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
 
-					// changed QD 07/15/06
 					if(m_Streams)
 					{
 						delete m_Streams;
 						m_Streams = 0;
 					}
-					// end change
 
 					m_Streams = new StreamingAudio(m_dsPtr);
 
@@ -3295,8 +3144,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 					}
 				}
 			}
-// changed RF063
-			//else
 			if(!stricmp(szAtom, "select"))
 			{
 				SelectBack	= NextValue();
@@ -3363,7 +3210,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SelectMenu[4].X = NextValue();
 				SelectMenu[4].Y = NextValue();
 			}
-// changed QD 12/15/05
 			else if(!stricmp(szAtom, "nameselect"))
 			{
 				PlayerNameBack	= NextValue();
@@ -3420,7 +3266,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				DefaultName.Animation		= NextValue();
 				DefaultName.AnimationOver	= NextValue();
 			}
-// end change
 			else if(!stricmp(szAtom, "loadmsg"))
 			{
 				LoadFont = NextFont();
@@ -3432,7 +3277,6 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SavingTime = (float)NextValue();
 				strcpy(Savemsg, strtok(NULL,"\n"));
 			}
-// end change RF063
 			else if(!stricmp(szAtom, "difficult"))
 			{
 				DifficultBack	= NextValue();
@@ -3511,13 +3355,11 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SAFE_FREE(det_text.text);
 				det_text.text = strdup(NextString());
 			}
-// changed QD Shadows
 			else if(!stricmp(szAtom, "vshadowtext"))
 			{
 				SAFE_FREE(shadow_text.text);
 				shadow_text.text = strdup(NextString());
 			}
-// end change
 			else if(!stricmp(szAtom, "volumetext"))
 			{
 				SAFE_FREE(vol_text.text);
@@ -3578,19 +3420,9 @@ void CRFMenu::LoadMenuIni(const char *menuini)
 				SAFE_FREE(return_text.text);
 				return_text.text = strdup(NextString());
 			}
-/*
-			else
-			{
-				char szBug[256];
-				sprintf(szBug, "Unknown Menu command %s", szInputLine);
-				CCD->ReportError(szBug, false);
-			}
-*/
 		}
 
-// changed RF063
 		geVFile_Close(SecondFS);
-// end change RF063
 	}
 	else
 	{
@@ -3678,22 +3510,17 @@ CRFMenu::~CRFMenu()
 		}
 	}
 
-// changed RF063
 	for(i=0; i<NUM_ANIM; i++)
 	{
 		SAFE_DELETE(Animation[i]);
 	}
-// end change RF063
 
-// changed QD 12/15/05
 	if(EmptySlotImage)
 	{
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
 		geBitmap_Destroy(&EmptySlotImage);
 	}
-// end change
 
-// changed Nout 12/15/05
 	if(Cursor)
 	{
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cursor);
@@ -3710,7 +3537,6 @@ CRFMenu::~CRFMenu()
 		geEngine_RemoveBitmap(CCD->Engine()->Engine(), FCrosshair);
 		geBitmap_Destroy(&FCrosshair);
 	}
-// end change
 
 #ifdef BLIT
 	if(ScreenBmp)
@@ -3736,21 +3562,17 @@ CRFMenu::~CRFMenu()
 	{
 		SAFE_FREE(SavedGame[i].text);
 
-// changed QD 12/15/05
 		if(SavedGame[i].SGImage)
 		{
 			geEngine_RemoveBitmap(CCD->Engine()->Engine(), SavedGame[i].SGImage);
 			geBitmap_Destroy(&(SavedGame[i].SGImage));
 		}
-// end change
 	}
 
-// changed QD 12/15/05 delete temporary savescreen.bmp
 	char filename[256];
 	sprintf(filename, "%s\\SaveScreen.bmp", CCD->GetDirectory(kBitmapFile));
 	unlink(filename);
 
-// changed RF064
 	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
 		NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
 
@@ -3758,8 +3580,6 @@ CRFMenu::~CRFMenu()
 		mixer.SetControlValue(WinVol);
 
 	SAFE_DELETE(theMIDIPlayer);
-
-// end change RF064
 
 	return;
 }
@@ -3769,9 +3589,7 @@ CRFMenu::~CRFMenu()
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::DoMenu(const char *levelname)
 {
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Entering CRFMenu::DoMenu()", false);
-// 08.05.2004 - end change gekido
 
 	M_CameraRect.Left	= 0;
 	M_CameraRect.Right	= CCD->Engine()->Width() - 1;
@@ -3783,7 +3601,6 @@ int CRFMenu::DoMenu(const char *levelname)
 
 	if(musictype != -1)
 	{
-// changed RF064
 		if(musictype == 1)
 			MIDIPlayer()->Play(music, true);
 		else
@@ -3807,13 +3624,10 @@ int CRFMenu::DoMenu(const char *levelname)
 		}
 	}
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Saving Attributes & Settings files...", false);
-// 08.05.2004 - end change gekido
 
 	if(ingame == 1)
 		CCD->Player()->SaveAttributesAscii("attributes.txt");
-// end change RF064
 
 	FILE *fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "wb");
 
@@ -3830,15 +3644,11 @@ int CRFMenu::DoMenu(const char *levelname)
 		fwrite(&box4.Current,			sizeof(int), 1, fd);
 		fwrite(&Detail_Slide.Current,	sizeof(int), 1, fd);
 		fwrite(&mVol_Slide.Current,		sizeof(int), 1, fd);
-// changed QD Shadows
 		fwrite(&ShadowBox.Current,		sizeof(int), 1, fd);
-// end change
 		fclose(fd);
 	}
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Destroying Camera...", false);
-// 08.05.2004 - end change gekido
 
 	geCamera_Destroy(&M_Camera);
 
@@ -3860,28 +3670,21 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	Image *idata;
 	Slider *sdata;
 	Box *bdata;
-// changed QD Language Menu
 	Radio *radiodata;
-// end change QD
 	Text *tdata;
 	Remap *rdata;
 	ScrollBar *scdata;
 	LSBox *lrdata;
-// start multiplayer
 	int textedit_click;
 	TextEdit *tedata;
-// end multiplayer
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Entering CRFMenu::ProcessMenu", false);
-// 08.05.2004 - end change gekido
 
 	x = (CCD->Engine()->Width() - DesignX) / 2;
 	y = (CCD->Engine()->Height() - DesignY) / 2;
 	int bx = 0;
 	int by = 0;
 
-// changed QD 12/15/05 - safety check
 	if(Background_Number >= 0 && Background_Number < NUM_BACKGROUNDS)
 	{
 		if(Backgrounds[Background_Number])
@@ -3895,7 +3698,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 				by = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
 		}
 	}
-// end change
 
 	max = 0;
 
@@ -3906,9 +3708,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 	slide_click				= -1;
 	slide_x					= -1;
 	box_click				= -1;
-// changed QD Language Menu
 	radio_click				= -1;
-// end change QD
 	escapeon				= 0;
 	scroll_click			= -1;
 	scroll_dir				= 0;
@@ -3929,9 +3729,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);
 	}
 
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("Entering Windows Message Loop, Rendering Game Menu", false);
-// 08.05.2004 - end change gekido
 
 	for(;;)
 	{
@@ -3942,9 +3740,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 		while(PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
 		{
 			GetMessage(&msg, NULL, 0, 0);
-			// start multiplayer
 			TranslateMessage(&msg);
-			// end multiplayer
 			DispatchMessage(&msg);
 		}
 
@@ -3970,7 +3766,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			geBitmap *theBmp = Animation[MTitles[Title_Number].Animation]->NextFrame(true);
 			DrawBitmap(theBmp, NULL, MTitles[Title_Number].X+x, MTitles[Title_Number].Y+y);
 		}
-// end change RF063
 
 		GetCursorPos(&temppos);
 
@@ -3988,7 +3783,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 		for(i=0; i<max; i++)
 		{
-// changed RF063
 			switch(Menu[i].Type)
 			{
 			case CLICKABLE:
@@ -4038,7 +3832,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								geBitmap *theBmp = Animation[data->AnimationOver]->NextFrame(true);
 								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 							}
-// changed QD 02/01/07
 							if(GetSystemMetrics(SM_SWAPBUTTON))
 							{
 								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4049,7 +3842,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 									click = i;
 							}
-// end change
 						}
 					}
 					else
@@ -4073,7 +3865,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// end change RF063
 			case IMAGE:
 				{
 					idata = (Image*)Menu[i].data;
@@ -4096,20 +3887,17 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// changed RF063
 			case CHARIMAGE:
 				{
 					DrawBitmap(CharSelect[CurrentSelect].Bitmap, NULL, Menu[i].X+x, Menu[i].Y+y);
 
 					break;
 				}
-// end change RF063
 			case SLIDER:
 				{
 					sdata = (Slider*)Menu[i].data;
 					temp = sdata->Current;
 
-// changed RF063
 					if(sdata->Animation < 0 || Animation[sdata->Animation] == NULL)
 					{
 						BitRect.Left	= sdata->Image_X;
@@ -4125,7 +3913,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						geBitmap *theBmp = Animation[sdata->Animation]->NextFrame(true);
 						DrawBitmap(theBmp, NULL, Menu[i].X+x+temp, Menu[i].Y+y);
 					}
-// end change RF063
 
 					if((temppos.x >= Menu[i].X+x+temp)
 						&& (temppos.x <= (Menu[i].X+x+temp+sdata->Width))
@@ -4133,7 +3920,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+data->Height))
 						&& (slide_click == -1))
 					{
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4144,7 +3930,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 								slide_click = i;
 						}
-// end change
 
 						if(slide_x == -1)
 							slide_x = temppos.x;
@@ -4179,7 +3964,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 						}
 
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4190,7 +3974,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 								box_click = i;
 						}
-// end change
 					}
 					else
 					{
@@ -4200,7 +3983,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							&& (temppos.y <= (Menu[i].Y+y+bdata->Height))
 							&& (slide_click == -1))
 						{
-// changed QD 02/01/07
 							if(GetSystemMetrics(SM_SWAPBUTTON))
 							{
 								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4211,7 +3993,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 									box_click = i;
 							}
-// end change
 						}
 
 						if(bdata->Current == 0)
@@ -4254,7 +4035,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// changed QD Language Menu
 			case RADIO:
 				{
 					radiodata = (Radio*)Menu[i].data;
@@ -4282,7 +4062,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
 						}
 
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4293,7 +4072,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 								radio_click = i;
 						}
-// end change
 					}
 					else
 					{
@@ -4303,7 +4081,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 							&& (temppos.y <= (Menu[i].Y+y+radiodata->Height))
 							&& (slide_click == -1))
 						{
-// changed QD 02/01/07
 							if(GetSystemMetrics(SM_SWAPBUTTON))
 							{
 								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4314,7 +4091,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
 									radio_click = i;
 							}
-// end change
 						}
 
 						if(radiodata->Current == 0)
@@ -4358,7 +4134,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// end change QD
 			case TEXT:
 				{
 					char *s;
@@ -4375,7 +4150,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// start multiplayer
 			case TEXTEDIT:
 				{
 					tedata = (TextEdit*)Menu[i].data;
@@ -4388,7 +4162,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y >= Menu[i].Y+y)
 						&& (temppos.y <= Menu[i].Y+y+30))
 					{
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && textedit_click == -1)
@@ -4409,12 +4182,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								focus = -1;
 							}
 						}
-// end change
 					}
 
 					if((GetAsyncKeyState(VK_RETURN) & 0x8000) != 0 && textedit_click == i)
 					{
-						//focus=-1;
 						Size = strlen( tedata->text );
 						tedata->text[Size-1] = '\0';
 						strcpy(ServerIP,tedata->text);
@@ -4472,7 +4243,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 					break;
 				}
-// end multiplayer
 			case REMAP:
 				{
 					rdata = (Remap*)Menu[i].data;
@@ -4599,7 +4369,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+rdata->Corner_Y+(rdata->Max_Show*rdata->Step)))
 						&& (slide_click == -1))
 					{
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4616,7 +4385,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
 							}
 						}
-// end change
 					}
 
 					break;
@@ -4664,10 +4432,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+scdata->Up_Y+scdata->Up_Height))
 						&& (slide_click == -1))
 					{
-// changed QD 02/01/07
 						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
 							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
-// end change
 						{
 							if(scdata->AnimationUpPush < 0 || Animation[scdata->AnimationUpPush] == NULL)
 							{
@@ -4723,10 +4489,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+scdata->Dwn_Y+scdata->Dwn_Height))
 						&& (slide_click == -1))
 					{
-// changed QD 02/01/07
 						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
 							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
-// end change
 						{
 							if(scdata->AnimationDwnPush<0 || Animation[scdata->AnimationDwnPush]==NULL)
 							{
@@ -4833,7 +4597,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						&& (temppos.y <= (Menu[i].Y+y+lrdata->Corner_Y+(lrdata->Max_Show*lrdata->Step)))
 						&& (slide_click == -1))
 					{
-// changed QD 02/01/07
 						if(GetSystemMetrics(SM_SWAPBUTTON))
 						{
 							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
@@ -4850,7 +4613,6 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 								lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
 							}
 						}
-// end change
 					}
 
 					if(lrdata->Current > -1)
@@ -4912,9 +4674,7 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 		if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1 && !Fading)
 		{
-// 08.05.2004 - begin change gekido
 			CCD->ReportError("Exiting Menu, Returning to Game", false);
-// 08.05.2004 - end change gekido
 			escapeon = 0;
 
 			if(ingame == 1)
@@ -4948,10 +4708,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			//--------------------------------------
 			// if clicked on Clickable or Exit Menu
 			//--------------------------------------
-// changed QD 02/01/07
 			if(click !=-1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				if(LoopOnce == 0)
 					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
@@ -4974,23 +4732,19 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						if(remapf != -1)
 							CCD->Input()->SaveKeymap("keyboard.ini");
 
-// changed QD Language Menu
 						if(data->proc != NULL)
 							data->proc();
-// end change QD
 						if(data->Action >= 10)
 							return data->Action-9;
 
 						return 0;
 					}
-// changed RF063
 					else if(Menu[click].Type == CANCEL_MENU)
 					{
 						if(remapf != -1)
 							CCD->Input()->SaveKeymap("keyboard.ini");
 						return 1;
 					}
-// end change RF063
 					else if(Menu[click].Type == CLICKABLE)
 					{
 						FadeSet(-1, TimeFade);
@@ -5010,12 +4764,10 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 						}
 						else if(data->proc != NULL && data->Action == 4)
 						{
-// changed RF064
 							if(LoadBox.Current != -1)
 							{
 								if(LoadBox.text[LoadBox.Current].empty != 0)
 								{
-// end change RF064
 									data->proc();
 									return 0;
 								}
@@ -5031,10 +4783,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on slider
 			//--------------------------
 
-// changed QD 02/01/07
 			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				temp = temppos.x-slide_x;
 				sdata = (Slider*)Menu[slide_click].data;
@@ -5058,10 +4808,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			if(slide_click == -1)
 				slide_x = -1;
 
-// changed QD 02/01/07
 			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)))
-// end change
 			{
 				if(slide_x != temppos.x)
 				{
@@ -5088,10 +4836,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on box
 			//--------------------------
 
-// changed QD 02/01/07
 			if(box_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				bdata = (Box*)Menu[box_click].data;
@@ -5103,15 +4849,12 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 				box_click = -1;
 			}
 
-// changed QD Language Menu
 			//--------------------------
 			// if clicked on radio box
 			//--------------------------
 
-// changed QD 02/01/07
 			if(radio_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				radiodata = (Radio*)Menu[radio_click].data;
@@ -5132,16 +4875,13 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 
 				radio_click = -1;
 			}
-// end change QD
 
 			//--------------------------
 			// if clicked on remap
 			//--------------------------
 
-// changed QD 02/01/07
 			if(remap_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				rdata = (Remap*)Menu[remap_click].data;
@@ -5153,10 +4893,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on scrollbar
 			//--------------------------
 
-// changed QD 02/01/07
 			if(scroll_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				scdata = (ScrollBar*)Menu[scroll_click].data;
@@ -5181,10 +4919,8 @@ int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number
 			// if clicked on lsbox
 			//--------------------------
 
-// changed QD 02/01/07
 			if(lsbox_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
 								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-// end change
 			{
 				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
 				lrdata = (LSBox*)Menu[lsbox_click].data;
@@ -5376,7 +5112,6 @@ void CRFMenu::StopMenuMusic()
 	}
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 //	SetMusicVol
 /* ------------------------------------------------------------------------------------ */
@@ -5430,7 +5165,6 @@ void CRFMenu::SetmMusicVol(float vol)
 		mixercd.SetControlValue(dw);
 	}
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
 //	GameLoop
@@ -5445,17 +5179,7 @@ void CRFMenu::GameLoop()
 	//	..and easy reload of the "game startup" attributes and
 	//	..inventory.
 
-/* changed RF064
-	CCD->Player()->DisableFog();		// Turn off fogging for cut scene
-	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
-
-	// Play the opening cut scene, if one exists
-	CCD->PlayOpeningCutScene();
-end change RF064 */
-
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("CRFMenu::GameLoop() - Setup and Run Level", false);
-// 08.05.2004 - end change gekido
 
 	CCD->Player()->ShowFog();			// Show fog, if enabled
 	CCD->Player()->ActivateClipPlane();	// Activate clipping plane, if enabled
@@ -5471,7 +5195,6 @@ end change RF064 */
 	GameLevel();
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
 //	GameLevel
 //
@@ -5479,18 +5202,14 @@ end change RF064 */
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::GameLevel()
 {
-// 08.05.2004 - begin change gekido
 	CCD->ReportError("CRFMenu::GameLevel() - Entering Inner Game Loop", false);
-// 08.05.2004 - end change gekido
 	MSG msg;
 	int FirstFont;
 	geRect firstRect;
 	int framecount;
 
-// changed Nout 12/15/05
 	for(int i=0; i<MAXTEXT; i++)
 		CCD->Pawns()->TextMessage[i].ShowText = false;
-// end change
 
 	CCD->Player()->ShowFog();
 
@@ -5519,7 +5238,6 @@ void CRFMenu::GameLevel()
 
 	framecount = 0;
 
-	// changed QD 02/01/07
 // center mouse on window befor returning to game
 	POINT pos;
 	if(CCD->Engine()->FullScreen())
@@ -5537,18 +5255,15 @@ void CRFMenu::GameLevel()
 		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);		// convert to SCREEN coordinates
 		SetCursorPos(pos.x,pos.y);								// put the cursor in the middle of the window
 	}
-// end change
 
 	for(;;)
 	{
 		// If Winblows has something to say, take it in and pass it on in the
 		// ..off-chance someone cares.
-// start multiplayer
 		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
 		{
 			GetMessage(&msg, NULL, 0, 0);
 			TranslateMessage(&msg);
-// end multiplayer
 			DispatchMessage(&msg);
 		}
 
@@ -5558,10 +5273,8 @@ void CRFMenu::GameLevel()
 		if(CCD->HandleGameInput() == true)
 		{
 			// Ok, send a Tick() call to all components that use time
-// changed RF064
 			if(CCD->Inventory()->GetStopTime())
 				CCD->DispatchTick();
-// end change RF064
 
 			bool cflag = false;
 
@@ -5577,7 +5290,6 @@ void CRFMenu::GameLevel()
 			}
 
 			CCD->Pawns()->AnimateWeapon();
-			//CCD->Weapons()->Display();
 			CCD->Weapons()->DoAttack();
 			CCD->Explosions()->Tick(CCD->GetTicksGoneBy());
 			CCD->EffectManager()->Tick(CCD->GetTicksGoneBy());
@@ -5591,11 +5303,9 @@ void CRFMenu::GameLevel()
 
 			CCD->Engine()->RenderWorld();				// Render the world
 
-// changed Nout 12/15/05
 			//Fills a rectangle on the screen with color / alpha (can be used for color/alpha fading)
 			for(int i=0; i<MAXFILLAREA; i++)
 				CCD->Pawns()->FillScreenArea(i);
-// end change
 
 			if(box1.Current == BOX_ON
 				&& (CCD->Player()->GetViewPoint() == FIRSTPERSON || CCD->Player()->GetViewPoint() == THIRDPERSON)
@@ -5617,7 +5327,6 @@ void CRFMenu::GameLevel()
 
 						if(geBitmap_GetInfo(theBmp, &BmpInfo, NULL) == GE_TRUE)
 						{
-// changed RF063
 							if(CCD->Player()->GetViewPoint() == THIRDPERSON
 								&& !(CCD->Weapons()->GetCurrent() == -1 || CCD->Weapons()->GetCurrent() == 11))
 							{
@@ -5630,7 +5339,6 @@ void CRFMenu::GameLevel()
 								x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
 								y = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
 							}
-// end change RF063
 							geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y);
 						}
 					}
@@ -5669,29 +5377,21 @@ void CRFMenu::GameLevel()
 			else
 				savetime = 0.0f;
 
-// changed RF064
 			if(CCD->GetConsole())
 			{
 				// call the console render function here as it is active
-				// begin change gekido
 				CCD->ConsoleRender();
-				// end change gekido
 			}
 
 			CCD->Inventory()->Display(); // render Inventory / HUD
-// end change RF064
 
 
-// changed Nout 12/15/05
 			// Displays a text on the screen that tracks position with an Entity
 			for(int ii=0; ii<MAXTEXT; ii++)
 				CCD->Pawns()->ShowText(ii);
-// end change
 
 
-// changed QD 12/15/05
 			CCD->Teleporters()->DoFade();
-// end change
 
 			if(Fading)
 				DoFade();
@@ -5837,9 +5537,7 @@ void CRFMenu::GameLevel()
 				// Version 053
 				if(CCD->ChangeLevel())
 				{
-					// 08.05.2004 - begin change gekido
 					CCD->ReportError("CRFMenu::GameLevel() - ChangeLevel Triggered, begin Changelevel Process...", false);
-					// 08.05.2004 - end change gekido
 					CCD->Player()->DisableFog();		// Fogging OFF
 					CCD->Player()->DisableClipPlane();	// Clip plane OFF
 					CCD->SetMouseControl(true);
@@ -5889,11 +5587,7 @@ void CRFMenu::GameLevel()
 		}
 	}	// End main game loop
 
-// changed QD 12/15/05
-// change begin Nout - Show save game image
 // save the screen just before switching to the menu (in RF dir)
-	// geEngine_ScreenShot(CCD->Engine()->Engine(), "Media\\Bitmaps\\SaveScreen.bmp");
-	// ScaleBitmapFromFile(".\\Media\\Bitmaps\\SaveScreen.bmp", SaveScreen.Width, SaveScreen.Height);
 	if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
 	{
 		char szTemp[256];
@@ -5903,8 +5597,6 @@ void CRFMenu::GameLevel()
 		geEngine_ScreenShot(CCD->Engine()->Engine(), szTemp);
 		ScaleBitmapFromFile(szTemp, SaveScreen.Width, SaveScreen.Height);
 	}
-// change end Nout
-// end change
 
 	while((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
 	{
@@ -5918,21 +5610,6 @@ void CRFMenu::GameLevel()
 
 	if(CCD->MIDIPlayer())
 		CCD->MIDIPlayer()->Stop();		// stop midi music
-
-/*
-	geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_FALSE);
-	geEngine_EndFrame(CCD->Engine()->Engine());
-	CCD->ResetClock();
-	FadeSet(1, TimeFade);
-	MusicSet();
-
-	while(Fading)
-	{
-		geEngine_BeginFrame(CCD->Engine()->Engine(), CCD->CameraManager()->Camera(), GE_FALSE);
-		DoFade();
-		geEngine_EndFrame(CCD->Engine()->Engine());
-	}
-*/
 
 	CCD->Engine()->ShowFrameRate(false);
 	ClearVol();
@@ -5951,7 +5628,6 @@ void CRFMenu::GameLevel()
 	FadeSet(-1, TimeFade);
 	MusicSet();
 }
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
 //	DisplayCrossHair
@@ -5979,15 +5655,9 @@ void CRFMenu::DisplayCrossHair()
 	CCD->CameraManager()->GetRotation(&theRotation);
 	CCD->CameraManager()->GetPosition(&thePosition);
 
-// changed QD 12/15/05
-	//geXForm3d_SetIdentity(&Xf);
-	//geXForm3d_RotateZ(&Xf, theRotation.Z);
 	geXForm3d_SetZRotation(&Xf, theRotation.Z);
 	geXForm3d_RotateX(&Xf, theRotation.X);
 	geXForm3d_RotateY(&Xf, theRotation.Y);
-	// translation doesn't influence the orientation
-	//geXForm3d_Translate(&Xf, thePosition.X, thePosition.Y, thePosition.Z);
-// end change
 
 	geXForm3d_GetIn(&Xf, &Direction);
 	geVec3d_AddScaled(&thePosition, &Direction, CurrentDistance, &Back);
@@ -6000,14 +5670,7 @@ void CRFMenu::DisplayCrossHair()
 
 	if(CCD->Collision()->CheckForBoneCollision(&theBox.Min, &theBox.Max,
 		thePosition, Back, &Collision, theActor, BoneHit, true))
-		//if(CCD->Collision()->CheckForWCollision(&theBox.Min, &theBox.Max,
-		//Pos, Back, &Collision, theActor))
 	{
-// changed QD 12/15/05
-		// can't be negative (sqrt!)
-		// CurrentDistance = (geFloat)fabs(geVec3d_DistanceBetween(&Collision.Impact, &Pos));
-		// if(CurrentDistance < 0.0f)
-		//	CurrentDistance = 0.0f;
 		CurrentDistance = geVec3d_DistanceBetween(&(Collision.Impact), &thePosition);
 
 		if(CurrentDistance > 400.0f)
@@ -6020,8 +5683,6 @@ void CRFMenu::DisplayCrossHair()
 			if(Collision.Actor && CCD->Weapons()->GetAllowLit())
 			{
 				geVec3d Fill = {0.0f, 1.0f, 0.0f};
-				// changed QD 12/15/05
-				//	geVec3d_Normalize(&Fill);
 				geXForm3d	Xf;
 				geXForm3d	XfT;
 				geVec3d NewFillNormal;
@@ -6047,12 +5708,8 @@ void CRFMenu::DisplayCrossHair()
 	Vert.Y = Back.Y;
 	Vert.Z = Back.Z;
 
-// Start Aug2003DCS - Added "| GE_RENDER_DEPTH_SORT_BF" so that crosshair always draws on top of wall decals
-	// geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(),
-	//	GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF, 1.0f);
     geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(),
 		GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF | GE_RENDER_DEPTH_SORT_BF, 1.0f);
-// End Aug2003DCS
 }
 
 void CRFMenu::DisplayCursor()
@@ -6086,7 +5743,6 @@ void CRFMenu::DisplayCursor()
 	}
 }
 
-// changed RF064
 /* ------------------------------------------------------------------------------------ */
 //	DisplaySplash
 //
@@ -6107,9 +5763,7 @@ void CRFMenu::DisplaySplash()
 		{
 			x = (CCD->Engine()->Width() - BmpInfo.Width)/2;
 			y = (CCD->Engine()->Height() - BmpInfo.Height)/2;
-			// change begin Nout - Show save game image
 			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
-	        // change end Nout
 
 			if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
 			{
@@ -6135,9 +5789,7 @@ void CRFMenu::DisplaySplash()
 				geEngine_EndFrame(CCD->Engine()->Engine());
 			}
 
-			// changed QD 12/15/05
 			geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
-			// end change
 		}
 
 		geBitmap_Destroy(&theBmp);
@@ -6145,7 +5797,6 @@ void CRFMenu::DisplaySplash()
 
 	return;
 }
-// end change RF064
 
 /* ------------------------------------------------------------------------------------ */
 //	save a screen shot
@@ -6225,12 +5876,9 @@ void CRFMenu::MenuInitalize()
 	SEBoundingBox = false;
 	box9.Current = BOX_OFF;
 
-// changed QD Shadows
 	ShadowBox.Current = BOX_OFF;
 	StencilShadows = false;
-// end change
 
-// changed QD Language Menu
 	CurrentLanguage = CCD->GetLanguage();
 
 	if(CurrentLanguage == 0)
@@ -6243,15 +5891,8 @@ void CRFMenu::MenuInitalize()
 		boxL4.Current = BOX_ON;
 	else if(CurrentLanguage == 4)
 		boxL5.Current = BOX_ON;
-// end change
-
-// begin add Nout - Show save game image
-//	SaveBox.Current = 0;
-//	LoadBox.Current = 0;
-// end add Nout
 
 	// load saved game file if it exists
-// changed QD 12/15/05
 	FILE *fd;
 
 	if(CCD->FileExist(kSavegameFile, "savedgames.rgf"))
@@ -6264,11 +5905,9 @@ void CRFMenu::MenuInitalize()
 
 			for(int nTemp = 0; nTemp < SaveBox.Max; nTemp++)
 			{
-				// changed QD 12/15/05
 				SAFE_FREE(SaveBox.text[nTemp].text);
 
 				SaveBox.text[nTemp].text = (char*)malloc(30);
-				// end change
 				fread(SaveBox.text[nTemp].text, 30, 1, fd);
 				fread(&SaveBox.text[nTemp].empty, sizeof(int), 1, fd);
 
@@ -6300,7 +5939,6 @@ void CRFMenu::MenuInitalize()
 			fclose(fd);
 		}
 	}
-// end change
 
 	fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "rb");
 
@@ -6345,18 +5983,15 @@ void CRFMenu::MenuInitalize()
 			mVolLevel = 0.0f;
 
 
-// changed QD Shadows
 		fread(&ShadowBox.Current, sizeof(int), 1, fd);
 		if(ShadowBox.Current==BOX_ON)
 			StencilShadows = true;
 		else
 			StencilShadows = false;
-// end change
 
 		fclose(fd);
 	}
 
-// changed RF064
 	int index = 0;
 	bool flg = false;
 	CIniFile AttrFile("control.ini");
@@ -7144,16 +6779,16 @@ void CRFMenu::MenuInitalize()
 
 		Redef[index].text = NULL;
 	}
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	PlaySoundDef
+// PlaySoundDef
 //
-//	replacement for play sound to keep track
-//	of all looping sounds
+// replacement for play sound to keep track of all looping sounds
 /* ------------------------------------------------------------------------------------ */
-geSound	*CRFMenu::PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef, geFloat Volume, geFloat Pan, geFloat Frequency, geBoolean Loop)
+geSound* CRFMenu::PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef,
+							   geFloat Volume, geFloat Pan, geFloat Frequency,
+							   geBoolean Loop)
 {
 	geSound	*Sound;
 	SoundList *pool;
@@ -7180,9 +6815,9 @@ geSound	*CRFMenu::PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef, ge
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	StopSound
+// StopSound
 //
-//	replacement for stop sound to remove all dead entries
+// replacement for stop sound to remove all dead entries
 /* ------------------------------------------------------------------------------------ */
 geBoolean CRFMenu::StopSound(geSound_System *SoundS, geSound *Sound)
 {
@@ -7222,7 +6857,7 @@ geBoolean CRFMenu::StopSound(geSound_System *SoundS, geSound *Sound)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	zero volume of all looping sounds
+// zero volume of all looping sounds
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ClearVol()
 {
@@ -7263,7 +6898,7 @@ void CRFMenu::ClearVol()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ResetVol
+// ResetVolume
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ResetVol()
 {
@@ -7274,13 +6909,17 @@ void CRFMenu::ResetVol()
 	while(pool != NULL)
 	{
 		temp = pool->next;
-		geSound_ModifySound(CCD->Engine()->AudioSystem(), pool->Sound, pool->Volume, pool->Pan, pool->Frequency);
+		geSound_ModifySound(CCD->Engine()->AudioSystem(),
+							pool->Sound,
+							pool->Volume,
+							pool->Pan,
+							pool->Frequency);
 		pool = temp;
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	clear out sound list
+// clear out sound list
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DeleteSound()
 {
@@ -7299,7 +6938,7 @@ void CRFMenu::DeleteSound()
 }
 
 /* ------------------------------------------------------------------------------------ */
-// get percentage from gamma setting
+// get percentage from gamma setting (0.0 ... 1.0)
 /* ------------------------------------------------------------------------------------ */
 static int GetGammaPercent()
 {
@@ -7310,7 +6949,7 @@ static int GetGammaPercent()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	set gamma from slider percentage
+// set gamma from slider percentage
 /* ------------------------------------------------------------------------------------ */
 static void SetGamma(int percent)
 {
@@ -7321,7 +6960,7 @@ static void SetGamma(int percent)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	set detail from slider percentage
+// set detail from slider percentage
 /* ------------------------------------------------------------------------------------ */
 static void SetDetail(int percent)
 {
@@ -7347,9 +6986,8 @@ static void SetDetail(int percent)
 	}
 }
 
-// changed QD Shadows
 /* ------------------------------------------------------------------------------------ */
-//	SetStencilShadows
+// SetStencilShadows
 /* ------------------------------------------------------------------------------------ */
 static void SetStencilShadows(int current)
 {
@@ -7366,10 +7004,9 @@ static void SetStencilShadows(int current)
 			theState->SShadowsColor.r, theState->SShadowsColor.g, theState->SShadowsColor.b, theState->SShadowsAlpha);
 	}
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
-//	set mouse sensitivity from slider percentage
+// set mouse sensitivity from slider percentage
 /* ------------------------------------------------------------------------------------ */
 static void SetSens(int percent)
 {
@@ -7382,14 +7019,12 @@ static void SetSens(int percent)
 static void SetVol(int percent)
 {
 	float vol;
-// changed RF064
 	vol = ((float)percent*0.01f);
 
 	if(percent == 0)
 		vol = 0.0f;
 
 	CCD->MenuManager()->SetMusicVol(vol);
-// end change RF064
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -7406,9 +7041,8 @@ static void SetmVol(int percent)
 	CCD->MenuManager()->SetmMusicVol(vol);
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
-//	DoGame
+// DoGame
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DoGame(bool editor)
 {
@@ -7416,8 +7050,6 @@ void CRFMenu::DoGame(bool editor)
 	usenameselect = false; // changed QD 12/15/05
 	bShowCursor = false;
 
-	// changed QD 12/15/05
-	//if(CCD->GetCSelect() || CCD->GetCDifficult())
 	if(CCD->GetCSelect() || CCD->GetCDifficult() || CCD->GetNSelect())
 	{
 		if(editor)
@@ -7449,7 +7081,6 @@ void CRFMenu::DoGame(bool editor)
 			useselect = true;
 		}
 
-		// changed QD 12/15/05
 		if(CCD->GetNSelect())
 		{
 			if(CCD->MenuManager()->ProcessMenu(PlayerNameMenu, PlayerNameBack, PlayerNameTitle)==1)
@@ -7460,7 +7091,6 @@ void CRFMenu::DoGame(bool editor)
 
 			usenameselect = true;
 		}
-		// end change
 
 		if(CCD->GetCDifficult())
 		{
@@ -7491,8 +7121,6 @@ void CRFMenu::DoGame(bool editor)
 	}
 	else
 	{
-		// changed QD 12/15/05
-		//if(CCD->GetCSelect() || CCD->GetCDifficult())
 		if(CCD->GetCSelect() || CCD->GetCDifficult() || CCD->GetNSelect())
 			CCD->MenuManager()->DisplaySplash(); // changed RF064
 	}
@@ -7518,18 +7146,14 @@ void CRFMenu::DoGame(bool editor)
 		exit(-333);
 	}
 
-// changed RF064
 	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
 	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
-// end change RF064
 	CCD->SetMouseControl(true);
 
-// changed RF064
 	CCD->TerrainMgr()->Init();
-// end change RF064
 
-	//	Ok, move the player avatar to the correct player start in the
-	//	..game level.
+	// Ok, move the player avatar to the correct player start in the
+	// ..game level.
 	if(CCD->Player()->MoveToStart() != RGF_SUCCESS)
 	{
 		CCD->ReportError("[ERROR] Failed to move player to start", false);
@@ -7538,21 +7162,19 @@ void CRFMenu::DoGame(bool editor)
 		exit(-336);
 	}
 
-	//	Play the opening cut scene, if one exists
+	// Play the opening cut scene, if one exists
 	CCD->PlayOpeningCutScene();
 
-// start multiplayer
 	if(CCD->GetMultiPlayer())
 	{
 		SetTimer(CCD->Engine()->WindowHandle(), NULL, TIMERINTERVAL, NULL);
 	}
-// end multiplayer
 
 	CCD->MenuManager()->GameLoop();
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ChangeCurrent - change selected character
+// change selected character
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ChangeCurrent(bool direction)
 {
@@ -7588,7 +7210,6 @@ static void NextChar()
 	CCD->MenuManager()->ChangeCurrent(true);
 }
 
-// changed QD 12/15/05
 /* ------------------------------------------------------------------------------------ */
 //	AcceptChar
 //
@@ -7627,13 +7248,11 @@ static void ResetName()
 	else
 		strcpy(PlayerName.text, CCD->GetDefaultPlayerName());
 }
-// end change
 
 /* ------------------------------------------------------------------------------------ */
 //	Run the level
 /* ------------------------------------------------------------------------------------ */
 
-// start multiplayer
 static void RunHostGame()
 {
 	CCD->ShutDownNetWork();
@@ -7654,9 +7273,6 @@ static void RunGame()
 	CCD->SetMultiPlayer(false, false);
 	CCD->MenuManager()->DoGame(false);
 }
-// end multiplayer
-
-// end change RF063
 
 /* ------------------------------------------------------------------------------------ */
 //	turn CD music on/off
@@ -7760,11 +7376,9 @@ static void SetSlot()
 			*(strrchr(filename,'.')) = 0;
 
 			// set date/time and level name
-			// changed QD 12/15/05
 			SAFE_FREE(SaveBox.text[SaveBox.Current].text);
 
 			SaveBox.text[SaveBox.Current].text = (char*)malloc(30);
-			// end change
 			sprintf(SaveBox.text[SaveBox.Current].text, "%.12s %.16s", ttext, filename);
 
 			// mark slot as in use
@@ -7808,16 +7422,13 @@ static void SetSlot()
 			CCD->Doors()->SaveTo(outFD, false);
 			CCD->Platforms()->SaveTo(outFD, false);
 			CCD->Props()->SaveTo(outFD, false);
-			// changed QD 02/01/07
 			CCD->Meshes()->SaveTo(outFD, false);
-			// end change
 			CCD->Teleporters()->SaveTo(outFD, false);
 			CCD->MorphingFields()->SaveTo(outFD);
 			CCD->MIDIPlayer()->SaveTo(outFD);
 			CCD->CDPlayer()->SaveTo(outFD);
 			CCD->Triggers()->SaveTo(outFD, false);
 			CCD->Logic()->SaveTo(outFD, false);
-// changed RF063
 			CCD->Attributes()->SaveTo(outFD, false);
 			CCD->Damage()->SaveTo(outFD, false);
 			CCD->CameraManager()->SaveTo(outFD);
@@ -7829,18 +7440,13 @@ static void SetSlot()
 			CCD->ActMaterials()->SaveTo(outFD, false);
 			CCD->ModelManager()->SaveTo(outFD, false);
 			CCD->SaveTo(outFD);
-// end change RF063
 
 			fclose(outFD);
 
-// changed QD 12/15/05
-// add Nout - Show save game image
 			if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
 			{
 				char oldname[256];
 				sprintf(oldname, "%s\\SaveScreen.bmp", CCD->GetDirectory(kBitmapFile));
-				//sprintf(filename, "Media\\Bitmaps\\SaveScreen%d.bmp",SaveBox.Current);
-				//CopyFile(oldname, filename);
 				sprintf(filename, "%s\\SaveScreen%d.bmp", CCD->GetDirectory(kBitmapFile), SaveBox.Current);
 
 				if(SaveBox.text[SaveBox.Current].SGImage)
@@ -7867,8 +7473,6 @@ static void SetSlot()
 					geEngine_AddBitmap(CCD->Engine()->Engine(), SaveBox.text[SaveBox.Current].SGImage);
 				}
 			}
-// end add Nout
-// end change
 		}
 	}
 }
@@ -7878,7 +7482,6 @@ static void SetSlot()
 /* ------------------------------------------------------------------------------------ */
 static void GetSlot()
 {
-// changed RF064
 	if(LoadBox.Current != -1) // must have selected saved game
 	{
 		// must be visible in table
@@ -7894,7 +7497,6 @@ static void GetSlot()
 				CCD->ReportError("[WARNING] No savegame file to restore", false);
 				return;
 			}
-// end change RF064
 
 			CCD->MenuManager()->DisplaySplash(); // changed RF064
 			CCD->ShutdownLevel();
@@ -7914,16 +7516,13 @@ static void GetSlot()
 			CCD->Doors()->RestoreFrom(inFD, false);
 			CCD->Platforms()->RestoreFrom(inFD, false);
 			CCD->Props()->RestoreFrom(inFD, false);
-			// changed QD 02/01/07
 			CCD->Meshes()->RestoreFrom(inFD, false);
-			// end change
 			CCD->Teleporters()->RestoreFrom(inFD, false);
 			CCD->MorphingFields()->RestoreFrom(inFD);
 			CCD->MIDIPlayer()->RestoreFrom(inFD);
 			CCD->CDPlayer()->RestoreFrom(inFD);
 			CCD->Triggers()->RestoreFrom(inFD, false);
 			CCD->Logic()->RestoreFrom(inFD, false);
-			// changed RF063
 			CCD->Attributes()->RestoreFrom(inFD, false);
 			CCD->Damage()->RestoreFrom(inFD, false);
 			CCD->CameraManager()->RestoreFrom(inFD);
@@ -7935,16 +7534,13 @@ static void GetSlot()
 			CCD->ActMaterials()->RestoreFrom(inFD, false);
 			CCD->ModelManager()->RestoreFrom(inFD, false);
 			CCD->RestoreFrom(inFD);
-			// end change RF063
 
 			fclose(inFD);
 
 			// run game
 			if(CCD->MenuManager()->GetMusicType() != -1)
 			{
-				// changed RF063
 				CCD->MenuManager()->StopMenuMusic();
-				// end change RF063
 			}
 
 			CCD->MenuManager()->DisplaySplash(); // changed RF064
@@ -7955,7 +7551,7 @@ static void GetSlot()
 	}
 }
 
-// changed QD 12/15/05
+
 static void CopyImageFile(const char *srcPath, const char *destPath)
 {
 	FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(srcPath);
@@ -7966,7 +7562,6 @@ static void CopyImageFile(const char *srcPath, const char *destPath)
 	}
 }
 
-// end change
 
 /* ------------------------------------------------------------------------------------ */
 //	rescales a bitmap file
@@ -7987,7 +7582,6 @@ void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height)
 	}
 }
 
-//end add Nout
 
 /* ------------------------------------------------------------------------------------ */
 //	PowerOfTwo
@@ -8139,7 +7733,7 @@ void CRFMenu::WorldFontRect(const char *s, int FontNumber, int x, int y, float A
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	FadeSet
+// FadeSet
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::FadeSet(int Dir, float Time)
 {
@@ -8160,7 +7754,7 @@ void CRFMenu::FadeSet(int Dir, float Time)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	DoFade
+// DoFade
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DoFade()
 {
@@ -8239,52 +7833,44 @@ void CRFMenu::DoFade()
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::MusicSet()
 {
-	//MusicFade = true;
-	//OldMVol = mVolLevel;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SaveTo
+// SaveTo
 //
-//	Save the current state of the menu off to an open file.
+// Save the current state of the menu off to an open file.
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::SaveTo(FILE *SaveFD, bool type)
 {
 
 	WRITEDATA(type, &useselect,		sizeof(bool),	1, SaveFD);
 	WRITEDATA(type, &CurrentSelect, sizeof(int),	1, SaveFD);
-// changed QD 12/15/05
 	WRITEDATA(type, &usenameselect, sizeof(bool),	1, SaveFD);
-// end change
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RestoreFrom
+// RestoreFrom
 //
-//	Restore the state of the menu from an open file.
+// Restore the state of the menu from an open file.
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	READDATA(type, &useselect,		sizeof(bool),	1, RestoreFD);
 	READDATA(type, &CurrentSelect,	sizeof(int),	1, RestoreFD);
-// changed QD 12/15/05
 	READDATA(type, &usenameselect,	sizeof(bool),	1, RestoreFD);
-// end change
 
 	return RGF_SUCCESS;
 }
 
-// change QD Language Menu
 /* ------------------------------------------------------------------------------------ */
-//	ChangeMenuIni
+// ChangeMenuIni
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ChangeMenuIni()
 {
 	int i, l;
 
-	//**********************************************************
 	l = CCD->GetLanguage();
 
 	if(CurrentLanguage == l)
@@ -8367,13 +7953,11 @@ void CRFMenu::ChangeMenuIni()
 				delete Animation[i];
 		}
 
-// changed QD 12/15/05
 		if(EmptySlotImage)
 		{
 			geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
 			geBitmap_Destroy(&EmptySlotImage);
 		}
-// end change
 
 		if(Cursor != (geBitmap*)NULL)
 		{
@@ -8446,14 +8030,11 @@ void CRFMenu::ChangeMenuIni()
 /* ------------------------------------------------------------------------------------ */
 char *CRFMenu::GetConvtxts()
 {
-// changed QD 12/15/05 make it a static string
 	static char defaultconvtxt[] = "conversation.txt";
 
-	// changed QD 12/15/05 - default is a better indicator ;-)
 	if(!stricmp("standard", Convtxts[CCD->GetLanguage()]) ||
 		!stricmp("default", Convtxts[CCD->GetLanguage()]))
 		return defaultconvtxt;// "conversation.txt";
-// end change
 
 	return Convtxts[CCD->GetLanguage()];
 }
@@ -8463,14 +8044,11 @@ char *CRFMenu::GetConvtxts()
 /* ------------------------------------------------------------------------------------ */
 char *CRFMenu::GetMessagetxts()
 {
-// changed QD 12/15/05 - make it a static string
 	static char defaultmessagetxt[] = "message.txt";
 
-	// changed QD 12/15/05 - default is a better indicator ;-)
 	if(!stricmp("standard", Messagetxts[CCD->GetLanguage()]) ||
 		!stricmp("default", Messagetxts[CCD->GetLanguage()]))
 		return defaultmessagetxt;// "message.txt";
-// end change
 
 	return Messagetxts[CCD->GetLanguage()];
 }
@@ -8524,10 +8102,8 @@ void CRFMenu::Reset()
 		LoadGMenu[i].Y	= 0;
 		SaveMenu[i].X	= 0;
 		SaveMenu[i].Y	= 0;
-// changed QD 12/15/05
 		PlayerNameMenu[i].X = 0;
 		PlayerNameMenu[i].Y = 0;
-// end change
 	}
 
 	for(i=0; i<5; i++)
@@ -8572,7 +8148,6 @@ void CRFMenu::Reset()
 		AudioMenu[i].Y = 0;
 	}
 
-// changed QD Shadows
 	for(i=0; i<9; i++)
 	{
 		VideoMenu[i].X = 0;
@@ -8640,14 +8215,12 @@ void CRFMenu::Reset()
 	SaveGame.Animation		= -1;
 	SaveGame.AnimationOver	= -1;
 
-// start change Nout - Show save game image
 	SaveScreen.X		= 0;
 	SaveScreen.Y		= 0;
 	SaveScreen.Width	= 0;
 	SaveScreen.Height	= 0;
 	SaveScreen.Image_X	= 0;
 	SaveScreen.Image_Y	= 0;
-// end change Nout
 
 	Options.Image_Number	= 0;
 	Options.Width			= 0;
@@ -8697,7 +8270,6 @@ void CRFMenu::Reset()
 
 	return_text.Font = 0;
 
-// start multiplayer
 	HostNewGame.Image_Number	= 0;
 	HostNewGame.Width			= 0;
 	HostNewGame.Height			= 0;
@@ -9262,7 +8834,6 @@ void CRFMenu::Reset()
 	Detail_Slide.Max_X			= 1;
 	Detail_Slide.Animation		= -1;
 
-// changed QD Shadows
 	ShadowBox.Image_Number	= 0;
 	ShadowBox.Width			= 0;
 	ShadowBox.Height		= 0;
@@ -9277,7 +8848,6 @@ void CRFMenu::Reset()
 	ShadowBox.AnimationLit	= -1;
 
 	shadow_text.Font = 0;
-// end change
 
 	AdvancedItem.Image_Number	= 0;
 	AdvancedItem.Width			= 0;
@@ -9479,7 +9049,6 @@ void CRFMenu::Reset()
 	NextSelect.Animation		= -1;
 	NextSelect.AnimationOver	= -1;
 
-// changed QD 12/15/05
 	PlayerNameBack = 0;
 	PlayerNameTitle = 0;
 
@@ -9517,7 +9086,6 @@ void CRFMenu::Reset()
 	DefaultName.Mover_Y			= 0;
 	DefaultName.Animation		= -1;
 	DefaultName.AnimationOver	= -1;
-// end change
 
 	LoadFont = 0;
 
@@ -9607,7 +9175,5 @@ void CRFMenu::Reset()
 	shadow_text.text			= strdup("Enable Stencil Shadows");
 
 }
-// end change QD
-
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
