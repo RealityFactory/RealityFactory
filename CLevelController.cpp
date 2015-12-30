@@ -558,6 +558,19 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
+	else if(IS_METHOD(methodName, "RightCopy"))
+	{
+		PARMCHECK(2);
+
+		int length = arguments[1].intValue();
+		int slength = arguments[0].str().length();
+
+		if(length > slength)
+			length = slength;
+
+		returnValue = arguments[0].str().substr(slength-length);
+		return true;
+	}
 	else if(IS_METHOD(methodName, "Integer"))
 	{
 		PARMCHECK(1);
@@ -721,20 +734,6 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		theInv->SetValueLimits(string1, arguments[1].intValue(), arguments[2].intValue());
 
-		return true;
-	}
-	else if(IS_METHOD(methodName, "RightCopy"))
-	{
-		int length;
-		int temp = arguments[1].intValue();
-		temp = (temp<127)?temp:127;
-		strncpy(string1, arguments[0].str(), 127);
-		string1[127] = 0;
-		length = strlen(string1);
-
-		strncpy(string2, &string1[length-temp], temp);
-		string2[temp] = 0;
-		returnValue = skString(string2);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "sin"))

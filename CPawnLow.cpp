@@ -775,6 +775,19 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			return true;
 		}
+	case RGF_SM_RIGHTCOPY:
+		{
+			PARMCHECK(2);
+
+			int length = arguments[1].intValue();
+			int slength = arguments[0].str().length();
+
+			if(length > slength)
+				length = slength;
+
+			returnValue = arguments[0].str().substr(slength-length);
+			return true;
+		}
 	case RGF_SM_ISENTITYVSIBLE:
 		{
 			PARMCHECK(1);
@@ -3773,17 +3786,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
 
-			return true;
-		}
-	case RGF_SM_RIGHTCOPY:
-		{
-			int length = arguments[1].intValue();
-			int slength = arguments[0].str().length();
-
-			if(length>slength)
-				length = slength;
-
-			returnValue = arguments[0].str().substr(slength-length);
 			return true;
 		}
 	case RGF_SM_NEARESTPOINT:
