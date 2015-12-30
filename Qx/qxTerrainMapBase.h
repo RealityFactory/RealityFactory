@@ -56,7 +56,7 @@ public:
 
 
 	virtual		geBitmap*	GetTexture()		{ return m_pTexture; }
-	virtual		geBitmap*	GetTexture(int i)	{ return m_pTexture; }
+	virtual		geBitmap*	GetTexture(int)		{ return m_pTexture; }
 
 	bool		GetRenderBackFace()				{ return m_bRenderBackFace; }
 
@@ -217,7 +217,7 @@ protected:
 	void			UpdateViewFrustrum();
 	qxTerrainVert*	AllocateVert();
 	qxTerrainPoly*	AllocatePoly();
-	bool			LoadTexture( LPCSTR strTextureFile, LPCSTR strAlphaFile);
+	bool			LoadTexture(const char* strTextureFile, const char* strAlphaFile);
 	void			ResetBaseTiles();
 
 	void			GetSurfaceNormal(int X, int Z, geVec3d* Normal);

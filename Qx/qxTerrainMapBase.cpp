@@ -97,7 +97,7 @@ bool qxTerrainMapBase::Init()
 }
 
 
-bool qxTerrainMapBase::LoadTexture( LPCSTR strTextureFile, LPCSTR strAlphaFile)
+bool qxTerrainMapBase::LoadTexture(const char* strTextureFile, const char* strAlphaFile)
 {
 	char TextureFile[64], AlphaFile[64];
 	strcpy(TextureFile, strTextureFile);
