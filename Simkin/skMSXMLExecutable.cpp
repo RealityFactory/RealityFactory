@@ -62,7 +62,7 @@ void skMSXMLExecutable::load(const skString& scriptLocation,const skString& in,s
 #ifdef EXCEPTIONS_DEFINED
 		throw skXMLParseException(skSTR("Loading xml string failed"), 0);
 #else
-    context.getError().setError(skScriptError::XMLPARSE_ERROR,skXMLParseException(skSTR("Loading xml string failed"), 0);
+		context.getError().setError(skScriptError::XMLPARSE_ERROR,skXMLParseException(skSTR("Loading xml string failed"), 0));
 #endif
   }
 }
@@ -74,21 +74,21 @@ void skMSXMLExecutable::load(const skString& fileName,skExecutableContext& conte
 	XMLDoc DOMdoc;
 	if (elm != NULL)
 		DOMdoc = elm->ownerDocument;
-  else{
+	else{
 		HRESULT hr = DOMdoc.CreateInstance(skSTR("MSXML.DOMDocument"));
 		if (hr != ERROR_SUCCESS)
 			throw skXMLParseException(skSTR("Create MSXML Instance Failed"),0);
 	}
 	BOOL bloaded = DOMdoc->load( _bstr_t(fromString(fileName)) );
-  if (bloaded){
+	if (bloaded){
 		setElement(DOMdoc->documentElement);
 		m_ScriptLocation = fileName;
 	}
-  else{
+	else{
 #ifdef EXCEPTIONS_DEFINED
 		throw skXMLParseException(skSTR("Loading xml file failed"), 0);
 #else
-    context.getError().setError(skScriptError::XMLPARSE_ERROR,skXMLParseException(skSTR("Loading xml string failed"), 0);
+		context.getError().setError(skScriptError::XMLPARSE_ERROR,skXMLParseException(skSTR("Loading xml string failed"), 0));
 #endif
   }
 }
