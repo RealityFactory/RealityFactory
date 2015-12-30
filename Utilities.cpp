@@ -717,7 +717,7 @@ geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName)
 /* ------------------------------------------------------------------------------------ */
 // CreateFromFileName
 /* ------------------------------------------------------------------------------------ */
-geBitmap *CreateFromFileName(const char *BmName)
+geBitmap *CreateFromFileName(const char *BmName, int nFileType)
 {
 	geVFile *File;
 	geBitmap *Bmp;
@@ -725,7 +725,7 @@ geBitmap *CreateFromFileName(const char *BmName)
 	if(EffectC_IsStringNull(BmName))
 		return NULL;
 
-	CCD->OpenRFFile(&File, kBitmapFile, BmName, GE_VFILE_OPEN_READONLY);
+	CCD->OpenRFFile(&File, nFileType, BmName, GE_VFILE_OPEN_READONLY);
 
 	if(!File)
 	{

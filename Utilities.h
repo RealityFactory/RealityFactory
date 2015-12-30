@@ -62,7 +62,7 @@ void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXFo
 
 // Bitmap creation functions
 geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName);
-geBitmap *CreateFromFileName(const char *BmName);
+geBitmap *CreateFromFileName(const char *BmName, int nFileType = kBitmapFile);
 
 // Weapon
 void CollisionCalcRatio(const GE_Collision &a_Collision, const geVec3d &a_OldPos,
