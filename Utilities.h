@@ -64,10 +64,6 @@ void EffectC_XFormFromVector(const geVec3d *Source, const geVec3d *Target, geXFo
 geBitmap *CreateFromFileAndAlphaNames(const char *BmName, const char *AlphaName);
 geBitmap *CreateFromFileName(const char *BmName);
 
-long DLL_CALLCONV VFS_Tell(fi_handle handle);
-int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin);
-unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_handle handle);
-
 // Weapon
 void CollisionCalcRatio(const GE_Collision &a_Collision, const geVec3d &a_OldPos,
 						const geVec3d &a_NewPos, float *a_Ratio);

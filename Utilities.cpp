@@ -23,6 +23,10 @@
 #include "CTriggers.h"
 
 
+static long DLL_CALLCONV VFS_Tell(fi_handle handle);
+static int DLL_CALLCONV VFS_Seek(fi_handle handle, long offset, int origin);
+static unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_handle handle);
+
 
 /* ------------------------------------------------------------------------------------ */
 // SetOriginOffset
