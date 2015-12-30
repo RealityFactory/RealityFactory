@@ -255,7 +255,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 			if(Tname != "")
 			{
-				if(Tname == "verticle")
+				if(Tname == "verticle" || Tname == "vertical")
 				{
 					valid = true;
 					Type = VERT;
