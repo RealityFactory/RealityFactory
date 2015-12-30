@@ -1626,7 +1626,7 @@ void CParticleSystem::AddSpiralArmParticle(int nHandle)
 
 	vRot.Y += 0.05f;				// Increment to fan across horizontal plane
 
-	if(vRot.Y > 3.145f)
+	if(vRot.Y > GE_PI)
 		vRot.Y = 0.0f;				// Wrap around
 
 	fToggle = !fToggle;				// Switch to opposite side next call
@@ -2064,7 +2064,7 @@ void CParticleSystem::AddImplodeSpiralArmParticle(int nHandle)
 
 	vRot.Y += 0.05f;				// Increment to fan across horizontal plane
 
-	if(vRot.Y > 3.145f)
+	if(vRot.Y > GE_PI)
 		vRot.Y = 0.0f;				// Wrap around
 
 	fToggle = !fToggle;				// Switch to opposite side next call
