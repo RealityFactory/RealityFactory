@@ -347,6 +347,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 		}
 
 		// let the genesis engine intialize with our driver
+		// the window must not be minimized!
+		ShowWindow(m_wndMain, SW_SHOWNORMAL);
 		geBoolean cline;
 
 		if(CCD->GetCmdLine())
