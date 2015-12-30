@@ -45,7 +45,7 @@ CMessage::CMessage()
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
-		Message *pSource = (Message*)geEntity_GetUserData(pEntity);
+		Message *pSource = static_cast<Message*>(geEntity_GetUserData(pEntity));
 
 		if(EffectC_IsStringNull(pSource->szEntityName))
 		{

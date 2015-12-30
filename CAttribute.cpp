@@ -149,7 +149,9 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 		}
 		else
 		{
-			geWorld_AddEntity(CCD->World(), "Attribute", pAttribute->szEntityName, (void*)pAttribute);
+			geWorld_AddEntity(	CCD->World(), "Attribute",
+								pAttribute->szEntityName,
+								static_cast<void*>(pAttribute));
 		}
 	}
 }

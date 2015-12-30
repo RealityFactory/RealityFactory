@@ -99,37 +99,37 @@ EffManager::~EffManager()
 			switch(Item[i].Type)
 			{
 			case EFF_LIGHT:
-				Glow_Remove((Glow*)Item[i].Data);
+				Glow_Remove(static_cast<Glow*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_SPRAY:
-				Spray_Remove((Spray*)Item[i].Data);
+				Spray_Remove(static_cast<Spray*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_SPRITE:
-				Sprite_Remove((Sprite*)Item[i].Data);
+				Sprite_Remove(static_cast<Sprite*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_SND:
-				Snd_Remove((Snd*)Item[i].Data);
+				Snd_Remove(static_cast<Snd*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_BOLT:
-				Bolt_Remove((EBolt *)Item[i].Data);
+				Bolt_Remove(static_cast<EBolt*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_CORONA:
-				Corona_Remove((EffCorona *)Item[i].Data);
+				Corona_Remove(static_cast<EffCorona*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
 			case EFF_ACTORSPRAY:
-				ActorSpray_Remove((ActorSpray *)Item[i].Data);
+				ActorSpray_Remove(static_cast<ActorSpray*>(Item[i].Data));
 				Item[i].Active = GE_FALSE;
 				Item[i].Pause = GE_FALSE;
 				break;
@@ -171,7 +171,7 @@ void EffManager::Tick(geFloat dwTicks)
 			{
 			case EFF_LIGHT:
 				{
-					Glow_Remove((Glow*)Item[i].Data);
+					Glow_Remove(static_cast<Glow*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -179,7 +179,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_SPRAY:
 				{
-					Spray_Remove((Spray*)Item[i].Data);
+					Spray_Remove(static_cast<Spray*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -187,7 +187,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_SPRITE:
 				{
-					Sprite_Remove((Sprite*)Item[i].Data);
+					Sprite_Remove(static_cast<Sprite*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -195,7 +195,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_SND:
 				{
-					Snd_Remove((Snd*)Item[i].Data);
+					Snd_Remove(static_cast<Snd*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -203,7 +203,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_BOLT:
 				{
-					Bolt_Remove((EBolt*)Item[i].Data);
+					Bolt_Remove(static_cast<EBolt*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -211,7 +211,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_CORONA:
 				{
-					Corona_Remove((EffCorona*)Item[i].Data);
+					Corona_Remove(static_cast<EffCorona*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -219,7 +219,7 @@ void EffManager::Tick(geFloat dwTicks)
 				break;
 			case EFF_ACTORSPRAY:
 				{
-					ActorSpray_Remove((ActorSpray*)Item[i].Data);
+					ActorSpray_Remove(static_cast<ActorSpray*>(Item[i].Data));
 					Item[i].Active = GE_FALSE;
 					Item[i].RemoveNext = GE_FALSE;
 				}
@@ -242,49 +242,49 @@ void EffManager::Tick(geFloat dwTicks)
 			switch(Item[i].Type)
 			{
 			case EFF_LIGHT:
-				if(Glow_Process((Glow*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Glow_Process(static_cast<Glow*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++L;
 				break;
 			case EFF_SPRAY:
-				if(Spray_Process((Spray*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Spray_Process(static_cast<Spray*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++SP;
 				break;
 			case EFF_SPRITE:
-				if(Sprite_Process((Sprite*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Sprite_Process(static_cast<Sprite*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++Sr;
 				break;
 			case EFF_SND:
-				if(Snd_Process((Snd*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Snd_Process(static_cast<Snd*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++Sn;
 				break;
 			case EFF_BOLT:
-				if(Bolt_Process((EBolt*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Bolt_Process(static_cast<EBolt*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++Bl;
 				break;
 			case EFF_CORONA:
-				if(Corona_Process((EffCorona*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(Corona_Process(static_cast<EffCorona*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
 				++C;
 				break;
 			case EFF_ACTORSPRAY:
-				if(ActorSpray_Process((ActorSpray*)Item[i].Data, dwTicks) == GE_FALSE)
+				if(ActorSpray_Process(static_cast<ActorSpray*>(Item[i].Data), dwTicks) == GE_FALSE)
 				{
 					Item[i].RemoveNext = GE_TRUE;
 				}
@@ -395,25 +395,25 @@ void EffManager::Item_Modify(int Itype, int Index, void *Data, uint32 Flags)
 		switch(Itype)
 		{
 		case EFF_LIGHT:
-			Glow_Modify((Glow*)Item[Index].Data, (Glow*)Data, Flags);
+			Glow_Modify(static_cast<Glow*>(Item[Index].Data), static_cast<Glow*>(Data), Flags);
 			break;
 		case EFF_SPRAY:
-			Spray_Modify((Spray*)Item[Index].Data, (Spray*)Data, Flags);
+			Spray_Modify(static_cast<Spray*>(Item[Index].Data), static_cast<Spray*>(Data), Flags);
 			break;
 		case EFF_SPRITE:
-			Sprite_Modify((Sprite*)Item[Index].Data, (Sprite*)Data, Flags);
+			Sprite_Modify(static_cast<Sprite*>(Item[Index].Data), static_cast<Sprite*>(Data), Flags);
 			break;
 		case EFF_SND:
-			Snd_Modify((Snd*)Item[Index].Data, (Snd*)Data, Flags);
+			Snd_Modify(static_cast<Snd*>(Item[Index].Data), static_cast<Snd*>(Data), Flags);
 			break;
 		case EFF_BOLT:
-			Bolt_Modify((EBolt*)Item[Index].Data, (EBolt*)Data, Flags);
+			Bolt_Modify(static_cast<EBolt*>(Item[Index].Data), static_cast<EBolt*>(Data), Flags);
 			break;
 		case EFF_CORONA:
-			Corona_Modify((EffCorona*)Item[Index].Data, (EffCorona*)Data, Flags);
+			Corona_Modify(static_cast<EffCorona*>(Item[Index].Data), static_cast<EffCorona*>(Data), Flags);
 			break;
 		case EFF_ACTORSPRAY:
-			ActorSpray_Modify((ActorSpray*)Item[Index].Data, (ActorSpray*)Data, Flags);
+			ActorSpray_Modify(static_cast<ActorSpray*>(Item[Index].Data), static_cast<ActorSpray*>(Data), Flags);
 			break;
 		default:
 			break;
@@ -433,32 +433,32 @@ void EffManager::Item_Delete(int Itype, int Index)
 		switch(Itype)
 		{
 		case EFF_LIGHT:
-			Glow_Remove((Glow*)Item[Index].Data);
+			Glow_Remove(static_cast<Glow*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		case EFF_SPRAY:
-			Spray_Remove((Spray*)Item[Index].Data);
+			Spray_Remove(static_cast<Spray*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		case EFF_SPRITE:
-			Sprite_Remove((Sprite*)Item[Index].Data);
+			Sprite_Remove(static_cast<Sprite*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			Item[Index].Data = NULL;
 			break;
 		case EFF_SND:
-			Snd_Remove((Snd*)Item[Index].Data);
+			Snd_Remove(static_cast<Snd*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		case EFF_BOLT:
-			Bolt_Remove((EBolt*)Item[Index].Data);
+			Bolt_Remove(static_cast<EBolt*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		case EFF_CORONA:
-			Corona_Remove((EffCorona*)Item[Index].Data);
+			Corona_Remove(static_cast<EffCorona*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		case EFF_ACTORSPRAY:
-			ActorSpray_Remove((ActorSpray*)Item[Index].Data);
+			ActorSpray_Remove(static_cast<ActorSpray*>(Item[Index].Data));
 			Item[Index].Active = GE_FALSE;
 			break;
 		default:
@@ -535,7 +535,7 @@ void *EffManager::Spray_Add(void *Data)
 	// calculate leaf value
 	geWorld_GetLeaf(CCD->World(), &(NewData->Source), &(NewData->Leaf));
 
-	return (void *)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -642,9 +642,9 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 			geXForm3d_GetLeft(&(Data->Xf), &Left);
 			geXForm3d_GetUp(&(Data->Xf), &Up);
 			geXForm3d_GetIn(&(Data->Xf), &In);
-			geVec3d_Scale(&Left, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &Left);
-			geVec3d_Scale(&Up, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &Up);
-			geVec3d_Scale(&In, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &In);
+			geVec3d_Scale(&Left, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &Left);
+			geVec3d_Scale(&Up, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &Up);
+			geVec3d_Scale(&In, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &In);
 			geVec3d_Add(&Left, &In, &Left);
 			geVec3d_Add(&Left, &Up, &Source);
 			geVec3d_Add(&(Data->Source), &Source, &Source);
@@ -664,9 +664,9 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 			geXForm3d_GetLeft(&(Data->Xf), &Left);
 			geXForm3d_GetUp(&(Data->Xf), &Up);
 			geXForm3d_GetIn(&(Data->Xf), &In);
-			geVec3d_Scale(&Left, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &Left);
-			geVec3d_Scale(&Up, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &Up);
-			geVec3d_Scale(&In, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &In);
+			geVec3d_Scale(&Left, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &Left);
+			geVec3d_Scale(&Up, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &Up);
+			geVec3d_Scale(&In, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &In);
 			geVec3d_Add(&Left, &In, &Left);
 			geVec3d_Add(&Left, &Up, &Dest);
 			geVec3d_Add(&(Data->Dest), &Dest, &Dest);
@@ -804,7 +804,7 @@ void* EffManager::Glow_Add(void *Data)
 
 	geWorld_GetLeaf(CCD->World(), &(NewData->Pos), &(NewData->Leaf));
 
-	return (void *)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -817,7 +817,7 @@ void EffManager::Glow_Remove(Glow *Data)
 		if(Data->Light != NULL)
 		{
 			geWorld_RemoveLight(CCD->World(), Data->Light);
-			Data->Light = (geLight*)NULL;
+			Data->Light = NULL;
 		}
 
 		geRam_Free(Data);
@@ -855,7 +855,7 @@ geBoolean EffManager::Glow_Process(Glow  *Data,  float  TimeDelta)
 			if(Data->Light != NULL)
 			{
 				geWorld_RemoveLight(CCD->World(), Data->Light);
-				Data->Light = (geLight*)NULL;
+				Data->Light = NULL;
 			}
 
 			return GE_TRUE;
@@ -1048,7 +1048,7 @@ void* EffManager::Sprite_Add(void *Data)
 	// calculate leaf value
 	geWorld_GetLeaf(CCD->World(), &(NewData->Pos), &(NewData->Leaf));
 
-	return (void *)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1640,7 +1640,7 @@ void *EffManager::Corona_Add(void *Data)
 	geWorld_GetLeaf(CCD->World(), &Pos, &(NewData->Leaf));
 
 	// all done
-	return (void*)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1834,7 +1834,7 @@ void* EffManager::Bolt_Add(void *Data)
 	Electric_BoltEffectSetColorInfo(NewData->Bolt, &NewData->Color, NewData->DominantColor);
 
 	// all done
-	return (void *)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1960,7 +1960,7 @@ void *EffManager::ActorSpray_Add(void *Data)
 	// save the transform
 	EffectC_XFormFromVector(&(NewData->Source), &(NewData->Dest), &(NewData->Xf));
 
-	return (void *)NewData;
+	return static_cast<void*>(NewData);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2052,9 +2052,9 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 			geXForm3d_GetUp(&(Data->Xf), &Up);
 			geXForm3d_GetIn(&(Data->Xf), &In);
 
-			geVec3d_Scale(&Left, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &Left);
-			geVec3d_Scale(&Up, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &Up);
-			geVec3d_Scale(&In, (float)Data->SourceVariance * EffectC_Frand(-1.0f, 1.0f), &In);
+			geVec3d_Scale(&Left, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &Left);
+			geVec3d_Scale(&Up, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &Up);
+			geVec3d_Scale(&In, static_cast<float>(Data->SourceVariance) * EffectC_Frand(-1.0f, 1.0f), &In);
 
 			geVec3d_Add(&Left, &Up, &Source);
 			geVec3d_Add(&Source, &In, &Source);
@@ -2072,9 +2072,9 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 			geXForm3d_GetUp(&(Data->Xf), &Up);
 			geXForm3d_GetIn(&(Data->Xf), &In);
 
-			geVec3d_Scale(&Left, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &Left);
-			geVec3d_Scale(&Up, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &Up);
-			geVec3d_Scale(&In, (float)Data->DestVariance * EffectC_Frand(-1.0f, 1.0f), &In);
+			geVec3d_Scale(&Left, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &Left);
+			geVec3d_Scale(&Up, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &Up);
+			geVec3d_Scale(&In, static_cast<float>(Data->DestVariance) * EffectC_Frand(-1.0f, 1.0f), &In);
 
 			geVec3d_Add(&Left, &Up, &Dest);
 			geVec3d_Add(&Dest, &In, &Dest);

@@ -140,7 +140,7 @@ static void PixelRGBA_SteamColor(Procedural *Proc, int c, int s, int *R, int *G,
 
 static const char * strbreakers = " ,`\t\n\r\034\009";
 
-#define nextparam(pstr)		do{ pstr = strtok((char *)NULL,strbreakers); if ( ! pstr ) { Particles_Destroy(Proc);  return (Procedural *)NULL; } } while(0)
+#define nextparam(pstr)		do{ pstr = strtok(NULL, strbreakers); if(!(pstr)) { Particles_Destroy(Proc);  return NULL; } } while(0)
 #define getint(pstr)		atol(pstr); nextparam(pstr);
 #define getbool(pstr)		(toupper(*(pstr)) == 'T' ? GE_TRUE : (toupper(*(pstr)) == 'F' ? GE_FALSE : (atol(pstr)))); nextparam(pstr);
 #define getfloat(pstr)		static_cast<float>(atof(pstr)); nextparam(pstr);
