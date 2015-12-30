@@ -110,10 +110,6 @@ int CHeadsUpDisplay::LoadConfiguration()
 	std::string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
 	std::string Tname, Talpha;
-	geBitmap *TempBmp1, *TempBmp2, *TempBmp3;
-	bool valid, active, modify, flipindicator; // changed QD 07/15/06
-	int nTop, nLeft, iTopOffset, iLeftOffset, Height, direction;
-	int Style;
 	HUDTYPE Type;
 	float Font, DisplayTime;
 	char format[16];
@@ -126,18 +122,21 @@ int CHeadsUpDisplay::LoadConfiguration()
 		else
 			strcpy(szType, KeyName.c_str());
 
-		valid = false;
-		active = true;
-		modify = false;
-		flipindicator = false;
-		Style = NONE;
-		direction = 0;
-		TempBmp1 = NULL;
-		TempBmp2 = NULL;
-		TempBmp3 = NULL;
+		bool valid = false;
+		bool active = true;
+		bool modify = false;
+		bool flipindicator = false;
+		int Style = NONE;
 		Font = 0.0f;
-		Height = 0;
-		nTop = nLeft = iTopOffset = iLeftOffset = 0;
+		int direction = 0;
+		geBitmap *TempBmp1 = NULL;
+		geBitmap *TempBmp2 = NULL;
+		geBitmap *TempBmp3 = NULL;
+		int Height = 0;
+		int nTop = 0;
+		int nLeft = 0;
+		int iTopOffset = 0;
+		int iLeftOffset = 0;
 		format[0] = '\0';
 		GifAnim = NULL;
 
