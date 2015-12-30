@@ -36,12 +36,10 @@ typedef struct DelayExp
 	geVec3d		Offset;
 	float		Delay;
 	bool		Attached;
-// changed RF063
 	geActor		*Actor;
 	char		Bone[64];
 	int			index;
 	bool		Tilt;
-// end change RF063
 
 } DelayExp;
 

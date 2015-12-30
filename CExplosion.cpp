@@ -9,14 +9,13 @@
  * Copyright(c) 1999 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-//	Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "IniFile.h"
 #include "CDamage.h"
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CExplosionInit::CExplosionInit()
 {
@@ -240,7 +239,6 @@ CExplosionInit::~CExplosionInit()
 	}
 }
 
-// changed RF063
 /* ------------------------------------------------------------------------------------ */
 //	AddExplosion
 /* ------------------------------------------------------------------------------------ */
@@ -311,8 +309,9 @@ void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	AddExplosion
+// AddExplosion
 /* ------------------------------------------------------------------------------------ */
 void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
 								  geActor *theActor, const char *theBone, bool Tilt)
@@ -433,6 +432,7 @@ void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
 //	UnAttach
 /* ------------------------------------------------------------------------------------ */
@@ -468,8 +468,8 @@ void CExplosionInit::UnAttach(const geActor *Actor)
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Tick
 /* ------------------------------------------------------------------------------------ */
 void CExplosionInit::Tick(geFloat dwTicks)
 {
@@ -555,7 +555,7 @@ void CExplosionInit::Tick(geFloat dwTicks)
 						break;
 					}
 				}
-				else
+				else // explosion remains unattached
 				{
 					pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
 
@@ -573,8 +573,9 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				}
 			}
 		}
-		else
+		else // currently attached to an actor
 		{
+			// update position if still alive
 			if(CCD->EffectManager()->Item_Alive(pool->index) && pool->Actor)
 			{
 				geXForm3d Xf;
@@ -606,9 +607,7 @@ void CExplosionInit::Tick(geFloat dwTicks)
 				geXForm3d_GetLeft(&Xf, &Direction);
 				geVec3d_AddScaled(&Position, &Direction, pool->Offset.X, &Position);
 
-// changed RF064
 				int type = CCD->Effect()->EffectType(pool->Type);
-// end change RF064
 
 				switch(type)
 				{
@@ -646,17 +645,15 @@ void CExplosionInit::Tick(geFloat dwTicks)
 					geXForm3d_Copy(&Xf, &Bl.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
 					break;
-// changed RF064
 				case EFF_ACTORSPRAY:
 					ActorSpray aSp;
 					geVec3d_Copy(&Position, &(aSp.Source));
 					geXForm3d_Copy(&Xf, &aSp.Xform);
 					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
 					break;
-// end change RF064
 				}
 			}
-			else
+			else // effect is dead, remove element from list
 			{
 				if(Bottom == pool)
 					Bottom = pool->prev;
@@ -675,10 +672,10 @@ void CExplosionInit::Tick(geFloat dwTicks)
 		pool = temp;
 	}
 }
-// end change RF063
+
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CExplosion::CExplosion()
 {
@@ -710,12 +707,14 @@ CExplosion::CExplosion()
 	}
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CExplosion::~CExplosion()
 {
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 // Tick
@@ -744,7 +743,6 @@ void CExplosion::Tick(geFloat dwTicks)
 				{
 					if(pSource->active == GE_FALSE)
 					{
-// changed RF063
 						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
 
 						if(pSource->ShakeAmt > 0.0f)
@@ -756,10 +754,8 @@ void CExplosion::Tick(geFloat dwTicks)
 						{
 							if(pSource->Radius > 0.0f)
 							{
-// changed RF063
 								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
 								CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
-// end change RF063
 							}
 						}
 					}
@@ -776,7 +772,6 @@ void CExplosion::Tick(geFloat dwTicks)
 			{
 				if(pSource->active == GE_FALSE)
 				{
-// changed RF063
 					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
 
 					if(pSource->ShakeAmt > 0.0f)
@@ -788,10 +783,8 @@ void CExplosion::Tick(geFloat dwTicks)
 					{
 						if(pSource->Radius > 0.0f)
 						{
-// changed RF063
 							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
 							CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
-// end change RF063
 						}
 					}
 				}
