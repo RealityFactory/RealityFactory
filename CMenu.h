@@ -136,7 +136,7 @@ typedef struct	SoundList
 class CRFMenu : public CRGFComponent
 {
 public:
-	CRFMenu(const char *szStartLevel);
+	explicit CRFMenu(const char* szStartLevel);
 	~CRFMenu();
 
 	int DoMenu(const char *levelname);
