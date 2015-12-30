@@ -669,9 +669,9 @@ int CHeadsUpDisplay::Render()
 				geBitmap *theBmp = m_theHUD[nItem].GifData->NextFrame(true);
 
 				if((m_theHUD[nItem].iLeftOffset > 0) && (m_theHUD[nItem].iTopOffset))
-					CCD->MenuManager()->DrawBitmap(theBmp, &theRect, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+					geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, &theRect, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
 				else
-					CCD->MenuManager()->DrawBitmap(theBmp, NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
+					geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, m_theHUD[nItem].nLeft, m_theHUD[nItem].nTop);
 			}
 		}
 	}
