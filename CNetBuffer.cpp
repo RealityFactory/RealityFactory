@@ -125,14 +125,17 @@ void *NetBuffer::AddRaw(void *data, int len)
 /* ------------------------------------------------------------------------------------ */
 void *NetBuffer::Expand(int addsize)
 {
-	Data = static_cast<uint8*>(realloc(Data, MaxSize + (addsize * sizeof(uint8))));
+	uint8 *newData = static_cast<uint8*>(realloc(Data, MaxSize + (addsize * sizeof(uint8))));
 
-	if(Data)
+	if(newData)
 	{
+		Data = newData;
 		MaxSize += addsize;
 	}
 	else
 	{
+		free(Data);
+		Data = NULL;
 		MaxSize = 0;
 	}
 
@@ -147,14 +150,17 @@ void *NetBuffer::CheckSize(int size)
 	if(MaxSize > size)
 		return static_cast<void*>(Data);
 
-	Data = static_cast<uint8*>(realloc(Data, size * sizeof(uint8)));
+	uint8 *newData = static_cast<uint8*>(realloc(Data, size * sizeof(uint8)));
 
-	if(Data)
+	if(newData)
 	{
+		Data = newData;
 		MaxSize = size;
 	}
 	else
 	{
+		free(Data);
+		Data = NULL;
 		MaxSize = 0;
 	}
 

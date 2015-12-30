@@ -692,6 +692,7 @@ int NetPlayerMgr::AddNewPlayer(NetBuffer *Buff)
 	}
 
 	free(name);
+	free(playername);
 	free(animname);
 
 	return index;
