@@ -15,7 +15,6 @@ public:
 	CSpout();
 	~CSpout();
 
-	int Create(Spout *S);
 	void Tick(geFloat dwTicks);
 
 	/**
@@ -31,6 +30,7 @@ public:
 	int ReSynchronize();
 
 private:
+	int CreateSpray(Spout *S);
 };
 
 
@@ -43,7 +43,6 @@ public:
 	CActorSpout();
 	~CActorSpout();
 
-	int Create(ActorSpout *S);
 	void Tick(geFloat dwTicks);
 
 	/**
@@ -59,6 +58,7 @@ public:
 	int ReSynchronize();
 
 private:
+	int CreateActorSpray(ActorSpout *S);
 };
 
 #endif

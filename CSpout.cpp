@@ -67,7 +67,7 @@ CSpout::CSpout()
 /* ------------------------------------------------------------------------------------ */
 // Create
 /* ------------------------------------------------------------------------------------ */
-int CSpout::Create(Spout *S)
+int CSpout::CreateSpray(Spout *S)
 {
 	int effect = -1;
 	Spray Sp;
@@ -201,7 +201,7 @@ void CSpout::Tick(geFloat dwTicks)
 			{
 				if(S->active == GE_FALSE && S->TotalLife != -1.0f)
 				{
-					S->EffectList = Create(S);
+					S->EffectList = CreateSpray(S);
 					S->active = GE_TRUE;
 				}
 			}
@@ -221,7 +221,7 @@ void CSpout::Tick(geFloat dwTicks)
 		{
 			if(S->active == GE_FALSE && S->TotalLife != -1.0f)
 			{
-				S->EffectList = Create(S);
+				S->EffectList = CreateSpray(S);
 				S->active = GE_TRUE;
 			}
 		}
@@ -410,7 +410,7 @@ CActorSpout::CActorSpout()
 /* ------------------------------------------------------------------------------------ */
 // Create
 /* ------------------------------------------------------------------------------------ */
-int CActorSpout::Create(ActorSpout *S)
+int CActorSpout::CreateActorSpray(ActorSpout *S)
 {
 	int effect = -1;
 	ActorSpray	Sp;
@@ -533,7 +533,7 @@ void CActorSpout::Tick(geFloat dwTicks)
 			{
 				if(S->active == GE_FALSE && S->TotalLife != -1.0f)
 				{
-					S->EffectList = Create(S);
+					S->EffectList = CreateActorSpray(S);
 					S->active = GE_TRUE;
 				}
 			}
@@ -553,7 +553,7 @@ void CActorSpout::Tick(geFloat dwTicks)
 		{
 			if(S->active == GE_FALSE && S->TotalLife != -1.0f)
 			{
-				S->EffectList = Create(S);
+				S->EffectList = CreateActorSpray(S);
 				S->active = GE_TRUE;
 			}
 		}
