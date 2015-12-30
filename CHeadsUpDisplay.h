@@ -22,8 +22,8 @@ typedef enum
 	PPOS,
 	COMPASS,
 	RADAR,
-	PICTURE
-
+	PICTURE,
+	UNDEFINED
 } HUDTYPE;
 
 typedef enum
