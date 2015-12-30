@@ -105,8 +105,15 @@ bool CPolyShadow::DrawShadow(const geActor *Actor)
 		}
 
 		// add poly
-		geWorld_AddPolyOnce(CCD->Engine()->World(), m_Vertex, 3, NULL, GE_GOURAUD_POLY,
-				GE_RENDER_DO_NOT_OCCLUDE_OTHERS|GE_RENDER_DO_NOT_OCCLUDE_SELF, scale);
+		geWorld_AddPolyOnce(
+			CCD->Engine()->World(),
+			m_Vertex,
+			3,
+			NULL,
+			GE_GOURAUD_POLY,
+			GE_RENDER_DEPTH_SORT_BF |
+			GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
+			scale);
 	}
 
 	return true;
