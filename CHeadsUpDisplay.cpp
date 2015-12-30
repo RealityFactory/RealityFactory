@@ -430,9 +430,9 @@ int CHeadsUpDisplay::LoadConfiguration()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Activate
+// Activate
 //
-//	Set up the HUD as renderable.
+// Set up the HUD as renderable.
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::Activate()
 {
