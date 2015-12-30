@@ -104,7 +104,7 @@ public:
 	/**
 	 * @brief Set up fogging parameters
 	 */
-	int SetFogParameters(GE_RGBA FogColor, geFloat fFogStart, geFloat fFogEnd);
+	int SetFogParameters(GE_RGBA FogColor, geFloat FogStart, geFloat FogEnd);
 	void EnableFog(geBoolean FogOn);				///< Enable/disable fog
 
 	/**
@@ -117,9 +117,10 @@ public:
 	void ResetSystem();
 
 	//	Accessor functions
-	geEngine *Engine()				{ return m_theEngine;	}	///< Get Genesis3D engine pointer
+	geEngine *Engine()				{ return m_Engine;		}	///< Get Genesis3D engine pointer
 	bool FullScreen() const			{ return m_fFullScreen;	}	///< Get fullscreen/windowed status
 	geWorld *World()				{ return m_World;		}	///< Get Genesis3D World
+	geWorld *DummyWorld()			{ return m_DummyWorld;	}
 	HWND WindowHandle()				{ return m_wndMain;		}	///< Get main window handle
 	int Width() const				{ return m_nWidth;		}	///< Window width
 	int Height() const				{ return m_nHeight;		}	///< Window height
@@ -127,8 +128,8 @@ public:
 	char *LevelName()				{ return m_CurrentLevel;}	///< Current level name
 
 	void SetDebugging(bool fOn)		{ m_DebugEnabled = fOn;	}	///< Activate/deactivate debug output
-	float GetFogEnd()				{ return fFogEnd;		}
-	float GetFogStart()				{ return fFogStart;		}
+	float GetFogEnd() const			{ return m_FogEnd;		}
+	float GetFogStart() const		{ return m_FogStart;	}
 
 private:
 	//	Private member functions
@@ -158,16 +159,17 @@ private:
 	geDriver		*m_Driver;				///< Genesis3D driver selected
 	geDriver_Mode	*m_Mode;				///< Genesis3D driver mode selected
 	geWorld			*m_World;				///< Current Genesis3D world
-	geEngine		*m_theEngine;			///< Genesis3D engine pointer
+	geWorld			*m_DummyWorld;
+	geEngine		*m_Engine;				///< Genesis3D engine pointer
 	geVFile			*m_Level;				///< Genesis3D level file handle
 	geSound_System	*m_Audio;				///< Genesis3D sound system
 	geSound_Def		*m_SplashAudio;			///< Splash screen audio effect
 	int				m_MasterVolume;			///< Master volume level
 	bool			m_fInFramePass;			///< TRUE if between BeginFrame()/EndFrame()
 	char			m_CurrentLevel[256];	///< Current level name, if any
+	GE_RGBA			m_FogColor;				///< Color for distance fog
+	geFloat			m_FogStart, m_FogEnd;	///< Fog start, end distances
 	bool			m_DebugEnabled;			///< Debug output enabled flag
-	GE_RGBA			FogColor;				///< Color for distance fog
-	geFloat			fFogStart, fFogEnd;		///< Fog start, end distances
 	geFloat			FarClipPlaneDistance;	///< Distance to far clip plane
 };
 

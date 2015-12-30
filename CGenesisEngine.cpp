@@ -103,11 +103,20 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	m_nHeight			= nHeight;
 	m_fFullScreen		= fFullScreen;
 	m_MasterVolume		= 0;
-	m_SplashAudio		= NULL;
-	m_World				= NULL;
+	m_fInFramePass		= false;				// Not in frame rendering
 	m_CurrentLevel[0]	= 0;
 	m_SelectedDriverID	= chDriverID;			// Use the desired driver
-	fFogStart = fFogEnd = 0.0f;					// Fog start, end distances
+	m_FogStart = m_FogEnd = 0.0f;				// Fog start, end distances
+	memset(&m_FogColor, 0, sizeof(GE_RGBA));
+	m_DrvSys			= NULL;
+	m_Driver			= NULL;
+	m_Mode				= NULL;
+	m_World				= NULL;
+	m_DummyWorld		= NULL;
+	m_Engine			= NULL;
+	m_Level				= NULL;
+	m_Audio				= NULL;
+	m_SplashAudio		= NULL;
 
 	if(UseDialog)
 	{
@@ -212,7 +221,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	}
 
 	m_DebugEnabled = false;							// No debug by default
-	m_fInFramePass = false;							// Not in frame rendering
 
 	//	Now set up the sound system.
 	m_Audio = geSound_CreateSoundSystem(m_wndMain);
@@ -245,15 +253,15 @@ CGenesisEngine::~CGenesisEngine()
 	m_Audio = NULL;
 
 	if(m_World != NULL)
-		geEngine_RemoveWorld(m_theEngine, m_World);
+		geEngine_RemoveWorld(m_Engine, m_World);
 
 	if(m_World != NULL)
 		geWorld_Free(m_World);
 
-	if(m_theEngine != NULL)
+	if(m_Engine != NULL)
 	{
-		geEngine_ShutdownDriver(m_theEngine);
-		geEngine_Free(m_theEngine);
+		geEngine_ShutdownDriver(m_Engine);
+		geEngine_Free(m_Engine);
 	}
 }
 
@@ -268,19 +276,19 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 	m_World = NULL;
 
 	// Create the genesis engine
-	m_theEngine = geEngine_Create(m_wndMain, szName, ".");
+	m_Engine = geEngine_Create(m_wndMain, szName, ".");
 
-	if(!m_theEngine)
+	if(!m_Engine)
 	{
 		ReportError("[ERROR] geEngine_Create failure", false);
 		return false;
 	}
 
 	// Turn off the framerate counter
-	geEngine_EnableFrameRateCounter(m_theEngine, GE_FALSE);
+	geEngine_EnableFrameRateCounter(m_Engine, GE_FALSE);
 
 	// Create the genesis driver system
-	m_DrvSys = geEngine_GetDriverSystem(m_theEngine);
+	m_DrvSys = geEngine_GetDriverSystem(m_Engine);
 
 	if(!m_DrvSys)
 	{
@@ -314,15 +322,15 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 
 		// Added to support fullscreen or windowed driver change via pick list
 		{
-			geEngine_ShutdownDriver(m_theEngine);
+			geEngine_ShutdownDriver(m_Engine);
 			ResetMainWindow(m_wndMain, m_nWidth, m_nHeight);
 
 			geBoolean cline;
 
 			if(CCD->GetCmdLine())
-				cline = geEngine_SetDriverAndModeNoSplash(m_theEngine, m_Driver, m_Mode);
+				cline = geEngine_SetDriverAndModeNoSplash(m_Engine, m_Driver, m_Mode);
 			else
-				cline = geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode);
+				cline = geEngine_SetDriverAndMode(m_Engine, m_Driver, m_Mode);
 
 			if(!cline)
 			{
@@ -344,9 +352,9 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 		geBoolean cline;
 
 		if(CCD->GetCmdLine())
-			cline = geEngine_SetDriverAndModeNoSplash(m_theEngine, m_Driver, m_Mode);
+			cline = geEngine_SetDriverAndModeNoSplash(m_Engine, m_Driver, m_Mode);
 		else
-			cline = geEngine_SetDriverAndMode(m_theEngine, m_Driver, m_Mode);
+			cline = geEngine_SetDriverAndMode(m_Engine, m_Driver, m_Mode);
 
 		if(!cline)
 		{
@@ -498,7 +506,7 @@ bool CGenesisEngine::AutoDriver()
 	int			Selection = 0;
 
 	// Create a List of Available Drivers
-	DriverModeList = ModeList_Create(m_theEngine, &DriverModeListLength, m_DrvSys, m_Driver, m_Mode);
+	DriverModeList = ModeList_Create(m_Engine, &DriverModeListLength, m_DrvSys, m_Driver, m_Mode);
 
 	if(DriverModeList == NULL)
 	{
@@ -511,7 +519,7 @@ bool CGenesisEngine::AutoDriver()
 	AutoSelect_SortDriverList(DriverModeList, DriverModeListLength);
 
 	// Pick the first Driver from the List
-	if(AutoSelect_PickDriver(m_wndMain, m_theEngine, DriverModeList, DriverModeListLength, &Selection) == GE_FALSE)
+	if(AutoSelect_PickDriver(m_wndMain, m_Engine, DriverModeList, DriverModeListLength, &Selection) == GE_FALSE)
 	{
 		ModeList_Destroy(DriverModeList);
 		return false;
@@ -537,7 +545,7 @@ bool CGenesisEngine::PickDriver()
 	int			Selection;
 
 	// Create a List of Available Drivers
-	DriverModeList = ModeList_Create(m_theEngine, &DriverModeListLength, m_DrvSys, m_Driver, m_Mode);
+	DriverModeList = ModeList_Create(m_Engine, &DriverModeListLength, m_DrvSys, m_Driver, m_Mode);
 
 	if(DriverModeList == NULL)
 	{
@@ -751,9 +759,10 @@ bool CGenesisEngine::DrawAlphaBitmap(geBitmap	*pBitmap,
 		vertex[3].y = vertex[2].y;
 	}
 
-	geEngine_RenderPoly(m_theEngine,vertex,
-		4, pBitmap, (Alpha != 255 ? DRV_RENDER_ALPHA : 0 ) |
-		DRV_RENDER_CLAMP_UV | DRV_RENDER_NO_ZMASK | DRV_RENDER_NO_ZWRITE | DRV_RENDER_FLUSH);
+	geEngine_RenderPoly(m_Engine, vertex, 4, pBitmap,
+						(Alpha != 255 ? DRV_RENDER_ALPHA : 0 ) |
+						DRV_RENDER_CLAMP_UV | DRV_RENDER_NO_ZMASK |
+						DRV_RENDER_NO_ZWRITE | DRV_RENDER_FLUSH);
 
 	return true;
 }
@@ -1163,7 +1172,7 @@ bool CGenesisEngine::DrawBitmap(geBitmap *pBitmap, geRect *BitmapRect, int x, in
 /* ------------------------------------------------------------------------------------ */
 void CGenesisEngine::ShowFrameRate(bool bHow)
 {
-	geEngine_EnableFrameRateCounter(m_theEngine, bHow);
+	geEngine_EnableFrameRateCounter(m_Engine, bHow);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1176,7 +1185,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 	// Check to see if we have a level loaded, and if so, gun it!
 	if(m_World != NULL)
 	{
-		geEngine_RemoveWorld(m_theEngine, m_World);
+		geEngine_RemoveWorld(m_Engine, m_World);
 		geWorld_Free(m_World);
 		m_World = NULL;
 	}
@@ -1206,7 +1215,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		return FALSE;
 	}
 
-	if(geEngine_AddWorld(m_theEngine, m_World) == GE_FALSE)
+	if(geEngine_AddWorld(m_Engine, m_World) == GE_FALSE)
 	{
 		char szBug[256];
 		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to add World",
@@ -1231,7 +1240,7 @@ int CGenesisEngine::BeginFrame()
 	if(m_fInFramePass)
 		return RGF_FAILURE;					// Already in a BeginFrame()/EndFrame() block
 
-	if(geEngine_BeginFrame(m_theEngine, CCD->CameraManager()->Camera(), GE_TRUE) == GE_FALSE)
+	if(geEngine_BeginFrame(m_Engine, CCD->CameraManager()->Camera(), GE_TRUE) == GE_FALSE)
 	{
 		ReportError("[ERROR] CGenesisEngine::BeginFrame failed", false);
 		exit(-1);
@@ -1253,7 +1262,7 @@ int CGenesisEngine::EndFrame()
 	if(!m_fInFramePass)
 		return RGF_FAILURE;				// Not in BeginFrame()/EndFrame() block
 
-	if(geEngine_EndFrame(m_theEngine) == GE_FALSE)
+	if(geEngine_EndFrame(m_Engine) == GE_FALSE)
 	{
 		ReportError("[ERROR] CGenesisEngine::EndFrame failed", false);
 		return RGF_FAILURE;
@@ -1279,7 +1288,7 @@ int CGenesisEngine::RenderWorld()
 	CCD->CameraManager()->RenderView();
 
 	// We're ready, render it!
-	if(geEngine_RenderWorld(m_theEngine, m_World, CCD->CameraManager()->Camera(), 0.00f) == GE_FALSE)
+	if(geEngine_RenderWorld(m_Engine, m_World, CCD->CameraManager()->Camera(), 0.0f) == GE_FALSE)
 	{
 		ReportError("[ERROR] CGenesisEngine::RenderWorld failed", false);
 		return RGF_FAILURE;
@@ -1307,7 +1316,7 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 			int x = (m_nWidth - BmpInfo.Width) / 2;
 			int y = (m_nHeight - BmpInfo.Height) / 2;
 
-			if(geEngine_AddBitmap(m_theEngine, theBmp) == GE_FALSE)
+			if(geEngine_AddBitmap(m_Engine, theBmp) == GE_FALSE)
 			{
 				char szError[200];
 				sprintf(szError, "[ERROR] File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
@@ -1319,10 +1328,9 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 			if(m_fInFramePass)
 				EndFrame();
 
-			geEngine_BeginFrame(m_theEngine, CCD->CameraManager()->Camera(), GE_TRUE);
-			m_fInFramePass = true;
+			BeginFrame();
 
-			if(geEngine_DrawBitmap(m_theEngine, theBmp, NULL, x, y ) == GE_FALSE)
+			if(geEngine_DrawBitmap(m_Engine, theBmp, NULL, x, y ) == GE_FALSE)
 			{
 				char szError[200];
 				sprintf(szError,"[WARNING] File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
@@ -1362,7 +1370,7 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 			}
 		}
 
-		geEngine_RemoveBitmap(m_theEngine, theBmp);
+		geEngine_RemoveBitmap(m_Engine, theBmp);
 		geBitmap_Destroy(&theBmp);
 	}
 
@@ -1374,11 +1382,11 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 //
 // Set up parameters to be used for distance fogging
 /* ------------------------------------------------------------------------------------ */
-int CGenesisEngine::SetFogParameters(GE_RGBA theColor, geFloat fStart, geFloat fEnd)
+int CGenesisEngine::SetFogParameters(GE_RGBA theColor, geFloat Start, geFloat End)
 {
-	FogColor = theColor;
-	fFogStart = fStart;
-	fFogEnd = fEnd;
+	m_FogColor = theColor;
+	m_FogStart = Start;
+	m_FogEnd = End;
 
 	return RGF_SUCCESS;
 }
@@ -1390,9 +1398,8 @@ int CGenesisEngine::SetFogParameters(GE_RGBA theColor, geFloat fStart, geFloat f
 /* ------------------------------------------------------------------------------------ */
 void CGenesisEngine::EnableFog(geBoolean FogOn)
 {
-	geEngine_SetFogEnable(m_theEngine, FogOn,
-		FogColor.r, FogColor.g, FogColor.b,
-		fFogStart, fFogEnd);
+	geEngine_SetFogEnable(m_Engine, FogOn, m_FogColor.r, m_FogColor.g, m_FogColor.b,
+		m_FogStart, m_FogEnd);
 }
 
 /* ------------------------------------------------------------------------------------ */
