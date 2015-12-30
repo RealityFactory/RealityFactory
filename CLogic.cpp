@@ -442,7 +442,7 @@ int CLogic::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 void CLogic::SetState()
 {
-	Bottom = (LState *)NULL;
+	Bottom = NULL;
 
 	if(m_EntityCount == 0)
 		return;						// Don't waste CPU cycles
