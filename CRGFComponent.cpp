@@ -49,7 +49,7 @@ CRGFComponent::~CRGFComponent()
 //	..implement a scripting interface or to expose component functionality
 //	..to other components.
 /* ------------------------------------------------------------------------------------ */
-int CRGFComponent::Execute(char *szName, int nCommand, void *pArgs, int *pArgTypes)
+int CRGFComponent::Execute(char * /*szName*/, int /*nCommand*/, void * /*pArgs*/, int * /*pArgTypes*/)
 {
 	OutputDebugString("Unimplemented Execute called\n");
 
@@ -65,7 +65,7 @@ int CRGFComponent::Execute(char *szName, int nCommand, void *pArgs, int *pArgTyp
 //	..used internally to the component, although it could be called
 //	..to determine if a name is of this entities type.
 /* ------------------------------------------------------------------------------------ */
-int CRGFComponent::LocateEntity(const char *szName, void **pEntityData)
+int CRGFComponent::LocateEntity(const char * /*szName*/, void ** /*pEntityData*/)
 {
 	OutputDebugString("Unimplemented LocateEntity called\n");
 
@@ -80,7 +80,7 @@ int CRGFComponent::LocateEntity(const char *szName, void **pEntityData)
 //	..to force synchronization with some global time source, say for
 //	..multiplayer support.
 /* ------------------------------------------------------------------------------------ */
-int CRGFComponent::SetComponentTime(DWORD dwTime)
+int CRGFComponent::SetComponentTime(DWORD /*dwTime*/)
 {
 	OutputDebugString("Unimplemented SetComponentTime called\n");
 
@@ -124,8 +124,8 @@ int CRGFComponent::ReSynchronize()
 //	..typically be used to pass collision data, environmental changes, etc.
 //	..to entities throughout the RealityFactory system.
 /* ------------------------------------------------------------------------------------ */
-int CRGFComponent::DispatchEvent(char *szName, int EventID,
-								 void *pArgs, int *pArgTypes)
+int CRGFComponent::DispatchEvent(char * /*szName*/, int /*EventID*/,
+								 void * /*pArgs*/, int * /*pArgTypes*/)
 {
 	OutputDebugString("Unimplemented DispatchEvent called\n");
 
