@@ -146,6 +146,7 @@ int OggAudio::Load(const char *szFileName)
 	}
 
 	m_nTimerID = nTimer;					// Save timer ID
+
 	return RGF_SUCCESS;
 }
 
@@ -265,6 +266,7 @@ int OggAudio::Rewind()
 
 	// Ok, position to the start of the WAVE DATA
 	ov_pcm_seek(&ovf, 0);
+
 	m_fEOF = false;									// Not EOF any longer
 
 	return RGF_SUCCESS;
@@ -306,6 +308,7 @@ int OggAudio::SetVolume(int nVolume)
 	}
 
 	m_pStream->SetVolume(nVolume);				// Set it!
+
 	return RGF_SUCCESS;
 }
 

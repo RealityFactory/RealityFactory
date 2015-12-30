@@ -18,7 +18,7 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CMessage::CMessage()
 {
@@ -62,12 +62,10 @@ CMessage::CMessage()
 		{
 			MessageData *Data = new MessageData;
 
-			// changed QD 07/15/06
 			if(Data)
 				memset(Data,0,sizeof(MessageData));
 			else
 				continue;
-			// end change
 
 			pSource->Data = (void*)Data;
 			std::string KeyName = AttrFile.FindFirstKey();
@@ -487,11 +485,7 @@ void CMessage::Display()
 						CCD->Engine()->DrawBitmap(Data->graphic[Data->graphiccur], NULL, posx, posy, Data->graphicalpha, 1.0f);
 					}
 
-					// changed Nout/QD 12/15/05
-					//char szText[256];
-					//strcpy(szText, Textt);
 					char *szText = NULL;
-					// end change
 
 					posx = Data->posx;
 					posy = Data->posy;
@@ -502,7 +496,6 @@ void CMessage::Display()
 					if(posy < 0)
 						posy = CCD->Engine()->Height() + posy;
 
-					// changed Nout/QD 12/15/05
 					if(Data->centery)
 						posy = (CCD->Engine()->Height() - CCD->MenuManager()->FontHeight(Data->font))/2;
 
@@ -537,21 +530,19 @@ void CMessage::Display()
 							Textt = Textt.substr(Index+1);
 						}
 					}
-					// end change
 				}
 			}
 		}
 	}
 }
 
-
 //	******************** CRGF Overrides ********************
 
 /* ------------------------------------------------------------------------------------ */
-//	LocateEntity
+// LocateEntity
 //
-//	Given a name, locate the desired item in the currently loaded level
-//	..and return it's user data.
+// Given a name, locate the desired item in the currently loaded level
+// ..and return it's user data.
 /* ------------------------------------------------------------------------------------ */
 int CMessage::LocateEntity(const char *szName, void **pEntityData)
 {
@@ -580,10 +571,10 @@ int CMessage::LocateEntity(const char *szName, void **pEntityData)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReSynchronize
+// ReSynchronize
 //
-//	Correct internal timing to match current time, to make up for time lost
-//	..when outside the game loop (typically in "menu mode").
+// Correct internal timing to match current time, to make up for time lost
+// ..when outside the game loop (typically in "menu mode").
 /* ------------------------------------------------------------------------------------ */
 int CMessage::ReSynchronize()
 {
@@ -591,9 +582,8 @@ int CMessage::ReSynchronize()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadText
+// LoadText
 /* ------------------------------------------------------------------------------------ */
-// changed QD Language Menu
 void CMessage::LoadText(const char *messagetxt)
 {
 	geVFile *MainFS;
@@ -602,7 +592,6 @@ void CMessage::LoadText(const char *messagetxt)
 
 	Text.resize(0);
 
-// changed QD Language Menu
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, messagetxt, GE_VFILE_OPEN_READONLY))
 		return;
 
@@ -620,10 +609,9 @@ void CMessage::LoadText(const char *messagetxt)
 		{
 			TrimRight(readinfo);
 
-// changed QD 07/15/06 - if trim operation results in empty string...
-			if(readinfo.length()<=1)
+			// if trim operation results in empty string...
+			if(readinfo.length() <= 1)
 				continue;
-// end change QD 07/15/06
 
 			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
@@ -633,9 +621,7 @@ void CMessage::LoadText(const char *messagetxt)
 					int keynum = Text.size()-1;
 					Text[keynum].Name = keyname;
 					Text[keynum].Text = text;
-// changed QD 12/15/05
 					Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
-// end change
 				}
 
 				keyname = readinfo;
@@ -667,16 +653,14 @@ void CMessage::LoadText(const char *messagetxt)
 		int keynum = Text.size()-1;
 		Text[keynum].Name = keyname;
 		Text[keynum].Text = text;
-// changed QD 12/15/05
 		Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
-// end change
 	}
 
 	geVFile_Close(MainFS);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetText
+// GetText
 /* ------------------------------------------------------------------------------------ */
 std::string CMessage::GetText(const char *Name)
 {

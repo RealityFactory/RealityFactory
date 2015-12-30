@@ -269,7 +269,6 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 		// Weakening influence the closer to the end of twilight
 		else
 		{
-
 			pVert->CurrentVert.r = SkyColor.rgba.r*m_fSunIntensity;
 			pVert->CurrentVert.g = SkyColor.rgba.g*m_fSunIntensity;
 			pVert->CurrentVert.b = SkyColor.rgba.b * m_fSunIntensity;
