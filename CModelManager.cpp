@@ -1172,7 +1172,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 									}
 									else
 									{
-										for(int i=TIME_LIST_MAX-1; i>=0; i--)
+										for(int i=TIME_LIST_MAX-1; i>=0; --i)
 										{
 											if(m_MainList[nEntry]->TimeList[i] != -1)
 											{
