@@ -29,10 +29,9 @@ int ModelState[MODEL_LIST_SIZE];
 CModelManager::CModelManager()
 {
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
-		MainList[nTemp] = NULL;
+		m_MainList[nTemp] = NULL;
 
-	ManagedModels = 0;
-
+	m_nManagedModels = 0;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ModelStateModifier");
 
@@ -71,7 +70,7 @@ CModelManager::~CModelManager()
 {
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
-		delete MainList[nTemp];
+		delete m_MainList[nTemp];
 	}
 }
 
@@ -714,20 +713,20 @@ int CModelManager::SaveTo(FILE *SaveFD, bool type)
 {
 	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; ++nEntry)
 	{
-		if(MainList[nEntry] != NULL)
+		if(m_MainList[nEntry] != NULL)
 		{
-			WRITEDATA(type, &MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->OldModelTime,	sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->Translation,		sizeof(geVec3d),	1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->Rotation,		sizeof(geVec3d),	1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->bForward,		sizeof(bool),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->bMoving,			sizeof(bool),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->bLooping,		sizeof(bool),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->bOneShot,		sizeof(bool),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->bHasMoved,		sizeof(bool),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->TLIndex,			sizeof(int),		1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, SaveFD);
-			WRITEDATA(type, &MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->OldModelTime,	sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->Translation,	sizeof(geVec3d),	1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->Rotation,		sizeof(geVec3d),	1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->bForward,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->bMoving,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->bLooping,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->bOneShot,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->bHasMoved,		sizeof(bool),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->TLIndex,		sizeof(int),		1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, SaveFD);
+			WRITEDATA(type, &m_MainList[nEntry]->ListWrapAround,sizeof(bool),		1, SaveFD);
 		}
 	}
 
@@ -741,20 +740,20 @@ int CModelManager::RestoreFrom(FILE *RestoreFD, bool type)
 {
 	for(int nEntry=0; nEntry<MODEL_LIST_SIZE; ++nEntry)
 	{
-		if(MainList[nEntry] != NULL)
+		if(m_MainList[nEntry] != NULL)
 		{
-			READDATA(type, &MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->OldModelTime,		sizeof(geFloat),	1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->Translation,		sizeof(geVec3d),	1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->Rotation,			sizeof(geVec3d),	1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->bForward,			sizeof(bool),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->bMoving,			sizeof(bool),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->bLooping,			sizeof(bool),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->bOneShot,			sizeof(bool),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->bHasMoved,		sizeof(bool),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->TLIndex,			sizeof(int),		1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, RestoreFD);
-			READDATA(type, &MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->ModelTime,		sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->OldModelTime,	sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->Translation,	sizeof(geVec3d),	1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->Rotation,		sizeof(geVec3d),	1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->bForward,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->bMoving,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->bLooping,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->bOneShot,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->bHasMoved,		sizeof(bool),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->TLIndex,		sizeof(int),		1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->AnimStartTime,	sizeof(geFloat),	1, RestoreFD);
+			READDATA(type, &m_MainList[nEntry]->ListWrapAround,	sizeof(bool),		1, RestoreFD);
 		}
 	}
 
@@ -810,23 +809,23 @@ void CModelManager::Tick(geFloat dwTicks)
 
 	// Call ProcessModelTick and ProcessChildModelTick.
 	// ProcessChildModelTick recursively follows the model hierarchy to move the linked models together.
-	for(int nEntry=0; nEntry<ManagedModels; nEntry++)
+	for(int nEntry=0; nEntry<m_nManagedModels; ++nEntry)
 	{
-		if((MainList[nEntry] != NULL) && !MainList[nEntry]->ParentModel)
+		if((m_MainList[nEntry] != NULL) && !m_MainList[nEntry]->ParentModel)
 		{
 			UndoIndex = -1;
 
 			if(ProcessModelTick(nEntry, dwTicks) == RGF_SUCCESS)
 			{
-				if(MainList[nEntry]->ChildModel)
+				if(m_MainList[nEntry]->ChildModel)
 				{
-					if(ProcessChildModelTick(ModelIndex(MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
+					if(ProcessChildModelTick(ModelIndex(m_MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
 					{
 						if(ModelState[nEntry] == MOVED_IT)
 						{
 							// Model moved, since its child can't move then neither can the parent. Undo parent motion.
-							MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-							geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+							m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->OldModelTime;
+							geWorld_SetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &m_MainList[nEntry]->OldModelXForm);
 							ModelState[nEntry] = NO_MOVEMENT;
 						}
 
@@ -858,29 +857,29 @@ int CModelManager::ProcessChildModelTick(int nEntry, geFloat dwTicks)
 {
 	if(ProcessModelTick(nEntry, dwTicks) == RGF_FAILURE)
 	{
-		MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
+		m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->OldModelTime;
 		ModelState[nEntry] = NO_MOVEMENT;
 		return RGF_FAILURE;
 	}
 	else
 	{
-		if(MainList[nEntry]->ChildModel)
+		if(m_MainList[nEntry]->ChildModel)
 		{
-			if(ProcessChildModelTick(ModelIndex(MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
+			if(ProcessChildModelTick(ModelIndex(m_MainList[nEntry]->ChildModel), dwTicks) == RGF_FAILURE)
 			{
-				MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-				geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+				m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->OldModelTime;
+				geWorld_SetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &m_MainList[nEntry]->OldModelXForm);
 				ModelState[nEntry] = NO_MOVEMENT;
 				return RGF_FAILURE;
 			}
 		}
 
-		if(MainList[nEntry]->SiblingModel)
+		if(m_MainList[nEntry]->SiblingModel)
 		{
-			if(ProcessChildModelTick(ModelIndex(MainList[nEntry]->SiblingModel), dwTicks) == RGF_FAILURE)
+			if(ProcessChildModelTick(ModelIndex(m_MainList[nEntry]->SiblingModel), dwTicks) == RGF_FAILURE)
 			{
-				MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-				geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+				m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->OldModelTime;
+				geWorld_SetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &m_MainList[nEntry]->OldModelXForm);
 				ModelState[nEntry] = NO_MOVEMENT;
 				return RGF_FAILURE;
 			}
@@ -898,7 +897,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 	// Return Value:  RGF_SUCCESS = model moved everything ok
 	//                RGF_FAILURE = model can't move because of collision
 
-	if(MainList[nEntry] != NULL)
+	if(m_MainList[nEntry] != NULL)
 	{
 		geMotion *pMotion;
 		gePath *pPath;
@@ -907,7 +906,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 		const char *Eventstring;
 
 		// Is this model moving?
-		if(MainList[nEntry]->bMoving)
+		if(m_MainList[nEntry]->bMoving)
 		{
 			ModelState[nEntry] = MOVED_IT;
 
@@ -920,11 +919,11 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				geFloat dx, dy, dz;
 
 				for(i=0; i<8; ++i)
-					Verts[i] = MainList[nEntry]->Mins;
+					Verts[i] = m_MainList[nEntry]->Mins;
 
-				dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
-				dy = MainList[nEntry]->Maxs.Y - MainList[nEntry]->Mins.Y;
-				dz = MainList[nEntry]->Maxs.Z - MainList[nEntry]->Mins.Z;
+				dx = m_MainList[nEntry]->Maxs.X - m_MainList[nEntry]->Mins.X;
+				dy = m_MainList[nEntry]->Maxs.Y - m_MainList[nEntry]->Mins.Y;
+				dz = m_MainList[nEntry]->Maxs.Z - m_MainList[nEntry]->Mins.Z;
 
 				Verts[0].Y += dy;
 				Verts[3].Y += dy;
@@ -941,7 +940,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 				Verts[2].Y += dy;
 				Verts[2].Z += dz;
 
-				geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &Xf);
+				geWorld_GetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &Xf);
 				geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 				Result.Min = Result.Max = Verts[0];
 
@@ -963,16 +962,16 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 						Result.Max.Z = Verts[i].Z;
 				}
 
-				DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
+				DrawBoundBox(CCD->World(), &m_MainList[nEntry]->Translation, &Result.Min, &Result.Max);
 			}
 
 			// Make sure we have animation data for the model
-			pMotion= geWorld_ModelGetMotion(MainList[nEntry]->Model);
+			pMotion = geWorld_ModelGetMotion(m_MainList[nEntry]->Model);
 
 			if(!pMotion)					// No motion data?
 			{
-				MainList[nEntry]->bMoving = false;
-				MainList[nEntry]->bHasMoved = false;
+				m_MainList[nEntry]->bMoving = false;
+				m_MainList[nEntry]->bHasMoved = false;
 				return RGF_SUCCESS;
 			}
 
@@ -980,89 +979,90 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 			if(!pPath)						// No path data?
 			{
-				MainList[nEntry]->bMoving = false;
-				MainList[nEntry]->bHasMoved = false;
+				m_MainList[nEntry]->bMoving = false;
+				m_MainList[nEntry]->bHasMoved = false;
 				return RGF_SUCCESS;
 			}
 
 			// Compute animation time and find our position
-			theTime = MainList[nEntry]->ModelTime *0.001f; // / 1000.0f;
+			theTime = m_MainList[nEntry]->ModelTime *0.001f;
 			geMotion_GetTimeExtents(pMotion, &tStart, &tEnd);
 
 			// Save off the previous animation time in case we need to back up
-			MainList[nEntry]->OldModelTime = MainList[nEntry]->ModelTime;
+			m_MainList[nEntry]->OldModelTime = m_MainList[nEntry]->ModelTime;
 
-			geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &MainList[nEntry]->OldModelXForm);
+			geWorld_GetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &m_MainList[nEntry]->OldModelXForm);
 
 			// Now, check the direction
-			if(MainList[nEntry]->bForward)
+			if(m_MainList[nEntry]->bForward)
 			{
 				// Model is animating FORWARDS along timeline
-				MainList[nEntry]->ModelTime += (dwTicks * MainList[nEntry]->ModelAnimationSpeed);
-				if(MainList[nEntry]->TargetTime >= 0.0f)
+				m_MainList[nEntry]->ModelTime += (dwTicks * m_MainList[nEntry]->ModelAnimationSpeed);
+
+				if(m_MainList[nEntry]->TargetTime >= 0.0f)
 				{
-					if(MainList[nEntry]->ModelTime > MainList[nEntry]->TargetTime)
+					if(m_MainList[nEntry]->ModelTime > m_MainList[nEntry]->TargetTime)
 					{
-						MainList[nEntry]->ModelTime = MainList[nEntry]->TargetTime;
-						MainList[nEntry]->bMoving = false;		// Kill the motion
+						m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->TargetTime;
+						m_MainList[nEntry]->bMoving = false;		// Kill the motion
 					}
 
-					TargetTime = MainList[nEntry]->ModelTime;
+					TargetTime = m_MainList[nEntry]->ModelTime;
 				}
 				else
 				{
-					if(MainList[nEntry]->bRunTimed)
+					if(m_MainList[nEntry]->bRunTimed)
 					{
-						TempTimeDelta = MainList[nEntry]->ModelTime - MainList[nEntry]->AnimStartTime;
+						TempTimeDelta = m_MainList[nEntry]->ModelTime - m_MainList[nEntry]->AnimStartTime;
 
-						if(TempTimeDelta >= MainList[nEntry]->TimeEachTrig)
+						if(TempTimeDelta >= m_MainList[nEntry]->TimeEachTrig)
 						{
-							MainList[nEntry]->ModelTime = MainList[nEntry]->AnimStartTime +
-															MainList[nEntry]->TimeEachTrig;
-							MainList[nEntry]->bMoving = false;		// Kill the motion
+							m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->AnimStartTime +
+															m_MainList[nEntry]->TimeEachTrig;
+							m_MainList[nEntry]->bMoving = false;		// Kill the motion
 						}
 
-						TargetTime = MainList[nEntry]->ModelTime;
+						TargetTime = m_MainList[nEntry]->ModelTime;
 					}
 
-					if(MainList[nEntry]->bRunFromList)
+					if(m_MainList[nEntry]->bRunFromList)
 					{
-						if(MainList[nEntry]->ListWrapAround && (MainList[nEntry]->ModelTime >= MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex]))
+						if(m_MainList[nEntry]->ListWrapAround && (m_MainList[nEntry]->ModelTime >= m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex]))
 						{
-							if(MainList[nEntry]->ModelTime >= (tEnd * 1000.0f))
+							if(m_MainList[nEntry]->ModelTime >= (tEnd * 1000.0f))
 							{
-								MainList[nEntry]->ListWrapAround = false;
-								MainList[nEntry]->ModelTime = (MainList[nEntry]->ModelTime - (tEnd * 1000.0f)) + (tStart * 1000.0f);
+								m_MainList[nEntry]->ListWrapAround = false;
+								m_MainList[nEntry]->ModelTime = (m_MainList[nEntry]->ModelTime - (tEnd * 1000.0f)) + (tStart * 1000.0f);
 							}
 						}
 
-						if(!MainList[nEntry]->ListWrapAround && (MainList[nEntry]->ModelTime >= MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex]))
+						if(!m_MainList[nEntry]->ListWrapAround && (m_MainList[nEntry]->ModelTime >= m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex]))
 						{
-							MainList[nEntry]->ModelTime = MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex];
-							TargetTime = MainList[nEntry]->ModelTime;
+							m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex];
+							TargetTime = m_MainList[nEntry]->ModelTime;
 
-							if(++MainList[nEntry]->TLIndex >= TIME_LIST_MAX)
+							if(++m_MainList[nEntry]->TLIndex >= TIME_LIST_MAX)
 								NextTime = -1000.f;
 							else
-								NextTime = MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex];
+								NextTime = m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex];
 
 							if(NextTime == -1000.f)
 							{
-								if(MainList[nEntry]->bLooping)
+								if(m_MainList[nEntry]->bLooping)
 								{
-									MainList[nEntry]->TLIndex -= 2;
+									m_MainList[nEntry]->TLIndex -= 2;
 
-									if(MainList[nEntry]->TLIndex < 0)
-										MainList[nEntry]->TLIndex = 0;
+									if(m_MainList[nEntry]->TLIndex < 0)
+										m_MainList[nEntry]->TLIndex = 0;
 
-									if(MainList[nEntry]->bReverse)
+									if(m_MainList[nEntry]->bReverse)
 									{
-										MainList[nEntry]->bForward = false;	// Reverse direction
+										m_MainList[nEntry]->bForward = false;	// Reverse direction
 									}
 									else
 									{
-										MainList[nEntry]->TLIndex = 0;
-										MainList[nEntry]->ListWrapAround = TRUE;
+										m_MainList[nEntry]->TLIndex = 0;
+										m_MainList[nEntry]->ListWrapAround = TRUE;
 									}
 								}
 								else
@@ -1071,39 +1071,39 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 								}
 							}
 
-							MainList[nEntry]->bMoving = false;		// Kill the motion
+							m_MainList[nEntry]->bMoving = false;		// Kill the motion
 						}
 						else
 						{
-							TargetTime = MainList[nEntry]->ModelTime;
+							TargetTime = m_MainList[nEntry]->ModelTime;
 						}
 					}
 					else
 					{
-						if((MainList[nEntry]->ModelTime * 0.001f) >= tEnd)
+						if((m_MainList[nEntry]->ModelTime * 0.001f) >= tEnd)
 						{
 							TargetTime = tEnd * 1000.0f;
 
-							if(MainList[nEntry]->bReverse)
+							if(m_MainList[nEntry]->bReverse)
 							{
-								MainList[nEntry]->bForward = false;	// Reverse direction
-								MainList[nEntry]->ModelTime = tEnd * 1000.0f;
-								MainList[nEntry]->AnimStartTime = MainList[nEntry]->ModelTime + TempTimeDelta;
+								m_MainList[nEntry]->bForward = false;	// Reverse direction
+								m_MainList[nEntry]->ModelTime = tEnd * 1000.0f;
+								m_MainList[nEntry]->AnimStartTime = m_MainList[nEntry]->ModelTime + TempTimeDelta;
 							}
-							else if(MainList[nEntry]->bLooping) // else
+							else if(m_MainList[nEntry]->bLooping)
 							{
-								MainList[nEntry]->ModelTime = tStart * 1000.0f;
-								MainList[nEntry]->AnimStartTime = MainList[nEntry]->ModelTime - TempTimeDelta;
+								m_MainList[nEntry]->ModelTime = tStart * 1000.0f;
+								m_MainList[nEntry]->AnimStartTime = m_MainList[nEntry]->ModelTime - TempTimeDelta;
 							}
 							else // not looping and not reverse
 							{
-								MainList[nEntry]->bMoving = false;		// Kill the motion
-								MainList[nEntry]->ModelTime = tEnd * 1000.0f;
+								m_MainList[nEntry]->bMoving = false;		// Kill the motion
+								m_MainList[nEntry]->ModelTime = tEnd * 1000.0f;
 							}
 						}
 						else
 						{
-							TargetTime = MainList[nEntry]->ModelTime;
+							TargetTime = m_MainList[nEntry]->ModelTime;
 						}
 					}
 				}
@@ -1111,85 +1111,86 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 			else
 			{
 				// Model is animating BACKWARDS along timeline
-				MainList[nEntry]->ModelTime -= (dwTicks * MainList[nEntry]->ModelAnimationSpeed);
-				if(MainList[nEntry]->TargetTime >= 0.0f)
+				m_MainList[nEntry]->ModelTime -= (dwTicks * m_MainList[nEntry]->ModelAnimationSpeed);
+
+				if(m_MainList[nEntry]->TargetTime >= 0.0f)
 				{
-					if(MainList[nEntry]->ModelTime < MainList[nEntry]->TargetTime)
+					if(m_MainList[nEntry]->ModelTime < m_MainList[nEntry]->TargetTime)
 					{
-						MainList[nEntry]->ModelTime = MainList[nEntry]->TargetTime;
-						MainList[nEntry]->bMoving = false;		// Kill the motion
+						m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->TargetTime;
+						m_MainList[nEntry]->bMoving = false;		// Kill the motion
 					}
 
-					TargetTime = MainList[nEntry]->ModelTime;
+					TargetTime = m_MainList[nEntry]->ModelTime;
 				}
 				else
 				{
-					if(MainList[nEntry]->bRunTimed)
+					if(m_MainList[nEntry]->bRunTimed)
 					{
-						TempTimeDelta = MainList[nEntry]->AnimStartTime - MainList[nEntry]->ModelTime;
+						TempTimeDelta = m_MainList[nEntry]->AnimStartTime - m_MainList[nEntry]->ModelTime;
 
-						if(TempTimeDelta >= MainList[nEntry]->TimeEachTrig)
+						if(TempTimeDelta >= m_MainList[nEntry]->TimeEachTrig)
 						{
-							MainList[nEntry]->ModelTime = MainList[nEntry]->AnimStartTime -
-															MainList[nEntry]->TimeEachTrig;
-							MainList[nEntry]->bMoving = false;		// Kill the motion
+							m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->AnimStartTime -
+															m_MainList[nEntry]->TimeEachTrig;
+							m_MainList[nEntry]->bMoving = false;		// Kill the motion
 						}
 
-						TargetTime = MainList[nEntry]->ModelTime;
+						TargetTime = m_MainList[nEntry]->ModelTime;
 					}
 
-					if(MainList[nEntry]->bRunFromList)
+					if(m_MainList[nEntry]->bRunFromList)
 					{
-						if(MainList[nEntry]->ListWrapAround && (MainList[nEntry]->ModelTime <= MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex]))
+						if(m_MainList[nEntry]->ListWrapAround && (m_MainList[nEntry]->ModelTime <= m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex]))
 						{
-							if(MainList[nEntry]->ModelTime <= (tStart * 1000.0f))
+							if(m_MainList[nEntry]->ModelTime <= (tStart * 1000.0f))
 							{
-								MainList[nEntry]->ListWrapAround = false;
-								MainList[nEntry]->ModelTime = (tEnd * 1000.0f) - ((tStart * 1000.0f) - MainList[nEntry]->ModelTime);
+								m_MainList[nEntry]->ListWrapAround = false;
+								m_MainList[nEntry]->ModelTime = (tEnd * 1000.0f) - ((tStart * 1000.0f) - m_MainList[nEntry]->ModelTime);
 							}
 						}
 
-						if(!MainList[nEntry]->ListWrapAround && (MainList[nEntry]->ModelTime <= MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex]))
+						if(!m_MainList[nEntry]->ListWrapAround && (m_MainList[nEntry]->ModelTime <= m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex]))
 						{
-							MainList[nEntry]->ModelTime = MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex];
-							TargetTime = MainList[nEntry]->ModelTime;
+							m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex];
+							TargetTime = m_MainList[nEntry]->ModelTime;
 
-							if(--MainList[nEntry]->TLIndex < 0)
+							if(--m_MainList[nEntry]->TLIndex < 0)
 								NextTime = -1000.f;
 							else
-								NextTime = MainList[nEntry]->TimeList[MainList[nEntry]->TLIndex];
+								NextTime = m_MainList[nEntry]->TimeList[m_MainList[nEntry]->TLIndex];
 
 							if(NextTime == -1000.f)
 							{
-								if(MainList[nEntry]->bLooping)
+								if(m_MainList[nEntry]->bLooping)
 								{
-									MainList[nEntry]->TLIndex += 2;
+									m_MainList[nEntry]->TLIndex += 2;
 
-									if(MainList[nEntry]->bReverse)
+									if(m_MainList[nEntry]->bReverse)
 									{
-										MainList[nEntry]->bForward = true;	// Reverse direction
+										m_MainList[nEntry]->bForward = true;	// Reverse direction
 									}
 									else
 									{
 										for(int i=TIME_LIST_MAX-1; i>=0; i--)
 										{
-											if(MainList[nEntry]->TimeList[i] != -1)
+											if(m_MainList[nEntry]->TimeList[i] != -1)
 											{
-												MainList[nEntry]->TLIndex = i;
-												MainList[nEntry]->ListWrapAround = TRUE;
+												m_MainList[nEntry]->TLIndex = i;
+												m_MainList[nEntry]->ListWrapAround = TRUE;
 												break;
 											}
 
 											if(i == 0)
 											{
-												MainList[nEntry]->bMoving = false;		// Kill the motion
+												m_MainList[nEntry]->bMoving = false;		// Kill the motion
 											}
 										}
 
-										if(MainList[nEntry]->TLIndex < 0)
-											MainList[nEntry]->TLIndex = 0;
+										if(m_MainList[nEntry]->TLIndex < 0)
+											m_MainList[nEntry]->TLIndex = 0;
 
-										MainList[nEntry]->ModelTime = tEnd * 1000.0f;
+										m_MainList[nEntry]->ModelTime = tEnd * 1000.0f;
 									}
 								}
 								else
@@ -1198,58 +1199,58 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 								}
 							}
 
-							MainList[nEntry]->bMoving = false;		// Kill the motion
+							m_MainList[nEntry]->bMoving = false;		// Kill the motion
 						}
 						else
 						{
-							TargetTime = MainList[nEntry]->ModelTime;
+							TargetTime = m_MainList[nEntry]->ModelTime;
 						}
 					}
 					else
 					{
-						if((MainList[nEntry]->ModelTime * 0.001f) <= tStart)
+						if((m_MainList[nEntry]->ModelTime * 0.001f) <= tStart)
 						{
 							TargetTime = tStart * 1000.0f;
 
-							if(MainList[nEntry]->bLooping)
+							if(m_MainList[nEntry]->bLooping)
 							{
-								if(MainList[nEntry]->bReverse)
+								if(m_MainList[nEntry]->bReverse)
 								{
-									MainList[nEntry]->bForward = true;	// Reverse direction
-									MainList[nEntry]->ModelTime = tStart * 1000.0f;
-									MainList[nEntry]->AnimStartTime = MainList[nEntry]->ModelTime - TempTimeDelta;
+									m_MainList[nEntry]->bForward = true;	// Reverse direction
+									m_MainList[nEntry]->ModelTime = tStart * 1000.0f;
+									m_MainList[nEntry]->AnimStartTime = m_MainList[nEntry]->ModelTime - TempTimeDelta;
 								}
 								else
 								{
-									MainList[nEntry]->ModelTime = tEnd * 1000.0f;
-									MainList[nEntry]->AnimStartTime = MainList[nEntry]->ModelTime + TempTimeDelta;
+									m_MainList[nEntry]->ModelTime = tEnd * 1000.0f;
+									m_MainList[nEntry]->AnimStartTime = m_MainList[nEntry]->ModelTime + TempTimeDelta;
 								}
 							}
 							else
 							{
-								MainList[nEntry]->bMoving = false;		// Kill the motion
-								MainList[nEntry]->ModelTime = tStart * 1000.0f;
+								m_MainList[nEntry]->bMoving = false;		// Kill the motion
+								m_MainList[nEntry]->ModelTime = tStart * 1000.0f;
 							}
 						}
 						else
 						{
-							TargetTime = MainList[nEntry]->ModelTime;
+							TargetTime = m_MainList[nEntry]->ModelTime;
 						}
 					}
 				}
 			}
 
 			// Time updated, let's adjust the models position...
-			if(MoveModel(MainList[nEntry], pPath) == GE_TRUE)
+			if(MoveModel(m_MainList[nEntry], pPath) == GE_TRUE)
 			{
 				// Process Events in the motion
-				if(MainList[nEntry]->bForward)
+				if(m_MainList[nEntry]->bForward)
 				{
-					geMotion_SetupEventIterator(pMotion, (MainList[nEntry]->OldModelTime+1.0f)*0.001f, (TargetTime+1.0f)*0.001f);
+					geMotion_SetupEventIterator(pMotion, (m_MainList[nEntry]->OldModelTime+1.0f)*0.001f, (TargetTime+1.0f)*0.001f);
 				}
 				else
 				{
-					geMotion_SetupEventIterator(pMotion, TargetTime*0.001f, (MainList[nEntry]->OldModelTime)*0.001f);
+					geMotion_SetupEventIterator(pMotion, TargetTime*0.001f, (m_MainList[nEntry]->OldModelTime)*0.001f);
 				}
 
 				while(geMotion_GetNextEvent(pMotion, &tStart, &Eventstring))
@@ -1274,7 +1275,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 									// We have some sound, play the sucker.
 									geFloat Volume, Pan, Frequency;
 									geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
-									geSound3D_GetConfig(CCD->World(), &xfmPlayer, &MainList[nEntry]->Translation,
+									geSound3D_GetConfig(CCD->World(), &xfmPlayer, &m_MainList[nEntry]->Translation,
 														CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
 									geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), theSound,
 															Volume, Pan, Frequency, GE_FALSE);
@@ -1299,20 +1300,20 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 
 				ModelState[nEntry] = MOVED_IT;
 				// Model moved, everything ok
-				MainList[nEntry]->bModelInCollision = false;
+				m_MainList[nEntry]->bModelInCollision = false;
 				return RGF_SUCCESS;
 			}
 			else
 			{
 				// Model could not move due to collision
-				MainList[nEntry]->bModelInCollision = true;
+				m_MainList[nEntry]->bModelInCollision = true;
 				return RGF_FAILURE;
 			}
 		}
 		else
 		{
 			// This model is not moving on its own, but we must check if its parent moved
-			if(MainList[nEntry]->ParentModel && (ModelState[ModelIndex(MainList[nEntry]->ParentModel)] == MOVED_IT))
+			if(m_MainList[nEntry]->ParentModel && (ModelState[ModelIndex(m_MainList[nEntry]->ParentModel)] == MOVED_IT))
 			{
 				// Parent moved, so the child must too!  Whether it likes it or not.
 				if(CCD->MenuManager()->GetSEBoundBox())
@@ -1324,11 +1325,11 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					geFloat	 dx, dy, dz;
 
 					for(i=0; i<8; ++i)
-						Verts[i] = MainList[nEntry]->Mins;
+						Verts[i] = m_MainList[nEntry]->Mins;
 
-					dx = MainList[nEntry]->Maxs.X - MainList[nEntry]->Mins.X;
-					dy = MainList[nEntry]->Maxs.Y - MainList[nEntry]->Mins.Y;
-					dz = MainList[nEntry]->Maxs.Z - MainList[nEntry]->Mins.Z;
+					dx = m_MainList[nEntry]->Maxs.X - m_MainList[nEntry]->Mins.X;
+					dy = m_MainList[nEntry]->Maxs.Y - m_MainList[nEntry]->Mins.Y;
+					dz = m_MainList[nEntry]->Maxs.Z - m_MainList[nEntry]->Mins.Z;
 
 					Verts[0].Y += dy;
 					Verts[3].Y += dy;
@@ -1345,7 +1346,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					Verts[2].Y += dy;
 					Verts[2].Z += dz;
 
-					geWorld_GetModelXForm(CCD->World(), MainList[nEntry]->Model, &Xf);
+					geWorld_GetModelXForm(CCD->World(), m_MainList[nEntry]->Model, &Xf);
 					geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 					Result.Min = Result.Max = Verts[0];
 
@@ -1367,18 +1368,18 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 							Result.Max.Z = Verts[i].Z;
 					}
 
-					DrawBoundBox(CCD->World(), &MainList[nEntry]->Translation, &Result.Min, &Result.Max);
+					DrawBoundBox(CCD->World(), &m_MainList[nEntry]->Translation, &Result.Min, &Result.Max);
 				}
 
 				// Make sure we have animation data for the model
-				pMotion= geWorld_ModelGetMotion(MainList[nEntry]->Model);
+				pMotion= geWorld_ModelGetMotion(m_MainList[nEntry]->Model);
 
 				if(pMotion)
 					pPath= geMotion_GetPath(pMotion, 0);
 				else
 					pPath = NULL;
 
-				if(MoveModel(MainList[nEntry], pPath) == GE_TRUE)
+				if(MoveModel(m_MainList[nEntry], pPath) == GE_TRUE)
 				{
 					ModelState[nEntry] = MOVED_IT;
 					// Model moved, everything ok
@@ -1389,10 +1390,10 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					// Model could not move due to collision
 					//return RGF_FAILURE;
 
-					MainList[nEntry]->ModelTime = MainList[nEntry]->OldModelTime;
-					MainList[ModelIndex(MainList[nEntry]->ParentModel)]->ModelTime = MainList[ModelIndex(MainList[nEntry]->ParentModel)]->OldModelTime;
-					geWorld_SetModelXForm(CCD->World(), MainList[nEntry]->ParentModel, &MainList[ModelIndex(MainList[nEntry]->ParentModel)]->OldModelXForm);
-					ModelState[ModelIndex(MainList[nEntry]->ParentModel)] = NO_MOVEMENT;
+					m_MainList[nEntry]->ModelTime = m_MainList[nEntry]->OldModelTime;
+					m_MainList[ModelIndex(m_MainList[nEntry]->ParentModel)]->ModelTime = m_MainList[ModelIndex(m_MainList[nEntry]->ParentModel)]->OldModelTime;
+					geWorld_SetModelXForm(CCD->World(), m_MainList[nEntry]->ParentModel, &m_MainList[ModelIndex(m_MainList[nEntry]->ParentModel)]->OldModelXForm);
+					ModelState[ModelIndex(m_MainList[nEntry]->ParentModel)] = NO_MOVEMENT;
 					ModelState[nEntry] = NO_MOVEMENT;
 
 					return RGF_FAILURE;
@@ -1650,20 +1651,20 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &/*thePoint*/, geExtBox t
 
 	*theModel = NULL;
 
-	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
+	for(int nTemp=0; nTemp<m_nManagedModels; ++nTemp)
 	{
-		if(MainList[nTemp] == NULL)
+		if(m_MainList[nTemp] == NULL)
 			continue;				// Empty slot
 
-		if(MainList[nTemp]->bAllowInside)
+		if(m_MainList[nTemp]->bAllowInside)
 			continue;
 
 		for(i=0; i<8; ++i)
-			Verts[i] = MainList[nTemp]->Mins;
+			Verts[i] = m_MainList[nTemp]->Mins;
 
-		dx = MainList[nTemp]->Maxs.X - MainList[nTemp]->Mins.X;
-		dy = MainList[nTemp]->Maxs.Y - MainList[nTemp]->Mins.Y;
-		dz = MainList[nTemp]->Maxs.Z - MainList[nTemp]->Mins.Z;
+		dx = m_MainList[nTemp]->Maxs.X - m_MainList[nTemp]->Mins.X;
+		dy = m_MainList[nTemp]->Maxs.Y - m_MainList[nTemp]->Mins.Y;
+		dz = m_MainList[nTemp]->Maxs.Z - m_MainList[nTemp]->Mins.Z;
 
 		Verts[0].Y += dy;
 		Verts[3].Y += dy;
@@ -1680,7 +1681,7 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &/*thePoint*/, geExtBox t
 		Verts[2].Y += dy;
 		Verts[2].Z += dz;
 
-		geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf);
+		geWorld_GetModelXForm(CCD->World(), m_MainList[nTemp]->Model, &Xf);
 		geXForm3d_TransformArray(&Xf, Verts, Verts, 8);
 		Result.Min = Result.Max = Verts[0];
 
@@ -1703,28 +1704,28 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &/*thePoint*/, geExtBox t
 		}
 
 		//if(CCD->MenuManager()->GetSEBoundBox())
-		//DrawBoundBox(CCD->World(), &MainList[nTemp]->Translation, &Result.Min, &Result.Max);
+		//DrawBoundBox(CCD->World(), &m_MainList[nTemp]->Translation, &Result.Min, &Result.Max);
 
-		if(CCD->Doors()->IsADoor(MainList[nTemp]->Model)
-			&& IsRunning(MainList[nTemp]->Model)
-			&& MainList[nTemp]->bRotating)
+		if(CCD->Doors()->IsADoor(m_MainList[nTemp]->Model)
+			&& IsRunning(m_MainList[nTemp]->Model)
+			&& m_MainList[nTemp]->bRotating)
 			continue;
 
-		if(MainList[nTemp]->ModelType == ENTITY_LIQUID || MainList[nTemp]->ModelType == ENTITY_OVERLAY)
+		if(m_MainList[nTemp]->ModelType == ENTITY_LIQUID || m_MainList[nTemp]->ModelType == ENTITY_OVERLAY)
 			continue;
 
-		Result.Min.X += MainList[nTemp]->Translation.X;
-		Result.Min.Y += MainList[nTemp]->Translation.Y;
-		Result.Min.Z += MainList[nTemp]->Translation.Z;
+		Result.Min.X += m_MainList[nTemp]->Translation.X;
+		Result.Min.Y += m_MainList[nTemp]->Translation.Y;
+		Result.Min.Z += m_MainList[nTemp]->Translation.Z;
 
-		Result.Max.X += MainList[nTemp]->Translation.X;
-		Result.Max.Y += MainList[nTemp]->Translation.Y;
-		Result.Max.Z += MainList[nTemp]->Translation.Z;
+		Result.Max.X += m_MainList[nTemp]->Translation.X;
+		Result.Max.Y += m_MainList[nTemp]->Translation.Y;
+		Result.Max.Z += m_MainList[nTemp]->Translation.Z;
 
 		if(geExtBox_Intersection(&Result, &theBox, &Temp) == GE_TRUE)
 		{
 			// Heh, we hit someone.  Return the model we ran into.
-			*theModel = MainList[nTemp]->Model;
+			*theModel = m_MainList[nTemp]->Model;
 			return GE_TRUE;
 		}
 	}
@@ -1744,14 +1745,14 @@ geBoolean CModelManager::ContentModel(const geVec3d &/*thePoint*/, geExtBox theB
 
 	*theModel = NULL;
 
-	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
+	for(int nTemp=0; nTemp<m_nManagedModels; ++nTemp)
 	{
-		if(MainList[nTemp] == NULL)
+		if(m_MainList[nTemp] == NULL)
 			continue;				// Empty slot
 
 		geVec3d Forward, Up, Left, Pos;
 		geXForm3d Xf;
-		geWorld_GetModelXForm(CCD->World(), MainList[nTemp]->Model, &Xf);
+		geWorld_GetModelXForm(CCD->World(), m_MainList[nTemp]->Model, &Xf);
 
 		geXForm3d_GetUp(&Xf, &Up);
 		geVec3d_Normalize(&Up);
@@ -1762,15 +1763,15 @@ geBoolean CModelManager::ContentModel(const geVec3d &/*thePoint*/, geExtBox theB
 		geXForm3d_GetLeft(&Xf, &Left);
 		geVec3d_Normalize(&Left);
 
-		geWorld_GetModelRotationalCenter(CCD->World(), MainList[nTemp]->Model, &Pos);
+		geWorld_GetModelRotationalCenter(CCD->World(), m_MainList[nTemp]->Model, &Pos);
 
-		geVec3d_AddScaled(&Pos, &Forward, -MainList[nTemp]->Mins.Z, &Result.Min);
-		geVec3d_AddScaled(&Result.Min, &Left, -MainList[nTemp]->Mins.X, &Result.Min);
-		geVec3d_AddScaled(&Result.Min, &Up, MainList[nTemp]->Mins.Y, &Result.Min);
+		geVec3d_AddScaled(&Pos, &Forward, -m_MainList[nTemp]->Mins.Z, &Result.Min);
+		geVec3d_AddScaled(&Result.Min, &Left, -m_MainList[nTemp]->Mins.X, &Result.Min);
+		geVec3d_AddScaled(&Result.Min, &Up, m_MainList[nTemp]->Mins.Y, &Result.Min);
 
-		geVec3d_AddScaled(&Pos, &Forward, -MainList[nTemp]->Maxs.Z, &Result.Max);
-		geVec3d_AddScaled(&Result.Max, &Left, -MainList[nTemp]->Maxs.X, &Result.Max);
-		geVec3d_AddScaled(&Result.Max, &Up, MainList[nTemp]->Maxs.Y, &Result.Max);
+		geVec3d_AddScaled(&Pos, &Forward, -m_MainList[nTemp]->Maxs.Z, &Result.Max);
+		geVec3d_AddScaled(&Result.Max, &Left, -m_MainList[nTemp]->Maxs.X, &Result.Max);
+		geVec3d_AddScaled(&Result.Max, &Up, m_MainList[nTemp]->Maxs.Y, &Result.Max);
 
 		Result.Min.X -= Pos.X;
 		Result.Min.Y -= Pos.Y;
@@ -1803,18 +1804,18 @@ geBoolean CModelManager::ContentModel(const geVec3d &/*thePoint*/, geExtBox theB
 			Result.Max.Z = Mtemp;
 		}
 
-		Result.Min.X += MainList[nTemp]->Translation.X;
-		Result.Min.Y += MainList[nTemp]->Translation.Y;
-		Result.Min.Z += MainList[nTemp]->Translation.Z;
+		Result.Min.X += m_MainList[nTemp]->Translation.X;
+		Result.Min.Y += m_MainList[nTemp]->Translation.Y;
+		Result.Min.Z += m_MainList[nTemp]->Translation.Z;
 
-		Result.Max.X += MainList[nTemp]->Translation.X;
-		Result.Max.Y += MainList[nTemp]->Translation.Y;
-		Result.Max.Z += MainList[nTemp]->Translation.Z;
+		Result.Max.X += m_MainList[nTemp]->Translation.X;
+		Result.Max.Y += m_MainList[nTemp]->Translation.Y;
+		Result.Max.Z += m_MainList[nTemp]->Translation.Z;
 
 		if(geExtBox_Intersection(&Result, &theBox, &Temp) == GE_TRUE)
 		{
 			// Heh, we hit someone.  Return the model we ran into.
-			*theModel = MainList[nTemp]->Model;
+			*theModel = m_MainList[nTemp]->Model;
 			return GE_TRUE;
 		}
 	}
@@ -2015,56 +2016,56 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 	for(int nTemp=0; nTemp<MODEL_LIST_SIZE; ++nTemp)
 	{
 		// Let's find a free entry
-		if(MainList[nTemp] == NULL)
+		if(m_MainList[nTemp] == NULL)
 		{
-			MainList[nTemp] = new ModelInstanceList;
-			memset(MainList[nTemp], 0, sizeof(ModelInstanceList));
+			m_MainList[nTemp] = new ModelInstanceList;
+			memset(m_MainList[nTemp], 0, sizeof(ModelInstanceList));
 
-			MainList[nTemp]->Model					= theModel;
-			MainList[nTemp]->bForward				= true;
-			MainList[nTemp]->bMoving				= false;
-			MainList[nTemp]->ModelAnimationSpeed	= 1.0f;		// 100%
-			MainList[nTemp]->ModelTime				= 0.0f;
-			MainList[nTemp]->TargetTime				= -1.0f;
-			MainList[nTemp]->ModelType				= nModelType;
-			MainList[nTemp]->bLooping				= false;
-			MainList[nTemp]->bRotating				= false;
-			MainList[nTemp]->bReverse				= false; //true; // changed QD 12/15/05
-			MainList[nTemp]->bAllowInside			= false;
-			MainList[nTemp]->bRunTimed				= false;
-			MainList[nTemp]->TimeEachTrig			= 1.0f;
-			MainList[nTemp]->bRunFromList			= false;
+			m_MainList[nTemp]->Model				= theModel;
+			m_MainList[nTemp]->bForward				= true;
+			m_MainList[nTemp]->bMoving				= false;
+			m_MainList[nTemp]->ModelAnimationSpeed	= 1.0f;		// 100%
+			m_MainList[nTemp]->ModelTime			= 0.0f;
+			m_MainList[nTemp]->TargetTime			= -1.0f;
+			m_MainList[nTemp]->ModelType			= nModelType;
+			m_MainList[nTemp]->bLooping				= false;
+			m_MainList[nTemp]->bRotating			= false;
+			m_MainList[nTemp]->bReverse				= false;
+			m_MainList[nTemp]->bAllowInside			= false;
+			m_MainList[nTemp]->bRunTimed			= false;
+			m_MainList[nTemp]->TimeEachTrig			= 1.0f;
+			m_MainList[nTemp]->bRunFromList			= false;
 
 			for(i=0; i<TIME_LIST_MAX; ++i)
 			{
-				MainList[nTemp]->TimeList[i] = 0.0f;
+				m_MainList[nTemp]->TimeList[i] = 0.0f;
 			}
 
-			MainList[nTemp]->TLIndex				= 0;
-			MainList[nTemp]->AnimStartTime			= 0.0f;
-			MainList[nTemp]->ListWrapAround			= false;
+			m_MainList[nTemp]->TLIndex				= 0;
+			m_MainList[nTemp]->AnimStartTime		= 0.0f;
+			m_MainList[nTemp]->ListWrapAround		= false;
 
-			MainList[nTemp]->bReverseOnCollision	= false;
-			MainList[nTemp]->bRideable				= true;
+			m_MainList[nTemp]->bReverseOnCollision	= false;
+			m_MainList[nTemp]->bRideable			= true;
 
-			geWorld_ModelGetBBox(CCD->World(), MainList[nTemp]->Model, &MainList[nTemp]->Mins, &MainList[nTemp]->Maxs);
+			geWorld_ModelGetBBox(CCD->World(), m_MainList[nTemp]->Model, &m_MainList[nTemp]->Mins, &m_MainList[nTemp]->Maxs);
 
-			MainList[nTemp]->Mins.X += 127.0f;
-			MainList[nTemp]->Mins.Y += 127.0f;
-			MainList[nTemp]->Mins.Z += 127.0f;
-			MainList[nTemp]->Maxs.X -= 127.0f;
-			MainList[nTemp]->Maxs.Y -= 127.0f;
-			MainList[nTemp]->Maxs.Z -= 127.0f;
+			m_MainList[nTemp]->Mins.X += 127.0f;
+			m_MainList[nTemp]->Mins.Y += 127.0f;
+			m_MainList[nTemp]->Mins.Z += 127.0f;
+			m_MainList[nTemp]->Maxs.X -= 127.0f;
+			m_MainList[nTemp]->Maxs.Y -= 127.0f;
+			m_MainList[nTemp]->Maxs.Z -= 127.0f;
 
-			geWorld_GetModelRotationalCenter(CCD->World(), theModel, &MainList[nTemp]->Translation);
-			geWorld_GetModelXForm(CCD->World(), theModel, &MainList[nTemp]->Xf);
+			geWorld_GetModelRotationalCenter(CCD->World(), theModel, &m_MainList[nTemp]->Translation);
+			geWorld_GetModelXForm(CCD->World(), theModel, &m_MainList[nTemp]->Xf);
 			geWorld_ModelSetFlags(theModel, GE_MODEL_RENDER_NORMAL | GE_MODEL_RENDER_MIRRORS | GE_MODEL_COLLIDE);
 
 			for(int iPassenger=0; iPassenger<MAX_PASSENGERS; ++iPassenger)
-				MainList[nTemp]->Passengers[iPassenger] = NULL;
+				m_MainList[nTemp]->Passengers[iPassenger] = NULL;
 
-			if(nTemp >= ManagedModels)
-				ManagedModels = nTemp + 1;
+			if(nTemp >= m_nManagedModels)
+				m_nManagedModels = nTemp + 1;
 
 			return RGF_SUCCESS;
 		}
@@ -2080,13 +2081,13 @@ int CModelManager::AddNewModelToList(geWorld_Model *theModel, int nModelType)
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::RemoveModelFromList(const geWorld_Model *theModel)
 {
-	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
+	for(int nTemp=0; nTemp<m_nManagedModels; ++nTemp)
 	{
 		// Let's find the right
-		if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
+		if((m_MainList[nTemp] != NULL) && (m_MainList[nTemp]->Model == theModel))
 		{
-			delete MainList[nTemp];
-			MainList[nTemp] = NULL;
+			delete m_MainList[nTemp];
+			m_MainList[nTemp] = NULL;
 			return RGF_SUCCESS;
 		}
 	}
@@ -2103,11 +2104,11 @@ ModelInstanceList *CModelManager::FindModel(const geWorld_Model *theModel)
 {
 	if(theModel)
 	{
-		for(int nTemp=0; nTemp<ManagedModels; nTemp++)
+		for(int nTemp=0; nTemp<m_nManagedModels; ++nTemp)
 		{
 			// Let's find the right
-			if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
-				return MainList[nTemp];		// Entry to caller
+			if((m_MainList[nTemp] != NULL) && (m_MainList[nTemp]->Model == theModel))
+				return m_MainList[nTemp];		// Entry to caller
 		}
 	}
 
@@ -2121,10 +2122,10 @@ ModelInstanceList *CModelManager::FindModel(const geWorld_Model *theModel)
 /* ------------------------------------------------------------------------------------ */
 int CModelManager::ModelIndex(const geWorld_Model *theModel)
 {
-	for(int nTemp=0; nTemp<ManagedModels; nTemp++)
+	for(int nTemp=0; nTemp<m_nManagedModels; ++nTemp)
 	{
 		// Let's find the right
-		if((MainList[nTemp] != NULL) && (MainList[nTemp]->Model == theModel))
+		if((m_MainList[nTemp] != NULL) && (m_MainList[nTemp]->Model == theModel))
 			return nTemp;					// Index to caller
 	}
 

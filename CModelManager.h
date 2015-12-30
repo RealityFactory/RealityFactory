@@ -143,8 +143,8 @@ private:
 
 private:
 	//	Private member variables
-	ModelInstanceList *MainList[MODEL_LIST_SIZE];	///< Database of managed models
-    int               ManagedModels;	///< Always set to the number of managed models. We can use this to only loop
+	ModelInstanceList	*m_MainList[MODEL_LIST_SIZE];	///< Database of managed models
+	int					m_nManagedModels;	///< Always set to the number of managed models. We can use this to only loop
 											///< thru the models that are defined, not all 512 every time (saves time).
 };
 
