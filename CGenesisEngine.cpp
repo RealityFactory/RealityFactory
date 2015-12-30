@@ -255,8 +255,6 @@ CGenesisEngine::~CGenesisEngine()
 	if(m_World != NULL)
 		geEngine_RemoveWorld(m_Engine, m_World);
 
-	if(m_World != NULL)
-		geWorld_Free(m_World);
 
 	if(m_Engine != NULL)
 	{
