@@ -105,7 +105,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	m_MasterVolume		= 0;
 	m_SplashAudio		= NULL;
 	m_World				= NULL;
-	m_fUseSoftware		= fSoftware;
 	m_CurrentLevel[0]	= 0;
 	m_SelectedDriverID	= chDriverID;			// Use the desired driver
 	fFogStart = fFogEnd = 0.0f;					// Fog start, end distances
