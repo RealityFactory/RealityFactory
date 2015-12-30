@@ -69,9 +69,11 @@ bool CPolyShadow::DrawShadow(const geActor *Actor)
 	geVec3d_Normalize(&LightRot);
 
 	// Get ground plane and distance
-	BOOL Result = geWorld_Collision(CCD->Engine()->World(), NULL, NULL, &Pos, &NewPos,
+	geBoolean Result = geWorld_Collision(CCD->Engine()->World(), NULL, NULL, &Pos, &NewPos,
 			GE_CONTENTS_SOLID_CLIP , GE_COLLIDE_MESHES | GE_COLLIDE_MODELS, 0,
 			NULL, NULL, &Collision);
+
+	if(Result == GE_FALSE) return false;
 
 	// draw shadow
 	// cycle through faces
