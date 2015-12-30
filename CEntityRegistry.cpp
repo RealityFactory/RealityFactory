@@ -8,7 +8,7 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved
  ****************************************************************************************/
 
-#include "RabidFramework.h"
+#include <string>
 #include "RGFStatus.h"
 #include "CEntityRegistry.h"
 #include "CPersistentAttributes.h"
