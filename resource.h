@@ -6,7 +6,7 @@
 #define IDC_STATIC                     (-1)     // all static controls
 #endif
 #define IDI_MAINFRAME                   101
-#define IDD_DRIVERDIALOG                101
+#define IDD_DRIVERDIALOG                102
 #define IDI_ICON1                       107
 #define IDC_DRIVERLIST                  1000
 #define IDC_DRIVERLIST2                 1002
