@@ -1855,7 +1855,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 		if(pMod->ForceImparter == GE_TRUE && !pMod->DoForce)
 		{
 			// Need to add force to the actor that hit us...
-			if(CCD->ActorManager()->ForceActive(theActor, 2) == false)
+			if(CCD->ActorManager()->ForceActive(theActor, 2) == GE_FALSE)
 			{
 				Direction.Z = GE_PIOVER180*(pMod->ForceVector.Z);
 				Direction.X = GE_PIOVER180*(pMod->ForceVector.X);
