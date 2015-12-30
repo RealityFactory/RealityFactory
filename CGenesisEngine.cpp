@@ -385,7 +385,7 @@ bool CGenesisEngine::FindDriver()
 		if(!m_Driver)
 		{
 			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
-			return FALSE;
+			return false;
 		}
 
 		while(1)
@@ -400,7 +400,7 @@ bool CGenesisEngine::FindDriver()
 			if(!m_Driver)
 			{
 				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -412,7 +412,7 @@ bool CGenesisEngine::FindDriver()
 			if(!m_Mode)
 			{
 				CCD->ReportError("GetNextMode - *No Mode* failure", false);
-				return FALSE;
+				return false;
 			}
 
 			geDriver_ModeGetWidthHeight(m_Mode, &Width, &Height);
@@ -436,7 +436,7 @@ bool CGenesisEngine::FindDriver()
 		if(!m_Driver)
 		{
 			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
-			return FALSE;
+			return false;
 		}
 
 		while(1)
@@ -459,7 +459,7 @@ bool CGenesisEngine::FindDriver()
 			if(!m_Driver)
 			{
 				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -471,7 +471,7 @@ bool CGenesisEngine::FindDriver()
 			if(!m_Mode)
 			{
 				CCD->ReportError("[ERROR] GetNextMode - *No Mode* failure", false);
-				return FALSE;
+				return false;
 			}
 
 			geDriver_ModeGetName(m_Mode, &pModeName);
@@ -486,12 +486,12 @@ bool CGenesisEngine::FindDriver()
 		if(!(m_Driver && m_Mode))
 		{
 			ReportError("[ERROR] Failed to find windowed driver and mode", false);
-			return FALSE;
+			return false;
 		}
 	}
 
 	// Ok, driver AND mode found that we're happy with, bail this.
-	return TRUE;
+	return true;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1199,7 +1199,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		sprintf(szBug, "[ERROR] File %s - Line %d: Failed to load level '%s'",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
-		return FALSE;
+		return false;
 	}
 
 	// Level open, now try to load it into Genesis3D
@@ -1212,7 +1212,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to create World",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
-		return FALSE;
+		return false;
 	}
 
 	if(geEngine_AddWorld(m_Engine, m_World) == GE_FALSE)
@@ -1221,13 +1221,13 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to add World",
 				__FILE__, __LINE__, szLevelFileName);
 		ReportError(szBug, false);
-		return FALSE;
+		return false;
 	}
 
 	strcpy(m_CurrentLevel, szLevelFileName);		// Save level name
 
 	// Level loaded and locked into the engine.
-	return TRUE;
+	return true;
 }
 
 /* ------------------------------------------------------------------------------------ */
