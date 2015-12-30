@@ -232,8 +232,8 @@ EXPORT_C skString skInputFile::readAllToString()
        }
        str=skEncodingUtils::fromAscii(s_buffer.toString());
      }
-#endif
   }
+#endif
 #endif
   return str;
 }
