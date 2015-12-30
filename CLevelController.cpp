@@ -548,11 +548,14 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	{
 		PARMCHECK(2);
 
-		int temp = arguments[1].intValue();
-		temp = (temp<127)?temp:127;
-		strncpy(string1, arguments[0].str(), temp);
-		string1[temp] = 0;
-		returnValue = skString(string1);
+		int length = arguments[1].intValue();
+		int slength = arguments[0].str().length();
+
+		if(length > slength)
+			length = slength;
+
+		returnValue = arguments[0].str().substr(0, length);
+
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Integer"))

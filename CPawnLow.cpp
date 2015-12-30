@@ -763,7 +763,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_LEFTCOPY:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
+
 			int length = arguments[1].intValue();
 			int slength = arguments[0].str().length();
 
