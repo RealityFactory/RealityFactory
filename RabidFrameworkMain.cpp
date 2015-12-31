@@ -34,9 +34,6 @@ static void DisplaySplashScreen(const char *splashScreen,
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszCmdParam, int /*nCmdShow*/)
 {
 	DWORD nLoopTimer = 0;
-	char szFirstLevel[256];
-	char szServerIP[256];
-	char szServerPort[256];
 
 	char m_currentdir[512];
 	_getcwd(m_currentdir, 512);
@@ -61,16 +58,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	// rfEdit or some other spawning program. This also lets us drive the
 	// first level run from the command line, useful in many circumstances.
 
-	szFirstLevel[0] = 0;
-	szServerIP[0] = 0;
-	szServerPort[0] = 0;
 
-	bool vidsetup = false;
+	bool spawnVideoSetup = false;
 	FILE *fd = fopen("D3D24.ini", "r");
 
 	if(!fd)
 	{
-		vidsetup = true;
+		spawnVideoSetup = true;
 	}
 	else
 	{
@@ -81,6 +75,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 
 	bool multiplayerLaunch = false; // directly launching a multiplayer game, bypasses menu
 	bool commandLine = false;		// debug launch
+	char szFirstLevel[256] = {};
+
 	// check command line parameters if any
 	if((lpszCmdParam != NULL) && (strlen(lpszCmdParam) > 0))
 	{
@@ -96,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		}
 		else if(!stricmp("-video", szFoo))
 		{
-			vidsetup = true;
+			spawnVideoSetup = true;
 		}
 
 		// can pass +port & +connect to the rf client to directly launch into a multiplayer game
@@ -104,6 +100,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		// launch multiplayer from command line
 
 		// do we have a server port? NOTE only useful if we have a serverIP as well
+		char szServerPort[256]	= {};
+		char szServerIP[256]	= {};
+
 		if(!stricmp("+port", szFoo))
 		{
 			szFoo = strtok(NULL, "\n\000");	// remove any null/ugly chars
@@ -135,7 +134,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		}
 	}
 
-	if(vidsetup)
+	if(spawnVideoSetup)
 	{
 		CCD->ReportError("No Renderer Config (d3d24.ini), running videosetup", false);
 
