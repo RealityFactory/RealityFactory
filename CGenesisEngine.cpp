@@ -1487,7 +1487,7 @@ int CGenesisEngine::RestoreFrom(FILE *RestoreFD)
 void CGenesisEngine::ResetSystem()
 {
 	CCD->ResetClock();
-	BeginFrame();
+
 	GE_Rect Rect;
 	GE_RGBA	Color;
 
@@ -1500,6 +1500,7 @@ void CGenesisEngine::ResetSystem()
 	Color.b = 0.0f;
 	Color.a = 255;
 
+	BeginFrame();
 	geEngine_FillRect(Engine(), &Rect, &Color);
 	EndFrame();
 
