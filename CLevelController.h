@@ -25,7 +25,7 @@ class ControllerObject : public skScriptedExecutable
 {
 	friend class CLevelController;
 public:
-	ControllerObject(char *fileName);
+	explicit ControllerObject(const char *fileName);
 	~ControllerObject();
 
 	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
