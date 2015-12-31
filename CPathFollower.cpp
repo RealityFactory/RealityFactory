@@ -595,13 +595,14 @@ int CPathFollower::TypeNameToIndex(const char *szName)
 	// Effect
 	static char *theNames[] = {"MorphingField", "StaticEntityProxy", "TeleportTarget", NULL};
 
-	for(int nTemp=0; theNames[nTemp]!=NULL; nTemp++)
+	int index = 0;
+	for(; theNames[index]!=NULL; ++index)
 	{
-		if(!strcmp(szName, theNames[nTemp]))
-			return nTemp;					// Here's your index
+		if(!strcmp(szName, theNames[index]))
+			return index;					// Here's your index
 	}
 
-	return NULL;
+	return index;
 }
 
 /* ------------------------------------------------------------------------------------ */
