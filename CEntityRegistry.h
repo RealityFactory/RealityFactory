@@ -30,7 +30,7 @@ public:
 
 	int DeleteEntity(const char *szName);					///< Delete entity from registry
 
-	char *GetEntityType(const char *szName);				///< Get type for entity
+	const char* GetEntityType(const char *szName);			///< Get type for entity
 
 	void Dump();											///< Debug dumper
 

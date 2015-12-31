@@ -212,7 +212,7 @@ void CScriptPoint::Render()
 
 			if(!EffectC_IsStringNull(EntityName))
 			{
-				char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+				const char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
 				if(EntityType)
 				{
@@ -278,7 +278,7 @@ geVec3d CScriptPoint::GetOrigin(const char *Name)
 {
 	geVec3d zero = {0.0f, 0.0f, 0.0f};
 
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
 
 	if(EntityType)
 	{

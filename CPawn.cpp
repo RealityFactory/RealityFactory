@@ -994,7 +994,7 @@ void CPawn::Tick(geFloat dwTicks)
 
 				if(!EffectC_IsStringNull(Object->Point))
 				{
-					char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+					const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
 
 					if(EntityType)
 					{

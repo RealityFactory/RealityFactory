@@ -46,7 +46,7 @@ CPathFollower::CPathFollower() :
 
 		// Ok, we need to find the origin of the first pathpoint so we know
 		// ..where to initially move our bound entity to...
-		char *szType = CCD->EntityRegistry()->GetEntityType(pFollower->EntityName);
+		const char *szType = CCD->EntityRegistry()->GetEntityType(pFollower->EntityName);
 
 		if(szType == NULL)
 		{

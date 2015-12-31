@@ -58,7 +58,7 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 			return false;
 		}
 
-		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
 		if(EntityType)
 		{
@@ -175,7 +175,7 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 			return false;
 		}
 
-		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
 		if(EntityType)
 		{
@@ -263,7 +263,7 @@ bool GetTriggerState(const char *TriggerName)
 		return CCD->Player()->InFirstPerson();
 	}
 
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
 
 	if(EntityType)
 	{
@@ -335,7 +335,7 @@ bool GetTriggerState(const char *TriggerName)
 /* ------------------------------------------------------------------------------------ */
 bool GetCallBackState(const char *CallBackName)
 {
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(CallBackName);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(CallBackName);
 
 	if(EntityType)
 	{
@@ -1144,7 +1144,7 @@ geActor *GetEntityActor(const char *EntityName)
 		if(!stricmp(EntityName, "Player"))
 			return CCD->Player()->GetActor();
 
-		char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
 
 		if(EntityType)
 		{

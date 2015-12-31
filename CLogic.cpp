@@ -488,7 +488,7 @@ void CLogic::SetState()
 /* ------------------------------------------------------------------------------------ */
 bool CLogic::GetLTriggerState(const char *Name)
 {
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
 
 	if(EntityType)
 	{

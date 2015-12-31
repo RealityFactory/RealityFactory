@@ -899,7 +899,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
-			char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+			const char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
 
 			if(EntityType)
 			{
@@ -924,7 +924,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			PARMCHECK(1);
 			strcpy(param0, arguments[0].str());
 			geVec3d pRotation;
-			char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+			const char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
 
 			if(EntityType)
 			{
@@ -941,7 +941,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_NEXTPOINT:
 		{
-			char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
+			const char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
 
 			if(EntityType)
 			{
@@ -961,7 +961,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 						if(!EffectC_IsStringNull(Point))
 						{
-							char *EntityType = CCD->EntityRegistry()->GetEntityType(Point);
+							EntityType = CCD->EntityRegistry()->GetEntityType(Point);
 
 							if(EntityType)
 							{
@@ -1014,7 +1014,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			//			TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ, UseAngle)
 			strcpy(param0, arguments[1].str());
 			strcpy(param4, arguments[0].str());
-			char *EType = CCD->EntityRegistry()->GetEntityType(param0);
+
 			geActor *tActor;
 
 			if(!stricmp(param4, "Player"))
@@ -1025,6 +1025,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(!tActor)
 				return true;
 
+			const char *EType = CCD->EntityRegistry()->GetEntityType(param0);
 			if(EType)
 			{
 				if(!stricmp(EType, "ScriptPoint"))
@@ -2958,8 +2959,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			//						AngleX, AngleY, AngleZ)
 
 			PARMCHECK(4);
+
 			strcpy(param0, arguments[0].str());
-			char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+			const char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
 			geVec3d Pos;
 
 			if(EntityType)

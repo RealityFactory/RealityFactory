@@ -588,7 +588,7 @@ void CTriggers::SetState()
 /* ------------------------------------------------------------------------------------ */
 bool CTriggers::GetTTriggerState(const char *Name)
 {
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Name);
 
 	if(EntityType)
 	{

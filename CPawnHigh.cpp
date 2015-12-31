@@ -2025,7 +2025,7 @@ bool CPawn::RotateToAlign(void *Data, float dwTicks)
 			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
 
 		Object->StartAction = false;
-		char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
 
 		if(EntityType)
 		{
@@ -2177,7 +2177,7 @@ bool CPawn::NextPoint(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
 
 	if(EntityType)
 	{
@@ -2197,7 +2197,7 @@ bool CPawn::NextPoint(void *Data, float dwTicks)
 
 				if(!EffectC_IsStringNull(Object->Point))
 				{
-					char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+					const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
 
 					if(EntityType)
 					{
@@ -2366,7 +2366,7 @@ bool CPawn::NextPath(void *Data, float dwTicks)
 {
 	ScriptedObject *Object = (ScriptedObject *)Data;
 
-	char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
 
 	if(EntityType)
 	{
@@ -3637,7 +3637,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case NEWPOINT:
 					if(!EffectC_IsStringNull(Object->Index->AnimName))
 					{
-						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
 						if(EntityType)
 						{
 							if(!stricmp(EntityType, "ScriptPoint"))
@@ -3749,7 +3749,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case TELEPORTTOPOINT:
 					if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
 					{
-						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
 
 						if(EntityType)
 						{
@@ -4597,7 +4597,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 				case ALIGN:
 					if(Object->Actor)
 					{
-						char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
 
 						if(EntityType)
 						{

@@ -76,12 +76,12 @@ int CEntityRegistry::DeleteEntity(const char *szName)
 //
 //	Given an entity name, return the type associated with it.
 /* ------------------------------------------------------------------------------------ */
-char *CEntityRegistry::GetEntityType(const char *szName)
+const char* CEntityRegistry::GetEntityType(const char *szName)
 {
 	if(!m_pList->Has(szName))
 		return NULL;							// No such entity?
 
-	return reinterpret_cast<char*>(m_pList->UserData(szName));
+	return reinterpret_cast<const char*>(m_pList->UserData(szName));
 }
 
 /* ------------------------------------------------------------------------------------ */
