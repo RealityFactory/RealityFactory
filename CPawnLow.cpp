@@ -4282,10 +4282,7 @@ void ScriptedObject::ChangeYaw()
 		{
 			RotateAmt = GE_2PI - RotateAmt;
 
-			if(RotateLeft)
-				RotateLeft = false;
-			else
-				RotateLeft = true;
+			RotateLeft = !RotateLeft;
 		}
 
 		RotateAmt *= GE_180OVERPI;
@@ -4326,10 +4323,7 @@ void ScriptedObject::ChangePitch()
 		{
 			RotateAmt = GE_2PI - RotateAmt;
 
-			if(RotateUp)
-				RotateUp = false;
-			else
-				RotateUp = true;
+			RotateUp = !RotateUp;
 		}
 
 		RotateAmt *= GE_180OVERPI;
