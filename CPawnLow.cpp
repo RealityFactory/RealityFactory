@@ -3802,13 +3802,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			CPersistentAttributes *theInv;
 
-			if(arguments.entries()==2 || arguments.entries()==4)
+			if(arguments.entries() == 4 || (arguments.entries() == 2 && arguments[1].type() == skRValue::T_String))
 			{
 				strcpy(param4, arguments[arguments.entries()-1].str());
 
-				if(!stricmp(param4, "Player"))
+				if(!stricmp(param4, "Player")) // deprecated
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+					returnValue = theInv->Add(param0);
+
+					int low  = (arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+					int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+					theInv->SetValueLimits(param0, low, high);
+
+					return true;
 				}
 				else
 				{
@@ -3820,12 +3828,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 			}
 
-			returnValue = (int)theInv->Add(param0);
+			returnValue = theInv->Add(param0);
 
-			if(arguments.entries()>2)
-			{
-				theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
-			}
+			int low  = (arguments.entries() > 1 && arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+			int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+			theInv->SetValueLimits(param0, low, high);
 
 			return true;
 		}

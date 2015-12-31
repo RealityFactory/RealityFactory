@@ -671,30 +671,46 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		CPersistentAttributes *theInv;
 
-		if(arguments.entries() == 2 || arguments.entries() == 4)
+		if(arguments.entries() == 4 || (arguments.entries() == 2 && arguments[1].type() == skRValue::T_String))
 		{
 			strcpy(string2, arguments[arguments.entries()-1].str());
 
 			if(!stricmp(string2, "Player"))
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				returnValue = theInv->Add(string1);
+
+				int low  = (arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+				int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+				theInv->SetValueLimits(string1, low, high);
+
+				return true;
 			}
 			else
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string2));
 			}
 		}
-		else
+		else // Player by default
 		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			returnValue = theInv->Add(string1);
+
+			int low  = (arguments.entries() > 1) ? arguments[1].intValue() : 0;
+			int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+			theInv->SetValueLimits(string1, low, high);
+
+			return true;
 		}
 
 		returnValue = theInv->Add(string1);
 
-		if(arguments.entries() > 2)
-		{
-			theInv->SetValueLimits(string1, arguments[1].intValue(), arguments[2].intValue());
-		}
+		int low  = (arguments.entries() > 1 && arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+		int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+		theInv->SetValueLimits(string1, low, high);
 
 		return true;
 	}

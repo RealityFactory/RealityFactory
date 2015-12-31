@@ -1251,17 +1251,26 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			CPersistentAttributes *theInv;
 
-			if(arguments.entries() == 2 || arguments.entries() == 4)
+			if(arguments.entries() == 4 || (arguments.entries() == 2 && arguments[1].type() == skRValue::T_String))
 			{
-				strcpy(param7, arguments[arguments.entries()-1].str());
+				char entity[128];
+				strcpy(entity, arguments[arguments.entries()-1].str());
 
-				if(!stricmp(param7, "Player"))
+				if(!stricmp(entity, "Player")) // deprecated
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+					returnValue = theInv->Add(param0);
+
+					int low  = (arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+					int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+					theInv->SetValueLimits(param0, low, high);
+
+					return true;
 				}
 				else
 				{
-					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(entity));
 				}
 			}
 			else
@@ -1271,10 +1280,10 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			returnValue = theInv->Add(param0);
 
-			if(arguments.entries() > 2)
-			{
-				theInv->SetValueLimits(param0, arguments[1].intValue(), arguments[2].intValue());
-			}
+			int low  = (arguments.entries() > 1 && arguments[1].type() == skRValue::T_Int) ? arguments[1].intValue() : 0;
+			int high = (arguments.entries() > 2) ? arguments[2].intValue() : 100;
+
+			theInv->SetValueLimits(param0, low, high);
 
 			return true;
 		}
