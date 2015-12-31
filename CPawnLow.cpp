@@ -542,7 +542,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	{
 	case RGF_SM_HIGHLEVEL:
 		{
-			//PARMCHECK(1);
+			PARMCHECK(1);
 			highlevel = true;
 			strcpy(thinkorder, arguments[0].str());
 			RunOrder = true;
@@ -551,7 +551,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ANIMATE:
 		{
-			//PARMCHECK(1);
+			PARMCHECK(1);
 			CCD->ActorManager()->SetMotion(Actor, arguments[0].str().c_str());//param0);
 			CCD->ActorManager()->SetHoldAtEnd(Actor, false);
 			return true;
@@ -796,7 +796,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_DAMAGEENTITY:
 		{
-			// PARMCHECK(3);
+			PARMCHECK(3);
 			float amount = arguments[0].floatValue();
 			CCD->Damage()->DamageActor(CCD->ActorManager()->GetByEntityName(arguments[2].str().c_str()),
 										amount, arguments[1].str().c_str(),
@@ -813,7 +813,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ANIMATEHOLD:
 		{
-			// PARMCHECK(1);
+			PARMCHECK(1);
 			CCD->ActorManager()->SetMotion(Actor, arguments[0].str().c_str());
 			CCD->ActorManager()->SetHoldAtEnd(Actor, true);
 			return true;
@@ -1012,6 +1012,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// USAGE:	TeleportEntity(EntityName, Point)
 			//			TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ)
 			//			TeleportEntity(EntityName, Point, OffsetX, OffsetY, OffsetZ, UseAngle)
+			PARMCHECK(2);
 			strcpy(param0, arguments[1].str());
 			strcpy(param4, arguments[0].str());
 
@@ -1116,7 +1117,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ANIMATEBLEND:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			param1 = arguments[1].floatValue();
 
 			if(param1 > 0.0f)
@@ -1129,7 +1130,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ANIMATIONSPEED:
 		{
-			// PARMCHECK(1);
+			PARMCHECK(1);
 			CCD->ActorManager()->SetAnimationSpeed(Actor, arguments[0].floatValue());
 			return true;
 		}
@@ -1256,7 +1257,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_ACTIVATETRIGGER:
 		{
-			// PARMCHECK(1);
+			PARMCHECK(1);
 			CCD->Triggers()->HandleTriggerEvent(arguments[0].str().c_str());
 			return true;
 		}
@@ -1280,7 +1281,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_FIREPROJECTILEBLIND:
 		{
-			// PARMCHECK(6);
+			PARMCHECK(6);
+
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction, Orient, tPoint;
 			strcpy(param0, arguments[1].str());	// Bone
@@ -1330,7 +1332,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SETTARGETPOINT:
 		{
-			// PARMCHECK(3);
+			PARMCHECK(3);
+
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction;
 			bool Offset = true;
@@ -1446,7 +1449,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SETBOUNDINGBOX:
 		{
 			// USAGE SetBoundingBox(ANIMATION, width);
-			// PARMCHECK(1);
+			PARMCHECK(2);
 			float width = arguments[1].floatValue(); // width
 			CCD->ActorManager()->SetBoundingBox(Actor, arguments[0].str().c_str());
 			geExtBox theBox;
@@ -1536,7 +1539,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_FORCEENTITYBACKWARD:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			float amount = arguments[0].floatValue();
 			geVec3d theUp;
 			geActor *mActor;
@@ -1570,7 +1573,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_POSITIONTOBONE:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			geVec3d bPos;
 			CCD->ActorManager()->GetBonePosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()),
 				arguments[1].str().c_str(), &bPos);
@@ -1609,7 +1612,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SETSHADOWFROMFLIP:
 		{
 			// USAGE: SetShadowFromFlip(FLIPBOOK szEntityName, ACTOR EntityName);
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			float tm;
 			int tb;
 
@@ -1699,7 +1702,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_GETCOLLIDEDISTANCE:
 		{
 			// USAGE: GetCollideDistance(BONE_NAME, Offset X, Offset Y, Offset Z);
-			// PARMCHECK(4);
+			PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, theRotation, Direction;
 			GE_Collision Collision;
@@ -1793,6 +1796,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_WHEREISENTITY:
 		{
 			PARMCHECK(1);
+
 			geVec3d Pos1, Pos2, temp, Rot;
 			geFloat fP, dP;
 
@@ -1837,6 +1841,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_INSERTEVENT:
 		{
 			PARMCHECK(3);
+
 			geActor_Def *aDef;
 			float tKey;
 			tKey = arguments[2].floatValue();
@@ -1873,7 +1878,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_PLAYEVENTSOUND:
 		{
 			// USAGE: PlayEventSound(Entity, Volume)
-			// PARMCHECK(2);
+
+			PARMCHECK(2);
 
 			const char *evnt;
 			geMotion *cMot;
@@ -2011,7 +2017,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_RANDOM:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			int param1 = arguments[0].intValue();
 			int param3 = arguments[1].intValue();
 
@@ -2024,7 +2030,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_WALKMOVE:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
+
 			float amount = arguments[1].floatValue() * ElapseTime;
 			geXForm3d Xform;
 			geVec3d In, NewPosition, SavedPosition;
@@ -2073,7 +2080,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_DAMAGEPLAYER:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 
 			float amount = arguments[0].floatValue();
 			strcpy(param0, arguments[1].str());
@@ -2082,7 +2089,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_POSITIONTOPLAYER:
 		{
-			// PARMCHECK(3);
+			PARMCHECK(3);
 
 			geXForm3d Xf;
 			geVec3d Pos, theRotation, Direction;
@@ -2553,7 +2560,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_SETEVENTSTATE:
 		{
-			// PARMCHECK(2);
+			PARMCHECK(2);
 			CCD->Pawns()->AddEvent(arguments[0].str().c_str(), arguments[1].boolValue());
 			return true;
 		}
@@ -2608,6 +2615,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_DAMAGEATBONE:
 		{
 			// USAGE: DamageAtBone(damage amount, radius, attribute, bone name)
+			PARMCHECK(4);
+
 			geVec3d Pos;
 			CCD->ActorManager()->GetBonePosition(Actor, arguments[3].str().c_str(), &Pos);
 			CCD->Damage()->DamageActorInRange(	Pos, arguments[1].floatValue(), arguments[0].floatValue(),
@@ -2617,6 +2626,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SAVEACTOR:
 		{
 			// USAGE: SaveActor(Actor Name)
+			PARMCHECK(1);
+
 			geVFile *df;
 			geActor_Def *aDef;
 			aDef = geActor_GetActorDef(Actor);
@@ -2637,6 +2648,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_LOOKATPAWN:
 		{
 			// USAGE: LookAtPawn(Pawn Name, Offset)
+			PARMCHECK(2);
 			geVec3d Pos1 ,Pos2, Rot;
 
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
@@ -2648,7 +2660,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	case RGF_SM_AUTOWALK:
 		{
-			// PARMCHECK(3);
+			PARMCHECK(3);
 			float amount = arguments[1].floatValue() * ElapseTime;
 			float distance = arguments[2].floatValue(); // distance to keep from walls
 			geXForm3d Xform;
@@ -2680,6 +2692,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FASTDISTANCE:
 		{
 			// USAGE: BOOL = FastDistance(EntityName,distance);
+			PARMCHECK(2);
+
 			float dist = arguments[1].floatValue();
 			geVec3d Pos1, Pos2, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
@@ -2722,6 +2736,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FASTPOINTCHECK:
 		{
 			// USAGE: BOOL = FastPointCheck(distance);
+			PARMCHECK(1);
+
 			float dist = arguments[0].floatValue();
 			geVec3d Pos1, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
@@ -2833,7 +2849,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// USAGE: DistanceBetweenEntities(FromEntity, ToEntity);
 			// USAGE: DistanceBetweenEntities(FromEntity, ToEntity, OnlyXZ);
 			// "Player" is a special Entity
-			PARMCHECK(3);
+			PARMCHECK(2);
 			strcpy(param0, arguments[0].str());
 			strcpy(param4, arguments[1].str());
 			geVec3d Pos, tPos;
@@ -2866,6 +2882,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			//						FillColX, FillColY, FillColZ)
 			// SetEntityProperties(EntityName, dPosX, dPosY, dPosZ, Scale, Alpha,
 			//						FillColX, FillColY, FillColZ, RotX, RotY, RotZ)
+
+			PARMCHECK(4);
 
 			geVec3d Pos, Rot;
 			GE_RGBA	Color;
@@ -2917,6 +2935,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE: SetEntityLighting(EntityName, FillR, FillG, FillB,
 			//							AmbientR, AmbientG, AmbientB, AmbientFromFloor)
+
+			PARMCHECK(8);
 
 			strcpy(param0, arguments[0].str());
 
@@ -3003,8 +3023,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// int = GetEntityScreenX(EntityName)
 			// Gets the screen position of any Pawn or Player. If EntityName="", the active pawn is used
 
-			PARMCHECK(1);
-
 			geVec3d Pos, ScreenPos;
 			strcpy(param0, arguments[0].str());
 
@@ -3031,8 +3049,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// int = GetEntityScreenY()
 			// int = GetEntityScreenY(EntityName)
 			// Gets the screen position of any Pawn or the Player. If EntityName="", the active pawn is used
-
-			PARMCHECK(1);
 
 			geVec3d Pos, ScreenPos;
 			strcpy(param0, arguments[0].str());
@@ -3078,6 +3094,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			//				AmbientR, AmbientG, AmbientB);
 			// Returns the EntityName of the pawn selected or "Player" if the player is selected
 			// If PlayerIsSelectable = true, the player can be mouse-picked
+
+			PARMCHECK(1);
 
 			geXForm3d Xf;
 			geVec3d dir, start, end;
@@ -3173,6 +3191,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_MOUSECONTROLLEDPLAYER:
 		{
 			// USAGE: MouseControlledPlayer(true/false)
+			PARMCHECK(1);
 
 			CCD->SetMouseControl(arguments[0].boolValue());
 			return true;
@@ -3180,6 +3199,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SHOWMOUSE:
 		{
 			// USAGE: ShowMouse(true/false)
+			PARMCHECK(1);
 
 			if(arguments[0].boolValue())
 				CCD->MenuManager()->ShowCursor(true);
@@ -3265,6 +3285,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// FillScreenArea(Nr, KeepVisible, Alpha);
 			// FillScreenArea(Nr, KeepVisible, Alpha, R, G, B);
 			// FillScreenArea(Nr, KeepVisible, Alpha, R, G, B, Left, Top, Right, Bottom);
+
+			PARMCHECK(3);
 
 			int temp = arguments[0].intValue();
 
@@ -3382,6 +3404,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// ShowHudPicture(HUDpictureNr, IsVisible, EntityName, ScreenX, ScreenY, DisplayTime)
 			// ShowHudPicture(HUDpictureNr, IsVisible, EntityName, ScreenX, ScreenY, DisplayTime, WinX, WinY)
 
+			PARMCHECK(2);
+
 			geVec3d Pos, ScreenPos;
 			char element[16];
 
@@ -3491,6 +3515,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// USAGE:
 			// SetScale(Scale)
 			// SetScale(ScaleX, ScaleY, ScaleZ)
+			PARMCHECK(1);
 
 			geVec3d Scale;
 
@@ -3515,6 +3540,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// USAGE:
 			// SetEntityScale(EntityName, Scale)
 			// SetEntityScale(EntityName, ScaleX, ScaleY, ScaleZ)
+			PARMCHECK(2);
 
 			strcpy(param0, arguments[0].str());
 			geVec3d Scale;
@@ -3568,6 +3594,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SETFLAG:
 		{
 			// USAGE: SetFlag(int FlagNr, true/false)
+			PARMCHECK(2);
+
 			int int1 = arguments[0].intValue();
 
 			if(int1 < 0 || int1 >= MAXFLAGS)
@@ -3579,6 +3607,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_GETFLAG:
 		{
 			// USAGE: bool = GetFlag(int FlagNr)
+			PARMCHECK(1);
+
 			int int1 = arguments[0].intValue();
 
 			if(int1 < 0 || int1 >= MAXFLAGS)
@@ -3591,6 +3621,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE:	PowerUp(char *AttributeName, int Amount, bool SetMaximumAmount)
 			//			PowerUp(char *AttributeName, int Amount, bool SetMaximumAmount, EntityName)
+			PARMCHECK(3);
+
 			strcpy(param0, arguments[0].str());
 
 			CPersistentAttributes *theInv;
@@ -3626,6 +3658,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE:	int = GetPowerUpLevel(char *AttributeName)
 			//			int = GetPowerUpLevel(char *AttributeName, char *EntityName)
+			PARMCHECK(1);
 
 			CPersistentAttributes *theInv;
 
@@ -3650,6 +3683,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_ACTIVATEHUDELEMENT:
 		{
 			// USAGE: ActivateHudElement(char *AttributeName, bool Flag)
+			PARMCHECK(2);
 
 			CCD->HUD()->ActivateElement(arguments[0].str().c_str(), arguments[1].boolValue());
 			return true;
@@ -3657,6 +3691,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_MOVEENTITY:
 		{
 			// USAGE: MoveEntity(EntityName, AmountX, AmountY, AmountZ);
+			PARMCHECK(4);
+
 			strcpy(param0, arguments[0].str());
 			geVec3d Amount;
 
@@ -3674,6 +3710,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_ROTATEENTITY:
 		{
 			// USAGE: RotateEntity(EntityName, AmountX, AmountY, AmountZ);
+			PARMCHECK(4);
+
 			strcpy(param0, arguments[0].str());
 			geVec3d Amount;
 
@@ -3691,6 +3729,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SETENTITYPOSITION:
 		{
 			// USAGE: SetEntityPosition(EntityName, PosX, PosY, PosZ);
+			PARMCHECK(4);
+
 			strcpy(param0, arguments[0].str());
 			geVec3d Pos;
 
@@ -3708,6 +3748,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_SETENTITYROTATION:
 		{
 			// USAGE: SetEntityRotation(EntityName, RotX, RotY, RotZ);
+			PARMCHECK(4);
+
 			strcpy(param0, arguments[0].str());
 			geVec3d Rot;
 
