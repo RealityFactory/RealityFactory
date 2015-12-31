@@ -856,12 +856,12 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 			if(j < BitmapsWide-1)
 				Width = 256;
 			else
-				Width = (WidthBmp-1) % 256 + 1;
+				Width = ((WidthBmp-1) & 255) + 1;
 
 			if(i < BitmapsHigh-1)
 				Height = 256;
 			else
-				Height = (HeightBmp-1) % 256 + 1;
+				Height = ((HeightBmp-1) & 255) + 1;
 
 			Bitmap = geBitmap_Create(256, 256, 1, PFormat);
 
