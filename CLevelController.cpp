@@ -1074,8 +1074,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				return;
 			}
 
-			ControllerObject *Object;
-			Object = static_cast<ControllerObject*>(pLC->Data);
+			ControllerObject *Object = static_cast<ControllerObject*>(pLC->Data);
 
 			strcpy(Object->szName, pLC->szEntityName);
 
