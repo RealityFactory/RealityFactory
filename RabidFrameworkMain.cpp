@@ -19,6 +19,11 @@
 #include "RabidFramework.h"
 #include <process.h>
 
+static void DisplayAllSplashScreens();
+static void DisplaySplashScreen(const char *splashScreen,
+								const char *splashAudio,
+								const char *cutScene);
+
 /* ------------------------------------------------------------------------------------ */
 // WinMain
 //
@@ -192,37 +197,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	{
 		CCD->ReportError("Launching Preview from Editor, bypassing Genesis3D Logo for DEBUG purposes ONLY...", false);
 
-		if(!EffectC_IsStringNull(CCD->SplashScreen()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen(),CCD->SplashAudio());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene()))
-			{
-				CCD->Play(CCD->CutScene(), 160, 120, true);
-			}
-		}
-
-		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio1()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen1(),CCD->SplashAudio1());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene1()))
-			{
-				CCD->Play(CCD->CutScene1(), 160, 120, true);
-			}
-		}
+		// show logos
+		DisplayAllSplashScreens();
 
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
 		CCD->ReportError("Previewing Level as SinglePlayer Client...", false);
@@ -234,37 +210,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	else if(MultiplayerLaunch)
 	{
 		// show logos
-		if(!EffectC_IsStringNull(CCD->SplashScreen()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen(),CCD->SplashAudio());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene()))
-			{
-				CCD->Play(CCD->CutScene(), 160, 120, true);
-			}
-		}
+		DisplayAllSplashScreens();
 
-		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio1()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen1(),CCD->SplashAudio1());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene1()))
-			{
-				CCD->Play(CCD->CutScene1(), 160, 120, true);
-			}
-		}
 
 		// launch our network game
 		// todo:  first have to set the serverip & port from our command line variables
@@ -274,37 +221,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	}
 	else
 	{
-		if(!EffectC_IsStringNull(CCD->SplashScreen()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen(),CCD->SplashAudio());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene()))
-			{
-				CCD->Play(CCD->CutScene(), 160, 120, true);
-			}
-		}
 
-		if(!EffectC_IsStringNull(CCD->SplashScreen1()))
-		{
-			if(!EffectC_IsStringNull(CCD->SplashAudio1()))
-			{
-				CCD->Engine()->DisplaySplash(CCD->SplashScreen1(),CCD->SplashAudio1());
-				CCD->Spin(3000);
-			}
-		}
-		else
-		{
-			if(!EffectC_IsStringNull(CCD->CutScene1()))
-			{
-				CCD->Play(CCD->CutScene1(), 160, 120, true);
-			}
-		}
+		// show logos
+		DisplayAllSplashScreens();
 	}
 
 	CCD->MenuManager()->DoMenu(szFirstLevel);
@@ -316,5 +235,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	return(0);								// This exits the Windows application
 }
 
+
+/* ------------------------------------------------------------------------------------ */
+// Display Splash Screens
+/* ------------------------------------------------------------------------------------ */
+void DisplayAllSplashScreens()
+{
+	DisplaySplashScreen(CCD->SplashScreen(), CCD->SplashAudio(), CCD->CutScene());
+	DisplaySplashScreen(CCD->SplashScreen1(),CCD->SplashAudio1(),CCD->CutScene1());
+}
+
+
+void DisplaySplashScreen(
+	const char *splashScreen,
+	const char *splashAudio,
+	const char *cutScene)
+{
+	if(splashScreen)
+	{
+		CCD->Engine()->DisplaySplash(splashScreen, splashAudio);
+		CCD->Spin(3000);
+	}
+	else if(cutScene)
+	{
+		CCD->Play(cutScene, 160, 120, true);
+	}
+}
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
