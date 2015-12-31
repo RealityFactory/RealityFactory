@@ -1030,7 +1030,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 			{
 				pLC->Data = new ControllerObject(script);
 			}
-			catch(skParseException e)
+			catch(skParseException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Parse Script Error for Controller script");
@@ -1039,7 +1039,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				CCD->ReportError(szBug, false);
 				return;
 			}
-			catch(skBoundsException e)
+			catch(skBoundsException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Bounds Script Error for Controller script");
@@ -1048,7 +1048,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				CCD->ReportError(szBug, false);
 				return;
 			}
-			catch(skRuntimeException e)
+			catch(skRuntimeException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Runtime Script Error for Controller script");
@@ -1057,7 +1057,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				CCD->ReportError(szBug, false);
 				return;
 			}
-			catch(skTreeNodeReaderException e)
+			catch(skTreeNodeReaderException &e)
 			{
 				char szBug[256];
 				sprintf(szBug, "Reader Script Error for Controller script");
