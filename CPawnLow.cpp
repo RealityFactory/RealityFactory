@@ -1156,11 +1156,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_DAMAGEAREA:
 		{
 			PARMCHECK(3);
+
 			geVec3d Pos;
-			geFloat dAmount,dRange;
+			geFloat dAmount, dRange;
+
 			dAmount = arguments[0].floatValue();
 			dRange = arguments[1].floatValue();
 			strcpy(param0, arguments[2].str());
+
 			CCD->ActorManager()->GetPosition(Actor, &Pos);
 			CCD->Damage()->DamageActorInRange(Pos, dRange, dAmount, param0, 0.0f, "", "Explosion");
 			CCD->Damage()->DamageModelInRange(Pos, dRange, dAmount, param0, 0.0f, "");
@@ -1169,6 +1172,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_PLAYERMATCHANGLES:
 		{
 			PARMCHECK(1);
+
 			GetAngles(true);
 			geVec3d theRotation;
 			geActor *MasterActor;
@@ -1229,7 +1233,8 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_POSITIONTOPLATFORM:
 		{
 			PARMCHECK(5);
-			geVec3d Pos,theRotation;
+
+			geVec3d Pos, theRotation;
 			geXForm3d Xf;
 			MovingPlatform *pEntity;
 			CCD->Platforms()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntity);
@@ -1706,10 +1711,12 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE: GetCollideDistance(BONE_NAME, Offset X, Offset Y, Offset Z);
 			PARMCHECK(4);
+
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, theRotation, Direction;
 			CCD->ActorManager()->GetPosition(Actor, &OldPos);
 			bool bone;
+
 			bone = geActor_GetBoneTransform(Actor, arguments[0].str().c_str(), &Xf);
 
 			if(!bone)
@@ -2713,6 +2720,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE: StepHeight(float)
 			CCD->ActorManager()->SetStepHeight(Actor, arguments[0].floatValue());
+
 			return true;
 		}
 	case RGF_SM_DRAWVPOLY:
@@ -3868,10 +3876,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				float newDist2 = geVec3d_LengthSquared(&Dist);
 
 				// point is too close
-				if(newDist2<MinDistance2 || newDist2>MaxDistance2)
+				if(newDist2 < MinDistance2 || newDist2 > MaxDistance2)
 					continue;
 
-				if(newDist2<minDist2)
+				if(newDist2 < minDist2)
 				{
 					// probably slowest test...
 					if(CCD->Pawns()->CanSeePoint(FOV, Actor, &(pSource->origin), FOVBone))
@@ -4055,7 +4063,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		}
 	default:
 		{
-			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);//change simkin
+			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);
 		}
 	} // switch
 
