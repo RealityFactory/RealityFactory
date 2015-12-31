@@ -33,9 +33,6 @@ static void DisplaySplashScreen(const char *splashScreen,
 /* ------------------------------------------------------------------------------------ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszCmdParam, int /*nCmdShow*/)
 {
-	int nResult;
-	bool MultiplayerLaunch; // directly launching a multiplayer game, bypasses menu
-	bool CommandLine;// debug launch
 	DWORD nLoopTimer = 0;
 	char szFirstLevel[256];
 	char szServerIP[256];
@@ -67,8 +64,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	szFirstLevel[0] = 0;
 	szServerIP[0] = 0;
 	szServerPort[0] = 0;
-	CommandLine = false;
-	MultiplayerLaunch = false;
 
 	bool vidsetup = false;
 	FILE *fd = fopen("D3D24.ini", "r");
@@ -84,6 +79,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 
 	ShowCursor(FALSE);				// Turn off the mouse cursor
 
+	bool multiplayerLaunch = false; // directly launching a multiplayer game, bypasses menu
+	bool commandLine = false;		// debug launch
 	// check command line parameters if any
 	if((lpszCmdParam != NULL) && (strlen(lpszCmdParam) > 0))
 	{
@@ -95,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 			strcpy(szFirstLevel, szFoo);
 			szFirstLevel[strlen(szFirstLevel)] = 0;
 			strcat(szFirstLevel, ".bsp");
-			CommandLine = true;
+			commandLine = true;
 		}
 		else if(!stricmp("-video", szFoo))
 		{
@@ -133,7 +130,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 				strcat(szServerIP, ":1972");		// tag our default port on instead
 			}
 
-			MultiplayerLaunch = true; // launch directly into game
+			multiplayerLaunch = true; // launch directly into game
 			CCD->ReportError("Caching Server IP...Launching Multiplayer Game directly", false);
 		}
 	}
@@ -151,19 +148,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 
 
 	// Fine, let's initialize the Genesis engine & etc.
-	if((nResult = CCD->InitializeCommon(hInstance, szFirstLevel, CommandLine)) != 0)
+	int result = CCD->Initialize(hInstance, szFirstLevel, commandLine);
+
+	if(result != 0)
 	{
 		OutputDebugString("RGF initialization failure, exiting\n");
 		MessageBox(NULL, "RGF Initialization Failure", "GAME ERROR",
 			MB_ICONSTOP | MB_OK);
 		delete CCD;						// Drop everything to prevent leaks
 		CCD = NULL;
-		exit(nResult);							// Failure to initialize RGF
+		exit(result);					// Failure to initialize RGF
 	}
 
     CCD->ReportError("Launching Reality Factory Game Shell...", false);
 
-	if(!CommandLine)
+	if(!commandLine)
 	{
 		// No command line arg, if there wasn't anything from the .ini file, error exit.
 		if(szFirstLevel[0] == 0)
@@ -194,7 +193,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		SetCursorPos(pos.x,pos.y);								// put the cursor in the middle of the window
     }
 
-	if(CommandLine)
+	if(commandLine)
 	{
 		CCD->ReportError("Launching Preview from Editor, bypassing Genesis3D Logo for DEBUG purposes ONLY...", false);
 
@@ -208,7 +207,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	// added direct multiplayer launch from command line
 	// todo:  update the server IP & Port and launch the multiplayer game instead
 	// todo:  provide for dedicated server launching as well as remote client launching
-	else if(MultiplayerLaunch)
+	else if(multiplayerLaunch)
 	{
 		// show logos
 		DisplayAllSplashScreens();
