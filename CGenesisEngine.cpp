@@ -843,8 +843,8 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 		PFormat = TempInfo.Format;
 	}
 
-	NumWide = BitmapsWide = (WidthBmp-1) / 256 + 1;
-	NumHigh = BitmapsHigh = (HeightBmp-1) / 256 + 1;
+	NumWide = BitmapsWide = ((WidthBmp-1)  >> 8) + 1;
+	NumHigh = BitmapsHigh = ((HeightBmp-1) >> 8) + 1;
 	BitmapBuffer = new IncompleteTexture[BitmapsHigh * BitmapsWide];
 	int Width = 0, Height = 0;
 	geBitmap *Bitmap = NULL;
@@ -873,7 +873,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 				return false;
 			}
 
-			if(!geBitmap_Blit(pBitmap, j<<8, i<<8,/* j*256, i*256,*/ Bitmap, 0, 0, Width, Height))
+			if(!geBitmap_Blit(pBitmap, j<<8, i<<8, Bitmap, 0, 0, Width, Height))
 			{
 				ReportError("[ERROR] BreakUpBigBitmap could not blit a bitmap", false);
 				delete BitmapBuffer;
@@ -910,8 +910,8 @@ CompleteTexture CGenesisEngine::BuildCompleteTexture(IncompleteTexture *BitmapBu
 	ret.TextureArray	= BitmapBuffer;
 	ret.TexturesHigh	= NumHigh;
 	ret.TexturesWide	= NumWide;
-	ret.TotalHeight		= BitmapBuffer[NumHigh*NumWide].Height	+ (NumHigh-1) * 256;
-	ret.TotalWidth		= BitmapBuffer[NumHigh*NumWide].Width	+ (NumWide-1) * 256;
+	ret.TotalHeight		= BitmapBuffer[NumHigh*NumWide].Height	+ ((NumHigh-1) << 8);
+	ret.TotalWidth		= BitmapBuffer[NumHigh*NumWide].Width	+ ((NumWide-1) << 8);
 
 	return ret;
 }
@@ -964,8 +964,8 @@ CompleteTexture CGenesisEngine::BitmapToComplete(geBitmap *pBitmap)
 	cp = BuildCompleteTexture(BitmapBuffer, NumWide, NumHigh);
 	AddCompleteTextureToWorld(cp);
 
-	cp.TotalWidth = NumWide * 256;
-	cp.TotalHeight = NumHigh * 256;
+	cp.TotalWidth = NumWide << 8;
+	cp.TotalHeight = NumHigh << 8;
 
 	return cp;
 }
