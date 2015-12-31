@@ -1498,7 +1498,7 @@ void CGenesisEngine::ResetSystem()
 	Color.r = 0.0f;
 	Color.g = 0.0f;
 	Color.b = 0.0f;
-	Color.a = 255;
+	Color.a = 255.f;
 
 	BeginFrame();
 	geEngine_FillRect(Engine(), &Rect, &Color);
