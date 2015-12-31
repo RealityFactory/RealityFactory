@@ -275,8 +275,8 @@ void CWallDecal::Tick(geFloat dwTicks)
 					geVec3d_Subtract(&Direction, &CopyOfDirection, &temp1);
 					geVec3d_Subtract(&UnitVec, &Direction2, &temp2);
 
-					if((geVec3d_DotProduct(&temp1, &temp1) != 0.0f) ||
-						(geVec3d_DotProduct(&temp2, &temp2) != 0.0f))
+					if((geVec3d_LengthSquared(&temp1) != 0.0f) ||
+						(geVec3d_LengthSquared(&temp2) != 0.0f))
 					{
 						// Remove the old decal and place the new one
 						geWorld_RemovePoly(CCD->World(), pSource->Poly);
@@ -288,7 +288,7 @@ void CWallDecal::Tick(geFloat dwTicks)
 						geVec3d temp;
 						geVec3d_Subtract(&OriginalOrigin, &(pSource->origin), &temp);
 
-						if(geVec3d_DotProduct(&temp, &temp) != 0.0f)
+						if(geVec3d_LengthSquared(&temp) != 0.0f)
 						{
 							geWorld_RemovePoly(CCD->World(), pSource->Poly);
 							AddDecal(pSource);

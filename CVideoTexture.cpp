@@ -160,7 +160,7 @@ void CVideoTexture::Tick(geFloat /*dwTicks*/)
 			geVec3d temp;
 			geVec3d_Subtract(&(pTex->origin), &(CCD->Player()->Position()), &temp);
 
-			if(geVec3d_DotProduct(&temp, &temp) > pTex->Radius*pTex->Radius)
+			if(geVec3d_LengthSquared(&temp) > pTex->Radius*pTex->Radius)
 			{
 				++nSlot;
 				continue;

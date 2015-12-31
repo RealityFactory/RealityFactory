@@ -2679,16 +2679,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FASTDISTANCE:
 		{
 			// USAGE: BOOL = FastDistance(EntityName,distance);
-			float result;
 			float dist = arguments[1].floatValue();
 			geVec3d Pos1, Pos2, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
 			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &Pos2);
 			geVec3d_Subtract(&Pos1, &Pos2, &dV);
-			result = geVec3d_DotProduct(&dV, &dV);
 			returnValue = false;
 
-			if(result < dist * dist)
+			if(geVec3d_LengthSquared(&dV) < dist * dist)
 				returnValue = true;
 
 			return true;
@@ -2723,15 +2721,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FASTPOINTCHECK:
 		{
 			// USAGE: BOOL = FastPointCheck(distance);
-			float result;
 			float dist = arguments[0].floatValue();
 			geVec3d Pos1, dV;
 			CCD->ActorManager()->GetPosition(Actor, &Pos1);
 			geVec3d_Subtract(&Pos1, &CurrentPoint, &dV);
-			result = geVec3d_DotProduct(&dV, &dV);
 			returnValue = false;
 
-			if(result < dist * dist)
+			if(geVec3d_LengthSquared(&dV) < dist * dist)
 				returnValue = true;
 
 			return true;

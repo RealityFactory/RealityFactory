@@ -201,7 +201,7 @@ void CProcedural::Tick(geFloat dwTicksIn)
 			geVec3d temp;
 			geVec3d_Subtract(&(pTex->origin), &CCD->Player()->Position(), &temp);
 
-			if(geVec3d_DotProduct(&temp, &temp) > pTex->Distance*pTex->Distance)
+			if(geVec3d_LengthSquared(&temp) > pTex->Distance*pTex->Distance)
 				continue;
 		}
 
