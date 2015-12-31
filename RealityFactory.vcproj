@@ -2929,6 +2929,10 @@
 				Name="HawkNL"
 				>
 				<File
+					RelativePath=".\HawkNL\condition.c"
+					>
+				</File>
+				<File
 					RelativePath="HawkNL\crc.c"
 					>
 					<FileConfiguration
@@ -3077,10 +3081,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="HawkNL\mutex.h"
-					>
-				</File>
-				<File
 					RelativePath="HawkNL\nl.c"
 					>
 					<FileConfiguration
@@ -3106,6 +3106,10 @@
 				</File>
 				<File
 					RelativePath="HawkNL\nlinternal.h"
+					>
+				</File>
+				<File
+					RelativePath=".\HawkNL\nltime.c"
 					>
 				</File>
 				<File
@@ -3159,10 +3163,6 @@
 							PreprocessorDefinitions=""
 						/>
 					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="HawkNL\thread.h"
-					>
 				</File>
 				<File
 					RelativePath="HawkNL\wsock.h"
