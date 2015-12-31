@@ -19,6 +19,7 @@
 #include "RabidFramework.h"
 #include <process.h>
 
+static const char *GetOSName(LPOSVERSIONINFO versionInfo);
 static void DisplayAllSplashScreens();
 static void DisplaySplashScreen(const char *splashScreen,
 								const char *splashAudio,
@@ -233,6 +234,62 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	delete CCD;								// Kill off the engine and such
 
 	return(0);								// This exits the Windows application
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+// Get the operating system name from the osversioninfo struct
+/* ------------------------------------------------------------------------------------ */
+const char *GetOSName(LPOSVERSIONINFO versionInfo)
+{
+	if(versionInfo->dwPlatformId == VER_PLATFORM_WIN32s)
+	{
+		return "Windows 3.1";
+	}
+	else if(versionInfo->dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+	{
+		if(versionInfo->dwMinorVersion == 0)	return "Windows 95";
+		if(versionInfo->dwMinorVersion == 10)	return "Windows 98";
+		if(versionInfo->dwMinorVersion == 90)	return "Windows ME";
+	}
+	else if(versionInfo->dwPlatformId == VER_PLATFORM_WIN32_NT)
+	{
+		if(versionInfo->dwMajorVersion == 3)
+		{
+			return "Windows NT 3.5";
+		}
+		else if(versionInfo->dwMajorVersion == 4)
+		{
+			return "Windows NT 4";
+		}
+		else if(versionInfo->dwMajorVersion == 5)
+		{
+			if(versionInfo->dwMinorVersion == 0)
+				return "Windows 2000";
+			if(versionInfo->dwMinorVersion == 1)
+				return "Windows XP";
+			if(versionInfo->dwMinorVersion == 2)
+				return "Windows Home Server / Windows Server 2003";
+		}
+		else if(versionInfo->dwMajorVersion == 6)
+		{
+			if(versionInfo->dwMinorVersion == 0)
+				return "Windows Vista / Windows Server 2008";
+			if(versionInfo->dwMinorVersion == 1)
+				return "Windows 7 / Windows Server 2008 R2";
+			if(versionInfo->dwMinorVersion == 2)
+				return "Windows 8 / Windows Server 2012";
+			if(versionInfo->dwMinorVersion == 3)
+				return "Windows 8.1 / Windows Server 2012 R2";
+		}
+		else if(versionInfo->dwMajorVersion == 10)
+		{
+			if(versionInfo->dwMinorVersion == 0)
+				return "Windows 10 / Windows Server";
+		}
+	}
+
+	return "Windows";
 }
 
 
