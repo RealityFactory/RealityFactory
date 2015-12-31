@@ -1122,8 +1122,7 @@ int CParticleSystem::Remove(int nHandle)
 	Clear(nHandle);
 
 	// Particles zapped, gun the control structure
-	delete theList[nHandle];
-	theList[nHandle] = NULL;
+	SAFE_DELETE(theList[nHandle]);
 
 	return RGF_SUCCESS;
 }

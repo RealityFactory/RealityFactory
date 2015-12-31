@@ -494,8 +494,7 @@ int CPersistentAttributes::DeleteUserData(const char *szTag)
 	if(pAttr == NULL)
 		return RGF_FAILURE;								// Attribute not found
 
-	delete pAttr->UserData;
-	pAttr->UserData = NULL;
+	SAFE_DELETE_A(pAttr->UserData);
 	pAttr->UserDataSize = 0;
 
 	return RGF_SUCCESS;
