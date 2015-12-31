@@ -1080,8 +1080,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, Normal, theRotation, Direction;
-			geActor *pActor;
-			geFloat T;
 			CCD->ActorManager()->GetPosition(Actor, &OldPos);
 			returnValue = skString("FALSE");
 			bool bone;
@@ -1093,6 +1091,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			if(!bone)
 				return true;
+
+			geActor *pActor;
+			geFloat T;
 
 			geVec3d_Copy(&(Xf.Translation), &OldPos);
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
@@ -1614,13 +1615,14 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE: SetShadowFromFlip(FLIPBOOK szEntityName, ACTOR EntityName);
 			PARMCHECK(2);
-			float tm;
-			int tb;
 
 			FlipBook *pEntityData = NULL;
 
 			if(CCD->FlipBooks()->LocateEntity(arguments[0].str().c_str(), (void**)&pEntityData)==RGF_SUCCESS)
 			{
+				float tm;
+				int tb;
+
 				// find frame time of animation and set the proper bitmap
 				geActor *wActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
 				tm = CCD->ActorManager()->GetAnimationTime(wActor)*30.f;
@@ -1706,15 +1708,15 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			PARMCHECK(4);
 			geXForm3d Xf;
 			geVec3d OldPos, Pos, theRotation, Direction;
-			GE_Collision Collision;
 			CCD->ActorManager()->GetPosition(Actor, &OldPos);
-			float gd = -1.f;
 			bool bone;
 			bone = geActor_GetBoneTransform(Actor, arguments[0].str().c_str(), &Xf);
 
 			if(!bone)
 				return true;
 
+			GE_Collision Collision;
+			float gd = -1.f;
 			geVec3d_Copy(&(Xf.Translation), &OldPos);
 			CCD->ActorManager()->GetRotate(Actor, &theRotation);
 
@@ -1953,21 +1955,18 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			PARMCHECK(1);
 
-			geVFile* file;
-			geMotion *cMot;
-			int ind;
-			ind = 0;
+			int ind = 0;
 
-			file = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, arguments[0].str().c_str(), NULL, GE_VFILE_OPEN_READONLY);
+			geVFile* file = geVFile_OpenNewSystem(NULL, GE_VFILE_TYPE_DOS, arguments[0].str().c_str(), NULL, GE_VFILE_OPEN_READONLY);
 
 			if(file != NULL)
 			{
-				cMot = geMotion_CreateFromFile(file);
+				geMotion *cMot = geMotion_CreateFromFile(file);
 
 				if(cMot != NULL)
 					geActor_AddMotion(geActor_GetActorDef(Actor), cMot, &ind);
 
-				geVFile_Close(file);//close file
+				geVFile_Close(file); //close file
 			}
 
 			returnValue = ind;
@@ -2201,8 +2200,6 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_POSITIONTOPAWN:
 		{
 			PARMCHECK(4);
-			geXForm3d Xf;
-			geVec3d Pos, OldPos, theRotation, Direction;
 			geActor *MasterActor;
 
 			MasterActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
@@ -2210,16 +2207,21 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			if(!MasterActor)
 				return true;
 
+			geVec3d Pos;
 			CCD->ActorManager()->GetPosition(MasterActor, &Pos);
-			OldPos = Pos;
-			OldPos.Y += 16.f;
 
 			if(arguments.entries() > 4)
 			{
+				geVec3d theRotation;
 				bool flag = arguments[4].boolValue();
 
 				if(flag)
 				{
+					geXForm3d Xf;
+					geVec3d OldPos, Direction;
+
+					OldPos = Pos;
+					OldPos.Y += 16.f;
 					CCD->ActorManager()->GetRotate(MasterActor, &theRotation);
 
 					geXForm3d_SetZRotation(&Xf, theRotation.Z);
@@ -2886,18 +2888,20 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			PARMCHECK(4);
 
-			geVec3d Pos, Rot;
 			GE_RGBA	Color;
-			geActor *pActor = NULL;
 
 			strcpy(param0, arguments[0].str());
 
 			if(arguments[0].str() != "")
 			{
+				geActor *pActor = NULL;
+
 				if(!stricmp(param0, "Player"))
 					pActor = CCD->Player()->GetActor();
 				else
 					pActor = CCD->ActorManager()->GetByEntityName(param0);
+
+				geVec3d Pos;
 
 				CCD->ActorManager()->GetPosition(pActor, &Pos);
 
@@ -2923,6 +2927,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 				if(arguments.entries() > 11)
 				{
+					geVec3d Rot;
 					Rot.X = GE_PIOVER180*arguments[9].floatValue();
 					Rot.Y = GE_PIOVER180*arguments[10].floatValue();
 					Rot.Z = GE_PIOVER180*arguments[11].floatValue();
@@ -3836,22 +3841,19 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			returnValue = false;
 
-			geEntity_EntitySet *pSet;
-			geEntity *pEntity;
 			// Ok, check to see if there are ScriptPoints in this world
-			pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+			geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
 
 			if(!pSet)
 				return true;
 
-			geVec3d Pos, Dist;
-			float minDist2, MinDistance2, MaxDistance2;
-			float newDist2;
+			float MinDistance2 = arguments[0].floatValue()*arguments[0].floatValue();
+			float MaxDistance2 = arguments[1].floatValue()*arguments[1].floatValue();
+			float minDist2 = MaxDistance2;
 
-			MinDistance2 = arguments[0].floatValue()*arguments[0].floatValue();
-			MaxDistance2 = arguments[1].floatValue()*arguments[1].floatValue();
-			minDist2 = MaxDistance2;
+			geVec3d Pos;
 
+			geEntity *pEntity;
 			CCD->ActorManager()->GetPosition(Actor,	&Pos);
 
 			// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
@@ -3861,8 +3863,9 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
 
 				//calc new dist
+				geVec3d Dist;
 				geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
-				newDist2 = geVec3d_LengthSquared(&Dist);
+				float newDist2 = geVec3d_LengthSquared(&Dist);
 
 				// point is too close
 				if(newDist2<MinDistance2 || newDist2>MaxDistance2)
