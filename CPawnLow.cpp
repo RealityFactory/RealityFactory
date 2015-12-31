@@ -1490,70 +1490,83 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_FORCEENTITYUP:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->UpVector(mActor, &theUp);
-			CCD->ActorManager()->SetForce(mActor, 0, theUp, amount, amount);
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d theUp;
+				CCD->ActorManager()->UpVector(actor, &theUp);
+				CCD->ActorManager()->SetForce(actor, 0, theUp, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_FORCEENTITYDOWN:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->UpVector(mActor, &theUp);
-			geVec3d_Inverse(&theUp);
-			CCD->ActorManager()->SetForce(mActor, 0, theUp, amount, amount);
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d theUp;
+				CCD->ActorManager()->UpVector(actor, &theUp);
+				geVec3d_Inverse(&theUp);
+				CCD->ActorManager()->SetForce(actor, 0, theUp, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_FORCEENTITYRIGHT:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->LeftVector(mActor, &theUp);
-			geVec3d_Inverse(&theUp);
-			CCD->ActorManager()->SetForce(mActor, 1, theUp, amount, amount);
+
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d left;
+				CCD->ActorManager()->LeftVector(actor, &left);
+				geVec3d_Inverse(&left);
+				CCD->ActorManager()->SetForce(actor, 1, left, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_FORCEENTITYLEFT:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->LeftVector(mActor, &theUp);
-			CCD->ActorManager()->SetForce(mActor, 1, theUp, amount, amount);
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d left;
+				CCD->ActorManager()->LeftVector(actor, &left);
+				CCD->ActorManager()->SetForce(actor, 1, left, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_FORCEENTITYFORWARD:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->InVector(mActor, &theUp);
-			CCD->ActorManager()->SetForce(mActor, 2, theUp, amount, amount);
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d in;
+				CCD->ActorManager()->InVector(actor, &in);
+				CCD->ActorManager()->SetForce(actor, 2, in, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_FORCEENTITYBACKWARD:
 		{
 			PARMCHECK(2);
-			float amount = arguments[0].floatValue();
-			geVec3d theUp;
-			geActor *mActor;
-			mActor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
-			CCD->ActorManager()->InVector(mActor, &theUp);
-			geVec3d_Inverse(&theUp);
-			CCD->ActorManager()->SetForce(mActor, 2, theUp, amount, amount);
+			geActor *actor = CCD->ActorManager()->GetByEntityName(arguments[1].str().c_str());
+			if(actor)
+			{
+				float amount = arguments[0].floatValue();
+				geVec3d in;
+				CCD->ActorManager()->InVector(actor, &in);
+				geVec3d_Inverse(&in);
+				CCD->ActorManager()->SetForce(actor, 2, in, amount, amount);
+			}
 			return true;
 		}
 	case RGF_SM_GETGROUNDTEXTURE:
