@@ -3672,7 +3672,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				theInv = CCD->ActorManager()->Inventory(Actor);
 			}
 
-			int NewHighLimit = theInv->High(param0) + arguments[1].intValue();;
+			int NewHighLimit = theInv->High(param0) + arguments[1].intValue();
 
 			theInv->SetHighLimit(param0, NewHighLimit);
 
