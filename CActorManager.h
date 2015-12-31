@@ -45,11 +45,16 @@ typedef struct CollideObjectInformation
 
 
 // ANIMATION CHANNELS
-#define ANIMATION_CHANNEL_ROOT 0		///< the default animation channel (lower-body)
-#define ANIMATION_CHANNEL_UPPERBODY 1	///< torso/upper body
-#define ANIMATION_CHANNEL_HEAD 2		///< head
-#define ANIMATION_CHANNEL_USER001 3		///< custom user channel1
-#define ANIMATION_CHANNEL_USER002 4		///< custom user channel2
+enum
+{
+	ANIMATION_CHANNEL_ROOT = 0,		///< the default animation channel (lower-body)
+	ANIMATION_CHANNEL_UPPERBODY,	///< torso/upper body
+	ANIMATION_CHANNEL_HEAD,			///< head
+	ANIMATION_CHANNEL_USER001,		///< custom user channel1
+	ANIMATION_CHANNEL_USER002,		///< custom user channel2
+	ANIMATION_CHANNELS
+};
+
 
 struct Attachment
 {
