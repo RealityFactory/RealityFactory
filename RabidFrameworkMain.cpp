@@ -33,7 +33,6 @@ static void DisplaySplashScreen(const char *splashScreen,
 /* ------------------------------------------------------------------------------------ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszCmdParam, int /*nCmdShow*/)
 {
-	DWORD nLoopTimer = 0;
 
 	char m_currentdir[512];
 	_getcwd(m_currentdir, 512);
