@@ -94,7 +94,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		MovingPlatform *pEntity;
 		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
-		returnValue = (float)float1;
+		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetPlatformCurrentTime"))
@@ -104,7 +104,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		MovingPlatform *pEntity;
 		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
-		returnValue = (float)float1;
+		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "PlatformCollision"))
@@ -114,7 +114,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		MovingPlatform *pEntity;
 		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
-		returnValue = (bool)bool1;
+		returnValue = bool1;
 		return true;
 	}
 
@@ -135,7 +135,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Door *pEntity;
 		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
-		returnValue = (float)float1;
+		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetDoorCurrentTime"))
@@ -145,7 +145,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Door *pEntity;
 		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
-		returnValue = (float)float1;
+		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "DoorCollision"))
@@ -155,7 +155,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Door *pEntity;
 		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
 		CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
-		returnValue = (bool)bool1;
+		returnValue = bool1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "ShowWallDecal"))
@@ -689,7 +689,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 		}
 
-		returnValue = (int)theInv->Add(string1);
+		returnValue = theInv->Add(string1);
 
 		if(arguments.entries() > 2)
 		{
@@ -732,42 +732,42 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "sin"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)sin((double)arguments[0].floatValue());
+		returnValue = sin(arguments[0].floatValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "cos"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)cos((double)arguments[0].floatValue());
+		returnValue = cos(arguments[0].floatValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "tan"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)tan((double)arguments[0].floatValue());
+		returnValue = tan(arguments[0].floatValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "asin"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)asin((double)arguments[0].floatValue());
+		returnValue = asin(arguments[0].floatValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "acos"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)acos((double)arguments[0].floatValue());
+		returnValue = acos(arguments[0].floatValue());
 
 		return true;
 	}
 	else if(IS_METHOD(methodName, "atan"))
 	{
 		PARMCHECK(1);
-		returnValue = (float)atan((double)arguments[0].floatValue());
+		returnValue = atan(arguments[0].floatValue());
 
 		return true;
 	}
