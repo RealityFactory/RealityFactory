@@ -925,6 +925,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			strcpy(param0, arguments[0].str());
 			geVec3d pRotation;
 			const char *EntityType = CCD->EntityRegistry()->GetEntityType(param0);
+			returnValue = 0.0f;
 
 			if(EntityType)
 			{
