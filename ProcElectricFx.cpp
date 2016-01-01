@@ -350,7 +350,7 @@ static void ElectricFx_ZLine2(Procedural *Fx, int x1, int y1, int x2, int y2, in
 		yslope = 0.0f;
 	}
 
-	if((xslope != 0) && (yslope != 0) && (yslope/xslope < 1) && (yslope/xslope > -1))
+	if((xslope != 0.f) && (yslope != 0.f) && (yslope/xslope < 1.f) && (yslope/xslope > -1.f))
 	{
 		if(dx < 0)
 		{
