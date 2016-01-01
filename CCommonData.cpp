@@ -2360,7 +2360,9 @@ bool CCommonData::ProcessLevelChange()
 
 	// Shut the current level down
 	ShutdownLevel();
-	CCD->SetKeyPaused(false);
+
+	SetKeyPaused(false);
+
 	// Ok, load in the new level
 
 	if(!EffectC_IsStringNull(m_NewLevel))
@@ -2380,7 +2382,7 @@ bool CCommonData::ProcessLevelChange()
 			exit(-334);
 		}
 
-		CCD->HUD()->LoadConfiguration();
+		HUD()->LoadConfiguration();
 
 		// Restore the player attributes for the new level
 		if(KeepAttributes)
@@ -2425,7 +2427,7 @@ bool CCommonData::ProcessLevelChange()
 		geEntity_EntitySet *pSet;
 		geEntity *pEntity;
 
-		pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
+		pSet = geWorld_GetEntitySet(World(), "PlayerSetup");
 		pEntity = geEntity_EntitySetGetNextEntity(pSet, NULL);
 		PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
@@ -3644,7 +3646,7 @@ void CCommonData::SetLevelData()
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
-	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
+	pSet = geWorld_GetEntitySet(World(), "PlayerSetup");
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
