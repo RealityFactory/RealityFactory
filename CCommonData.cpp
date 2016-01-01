@@ -186,8 +186,8 @@ CCommonData::CCommonData()
 
 
 	// Set up for timekeeping
-	m_nTimerID = timeSetEvent(1, 0,	&TimerFunction, (DWORD)this,
-				TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
+	m_nTimerID = timeSetEvent(1, 0,	&TimerFunction, reinterpret_cast<DWORD>(this),
+							TIME_PERIODIC | TIME_CALLBACK_FUNCTION);
 
 	TimeCounter = LastTimePoll = 0;
 	LastTimePassed_D = 0;
