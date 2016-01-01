@@ -41,14 +41,50 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(24312);
 
+	sxLog *log = sxLog::GetSingletonPtr();
+	if(log == NULL)
+	{
+		MessageBox(NULL, "Failed to create Log class!", "RF Error Report",	MB_ICONERROR | MB_OK);
+		exit(-666);
+	}
+
+#ifdef _DEBUG
+	log->SetPriority(LP_DEBUG);
+#endif
+
+	log->Print("-----------------------------------------------"	);
+	log->Print("--- Reality Factory " RF_VMAJS "." RF_VMINS "                 ---");
+	log->Print("--- Build Date: "__DATE__", Time: "__TIME__" ---"	);
+	log->Print("--- For more information, visit:            ---"	);
+	log->Print("---    http://www.realityfactory.info       ---"	);
+	log->Print("-----------------------------------------------\n"	);
+
+	{
+		SYSTEMTIME time;
+		GetSystemTime(&time);
+
+		log->Print("Current Date: %02d-%02d-%4d", time.wMonth, time.wDay, time.wYear);
+		log->Print("Current Time: %02d:%02d:%02d\n", time.wHour, time.wMinute, time.wSecond);
+
+		OSVERSIONINFO versionInfo;
+		versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+		if(GetVersionEx(&versionInfo))
+		{
+			log->Print("%s (v%d.%d Build %d %s)\n", GetOSName(&versionInfo),
+													versionInfo.dwMajorVersion,
+													versionInfo.dwMinorVersion,
+													versionInfo.dwBuildNumber,
+													versionInfo.szCSDVersion);
+		}
+	}
+
 	// Initialize the Common Data class that handles components
 	CCD = new CCommonData();
 
 	if(CCD == NULL)
 	{
-		OutputDebugString("CCommonData init failure, exiting\n");
-		MessageBox(NULL, "CCommonData init failure, exiting", "GAME ERROR",
-				MB_ICONSTOP | MB_OK);
+		log->Critical("Failed to create Common Data");
 		exit(-666);
 	}
 
@@ -56,6 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	// rfEdit or some other spawning program. This also lets us drive the
 	// first level run from the command line, useful in many circumstances.
 
+	log->Debug("Opening D3D24.ini file.");
 
 	bool spawnVideoSetup = false;
 	FILE *fd = fopen("D3D24.ini", "r");
@@ -107,7 +144,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 			strcpy(szServerPort, ":");
 			strcpy(szServerPort, szFoo);
 			szServerPort[strlen(szServerPort)] = 0;
-  		    CCD->ReportError("Caching Server Port...", false);
+			log->Debug("Caching Server Port...");
 		}
 		// do we have a server ip, launch directly into the server?
 		else if(!stricmp("+connect", szFoo))
@@ -128,13 +165,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 			}
 
 			multiplayerLaunch = true; // launch directly into game
-			CCD->ReportError("Caching Server IP...Launching Multiplayer Game directly", false);
+			log->Debug("Caching Server IP... Launching Multiplayer Game directly.");
 		}
 	}
 
 	if(spawnVideoSetup)
 	{
-		CCD->ReportError("No Renderer Config (d3d24.ini), running videosetup", false);
+		log->Info("No Renderer Config (D3D24.ini), running videosetup");
 
 		char *args[2];
 		args[0] = "video";
@@ -143,30 +180,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		_spawnv(_P_WAIT, "videosetup.exe", args);
 	}
 
+	log->Notice("Launching Reality Factory Game Shell...");
 
 	// Fine, let's initialize the Genesis engine & etc.
 	int result = CCD->Initialize(hInstance, szFirstLevel, commandLine);
 
 	if(result != 0)
 	{
-		OutputDebugString("RGF initialization failure, exiting\n");
-		MessageBox(NULL, "RGF Initialization Failure", "GAME ERROR",
-			MB_ICONSTOP | MB_OK);
+		log->Critical("Failed to initialize Common Data (%d)", result);
+		sxLog::Destroy();
 		delete CCD;						// Drop everything to prevent leaks
 		CCD = NULL;
 		exit(result);					// Failure to initialize RGF
 	}
 
-    CCD->ReportError("Launching Reality Factory Game Shell...", false);
+	log->Debug("Current working directoy: %s", szCurrentDir);
 
 	if(!commandLine)
 	{
 		// No command line arg, if there wasn't anything from the .ini file, error exit.
 		if(szFirstLevel[0] == 0)
 		{
+			log->Critical("No Level to load!");
+			sxLog::Destroy();
 			delete CCD;
 			CCD = NULL;
-			MessageBox(NULL,"No Level to Load","RF Error", MB_OK);
 			exit(-335);
 		}
 	}
@@ -192,13 +230,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 
 	if(commandLine)
 	{
-		CCD->ReportError("Launching Preview from Editor, bypassing Genesis3D Logo for DEBUG purposes ONLY...", false);
+		// Testing level, so log everything
+		log->SetPriority(LP_DEBUG);
+		log->Debug("Launching Preview from Editor, bypassing Genesis3D Logo for DEBUG purposes ONLY...");
+		log->Debug("Previewing Level as SinglePlayer Client...");
 
 		// show logos
 		DisplayAllSplashScreens();
 
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
-		CCD->ReportError("Previewing Level as SinglePlayer Client...", false);
 		CCD->MenuManager()->DoGame(true);
 	}
 	// direct multiplayer launch from command line
@@ -211,8 +251,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 
 		// launch our network game
 		// TODO:  first have to set the serverip & port from our command line variables
+		log->Debug("Launching Game as Multiplayer Client...");
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
-		CCD->ReportError("Launching Game as Multiplayer Client...", false);
 		CCD->MenuManager()->DoGame(true);
 	}
 	else
@@ -223,10 +263,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	}
 
 	CCD->MenuManager()->DoMenu(szFirstLevel);
-	CCD->ReportError("Shutting Down Reality Factory Game Shell...", false);
+	log->Notice("Shutting Down Reality Factory Game Shell...");
 	CCD->ShutdownLevel();					// Kill off level-specific entities
 
 	delete CCD;								// Kill off the engine and such
+
+	sxLog::Destroy();
 
 	return(0);								// This exits the Windows application
 }

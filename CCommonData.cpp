@@ -220,12 +220,7 @@ CCommonData::~CCommonData()
 
 	timeKillEvent(m_nTimerID);
 
-	FILE *fd;
-	if(fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.log", "at"))
-	{
-		fprintf(fd, "Successful Shutdown");
-		fclose(fd);
-	}
+	Log()->Notice("Successful Shutdown.");
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -580,17 +575,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	if(m_DebugLevel != kNoDebugOutput)
 		theGameEngine->SetDebugging(true);			// Activate engine debugging
-
-	ReportError("\nInitializing Game Shell...",										false);
-	ReportError("-----------------------------------------------",					false);
-	ReportError("--- Reality Factory "RF_VMAJS"."RF_VMINS"                 ---",	false);
-	ReportError("--- Build Date: "__DATE__", Time: "__TIME__" ---",					false);
-	ReportError("--- For more Information, visit:            ---",					false);
-	ReportError("---    www.realityfactory.info              ---",					false);
-	ReportError("-----------------------------------------------",					false);
-	ReportError("\nParsed RealityFactory.ini file",									false);
-	//	First, initialize the Genesis3D game engine
-	ReportError("\nGenesis3D Initialized", false);
 
 	FILE *fdInput = NULL;
 	char szInputString[16];
