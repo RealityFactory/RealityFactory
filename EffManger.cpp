@@ -519,7 +519,7 @@ void *EffManager::Spray_Add(void *Data)
 	}
 	else
 	{
-		NewData->ParticleGravity = (geVec3d*)NULL;
+		NewData->ParticleGravity = NULL;
 	}
 
 	// save the transform
