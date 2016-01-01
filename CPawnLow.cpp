@@ -3051,10 +3051,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// Gets the screen position of any Pawn or Player. If EntityName="", the active pawn is used
 
 			geVec3d Pos, ScreenPos;
-			strcpy(param0, arguments[0].str());
 
 			if(arguments[0].str() != "")
 			{
+				strcpy(param0, arguments[0].str());
 				if(!stricmp(param0, "Player"))
 					Pos = CCD->Player()->Position();
 				else
@@ -3511,13 +3511,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		{
 			// USAGE: SetEntityAlpha(EntityName, Alpha)
 			PARMCHECK(2);
-			strcpy(param0, arguments[0].str());
+
 			param1 = arguments[1].floatValue();
 
-			if(!stricmp(param0, "Player")) // if entityname = "Player", then use the player
+			if(arguments[0].str().equalsIgnoreCase("Player")) // if entityname = "Player", then use the player
 				CCD->ActorManager()->SetAlpha(CCD->Player()->GetActor(), param1);
 			else
-				CCD->ActorManager()->SetAlpha(CCD->ActorManager()->GetByEntityName(param0), param1);
+				CCD->ActorManager()->SetAlpha(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), param1);
 
 			return true;
 		}
@@ -3526,12 +3526,10 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// USAGE: float = GetEntityAlpha(EntityName)
 			PARMCHECK(1);
 
-			strcpy(param0, arguments[0].str());
-
-			if(stricmp(param0, "Player")) // if entityname = "Player", then use the player
+			if(arguments[0].str().equalsIgnoreCase("Player")) // if entityname = "Player", then use the player
 				CCD->ActorManager()->GetAlpha(CCD->Player()->GetActor(), &param1);
 			else
-				CCD->ActorManager()->GetAlpha(CCD->ActorManager()->GetByEntityName(param0), &param1);
+				CCD->ActorManager()->GetAlpha(CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str()), &param1);
 
 			returnValue = param1;
 
@@ -3569,14 +3567,13 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			// SetEntityScale(EntityName, ScaleX, ScaleY, ScaleZ)
 			PARMCHECK(2);
 
-			strcpy(param0, arguments[0].str());
 			geVec3d Scale;
 			geActor *pActor;
 
-			if(!stricmp(param0, "Player"))
+			if(arguments[0].str().equalsIgnoreCase("Player"))
 				pActor = CCD->Player()->GetActor();
 			else
-				pActor = CCD->ActorManager()->GetByEntityName(param0);
+				pActor = CCD->ActorManager()->GetByEntityName(arguments[0].str().c_str());
 
 			Scale.X = arguments[1].floatValue();
 
