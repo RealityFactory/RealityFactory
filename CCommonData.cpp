@@ -245,9 +245,11 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	bool UseCut1		= false;
 	bool UseSecond		= false;
 	bool UseFirst		= false;
+	int logPriority		= LP_NOTICE;
 
 	CmdLine = CommandLine;
 
+	Log()->Debug("Parsing RealityFactory.ini file");
 
 	// Ok, let's see if we have an initialization file, and if so, read it in and parse it.
 	if((fd = fopen(".\\RealityFactory.ini", "rt")) != NULL)
@@ -320,10 +322,16 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			}
 			else if(!stricmp(szAtom, "logging"))
 			{
-				if(!stricmp(szArg, "true"))
-					Logging = true;
-				else
-					Logging = false;
+				if(!stricmp(szArg, "true")) ///< @deprecated There are several log priorities now
+				{
+					logPriority = LP_DEBUG;
+					Log()->Info("RealityFactory.ini: value 'true' for key 'logging' is deprecated");
+				}
+				else if(!stricmp(szArg, "debug"))		logPriority = LP_DEBUG;
+				else if(!stricmp(szArg, "info"))		logPriority = LP_INFO;
+				else if(!stricmp(szArg, "notice"))		logPriority = LP_NOTICE;
+				else if(!stricmp(szArg, "warning"))		logPriority = LP_WARNING;
+				else if(!stricmp(szArg, "error"))		logPriority = LP_ERROR;
 			}
 			else if(!stricmp(szAtom, "usedialog"))
 			{
@@ -485,7 +493,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					else if(!stricmp(szArg, "pick"))	chTheDriver = 'P';	// Pop a driver pick list
 					else
 					{
-						ReportError("[WARNING] Bad driver selection in RealityFactory.ini\n", false);
+						Log()->Warning("Bad driver selection in RealityFactory.ini.");
 						chTheDriver = 'P';
 					}
 				}
@@ -532,12 +540,16 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 					m_bUseDInput = false;
 			}
 			else
-				ReportError("[WARNING] Unknown command in RealityFactory.ini\n", false);
+			{
+				Log()->Warning("Unknown option '%s' in RealityFactory.ini.", szAtom);
+			}
 		}
 
 		fclose(fd);
 	}
 
+	// Set log priority
+	Log()->SetPriority(logPriority);
 	CCD->InitJoysticks(); // pickles Jul 04
 
 	// Initialize Pawn Method Hash Table
