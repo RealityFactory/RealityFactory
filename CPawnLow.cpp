@@ -2732,6 +2732,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	case RGF_SM_STEPHEIGHT:
 		{
 			// USAGE: StepHeight(float)
+			PARMCHECK(1);
 			CCD->ActorManager()->SetStepHeight(Actor, arguments[0].floatValue());
 
 			return true;
