@@ -413,7 +413,6 @@ private:
 	bool	server;
 // end multiplayer
 
-	CLongHashTable *MethodHash;
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
 						DWORD dw1, DWORD dw2);		///< Static timer callback
 	int		m_nTimerID;
