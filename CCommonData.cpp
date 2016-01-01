@@ -181,8 +181,6 @@ CCommonData::CCommonData()
 		network			= true;
 	multiplayer			= false;
 
-	ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS] = 0;
-	nCurrentRow = 0;	// what row of the console we're on
 	m_Language = 0;
 	Logging = false;
 
@@ -263,7 +261,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	CmdLine = CommandLine;
 
-	CCD->ConsoleInit(30); // setup our console so we can use it for debugging output
 
 	// Ok, let's see if we have an initialization file, and if so, read it in and parse it.
 	if((fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.ini", "rt")) != NULL)
@@ -762,63 +759,6 @@ bool CCommonData::GetMultiPlayer()
 	return (multiplayer && CCD->GetNetwork());
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	ConsoleInit
-/* ------------------------------------------------------------------------------------ */
-void CCommonData::ConsoleInit(int nMaxRows)
-{
-	// initialize console
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ConsoleRender
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsoleRender()
-{
-	// renders the current buffer to screen
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ConsolePrint
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsolePrint(const char *szMsg, bool bBox)
-{
-	// print to console
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ShowConsole
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::ShowConsole(bool bConsoleFlag, int nTransition)
-{
-	// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out
-	// ..transition when showing the console
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ConsoleExec
-//
-//	still not sure on the parameters for this, may change
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsoleExec(const char *szMsg, bool bBox)
-{
-	// execute console command
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ConsoleClear
-//
-//	sample console command, 'clear'
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::ConsoleClear()
-{
-	// clears console
-	return false;
-}
 
 /* ------------------------------------------------------------------------------------ */
 //	GetskContext

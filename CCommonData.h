@@ -12,9 +12,6 @@
 #ifndef __RGF_CCOMMONDATA_H_
 #define __RGF_CCOMMONDATA_H_
 
-#define CONSOLEMAXROWS 30
-#define CONSOLEMAXCOLS 80
-
 #include "hashtable\\hash_table.h"
 
 typedef CHashTable<long> CLongHashTable;
@@ -63,13 +60,6 @@ public:
 	int DispatchTick();							///< Send time tick to components
 	bool ProcessLevelChange();					///< Process a level change
 	void RenderComponents();					///< Render all components
-
-	void ConsoleInit (int nMaxRows);					///< initialize console
-	bool ConsoleRender();								///< renders the current buffer to screen
-	bool ConsolePrint(const char *szMsg, bool bBox);	///< print to console
-	bool ShowConsole (bool bConsoleFlag, int nTransition);	// show/hide console param1 - show/hide, param 2 - whether to use a slide in/out transition when showing the console
-	bool ConsoleExec(const char *szMsg, bool bBox);		///< execute console command
-	bool ConsoleClear();								///< clears console
 
 	void InitJoysticks();
 	void CloseJoysticks();
@@ -431,9 +421,6 @@ private:
 	bool	server;
 // end multiplayer
 
-	// current contents of the console
-	char	ConsoleBuffer[CONSOLEMAXROWS][CONSOLEMAXCOLS];
-	int		nCurrentRow;	// what row of the console we're on
 	CLongHashTable *MethodHash;
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
 						DWORD dw1, DWORD dw2);		///< Static timer callback
