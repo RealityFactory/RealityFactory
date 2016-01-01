@@ -84,7 +84,7 @@ Particle_System* Particle_SystemCreate(geWorld *World)
 
 	ps = GE_RAM_ALLOCATE_STRUCT(Particle_System);
 	if(!ps)
-		return ps;
+		return NULL;
 
 	memset(ps, 0, sizeof(*ps));
 
@@ -348,7 +348,7 @@ static Particle* CreateParticle(Particle_System *ps, geBitmap *Texture, const GE
 	ptcl = GE_RAM_ALLOCATE_STRUCT(Particle);
 
 	if(!ptcl)
-		return ptcl;
+		return NULL;
 
 	memset(ptcl, 0, sizeof(*ptcl));
 
@@ -510,7 +510,7 @@ ActorParticle_System*  ActorParticle_SystemCreate()
 	ps = GE_RAM_ALLOCATE_STRUCT(ActorParticle_System);
 
 	if(!ps)
-		return ps;
+		return NULL;
 
 	memset(ps, 0, sizeof(*ps));
 
@@ -746,7 +746,7 @@ static ActorParticle* ActorCreateParticle(ActorParticle_System *ps,
 	ptcl = GE_RAM_ALLOCATE_STRUCT(ActorParticle);
 
 	if(!ptcl)
-		return ptcl;
+		return NULL;
 
 	memset(ptcl, 0, sizeof(*ptcl));
 
