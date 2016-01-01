@@ -138,14 +138,14 @@ CCommonData::CCommonData()
 	strcpy(m_MIDIDirectory,			"MIDI"			);
 	strcpy(m_MenuDirectory,			"menu.ini"		);  // update #1
 	strcpy(m_VirtualFile,			"Pack.vfs"		);
-	strcpy(m_SplashScreen,			"rflogo.bmp"	);
-	strcpy(m_SplashAudio,			"startup.wav"	);
 	strcpy(m_PlayerName,			"Unnamed"		);
 
+	m_SplashScreen[0]	= '\0';
+	m_SplashAudio[0]	= '\0';
 	m_CutScene[0]		= '\0';
-	m_CutScene1[0]		= '\0';
 	m_SplashScreen1[0]	= '\0';
 	m_SplashAudio1[0]	= '\0';
+	m_CutScene1[0]		= '\0';
 
 	m_MouseControl		= true;
 	m_headbob			= false;
