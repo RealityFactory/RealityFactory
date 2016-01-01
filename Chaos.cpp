@@ -17,7 +17,6 @@
 /* ------------------------------------------------------------------------------------ */
 Chaos::Chaos()
 {
-	geBitmap_Info		AttachInfo;
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "EChaos");
 
 	if(!pSet)
@@ -122,6 +121,7 @@ Chaos::Chaos()
 			geBitmap_SetFormatMin(pTex->CAttachBmp, CHAOS_FORMAT);
 			geBitmap_ClearMips(pTex->CAttachBmp);
 
+			geBitmap_Info AttachInfo;
 			if(geBitmap_GetInfo(pTex->CAttachBmp, &AttachInfo, NULL) == GE_FALSE)
 				continue;
 
