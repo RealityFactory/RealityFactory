@@ -14,6 +14,7 @@
 #include <cstdarg>
 #include <windows.h> // OutputDebugString
 #include "Simkin\\skInterpreter.h"
+#include "CScriptManager.h"
 
 #ifdef SX_IMPL_TYPE
 #undef SX_IMPL_TYPE
@@ -54,6 +55,8 @@ SX_IMPL_TYPE* SX_IMPL_TYPE::GetSingletonPtr()
 	if(m_Log == NULL)
 	{
 		m_Log = new SX_IMPL_TYPE();
+
+		ScriptManager::AddGlobalVariable("Log", m_Log);
 	}
 
 	return m_Log;

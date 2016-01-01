@@ -10,13 +10,12 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
-#include "RGFScriptMethods.h"
 
 extern geVFile *PassWord(char *m_VirtualFile, bool encrypt);
 extern void CloseFile();
 
-#include "Simkin\\skInterpreter.h" // change simkin
 #include "IniFile.h"
+#include "CScriptManager.h"
 #include "CAudioManager.h"
 #include "CCDAudio.h"
 #include "CMIDIAudio.h"
@@ -26,8 +25,6 @@ extern void CloseFile();
 #include "CPolyShadow.h"
 #include "Qx\\qxTerrainMgr.h"
 #include "HawkNL\\nl.h"
-
-skInterpreter interpreter;
 
 /* ------------------------------------------------------------------------------------ */
 // Constructor
@@ -119,8 +116,7 @@ CCommonData::CCommonData()
 
 	FreeImage_Initialise();
 
-	MethodHash = new CLongHashTable(RGF_SM_MAXMETHODS);
-	FillHashMethods();	//change scripting
+	RFSX::Install(&ScriptManager::Interpreter);
 
 	// Initialize game state data
 	m_InGameLoop = true;					// We start in the game loop
@@ -216,9 +212,6 @@ CCommonData::~CCommonData()
 
 
 	FreeImage_DeInitialise();
-
-	ClearHashMethods();
-	SAFE_DELETE(MethodHash);
 
 // start multiplayer
 	if(network)
@@ -552,6 +545,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 	CCD->InitJoysticks(); // pickles Jul 04
 
+	// Initialize Pawn Method Hash Table
+	ScriptManager::InitMHT();
 	if(UseFirst)
 	{
 		if(UseCut)	m_SplashScreen[0] = '\0';
@@ -746,32 +741,6 @@ void CCommonData::SetMultiPlayer(bool multi, bool Server)
 bool CCommonData::GetMultiPlayer()
 {
 	return (multiplayer && CCD->GetNetwork());
-}
-
-
-/* ------------------------------------------------------------------------------------ */
-//	GetskContext
-/* ------------------------------------------------------------------------------------ */
-skExecutableContext CCommonData::GetskContext()
-{
-	skExecutableContext ctxt(&interpreter);
-	return ctxt;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AddScriptedObject
-/* ------------------------------------------------------------------------------------ */
-void CCommonData::AddScriptedObject(const char *objectName, skRValue Object)
-{
-	interpreter.addGlobalVariable(objectName, Object);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	RemoveScriptedObject
-/* ------------------------------------------------------------------------------------ */
-void CCommonData::RemoveScriptedObject(const char *objectName)
-{
-	interpreter.removeGlobalVariable(objectName);
 }
 
 
@@ -2494,435 +2463,6 @@ void CCommonData::RenderComponents()
 
 	theOverlay->Render();
 	theTerrainMgr->Render();
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetHashMethod
-/* ------------------------------------------------------------------------------------ */
-long CCommonData::GetHashMethod(std::string key)
-{
-	long *value = MethodHash->GetMember(key);
-
-	if(value)
-		return *value;
-
-	return 0;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AddHashMethod
-/* ------------------------------------------------------------------------------------ */
-bool CCommonData::AddHashMethod(std::string key, long value)
-{
-	bool add;
-	long *vlong = new long;
-
-	*vlong = value;
-	add = MethodHash->AddKey(key, vlong);
-
-	return add;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	FillHashMethods
-/* ------------------------------------------------------------------------------------ */
-void CCommonData::ClearHashMethods(void)
-{
-	// default destructor of hashtable does not free user allocated memory!
-	MethodHash->RemoveAllKey(true);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	FillHashMethods
-/* ------------------------------------------------------------------------------------ */
-void CCommonData::FillHashMethods(void)
-{
-	// low methods
-	AddHashMethod("HighLevel",				RGF_SM_HIGHLEVEL);
-	AddHashMethod("Animate",				RGF_SM_ANIMATE);
-	AddHashMethod("Gravity",				RGF_SM_GRAVITY);
-	AddHashMethod("PlaySound",				RGF_SM_PLAYSOUND);
-	AddHashMethod("EnemyExist",				RGF_SM_ENEMYEXIST);
-	AddHashMethod("GetEventState",			RGF_SM_GETEVENTSTATE);
-	AddHashMethod("Integer",				RGF_SM_INTEGER);
-	AddHashMethod("GetAttribute",			RGF_SM_GETATTRIBUTE);
-	AddHashMethod("GetCurFlipBook",			RGF_SM_GETCURFLIPBOOK);
-	AddHashMethod("ModifyAttribute",		RGF_SM_MODIFYATTRIBUTE);
-	AddHashMethod("SetAttribute",			RGF_SM_SETATTRIBUTE);
-	AddHashMethod("SetPlayerWeapon",		RGF_SM_SETPLAYERWEAPON);
-	AddHashMethod("SetUseItem",				RGF_SM_SETUSEITEM);
-	AddHashMethod("ClearUseItem",			RGF_SM_CLEARUSEITEM);
-	AddHashMethod("StringCopy",				RGF_SM_STRINGCOPY);
-	AddHashMethod("LeftCopy",				RGF_SM_LEFTCOPY);
-	AddHashMethod("IsEntityVsible",			RGF_SM_ISENTITYVSIBLE);
-	AddHashMethod("DamageEntity",			RGF_SM_DAMAGEENTITY);
-	AddHashMethod("AnimateEntity",			RGF_SM_ANIMATEENTITY);
-	AddHashMethod("AnimateHold",			RGF_SM_ANIMATEHOLD);
-	AddHashMethod("AnimateTarget",			RGF_SM_ANIMATETARGET);
-	AddHashMethod("GetEntityX",				RGF_SM_GETENTITYX);
-	AddHashMethod("GetEntityY",				RGF_SM_GETENTITYY);
-	AddHashMethod("GetEntityZ",				RGF_SM_GETENTITYZ);
-	AddHashMethod("IsKeyDown",				RGF_SM_ISKEYDOWN);
-	AddHashMethod("GetEntityYaw",			RGF_SM_GETENTITYYAW);
-	AddHashMethod("MatchEntityAngles",		RGF_SM_MATCHENTITYANGLES);
-	AddHashMethod("FacePoint",				RGF_SM_FACEPOINT);
-	AddHashMethod("NewPoint",				RGF_SM_NEWPOINT);
-	AddHashMethod("GetPointYaw",			RGF_SM_GETPOINTYAW);
-	AddHashMethod("NextPoint",				RGF_SM_NEXTPOINT);
-	AddHashMethod("SetTarget",				RGF_SM_SETTARGET);
-	AddHashMethod("GetDistanceTo",			RGF_SM_GETDISTANCETO);
-	AddHashMethod("TeleportEntity",			RGF_SM_TELEPORTENTITY);
-	AddHashMethod("SaveAttributes",			RGF_SM_SAVEATTRIBUTES);
-	AddHashMethod("TraceToActor",			RGF_SM_TRACETOACTOR);
-	AddHashMethod("AnimateBlend",			RGF_SM_ANIMATEBLEND);
-	AddHashMethod("AnimationSpeed",			RGF_SM_ANIMATIONSPEED);
-	AddHashMethod("SetCollision",			RGF_SM_SETCOLLISION);
-	AddHashMethod("SetNoCollision",			RGF_SM_SETNOCOLLISION);
-	AddHashMethod("DamageArea",				RGF_SM_DAMAGEAREA);
-	AddHashMethod("PlayerMatchAngles",		RGF_SM_PLAYERMATCHANGLES);
-	AddHashMethod("ConvertDegrees",			RGF_SM_CONVERTDEGREES);
-	AddHashMethod("AttachCamera",			RGF_SM_ATTACHCAMERA);
-	AddHashMethod("AttachCameraToBone",		RGF_SM_ATTACHCAMERATOBONE);
-	AddHashMethod("AttachCameraToEntity",	RGF_SM_ATTACHCAMERATOENTITY);
-	AddHashMethod("DetachCamera",			RGF_SM_DETACHCAMERA);
-	AddHashMethod("TiltCamera",				RGF_SM_TILTCAMERA);
-	AddHashMethod("PositionToPlatform",		RGF_SM_POSITIONTOPLATFORM);
-	AddHashMethod("ActivateTrigger",		RGF_SM_ACTIVATETRIGGER);
-	AddHashMethod("UpdateEnemyVis",			RGF_SM_UPDATEENEMYVIS);
-	AddHashMethod("TargetPlayer",			RGF_SM_TARGETPLAYER);
-	AddHashMethod("FireProjectileBlind",	RGF_SM_FIREPROJECTILEBLIND);
-	AddHashMethod("SetTargetPoint",			RGF_SM_SETTARGETPOINT);
-	AddHashMethod("GetBoneX",				RGF_SM_GETBONEX);
-	AddHashMethod("GetBoneY",				RGF_SM_GETBONEY);
-	AddHashMethod("GetBoneZ",				RGF_SM_GETBONEZ);
-	AddHashMethod("GetBoneYaw",				RGF_SM_GETBONEYAW);
-	AddHashMethod("SetPosition",			RGF_SM_SETPOSITION);
-	AddHashMethod("IsButtonDown",			RGF_SM_ISBUTTONDOWN);
-	AddHashMethod("GetJoyAxisX",			RGF_SM_GETJOYAXISX);
-	AddHashMethod("GetJoyAxisY",			RGF_SM_GETJOYAXISY);
-	AddHashMethod("GetJoyAxisZ",			RGF_SM_GETJOYAXISZ);
-	AddHashMethod("GetNumJoysticks",		RGF_SM_GETNUMJOYSTICKS);
-	AddHashMethod("SetBoundingBox",			RGF_SM_SETBOUNDINGBOX);
-	AddHashMethod("GetBoneToBone",			RGF_SM_GETBONETOBONE);
-	AddHashMethod("SwitchView",				RGF_SM_SWITCHVIEW);
-	AddHashMethod("ForceEntityUp",			RGF_SM_FORCEENTITYUP);
-	AddHashMethod("ForceEntityDown",		RGF_SM_FORCEENTITYDOWN);
-	AddHashMethod("ForceEntityRight",		RGF_SM_FORCEENTITYRIGHT);
-	AddHashMethod("ForceEntityLeft",		RGF_SM_FORCEENTITYLEFT);
-	AddHashMethod("ForceEntityForward",		RGF_SM_FORCEENTITYFORWARD);
-	AddHashMethod("ForceEntityBackward",	RGF_SM_FORCEENTITYBACKWARD);
-	AddHashMethod("GetGroundTexture",		RGF_SM_GETGROUNDTEXTURE);
-	AddHashMethod("GetPlayerGroundTexture",	RGF_SM_GETPLAYERGROUNDTEXTURE);
-	AddHashMethod("PositionToBone",			RGF_SM_POSITIONTOBONE);
-	AddHashMethod("SetWeaponMatFromFlip",	RGF_SM_SETWEAPONMATFROMFLIP);
-	AddHashMethod("SetShadowFromFlip",		RGF_SM_SETSHADOWFROMFLIP);
-	AddHashMethod("GetCollideDistance",		RGF_SM_GETCOLLIDEDISTANCE);
-	AddHashMethod("ResetAnimate",			RGF_SM_RESETANIMATE);
-	AddHashMethod("WhereIsPlayer",			RGF_SM_WHEREISPLAYER);
-	AddHashMethod("WhereIsEntity",			RGF_SM_WHEREISENTITY);
-	AddHashMethod("InsertEvent",			RGF_SM_INSERTEVENT);
-	AddHashMethod("CheckForEvent",			RGF_SM_CHECKFOREVENT);
-	AddHashMethod("PlayEventSound",			RGF_SM_PLAYEVENTSOUND);
-	AddHashMethod("LoadAnimation",			RGF_SM_LOADANIMATION);
-	AddHashMethod("StartSoundTrack",		RGF_SM_STARTSOUNDTRACK);
-	AddHashMethod("StopAllAudioStreams",	RGF_SM_STOPALLAUDIOSTREAMS);
-	AddHashMethod("ChangeYaw",				RGF_SM_CHANGEYAW);
-	AddHashMethod("ChangePitch",			RGF_SM_CHANGEPITCH);
-	AddHashMethod("random",					RGF_SM_RANDOM);
-	AddHashMethod("walkmove",				RGF_SM_WALKMOVE);
-	AddHashMethod("flymove",				RGF_SM_FLYMOVE);
-	AddHashMethod("Damage",					RGF_SM_DAMAGE);
-	AddHashMethod("DamagePlayer",			RGF_SM_DAMAGEPLAYER);
-	AddHashMethod("PositionToPlayer",		RGF_SM_POSITIONTOPLAYER);
-	AddHashMethod("PlayerToPosition",		RGF_SM_PLAYERTOPOSITION);
-	AddHashMethod("PositionToPawn",			RGF_SM_POSITIONTOPAWN);
-	AddHashMethod("SetKeyPause",			RGF_SM_SETKEYPAUSE);
-	AddHashMethod("PlayerRender",			RGF_SM_PLAYERRENDER);
-	AddHashMethod("PawnRender",				RGF_SM_PAWNRENDER);
-	AddHashMethod("ChangeMaterial",			RGF_SM_CHANGEMATERIAL);
-	AddHashMethod("SetHoldAtEnd",			RGF_SM_SETHOLDATEND);
-	AddHashMethod("ForceUp",				RGF_SM_FORCEUP);
-	AddHashMethod("ForceDown",				RGF_SM_FORCEDOWN);
-	AddHashMethod("ForceRight",				RGF_SM_FORCERIGHT);
-	AddHashMethod("ForceLeft",				RGF_SM_FORCELEFT);
-	AddHashMethod("ForceForward",			RGF_SM_FORCEFORWARD);
-	AddHashMethod("ForceBackward",			RGF_SM_FORCEBACKWARD);
-	AddHashMethod("UpdateTarget",			RGF_SM_UPDATETARGET);
-	AddHashMethod("FireProjectile",			RGF_SM_FIREPROJECTILE);
-	AddHashMethod("AddExplosion",			RGF_SM_ADDEXPLOSION);
-	AddHashMethod("GetLastBoneHit",			RGF_SM_GETLASTBONEHIT);
-	AddHashMethod("debug",					RGF_SM_DEBUG);
-	AddHashMethod("SetEventState",			RGF_SM_SETEVENTSTATE);
-	AddHashMethod("GetStringLength",		RGF_SM_GETSTRINGLENGTH);
-	AddHashMethod("DrawText",				RGF_SM_DRAWTEXT);
-	AddHashMethod("DrawFlipBookImage",		RGF_SM_DRAWFLIPBOOKIMAGE);
-	AddHashMethod("DrawPolyShadow",			RGF_SM_DRAWPOLYSHADOW);
-	AddHashMethod("MatchPlayerAngles",		RGF_SM_MATCHPLAYERANGLES);
-	AddHashMethod("DamageAtBone",			RGF_SM_DAMAGEATBONE);
-	AddHashMethod("SaveActor",				RGF_SM_SAVEACTOR);
-	AddHashMethod("LookAtPawn",				RGF_SM_LOOKATPAWN);
-	AddHashMethod("AutoWalk",				RGF_SM_AUTOWALK);
-	AddHashMethod("FastDistance",			RGF_SM_FASTDISTANCE);
-	AddHashMethod("StepHeight",				RGF_SM_STEPHEIGHT);
-	AddHashMethod("DrawVPoly",				RGF_SM_DRAWVPOLY);
-	AddHashMethod("DrawHPoly",				RGF_SM_DRAWHPOLY);
-	AddHashMethod("GetPitchToPoint",		RGF_SM_GETPITCHTOPOINT);
-	AddHashMethod("GetYawToPoint",			RGF_SM_GETYAWTOPOINT);
-	AddHashMethod("FastPointCheck",			RGF_SM_FASTPOINTCHECK);
-	AddHashMethod("SetCameraWindow",		RGF_SM_SETCAMERAWINDOW);
-	AddHashMethod("SetFixedCameraPosition",	RGF_SM_SETFIXEDCAMERAPOSITION);
-	AddHashMethod("SetFixedCameraRotation",	RGF_SM_SETFIXEDCAMERAROTATION);
-	AddHashMethod("SetFixedCameraFOV",		RGF_SM_SETFIXEDCAMERAFOV);
-	AddHashMethod("MoveFixedCamera",		RGF_SM_MOVEFIXEDCAMERA);
-	AddHashMethod("RotateFixedCamera",		RGF_SM_ROTATEFIXEDCAMERA);
-	AddHashMethod("DistanceBetweenEntities",RGF_SM_DISTANCEBETWEENENTITIES);
-	AddHashMethod("SetEntityProperties",	RGF_SM_SETENTITYPROPERTIES);
-	AddHashMethod("SetEntityLighting",		RGF_SM_SETENTITYLIGHTING);
-	AddHashMethod("UpdateScriptPoint",		RGF_SM_UPDATESCRIPTPOINT);
-	AddHashMethod("GetEntityScreenX",		RGF_SM_GETENTITYSCREENX);
-	AddHashMethod("GetEntityScreenY",		RGF_SM_GETENTITYSCREENY);
-	AddHashMethod("GetScreenWidth",			RGF_SM_GETSCREENWIDTH);
-	AddHashMethod("GetScreenHeight",		RGF_SM_GETSCREENHEIGHT);
-	AddHashMethod("MouseSelect",			RGF_SM_MOUSESELECT);
-	AddHashMethod("MouseControlledPlayer",	RGF_SM_MOUSECONTROLLEDPLAYER);
-	AddHashMethod("ShowMouse",				RGF_SM_SHOWMOUSE);
-	AddHashMethod("GetMousePosX",			RGF_SM_GETMOUSEPOSX);
-	AddHashMethod("GetMousePosY",			RGF_SM_GETMOUSEPOSY);
-	AddHashMethod("SetMousePos",			RGF_SM_SETMOUSEPOS);
-	AddHashMethod("SetGamma",				RGF_SM_SETGAMMA);
-	AddHashMethod("GetGamma",				RGF_SM_GETGAMMA);
-	AddHashMethod("FillScreenArea",			RGF_SM_FILLSCREENAREA);
-	AddHashMethod("RemoveScreenArea",		RGF_SM_REMOVESCREENAREA);
-	AddHashMethod("ShowText",				RGF_SM_SHOWTEXT);
-	AddHashMethod("RemoveText",				RGF_SM_REMOVETEXT);
-	AddHashMethod("ShowHudPicture",			RGF_SM_SHOWHUDPICTURE);
-	AddHashMethod("SetHudDraw",				RGF_SM_SETHUDDRAW);
-	AddHashMethod("GetHudDraw",				RGF_SM_GETHUDDRAW);
-	AddHashMethod("SetAlpha",				RGF_SM_SETALPHA);
-	AddHashMethod("GetAlpha",				RGF_SM_GETALPHA);
-	AddHashMethod("SetEntityAlpha",			RGF_SM_SETENTITYALPHA);
-	AddHashMethod("GetEntityAlpha",			RGF_SM_GETENTITYALPHA);
-	AddHashMethod("SetScale",				RGF_SM_SETSCALE);
-	AddHashMethod("SetEntityScale",			RGF_SM_SETENTITYSCALE);
-	AddHashMethod("CheckArea",				RGF_SM_CHECKAREA);
-	AddHashMethod("SetFlag",				RGF_SM_SETFLAG);
-	AddHashMethod("GetFlag",				RGF_SM_GETFLAG);
-	AddHashMethod("PowerUp",				RGF_SM_POWERUP);
-	AddHashMethod("GetPowerUpLevel",		RGF_SM_GETPOWERUPLEVEL);
-	AddHashMethod("ActivateHudElement",		RGF_SM_ACTIVATEHUDELEMENT);
-	AddHashMethod("MoveEntity",				RGF_SM_MOVEENTITY);
-	AddHashMethod("RotateEntity",			RGF_SM_ROTATEENTITY);
-	AddHashMethod("SetEntityPosition",		RGF_SM_SETENTITYPOSITION);
-	AddHashMethod("SetEntityRotation",		RGF_SM_SETENTITYROTATION);
-	AddHashMethod("AddAttribute",			RGF_SM_ADDATTRIBUTE);
-	AddHashMethod("SetAttributeValueLimits",RGF_SM_SETATTRIBUTEVALUELIMITS);
-	AddHashMethod("RightCopy",				RGF_SM_RIGHTCOPY);
-	AddHashMethod("NearestPoint",			RGF_SM_NEARESTPOINT);
-	AddHashMethod("SetFOV",					RGF_SM_SETFOV);
-	AddHashMethod("sin",					RGF_SM_SIN);
-	AddHashMethod("cos",					RGF_SM_COS);
-	AddHashMethod("tan",					RGF_SM_TAN);
-	AddHashMethod("asin",					RGF_SM_ASIN);
-	AddHashMethod("acos",					RGF_SM_ACOS);
-	AddHashMethod("atan",					RGF_SM_ATAN);
-	AddHashMethod("SetGravity",				RGF_SM_SETGRAVITY);
-	AddHashMethod("GetGravityX",			RGF_SM_GETGRAVITYX);
-	AddHashMethod("GetGravityY",			RGF_SM_GETGRAVITYY);
-	AddHashMethod("GetGravityZ",			RGF_SM_GETGRAVITYZ);
-	AddHashMethod("SetWind",				RGF_SM_SETWIND);
-	AddHashMethod("GetWindX",				RGF_SM_GETWINDX);
-	AddHashMethod("GetWindY",				RGF_SM_GETWINDY);
-	AddHashMethod("GetWindZ",				RGF_SM_GETWINDZ);
-	AddHashMethod("SetWindBase",			RGF_SM_SETWINDBASE);
-	AddHashMethod("GetWindBaseX",			RGF_SM_GETWINDBASEX);
-	AddHashMethod("GetWindBaseY",			RGF_SM_GETWINDBASEY);
-	AddHashMethod("GetWindBaseZ",			RGF_SM_GETWINDBASEZ);
-	AddHashMethod("SetWindGenerator",		RGF_SM_SETWINDGENERATOR);
-	AddHashMethod("SetForceEnabled",		RGF_SM_SETFORCEENABLED);
-	AddHashMethod("IsInLiquid",				RGF_SM_ISINLIQUID);
-	AddHashMethod("GetLiquid",				RGF_SM_GETLIQUID);
-	AddHashMethod("EndScript",				RGF_SM_ENDSCRIPT);
-	//AddHashMethod("SetSlowMotion",		RGF_SM_SETSLOWMOTION);
-
-	// high methods
-	AddHashMethod("MoveToPoint",			RGF_SM_MOVETOPOINT);
-	AddHashMethod("RotateToPoint",			RGF_SM_ROTATETOPOINT);
-	AddHashMethod("NewOrder",				RGF_SM_NEWORDER);
-	AddHashMethod("NextOrder",				RGF_SM_NEXTORDER);
-	AddHashMethod("RotateToAlign",			RGF_SM_ROTATETOALIGN);
-	//AddHashMethod("NextPoint",			RGF_SM_NEXTPOINT);				// same as low method
-	AddHashMethod("Delay",					RGF_SM_DELAY);
-	AddHashMethod("PlayAnimation",			RGF_SM_PLAYANIMATION);
-	AddHashMethod("BlendToAnimation",		RGF_SM_BLENDTOANIMATION);
-	AddHashMethod("LoopAnimation",			RGF_SM_LOOPANIMATION);
-	AddHashMethod("Rotate",					RGF_SM_ROTATE);
-	AddHashMethod("RotateMoveToPoint",		RGF_SM_ROTATEMOVETOPOINT);
-	AddHashMethod("RotateMove",				RGF_SM_ROTATEMOVE);
-	AddHashMethod("NewPath",				RGF_SM_NEWPATH);
-	AddHashMethod("RestartOrder",			RGF_SM_RESTARTORDER);
-	AddHashMethod("PlayerDistOrder",		RGF_SM_PLAYERDISTORDER);
-	AddHashMethod("Console",				RGF_SM_CONSOLE);
-	AddHashMethod("AudibleRadius",			RGF_SM_AUDIBLERADIUS);
-	AddHashMethod("AddPainOrder",			RGF_SM_ADDPAINORDER);
-	AddHashMethod("FindTargetOrder",		RGF_SM_FINDTARGETORDER);
-	AddHashMethod("FindPointOrder",			RGF_SM_FINDPOINTORDER);
-	//AddHashMethod("NewPoint",				RGF_SM_NEWPOINT);				// same as low method
-	AddHashMethod("MoveForward",			RGF_SM_MOVEFORWARD);
-	AddHashMethod("MoveBackward",			RGF_SM_MOVEBACKWARD);
-	AddHashMethod("MoveLeft",				RGF_SM_MOVELEFT);
-	AddHashMethod("MoveRight",				RGF_SM_MOVERIGHT);
-	AddHashMethod("Move",					RGF_SM_MOVE);
-	AddHashMethod("AvoidOrder",				RGF_SM_AVOIDORDER);
-	AddHashMethod("Return",					RGF_SM_RETURN);
-	AddHashMethod("Align",					RGF_SM_ALIGN);
-	AddHashMethod("Jump",					RGF_SM_JUMP);
-	AddHashMethod("AddTriggerOrder",		RGF_SM_ADDTRIGGERORDER);
-	AddHashMethod("DelTriggerOrder",		RGF_SM_DELTRIGGERORDER);
-	//AddHashMethod("SetEventState",		RGF_SM_SETEVENTSTATE);			// same as low method
-	AddHashMethod("FacePlayer",				RGF_SM_FACEPLAYER);
-	AddHashMethod("RotateToPlayer",			RGF_SM_ROTATETOPLAYER);
-	AddHashMethod("RotateAroundPointLeft",	RGF_SM_ROTATEAROUNDPOINTLEFT);
-	AddHashMethod("RotateAroundPointRight",	RGF_SM_ROTATEAROUNDPOINTRIGHT);
-	AddHashMethod("TeleportToPoint",		RGF_SM_TELEPORTTOPOINT);
-	//AddHashMethod("AnimationSpeed",		RGF_SM_ANIMATIONSPEED);			// same as low method
-	//AddHashMethod("SetFlag",				RGF_SM_SETFLAG);				// same as low method
-	AddHashMethod("AddFlagOrder",			RGF_SM_ADDFLAGORDER);
-	AddHashMethod("DelFlagOrder",			RGF_SM_DELFLAGORDER);
-	//AddHashMethod("ChangeMaterial",		RGF_SM_CHANGEMATERIAL);			// same as low method
-	AddHashMethod("AddTimerOrder",			RGF_SM_ADDTIMERORDER);
-	AddHashMethod("DelTimerOrder",			RGF_SM_DELTIMERORDER);
-	AddHashMethod("AddRandomSound",			RGF_SM_ADDRANDOMSOUND);
-	AddHashMethod("DelRandomSound",			RGF_SM_DELRANDOMSOUND);
-	AddHashMethod("AddDistanceOrder",		RGF_SM_ADDDISTANCEORDER);
-	AddHashMethod("DelDistanceOrder",		RGF_SM_DELDISTANCEORDER);
-	AddHashMethod("AddCollisionOrder",		RGF_SM_ADDCOLLISIONORDER);
-	AddHashMethod("DelCollisionOrder",		RGF_SM_DELCOLLISIONORDER);
-	AddHashMethod("AnimateStop",			RGF_SM_ANIMATESTOP);
-	AddHashMethod("AttributeOrder",			RGF_SM_ATTRIBUTEORDER);
-	AddHashMethod("Remove",					RGF_SM_REMOVE);
-	//AddHashMethod("SetKeyPause",			RGF_SM_SETKEYPAUSE);			// same as low method
-	//AddHashMethod("SetNoCollision",		RGF_SM_SETNOCOLLISION);			// same as low method
-	//AddHashMethod("SetCollision",			RGF_SM_SETCOLLISION);			// same as low method
-	AddHashMethod("AllowUseKey",			RGF_SM_ALLOWUSEKEY);
-	//AddHashMethod("SetHudDraw",			RGF_SM_SETHUDDRAW);				// same as low method
-	AddHashMethod("HideFromRadar",			RGF_SM_HIDEFROMRADAR);
-	AddHashMethod("Conversation",			RGF_SM_CONVERSATION);
-	AddHashMethod("FadeIn",					RGF_SM_FADEIN);
-	AddHashMethod("FadeOut",				RGF_SM_FADEOUT);
-	//AddHashMethod("SetFOV",				RGF_SM_SETFOV);					// same as low method
-	//AddHashMethod("StepHeight",			RGF_SM_STEPHEIGHT);				// same as low method
-	AddHashMethod("SetGroup",				RGF_SM_SETGROUP);
-	AddHashMethod("HostilePlayer",			RGF_SM_HOSTILEPLAYER);
-	AddHashMethod("HostileDifferent",		RGF_SM_HOSTILEDIFFERENT);
-	AddHashMethod("HostileSame",			RGF_SM_HOSTILESAME);
-	//AddHashMethod("Gravity",				RGF_SM_GRAVITY);				// same as low method
-	AddHashMethod("SoundLoop",				RGF_SM_SOUNDLOOP);
-	AddHashMethod("IsPushable",				RGF_SM_ISPUSHABLE);
-	AddHashMethod("IsVehicle",				RGF_SM_ISVEHICLE);
-	AddHashMethod("MoveToTarget",			RGF_SM_MOVETOTARGET);
-	AddHashMethod("RotateToTarget",			RGF_SM_ROTATETOTARGET);
-	AddHashMethod("RotateMoveToTarget",		RGF_SM_ROTATEMOVETOTARGET);
-	AddHashMethod("LowLevel",				RGF_SM_LOWLEVEL);
-	AddHashMethod("BoxWidth",				RGF_SM_BOXWIDTH);
-	AddHashMethod("BoxHeight",				RGF_SM_BOXHEIGHT);
-	AddHashMethod("Scale",					RGF_SM_SCALE);
-	//AddHashMethod("SetScale",				RGF_SM_SETSCALE);				// same as low method
-	//AddHashMethod("FireProjectile",		RGF_SM_FIREPROJECTILE);			// same as low method
-	//AddHashMethod("AddExplosion",			RGF_SM_ADDEXPLOSION);			// same as low method
-	AddHashMethod("TargetGroup",			RGF_SM_TARGETGROUP);
-	AddHashMethod("TestDamageOrder",		RGF_SM_TESTDAMAGEORDER);
-	AddHashMethod("SetLODDistance",			RGF_SM_SETLODDISTANCE);
-	AddHashMethod("AttachToActor",			RGF_SM_ATTACHTOACTOR);
-	AddHashMethod("DetachFromActor",		RGF_SM_DETACHFROMACTOR);
-	AddHashMethod("AttachBlendActor",		RGF_SM_ATTACHBLENDACTOR);
-	AddHashMethod("DetachBlendActor",		RGF_SM_DETACHBLENDACTOR);
-	AddHashMethod("AttachAccessory",		RGF_SM_ATTACHACCESSORY);
-	AddHashMethod("DetachAccessory",		RGF_SM_DETACHACCESSORY);
-	AddHashMethod("SetWeapon",				RGF_SM_SETWEAPON);
-	AddHashMethod("RemoveWeapon",			RGF_SM_REMOVEWEAPON);
-	//AddHashMethod("random",				RGF_SM_RANDOM);					// same as low method
-	//AddHashMethod("debug",				RGF_SM_DEBUG);					// same as low method
-	AddHashMethod("ShowTextDelay",			RGF_SM_SHOWTEXTDELAY);
-	//AddHashMethod("ShowText",				RGF_SM_SHOWTEXT);				// same as low method
-	//AddHashMethod("RemoveText",			RGF_SM_REMOVETEXT);				// same as low method
-	AddHashMethod("GetConvReplyNr",			RGF_SM_GETCONVREPLYNR);
-	AddHashMethod("Concat",					RGF_SM_CONCAT);
-	//AddHashMethod("GetAttribute",			RGF_SM_GETATTRIBUTE);			// same as low method
-	//AddHashMethod("ModifyAttribute",		RGF_SM_MODIFYATTRIBUTE);		// same as low method
-	//AddHashMethod("SetAttribute",			RGF_SM_SETATTRIBUTE);			// same as low method
-	//AddHashMethod("AddAttribute",			RGF_SM_ADDATTRIBUTE);			// same as low method
-	//AddHashMethod("SetAttributeValueLimits",RGF_SM_SETATTRIBUTEVALUELIMITS);	// same as low method
-	//AddHashMethod("GetFlag",				RGF_SM_GETFLAG);				// same as low method
-	//AddHashMethod("MouseControlledPlayer",RGF_SM_MOUSECONTROLLEDPLAYER);	// same as low method
-	//AddHashMethod("GetEventState",		RGF_SM_GETEVENTSTATE);			// same as low method
-	//AddHashMethod("EndScript",			RGF_SM_ENDSCRIPT);				// same as low method
-
-	// readable variables
-	AddHashMethod("time",					RGF_SM_TIME);
-	AddHashMethod("ThinkTime",				RGF_SM_THINKTIME);
-	AddHashMethod("DifficultyLevel",		RGF_SM_DIFFICULTYLEVEL);
-	AddHashMethod("EntityName",				RGF_SM_ENTITYNAME);
-	AddHashMethod("health",					RGF_SM_HEALTH);
-	AddHashMethod("attack_finished",		RGF_SM_ATTACK_FINISHED);
-	AddHashMethod("attack_state",			RGF_SM_ATTACK_STATE);
-	AddHashMethod("enemy_vis",				RGF_SM_ENEMY_VIS);
-	AddHashMethod("enemy_infront",			RGF_SM_ENEMY_INFRONT);
-	AddHashMethod("enemy_range",			RGF_SM_ENEMY_RANGE);
-	AddHashMethod("player_range",			RGF_SM_PLAYER_RANGE);
-	AddHashMethod("enemy_yaw",				RGF_SM_ENEMY_YAW);
-	AddHashMethod("last_enemy_yaw",			RGF_SM_LAST_ENEMY_YAW);
-	AddHashMethod("enemy_pitch",			RGF_SM_ENEMY_PITCH);
-	AddHashMethod("last_enemy_pitch",		RGF_SM_LAST_ENEMY_PITCH);
-	AddHashMethod("last_enemy_range",		RGF_SM_LAST_ENEMY_RANGE);
-	AddHashMethod("current_yaw",			RGF_SM_CURRENT_YAW);
-	AddHashMethod("yaw_speed",				RGF_SM_YAW_SPEED);
-	AddHashMethod("ideal_yaw",				RGF_SM_IDEAL_YAW);
-	AddHashMethod("current_pitch",			RGF_SM_CURRENT_PITCH);
-	AddHashMethod("pitch_speed",			RGF_SM_PITCH_SPEED);
-	AddHashMethod("ideal_pitch",			RGF_SM_IDEAL_PITCH);
-	AddHashMethod("in_pain",				RGF_SM_IN_PAIN);
-	AddHashMethod("animate_at_end",			RGF_SM_ANIMATE_AT_END);
-	AddHashMethod("IsFalling",				RGF_SM_ISFALLING);
-	AddHashMethod("current_X",				RGF_SM_CURRENT_X);
-	AddHashMethod("current_Y",				RGF_SM_CURRENT_Y);
-	AddHashMethod("current_Z",				RGF_SM_CURRENT_Z);
-	AddHashMethod("player_X",				RGF_SM_PLAYER_X);
-	AddHashMethod("player_Y",				RGF_SM_PLAYER_Y);
-	AddHashMethod("player_Z",				RGF_SM_PLAYER_Z);
-	AddHashMethod("distancetopoint",		RGF_SM_DISTANCETOPOINT);
-	AddHashMethod("playertopoint",			RGF_SM_PLAYERTOPOINT);
-	AddHashMethod("key_pressed",			RGF_SM_KEY_PRESSED);
-	AddHashMethod("player_vis",				RGF_SM_PLAYER_VIS);
-	AddHashMethod("target_name",			RGF_SM_TARGET_NAME);
-	AddHashMethod("enemy_X",				RGF_SM_ENEMY_X);
-	AddHashMethod("enemy_Y",				RGF_SM_ENEMY_Y);
-	AddHashMethod("enemy_Z",				RGF_SM_ENEMY_Z);
-	AddHashMethod("player_yaw",				RGF_SM_PLAYER_YAW);
-	AddHashMethod("point_vis",				RGF_SM_POINT_VIS);
-	AddHashMethod("player_weapon",			RGF_SM_PLAYER_WEAPON);
-	AddHashMethod("point_name",				RGF_SM_POINT_NAME);
-	AddHashMethod("camera_pitch",			RGF_SM_CAMERA_PITCH);
-	AddHashMethod("LODLevel",				RGF_SM_LODLEVEL);
-	AddHashMethod("current_screen_X",		RGF_SM_CURRENT_SCREEN_X);
-	AddHashMethod("current_screen_Y",		RGF_SM_CURRENT_SCREEN_Y);
-	AddHashMethod("player_screen_X",		RGF_SM_PLAYER_SCREEN_X);
-	AddHashMethod("player_screen_Y",		RGF_SM_PLAYER_SCREEN_Y);
-	AddHashMethod("lbutton_pressed",		RGF_SM_LBUTTON_PRESSED);
-	AddHashMethod("rbutton_pressed",		RGF_SM_RBUTTON_PRESSED);
-	AddHashMethod("mbutton_pressed",		RGF_SM_MBUTTON_PRESSED);
-	AddHashMethod("player_animation",		RGF_SM_PLAYER_ANIMATION);
-	AddHashMethod("player_viewpoint",		RGF_SM_PLAYER_VIEWPOINT);
-
-	// writeable variables
-	AddHashMethod("lowTime",				RGF_SM_LOWTIME);
-	//AddHashMethod("ThinkTime",			RGF_SM_THINKTIME);				// same as readable
-	AddHashMethod("think",					RGF_SM_THINK);
-	//AddHashMethod("attack_finished",		RGF_SM_ATTACK_FINISHED);		// same as readable
-	//AddHashMethod("attack_state",			RGF_SM_ATTACK_STATE);			// same as readable
-	//AddHashMethod("yaw_speed",			RGF_SM_YAW_SPEED);				// same as readable
-	//AddHashMethod("ideal_yaw",			RGF_SM_IDEAL_YAW);				// same as readable
-	//AddHashMethod("pitch_speed",			RGF_SM_PITCH_SPEED);			// same as readable
-	//AddHashMethod("ideal_pitch",			RGF_SM_IDEAL_PITCH);			// same as readable
 }
 
 

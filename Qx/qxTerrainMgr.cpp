@@ -12,6 +12,7 @@
 /****************************************************************************************/
 
 #include "..\\RabidFramework.h"
+#include "..\\CScriptManager.h"
 #include "qxTerrainMgr.h"
 #include "qxTerrainUtils.h"
 #include "qxTerrainMap.h"
@@ -35,7 +36,7 @@
 #include "..\\Simkin\\skTreeNode.h"
 
 
-TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName, CCD->GetskContext()) //change simkin
+TerrainObject::TerrainObject(char *fileName) : skScriptedExecutable(fileName, ScriptManager::GetContext())
 {
 	Order[0] = '\0';
 	ElapseTime = 0.0f;
@@ -505,7 +506,7 @@ bool qxTerrainMgr::Init()
 					strcpy(Object->Order, pSource->InitOrder);
 					try
 					{
-						Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
+						Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 					}
 					catch(skRuntimeException &e)
 					{
@@ -673,7 +674,7 @@ bool qxTerrainMgr::Frame()
 
 			try
 			{
-				Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
+				Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 			}
 			catch(skRuntimeException &e)
 			{

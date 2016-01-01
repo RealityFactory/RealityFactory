@@ -12,6 +12,8 @@
 // Include the One True Header
 #include "RabidFramework.h"
 #include "CHeadsUpDisplay.h"
+#include "CScriptManager.h"
+
 #include "CInventory.h"
 
 #include "C3DAudioSource.h"
@@ -34,7 +36,8 @@ extern geSound_Def *SPool_Sound(const char *SName);
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-ControllerObject::ControllerObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())//change simkin
+ControllerObject::ControllerObject(const char *fileName)
+	: skScriptedExecutable(fileName, ScriptManager::GetContext())
 {
 	Order[0]		= '\0';
 	m_ThinkOrder[0]	= '\0';
@@ -1103,7 +1106,7 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 
 				try
 				{
-					Object->method(skString(Object->Order), args, ret,CCD->GetskContext()); //change simkin
+					Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 				}
 				catch(skRuntimeException &e)
 				{
@@ -1236,7 +1239,7 @@ void CLevelController::Tick(geFloat dwTicks)
 
 				try
 				{
-					Object->method(skString(Object->Order), args, ret,CCD->GetskContext());
+					Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 				}
 				catch(skRuntimeException &e)
 				{

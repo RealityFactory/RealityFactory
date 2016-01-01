@@ -12,9 +12,6 @@
 #ifndef __RGF_CCOMMONDATA_H_
 #define __RGF_CCOMMONDATA_H_
 
-#include "hashtable\\hash_table.h"
-
-typedef CHashTable<long> CLongHashTable;
 class CPlayer;
 class CActorManager;
 class CModelManager;
@@ -69,14 +66,7 @@ public:
 	bool CheckJoystickButton(int jn, int bn);
 	int  GetNumJoys();
 
-	skExecutableContext GetskContext();								// change simkin
-	void AddScriptedObject(const char *objectName, skRValue Object);// change simkin
-	void RemoveScriptedObject(const char *objectName);				// change simkin
 
-	void FillHashMethods(void);				// change scripting
-	long GetHashMethod(std::string key);				// change scripting
-	bool AddHashMethod(std::string key, long value);	// change scripting
-	void ClearHashMethods(void);				// changed QD 08/15/06
 
 	void PlayOpeningCutScene();					///< Play opening cut scene
 	void CheckMediaPlayers();					///< Poll all media players

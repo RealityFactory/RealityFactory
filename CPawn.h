@@ -16,7 +16,6 @@
 #define MAXTEXT 20
 #define MAXFILLAREA 20
 
-#define PARMCHECK(x) CCD->Pawns()->ParmCheck(arguments.entries(), x, Order, szName, methodName)
 
 typedef struct TxtMessage
 {
@@ -226,7 +225,7 @@ private:
 class ScriptedObject : public skScriptedExecutable
 {
 public:
-	ScriptedObject(char *fileName);
+	explicit ScriptedObject(const std::string& filename);
 	~ScriptedObject();
 
 	bool getValue(const skString& fieldName, const skString& attribute, skRValue& value);
@@ -448,7 +447,6 @@ public:
 	int GetBlock()	{ return ConsoleBlock;	}
 	void IncBlock()	{ ConsoleBlock += 1;	}
 
-	void ParmCheck(int Entries, int Desired, const char *Order, const char *szName, const skString &methodname);
 	void LoadConv(const char *convtxt);
 
 	// changed Nout 12/15/05

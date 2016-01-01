@@ -9,6 +9,7 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "IniFile.h"
+#include "CScriptManager.h"
 #include "CScriptPoint.h"
 #include "CPawn.h"
 
@@ -28,7 +29,8 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 // ScriptedObject class
 /* ------------------------------------------------------------------------------------ */
-ScriptedObject::ScriptedObject(char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext())// change simkin
+ScriptedObject::ScriptedObject(const std::string& filename)
+	: skScriptedExecutable(filename.c_str(), ScriptManager::GetContext())
 {
 	highlevel		= true;
 	RunOrder		= false;
@@ -101,7 +103,7 @@ ScriptedObject::~ScriptedObject()
 {
 	if(Actor)
 	{
-		CCD->RemoveScriptedObject(CCD->ActorManager()->GetEntityName(Actor));//change scripting
+		ScriptManager::RemoveGlobalVariable(CCD->ActorManager()->GetEntityName(Actor));
 		CCD->ActorManager()->RemoveActor(Actor);
 		geActor_Destroy(&Actor);
 		Actor = NULL;
@@ -598,7 +600,7 @@ CPawn::CPawn()
 				ScriptedObject *Object = (ScriptedObject*)pSource->Data;
 
 				if(!EffectC_IsStringNull(pSource->szEntityName))
-					CCD->AddScriptedObject(pSource->szEntityName,Object);
+					ScriptManager::AddGlobalVariable(pSource->szEntityName, Object);
 
 				strcpy(Object->szName, pSource->szEntityName);
 
@@ -937,7 +939,7 @@ CPawn::~CPawn()
 		if(pSource->Data)
 		{
 			ScriptedObject *Object = (ScriptedObject *)pSource->Data;
-			CCD->RemoveScriptedObject(pSource->szEntityName);//change scripting - remove object
+			ScriptManager::RemoveGlobalVariable(pSource->szEntityName);
 			delete Object;
 			pSource->Data = NULL;
 		}
@@ -1537,27 +1539,6 @@ int CPawn::LocateEntity(const char *szName, void **pEntityData)
 	}
 
 	return RGF_NOT_FOUND;								// Sorry, no such entity here
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ParmCheck
-/* ------------------------------------------------------------------------------------ */
-void CPawn::ParmCheck(int Entries, int Desired, const char *Order, const char *szName, const skString &methodname)
-{
-	if(Entries >= Desired)
-		return;
-
-	char param0[128];
-	strcpy(param0, methodname);
-	char szError[256];
-	sprintf(szError, "[ERROR] Incorrect # of parameters in command '%s' in Script '%s'  Order '%s'",
-			param0, szName, Order);
-	CCD->ReportError(szError, false);
-	CCD->ShutdownLevel();
-	delete CCD;
-	CCD = NULL;
-	MessageBox(NULL, szError, "Pawn", MB_OK);
-	exit(-333);
 }
 
 

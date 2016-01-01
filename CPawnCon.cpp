@@ -7,6 +7,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CScriptManager.h"
 #include "CPawn.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -25,7 +26,8 @@ extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 /* ------------------------------------------------------------------------------------ */
 //	ScriptConverse class
 /* ------------------------------------------------------------------------------------ */
-ScriptedConverse::ScriptedConverse(const char *fileName) : skScriptedExecutable(fileName,CCD->GetskContext()) //update simkin
+ScriptedConverse::ScriptedConverse(const char *fileName)
+	: skScriptedExecutable(fileName, ScriptManager::GetContext())
 {
 	M_CameraRect.Left	= 0;
 	M_CameraRect.Right	= CCD->Engine()->Width() - 1;
@@ -2641,7 +2643,7 @@ void CPawn::RunConverse(ScriptedConverse *Converse, const char *szName, geBitmap
 					Converse->SoundMouseOver[i] = "";
 				}
 // end change
-				Converse->method(skString(Converse->Order), args, ret, CCD->GetskContext()); // change simkin
+				Converse->method(skString(Converse->Order), args, ret, ScriptManager::GetContext());
 
 			} while (!Converse->ConvFlag);
 		}

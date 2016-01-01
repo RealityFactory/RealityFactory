@@ -12,6 +12,7 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "RGFScriptMethods.h"
+#include "CScriptManager.h"
 #include "CHeadsUpDisplay.h"
 #include "CInventory.h"
 #include "CScriptPoint.h"
@@ -215,9 +216,8 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	param7[0] = '\0';
 	param8[0] = '\0';
 
-	long method = CCD->GetHashMethod(methodName.c_str());//change scripting
 
-	switch(method)
+	switch(ScriptManager::GetHashMethod(methodName))
 	{
 	case RGF_SM_MOVETOPOINT:
 		{
@@ -3194,7 +3194,7 @@ void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 
 				try
 				{
-					Object->method(skString(Object->Order), args, ret,CCD->GetskContext());//change simkin
+					Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 				}
 				catch(skRuntimeException e)
 				{

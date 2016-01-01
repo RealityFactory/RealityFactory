@@ -11,6 +11,7 @@
 
 #include "RabidFramework.h"
 #include "RGFScriptMethods.h"
+#include "CScriptManager.h"
 #include "CHeadsUpDisplay.h"
 #include "CPolyShadow.h"
 #include "CInventory.h"
@@ -41,7 +42,7 @@ bool ScriptedObject::getValue(const skString &fieldName,
 							  const skString &attribute,
 							  skRValue &value)
 {
-	long variable = CCD->GetHashMethod(fieldName.c_str());
+	long variable = ScriptManager::GetHashMethod(fieldName);
 
 	switch(variable)
 	{
@@ -468,7 +469,7 @@ bool ScriptedObject::setValue(const skString &fieldName,
 							  const skString &attribute,
 							  const skRValue &value)
 {
-	long variable = CCD->GetHashMethod(fieldName.c_str());
+	long variable = ScriptManager::GetHashMethod(fieldName);
 
 	switch(variable)
 	{
@@ -536,7 +537,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 	param4[0] = '\0';
 	param5[0] = '\0';
 
-	long method = CCD->GetHashMethod(methodName.c_str());//change scripting
+	long method = ScriptManager::GetHashMethod(methodName);
 
 	switch(method)
 	{
@@ -4545,7 +4546,7 @@ void CPawn::TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks)
 
 	try
 	{
-		Object->method(skString(Object->Order), args, ret,CCD->GetskContext()); //change simkin
+		Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
 	}
 	catch(skRuntimeException & e)
 	{
