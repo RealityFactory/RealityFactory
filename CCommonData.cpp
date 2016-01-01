@@ -262,7 +262,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 
 
 	// Ok, let's see if we have an initialization file, and if so, read it in and parse it.
-	if((fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.ini", "rt")) != NULL)
+	if((fd = fopen(".\\RealityFactory.ini", "rt")) != NULL)
 	{
 		// File there, parse it!
 		char szInputLine[132];
