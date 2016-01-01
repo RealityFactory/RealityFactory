@@ -43,6 +43,8 @@ public:
 	CCommonData();
 	~CCommonData();
 
+	inline sxLog* Log()		{ return sxLog::GetSingletonPtr(); }
+
 	/**
 	 * @brief Initialize common components
 	 */
