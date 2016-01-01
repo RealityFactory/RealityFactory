@@ -38,10 +38,8 @@ geSound_Def *SPool_Sound(const char *SName)
 
 	if(EffectC_IsStringNull(SName) == GE_TRUE)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Missing Required Field from Entity - Sound File: %s\n",
-				__FILE__, __LINE__, SName);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Missing Required Field from Entity - Sound File: %s",
+							__FILE__, __LINE__, SName);
 		return NULL;
 	}
 
@@ -69,10 +67,8 @@ geSound_Def *SPool_Sound(const char *SName)
 
 	if(!pool->SoundDef)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Unable to load file, invalid path or filename: %s",
-				__FILE__, __LINE__, SName);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Unable to load file, invalid path or filename: %s",
+							__FILE__, __LINE__, SName);
 		free(pool->Name);
 		geRam_Free(pool);
 		return NULL;

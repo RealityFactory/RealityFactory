@@ -390,11 +390,8 @@ CActorSpout::CActorSpout()
 
 			if(!Actor)
 			{
-				char szError[256];
-				sprintf(szError, "[ERROR] File %s - Line %d: %s : Missing Actor '%s'",
-						__FILE__, __LINE__, S->szEntityName, Name);
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
+				CCD->Log()->Critical("File %s - Line %d: %s : Missing Actor '%s'",
+										__FILE__, __LINE__, S->szEntityName, Name);
 				delete CCD;
 				exit(-333);
 			}

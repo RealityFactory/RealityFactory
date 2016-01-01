@@ -79,10 +79,8 @@ geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 
 	if(!pool->Bitmap)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Error in Bitmap %s or Alphamap '%s'\n",
-				__FILE__, __LINE__, TBName, TAName);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Error in Bitmap %s or Alphamap '%s'",
+							__FILE__, __LINE__, TBName, TAName);
 		free(pool->BmpName);
 		free(pool->AlphaName);
 		geRam_Free(pool);

@@ -61,10 +61,8 @@ CPathDatabase::CPathDatabase() :
 
 			if(pPoint == NULL)
 			{
-				char szBug[256];
-				sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to locate linked pathpoint '%s'\n",
-						__FILE__, __LINE__, OldPoint->PointName, OldPoint->NextPointName);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to locate linked pathpoint '%s'",
+									__FILE__, __LINE__, OldPoint->PointName, OldPoint->NextPointName);
 				break;							// Can't find next point?
 			}
 

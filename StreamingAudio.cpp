@@ -93,12 +93,7 @@ int StreamingAudio::Create(char *szFileName)
 {
 	int nError = 0;
 
-	if(CCD->GetLogging())
-	{
-		char szDebug[512];
-		sprintf(szDebug, "[INFO] Loaded %s", szFileName);
-		CCD->ReportError(szDebug, false);
-	}
+	CCD->Log()->Debug("Loaded %s", szFileName);
 
 	// Sanity check parameters
 	if(szFileName == NULL)
@@ -122,7 +117,7 @@ int StreamingAudio::Create(char *szFileName)
 
 		if(nTimer == NULL)
 		{
-			CCD->ReportError("[WARNING] StreamingAudio: Timer callback set-up failed", false);
+			CCD->Log()->Warning("StreamingAudio: Timer callback set-up failed");
 			return RGF_FAILURE;									// Timer startup failed.
 		}
 
@@ -154,7 +149,7 @@ int StreamingAudio::Create(char *szFileName)
 
 	if(nTimer == NULL)
 	{
-		CCD->ReportError("[WARNING] StreamingAudio: Timer callback set-up failed", false);
+		CCD->Log()->Warning("StreamingAudio: Timer callback set-up failed");
 		return RGF_FAILURE;									// Timer startup failed.
 	}
 
@@ -169,10 +164,8 @@ int StreamingAudio::Create(char *szFileName)
 
 	if(nError != RGF_SUCCESS)
 	{
-		char szBug[128];
-		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open wave file '%s'\n(Note: streamig audio can't be placed in VFS)",
-				__FILE__, __LINE__, szFileName);
-		CCD->ReportError(szBug, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to open wave file '%s'\n(Note: streamig audio can't be placed in VFS)",
+							__FILE__, __LINE__, szFileName);
 		return RGF_FAILURE;									// Problem here, too!
 	}
 
@@ -552,7 +545,7 @@ int StreamingAudio::PumpWave(int nSize)
 
 	if(hr != DS_OK)
 	{
-		CCD->ReportError("[WARNING] StreamingAudio::PumpWave: Failed to lock", false);
+		CCD->Log()->Warning("StreamingAudio::PumpWave: Failed to lock");
 		return RGF_SUCCESS;									// Fake it, bail out
 	}
 

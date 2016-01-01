@@ -41,11 +41,8 @@ CTriggers::CTriggers() :
 
 		if(pTrigger->Model == NULL)
 		{
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: '%s' Missing Model",
-					__FILE__, __LINE__, pTrigger->szEntityName);
-			CCD->ReportError(szError, false);
-
+			CCD->Log()->Warning("File %s - Line %d: '%s' Missing Model",
+								__FILE__, __LINE__, pTrigger->szEntityName);
 			continue;
 		}
 
@@ -89,10 +86,9 @@ CTriggers::CTriggers() :
 
 			if(!pTrigger->theSound)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
-						__FILE__, __LINE__, pTrigger->szEntityName, pTrigger->szSoundFile);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to open audio file '%s'\n",
+									__FILE__, __LINE__,
+									pTrigger->szEntityName, pTrigger->szSoundFile);
 			}
 		}
 	}
@@ -210,7 +206,7 @@ bool CTriggers::HandleTriggerEvent(const char *TName)
 
 	if(!pSet)
 	{
-		CCD->ReportError("CTriggers: handletriggerevent: no triggers", false);
+		CCD->Log()->Debug("CTriggers: handletriggerevent: no triggers");
 		return false;
 	}
 
@@ -605,10 +601,8 @@ bool CTriggers::GetTTriggerState(const char *Name)
 				pool = pool->next;
 			}
 
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: Invalid Trigger Name '%s'\n",
-					__FILE__, __LINE__, Name);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: Invalid Trigger Name '%s'",
+								__FILE__, __LINE__, Name);
 			return false;
 		}
 	}

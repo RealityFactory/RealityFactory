@@ -716,16 +716,13 @@ bool CPersistentAttributes::LocalCompare(PersistAttribute* attr, int how, int co
 /* ------------------------------------------------------------------------------------ */
 void CPersistentAttributes::Dump()
 {
-	char szDump[256];
-
 	stdext::hash_map<std::string, PersistAttribute*>::iterator iter = m_List.begin();
 	for(; iter!=m_List.end(); ++iter)
 	{
-		sprintf(szDump, "%s count %d value %d",
+		sxLog::GetSingletonPtr()->Print("%s count %d value %d",
 			iter->first.c_str(),
 			iter->second->Count,
 			iter->second->Value);
-		CCD->ReportError(szDump, false);
 	}
 }
 

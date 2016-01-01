@@ -84,11 +84,9 @@ CStaticMesh::CStaticMesh() :
 				if(!AddNewMesh(pMesh->szActorFile))
 				{
 					CleanUp();
-					char szError[256];
-					sprintf(szError, "File %s - Line %d: %s: AddNewMesh '%s' failed",
-							__FILE__, __LINE__, pMesh->szEntityName, pMesh->szActorFile);
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
+					CCD->Log()->Critical("File %s - Line %d: %s: AddNewMesh '%s' failed",
+											__FILE__, __LINE__,
+											pMesh->szEntityName, pMesh->szActorFile);
 					delete CCD;
 					exit(-333);
 				}
@@ -100,11 +98,9 @@ CStaticMesh::CStaticMesh() :
 			else
 			{
 				CleanUp();
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: %s: file '%s' doesn't exist",
-						__FILE__, __LINE__, pMesh->szEntityName, pMesh->szActorFile);
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
+				CCD->Log()->Critical("File %s - Line %d: %s: file '%s' doesn't exist",
+										__FILE__, __LINE__,
+										pMesh->szEntityName, pMesh->szActorFile);
 				delete CCD;
 				exit(-333);
 			}
@@ -231,12 +227,7 @@ CStaticMesh::CStaticMesh() :
 		{
 			SetAmbientLight(pMesh);
 
-			if(CCD->GetLogging())
-			{
-				char Info[512];
-				sprintf(Info, "[INFO] Set Ambient light for %s", pMesh->szEntityName);
-				CCD->ReportError(Info, false);
-			}
+			CCD->Log()->Debug("Set Ambient light for %s", pMesh->szEntityName);
 		}
 
 		if(bSunLight)
@@ -244,12 +235,8 @@ CStaticMesh::CStaticMesh() :
 			pEntitySunLight = geEntity_EntitySetGetNextEntity(pSetSunLight, NULL);
 			SunLight *pSun = (SunLight*)geEntity_GetUserData(pEntitySunLight);
 			ComputeLighting(pMesh, (void*)pSun, LIGHT_SUNLIGHT);
-			if(CCD->GetLogging())
-			{
-				char Info[512];
-				sprintf(Info, "[INFO] Set Sunlight light for %s", pMesh->szEntityName);
-				CCD->ReportError(Info, false);
-			}
+
+			CCD->Log()->Debug("Set Sunlight light for %s", pMesh->szEntityName);
 		}
 
 		if(bLight)
@@ -260,12 +247,8 @@ CStaticMesh::CStaticMesh() :
 				light *pLight = (light*)geEntity_GetUserData(pEntityLight);
 				ComputeLighting(pMesh, (void*)pLight, LIGHT_POINTLIGHT);
 			}
-			if(CCD->GetLogging())
-			{
-				char Info[512];
-				sprintf(Info, "[INFO] Set Light for %s", pMesh->szEntityName);
-				CCD->ReportError(Info, false);
-			}
+
+			CCD->Log()->Debug("Set Light for %s", pMesh->szEntityName);
 		}
 
 		if(bSpotlight)
@@ -277,12 +260,7 @@ CStaticMesh::CStaticMesh() :
 				ComputeLighting(pMesh, (void*)pSpotlight, LIGHT_SPOTLIGHT);
 			}
 
-			if(CCD->GetLogging())
-			{
-				char Info[512];
-				sprintf(Info, "[INFO] Set Spotlight for %s", pMesh->szEntityName);
-				CCD->ReportError(Info, false);
-			}
+			CCD->Log()->Debug("Set Spotlight for %s", pMesh->szEntityName);
 		}
 	}
 }
@@ -372,10 +350,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			if(!ActorDef)
 			{
 				geVFile_Close(ActorFile);							// Clean up in case of error
-				char szError[256];
-				sprintf(szError,"File %s - Line %d: Failed to create geActor_Def from file '%s'",
-						__FILE__, __LINE__, Name);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to create geActor_Def from file '%s'",
+									__FILE__, __LINE__, Name);
 
 				if(!LOD)
 				{
@@ -396,10 +372,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		{
 			if(!LOD)
 			{
-				char szError[256];
-				sprintf(szError,"File %s - Line %d: Failed to load actor '%s'",
-						__FILE__, __LINE__, Name);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to load actor '%s'",
+									__FILE__, __LINE__, Name);
 
 				if(MeshList[m_MeshCount]->szFilename != NULL)
 					delete MeshList[m_MeshCount]->szFilename;
@@ -439,11 +413,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		{
 			CleanUp = GE_TRUE;
 
-			char szError[256];
-			sprintf(szError,"File %s - Line %d: Failed to get body from actor '%s'",
-					__FILE__, __LINE__, Name);
-			CCD->ReportError(szError, false);
-
+			CCD->Log()->Warning("File %s - Line %d: Failed to get body from actor '%s'",
+								__FILE__, __LINE__, Name);
 			goto CLEAN_UP;
 		}
 
@@ -467,9 +438,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError,"File %s - Line %d: Failed to allocate bitmaps");
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to allocate bitmaps");
 
 				goto CLEAN_UP;
 			}
@@ -485,10 +454,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				{
 					if(!geWorld_AddBitmap(CCD->World(), MeshList[m_MeshCount]->Bitmaps[LOD][i]))
 					{
-						char szError[256];
-						sprintf(szError, "File %s - Line %d: AddBitmap %s failed",
-								__FILE__, __LINE__, MaterialName);
-						CCD->ReportError(szError, false);
+						CCD->Log()->Warning("File %s - Line %d: geWorld_AddBitmap %s failed",
+											__FILE__, __LINE__, MaterialName);
 					}
 				}
 			}
@@ -501,9 +468,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate vertices", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to allocate vertices", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}
@@ -517,9 +482,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate faceindices", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to allocate faceindices", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}
@@ -533,9 +496,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate normalindices", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to allocate normalindices", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}
@@ -546,9 +507,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate normals", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to allocate normals", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}
@@ -560,9 +519,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate colorarray", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Debug("File %s - Line %d: Failed to allocate colorarray", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}
@@ -574,9 +531,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				// error - clean up
 				CleanUp = GE_TRUE;
 
-				char szError[256];
-				sprintf(szError, "File %s - Line %d: Failed to allocate materialindices", __FILE__, __LINE__);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Debug("File %s - Line %d: Failed to allocate materialindices", __FILE__, __LINE__);
 
 				goto CLEAN_UP;
 			}

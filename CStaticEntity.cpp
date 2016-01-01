@@ -65,10 +65,9 @@ CStaticEntity::CStaticEntity() :
 
 		if(!pProxy->Actor)
 		{
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: %s : Missing Actor '%s'",
-					__FILE__, __LINE__, pProxy->szEntityName, pProxy->szActorFile);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: %s : Missing Actor '%s'",
+								__FILE__, __LINE__,
+								pProxy->szEntityName, pProxy->szActorFile);
 			continue;
 		}
 

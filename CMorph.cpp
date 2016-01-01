@@ -73,10 +73,8 @@ CMorph::CMorph()
 
 		if(!pMorph->CStartBmp)
 		{
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create StartBmp\n",
-					__FILE__, __LINE__, pMorph->szEntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Failed to create StartBmp",
+								__FILE__, __LINE__, pMorph->szEntityName);
 			continue;
 		}
 
@@ -93,10 +91,8 @@ CMorph::CMorph()
 
 		if(!pMorph->CEndBmp)
 		{
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to create EndBmp\n",
-					__FILE__, __LINE__, pMorph->szEntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Failed to create EndBmp",
+								__FILE__, __LINE__, pMorph->szEntityName);
 			continue;
 		}
 
@@ -117,10 +113,8 @@ CMorph::CMorph()
 
 			if(pMorph->Actor == NULL)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing actor '%s'",
 						__FILE__, __LINE__, pMorph->szEntityName, pMorph->EntityName);
-				CCD->ReportError(szError, false);
 				continue;
 			}
 		}
@@ -168,10 +162,9 @@ CMorph::CMorph()
 
 			if(i == MaterialCount)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial '%s'\n",
-						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing ActorMaterial '%s'",
+									__FILE__, __LINE__,
+									pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				continue;
 			}
 		}
@@ -181,10 +174,9 @@ CMorph::CMorph()
 
 			if(pMorph->CMorphBmp == NULL)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing bitmap '%s' in level\n",
-						__FILE__, __LINE__, pMorph->szEntityName, pMorph->BitmapToAttachTo);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing bitmap '%s' in level",
+									__FILE__, __LINE__,
+									pMorph->szEntityName, pMorph->BitmapToAttachTo);
 				continue;
 			}
 		}

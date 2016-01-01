@@ -730,10 +730,8 @@ geBitmap *CreateFromFileName(const char *BmName, int nFileType)
 
 	if(!File)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Missing Bitmap %s or Missing Path",
-				__FILE__, __LINE__, BmName);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Missing Bitmap %s or Missing Path",
+							__FILE__, __LINE__, BmName);
 		return NULL;
 	}
 

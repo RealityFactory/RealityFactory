@@ -42,12 +42,10 @@ Chaos::Chaos()
 			if(!pTex->Actor)
 			{
 				char szName[128];
-				char szError[256];
 				geEntity_GetName(pEntity, szName, 128);
 
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
-							__FILE__, __LINE__, szName, pTex->EntityName);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing actor '%s'",
+									__FILE__, __LINE__, szName, pTex->EntityName);
 				continue;
 			}
 		}
@@ -92,12 +90,10 @@ Chaos::Chaos()
 			if(i == MaterialCount)
 			{
 				char szName[128];
-				char szError[256];
 				geEntity_GetName(pEntity, szName, 128);
 
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial %s\n",
-					__FILE__, __LINE__, szName, pTex->AttachBmp);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing ActorMaterial %s",
+									__FILE__, __LINE__, szName, pTex->AttachBmp);
 
 				pTex->CAttachBmp = NULL;
 				continue;
@@ -110,12 +106,10 @@ Chaos::Chaos()
 			if(pTex->CAttachBmp == NULL)
 			{
 				char szName[128];
-				char szError[256];
 				geEntity_GetName(pEntity, szName, 128);
 
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing Texture %s in level\n",
-					__FILE__, __LINE__, szName, pTex->AttachBmp);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Missing Texture %s in level",
+									__FILE__, __LINE__, szName, pTex->AttachBmp);
 				continue;
 			}
 		}

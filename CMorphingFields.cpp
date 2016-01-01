@@ -66,10 +66,8 @@ CMorphingFields::CMorphingFields() :
 
 			if(!pField->theSound)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
-						__FILE__, __LINE__, pField->szEntityName, pField->szSoundFile);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to open audio file '%s'",
+									__FILE__, __LINE__, pField->szEntityName, pField->szSoundFile);
 			}
 		}
 

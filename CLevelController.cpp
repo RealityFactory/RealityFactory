@@ -1051,45 +1051,27 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 			}
 			catch(skParseException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Parse Script Error for Controller script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Parse Script Error for Controller script %s", e.toString());
 				return;
 			}
 			catch(skBoundsException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Bounds Script Error for Controller script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Bounds Script Error for Controller script %s", e.toString());
 				return;
 			}
 			catch(skRuntimeException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Runtime Script Error for Controller script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Runtime Script Error for Controller script %s", e.toString());
 				return;
 			}
 			catch(skTreeNodeReaderException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Reader Script Error for Controller script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Reader Script Error for Controller script %s", e.toString());
 				return;
 			}
 			catch (...)
 			{
-				char szBug[256];
-				sprintf(szBug, "Script Error for Controller script");
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Script Error for Controller script");
 				return;
 			}
 
@@ -1110,27 +1092,17 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 				}
 				catch(skRuntimeException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Runtime Script Error for Controller script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Runtime Script Error for Controller script %s", e.toString());
 					return;
 				}
 				catch(skParseException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Parse Script Error for Controller script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Parse Script Error for Controller script %s", e.toString());
 					return;
 				}
 				catch(...)
 				{
-					char szBug[256];
-					sprintf(szBug, "Script Error for Controller script");
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Script Error for Controller script");
 					return;
 				}
 			}
@@ -1243,27 +1215,17 @@ void CLevelController::Tick(geFloat dwTicks)
 				}
 				catch(skRuntimeException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Runtime Script Error for Controller script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Runtime Script Error for Controller script %s", e.toString());
 					return;
 				}
 				catch(skParseException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Parse Script Error for Controller script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Parse Script Error for Controller script %s", e.toString());
 					return;
 				}
 				catch(...)
 				{
-					char szBug[256];
-					sprintf(szBug, "Script Error for Controller script");
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Script Error for Controller script");
 					return;
 				}
 			}

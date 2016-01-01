@@ -296,9 +296,7 @@ geVec3d CScriptPoint::GetOrigin(const char *Name)
 				pool = pool->next;
 			}
 
-			char szError[256];
-			sprintf(szError, "[WARNING] Invalid ScriptPoint Name '%s'\n", Name);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("Invalid ScriptPoint Name '%s'", Name);
 			return zero;
 		}
 	}

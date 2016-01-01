@@ -506,10 +506,8 @@ bool CLogic::GetLTriggerState(const char *Name)
 				pool = pool->next;
 			}
 
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: Invalid Trigger Name '%s'\n",
-					__FILE__, __LINE__, Name);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Debug("File %s - Line %d: Invalid Trigger Name '%s'",
+								__FILE__, __LINE__, Name);
 			return false;
 		}
 	}

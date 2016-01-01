@@ -288,10 +288,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 	else if (IS_METHOD(methodName, "debug"))
 	{
 		PARMCHECK(1);
-		char szBug[128];
-		strcpy(param0, arguments[0].str());
-		sprintf(szBug, "Debug : %s", param0);
-		CCD->ReportError(szBug, false);
+		CCD->Log()->Debug(arguments[0].str());
 		return true;
 	}
 	else
@@ -457,47 +454,30 @@ bool qxTerrainMgr::Init()
 				}
 				catch(skParseException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Parse Script Error for SkyDome script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Parse Script Error for SkyDome script %s", e.toString());
 					return false;
 				}
 				catch(skBoundsException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Bounds Script Error for SkyDome script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Bounds Script Error for SkyDome script %s", e.toString());
 					return false;
 				}
 				catch(skRuntimeException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Runtime Script Error for SkyDome script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Runtime Script Error for SkyDome script %s", e.toString());
 					return false;
 				}
 				catch(skTreeNodeReaderException &e)
 				{
-					char szBug[256];
-					sprintf(szBug, "Reader Script Error for SkyDome script");
-					CCD->ReportError(szBug, false);
-					strcpy(szBug, e.toString());
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Reader Script Error for SkyDome script %s", e.toString());
 					return false;
 				}
 				catch(...)
 				{
-					char szBug[256];
-					sprintf(szBug, "Script Error for SkyDome script");
-					CCD->ReportError(szBug, false);
+					CCD->Log()->Error("Script Error for SkyDome script");
 					return false;
 				}
+
 				if(!EffectC_IsStringNull(pSource->InitOrder))
 				{
 					skRValueArray args;
@@ -510,27 +490,17 @@ bool qxTerrainMgr::Init()
 					}
 					catch(skRuntimeException &e)
 					{
-						char szBug[256];
-						sprintf(szBug, "Runtime Script Error for SkyDome script");
-						CCD->ReportError(szBug, false);
-						strcpy(szBug, e.toString());
-						CCD->ReportError(szBug, false);
+						CCD->Log()->Error("Runtime Script Error for SkyDome script %s", e.toString());
 						return false;
 					}
 					catch(skParseException &e)
 					{
-						char szBug[256];
-						sprintf(szBug, "Parse Script Error for SkyDome script");
-						CCD->ReportError(szBug, false);
-						strcpy(szBug, e.toString());
-						CCD->ReportError(szBug, false);
+						CCD->Log()->Error("Parse Script Error for SkyDome script %s", e.toString());
 						return false;
 					}
 					catch(...)
 					{
-						char szBug[256];
-						sprintf(szBug, "Script Error for SkyDome script");
-						CCD->ReportError(szBug, false);
+						CCD->Log()->Error("Script Error for SkyDome script");
 						return false;
 					}
 				}
@@ -554,10 +524,7 @@ bool qxTerrainMgr::Init()
 
 			if( !m_pSkyDome->Init() )
 			{
-				char szError[256];
-				sprintf(szError, "Failed to initialize SkyDome");
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
+				CCD->Log()->Critical("Failed to initialize SkyDome");
 				delete CCD;
 				CCD = NULL;
 				exit(-333);
@@ -568,10 +535,7 @@ bool qxTerrainMgr::Init()
 				m_pSun = new qxSun;
 				if( !m_pSun->Init())
 				{
-					char szError[256];
-					sprintf(szError, "Failed to initialize Sun");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
+					CCD->Log()->Critical("Failed to initialize Sun");
 					delete CCD;
 					CCD = NULL;
 					exit(-333);
@@ -580,10 +544,7 @@ bool qxTerrainMgr::Init()
 				m_pMoon = new qxMoon;
 				if( !m_pMoon->Init())
 				{
-					char szError[256];
-					sprintf(szError, "Failed to initialize Moon");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
+					CCD->Log()->Critical("Failed to initialize Moon");
 					delete CCD;
 					CCD = NULL;
 					exit(-333);
@@ -592,10 +553,7 @@ bool qxTerrainMgr::Init()
 				m_pStarField = new qxStarField;
 				if( !m_pStarField->Init())
 				{
-					char szError[256];
-					sprintf(szError, "Failed to initialize Stars");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
+					CCD->Log()->Critical("Failed to initialize Stars");
 					delete CCD;
 					CCD = NULL;
 					exit(-333);
@@ -607,10 +565,7 @@ bool qxTerrainMgr::Init()
 				m_pCloudMachine = new qxCloudMachine;
 				if( !m_pCloudMachine->Init())
 				{
-					char szError[256];
-					sprintf(szError, "Failed to initialize Clouds");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
+					CCD->Log()->Critical("Failed to initialize Clouds");
 					delete CCD;
 					CCD = NULL;
 					exit(-333);
@@ -678,27 +633,17 @@ bool qxTerrainMgr::Frame()
 			}
 			catch(skRuntimeException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Runtime Script Error for SkyDome script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Runtime Script Error for SkyDome script %s", e.toString());
 				return false;
 			}
 			catch(skParseException &e)
 			{
-				char szBug[256];
-				sprintf(szBug, "Parse Script Error for SkyDome script");
-				CCD->ReportError(szBug, false);
-				strcpy(szBug, e.toString());
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Parse Script Error for SkyDome script %s", e.toString());
 				return false;
 			}
 			catch(...)
 			{
-				char szBug[256];
-				sprintf(szBug, "Script Error for SkyDome script");
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Error("Script Error for SkyDome script");
 				return false;
 			}
 		}

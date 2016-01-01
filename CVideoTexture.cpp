@@ -60,7 +60,7 @@ CVideoTexture::CVideoTexture() :
 
 			if((m_GifList[m_EntityCount-1] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
 			{
-				CCD->ReportError("[WARNING] Failed to create new CAnimGif", false);
+				CCD->Log()->Warning("Failed to create new CAnimGif");
 				continue;
 			}
 
@@ -72,16 +72,14 @@ CVideoTexture::CVideoTexture() :
 
 			if((m_VidList[m_EntityCount-1] = new CAVIPlayer()) == NULL)
 			{
-				CCD->ReportError("[WARNING] Failed to create new CAVIPlayer", false);
+				CCD->Log()->Warning("Failed to create new CAVIPlayer");
 				continue;
 			}
 
 			if(m_VidList[m_EntityCount-1]->Open(pTex->szVideoName) != RGF_SUCCESS)
 			{
-				char szBug[256];
-				sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open video texture '%s'",
-						__FILE__, __LINE__, pTex->szVideoName);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to open video texture '%s'",
+									__FILE__, __LINE__, pTex->szVideoName);
 				delete m_VidList[m_EntityCount-1];
 				m_VidList[m_EntityCount-1] = NULL;
 				continue;
@@ -175,17 +173,15 @@ void CVideoTexture::Tick(geFloat /*dwTicks*/)
 					// Set up for texture playback
 					if((m_VidList[nSlot] = new CAVIPlayer()) == NULL)
 					{
-						CCD->ReportError("[WARNING] Vidtex start: Failed to make new CAVIPlayer", false);
+						CCD->Log()->Warning("Vidtex start: Failed to make new CAVIPlayer");
 						++nSlot;
 						continue;
 					}
 
 					if(m_VidList[nSlot]->Open(pTex->szVideoName) != RGF_SUCCESS)
 					{
-						char szBug[256];
-						sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open range texture '%s'",
-								__FILE__, __LINE__, pTex->szVideoName);
-						CCD->ReportError(szBug, false);
+						CCD->Log()->Warning("File %s - Line %d: Failed to open range texture '%s'",
+											__FILE__, __LINE__, pTex->szVideoName);
 						++nSlot;
 						continue;
 					}
@@ -206,7 +202,7 @@ void CVideoTexture::Tick(geFloat /*dwTicks*/)
 				{
 					if((m_GifList[nSlot] = new CAnimGif(pTex->szVideoName, kVideoFile)) == NULL)
 					{
-						CCD->ReportError("Failed to create new CAnimGif", false);
+						CCD->Log()->Warning("Failed to create new CAnimGif");
 						++nSlot;
 						continue;
 					}

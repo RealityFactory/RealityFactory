@@ -71,10 +71,9 @@ CTeleporter::CTeleporter() :
 
 			if(!pTeleporter->theSound)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
-						__FILE__, __LINE__, pTeleporter->szEntityName, pTeleporter->szSoundFile);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to open audio file '%s'",
+									__FILE__, __LINE__,
+									pTeleporter->szEntityName, pTeleporter->szSoundFile);
 			}
 		}
 
@@ -180,7 +179,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 
 			if(pSet2 == NULL)
 			{
-				CCD->ReportError("Teleporters with no targets", false);
+				CCD->Log()->Debug("Teleporters with no targets");
 				return true;
 			}
 

@@ -101,7 +101,7 @@ NetPlayerMgr::~NetPlayerMgr()
 	{
 		nlClose(serversock);
 		serverstop = true;
-		CCD->ReportError("NetManager:  Shutting Down Server", false);
+		CCD->Log()->Notice("NetManager: Shutting Down Server");
 	}
 
 	if(clientrun)
@@ -201,7 +201,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			if(serversock == NL_INVALID)
 			{
 				serverstop = true;
-				CCD->ReportError("[WARNING] Server Error - Open Socket Failed", false);
+				CCD->Log()->Error("Server Error - Open Socket Failed");
 				return false;
 			}
 
@@ -209,7 +209,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			{
 				nlClose(serversock);
 				serverstop = true;
-				CCD->ReportError("[WARNING] Server Error - Listen on Socket Failed", false);
+				CCD->Log()->Error("Server Error - Listen on Socket Failed");
 				return false;
 			}
 
@@ -217,7 +217,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 			group = nlGroupCreate();
 			clientnum = 0;
 			serverstop = false;
-			CCD->ReportError("Server Started", false);
+			CCD->Log()->Notice("Server Started");
 
 			// create buffers for server
 			outbuffer = new NetBuffer(0);
@@ -289,7 +289,7 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 
 				if(deltaTime > 30.0f)
 				{
-					CCD->ReportError("Client Timeout waiting for Acceptance", false);
+					CCD->Log()->Notice("Client Timeout waiting for Acceptance");
 					return false;
 				}
 			}
@@ -384,7 +384,7 @@ void NetPlayerMgr::ServerClientCycle()
 				{
 					nlClose(serversock);
 					serverstop = true;
-					CCD->ReportError("Server Stopped on Connection Error", false);
+					CCD->Log()->Notice("Server Stopped on Connection Error");
 					return;
 				}
 			}

@@ -52,10 +52,8 @@ CMovingPlatforms::CMovingPlatforms() :
 
 		if(!pPlatform->Model)
 		{
-			char szError[256];
-			sprintf(szError,"[WARNING] File %s - Line %d: %s: Missing Model\n",
-					__FILE__, __LINE__, pPlatform->szEntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Missing Model",
+								__FILE__, __LINE__, pPlatform->szEntityName);
 			continue;
 		}
 
@@ -165,10 +163,9 @@ CMovingPlatforms::CMovingPlatforms() :
 
 			if(!pPlatform->theSound)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
-						__FILE__, __LINE__, pPlatform->szEntityName, pPlatform->szSoundFile);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to open audio file '%s'",
+									__FILE__, __LINE__,
+									pPlatform->szEntityName, pPlatform->szSoundFile);
 			}
 		}
 

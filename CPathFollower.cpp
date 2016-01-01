@@ -51,10 +51,8 @@ CPathFollower::CPathFollower() :
 		if(szType == NULL)
 		{
 			// We'll consider this a modest error
-			char szBug[132];
-			sprintf(szBug, "[WARNING] File %s - Line %d: Missing bound entity '%s' in registry\n",
-					__FILE__, __LINE__, pFollower->EntityName);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: Missing bound entity '%s' in registry",
+								__FILE__, __LINE__, pFollower->EntityName);
 			continue;					// Maybe the next one will be OK
 		}
 
@@ -112,36 +110,28 @@ CPathFollower::CPathFollower() :
 		case 0:		// MorphingField
 			if(CCD->MorphingFields()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
-				char szBug[128];
-				sprintf(szBug, "[WARNING] Failed to bind MorphingField entity '%s' to path '%s'\n",
-						pFollower->EntityName, pFollower->PathFirstNode);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("Failed to bind MorphingField entity '%s' to path '%s'",
+									pFollower->EntityName, pFollower->PathFirstNode);
 			}
 			break;
 		case 1:		// StaticEntityProxy
 			if(CCD->Props()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
-				char szBug[128];
-				sprintf(szBug, "[WARNING] Failed to bind StaticEntityProxy entity '%s' to path '%s'\n",
-						pFollower->EntityName, pFollower->PathFirstNode);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("Failed to bind StaticEntityProxy entity '%s' to path '%s'",
+									pFollower->EntityName, pFollower->PathFirstNode);
 			}
 			break;
 		case 2:		// TeleportTarget
 			if(CCD->Teleporters()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
-				char szBug[128];
-				sprintf(szBug, "[WARNING] Failed to bind TeleportTarget entity '%s' to path '%s'\n",
-						pFollower->EntityName, pFollower->PathFirstNode);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("Failed to bind TeleportTarget entity '%s' to path '%s'",
+									pFollower->EntityName, pFollower->PathFirstNode);
 			}
 			break;
 		default:
 			{
-				char szBug[128];
-				sprintf(szBug, "[WARNING] Attempt to bind nonbindable entity '%s' type '%s' to path\n",
-						pFollower->EntityName, szType);
-				CCD->ReportError(szBug, false);
+				CCD->Log()->Warning("Attempt to bind nonbindable entity '%s' type '%s' to path",
+									pFollower->EntityName, szType);
 			}
 			break;
 		}

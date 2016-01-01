@@ -486,9 +486,7 @@ void qxTerrainMap::ShadeLambert()
 
 			geBitmap_GetInfo(bmp, &Info, (geBitmap_Info*) NULL);
 
-			char szBug[256];
-			sprintf(szBug, "Texture# %d Tex %d", i * m_nTilesCountX + j, Info.Format);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Debug("Texture# %d Tex %d", i * m_nTilesCountX + j, Info.Format);
 
 			// lock for write
 			success = geBitmap_LockForWriteFormat(bmp, &Lock, 0, 0, format);
@@ -502,8 +500,7 @@ void qxTerrainMap::ShadeLambert()
 			success = geBitmap_GetInfo(Lock, &Info, (geBitmap_Info*) NULL);
 			QXASSERT(success);
 
-			sprintf(szBug, "Bpp %d Format %d", gePixelFormat_BytesPerPel(Info.Format), Info.Format);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Debug("Bpp %d Format %d", gePixelFormat_BytesPerPel(Info.Format), Info.Format);
 
 			bpp = gePixelFormat_BytesPerPel(Info.Format);
 			bits = (uint8 *)geBitmap_GetBits(Lock);
