@@ -13,24 +13,12 @@
 #ifndef __RGF_CPERSISTENTATTRIBUTES_H__
 #define __RGF_CPERSISTENTATTRIBUTES_H__
 
-class CGenesisEngine;
+#include <hash_map>
 
 /**
  * @brief Persistent Attribute
  */
-struct PersistAttribute
-{
-	char				*Name;			///< Name of attribute
-	int					Value;			///< Value of attribute
-	int					ValueLowLimit;	///< Value low limit
-	int					ValueHighLimit;	///< Value high limit
-	int					ModifyAmt;
-	int					PowerUpLevel;	///< number of highlimit changes
-	int					Count;			///< Instance count
-	int					UserDataSize;	///< Size of user data
-	unsigned char		*UserData;		///< Pointer to user-defined data
-	PersistAttribute	*pNext;			///< Pointer to next entity in list
-};
+struct PersistAttribute;
 
 /**
  * @brief CPersistentAttributes handles persistent attributes
@@ -45,45 +33,46 @@ public:
 	CPersistentAttributes();				///< Default constructor
 	~CPersistentAttributes();				///< Default destructor
 
-	int Clear();															///< Clear all attributes
-	int SetValueLimits(const char *szTag, int LowLimit, int HighLimit);		///< Set value limits
-	int SetHighLimit(const char *szTag, int HighLimit);						///< Set value highlimit (Power Up)
-	int Set(const char *szTag, int nValue);									///< Set attribute value
-	int SetIf(const char *szTag, int nHow, int nCompareValue, int nValue);	///< Set attribute value if test condition true
-	int Modify(const char *szTag, int nValue);								///< Modify value of attribute
-	int ModifyIf(const char *szTag, int nHow, int nCompareValue, int nValue);	///< Modify if test condition true
-	int Add(const char *szTag);												///< Add an instance of an attribute
-	int AddAndSet(const char *szTag, int nValue);							///< Add attribute with value
-	int AddIf(const char *szTag, int nHow, int nCompareValue, const char *szWhat);	///< Add instance if test condition true
-	int Remove(const char *szTag);											///< Remove an instance of an attribute
-	int RemoveIf(const char *szTag, int nHow, int nCompareValue);			///< Remove instance if test condition true
-	int RemoveAll(const char *szTag);										///< Remove all instances of an attribute
-	bool Has(const char *szTag);											///< Does attribute exist in list?
-	int Value(const char *szTag);											///< Get attributes value
-	int Low(const char *szTag);
-	int High(const char *szTag);
-	int Count(const char *szTag);											///< Get attribute count
-	bool Compare(const char *szTag, int nHow, int nCompareValue);			///< Compare attribute value to a number
-	int GetModifyAmt(const char *szTag);
-	int GetPowerUpLevel(const char *szTag);							///< Get number of highlimit changes (PowerUp Level)
-	PersistAttribute *GetAttribute(PersistAttribute *pPrevious);	///< Get first/next attribute in list
-	int AllocateUserData(const char *szTag, int nDataSize);			///< Allocate some user data for attribute
-	int DeleteUserData(const char *szTag);							///< Delete an attributes user data
-	unsigned char *UserData(const char *szTag);						///< Get pointer to user data for attr
-	int SaveTo(FILE *SaveFD, bool type);							///< Save attributes to a file
-	int SaveAscii(FILE *SaveFD);
-	int RestoreFrom(FILE *RestoreFD, bool type);					///< Restore attributes from a file
+	int Clear();																///< Clear all attributes
+	int SetValueLimits(const std::string& tag, int lowLimit, int highLimit);	///< Set value limits
+	int SetHighLimit(const std::string& tag, int highLimit);					///< Set value high limit (Power Up)
+	int Set(const std::string& tag, int value);									///< Set attribute value
+	int SetIf(const std::string& tag, int how, int compareValue, int value);	///< Set attribute value if test condition true
+	int Modify(const std::string& tag, int value);								///< Modify value of attribute
+	int ModifyIf(const std::string& tag, int how, int compareValue, int value);	///< Modify if test condition true
+	int Add(const std::string& tag);											///< Add an instance of an attribute
+	int AddAndSet(const std::string& tag, int value);							///< Add attribute with value
+	int AddIf(const std::string& tag, int how, int compareValue, const std::string& what);	///< Add instance if test condition true
+	int Remove(const std::string& tag);											///< Remove an instance of an attribute
+	int RemoveIf(const std::string& tag, int how, int compareValue);			///< Remove instance if test condition true
+	int RemoveAll(const std::string& tag);										///< Remove all instances of an attribute
+	bool Has(const std::string& tag);											///< Does attribute exist in list?
+	int Value(const std::string& tag);											///< Get attributes value
+	int Low(const std::string& tag);											///< Get value low limit
+	int High(const std::string& tag);											///< Get value high limit
+	int Count(const std::string& tag);											///< Get attribute count
+	bool Compare(const std::string& tag, int how, int compareValue);			///< Compare attribute value to a number
+	int GetModifyAmt(const std::string& tag);
+	int GetPowerUpLevel(const std::string& tag);					///< Get number of highlimit changes (PowerUp Level)
+
+	int AllocateUserData(const std::string& tag, int dataSize);		///< Allocate some user data for attribute
+	int DeleteUserData(const std::string& tag);						///< Delete an attributes user data
+	unsigned char* UserData(const std::string& tag);				///< Get pointer to user data for attr
+
+	int SaveTo(FILE* saveFD, bool type);							///< Save attributes to a file
+	int SaveAscii(FILE* saveFD);
+	int RestoreFrom(FILE* restoreFD, bool type);					///< Restore attributes from a file
 	void Dump();													///< Debug list dumper
 
 private:
-	void ClampValue(PersistAttribute *pAttr);	///< Clamp value to limits
-	PersistAttribute *Locate(const char *szTag);
-	PersistAttribute *AddNew(const char *szTag, int nValue);
-	int Delete(const char *szTag);
-	bool LocalCompare(PersistAttribute *pAttr, int nHow, int nCompareValue);
+	void ClampValue(PersistAttribute* attr);						///< Clamp value to limits
+	inline PersistAttribute* Locate(const std::string& tag);		///< Find attribute in the list
+	PersistAttribute* AddNew(const std::string& tag, int value);	///< Add a new attribute to the list
+	int Delete(const std::string& tag);								///< Remove an attribute from the list and delete it
+	bool LocalCompare(PersistAttribute* attr, int how, int compareValue);
+
 private:
-	PersistAttribute *theList;					///< Attribute list
-	int m_nCount;								///< Count of unique attributes in list
+	stdext::hash_map<std::string, PersistAttribute*> m_List;		///< Attribute list
 };
 
 #endif

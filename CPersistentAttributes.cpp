@@ -10,8 +10,19 @@
  * Copyright (c) 2001 Ralph Deane; All rights reserved.
  ****************************************************************************************/
 
-// The One True Include File
 #include "RabidFramework.h"
+
+struct PersistAttribute
+{
+	int				Value;			///< Value of attribute
+	int				ValueLowLimit;	///< Value low limit
+	int				ValueHighLimit;	///< Value high limit
+	int				ModifyAmt;
+	int				PowerUpLevel;	///< Number of high limit changes
+	int				Count;			///< Instance count
+	int				UserDataSize;	///< Size of user data
+	unsigned char*	UserData;		///< Pointer to user-defined data
+};
 
 
 /* ------------------------------------------------------------------------------------ */
@@ -19,8 +30,6 @@
 /* ------------------------------------------------------------------------------------ */
 CPersistentAttributes::CPersistentAttributes()
 {
-	theList = NULL;					// Fast & easy.
-	m_nCount = 0;					// Nothing here.
 }
 
 
@@ -40,26 +49,14 @@ CPersistentAttributes::~CPersistentAttributes()
 /* ------------------------------------------------------------------------------------ */
 int CPersistentAttributes::Clear()
 {
-	if(theList == NULL)
-		return RGF_SUCCESS;					// Already empty, cool!
-
-	PersistAttribute *pTemp = theList;
-	PersistAttribute *pNextOne = NULL;
-
-	while(pTemp != NULL)
+	stdext::hash_map<std::string, PersistAttribute*>::iterator iter = m_List.begin();
+	for(; iter!=m_List.end(); ++iter)
 	{
-		pNextOne = pTemp->pNext;			// Save off pointer to next
-		delete pTemp->Name;					// Gun the name
-
-		if(pTemp->UserData)
-			delete pTemp->UserData;
-
-		delete pTemp;						// ZAP!  It's dead, Jim.
-		pTemp = pNextOne;					// On to the next victim
+		delete[] (iter->second->UserData);
+		delete (iter->second);
 	}
 
-	theList = NULL;							// Gone forever.
-	m_nCount = 0;							// List out.
+	m_List.clear();
 
 	return RGF_SUCCESS;
 }
@@ -70,15 +67,15 @@ int CPersistentAttributes::Clear()
 //
 // Set LOW and HIGH limits for attribute values
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetValueLimits(const char *szTag, int Low, int High)
+int CPersistentAttributes::SetValueLimits(const std::string& tag, int low, int high)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Not found
 
-	pAttr->ValueLowLimit = Low;
-	pAttr->ValueHighLimit = High;
+	pAttr->ValueLowLimit = low;
+	pAttr->ValueHighLimit = high;
 
 	return RGF_SUCCESS;						// Limits set
 }
@@ -89,14 +86,14 @@ int CPersistentAttributes::SetValueLimits(const char *szTag, int Low, int High)
 //
 // Set HIGH limit for attribute values
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetHighLimit(const char *szTag, int HighLimit)
+int CPersistentAttributes::SetHighLimit(const std::string& tag, int highLimit)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Not found
 
-	pAttr->ValueHighLimit = HighLimit;
+	pAttr->ValueHighLimit = highLimit;
 	pAttr->PowerUpLevel++;
 
 	return RGF_SUCCESS;						// Limits set
@@ -107,16 +104,15 @@ int CPersistentAttributes::SetHighLimit(const char *szTag, int HighLimit)
 // Set
 //
 // Locate the attribute identified by the tag and set its value to the desired value.
-// If the attribute doesn't exist, create it and set the value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Set(const char *szTag, int nValue)
+int CPersistentAttributes::Set(const std::string& tag, int value)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Not found
 
-	pAttr->Value = nValue;					// Set it, and forget it
+	pAttr->Value = value;					// Set it, and forget it
 
 	ClampValue(pAttr);						// Clamp the values to limits
 
@@ -128,18 +124,18 @@ int CPersistentAttributes::Set(const char *szTag, int nValue)
 // SetIf
 //
 // Locate the attribute identified by the tag.  If it doesn't exist, return
-// ..an eror.  If it DOES exist, perform the test indicated by 'nHow'
+// ..an error.  If it DOES exist, perform the test indicated by 'how'
 // ..and if the result is TRUE, set the attributes value to the desired value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SetIf(const char *szTag, int nHow, int nCompareValue, int nValue)
+int CPersistentAttributes::SetIf(const std::string& tag, int how, int compareValue, int value)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Not found
 
-	if(LocalCompare(pAttr, nHow, nCompareValue))
-		pAttr->Value = nValue;				// Set it, and forget it
+	if(LocalCompare(pAttr, how, compareValue))
+		pAttr->Value = value;				// Set it, and forget it
 
 	ClampValue(pAttr);						// Clamp the values to limits
 
@@ -153,16 +149,16 @@ int CPersistentAttributes::SetIf(const char *szTag, int nHow, int nCompareValue,
 // Locate the attribute identified by the tag.  If it doesn't exist, return
 // ..an error.  If it DOES exist, add 'value' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Modify(const char *szTag, int nValue)
+int CPersistentAttributes::Modify(const std::string& tag, int value)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;			// No such attribute
 
-	pAttr->Value += nValue;				// MAke the mod
+	pAttr->Value += value;				// Make the mod
 
-	pAttr->ModifyAmt = nValue;
+	pAttr->ModifyAmt = value;
 
 	ClampValue(pAttr);					// Clamp the values to limits
 
@@ -175,17 +171,17 @@ int CPersistentAttributes::Modify(const char *szTag, int nValue)
 //
 // Locate the attribute identifided by the tag.  If it doesn't exist, return
 // ..an error.  If it does exist, perform the comparison indicated by
-// ..'nHow' and if true modify the value by adding 'nValue' to the attribute value.
+// ..'how' and if true modify the value by adding 'value' to the attribute value.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::ModifyIf(const char *szTag, int nHow, int nCompareValue, int nValue)
+int CPersistentAttributes::ModifyIf(const std::string& tag, int how, int compareValue, int value)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;			// No such attribute
 
-	if(LocalCompare(pAttr, nHow, nCompareValue))
-		pAttr->Value += nValue;
+	if(LocalCompare(pAttr, how, compareValue))
+		pAttr->Value += value;
 
 	ClampValue(pAttr);					// Clamp the values to limits
 
@@ -199,9 +195,9 @@ int CPersistentAttributes::ModifyIf(const char *szTag, int nHow, int nCompareVal
 // Add a new attribute to the attribute list.  If the attribute already exists,
 // ..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Add(const char *szTag)
+int CPersistentAttributes::Add(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr != NULL)
 	{
@@ -209,7 +205,7 @@ int CPersistentAttributes::Add(const char *szTag)
 		return RGF_SUCCESS;					// Already there, ignore call
 	}
 
-	AddNew(szTag, 0);						// Add new attribute
+	AddNew(tag, 0);							// Add new attribute
 
 	return RGF_SUCCESS;
 }
@@ -221,18 +217,18 @@ int CPersistentAttributes::Add(const char *szTag)
 // Add a new attribute to the attribute list.  If the attribute already exists,
 // ..don't return an error but don't perform the add.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AddAndSet(const char *szTag, int nValue)
+int CPersistentAttributes::AddAndSet(const std::string& tag, int value)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr != NULL)
 	{
-		pAttr->Value = nValue;
+		pAttr->Value = value;
 		pAttr->Count++;						// Another one of these...
 		return RGF_SUCCESS;					// Already there, ignore call
 	}
 
-	AddNew(szTag, nValue);					// Add new attribute with value
+	AddNew(tag, value);						// Add new attribute with value
 
 	return RGF_SUCCESS;
 }
@@ -241,25 +237,25 @@ int CPersistentAttributes::AddAndSet(const char *szTag, int nValue)
 /* ------------------------------------------------------------------------------------ */
 // AddIf
 //
-// Add a new attribute to the list if the comparison indicated by 'nHow'
-// ..with the value of attribute 'szWhat' and 'nCompareValue' is true.
+// Add a new attribute to the list if the comparison indicated by 'how'
+// ..with the value of attribute 'what' and 'compareValue' is true.
 // ..If the attribute already exists, take no action but return no error.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AddIf(const char *szTag, int nHow, int nCompareValue, const char *szWhat)
+int CPersistentAttributes::AddIf(const std::string& tag, int how, int compareValue, const std::string& what)
 {
-	PersistAttribute *pAttr = Locate(szWhat);
+	PersistAttribute *pAttr = Locate(what);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Attribute not found
 
-	if(LocalCompare(pAttr, nHow, nCompareValue))
+	if(LocalCompare(pAttr, how, compareValue))
 	{
-		pAttr = Locate(szTag);				// Is it there?
+		pAttr = Locate(tag);				// Is it there?
 
 		if(pAttr != NULL)
 			return RGF_SUCCESS;				// Already exists
 
-		AddNew(szTag, 0);					// Add a new attribute
+		AddNew(tag, 0);						// Add a new attribute
 	}
 
 	return RGF_SUCCESS;
@@ -269,12 +265,12 @@ int CPersistentAttributes::AddIf(const char *szTag, int nHow, int nCompareValue,
 /* ------------------------------------------------------------------------------------ */
 // Remove
 //
-// Remove an instance of the attribute 'szTag' from the list.  If the last
+// Remove an instance of the attribute 'tag' from the list.  If the last
 // ..instance is removed, delete the attribute from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Remove(const char *szTag)
+int CPersistentAttributes::Remove(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// No such attribute
@@ -282,7 +278,7 @@ int CPersistentAttributes::Remove(const char *szTag)
 	pAttr->Count--;							// Decrement instance count
 
 	if(pAttr->Count <= 0)
-		Delete(szTag);						// None left, wipe it out.
+		Delete(tag);						// None left, wipe it out.
 
 	return RGF_SUCCESS;
 }
@@ -291,23 +287,23 @@ int CPersistentAttributes::Remove(const char *szTag)
 /* ------------------------------------------------------------------------------------ */
 // RemoveIf
 //
-// Remove an instance of the attribute 'szTag' if the compare indicated
-// ..by 'nHow' and 'nCompareValue' is true.  If the last instance is
+// Remove an instance of the attribute 'tag' if the compare indicated
+// ..by 'how' and 'compareValue' is true.  If the last instance is
 // ..removed, delete the attribute from the attribute list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::RemoveIf(const char *szTag, int nHow, int nCompareValue)
+int CPersistentAttributes::RemoveIf(const std::string& tag, int how, int compareValue)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_NOT_FOUND;				// Not found.
 
-	if(LocalCompare(pAttr, nHow, nCompareValue))
+	if(LocalCompare(pAttr, how, compareValue))
 	{
 		pAttr->Count--;						// Decrement instance count
 
 		if(pAttr->Count <= 0)
-			Delete(szTag);					// Down to zero, drop it.
+			Delete(tag);					// Down to zero, drop it.
 	}
 
 	return RGF_SUCCESS;
@@ -319,9 +315,9 @@ int CPersistentAttributes::RemoveIf(const char *szTag, int nHow, int nCompareVal
 //
 // Delete all instances of the indicated attribute from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::RemoveAll(const char *szTag)
+int CPersistentAttributes::RemoveAll(const std::string& tag)
 {
-	return Delete(szTag);
+	return Delete(tag);
 }
 
 
@@ -330,9 +326,9 @@ int CPersistentAttributes::RemoveAll(const char *szTag)
 //
 // Return true if the list has at least one instance of the attribute.
 /* ------------------------------------------------------------------------------------ */
-bool CPersistentAttributes::Has(const char *szTag)
+bool CPersistentAttributes::Has(const std::string& tag)
 {
-	if(Locate(szTag) != NULL)
+	if(Locate(tag) != NULL)
 		return true;
 	else
 		return false;
@@ -344,9 +340,9 @@ bool CPersistentAttributes::Has(const char *szTag)
 //
 // Return the value of an attribute, if it exists, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Value(const char *szTag)
+int CPersistentAttributes::Value(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -357,9 +353,9 @@ int CPersistentAttributes::Value(const char *szTag)
 
 /* ------------------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::GetModifyAmt(const char *szTag)
+int CPersistentAttributes::GetModifyAmt(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -373,9 +369,9 @@ int CPersistentAttributes::GetModifyAmt(const char *szTag)
 //
 // Get number of highlimit changes (PowerUp Level)
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::GetPowerUpLevel(const char *szTag)
+int CPersistentAttributes::GetPowerUpLevel(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -387,9 +383,9 @@ int CPersistentAttributes::GetPowerUpLevel(const char *szTag)
 /* ------------------------------------------------------------------------------------ */
 // Low
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Low(const char *szTag)
+int CPersistentAttributes::Low(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -401,9 +397,9 @@ int CPersistentAttributes::Low(const char *szTag)
 /* ------------------------------------------------------------------------------------ */
 // High
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::High(const char *szTag)
+int CPersistentAttributes::High(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -417,9 +413,9 @@ int CPersistentAttributes::High(const char *szTag)
 //
 // Return the count of instance of an attribute, otherwise 0.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Count(const char *szTag)
+int CPersistentAttributes::Count(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return 0;
@@ -431,52 +427,37 @@ int CPersistentAttributes::Count(const char *szTag)
 /* ------------------------------------------------------------------------------------ */
 // Compare
 //
-// Perform a comparison between the value of the attribute 'szTag' and
-// ..'nCompareValue' of the type indicated by 'nHow'.  Return the status
+// Perform a comparison between the value of the attribute 'tag' and
+// ..'compareValue' of the type indicated by 'how'.  Return the status
 // ..of the compare, true or false.
 /* ------------------------------------------------------------------------------------ */
-bool CPersistentAttributes::Compare(const char *szTag, int nHow, int nCompareValue)
+bool CPersistentAttributes::Compare(const std::string& tag, int how, int compareValue)
 {
-	bool bResult = false;
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return false;								// Attribute not found
 
-	return LocalCompare(pAttr, nHow, nCompareValue);
+	return LocalCompare(pAttr, how, compareValue);
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	GetAttribute
-//
-//	Iterate through the attribute list.  If pPrevious is NULL, then we get the
-//	..list head, otherwise we get the pNext element.
-/* ------------------------------------------------------------------------------------ */
-PersistAttribute *CPersistentAttributes::GetAttribute(PersistAttribute *pPrevious)
-{
-	if(pPrevious == NULL)
-		return theList;
-	else
-		return pPrevious->pNext;
-}
 
 /* ------------------------------------------------------------------------------------ */
 // AllocateUserData
 //
 // Allocate user data to be associated with an attribute
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::AllocateUserData(const char *szTag, int nDataSize)
+int CPersistentAttributes::AllocateUserData(const std::string& tag, int dataSize)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_FAILURE;								// Attribute not found
 
-	if(pAttr->UserData)
-		delete pAttr->UserData;
+	delete[] pAttr->UserData;
 
-	pAttr->UserData = new unsigned char[nDataSize];
-	pAttr->UserDataSize = nDataSize;
+	pAttr->UserData = new unsigned char[dataSize];
+	pAttr->UserDataSize = dataSize;
 
 	return RGF_SUCCESS;
 }
@@ -487,9 +468,9 @@ int CPersistentAttributes::AllocateUserData(const char *szTag, int nDataSize)
 //
 // Delete the user data associated with an attribute.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::DeleteUserData(const char *szTag)
+int CPersistentAttributes::DeleteUserData(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return RGF_FAILURE;								// Attribute not found
@@ -506,9 +487,9 @@ int CPersistentAttributes::DeleteUserData(const char *szTag)
 //
 // Return a pointer to the user data associated with an attribute
 /* ------------------------------------------------------------------------------------ */
-unsigned char *CPersistentAttributes::UserData(const char *szTag)
+unsigned char* CPersistentAttributes::UserData(const std::string& tag)
 {
-	PersistAttribute *pAttr = Locate(szTag);
+	PersistAttribute *pAttr = Locate(tag);
 
 	if(pAttr == NULL)
 		return NULL;								// Attribute not found
@@ -522,30 +503,27 @@ unsigned char *CPersistentAttributes::UserData(const char *szTag)
 //
 // Save all attributes in this object to the supplied file.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
+int CPersistentAttributes::SaveTo(FILE* saveFD, bool type)
 {
-	int nLen = 0;
-	PersistAttribute *pAttr = theList;
+	int count = m_List.size();
+	fwrite(&count, sizeof(int), 1, saveFD);
 
-	fwrite(&m_nCount, sizeof(int), 1, SaveFD);
-
-	while(pAttr != NULL)
+	stdext::hash_map<std::string, PersistAttribute*>::iterator iter = m_List.begin();
+	for(; iter!=m_List.end(); ++iter)
 	{
-		nLen = strlen(pAttr->Name) + 1;
+		int length = iter->first.length() + 1;
 
-		WRITEDATA(type, &nLen,						sizeof(int), 1, SaveFD);
-		WRITEDATA(type, pAttr->Name,				1,		  nLen, SaveFD);
-		WRITEDATA(type, &(pAttr->Count),			sizeof(int), 1, SaveFD);
-		WRITEDATA(type, &(pAttr->Value),			sizeof(int), 1, SaveFD);
-		WRITEDATA(type, &(pAttr->ValueLowLimit),	sizeof(int), 1, SaveFD);
-		WRITEDATA(type, &(pAttr->ValueHighLimit),	sizeof(int), 1, SaveFD);
-		WRITEDATA(type, &(pAttr->PowerUpLevel),		sizeof(int), 1, SaveFD);
-		WRITEDATA(type, &(pAttr->UserDataSize),		sizeof(int), 1, SaveFD);
+		WRITEDATA(type, &length,						sizeof(int), 1, saveFD);
+		WRITEDATA(type, (void*)iter->first.c_str(),		length,      1, saveFD);
+		WRITEDATA(type, &iter->second->Count,			sizeof(int), 1, saveFD);
+		WRITEDATA(type, &iter->second->Value,			sizeof(int), 1, saveFD);
+		WRITEDATA(type, &iter->second->ValueLowLimit,	sizeof(int), 1, saveFD);
+		WRITEDATA(type, &iter->second->ValueHighLimit,	sizeof(int), 1, saveFD);
+		WRITEDATA(type, &iter->second->PowerUpLevel,	sizeof(int), 1, saveFD);
+		WRITEDATA(type, &iter->second->UserDataSize,	sizeof(int), 1, saveFD);
 
-		if(pAttr->UserDataSize != 0)
-			WRITEDATA(type, &(pAttr->UserData), 1, pAttr->UserDataSize, SaveFD);
-
-		pAttr = pAttr->pNext;				// Next item
+		if(iter->second->UserDataSize != 0)
+			WRITEDATA(type, &iter->second->UserData, sizeof(unsigned char), iter->second->UserDataSize, saveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -555,28 +533,23 @@ int CPersistentAttributes::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 // SaveAscii
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::SaveAscii(FILE *SaveFD)
+int CPersistentAttributes::SaveAscii(FILE* saveFD)
 {
-	PersistAttribute *pAttr = theList;
-	char szTemp[64];
+	char szTemp[128];
 
-	while(pAttr != NULL)
+	stdext::hash_map<std::string, PersistAttribute*>::iterator iter = m_List.begin();
+	for(; iter!=m_List.end(); ++iter)
 	{
-		fputs(pAttr->Name, SaveFD); fputs("\n", SaveFD);
+		fputs(iter->first.c_str(), saveFD); fputs("\n", saveFD);
 
-		sprintf(szTemp, "%d", pAttr->Value);
+		sprintf(szTemp, "%d", iter->second->Value);
+		fputs(szTemp, saveFD); fputs("\n", saveFD);
 
-		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
+		sprintf(szTemp, "%d", iter->second->ValueLowLimit);
+		fputs(szTemp, saveFD); fputs("\n", saveFD);
 
-		sprintf(szTemp, "%d", pAttr->ValueLowLimit);
-
-		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
-
-		sprintf(szTemp, "%d", pAttr->ValueHighLimit);
-
-		fputs(szTemp, SaveFD); fputs("\n", SaveFD);
-
-		pAttr = pAttr->pNext;				// Next item
+		sprintf(szTemp, "%d", iter->second->ValueHighLimit);
+		fputs(szTemp, saveFD); fputs("\n", saveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -588,44 +561,48 @@ int CPersistentAttributes::SaveAscii(FILE *SaveFD)
 //
 // Restore the attributes in this object from the supplied file.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
+int CPersistentAttributes::RestoreFrom(FILE* restoreFD, bool type)
 {
-	char szTempTag[256];
-	int nValue, nCount, nLen, nUserDataSize, Low, High, PowerUpLevel;
-	int nInFile;
-	unsigned char *theUserData;
-	PersistAttribute *pTemp = NULL;
-
 	Clear();														// Zap everything first
 
-	fread(&nInFile, sizeof(int), 1, RestoreFD);
+	int inFile;
 
-	for(int nTemp = 0; nTemp < nInFile; nTemp++)
+	fread(&inFile, sizeof(int), 1, restoreFD);
+
+	for(int i=0; i<inFile; ++i)
 	{
-		READDATA(type, &nLen,			sizeof(int), 1, RestoreFD);		// Tag size
-		READDATA(type, &szTempTag,		1,		  nLen, RestoreFD);
-		READDATA(type, &nCount,			sizeof(int), 1, RestoreFD);
-		READDATA(type, &nValue,			sizeof(int), 1, RestoreFD);
-		READDATA(type, &Low,			sizeof(int), 1, RestoreFD);
-		READDATA(type, &High,			sizeof(int), 1, RestoreFD);
-		READDATA(type, &PowerUpLevel,	sizeof(int), 1, RestoreFD);
-		READDATA(type, &nUserDataSize,	sizeof(int), 1, RestoreFD);
+		int length, count, value, low, high, powerUpLevel, userDataSize;
 
-		if(nUserDataSize != 0)
+		READDATA(type, &length,			sizeof(int), 1, restoreFD);		// Tag size
+		char *szTag = new char[length];
+		READDATA(type, &szTag,			length,      1, restoreFD);
+		READDATA(type, &count,			sizeof(int), 1, restoreFD);
+		READDATA(type, &value,			sizeof(int), 1, restoreFD);
+		READDATA(type, &low,			sizeof(int), 1, restoreFD);
+		READDATA(type, &high,			sizeof(int), 1, restoreFD);
+		READDATA(type, &powerUpLevel,	sizeof(int), 1, restoreFD);
+		READDATA(type, &userDataSize,	sizeof(int), 1, restoreFD);
+
+		unsigned char* userData;
+
+		if(userDataSize != 0)
 		{
-			theUserData = new unsigned char[nUserDataSize];
-			READDATA(type, &theUserData, 1, nUserDataSize, RestoreFD);
+			userData = new unsigned char[userDataSize];
+			READDATA(type, &userData, 1, userDataSize, restoreFD);
 		}
 		else
-			theUserData = NULL;
+		{
+			userData = NULL;
+		}
 
-		pTemp = AddNew(szTempTag, nValue);
-		pTemp->ValueLowLimit = Low;
-		pTemp->ValueHighLimit = High;
-		pTemp->PowerUpLevel = PowerUpLevel;
-		pTemp->Count = nCount;										// Adjust count
-		pTemp->UserDataSize = nUserDataSize;
-		pTemp->UserData = theUserData;
+		PersistAttribute *pTemp = AddNew(szTag, value);
+		pTemp->ValueLowLimit = low;
+		pTemp->ValueHighLimit = high;
+		pTemp->PowerUpLevel = powerUpLevel;
+		pTemp->Count = count;										// Adjust count
+		pTemp->UserDataSize = userDataSize;
+		pTemp->UserData = userData;
+		delete[] szTag;
 	}
 
 	return RGF_SUCCESS;
@@ -639,15 +616,13 @@ int CPersistentAttributes::RestoreFrom(FILE *RestoreFD, bool type)
 //
 // Clamp the value of an attribute to its limits
 /* ------------------------------------------------------------------------------------ */
-void CPersistentAttributes::ClampValue(PersistAttribute *pAttr)
+void CPersistentAttributes::ClampValue(PersistAttribute *attr)
 {
-	if(pAttr->Value < pAttr->ValueLowLimit)
-		pAttr->Value = pAttr->ValueLowLimit;			// Clamp LOW limit
+	if(attr->Value < attr->ValueLowLimit)
+		attr->Value = attr->ValueLowLimit;			// Clamp LOW limit
 
-	if(pAttr->Value > pAttr->ValueHighLimit)
-		pAttr->Value = pAttr->ValueHighLimit;			// Clamp HIGH limit
-
-	return;
+	if(attr->Value > attr->ValueHighLimit)
+		attr->Value = attr->ValueHighLimit;			// Clamp HIGH limit
 }
 
 
@@ -657,17 +632,10 @@ void CPersistentAttributes::ClampValue(PersistAttribute *pAttr)
 // Search our internal list of a specific attribute, and return a
 // ..pointer to it if it exists.
 /* ------------------------------------------------------------------------------------ */
-PersistAttribute *CPersistentAttributes::Locate(const char *szTag)
+PersistAttribute *CPersistentAttributes::Locate(const std::string& tag)
 {
-	PersistAttribute *pTemp = theList;
-
-	while(pTemp != NULL)
-	{
-		if(!strcmp(szTag, pTemp->Name))
-			return pTemp;						// This is the one!
-
-		pTemp = pTemp->pNext;					// Keep looking
-	}
+	if(m_List.find(tag) != m_List.end())
+		return m_List[tag];
 
 	return NULL;								// Couldn't find the attribute in our list.
 }
@@ -675,41 +643,22 @@ PersistAttribute *CPersistentAttributes::Locate(const char *szTag)
 /* ------------------------------------------------------------------------------------ */
 // AddNew
 //
-// Add a new attribute on to the end of the list
+// Add a new attribute to the list
 /* ------------------------------------------------------------------------------------ */
-PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
+PersistAttribute *CPersistentAttributes::AddNew(const std::string& tag, int value)
 {
-	PersistAttribute *pTemp = theList;
+	// Construct the new attribute
+	m_List[tag] = new PersistAttribute;
+	m_List[tag]->Count = 1;
+	m_List[tag]->Value = value;
+	m_List[tag]->ModifyAmt = 0;
+	m_List[tag]->PowerUpLevel = 0;
+	m_List[tag]->ValueLowLimit = 0;
+	m_List[tag]->ValueHighLimit = 100;
+	m_List[tag]->UserData = NULL;
+	m_List[tag]->UserDataSize = 0;
 
-	if(pTemp != NULL)
-	{
-		while(pTemp->pNext != NULL)
-			pTemp = pTemp->pNext;				// Slew to end of list
-	}
-
-	//	Construct the new attribute
-	PersistAttribute *pNew = new PersistAttribute;
-	pNew->Name = new char[strlen(szTag)+1];
-	strcpy(pNew->Name, szTag);
-	pNew->pNext = NULL;
-	pNew->Count = 1;
-	pNew->Value = nValue;
-	pNew->ModifyAmt = 0;
-	pNew->PowerUpLevel = 0;
-	pNew->ValueLowLimit = 0;
-	pNew->ValueHighLimit = 100;
-	pNew->UserData = NULL;
-	pNew->UserDataSize = 0;
-
-	//	Check to see if this is the FIRST attribute
-	if(pTemp == NULL)
-		theList = pNew;							// This is the list head
-	else
-		pTemp->pNext = pNew;					// Add to the end of the list
-
-	m_nCount++;									// List got bigger.
-
-	return pNew;
+	return m_List[tag];
 }
 
 
@@ -718,36 +667,14 @@ PersistAttribute *CPersistentAttributes::AddNew(const char *szTag, int nValue)
 //
 // Locate an attribute and delete it from the list.
 /* ------------------------------------------------------------------------------------ */
-int CPersistentAttributes::Delete(const char *szTag)
+int CPersistentAttributes::Delete(const std::string& tag)
 {
-	PersistAttribute *pTemp = theList;
-	PersistAttribute *pPrev = NULL;
-
-	while(pTemp != NULL)
+	if(m_List.find(tag) != m_List.end())
 	{
-		if(!strcmp(szTag, pTemp->Name))
-		{
-			if(pPrev == NULL)
-			{
-				// Gunning the list head
-				delete pTemp->Name;
-				delete pTemp;
-				theList = NULL;						// Attribute list now EMPTY
-			}
-			else
-			{
-				// Gunning Just Another Entry
-				pPrev->pNext = pTemp->pNext;		// Patch around entry to be deleted
-				delete pTemp->Name;
-				delete pTemp;						// Attribute is DOA
-			}
-
-			m_nCount--;								// List got smaller
-			return RGF_SUCCESS;						// Zapped.
-		}
-
-		pPrev = pTemp;								// Save previous
-		pTemp = pTemp->pNext;						// Keep looking
+		delete[] m_List[tag]->UserData;
+		delete m_List[tag];
+		m_List.erase(tag);
+		return RGF_SUCCESS;							// Zapped.
 	}
 
 	return RGF_FAILURE;								// Couldn't find it
@@ -759,40 +686,25 @@ int CPersistentAttributes::Delete(const char *szTag)
 //
 // Perform a compare with the passed-in PersistAttribute
 /* ------------------------------------------------------------------------------------ */
-bool CPersistentAttributes::LocalCompare(PersistAttribute *pAttr, int nHow,
-										 int nCompareValue)
+bool CPersistentAttributes::LocalCompare(PersistAttribute* attr, int how, int compareValue)
 {
-	bool bResult = false;
-
-	switch(nHow)
+	switch(how)
 	{
 	case RGF_ATTR_EQUAL:
-		if(pAttr->Value == nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value == compareValue);
 	case RGF_ATTR_LESS:
-		if(pAttr->Value < nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value < compareValue);
 	case RGF_ATTR_GREATER:
-		if(pAttr->Value > nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value > compareValue);
 	case RGF_ATTR_NOTEQUAL:
-		if(pAttr->Value != nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value != compareValue);
 	case RGF_ATTR_LESSEQ:
-		if(pAttr->Value <= nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value <= compareValue);
 	case RGF_ATTR_GREATEREQ:
-		if(pAttr->Value >= nCompareValue)
-			bResult = true;
-		break;
+		return (attr->Value >= compareValue);
+	default:
+		return false;
 	}
-
-	return bResult;
 }
 
 
@@ -804,14 +716,16 @@ bool CPersistentAttributes::LocalCompare(PersistAttribute *pAttr, int nHow,
 /* ------------------------------------------------------------------------------------ */
 void CPersistentAttributes::Dump()
 {
-	PersistAttribute *pTemp = theList;
 	char szDump[256];
 
-	while(pTemp != NULL)
+	stdext::hash_map<std::string, PersistAttribute*>::iterator iter = m_List.begin();
+	for(; iter!=m_List.end(); ++iter)
 	{
-		sprintf(szDump, "%s count %d value %d", pTemp->Name, pTemp->Count, pTemp->Value);
+		sprintf(szDump, "%s count %d value %d",
+			iter->first.c_str(),
+			iter->second->Count,
+			iter->second->Value);
 		CCD->ReportError(szDump, false);
-		pTemp = pTemp->pNext;
 	}
 }
 
