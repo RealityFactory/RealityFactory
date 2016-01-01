@@ -39,7 +39,8 @@ CCDAudio::CCDAudio() :
 
 	if(theError != 0)
 	{
-		CCD->ReportError("[WARNING] CCDAudio: Failed to open MCI CD AUDIO device", false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to open MCI CD AUDIO device",
+							__FILE__, __LINE__);
 		return;
 	}
 	else
@@ -78,7 +79,8 @@ CCDAudio::~CCDAudio()
 
 	if(theError != 0)
 	{
-		CCD->ReportError("[WARNING] CCDAudio: Failed to close MCI CD AUDIO device", false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to close MCI CD AUDIO device",
+							__FILE__, __LINE__);
 	}
 
 	m_bActive = false;
@@ -118,10 +120,8 @@ int CCDAudio::Play(int nTrack, bool bLoop)
 
 	if(theError != 0)
 	{
-		char szError[80];
-		sprintf(szError, "[WARNING] File %s - Line %d: CCDAudio: Failed to play from %d to %d\n",
-				__FILE__, __LINE__, nTrack, nTrack+1);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to play from %d to %d",
+							__FILE__, __LINE__, nTrack, nTrack + 1);
 		return RGF_FAILURE;
 	}
 
@@ -171,7 +171,8 @@ int CCDAudio::Stop()
 
 	if(theError != 0)
 	{
-		CCD->ReportError("[WARNING] CCDAudio: Failed to stop MCI CD AUDIO device", false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to stop MCI CD AUDIO device",
+							__FILE__, __LINE__);
 		return RGF_FAILURE;
 	}
 

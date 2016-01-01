@@ -53,10 +53,9 @@ CAttribute::CAttribute() :
 
 			if(!pSource->Actor)
 			{
-				char szError[256];
-				sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'\n",
-						__FILE__, __LINE__, pSource->szEntityName, pSource->szActorName);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s : Missing Actor '%s'",
+									__FILE__, __LINE__,
+									pSource->szEntityName, pSource->szActorName);
 
 				pSource->alive = GE_FALSE;
 				pSource->ReSpawn = GE_FALSE;

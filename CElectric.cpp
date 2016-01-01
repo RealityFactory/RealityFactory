@@ -469,19 +469,16 @@ CElectric::CElectric()
 
 		if(!pBolt->Bitmap)
 		{
-			char szBug[256];
-			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to create Bolt bitmap : %s %s\n",
-					__FILE__, __LINE__, pBolt->szEntityName, pBolt->BmpName, pBolt->AlphaName);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Failed to create Bolt bitmap : %s %s",
+								__FILE__, __LINE__,
+								pBolt->szEntityName, pBolt->BmpName, pBolt->AlphaName);
 			continue;
 		}
 
 		if(!pBolt->Terminus)
 		{
-			char szBug[256];
-			sprintf(szBug, "[WARNING] File %s - Line %d: ElectricBolt entity '%s' has no terminus.\n",
-					__FILE__, __LINE__, pBolt->szEntityName);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: ElectricBolt entity '%s' has no terminus.",
+								__FILE__, __LINE__, pBolt->szEntityName);
 			continue;
 		}
 
@@ -492,10 +489,8 @@ CElectric::CElectric()
 												pBolt->Wildness);
 		if(!pBolt->Bolt)
 		{
-			char szBug[256];
-			sprintf(szBug, "[WARNING] File %s - Line %d: %s: Failed to create Bolt\n",
-					__FILE__, __LINE__, pBolt->szEntityName);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Failed to create Bolt",
+								__FILE__, __LINE__, pBolt->szEntityName);
 			continue;
 		}
 
@@ -557,9 +552,8 @@ int CElectric::Create(const geVec3d &Origin, ElectricBolt *pBolt)
 
 		if(!Sound.SoundDef)
 		{
-			char szError[256];
-			sprintf(szError, "Failed to open audio file '%s'\n", pBolt->SoundFile);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: Failed to open audio file '%s'",
+								__FILE__, __LINE__, pBolt->SoundFile);
 		}
 		else
 		{

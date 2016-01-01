@@ -35,7 +35,7 @@ CPreEffect::CPreEffect()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("[WARNING] Failed to open effect.ini file", false);
+		CCD->Log()->Warning("Failed to open effect.ini file.");
 		return;
 	}
 
@@ -464,14 +464,11 @@ CPreEffect::CPreEffect()
 
 					if(!Actor)
 					{
-						char szError[256];
-						sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'",
-								__FILE__, __LINE__, KeyName, Name);
-						CCD->ReportError(szError, false);
+						CCD->Log()->Critical("File %s - Line %d: %s : Missing Actor '%s'",
+												__FILE__, __LINE__, KeyName, Name);
 						CCD->ShutdownLevel();
 						delete CCD;
 						CCD = NULL;
-						MessageBox(NULL, szError, "Effect", MB_OK);
 						exit(-333);
 					}
 

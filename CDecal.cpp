@@ -40,10 +40,8 @@ CDecal::CDecal() :
 
 		if(!(pSource->Bitmap))
 		{
-			char szBug[256];
-			sprintf(szBug, "[WARNING] File %s - Line %d: CreateFromFileAndAlphaNames failed: %s, %s\n",
-					__FILE__, __LINE__, pSource->BmpName, pSource->AlphaName);
-		  	CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: CreateFromFileAndAlphaNames failed: %s, %s",
+								__FILE__, __LINE__, pSource->BmpName, pSource->AlphaName);
 		}
 	}
 }

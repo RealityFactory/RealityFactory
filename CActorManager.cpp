@@ -411,21 +411,15 @@ geActor *CActorManager::LoadActor(const char *szFilename, geActor *OldActor)
 		if(!ActorDef)
 		{
 			geVFile_Close(ActorFile);				//	Clean up in case of error
-			char szError[256];
-
-			sprintf(szError,"[WARNING] File %s - Line %d: Failed to create geActor_Def from file '%s'",
-					__FILE__, __LINE__, szFilename);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Error("File %s - Line %d: Failed to create geActor_Def from file '%s'",
+								__FILE__, __LINE__, szFilename);
 			return RGF_FAILURE;
 		}
 	}
 	else											// File didn't open, error out.
 	{
-		char szError[256];
-
-		sprintf(szError,"[WARNING] File %s - Line %d: Failed to load actor '%s'",
-				__FILE__, __LINE__, szFilename);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Error("File %s - Line %d: Failed to load actor '%s'",
+							__FILE__, __LINE__, szFilename);
 		return RGF_FAILURE;
 	}
 
@@ -477,11 +471,8 @@ geActor *CActorManager::LoadActor(const char *szFilename, geActor *OldActor)
 				if(!ActorDef)
 				{
 					geVFile_Close(ActorFile);							// Clean up in case of error
-					char szError[256];
-
-					sprintf(szError,"[WARNING] File %s - Line %d: Failed to create geActor_Def from file '%s'",
-							__FILE__, __LINE__, Name);
-					CCD->ReportError(szError, false);
+					CCD->Log()->Error("File %s - Line %d: Failed to create geActor_Def from file '%s'",
+										__FILE__, __LINE__, Name);
 					return RGF_FAILURE;
 				}
 
@@ -539,10 +530,8 @@ geActor *CActorManager::SpawnActor(const char		*szFilename,
 	// Try and load it...
 	if(EffectC_IsStringNull(szFilename))
 	{
-		char szDebugLog[256];
-		sprintf(szDebugLog, "[WARNING] File %s - Line %d: Null Actor Name, Failed To Load: %s",
-				__FILE__, __LINE__, szFilename);
-		CCD->ReportError(szDebugLog, false);
+		CCD->Log()->Warning("File %s - Line %d: Null Actor Name, Failed To Load!",
+							__FILE__, __LINE__);
 		return NULL;
 	}
 
@@ -560,7 +549,7 @@ geActor *CActorManager::SpawnActor(const char		*szFilename,
 	}
 	else
 	{
-		OutputDebugString("Error Loading Actor\n");
+		CCD->Log()->Warning("Failed to load Actor");
 	}
 
 	return theActor;
@@ -4193,9 +4182,8 @@ void CActorManager::AdvanceInstanceTime(ActorInstanceList *theEntry, geFloat dwT
 		//	is the animation missing from the actor?
 		if(!EffectC_IsStringNull(theEntry->szMotionName) && theEntry->Actor == CCD->Player()->GetActor())
 		{
-			sprintf(szBug, "[WARNING] File %s - Line %d: Player missing animation %s",
-					__FILE__, __LINE__, theEntry->szMotionName);
-			CCD->ReportError(szBug, false);
+			CCD->Log()->Warning("File %s - Line %d: Player missing animation '%s'",
+								__FILE__, __LINE__, theEntry->szMotionName);
 		}
 
 		// check to see if we have a 'next motion name', maybe we just need to play it instead

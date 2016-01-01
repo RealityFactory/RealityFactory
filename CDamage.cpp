@@ -46,10 +46,8 @@ CDamage::CDamage()
 
 		if(!pDestroy->Model)
 		{
-			char szError[256];
-			sprintf(szError,"[WARNING] File %s - Line %d: DestroyableModel: '%s' Missing Model\n",
-					__FILE__, __LINE__, pDestroy->szEntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: DestroyableModel: '%s' Missing Model",
+								__FILE__, __LINE__, pDestroy->szEntityName);
 			continue;
 		}
 

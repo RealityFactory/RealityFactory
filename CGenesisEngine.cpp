@@ -195,8 +195,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 
 	if(!hWnd)
 	{
-		OutputDebugString("Main window creation failure\n");
-		ReportError("[ERROR] Main window creation failure", false);
+		CCD->Log()->Critical("File %s - Line %d: Main window creation failure!", __FILE__, __LINE__);
 		exit(-1);
 	}
 
@@ -216,7 +215,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	if(CreateEngine(szName) == FALSE)
 	{
 		DestroyWindow(m_wndMain);					// Clean up
-		ReportError("[ERROR] Genesis3D engine creation failure", false);
+		CCD->Log()->Critical("File %s - Line %d: Genesis3D engine creation failure!", __FILE__, __LINE__);
 		exit(-2);
 	}
 
@@ -228,7 +227,7 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 	if(m_Audio == NULL)
 	{
 		DestroyWindow(m_wndMain);
-		ReportError("[ERROR] Genesis3D audio subsystem creation failure", false);
+		CCD->Log()->Critical("File %s - Line %d: Genesis3D audio subsystem creation failure!", __FILE__, __LINE__);
 		exit(-86);
 	}
 
@@ -278,7 +277,7 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 
 	if(!m_Engine)
 	{
-		ReportError("[ERROR] geEngine_Create failure", false);
+		CCD->Log()->Critical("File %s - Line %d: geEngine_Create failure!", __FILE__, __LINE__);
 		return false;
 	}
 
@@ -290,7 +289,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 
 	if(!m_DrvSys)
 	{
-		ReportError("[ERROR] geEngine_GetDriverSystem failure", false);
+		CCD->Log()->Critical("File %s - Line %d: geEngine_GetDriverSystem failure!",
+								__FILE__, __LINE__);
 		return false;
 	}
 
@@ -299,7 +299,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 	{
 		if(AutoDriver() == false)
 		{
-			ReportError("[ERROR] Failed to locate any available Genesis3D driver", false);
+			CCD->Log()->Critical("File %s - Line %d: Failed to locate any available Genesis3D driver!",
+									__FILE__, __LINE__);
 			return false;
 		}
 	}
@@ -310,10 +311,11 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 		{
 			// Probably hit "Pick Something for Me" or ESC...
 			// So try to auto select for them
-			ReportError("[INFO] Auto-Detecting Driver", false);
+			CCD->Log()->Info("Auto-Detecting Driver...");
 			if(AutoDriver() == false)
 			{
-				ReportError("[ERROR] Failed to locate any available Genesis3D driver", false);
+				CCD->Log()->Critical("File %s - Line %d: Failed to locate any available Genesis3D driver!",
+										__FILE__, __LINE__);
 				return false;
 			}
 		}
@@ -332,7 +334,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 
 			if(!cline)
 			{
-				ReportError("[ERROR] geEngine_SetDriverAndMode failure", false);
+				CCD->Log()->Critical("File %s - Line %d: geEngine_SetDriverAndMode failure!",
+										__FILE__, __LINE__);
 				return false;
 			}
 		}
@@ -342,7 +345,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 	{
 		if(FindDriver() == FALSE)
 		{
-			ReportError("[ERROR] Failed to locate good Genesis3D driver", false);
+			CCD->Log()->Critical("File %s - Line %d: Failed to locate good Genesis3D driver!",
+									__FILE__, __LINE__);
 			return false;
 		}
 
@@ -358,7 +362,8 @@ bool CGenesisEngine::CreateEngine(const char *szName)
 
 		if(!cline)
 		{
-			ReportError("[ERROR] geEngine_SetDriverAndMode failure", false);
+			CCD->Log()->Critical("File %s - Line %d: geEngine_SetDriverAndMode failure!",
+									__FILE__, __LINE__);
 			return false;
 		}
 	}
@@ -379,12 +384,13 @@ bool CGenesisEngine::FindDriver()
 
 	if(m_fFullScreen)
 	{
-		ReportError("Searching for fullscreen driver", false);
+		CCD->Log()->Notice("Searching for fullscreen driver...");
 		m_Driver = geDriver_SystemGetNextDriver(m_DrvSys, NULL);
 
 		if(!m_Driver)
 		{
-			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
+			CCD->Log()->Critical("File %s - Line %d: geDriver_SystemGetNextDriver(FULLSCREEN) failure!",
+									__FILE__, __LINE__);
 			return false;
 		}
 
@@ -399,7 +405,8 @@ bool CGenesisEngine::FindDriver()
 
 			if(!m_Driver)
 			{
-				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
+				CCD->Log()->Critical("File %s - Line %d: Unexpected SystemGetNextDriver error!",
+										__FILE__, __LINE__);
 				return false;
 			}
 		}
@@ -411,7 +418,8 @@ bool CGenesisEngine::FindDriver()
 		{
 			if(!m_Mode)
 			{
-				CCD->ReportError("GetNextMode - *No Mode* failure", false);
+				CCD->Log()->Critical("File %s - Line %d: GetNextMode - *No Mode* failure!",
+										__FILE__, __LINE__);
 				return false;
 			}
 
@@ -419,9 +427,7 @@ bool CGenesisEngine::FindDriver()
 
 			if(Width == m_nWidth && Height == m_nHeight)
 			{
-				char szFoo[132];
-				sprintf(szFoo, "Driver %s width %d height %d selected", drvname, Width, Height);
-				CCD->ReportError(szFoo, false);
+				CCD->Log()->Info("Driver %s width %d height %d selected", drvname, Width, Height);
 				break;							// Right DRIVER, right MODE, we're out!
 			}
 
@@ -430,12 +436,13 @@ bool CGenesisEngine::FindDriver()
 	}
 	else							// ** Not going full-screen
 	{
-		ReportError("Searching for windowed driver", false);
+		CCD->Log()->Notice("Searching for windowed driver...");
 		m_Driver = geDriver_SystemGetNextDriver(m_DrvSys, NULL);
 
 		if(!m_Driver)
 		{
-			ReportError("[ERROR] geDriver_SystemGetNextDriver(FULLSCREEN) failure", false);
+			CCD->Log()->Critical("File %s - Line %d: geDriver_SystemGetNextDriver(WINDOWED) failure!",
+									__FILE__, __LINE__);
 			return false;
 		}
 
@@ -458,7 +465,8 @@ bool CGenesisEngine::FindDriver()
 
 			if(!m_Driver)
 			{
-				ReportError("[ERROR] Unexpected SystemGetNextDriver error", false);
+				CCD->Log()->Critical("File %s - Line %d: Unexpected SystemGetNextDriver error!",
+										__FILE__, __LINE__);
 				return false;
 			}
 		}
@@ -470,7 +478,8 @@ bool CGenesisEngine::FindDriver()
 		{
 			if(!m_Mode)
 			{
-				CCD->ReportError("[ERROR] GetNextMode - *No Mode* failure", false);
+				CCD->Log()->Critical("File %s - Line %d: GetNextMode - *No Mode* failure!",
+										__FILE__, __LINE__);
 				return false;
 			}
 
@@ -485,7 +494,8 @@ bool CGenesisEngine::FindDriver()
 
 		if(!(m_Driver && m_Mode))
 		{
-			ReportError("[ERROR] Failed to find windowed driver and mode", false);
+			CCD->Log()->Critical("File %s - Line %d: Failed to find windowed driver and mode!",
+									__FILE__, __LINE__);
 			return false;
 		}
 	}
@@ -510,7 +520,7 @@ bool CGenesisEngine::AutoDriver()
 
 	if(DriverModeList == NULL)
 	{
-		ReportError("[ERROR] No Driver List", false);
+		CCD->Log()->Critical("File %s - Line %d: No Driver List!", __FILE__, __LINE__);
 		ModeList_Destroy(DriverModeList);
 		return false;
 	}
@@ -549,7 +559,7 @@ bool CGenesisEngine::PickDriver()
 
 	if(DriverModeList == NULL)
 	{
-		ReportError("[ERROR] No Driver List", false);
+		CCD->Log()->Critical("File %s - Line %d: No Driver List!", __FILE__, __LINE__);
 		ModeList_Destroy(DriverModeList);
 		return false;
 	}
@@ -825,13 +835,13 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 	if(!pBitmap)
 	{
-		ReportError("[ERROR] BreakUpBigBitmap needs a bitmap", false);
+		CCD->Log()->Error("BreakUpBigBitmap needs a bitmap!");
 		return false;
 	}
 
 	if(!BitmapBuffer)
 	{
-		ReportError("[ERROR] BreakUpBigBitmap needs a bitmapbuffer", false);
+		CCD->Log()->Error("BreakUpBigBitmap needs a bitmapbuffer!");
 		return false;
 	}
 
@@ -867,7 +877,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!Bitmap)
 			{
-				ReportError("[ERROR] BreakUpBigBitmap could not create a bitmap", false);
+				CCD->Log()->Error("BreakUpBigBitmap could not create a bitmap!");
 				delete BitmapBuffer;
 				// MEMORY LEAK
 				return false;
@@ -875,7 +885,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!geBitmap_Blit(pBitmap, j<<8, i<<8, Bitmap, 0, 0, Width, Height))
 			{
-				ReportError("[ERROR] BreakUpBigBitmap could not blit a bitmap", false);
+				CCD->Log()->Error("BreakUpBigBitmap could not blit a bitmap!");
 				delete BitmapBuffer;
 				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
@@ -884,7 +894,7 @@ bool CGenesisEngine::BreakUpBigBitmap(geBitmap			*pBitmap,
 
 			if(!geBitmap_SetPreferredFormat(Bitmap, GE_PIXELFORMAT_8BIT))
 			{
-				ReportError("[ERROR] BreakUpBigBitmap could not change formats", false);
+				CCD->Log()->Error("BreakUpBigBitmap could not change formats!");
 				delete BitmapBuffer;
 				geBitmap_Destroy(&pBitmap);
 				// MEMORY LEAK
@@ -1195,10 +1205,8 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 
 	if(!m_Level)
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Failed to load level '%s'",
-				__FILE__, __LINE__, szLevelFileName);
-		ReportError(szBug, false);
+		CCD->Log()->Critical("File %s - Line %d: Failed to load level '%s'!",
+								__FILE__, __LINE__, szLevelFileName);
 		return false;
 	}
 
@@ -1208,19 +1216,15 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 
 	if(!m_World)
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to create World",
-				__FILE__, __LINE__, szLevelFileName);
-		ReportError(szBug, false);
+		CCD->Log()->Critical("File %s - Line %d: Loaded level '%s' failed to create World!",
+								__FILE__, __LINE__, szLevelFileName);
 		return false;
 	}
 
 	if(geEngine_AddWorld(m_Engine, m_World) == GE_FALSE)
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Loaded level '%s' failed to add World",
-				__FILE__, __LINE__, szLevelFileName);
-		ReportError(szBug, false);
+		CCD->Log()->Critical("File %s - Line %d: Loaded level '%s' failed to add World to Engine!",
+								__FILE__, __LINE__, szLevelFileName);
 		return false;
 	}
 
@@ -1242,7 +1246,7 @@ int CGenesisEngine::BeginFrame()
 
 	if(geEngine_BeginFrame(m_Engine, CCD->CameraManager()->Camera(), GE_TRUE) == GE_FALSE)
 	{
-		ReportError("[ERROR] CGenesisEngine::BeginFrame failed", false);
+		CCD->Log()->Critical("CGenesisEngine::BeginFrame failed!");
 		exit(-1);
 	}
 
@@ -1264,7 +1268,7 @@ int CGenesisEngine::EndFrame()
 
 	if(geEngine_EndFrame(m_Engine) == GE_FALSE)
 	{
-		ReportError("[ERROR] CGenesisEngine::EndFrame failed", false);
+		CCD->Log()->Error("CGenesisEngine::EndFrame failed!");
 		return RGF_FAILURE;
 	}
 
@@ -1290,7 +1294,7 @@ int CGenesisEngine::RenderWorld()
 	// We're ready, render it!
 	if(geEngine_RenderWorld(m_Engine, m_World, CCD->CameraManager()->Camera(), 0.0f) == GE_FALSE)
 	{
-		ReportError("[ERROR] CGenesisEngine::RenderWorld failed", false);
+		CCD->Log()->Error("CGenesisEngine::RenderWorld failed!");
 		return RGF_FAILURE;
 	}
 
@@ -1318,10 +1322,8 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 
 			if(geEngine_AddBitmap(m_Engine, theBmp) == GE_FALSE)
 			{
-				char szError[200];
-				sprintf(szError, "[ERROR] File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
-						__FILE__, __LINE__, szSplashBMP);
-				ReportError(szError, false);
+				CCD->Log()->Error("File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'!",
+									__FILE__, __LINE__, szSplashBMP);
 				return RGF_FAILURE;
 			}
 
@@ -1332,10 +1334,8 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 
 			if(geEngine_DrawBitmap(m_Engine, theBmp, NULL, x, y ) == GE_FALSE)
 			{
-				char szError[200];
-				sprintf(szError,"[WARNING] File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
-						__FILE__, __LINE__, szSplashBMP);
-				ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'!",
+									__FILE__, __LINE__, szSplashBMP);
 			}
 
 			EndFrame();
@@ -1357,10 +1357,8 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 
 			if(!SoundFile)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: Failed to open Splash Audio file '%s'\n",
-						__FILE__, __LINE__, szAudioFile);
-				ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: Failed to open Splash Audio file '%s'!",
+									__FILE__, __LINE__, szAudioFile);
 			}
 			else
 			{

@@ -47,10 +47,9 @@ CAutoDoors::CAutoDoors() :
 
 		if(!pDoor->Model)
 		{
-			char szError[256];
-			sprintf(szError,"[WARNING] File %s - Line %d: '%s': Missing Model\n",
-					__FILE__, __LINE__, pDoor->szEntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: '%s': Missing Model",
+								__FILE__, __LINE__, pDoor->szEntityName);
+
 			continue;
 		}
 
@@ -165,10 +164,9 @@ CAutoDoors::CAutoDoors() :
 
 			if(!pDoor->theSound)
 			{
-				char szError[256];
-				sprintf(szError, "[WARNING] File %s - Line %d: %s: Failed to open audio file '%s'\n",
-						__FILE__, __LINE__, pDoor->szEntityName, pDoor->szSoundFile);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: %s: Failed to open audio file '%s'",
+									__FILE__, __LINE__,
+									pDoor->szEntityName, pDoor->szSoundFile);
 			}
 		}
 	}

@@ -61,7 +61,7 @@ CDSpotLight::CDSpotLight()
 
 		if(pLight->NumFunctionValues == 0)
 		{
-			CCD->ReportError("[WARNING] DSpotLight has no RadiusFunction string\n", false);
+			CCD->Log()->Warning("DSpotLight '%s' has no RadiusFunction string", pLight->szEntityName);
 			continue;
 		}
 

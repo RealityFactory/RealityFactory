@@ -53,10 +53,10 @@ CActMaterial::CActMaterial()
 
 		if(pMaterial->Actor == NULL)
 		{
-			char szError[256];
-			sprintf(szError,"[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
-					__FILE__, __LINE__, pMaterial->szEntityName, pMaterial->EntityName);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: %s: Missing actor '%s'",
+								__FILE__, __LINE__,
+								pMaterial->szEntityName,
+								pMaterial->EntityName);
 		}
 	}
 }

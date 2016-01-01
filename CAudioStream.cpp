@@ -130,9 +130,7 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 	// ..object to handle the streaming WAVE, let's PLAY IT.
 	if(m_Streams[nSlot]->Create(szTemp) != RGF_SUCCESS)
 	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play '%s'\n", __FILE__, __LINE__, szTemp);
-		CCD->ReportError(szBug, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to play '%s'", __FILE__, __LINE__, szTemp);
 
 		SAFE_DELETE_A(m_FileList[nSlot]);
 

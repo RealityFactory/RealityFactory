@@ -97,10 +97,8 @@ int C3DAudioSource::Create(const geVec3d &Origin, const char *SoundFile, float r
 
 	if(!Sound.SoundDef)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Failed to open audio file '%s'\n",
-				__FILE__, __LINE__, SoundFile);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to open audio file '%s'",
+							__FILE__, __LINE__, SoundFile);
 	}
 	else
 	{

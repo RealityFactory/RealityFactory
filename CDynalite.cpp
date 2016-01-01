@@ -60,7 +60,7 @@ CDynalite::CDynalite()
 
 		if(pLight->NumFunctionValues == 0)
 		{
-			CCD->ReportError("[WARNING] DynamicLight has no RadiusFunction string\n", false);
+			CCD->Log()->Warning("DynamicLight '%s' has no RadiusFunction string", pLight->szEntityName);
 			continue;
 		}
 

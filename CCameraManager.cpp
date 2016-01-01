@@ -38,7 +38,7 @@ CCameraManager::CCameraManager()
 
 	if(!EngineCamera)
 	{
-		CCD->ReportError("[ERROR] CCameraManager.cpp: geCamera_Create failed", false);
+		CCD->Log()->Critical("File %s - Line %d: geCamera_Create failed!", __FILE__, __LINE__);
 		return;
 	}
 
@@ -85,7 +85,7 @@ void CCameraManager::Defaults()
 	CIniFile AttrFile("camera.ini");
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("[ERROR] Failed to open camera.ini file", false);
+		CCD->Log()->Critical("Failed to open camera.ini file!");
 		exit(-1);
 	}
 
