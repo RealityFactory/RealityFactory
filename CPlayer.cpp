@@ -36,6 +36,33 @@ extern geSound_Def *SPool_Sound(const char *SName);
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
+#define ANIMDIE					GetDieAnim()
+#define ANIMINJURY				GetInjuryAnim()
+
+#define ANIMI2WALKTIME			m_TranTime[I2WALKTIME]
+#define ANIMI2RUNTIME			m_TranTime[I2RUNTIME]
+#define ANIMW2IDLETIME			m_TranTime[W2IDLETIME]
+#define ANIMC2IDLETIME			m_TranTime[C2IDLETIME]
+#define ANIMCROUCH2IDLETIME		m_TranTime[CROUCH2IDLETIME]
+#define ANIMIDLE2CROUCHTIME		m_TranTime[IDLE2CROUCHTIME]
+#define ANIMSWIM2TREADTIME		m_TranTime[SWIM2TREADTIME]
+#define ANIMTREAD2SWIMTIME		m_TranTime[TREAD2SWIMTIME]
+#define ANIMIDLE2TREADTIME		m_TranTime[IDLE2TREADTIME]
+#define ANIMTREAD2IDLETIME		m_TranTime[TREAD2IDLETIME]
+#define ANIMSWIM2WALKTIME		m_TranTime[SWIM2WALKTIME]
+#define ANIMWALK2SWIMTIME		m_TranTime[WALK2SWIMTIME]
+#define ANIMJUMP2FALLTIME		m_TranTime[JUMP2FALLTIME]
+#define ANIMJUMP2TREADTIME		m_TranTime[JUMP2TREADTIME]
+#define ANIMFALL2TREADTIME		m_TranTime[FALL2TREADTIME]
+#define ANIMSLIDE2CROUCHTIME	m_TranTime[SLIDE2CROUCHTIME]
+#define ANIMSLIDE2IDLETIME		m_TranTime[SLIDE2IDLETIME]
+#define ANIMFALL2CRAWLTIME		m_TranTime[FALL2CRAWLTIME]
+#define ANIMFALL2WALKTIME		m_TranTime[FALL2WALKTIME]
+#define ANIMFALL2JUMPTIME		m_TranTime[FALL2JUMPTIME]
+#define ANIMWALK2JUMPTIME		m_TranTime[WALK2JUMPTIME]
+#define ANIMWALK2CRAWLTIME		m_TranTime[WALK2CRAWLTIME]
+#define ANIMCRAWL2WALKTIME		m_TranTime[CRAWL2WALKTIME]
+#define ANIMIDLE2CRAWLTIME		m_TranTime[IDLE2CRAWLTIME]
 /* ------------------------------------------------------------------------------------ */
 // CPlayer
 //
