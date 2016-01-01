@@ -39,98 +39,99 @@ Chaos::Chaos()
 		{
 			pTex->Actor = GetEntityActor(pTex->EntityName);
 
-				if(!pTex->Actor)
-				{
-					char szName[128];
-					char szError[256];
-					geEntity_GetName(pEntity, szName, 128);
+			if(!pTex->Actor)
+			{
+				char szName[128];
+				char szError[256];
+				geEntity_GetName(pEntity, szName, 128);
 
-					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing actor '%s'\n",
 							__FILE__, __LINE__, szName, pTex->EntityName);
-					CCD->ReportError(szError, false);
-					continue;
-				}
+				CCD->ReportError(szError, false);
+				continue;
 			}
+		}
 
-			// get the output bitmap as an actor bitmap...
-			if(pTex->Actor != NULL)
-			{
-				// locals
-				geActor_Def *ActorDef;
-				geBody *Body;
-				int MaterialCount;
-				int i;
-				const char *MaterialName;
-				float R, G, B;
-				int Length;
+		// get the output bitmap as an actor bitmap...
+		if(pTex->Actor != NULL)
+		{
+			// locals
+			geActor_Def *ActorDef;
+			geBody *Body;
+			int MaterialCount;
+			int i;
+			const char *MaterialName;
+			float R, G, B;
+			int Length;
 
-				// get actor material count
-				ActorDef = geActor_GetActorDef(pTex->Actor);
+			// get actor material count
+			ActorDef = geActor_GetActorDef(pTex->Actor);
 
-				if(ActorDef == NULL)
-					continue;
-
-				Body = geActor_GetBody(ActorDef);
-
-				if(Body == NULL)
-                       continue;
-
-				MaterialCount = geActor_GetMaterialCount(pTex->Actor);
-
-				// get bitmap pointer
-				Length = strlen(pTex->AttachBmp);
-
-				for(i=0; i<MaterialCount; ++i)
-				{
-					if(geBody_GetMaterial(Body, i, &MaterialName, &(pTex->CAttachBmp), &R, &G, &B) == GE_FALSE)
-						continue;
-
-					if(strnicmp(pTex->AttachBmp, MaterialName, Length) == 0)
-						break;
-				}
-
-				if(i == MaterialCount)
-				{
-					char szName[128];
-					char szError[256];
-					geEntity_GetName(pEntity, szName, 128);
-					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial %s\n",
-						__FILE__, __LINE__, szName, pTex->AttachBmp);
-					CCD->ReportError(szError, false);
-					pTex->CAttachBmp = NULL;
-					continue;
-				}
-			}
-			else	// ...or a world bitmap
-			{
-				pTex->CAttachBmp = geWorld_GetBitmapByName(CCD->World(), pTex->AttachBmp);
-
-				if(pTex->CAttachBmp == NULL)
-				{
-					char szName[128];
-					char szError[256];
-					geEntity_GetName(pEntity, szName, 128);
-					sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing Texture %s in level\n",
-						__FILE__, __LINE__, szName, pTex->AttachBmp);
-					CCD->ReportError(szError, false);
-					continue;
-               }
-			}
-
-
-			geBitmap_SetFormatMin(pTex->CAttachBmp, CHAOS_FORMAT);
-			geBitmap_ClearMips(pTex->CAttachBmp);
-
-			geBitmap_Info AttachInfo;
-			if(geBitmap_GetInfo(pTex->CAttachBmp, &AttachInfo, NULL) == GE_FALSE)
+			if(ActorDef == NULL)
 				continue;
 
-			pTex->SegmentCount = AttachInfo.Width / pTex->SegmentSize;
+			Body = geActor_GetBody(ActorDef);
 
-			// fail if the sway amount is bigger than the texture size
-			if((pTex->MaxXSway >= AttachInfo.Width) || (pTex->MaxYSway >= AttachInfo.Height))
+			if(Body == NULL)
 				continue;
 
+			MaterialCount = geActor_GetMaterialCount(pTex->Actor);
+
+			// get bitmap pointer
+			Length = strlen(pTex->AttachBmp);
+
+			for(i=0; i<MaterialCount; ++i)
+			{
+				if(geBody_GetMaterial(Body, i, &MaterialName, &(pTex->CAttachBmp), &R, &G, &B) == GE_FALSE)
+					continue;
+
+				if(strnicmp(pTex->AttachBmp, MaterialName, Length) == 0)
+					break;
+			}
+
+			if(i == MaterialCount)
+			{
+				char szName[128];
+				char szError[256];
+				geEntity_GetName(pEntity, szName, 128);
+
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing ActorMaterial %s\n",
+					__FILE__, __LINE__, szName, pTex->AttachBmp);
+				CCD->ReportError(szError, false);
+
+				pTex->CAttachBmp = NULL;
+				continue;
+			}
+		}
+		else	// ...or a world bitmap
+		{
+			pTex->CAttachBmp = geWorld_GetBitmapByName(CCD->World(), pTex->AttachBmp);
+
+			if(pTex->CAttachBmp == NULL)
+			{
+				char szName[128];
+				char szError[256];
+				geEntity_GetName(pEntity, szName, 128);
+
+				sprintf(szError, "[WARNING] File %s - Line %d: %s: Missing Texture %s in level\n",
+					__FILE__, __LINE__, szName, pTex->AttachBmp);
+				CCD->ReportError(szError, false);
+				continue;
+			}
+		}
+
+		geBitmap_SetFormatMin(pTex->CAttachBmp, CHAOS_FORMAT);
+		geBitmap_ClearMips(pTex->CAttachBmp);
+
+		geBitmap_Info AttachInfo;
+		if(geBitmap_GetInfo(pTex->CAttachBmp, &AttachInfo, NULL) == GE_FALSE)
+			continue;
+
+		pTex->SegmentCount = AttachInfo.Width / pTex->SegmentSize;
+
+		// fail if the sway amount is bigger than the texture size
+		if((pTex->MaxXSway >= AttachInfo.Width) || (pTex->MaxYSway >= AttachInfo.Height))
+			continue;
 
 		pTex->OriginalBmp = geBitmap_Create(AttachInfo.Width, AttachInfo.Height, 1, CHAOS_FORMAT);
 
