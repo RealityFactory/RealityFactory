@@ -2885,7 +2885,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param0), &Pos);
 
 			if(!stricmp(param4, "Player"))
-				Pos = CCD->Player()->Position();
+				tPos = CCD->Player()->Position();
 			else
 				CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(param4), &tPos);
 
