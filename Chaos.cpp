@@ -80,7 +80,7 @@ Chaos::Chaos()
 				// get bitmap pointer
 				Length = strlen(pTex->AttachBmp);
 
-				for(i=0; i<MaterialCount; i++)
+				for(i=0; i<MaterialCount; ++i)
 				{
 					if(geBody_GetMaterial(Body, i, &MaterialName, &(pTex->CAttachBmp), &R, &G, &B) == GE_FALSE)
 						continue;
