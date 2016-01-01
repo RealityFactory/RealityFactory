@@ -16,10 +16,11 @@
 //
 // Load up all ViewSwitchs and set the entity values.
 /* ------------------------------------------------------------------------------------ */
-CViewSwitch::CViewSwitch()
+CViewSwitch::CViewSwitch() :
+	m_OldView(0),
+	m_ViewActive(false),
+	m_pViewSwitch(NULL)
 {
-	ViewActive = false;
-	pViewSwitch = NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -36,18 +37,19 @@ CViewSwitch::~CViewSwitch()
 /* ------------------------------------------------------------------------------------ */
 void CViewSwitch::Tick()
 {
-	if(ViewActive)
+	if(m_ViewActive)
 	{
-		if(!GetTriggerState(pViewSwitch->TriggerName))
+		if(!GetTriggerState(m_pViewSwitch->TriggerName))
 		{
-			if(pViewSwitch->Restore == GE_TRUE)
+			if(m_pViewSwitch->Restore == GE_TRUE)
 			{
+				// FIRST restore point of view, THEN restore saved values
+				CCD->Player()->SwitchCamera(m_OldView);
 				CCD->CameraManager()->RestoreFromS();
-				CCD->Player()->SwitchCamera(OldView);
 			}
 
-			ViewActive = false;
-			pViewSwitch = NULL;
+			m_ViewActive = false;
+			m_pViewSwitch = NULL;
 		}
 
 		return;
@@ -69,12 +71,12 @@ void CViewSwitch::Tick()
 		{
 			if(GetTriggerState(pSource->TriggerName))
 			{
-				ViewActive = true;
-				pViewSwitch = pSource;
+				m_ViewActive = true;
+				m_pViewSwitch = pSource;
 
-				if(pViewSwitch->Restore == GE_TRUE)
+				if(m_pViewSwitch->Restore == GE_TRUE)
 				{
-					OldView = CCD->Player()->GetViewPoint();
+					m_OldView = CCD->Player()->GetViewPoint();
 					CCD->CameraManager()->SaveToS();
 				}
 

@@ -23,9 +23,9 @@ public:
 	void Tick();
 
 private:
-	int OldView;
-	bool ViewActive;
-	ViewSwitch *pViewSwitch;
+	int m_OldView;
+	bool m_ViewActive;
+	ViewSwitch *m_pViewSwitch;
 };
 
 #endif
