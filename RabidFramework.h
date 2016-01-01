@@ -123,6 +123,7 @@ typedef struct
 
 class CCommonData;
 
+#include "CLog.h"
 #include "IniFile.h"
 #include "Mixer.h"
 #include "Qx\\qxTerrainMgr.h"
