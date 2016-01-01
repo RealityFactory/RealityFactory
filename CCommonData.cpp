@@ -184,9 +184,6 @@ CCommonData::CCommonData()
 	m_Language = 0;
 	Logging = false;
 
-	// Debug tracing time
-	if(m_DebugLevel == kHighDebugOutput)
-		OutputDebugString("CCommonData initialized\n");
 
 	// Set up for timekeeping
 	m_nTimerID = timeSetEvent(1, 0,	&TimerFunction, (DWORD)this,
@@ -195,7 +192,9 @@ CCommonData::CCommonData()
 	TimeCounter = LastTimePoll = 0;
 	LastTimePassed_D = 0;
 	LastTimePassed_F = 0;
-	return;
+
+	// Debug tracing time
+	OutputDebugString("CCommonData initialized\n");
 }
 
 /* ------------------------------------------------------------------------------------ */
