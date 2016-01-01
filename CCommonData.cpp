@@ -329,10 +329,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			else if(!stricmp(szAtom, "fullscreen"))
 			{
 				// Set fullscreen/windowed
-				if(!stricmp(szArg, "true"))
-					bFullScreen = true;
-				else
-					bFullScreen = false;
+				bFullScreen = !stricmp(szArg, "true");
 			}
 			else if(!stricmp(szAtom, "logging"))
 			{
