@@ -266,7 +266,6 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	{
 		// File there, parse it!
 		char szInputLine[132];
-		char *szAtom, *szArg;
 		int nTemp;
 
 		while(fgets(szInputLine, 132, fd) != NULL)
@@ -278,8 +277,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 				continue;				// Skip blank lines
 
 			// All config commands are "thing=value"
-			szAtom = strtok(szInputLine," =");
-			szArg = strtok(NULL, " \n");
+			char *szAtom = strtok(szInputLine," =");
+			char *szArg  = strtok(NULL, " \n");
 
 			if(!stricmp(szAtom, "leveldirectory"))
 			{
