@@ -489,7 +489,8 @@ geBoolean EffectC_IsPointVisible(geWorld *World, const geCamera *Camera, const g
 		CameraXf = geCamera_GetWorldSpaceXForm(Camera);
 
 		// check if its visible
-		if ( geWorld_Collision( World, (const geVec3d *)NULL, (const geVec3d *)NULL, &( CameraXf->Translation ), Target, GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, (GE_CollisionCB *)NULL, NULL, &Collision ) == GE_TRUE )
+		if(geWorld_Collision(World, NULL, NULL, &(CameraXf->Translation), Target,
+			GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, NULL, NULL, &Collision) == GE_TRUE)
 		{
 			return GE_FALSE;
 		}
@@ -555,8 +556,8 @@ geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geE
 			// get camera xform
 			CameraXf = geCamera_GetWorldSpaceXForm(Camera);
 
-			if(geWorld_Collision(World, (const geVec3d*)NULL, (const geVec3d *)NULL, &(CameraXf->Translation),
-				&(BoxCorners[i]), GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, (GE_CollisionCB*)NULL, NULL, &Collision) == GE_FALSE)
+			if(geWorld_Collision(World, NULL, NULL, &(CameraXf->Translation), &(BoxCorners[i]),
+				GE_CONTENTS_SOLID, GE_COLLIDE_MODELS, 0, NULL, NULL, &Collision) == GE_FALSE)
 			{
 				return GE_TRUE;
 			}
