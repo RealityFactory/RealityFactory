@@ -493,18 +493,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			{
 				if(szArg != NULL)
 				{
-					if(!stricmp(szArg, "d3d"))
-						chTheDriver = '(';
-					else if(!stricmp(szArg, "d3d16"))
-						chTheDriver = 'D';				// Use Direct3D in fullscreen
-					else if(!stricmp(szArg, "opengl"))
-						chTheDriver = 'O';
-					else if(!stricmp(szArg, "wire"))
-						chTheDriver = 'W';
-					else if(!stricmp(szArg, "auto"))
-						chTheDriver = 'A';				// Use Auto Detect
-					else if(!stricmp(szArg, "pick"))
-						chTheDriver = 'P';				// Pop a driver pick list
+					if(!stricmp(szArg, "d3d"))			chTheDriver = '(';
+					else if(!stricmp(szArg, "d3d16"))	chTheDriver = 'D';	// Use Direct3D in fullscreen
+					else if(!stricmp(szArg, "opengl"))	chTheDriver = 'O';
+					else if(!stricmp(szArg, "wire"))	chTheDriver = 'W';
+					else if(!stricmp(szArg, "auto"))	chTheDriver = 'A';	// Use Auto Detect
+					else if(!stricmp(szArg, "pick"))	chTheDriver = 'P';	// Pop a driver pick list
 					else
 					{
 						ReportError("[WARNING] Bad driver selection in RealityFactory.ini\n", false);
