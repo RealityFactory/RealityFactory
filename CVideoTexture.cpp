@@ -53,9 +53,8 @@ CVideoTexture::CVideoTexture() :
 		// ..happening if we need to initialize the texture later.
 		std::string File = pTex->szVideoName;
 		MakeLower(File);
-		int i = File.find(".gif");
 
-		if(i>=0 && i<static_cast<int>(File.length()))
+		if(EndsWith(File, ".gif"))
 		{
 			pTex->Gif = GE_TRUE;
 
