@@ -1931,7 +1931,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				Sound.SoundDef = SPool_Sound(param0);
 
 				if(Sound.SoundDef != NULL)
-					CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 			}
 
 			return true;
