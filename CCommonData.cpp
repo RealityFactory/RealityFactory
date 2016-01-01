@@ -3084,23 +3084,22 @@ void CCommonData::PlayOpeningCutScene()
 //
 // Play a .gif or .avi file
 /* ------------------------------------------------------------------------------------ */
-void CCommonData::Play(const char *szFile, int XPos, int YPos, bool Center)
+void CCommonData::Play(const char *szFile, int xPos, int yPos, bool center)
 {
-	std::string File = szFile;
-	MakeLower(File);
-	int i = File.find(".gif");
+	std::string file(szFile);
+	MakeLower(file);
 
-	if(i >= 0 && i < (int)File.length())
+	if(EndsWith(file, ".gif"))
 	{
-		CAnimGif *SplashAVI = new CAnimGif(szFile, kVideoFile);
-		SplashAVI->Play(XPos, YPos, Center);
-		delete SplashAVI;
+		CAnimGif *splash = new CAnimGif(szFile, kVideoFile);
+		splash->Play(xPos, yPos, center);
+		delete splash;
 	}
 	else
 	{
-		CAVIPlayer *SplashAVI = new CAVIPlayer;
-		SplashAVI->Play(szFile, XPos, YPos, Center);
-		delete SplashAVI;
+		CAVIPlayer *splash = new CAVIPlayer;
+		splash->Play(szFile, xPos, yPos, center);
+		delete splash;
 	}
 }
 
