@@ -563,9 +563,6 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 	geVec3d			Left, Up, In;
 	geVec3d			Source, Dest;
 	const geXForm3d	*CameraXf;
-	float			Scale;
-	float			UnitLife;
-	float			Distance;
 	float			Adjustment = 1.0f;
 	float			NewPolyCount = 0.0f;
 
@@ -604,7 +601,7 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 	if(Data->DistanceMax > 0.0f)
 	{
 		// do nothing if its too far away
-		Distance = geVec3d_DistanceBetween(&(Data->Source), &(CameraXf->Translation));
+		float Distance = geVec3d_DistanceBetween(&(Data->Source), &(CameraXf->Translation));
 
 		if(Distance > Data->DistanceMax)
 		{
@@ -689,10 +686,10 @@ geBoolean EffManager::Spray_Process(Spray  *Data,  float  TimeDelta)
 		}
 
 		// set scale
-		Scale = EffectC_Frand(Data->MinScale, Data->MaxScale);
+		float Scale = EffectC_Frand(Data->MinScale, Data->MaxScale);
 
 		// set life
-		UnitLife = EffectC_Frand(Data->MinUnitLife, Data->MaxUnitLife);
+		float UnitLife = EffectC_Frand(Data->MinUnitLife, Data->MaxUnitLife);
 
 		// setup color
 		Data->Vertex.r = EffectC_Frand(Data->ColorMin.r, Data->ColorMax.r);
@@ -1983,9 +1980,6 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 	geVec3d			Left, Up, In;
 	geVec3d			Source, Dest;
 	const geXForm3d		*CameraXf;
-	float			Scale;
-	float			UnitLife;
-	float			Distance;
 	float			Adjustment = 1.0f;
 	float			NewPolyCount = 0.0f;
 
@@ -2013,7 +2007,7 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 	if(Data->DistanceMax > 0.0f)
 	{
 		// do nothing if its too far away
-		Distance = geVec3d_DistanceBetween(&(Data->Source), &(CameraXf->Translation));
+		float Distance = geVec3d_DistanceBetween(&(Data->Source), &(CameraXf->Translation));
 
 		if(Distance > Data->DistanceMax)
 		{
@@ -2098,10 +2092,10 @@ geBoolean EffManager::ActorSpray_Process(ActorSpray *Data, float TimeDelta)
 		}
 
 		// set scale
-		Scale = EffectC_Frand(Data->MinScale, Data->MaxScale);
+		float Scale = EffectC_Frand(Data->MinScale, Data->MaxScale);
 
 		// set life
-		UnitLife = EffectC_Frand(Data->MinUnitLife, Data->MaxUnitLife);
+		float UnitLife = EffectC_Frand(Data->MinUnitLife, Data->MaxUnitLife);
 
 		Speed.X = EffectC_Frand(Data->MinRotationSpeed.X, Data->MaxRotationSpeed.X);
 		Speed.Y = EffectC_Frand(Data->MinRotationSpeed.Y, Data->MaxRotationSpeed.Y);
