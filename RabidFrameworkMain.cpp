@@ -38,11 +38,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	_getcwd(m_currentdir, 512);
 	chdir(m_currentdir);
 
-	// _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(24312);
 
-	//	Initialize the Common Data class that handles components
 	CCD = NULL;
+	// Initialize the Common Data class that handles components
 	CCD = new CCommonData();
 
 	if(CCD == NULL)
@@ -165,7 +165,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		// No command line arg, if there wasn't anything from the .ini file, error exit.
 		if(szFirstLevel[0] == 0)
 		{
-			delete CCD;					// Unknown command line parm
+			delete CCD;
 			CCD = NULL;
 			MessageBox(NULL,"No Level to Load","RF Error", MB_OK);
 			exit(-335);
@@ -202,17 +202,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		CCD->ReportError("Previewing Level as SinglePlayer Client...", false);
 		CCD->MenuManager()->DoGame(true);
 	}
-	// added direct multiplayer launch from command line
-	// todo:  update the server IP & Port and launch the multiplayer game instead
-	// todo:  provide for dedicated server launching as well as remote client launching
+	// direct multiplayer launch from command line
+	// TODO:  update the server IP & Port and launch the multiplayer game instead
+	// TODO:  provide for dedicated server launching as well as remote client launching
 	else if(multiplayerLaunch)
 	{
 		// show logos
 		DisplayAllSplashScreens();
 
-
 		// launch our network game
-		// todo:  first have to set the serverip & port from our command line variables
+		// TODO:  first have to set the serverip & port from our command line variables
 		CCD->MenuManager()->SetLevelName(szFirstLevel);
 		CCD->ReportError("Launching Game as Multiplayer Client...", false);
 		CCD->MenuManager()->DoGame(true);
