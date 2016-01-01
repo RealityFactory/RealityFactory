@@ -2555,7 +2555,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				int index = -1;
 				int i;
 
-				for(i=0; i<DEBUGLINES; i++)
+				for(i=0; i<DEBUGLINES; ++i)
 				{
 					if(EffectC_IsStringNull(ConsoleDebug[i]))
 					{
@@ -2570,7 +2570,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 				}
 				else
 				{
-					for(i=1; i<DEBUGLINES; i++)
+					for(i=1; i<DEBUGLINES; ++i)
 					{
 						strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
 					}
