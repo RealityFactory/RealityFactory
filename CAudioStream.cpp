@@ -14,6 +14,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 
 /* ------------------------------------------------------------------------------------ */
 // Constructor
@@ -85,7 +86,7 @@ int CAudioStream::Play(const char *szFilename, bool fLoopIt, bool bProxy)
 
 // FIX #1
 	char szTemp[256];
-	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
+	strcpy(szTemp, CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
 
@@ -161,7 +162,7 @@ bool CAudioStream::IsPlaying(const char *szFilename)
 		return false;							// You're kidding, right?
 
 	char szTemp[256];
-	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
+	strcpy(szTemp, CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
 
@@ -187,7 +188,7 @@ int CAudioStream::Pause(const char *szFilename)
 		return false;							// You're kidding, right?
 
 	char szTemp[256];
-	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
+	strcpy(szTemp, CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
 
@@ -213,7 +214,7 @@ int CAudioStream::Stop(const char *szFilename)
 		return false;							// You're kidding, right?
 
 	char szTemp[256];
-	strcpy(szTemp, CCD->GetDirectory(kAudioStreamFile));
+	strcpy(szTemp, CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile));
 	strcat(szTemp, "\\");
 	strcat(szTemp, szFilename);
 

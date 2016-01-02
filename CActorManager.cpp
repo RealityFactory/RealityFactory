@@ -10,6 +10,7 @@
 
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CFileManager.h"
 #include "IniFile.h"
 #include "CPolyShadow.h"
 #include "CLiquid.h"

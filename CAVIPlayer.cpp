@@ -10,6 +10,7 @@
 
 //#define MONDO_DEBUG
 #include "RabidFramework.h"
+#include "CFileManager.h"
 
 /* ------------------------------------------------------------------------------------ */
 // CAVIPlayer
@@ -489,7 +490,7 @@ int CAVIPlayer::Open(const char *szFile)
 
 	char szTemp[256];
 
-	strncpy(szTemp, CCD->GetDirectory(kVideoFile), 255);
+	strncpy(szTemp, CFileManager::GetSingletonPtr()->GetDirectory(kVideoFile), 255);
 	szTemp[255] = 0;
 	strncat(szTemp, "\\", 255-strlen(szTemp));
 	strncat(szTemp, szFile, 255-strlen(szTemp));

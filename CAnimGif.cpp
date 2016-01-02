@@ -11,6 +11,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 
 typedef struct
 {
@@ -39,7 +40,7 @@ CAnimGif::CAnimGif(const char *szFile, int fileformat) :
 	m_TotalReadByte(0),
 	m_VAnimTime(0.0f)
 {
-	if(!CCD->OpenRFFile(&MainFS, fileformat, szFile, GE_VFILE_OPEN_READONLY))
+	if(!CFileManager::GetSingletonPtr()->OpenRFFile(&m_MainFS, fileformat, szFile, GE_VFILE_OPEN_READONLY))
 		return;
 
 	long Size;

@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
 #include "CChangeLevel.h"
@@ -726,7 +727,7 @@ geBitmap *CreateFromFileName(const char *BmName, int nFileType)
 	if(EffectC_IsStringNull(BmName))
 		return NULL;
 
-	CCD->OpenRFFile(&File, nFileType, BmName, GE_VFILE_OPEN_READONLY);
+	CFileManager::GetSingletonPtr()->OpenRFFile(&File, nFileType, BmName, GE_VFILE_OPEN_READONLY);
 
 	if(!File)
 	{

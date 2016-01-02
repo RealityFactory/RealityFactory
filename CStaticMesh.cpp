@@ -9,6 +9,7 @@
 //	Include the One True Header
 #include "RabidFramework.h"
 #include <body._h>
+#include "CFileManager.h"
 #include "CStaticMesh.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
@@ -78,7 +79,7 @@ CStaticMesh::CStaticMesh() :
 		// let's check if we have this actor's poly already in the MeshList
 		if(!IsInList(pMesh->szActorFile, &Index))
 		{
-			if(CCD->FileExist(kActorFile, pMesh->szActorFile))
+			if(CFileManager::GetSingletonPtr()->FileExist(kActorFile, pMesh->szActorFile))
 			{
 				// add a new entry to the meshlist
 				if(!AddNewMesh(pMesh->szActorFile))
@@ -320,7 +321,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			sprintf(Name, "%s%d.act", LodName, LOD);
 		}
 
-		if(!CCD->FileExist(kActorFile, Name))
+		if(!CFileManager::GetSingletonPtr()->FileExist(kActorFile, Name))
 		{
 			if(!LOD)
 			{
@@ -338,7 +339,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		}
 
 		//open the actor file
-		CCD->OpenRFFile(&ActorFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
+		CFileManager::GetSingletonPtr()->OpenRFFile(&ActorFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
 
 		geActor_Def *ActorDef = NULL;
 
@@ -695,10 +696,10 @@ CLEAN_UP:
 	MeshList[m_MeshCount]->LODBitmap=NULL;
 	sprintf(Name, "%s.tga", LodName);
 
-	if(CCD->FileExist(kActorFile, Name))
+	if(CFileManager::GetSingletonPtr()->FileExist(kActorFile, Name))
 	{
 		geVFile *ImageFile;
-		CCD->OpenRFFile(&ImageFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
+		CFileManager::GetSingletonPtr()->OpenRFFile(&ImageFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
 		if(ImageFile)
 		{
 			MeshList[m_MeshCount]->LODBitmap = geBitmap_CreateFromFile(ImageFile);

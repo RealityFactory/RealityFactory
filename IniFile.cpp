@@ -9,7 +9,7 @@
  * distribute it, and email suggested changes to me.
  ****************************************************************************************/
 
-#include "RabidFramework.h"
+#include "CFileManager.h"
 #include "IniFile.h"
 #include "RGFConstants.h"
 #include "Utilities.h"
@@ -68,13 +68,11 @@ void CIniFile::SetPath(const std::string& newpath)
 bool CIniFile::ReadFile()
 {
 	geVFile *MainFS;
-	char szPath[132];
 
-	strcpy(szPath, path.c_str());
+	if(!CFileManager::GetSingletonPtr()->OpenRFFile(&MainFS, kInstallFile, path.c_str(), GE_VFILE_OPEN_READONLY))
+		return false;
 
 	std::string keyname;
-	if(!CCD->OpenRFFile(&MainFS, kInstallFile, szPath, GE_VFILE_OPEN_READONLY))
-		return 0;
 	char szInputLine[132];
 
 	while(geVFile_GetS(MainFS, szInputLine, 132) == GE_TRUE)

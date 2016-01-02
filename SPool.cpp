@@ -5,6 +5,7 @@
 
 #include <memory>
 #include "RabidFramework.h"
+#include "CFileManager.h"
 #include <Ram.h>
 
 
@@ -53,7 +54,7 @@ geSound_Def *SPool_Sound(const char *SName)
 		pool = pool->next;
 	}
 
-	CCD->OpenRFFile(&MainFS, kAudioFile, SName, GE_VFILE_OPEN_READONLY);
+	CFileManager::GetSingletonPtr()->OpenRFFile(&MainFS, kAudioFile, SName, GE_VFILE_OPEN_READONLY);
 
 	if(!MainFS)
 		return NULL;

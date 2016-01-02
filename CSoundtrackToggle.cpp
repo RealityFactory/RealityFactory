@@ -11,6 +11,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CFileManager.h"
 #include "CCDAudio.h"
 #include "CMIDIAudio.h"
 #include "CSoundtrackToggle.h"
@@ -118,7 +119,7 @@ void CSoundtrackToggle::Tick(geFloat /*dwTicks*/)
 		{
 			// build filename
 			char music[256];
-			strcpy(music, CCD->GetDirectory(kAudioStreamFile));
+			strcpy(music, CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile));
 			strcat(music, "\\");
 			strcat(music, pToggle->szStreamFileOne);
 

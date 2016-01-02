@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 
 extern geVFile *PassWord(char *m_VirtualFile, bool encrypt);
 extern void CloseFile();
@@ -210,6 +211,7 @@ CCommonData::~CCommonData()
 	}
 
 
+	CFileManager::Destroy();
 
 	FreeImage_DeInitialise();
 
@@ -240,6 +242,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 	int nWidth			= 600;		// Default to 600 wide
 	FILE *fd;						// Used for prefs file
 	char szTitle[80]	= "Game";	// Game title
+	char virtualFile[256] = "pack.vfs";
 	geFloat fGamma		= 1.5f;
 	bool UseCut			= false;
 	bool UseCut1		= false;
@@ -312,6 +315,7 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 			}
 			else if(!stricmp(szAtom, "packfile"))
 			{
+				if(szArg != NULL)	strcpy(virtualFile, szArg);
 				if(szArg != NULL)
 					strcpy(m_VirtualFile, szArg);
 			}
@@ -565,6 +569,8 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		m_CutScene[0] = '\0';
 	}
 
+	// set up all directories
+	CFileManager::GetSingletonPtr()->Create(virtualFile);
 	if(UseSecond)
 	{
 		if(UseCut1)	m_SplashScreen1[0] = '\0';

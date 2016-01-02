@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 #include "AutoSelect.h"
 #include "resource.h"
 
@@ -131,7 +132,8 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 
 		TCHAR m_dir[512];
 		strcpy(m_dir, m_currentdir);
-		strcat(m_dir, "\\media\\levels");
+		strcat(m_dir, "\\");
+		strcat(m_dir, CFileManager::GetSingletonPtr()->GetDirectory(kLevelFile));
 
 		// Fill in the OPENFILENAME structure to support a template and hook.
 		OpenFileName.lStructSize		= sizeof(OPENFILENAME);
@@ -162,10 +164,8 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 			strcpy(szStartLevel, FileName.c_str());
 			std::string PathName = OpenFileName.lpstrFile;
 			PathName = PathName.substr(0, PathName.rfind('\\'));
-			TCHAR m_lev[512];
-			strcpy(m_lev, PathName.c_str());
 
-			CCD->SetLevelDirectory(m_lev);
+			CFileManager::GetSingletonPtr()->SetLevelDirectory(PathName.c_str());
 		}
 
 		chdir(m_currentdir);
@@ -1201,7 +1201,7 @@ bool CGenesisEngine::LoadLevel(const char *szLevelFileName)
 	}
 
 	// Ok, try to open up the desired level file
-	CCD->OpenRFFile(&m_Level, kLevelFile, szLevelFileName, GE_VFILE_OPEN_READONLY);
+	CFileManager::GetSingletonPtr()->OpenRFFile(&m_Level, kLevelFile, szLevelFileName, GE_VFILE_OPEN_READONLY);
 
 	if(!m_Level)
 	{
@@ -1353,7 +1353,7 @@ int CGenesisEngine::DisplaySplash(const char *szSplashBMP, const char *szAudioFi
 		{
 			// Load and play some splash-screen audio
 			geVFile *SoundFile;
-			CCD->OpenRFFile(&SoundFile, kAudioFile, szAudioFile, GE_VFILE_OPEN_READONLY);
+			CFileManager::GetSingletonPtr()->OpenRFFile(&SoundFile, kAudioFile, szAudioFile, GE_VFILE_OPEN_READONLY);
 
 			if(!SoundFile)
 			{
