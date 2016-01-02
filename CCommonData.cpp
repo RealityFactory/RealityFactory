@@ -582,6 +582,12 @@ int CCommonData::InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool 
 		m_CutScene1[0] = '\0';
 	}
 
+	std::string logDir(CFileManager::GetSingletonPtr()->GetDirectory(kLogFile));
+	// set log file
+	if(!sxLog::GetSingletonPtr()->SetFile(logDir + "\\RealityFactory.log", false))
+	{
+		MessageBox(NULL, "Failed to open Log file!", "RF Error Report", MB_ICONERROR | MB_OK);
+	}
 	theGameEngine = new CGenesisEngine(bFullScreen, nWidth, nHeight, szTitle, hInstance,
 										chTheDriver, bSoftware, UseDialog, szStartLevel);
 
