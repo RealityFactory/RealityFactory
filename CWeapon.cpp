@@ -70,7 +70,7 @@ CWeapon::CWeapon()
 
 	if(!pSet)
 	{
-		CCD->ReportError("[ERROR] No PlayerSetup found! Bad level", false);
+		CCD->Log()->Error("No PlayerSetup found! Bad level");
 		return;
 	}
 
@@ -84,7 +84,7 @@ CWeapon::CWeapon()
 	}
 	else
 	{
-		CCD->ReportError("[ERROR] Failed to locate PlayerSetup in world", false);
+		CCD->Log()->Error("Failed to locate PlayerSetup in world");
 		return;
 	}
 
@@ -2400,7 +2400,7 @@ void CWeapon::LoadDefaults()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("[ERROR] Failed to open weapons initialization file", false);
+		CCD->Log()->Error("Failed to open " + weaponini + " file");
 		return;
 	}
 
@@ -2427,6 +2427,7 @@ void CWeapon::LoadDefaults()
 
 			if(Vector != "")
 			{
+				CCD->Log()->Warning("Redefinition of proj [" + KeyName + "] in " + weaponini + " file.");
 				strcpy(szName,Vector.c_str());
 				ProjD[projptr].Rotation = Extract(szName);
 				ProjD[projptr].Rotation.X *= GE_PIOVER180;
@@ -2684,10 +2685,8 @@ void CWeapon::LoadDefaults()
 
 				if(!Actor)
 				{
-					char szError[256];
-					sprintf(szError,"[WARNING] File %s - Line %d: %s : Missing Actor '%s'\n",
+					CCD->Log()->Warning("File %s - Line %d: %s : Missing Actor '%s'",
 						__FILE__, __LINE__, KeyName.c_str(), WeaponD[weapptr].DropActor);
-					CCD->ReportError(szError, false);
 				}
 				else
 				{

@@ -7130,7 +7130,7 @@ void CRFMenu::DoGame(bool editor)
 	{
 		if(!CCD->NetPlayerManager()->Initialize(CCD->GetServer(), ServerIP))
 		{
-			CCD->ReportError("[WARNING] Cant Begin Multiplayer session", false);
+			CCD->Log()->Warning("Can't begin Multiplayer session");
 			return;
 		}
 	}
@@ -7138,11 +7138,8 @@ void CRFMenu::DoGame(bool editor)
 
 	if((CCD->InitializeLevel(CCD->MenuManager()->GetLevelName())) != 0)
 	{
-		CCD->ReportError("[ERROR] Failed to initialize first level", false);
-		CCD->ShutdownLevel();						// Clean up anything that got loaded
-		delete CCD;
-		CCD = NULL;   // Kill off the engine and such
-		MessageBox(NULL, CCD->MenuManager()->GetLevelName(), "Failed to load level", MB_OK);
+		CCD->Log()->Critical("Failed to initialize first level");
+		delete CCD;						// Kill off the engine and such
 		exit(-333);
 	}
 
@@ -7156,8 +7153,7 @@ void CRFMenu::DoGame(bool editor)
 	// ..game level.
 	if(CCD->Player()->MoveToStart() != RGF_SUCCESS)
 	{
-		CCD->ReportError("[ERROR] Failed to move player to start", false);
-		CCD->ShutdownLevel();
+		CCD->Log()->Critical("Failed to move player to start");
 		delete CCD;
 		exit(-336);
 	}
@@ -7412,7 +7408,7 @@ static void SetSlot()
 
 			if(outFD == NULL)
 			{
-				CCD->ReportError("[WARNING] Failed to create savegame file!", false);
+				CCD->Log()->Warning("Failed to create savegame file");
 				return;
 			}
 
@@ -7494,7 +7490,7 @@ static void GetSlot()
 
 			if(inFD == NULL)
 			{
-				CCD->ReportError("[WARNING] No savegame file to restore", false);
+				CCD->Log()->Warning("No savegame file to restore");
 				return;
 			}
 

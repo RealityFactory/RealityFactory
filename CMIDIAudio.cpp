@@ -89,10 +89,8 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 	if(mciSendCommand(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD)(LPVOID) &mciOpen))
 	{
 		// Blew the file open, return an ERROR.
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to open sequence file '%s'\n",
-				__FILE__, __LINE__, szFile);
-		CCD->ReportError(szBug, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to open sequence file '%s'",
+							__FILE__, __LINE__, szFile);
 		return RGF_FAILURE;
 	}
 
@@ -106,10 +104,8 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 	if(mciSendCommand(m_mciDeviceID, MCI_PLAY, MCI_NOTIFY, (DWORD)(LPVOID)&mciPlay))
 	{
 		// Can't play it?  Damn!
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: Failed to play sequence file '%s'\n",
-				__FILE__, __LINE__, szFile);
-		CCD->ReportError(szBug, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to play sequence file '%s'",
+							__FILE__, __LINE__, szFile);
 		MCI_GENERIC_PARMS mciClose;
 		mciClose.dwCallback = NULL;							// Please, no notifications
 		mciSendCommand(m_mciDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)&mciClose);
@@ -160,7 +156,7 @@ int CMIDIAudio::PlayList(char **szList, int nCount)
 	if(m_szList == NULL)
 	{
 		// Serious bad news, memory won't allocate
-		CCD->ReportError("[WARNING] CMIDIAudio: playlist alloc fail #1\n", false);
+		CCD->Log()->Warning("CMIDIAudio: playlist alloc fail #1");
 		return RGF_FAILURE;
 	}
 
@@ -171,7 +167,7 @@ int CMIDIAudio::PlayList(char **szList, int nCount)
 		if(m_szList[nTemp] == NULL)
 		{
 			// Worse and worse!
-			CCD->ReportError("[WARNING] CMIDIAudio: playlist alloc fail #2\n", false);
+			CCD->Log()->Warning("CMIDIAudio: playlist alloc fail #2");
 			return RGF_FAILURE;
 		}
 
@@ -210,7 +206,7 @@ int CMIDIAudio::Stop()
 	theError = mciSendCommand(m_mciDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)&mciClose);	// Shut it down!
 
 	if(theError != 0)
-		CCD->ReportError("[WARNING] CMIDIAudio: Failed to stop MCI MIDI SEQUENCER device\n", false);
+		CCD->Log()->Warning("CMIDIAudio: Failed to stop MCI MIDI SEQUENCER device");
 
 	m_mciDeviceID = (-1);
 
@@ -270,7 +266,7 @@ void CMIDIAudio::Check()
 		if(mciSendCommand(m_mciDeviceID, MCI_SEEK, MCI_WAIT | MCI_SEEK_TO_START,
 			(DWORD)(LPMCI_SEEK_PARMS)&mciSeek))
 		{
-			CCD->ReportError("[WARNING] CMIDIAudio: Failed to loop to start of MIDI File\n", false);
+			CCD->Log()->Warning("CMIDIAudio: Failed to loop to start of MIDI File");
 			return;
 		}
 
@@ -280,7 +276,7 @@ void CMIDIAudio::Check()
 		{
 			MCI_GENERIC_PARMS mciClose;
 			// Can't restart it?  Damn!
-			CCD->ReportError("[WARNING] CMIDIAudio: Failed to restart looping MIDI file\n", false);
+			CCD->Log()->Warning("CMIDIAudio: Failed to restart looping MIDI file");
 			mciClose.dwCallback = NULL;							// Please, no notifications
 			mciSendCommand(m_mciDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)&mciClose);
 			m_bLooping = false;

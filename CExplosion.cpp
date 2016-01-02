@@ -41,7 +41,7 @@ CExplosionInit::CExplosionInit()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("[WARNING] Failed to open explosion.ini file", false);
+		CCD->Log()->Warning("Failed to open explosion.ini file");
 		return;
 	}
 

@@ -91,10 +91,8 @@ int CHeadsUpDisplay::LoadConfiguration()
 
 	if(!AttrFile.ReadFile())
 	{
-		char szAttrError[256];
-		sprintf(szAttrError, "[ERROR] File %s - Line %d: Failed to open HUD config file '%s'",
-				__FILE__, __LINE__, HudInfo);
-		CCD->ReportError(szAttrError, false);
+		CCD->Log()->Error("File %s - Line %d: Failed to open HUD config file '%s'",
+							__FILE__, __LINE__, HudInfo);
 		return RGF_FAILURE;
 	}
 

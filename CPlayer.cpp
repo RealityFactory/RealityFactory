@@ -172,7 +172,7 @@ CPlayer::CPlayer()
 
 	if(!AttrFile.ReadFile())
 	{
-		CCD->ReportError("[ERROR] Failed to open playersetup initialization file\n", false);
+		CCD->Log()->Error("Failed to open playersetup configuration file '" + pSetup + "'!");
 		return;
 	}
 
@@ -678,14 +678,9 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 
 		if(!Actor)
 		{
-			char szError[256];
-			sprintf(szError, "[ERROR] File %s - Line %d: Missing Character Actor '%s'\n",
-					__FILE__, __LINE__, ActorName); // changed QD 12/15/05
-			CCD->ReportError(szError, false);
-			CCD->ShutdownLevel();
+			CCD->Log()->Critical("File %s - Line %d: Missing Character Actor '%s'",
+									__FILE__, __LINE__, ActorName);
 			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError,"Player", MB_OK);
 			exit(-333);
 		}
 	}
@@ -698,13 +693,8 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 
 		if(!pSet)
 		{
-			char szError[256];
-			sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerSetup\n", __FILE__, __LINE__);
-			CCD->ReportError(szError, false);
-			CCD->ShutdownLevel();
+			CCD->Log()->Critical("File %s - Line %d: Missing PlayerSetup", __FILE__, __LINE__);
 			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError,"Fatal Error", MB_OK);
 			exit(-333);
 		}
 
@@ -727,17 +717,13 @@ int CPlayer::LoadAvatar(const char *szFile, const char *Name)
 			char szError[256];
 
 			if(EffectC_IsStringNull(pSetup->ActorName))
-				sprintf(szError, "[ERROR] File %s - Line %d: Missing Player Actor '%s'\n",
-						__FILE__, __LINE__, szFile);
+				CCD->Log()->Critical("File %s - Line %d: Missing Player Actor '%s'",
+										__FILE__, __LINE__, szFile);
 			else
-				sprintf(szError, "[ERROR] File %s - Line %d: Missing Player Actor '%s'\n",
-						__FILE__, __LINE__, pSetup->ActorName);
+				CCD->Log()->Critical("File %s - Line %d: Missing Player Actor '%s'",
+										__FILE__, __LINE__, pSetup->ActorName);
 
-			CCD->ReportError(szError, false);
-			CCD->ShutdownLevel();
 			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "Player", MB_OK);
 			exit(-333);
 		}
 
@@ -775,28 +761,23 @@ void CPlayer::SetPlayerName(const char *Name)
 /* ------------------------------------------------------------------------------------ */
 int CPlayer::LoadConfiguration()
 {
-	CCD->ReportError("Loading Attributes and Player Configuration from PlayerSetup.ini", false);
+	CCD->Log()->Debug("Loading Attributes and Player Configuration from PlayerSetup.ini");
 
 	geEntity_EntitySet *pSet;
 	geEntity *pEntity;
 
 	// Load environmental audio
-	CCD->ReportError("Loading Environmental Audio", false);
+	CCD->Log()->Debug("Loading Environmental Audio");
 	LoadEnvironmentalAudio();
 
-	CCD->ReportError("Parsing PlayerSetup Entity", false);
+	CCD->Log()->Debug("Parsing PlayerSetup Entity");
 
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 
 	if(!pSet)
 	{
-		char szError[256];
-		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerSetup", __FILE__, __LINE__);
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
+		CCD->Log()->Critical("File %s - Line %d: Missing PlayerSetup", __FILE__, __LINE__);
 		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError,"Fatal Error", MB_OK);
 		exit(-333);
 	}
 
@@ -931,10 +912,8 @@ int CPlayer::LoadConfiguration()
 	case FIXEDCAMERA:
 		if(CCD->FixedCameras()->GetNumber() == 0)
 		{
-			char szError[256];
-			sprintf(szError, "[WARNING] File %s - Line %d: No Fixed Cameras in Level",
-					__FILE__, __LINE__);
-			CCD->ReportError(szError, false);
+			CCD->Log()->Warning("File %s - Line %d: No Fixed Cameras in Level", __FILE__, __LINE__);
+
 			m_PlayerViewPoint = THIRDPERSON;
 			nFlags = kCameraTrackThirdPerson | kCameraTrackFree;
 			theTranslation.Y = m_CurrentHeight;
@@ -985,8 +964,6 @@ int CPlayer::LoadConfiguration()
 
 	geEntity_EntitySet *lEntitySet;
 	geEntity *lEntity;
-
-	CCD->ReportError("Parsing EnvironmentSetup Entity", false);
 
 	lEntitySet = geWorld_GetEntitySet(CCD->World(), "EnvironmentSetup");
 
@@ -1086,10 +1063,8 @@ int CPlayer::LoadConfiguration()
 
 	if(!AttrFile.ReadFile())
 	{
-		char szAttrError[256];
-		sprintf(szAttrError, "[WARNING] File %s - Line %d: Failed to open Attribute Info file '%s'",
-				__FILE__, __LINE__, AttrInfo);
-		CCD->ReportError(szAttrError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to open Attribute Info file '%s'",
+							__FILE__, __LINE__, AttrInfo);
 		return RGF_FAILURE;
 	}
 
@@ -1343,13 +1318,8 @@ int CPlayer::MoveToStart()
 
 	if(lEntitySet == NULL)
 	{
-		char szError[256];
-		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
+		CCD->Log()->Critical("File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
 		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError, "Fatal Error", MB_OK);
 		exit(-333);
 	}
 
@@ -1438,14 +1408,9 @@ int CPlayer::MoveToStart()
 		{
 			if(!CCD->FixedCameras()->GetFirstCamera())
 			{
-				char szError[256];
-				sprintf(szError, "[ERROR] File %s - Line %d: No active Fixed Camera can see Player"
-						__FILE__, __LINE__);
-				CCD->ReportError(szError, false);
-				CCD->ShutdownLevel();
+				CCD->Log()->Critical("File %s - Line %d: No active Fixed Camera can see Player"
+										__FILE__, __LINE__);
 				delete CCD;
-				CCD = NULL;
-				MessageBox(NULL, szError, "Fixed Camera", MB_OK);
 				exit(-333);
 			}
 		}
@@ -1469,13 +1434,8 @@ int CPlayer::MoveToStart()
 	}
 	else
 	{
-		char szError[256];
-		sprintf(szError, "[ERROR] File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
-		CCD->ReportError(szError, false);
-		CCD->ShutdownLevel();
+		CCD->Log()->Critical("File %s - Line %d: Missing PlayerStart", __FILE__, __LINE__);
 		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, szError,"Fatal Error", MB_OK);
 		exit(-333);
 	}
 
@@ -4827,10 +4787,8 @@ int CPlayer::SaveAttributes(const char *szSaveFile)
 
 	if(theFile == NULL)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Failed to SaveAttributes to '%s'",
-				__FILE__, __LINE__, szSaveFile);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to SaveAttributes to '%s'",
+							__FILE__, __LINE__, szSaveFile);
 		return RGF_FAILURE;
 	}
 
@@ -4851,10 +4809,8 @@ int CPlayer::SaveAttributesAscii(const char *szSaveFile)
 
 	if(theFile == NULL)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Failed to SaveAttributes to '%s'",
-				__FILE__, __LINE__, szSaveFile);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to SaveAttributes to '%s'",
+							__FILE__, __LINE__, szSaveFile);
 		return RGF_FAILURE;
 	}
 
@@ -4878,10 +4834,8 @@ int CPlayer::LoadAttributes(const char *szSaveFile)
 
 	if(theFile == NULL)
 	{
-		char szError[256];
-		sprintf(szError, "[WARNING] File %s - Line %d: Failed to LoadAttributes from '%s'",
-				__FILE__, __LINE__, szSaveFile);
-		CCD->ReportError(szError, false);
+		CCD->Log()->Warning("File %s - Line %d: Failed to LoadAttributes from '%s'",
+							__FILE__, __LINE__, szSaveFile);
 		return RGF_FAILURE;
 	}
 
