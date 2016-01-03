@@ -219,7 +219,9 @@ CStaticMesh::CStaticMesh() :
 			}
 		}
 		else
+		{
 			continue;
+		}
 
 		if(bAmbientLight)
 		{
@@ -752,12 +754,9 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 				pColor[iFace*3+j].g += pMesh->AmbientColor.g;
 				pColor[iFace*3+j].b += pMesh->AmbientColor.b;
 
-				if(pColor[iFace*3+j].r > 255.f)
-					pColor[iFace*3+j].r = 255.f;
-				if(pColor[iFace*3+j].g > 255.f)
-					pColor[iFace*3+j].g = 255.f;
-				if(pColor[iFace*3+j].b > 255.f)
-					pColor[iFace*3+j].b = 255.f;
+				if(pColor[iFace*3+j].r > 255.f)		pColor[iFace*3+j].r = 255.f;
+				if(pColor[iFace*3+j].g > 255.f)		pColor[iFace*3+j].g = 255.f;
+				if(pColor[iFace*3+j].b > 255.f)		pColor[iFace*3+j].b = 255.f;
 			}
 		}
 	}
@@ -797,9 +796,9 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 		// get the direction of the light
 		geVec3d_Set(&LDirection, 1.f, 0.f, 0.f);
 
-		geXForm3d_SetZRotation(&temp, Angles.Z*GE_PIOVER180);
-		geXForm3d_RotateX(&temp, Angles.X*GE_PIOVER180);
-		geXForm3d_RotateY(&temp, Angles.Y*GE_PIOVER180);
+		geXForm3d_SetZRotation(&temp, Angles.Z * GE_PIOVER180);
+		geXForm3d_RotateX(&temp, Angles.X * GE_PIOVER180);
+		geXForm3d_RotateY(&temp, Angles.Y * GE_PIOVER180);
 
 		geXForm3d_Rotate(&temp, &LDirection, &LDirection);
 	}
@@ -1343,7 +1342,7 @@ void CStaticMesh::Tick(geFloat dwTicks)
 				{
 					float diff = CCD->GetLODdistance(4) - CCD->GetLODdistance(3);
 					float alpha = 1.0f - ((dist-CCD->GetLODdistance(3))/diff);
-					Vertex.a = 255.0f*alpha;
+					Vertex.a = 255.0f * alpha;
 				}
 				Vertex.u = 0.0f;
 				Vertex.v = 0.0f;
