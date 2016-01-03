@@ -726,7 +726,7 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 		if(!MeshList[pMesh->ListIndex]->Verts[LOD])
 			continue;
 
-		GE_RGBA* pColor;
+		GE_RGBA* pColor = NULL;;
 
 		switch(LOD)
 		{
@@ -772,8 +772,8 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 {
 	geXForm3d thePosition, theRotation;
 	geVec3d Angles, LDirection;
-	geFloat arc;
-	GE_RGBA *Color, *pColor;
+	geFloat arc = 0.f;
+	GE_RGBA *Color=NULL, *pColor=NULL;
 
 	if(!(LType == LIGHT_SUNLIGHT || LType == LIGHT_SPOTLIGHT || LType == LIGHT_POINTLIGHT))
 		return; // unsupported lighttype
@@ -874,8 +874,8 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 			{
 				GE_Collision Collision;
 				geVec3d LOrigin, Vect;
-				geFloat Val;
-				int Intensity;
+				geFloat Val = 0.f;
+				int Intensity = 0;
 
 				if(pMesh->CompLightSmooth) // if we want a smooth actor-like lighting
 				{
