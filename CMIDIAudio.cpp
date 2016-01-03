@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CFileManager.h"
 #include "CMIDIAudio.h"
 
 /* ------------------------------------------------------------------------------------ */
@@ -65,12 +66,10 @@ CMIDIAudio::~CMIDIAudio()
 // ..are assumed, and that it's assumed that the user has a General
 // ..MIDI-compatible sound card installed.
 /* ------------------------------------------------------------------------------------ */
-int CMIDIAudio::Play(const char *szFile, bool bLoop)
+int CMIDIAudio::Play(const std::string& szFile, bool bLoop)
 {
-	char szTemp[256];
-	strcpy(szTemp, CCD->GetDirectory(kMIDIFile));
-	strcat(szTemp, "\\");
-	strcat(szTemp, szFile);
+	std::string szTemp = CFileManager::GetSingletonPtr()->GetDirectory(kMIDIFile);
+	szTemp += "\\" + szFile;
 
 	// Ok, we're opening the MIDI file as part of the sequencer open.  This
 	// ..is the simplest way to do it.  The output device that gets opened
@@ -84,13 +83,13 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 	// ..is the simplest way to do it.  The output device that gets opened
 	// ..is the default sequencer as set in the Multimedia control panel.
 
-	mciOpen.lpstrElementName = szTemp;
+	mciOpen.lpstrElementName = szTemp.c_str();
 
 	if(mciSendCommand(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD)(LPVOID) &mciOpen))
 	{
 		// Blew the file open, return an ERROR.
 		CCD->Log()->Warning("File %s - Line %d: Failed to open sequence file '%s'",
-							__FILE__, __LINE__, szFile);
+							__FILE__, __LINE__, szFile.c_str());
 		return RGF_FAILURE;
 	}
 
@@ -105,7 +104,7 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 	{
 		// Can't play it?  Damn!
 		CCD->Log()->Warning("File %s - Line %d: Failed to play sequence file '%s'",
-							__FILE__, __LINE__, szFile);
+							__FILE__, __LINE__, szFile.c_str());
 		MCI_GENERIC_PARMS mciClose;
 		mciClose.dwCallback = NULL;							// Please, no notifications
 		mciSendCommand(m_mciDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD)&mciClose);
@@ -115,18 +114,13 @@ int CMIDIAudio::Play(const char *szFile, bool bLoop)
 
 	m_saveloop = m_bLooping = bLoop;						// Set loopyness
 
-	strcpy(m_MIDIFile, szFile);								// Save filename
+	strcpy(m_MIDIFile, szFile.c_str());						// Save filename
 
-	strcpy(m_savefile, szFile);
+	strcpy(m_savefile, szFile.c_str());
 
 	m_bActive = true;
 
-	if(CCD->GetLogging())
-	{
-		char szDebug[512];
-		sprintf(szDebug, "[INFO] Loaded %s", szFile);
-		CCD->ReportError(szDebug, false);
-	}
+	CCD->Log()->Debug("Loaded " + szFile);
 
 	// File playing, let's BAIL THIS MESS!
 	return RGF_SUCCESS;

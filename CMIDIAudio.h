@@ -21,7 +21,7 @@ public:
 	CMIDIAudio();								///< Sets up MCI for MIDI playback
 	~CMIDIAudio();								///< Clean up
 
-	int Play(const char *szFile, bool bLoop);	///< Play a MIDI file with or w/o looping
+	int Play(const std::string& szFile, bool bLoop);	///< Play a MIDI file with or w/o looping
 	void Restore();
 	int PlayList(char **szList, int nCount);	///< Play a list of MIDI files
 	int Stop();									///< Stop MIDI playback
