@@ -599,11 +599,11 @@ void CMessage::LoadText(const char *messagetxt)
 	while(geVFile_GetS(MainFS, szInputLine, 256) == GE_TRUE)
 	{
 		if(strlen(szInputLine) <= 1)
-			readinfo = "";
+			readinfo.clear();
 		else
 			readinfo = szInputLine;
 
-		if(readinfo != "" && readinfo[0] != ';')
+		if(!readinfo.empty() && readinfo[0] != ';')
 		{
 			TrimRight(readinfo);
 
@@ -613,7 +613,7 @@ void CMessage::LoadText(const char *messagetxt)
 
 			if(readinfo[0] == '[' && readinfo[readinfo.length()-1] == ']')
 			{
-				if(keyname != "" && text != "")
+				if(!keyname.empty() && !text.empty())
 				{
 					Text.resize(Text.size()+1);
 					int keynum = Text.size()-1;
@@ -625,7 +625,7 @@ void CMessage::LoadText(const char *messagetxt)
 				keyname = readinfo;
 				TrimLeft(keyname, "[");
 				TrimRight(keyname, "]");
-				text = "";
+				text.clear();
 			}
 			else
 			{
@@ -645,7 +645,7 @@ void CMessage::LoadText(const char *messagetxt)
 		}
 	}
 
-	if(keyname != "" && text != "")
+	if(!keyname.empty() && !text.empty())
 	{
 		Text.resize(Text.size()+1);
 		int keynum = Text.size()-1;
