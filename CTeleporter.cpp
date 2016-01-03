@@ -236,7 +236,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 					}
 
 					// move to new position
-					if(pTeleport->fFadeTime > 0.0f)
+					if(pTeleport->fFadeTime > 0.0f && !pTeleport->bDoFade)
 					{
 						pTeleport->bDoFade = GE_TRUE;
 						pTeleport->bFadeOut = GE_TRUE;
@@ -451,7 +451,7 @@ void CTeleporter::DoFade(void)
 			Rect.Bottom = CCD->Engine()->Height() - 1;
 
 			// fade out
-			if(pTeleport->bFadeOut)
+			if(pTeleport->bFadeOut == GE_TRUE)
 			{
 				float ElapsedTime = (CCD->FreeRunningCounter_F() - pTeleport->fOldTime);
 
