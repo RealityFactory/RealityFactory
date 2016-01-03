@@ -885,26 +885,34 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 					//geVec3d_Normalize(&Normal);
 				}
 
-				if(LType == LIGHT_SUNLIGHT)
+				switch(LType)
 				{
-					Val = -geVec3d_DotProduct(&LDirection, &Normal);
+				case LIGHT_SUNLIGHT:
+					{
+						Val = -geVec3d_DotProduct(&LDirection, &Normal);
 
-					// light source is far, far away
-					geVec3d_AddScaled(&Vertex[j], &LDirection, -10000.f, &LOrigin);
+						// light source is far, far away
+						geVec3d_AddScaled(&Vertex[j], &LDirection, -10000.f, &LOrigin);
+						break;
+					}
+				case LIGHT_SPOTLIGHT:
+					{
+						geVec3d_Copy(&(static_cast<spotlight*>(pLight)->origin), &LOrigin);
+						Intensity = static_cast<spotlight*>(pLight)->light;
+						break;
+					}
+				case LIGHT_POINTLIGHT:
+					{
+						geVec3d_Copy(&(static_cast<light*>(pLight)->origin), &LOrigin);
+						Intensity = static_cast<light*>(pLight)->light;
+						break;
+					}
+				default:
+					{
+						Val = 0.f;
+						break;
+					}
 				}
-				else if(LType == LIGHT_SPOTLIGHT)
-				{
-					geVec3d_Copy(&(((spotlight*)pLight)->origin), &LOrigin);
-					Intensity = ((spotlight*)pLight)->light;
-				}
-				else if(LType == LIGHT_POINTLIGHT)
-				{
-					// changed QD 02/12/2005 fixed bug
-					geVec3d_Copy(&(((light*)pLight)->origin), &LOrigin);
-					Intensity = ((light*)pLight)->light;
-				}
-				else
-					Val = 0.f;
 
 				if(LType == LIGHT_SPOTLIGHT || LType == LIGHT_POINTLIGHT)
 				{
