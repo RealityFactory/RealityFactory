@@ -1589,73 +1589,73 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 static bool NoIntersect(geFloat Speed, geFloat Min0, geFloat Max0,
 						geFloat Min1, geFloat Max1, geFloat* TFirst, geFloat* TLast)
 {
-    geFloat InvSpeed, T;
+	geFloat InvSpeed, T;
 
-    if(Max1 < Min0)  // C1 initially on left of C0
-    {
-        if (Speed <= 0.0f)
-        {
-            // intervals moving apart
-            return true;
-        }
+	if(Max1 < Min0)		// C1 initially on left of C0
+	{
+		if (Speed <= 0.0f)
+		{
+			// intervals moving apart
+			return true;
+		}
 
-        InvSpeed = 1.0f/Speed;
+		InvSpeed = 1.0f/Speed;
 
-        T = (Min0 - Max1)*InvSpeed;
-        if(T > *TFirst)
-            *TFirst = T;
-        if(*TFirst > 1.0f)
-            return true;
+		T = (Min0 - Max1)*InvSpeed;
+		if(T > *TFirst)
+			*TFirst = T;
+		if(*TFirst > 1.0f)
+			return true;
 
-        T = (Max0 - Min1)*InvSpeed;
-        if(T < *TLast)
-            *TLast = T;
-        if(*TFirst > *TLast)
-            return true;
-    }
-    else if(Max0 < Min1)  // C1 initially on right of C0
-    {
-        if (Speed >= 0.0f)
-        {
-            // intervals moving apart
-            return true;
-        }
+		T = (Max0 - Min1)*InvSpeed;
+		if(T < *TLast)
+			*TLast = T;
+		if(*TFirst > *TLast)
+			return true;
+	}
+	else if(Max0 < Min1)  // C1 initially on right of C0
+	{
+		if (Speed >= 0.0f)
+		{
+			// intervals moving apart
+			return true;
+		}
 
-        InvSpeed = 1.0f/Speed;
+		InvSpeed = 1.0f/Speed;
 
-        T = (Max0 - Min1)*InvSpeed;
-        if(T > *TFirst)
-            *TFirst = T;
-        if(*TFirst > 1.0f)
-            return true;
+		T = (Max0 - Min1)*InvSpeed;
+		if(T > *TFirst)
+			*TFirst = T;
+		if(*TFirst > 1.0f)
+			return true;
 
-        T = (Min0 - Max1)*InvSpeed;
-        if(T < *TLast)
-            *TLast = T;
-        if(*TFirst > *TLast)
-            return true;
-    }
-    else  // C0 and C1 overlap
-    {
-        if(Speed > 0.0f)
-        {
-            T = (Max0 - Min1)/Speed;
-            if(T < *TLast)
-                *TLast = T;
-            if(*TFirst > *TLast)
-                return true;
-        }
-        else if(Speed < 0.0f)
-        {
-            T = (Min0 - Max1)/Speed;
-            if(T < *TLast)
-                *TLast = T;
-            if(*TFirst > *TLast)
-                return true;
-        }
-    }
+		T = (Min0 - Max1)*InvSpeed;
+		if(T < *TLast)
+			*TLast = T;
+		if(*TFirst > *TLast)
+			return true;
+	}
+	else	// C0 and C1 overlap
+	{
+		if(Speed > 0.0f)
+		{
+			T = (Max0 - Min1)/Speed;
+			if(T < *TLast)
+				*TLast = T;
+			if(*TFirst > *TLast)
+				return true;
+		}
+		else if(Speed < 0.0f)
+		{
+			T = (Min0 - Max1)/Speed;
+			if(T < *TLast)
+				*TLast = T;
+			if(*TFirst > *TLast)
+				return true;
+		}
+	}
 
-    return false;
+	return false;
 }
 
 /* ------------------------------------------------------------------------------------ */
