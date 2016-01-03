@@ -587,16 +587,14 @@ int CMessage::ReSynchronize()
 void CMessage::LoadText(const char *messagetxt)
 {
 	geVFile *MainFS;
-	char szInputLine[256];
-	std::string readinfo, keyname, text;
 
 	Text.resize(0);
 
 	if(!CCD->OpenRFFile(&MainFS, kInstallFile, messagetxt, GE_VFILE_OPEN_READONLY))
 		return;
 
-	keyname = "";
-	text = "";
+	char szInputLine[256];
+	std::string readinfo, keyname, text;
 
 	while(geVFile_GetS(MainFS, szInputLine, 256) == GE_TRUE)
 	{
