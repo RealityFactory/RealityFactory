@@ -50,6 +50,10 @@ typedef enum
 	NEWPATH,
 	RESTARTORDER,
 	AVOIDORDER,
+	PLAYERDISTORDER,
+	ADDPAINORDER,
+	FINDTARGETORDER,
+	FINDPOINTORDER,
 	RETURN,
 	JUMPCMD,
 	ADDTRIGGERORDER,
@@ -64,6 +68,7 @@ typedef enum
 	ATTRIBUTEORDER,
 	REMOVE,
 	SETNOCOLLISION,
+	SETCOLLISION,
 	ALLOWUSE,
 	CONVERSATION,
 	FADEIN,
@@ -85,6 +90,7 @@ typedef enum
 	TARGETGROUP,
 	TESTDAMAGEORDER,
 	CHANGEMATERIAL,
+	CHANGEWEAPONMATERIAL,
 	ATTACHTOACTOR,
 	DETACHFROMACTOR,
 	ATTACHBLENDACTOR,
@@ -101,6 +107,10 @@ typedef enum
 	SETKEYPAUSE,
 	SETHUDDRAW,
 	SOUNDLOOP,
+	AUDIBLERADIUS,
+	SPEAK,
+	ROTATEAROUNDPOINTLEFT,
+	ROTATEAROUNDPOINTRIGHT,
 	ROTATEAROUNDPOINT,
 	SETLODDISTANCE,
 	DELAY,
@@ -111,7 +121,12 @@ typedef enum
 	GETFLAG,
 	GETEVENTSTATE,
 	SETSCALE,
-	BOXHEIGHT
+	BOXHEIGHT,
+	MOUSECONTROLLEDPLAYER,
+	PAUSESCRIPT,
+	RESUMESCRIPT,
+	ENDSCRIPT,
+	DEBUG
 };
 
 
@@ -138,6 +153,10 @@ char *ActionText[] =
 	"NewPath",
 	"RestartOrder",
 	"AvoidOrder",
+	"PlayerDistOrder",
+	"AddPainOrder",
+	"FindTargetOrder",
+	"FindPointOrder",
 	"Return",
 	"Jump",
 	"AddTriggerOrder",
@@ -152,6 +171,7 @@ char *ActionText[] =
 	"AttributeOrder",
 	"Remove",
 	"SetNoCollision",
+	"SetCollision",
 	"AllowUseKey",
 	"Conversation",
 	"FadeIn",
@@ -173,6 +193,7 @@ char *ActionText[] =
 	"TargetGroup",
 	"TestDamageOrder",
 	"ChangeMaterial",
+	"ChangeWeaponMaterial",
 	"AttachToActor",
 	"DetachFromActor",
 	"AttachBlendActor",
@@ -189,6 +210,10 @@ char *ActionText[] =
 	"SetKeyPause",
 	"SetHudDraw",
 	"SoundLoop",
+	"AudibleRadius",
+	"Speak"
+	"RotateAroundPointLeft",
+	"RotateAroundPointRight",
 	"RotateAroundPoint",
 	"SetLODDistance",
 	"Delay",
@@ -199,7 +224,12 @@ char *ActionText[] =
 	"GetFlag",
 	"GetEventState",
 	"SetScale",
-	"BoxHeight"
+	"BoxHeight",
+	"MouseControlledPlayer",
+	"PauseScript",
+	"ResumeScript",
+	"EndScript",
+	"debug"
 };
 
 /* ------------------------------------------------------------------------------------ */
