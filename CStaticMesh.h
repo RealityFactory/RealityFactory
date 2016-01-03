@@ -48,7 +48,6 @@ public:
 
 	void Tick(geFloat dwTicks);
 	bool AddNewMesh(const char *szActorFile);
-	void AddPoly(StaticMesh *pMesh, int LOD);
 
 	int SaveTo(FILE *SaveFD, bool type);					// Save states to a supplied file
 
@@ -81,6 +80,8 @@ public:
 					const geVec3d *Axis2);
 
 private:
+	void AddPoly(StaticMesh *pMesh, int LOD);
+
 	void ComputeLighting(StaticMesh *pMesh, void *pLight, int LType);
 
 	void SetAmbientLight(StaticMesh *pMesh);
