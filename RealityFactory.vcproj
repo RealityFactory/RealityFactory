@@ -762,6 +762,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CFileManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath="CFirePoint.cpp"
 				>
 				<FileConfiguration
@@ -1044,6 +1048,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CLog.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CLogic.cpp"
@@ -1548,6 +1556,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CScriptManager.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CScriptPoint.cpp"
@@ -3783,6 +3795,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CFileManager.h"
+				>
+			</File>
+			<File
 				RelativePath="CFirePoint.h"
 				>
 			</File>
@@ -3840,6 +3856,10 @@
 			</File>
 			<File
 				RelativePath="CLiquid.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CLog.h"
 				>
 			</File>
 			<File
@@ -3932,6 +3952,10 @@
 			</File>
 			<File
 				RelativePath="CRGFComponent.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CScriptManager.h"
 				>
 			</File>
 			<File
