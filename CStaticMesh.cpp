@@ -1256,7 +1256,7 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		int LOD = 0;
 
 		pMesh->origin = pMesh->OriginOffset;
-		SetOriginOffset(pMesh->EntityName, pMesh->BoneName, pMesh->Model, &(pMesh->origin));
+		SetOriginOffset(pMesh->EntityName, pMesh->BoneName, pMesh->Model, &pMesh->origin);
 
 		{
 			if(pMesh->Model)
