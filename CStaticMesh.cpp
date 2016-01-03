@@ -777,7 +777,11 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 	if(!(LType == LIGHT_SUNLIGHT || LType == LIGHT_SPOTLIGHT || LType == LIGHT_POINTLIGHT))
 		return; // unsupported lighttype
 
-	if(LType == LIGHT_SUNLIGHT || LType == LIGHT_SPOTLIGHT)
+	if(LType == LIGHT_POINTLIGHT)
+	{
+		Color = &(static_cast<light*>(pLight)->color);
+	}
+	else //if(LType == LIGHT_SUNLIGHT || LType == LIGHT_SPOTLIGHT)
 	{
 		geXForm3d temp;
 
@@ -786,7 +790,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 			geVec3d_Copy(&(static_cast<SunLight*>(pLight)->angles), &Angles);
 			Color = &(static_cast<SunLight*>(pLight)->color);
 		}
-		else if(LType == LIGHT_SPOTLIGHT)
+		else //if(LType == LIGHT_SPOTLIGHT)
 		{
 			geVec3d_Copy(&(static_cast<spotlight*>(pLight)->angles), &Angles);
 			arc = cos(static_cast<spotlight*>(pLight)->arc/360.0f*GE_PI); // we just need half of the arc...
@@ -801,10 +805,6 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 		geXForm3d_RotateY(&temp, Angles.Y * GE_PIOVER180);
 
 		geXForm3d_Rotate(&temp, &LDirection, &LDirection);
-	}
-	else if(LType == LIGHT_POINTLIGHT)
-	{
-		Color = &(static_cast<light*>(pLight)->color);
 	}
 
 	// prepare the transformation matrix
