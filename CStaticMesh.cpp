@@ -1306,10 +1306,8 @@ void CStaticMesh::Tick(geFloat dwTicks)
 			else if(LOD == 4)
 			{
 				GE_LVertex	Vertex;
-				Vertex.r = 255.0f;
-				Vertex.g = 255.0f;
-				Vertex.b = 255.0f;
-				Vertex.a = 255.0f;
+				Vertex.r = Vertex.g = Vertex.b = Vertex.a = 255.0f;
+
 				if(CCD->GetLODdistance(4) != 0 && CCD->GetLODdistance(4) > CCD->GetLODdistance(3))
 				{
 					float diff = CCD->GetLODdistance(4) - CCD->GetLODdistance(3);
