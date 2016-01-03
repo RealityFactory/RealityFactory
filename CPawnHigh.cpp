@@ -1199,15 +1199,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 1)
 			{
-				strcpy(param7, arguments[1].str());
+				strcpy(param0, arguments[1].str());
 
-				if(!stricmp(param7, "Player"))
+				if(!stricmp(param0, "Player"))
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
 				{
-					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param0));
 				}
 			}
 			else
@@ -1225,15 +1225,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 2)
 			{
-				strcpy(param7, arguments[2].str());
+				strcpy(param0, arguments[2].str());
 
-				if(!stricmp(param7, "Player"))
+				if(!stricmp(param0, "Player"))
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
 				{
-					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param0));
 				}
 			}
 			else
@@ -1251,15 +1251,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 2)
 			{
-				strcpy(param7, arguments[2].str());
+				strcpy(param0, arguments[2].str());
 
-				if(!stricmp(param7, "Player"))
+				if(!stricmp(param0, "Player"))
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
 				{
-					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param0));
 				}
 			}
 			else
@@ -1328,15 +1328,15 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 3)
 			{
-				strcpy(param7, arguments[3].str());
+				strcpy(param0, arguments[3].str());
 
-				if(!stricmp(param7, "Player"))
+				if(!stricmp(param0, "Player"))
 				{
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
 				{
-					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param7));
+					theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(param0));
 				}
 			}
 			else
