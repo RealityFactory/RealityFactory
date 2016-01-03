@@ -19,23 +19,31 @@
 //
 // Default constructor, takes a DirectSound pointer
 /* ------------------------------------------------------------------------------------ */
-StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
+StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS) :
+	m_pDS(lpDS),			// Save DSound pointer
+	m_hWaveFile(NULL),		// Handle to WAVE file
+	m_nDataPosition(0),		// Start of WAVE data in file
+	m_nCurrentPosition(0),	// Current read position
+	m_nDataSize(0),			// Wave data size, in bytes
+	m_fActive(false),		// Playback active flag
+	m_pStream(NULL),		// Sound buffer
+	m_nTimerID(0),			// Pumping timer ID
+	m_pWaveFormat(NULL),	// Wave file format
+	m_fEOF(false),			// Not at end of file
+	m_nOffset(0),
+	m_EndPos(0),
+	m_PlayPos(0),
+	m_bLoops(false),		// Assume no looping
+	m_EndEvent(NULL),
+	m_bMp3(false),
+	m_bOgg(false),
+	m_pMp3(NULL),
+	m_pOgg(NULL),
+	m_Volume(1.0f),			// [0,1]
+	m_Pan(0.0f),			// [0,1]
+	m_Frequency(1.0f),
+	m_BaseFrequency(1)
 {
-	m_nDataPosition		= 0;		// Start of WAVE data in file
-	m_nCurrentPosition	= 0;		// Current read position
-	m_nDataSize			= 0;		// Wave data size, in bytes
-	m_fActive			= false;	// Playback active flag
-	m_pStream			= NULL;		// Sound buffer
-	m_nTimerID			= 0;		// Pumping timer ID
-	m_hWaveFile			= NULL;		// Handle to WAVE file
-	m_pWaveFormat		= NULL;		// Wave file format
-	m_pDS				= lpDS;		// Save DSound pointer
-	m_fEOF				= false;	// Not at end of file
-	m_bLoops			= false;	// Assume no looping
-	Mpeg3				= NULL;
-	Ogg					= NULL;
-	mp3					= false;
-	ogg					= false;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -45,26 +53,24 @@ StreamingAudio::StreamingAudio(LPDIRECTSOUND lpDS)
 /* ------------------------------------------------------------------------------------ */
 StreamingAudio::~StreamingAudio()
 {
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg)
+		if(m_pOgg)
 		{
-			Ogg->Stop();
-			delete Ogg;
-			Ogg = NULL;
+			m_pOgg->Stop();
+			delete m_pOgg;
 		}
 		return;
 	}
 
 	timeKillEvent(m_nTimerID);			// Stop the timer
 
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3)
+		if(m_pMp3)
 		{
-			Mpeg3->StopMp3();
-			delete Mpeg3;
-			Mpeg3 = NULL;
+			m_pMp3->StopMp3();
+			delete m_pMp3;
 		}
 		return;
 	}
@@ -103,12 +109,12 @@ int StreamingAudio::Create(char *szFileName)
 
 	if(stricmp((szFileName+len), ".mp3") == 0)
 	{
-		if(Mpeg3 != NULL)
+		if(m_pMp3 != NULL)
 			return RGF_FAILURE;
 
-		Mpeg3 = new CMp3Manager;
-		Mpeg3->OpenMediaFile(szFileName);
-		mp3 = true;
+		m_pMp3 = new CMp3Manager;
+		m_pMp3->OpenMediaFile(szFileName);
+		m_bMp3 = true;
 		m_fActive = true;
 
 		// start a timer for this stream.
@@ -126,22 +132,23 @@ int StreamingAudio::Create(char *szFileName)
 		return RGF_SUCCESS;
 	}
 
-	mp3 = false;
+	m_bMp3 = false;
 
 	if(stricmp((szFileName+len), ".ogg") == 0)
 	{
-		if(Ogg != NULL)
+		if(m_pOgg != NULL)
 			return RGF_FAILURE;
 
-		Ogg = new OggAudio(m_pDS);
-		Ogg->Load(szFileName);
-		ogg = true;
+		m_pOgg = new OggAudio(m_pDS);
+		m_pOgg->Load(szFileName);
+		m_bOgg = true;
 		m_fActive = true;
+		m_BaseFrequency = m_pOgg->GetBaseFrequency();
 
 		return RGF_SUCCESS;
 	}
 
-	ogg = false;
+	m_bOgg = false;
 
 	// start a timer for this stream.
 	MMRESULT nTimer = timeSetEvent(125, 5, &TimerFunction, reinterpret_cast<DWORD>(this),
@@ -172,6 +179,12 @@ int StreamingAudio::Create(char *szFileName)
 	// Get current position in file, which will be the start of the WAVE data.
 	m_nDataPosition = mmioSeek(m_hWaveFile, 0, SEEK_CUR);
 	m_nDataSize = m_rRiffData.cksize;						// Save data size
+	m_EndPos = m_nDataSize % kBufferSize;
+	m_EndEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+	DSBPOSITIONNOTIFY notify;
+	notify.dwOffset = m_EndPos;
+	notify.hEventNotify = m_EndEvent;
 
 	// Fetch DirectSound interface we want
 	LPDIRECTSOUND pDSIF;
@@ -184,9 +197,11 @@ int StreamingAudio::Create(char *szFileName)
 	theDesc.dwSize = sizeof(DSBUFFERDESC);
 	theDesc.dwBufferBytes = kBufferSize;
 	theDesc.lpwfxFormat = m_pWaveFormat;
-	theDesc.dwFlags = DSBCAPS_CTRLVOLUME;
+	theDesc.dwFlags = DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLPAN | DSBCAPS_CTRLFREQUENCY | DSBCAPS_GETCURRENTPOSITION2 |
+						DSBCAPS_CTRLPOSITIONNOTIFY;
 
 	nError = pDSIF->CreateSoundBuffer(&theDesc, &m_pStream, NULL);
+	m_pStream->GetFrequency(&m_BaseFrequency);
 	pDSIF->Release();									// Done w/ this.
 
 	if(nError != 0)										// Error!  Sick out.
@@ -197,13 +212,22 @@ int StreamingAudio::Create(char *szFileName)
 
 		mmioClose(m_hWaveFile, 0);
 		m_hWaveFile = NULL;
-		delete m_pWaveFormat;
-		m_pWaveFormat = NULL;
+		SAFE_DELETE(m_pWaveFormat);
 
 		return RGF_FAILURE;
 	}
 
+	LPDIRECTSOUNDNOTIFY lpDsNotify;
+	HRESULT hr;
+
+	if(SUCCEEDED(hr = m_pStream->QueryInterface(IID_IDirectSoundNotify, (LPVOID*)&lpDsNotify)))
+	{
+		hr = lpDsNotify->SetNotificationPositions(1, &notify);
+		lpDsNotify->Release();
+	}
+
 	m_nOffset = 0;						// Start at top of buffer
+	m_PlayPos = 0;
 	PumpWave(kBufferSize);				// Initial buffer load
 
 	return RGF_SUCCESS;
@@ -216,35 +240,39 @@ int StreamingAudio::Create(char *szFileName)
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Play(bool bLooping)
 {
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
+
 		m_fActive = true;
 		m_bLoops = bLooping;
-		Mpeg3->PlayMp3((LONG)(CCD->MenuManager()->GetmVolLevel()*1000.0f), bLooping);
+		m_Volume = CCD->MenuManager()->GetmVolLevel();
+		m_pMp3->PlayMp3(static_cast<long>(CCD->MenuManager()->GetmVolLevel()*1000.0f), bLooping);
+
 		return RGF_SUCCESS;
 	}
 
-	LONG ScaledVolume;
-	LONG nVolume = (LONG)(CCD->MenuManager()->GetmVolLevel()*10000.0f);
+	m_Volume = CCD->MenuManager()->GetmVolLevel();
+	long volume = static_cast<long>(CCD->MenuManager()->GetmVolLevel() * 10000.0f);
 
-	if(nVolume <= 1)
-		ScaledVolume = -10000;
-	else if(nVolume > 10000)
-		ScaledVolume = 0;
+	if(volume <= 1)
+		volume = -10000;
+	else if(volume > 10000)
+		volume = 0;
 	else
-		ScaledVolume = (LONG)(log10((double)nVolume)*2500 - 10000);
-	nVolume = ScaledVolume;
+		volume = static_cast<long>(log10(static_cast<float>(volume)) * 2500.f - 10000.f);
 
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
+
 		m_fActive = true;
 		m_bLoops = bLooping;
-		Ogg->Play(bLooping);
-		SetVolume(nVolume);
+		m_pOgg->Play(bLooping);
+		m_pOgg->SetVolume(volume);
+
 		return RGF_SUCCESS;
 	}
 
@@ -259,7 +287,7 @@ int StreamingAudio::Play(bool bLooping)
 	m_bLoops = bLooping;
 
 	m_pStream->Play(0, 0, DSBPLAY_LOOPING);			// Start playback
-	SetVolume(nVolume);
+	m_pStream->SetVolume(volume);
 
 	return RGF_SUCCESS;
 }
@@ -271,29 +299,29 @@ int StreamingAudio::Play(bool bLooping)
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Stop()
 {
-	if(mp3)
+	if(m_bMp3)
 	{
 		m_fActive = false;
 
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
 
-		Mpeg3->StopMp3();
+		m_pMp3->StopMp3();
 		return RGF_SUCCESS;
 	}
 
-	if(ogg)
+	if(m_bOgg)
 	{
 		m_fActive = false;
 
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
 
-		Ogg->Stop();
+		m_pOgg->Stop();
 		return RGF_SUCCESS;
 	}
 
-	//Check for stream availability
+	// Check for stream availability
 	if(m_pStream == NULL)
 		return RGF_FAILURE;							// No stream
 
@@ -311,31 +339,31 @@ int StreamingAudio::Stop()
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Pause()
 {
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
 
 		if(m_fActive == false)
 		{
 			m_fActive = true;
-			Mpeg3->PlayMp3((LONG)(CCD->MenuManager()->GetmVolLevel()*1000.0f), m_bLoops);
+			m_pMp3->PlayMp3(static_cast<LONG>(CCD->MenuManager()->GetmVolLevel()*1000.0f), m_bLoops);
 		}
 		else
 		{
 			m_fActive = false;
-			Mpeg3->StopMp3();
+			m_pMp3->StopMp3();
 		}
 
 		return RGF_SUCCESS;
 	}
 
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
 
-		Ogg->Pause();
+		m_pOgg->Pause();
 		return RGF_SUCCESS;
 	}
 
@@ -358,28 +386,26 @@ int StreamingAudio::Pause()
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Delete()
 {
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
 
-		Ogg->Stop();
-		delete Ogg;
-		Ogg = NULL;
+		m_pOgg->Stop();
+		SAFE_DELETE(m_pOgg);
 
 		return RGF_SUCCESS;
 	}
 
 	timeKillEvent(m_nTimerID);							// Kill timer
 
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
 
-		Mpeg3->StopMp3();
-		delete Mpeg3;
-		Mpeg3 = NULL;
+		m_pMp3->StopMp3();
+		SAFE_DELETE(m_pMp3);
 
 		return RGF_SUCCESS;
 	}
@@ -400,20 +426,21 @@ int StreamingAudio::Delete()
 /* ------------------------------------------------------------------------------------ */
 int StreamingAudio::Rewind()
 {
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
 
+		m_pMp3->Rewind();
 		return RGF_SUCCESS;
 	}
 
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
 
-		Ogg->Rewind();
+		m_pOgg->Rewind();
 		return RGF_SUCCESS;
 	}
 
@@ -443,25 +470,37 @@ int StreamingAudio::Rewind()
 /* ------------------------------------------------------------------------------------ */
 bool StreamingAudio::IsPlaying()
 {
-	if(mp3)
+	if(m_bMp3)
 	{
-		return false;
-	}
-
-	if(ogg)
-	{
-		if(!Ogg)
+		if(!m_pMp3)
 			return false;
 
-		return Ogg->IsPlaying();
+		return m_pMp3->IsPlaying();
+	}
+
+	if(m_bOgg)
+	{
+		if(!m_pOgg)
+			return false;
+
+		return m_pOgg->IsPlaying();
 	}
 
 	// Check for stream availability
 	if(m_pStream == NULL)
 		return false;									// No stream
 
-	if((m_fEOF == true) || (m_fActive == false))
-		return false;									// Not playing
+	if(m_fActive == false)
+		return false;
+
+	if(m_fEOF == true)
+	{
+		if(WaitForSingleObject(m_EndEvent,0) == WAIT_OBJECT_0)
+		{
+			Stop();
+			return false;							// Not playing
+		}
+	}
 
 	return true;										// Is playing
 }
@@ -471,49 +510,182 @@ bool StreamingAudio::IsPlaying()
 //
 // Set the playback volume of the audio stream.
 /* ------------------------------------------------------------------------------------ */
-int StreamingAudio::SetVolume(LONG nVolume)
+int StreamingAudio::SetVolume(long volume)
 {
-	if(mp3)
+	if(m_bMp3)
 	{
-		if(Mpeg3 == NULL)
+		if(m_pMp3 == NULL)
 			return RGF_FAILURE;
 
-		Mpeg3->SetVolume((nVolume+10000)/10);
+		//m_pMp3->SetVolume((volume + 10000) / 10);
+		// [0; 1000]
+		volume = static_cast<long>(pow(10.f, (volume + 10000.f) / 2500.f - 1.f));
+
+		m_pMp3->SetVolume(volume);
+
 		return RGF_SUCCESS;
 	}
 
-	LONG ScaledVolume;
-	nVolume += 10000;;
-
-	if(nVolume <= 1)
-		ScaledVolume = -10000;
-	else if(nVolume > 10000)
-		ScaledVolume = 0;
-	else
-		//ScaledVolume = (LONG)(log10(nVolume)/4*10000 - 10000);
-		ScaledVolume = (LONG)(log10((double)nVolume)*2500 - 10000);
-
-
-	nVolume = ScaledVolume;
-
-	if(ogg)
+	if(m_bOgg)
 	{
-		if(Ogg == NULL)
+		if(m_pOgg == NULL)
 			return RGF_FAILURE;
 
-		Ogg->SetVolume(nVolume);
+		m_pOgg->SetVolume(volume);
 		return RGF_SUCCESS;
 	}
 
-	//	Sanity check parameter
-	if((m_pStream == NULL) || (nVolume > 0))
-		return RGF_FAILURE;						// Bad parameter
+	{
+		if(m_pStream == NULL)
+			return RGF_FAILURE;
 
-	m_pStream->SetVolume(nVolume);				// Set it!
+		// Sanity check parameter
+		if(volume > DSBVOLUME_MAX || volume < DSBVOLUME_MIN)
+			return RGF_FAILURE;						// Bad parameter
+
+		m_pStream->SetVolume(volume);				// Set it!
+	}
 
 	return RGF_SUCCESS;
 }
 
+
+int StreamingAudio::SetPan(long pan)
+{
+	if(m_bMp3)
+	{
+		if(m_pMp3 == NULL)
+			return RGF_FAILURE;
+
+		// no way to set pan for mp3
+		return RGF_SUCCESS;
+	}
+
+	if(m_bOgg)
+	{
+		if(m_pOgg == NULL)
+			return RGF_FAILURE;
+
+		m_pOgg->SetPan(pan);
+		return RGF_SUCCESS;
+	}
+
+	{
+		if(m_pStream == NULL)
+			return RGF_FAILURE;
+
+		if(pan > DSBPAN_RIGHT || pan < DSBPAN_LEFT)
+			return RGF_FAILURE;
+
+		m_pStream->SetPan(pan);
+	}
+
+	return RGF_SUCCESS;
+}
+
+
+int StreamingAudio::SetFrequency(unsigned long frequency)
+{
+	if(m_bMp3)
+	{
+		if(m_pMp3 == NULL)
+			return RGF_FAILURE;
+
+		// no way to set frequency for mp3
+		return RGF_SUCCESS;
+	}
+
+	if(m_bOgg)
+	{
+		if(m_pOgg == NULL)
+			return RGF_FAILURE;
+
+		m_pOgg->SetFrequency(frequency);
+		return RGF_SUCCESS;
+	}
+
+	{
+		if(m_pStream == NULL)
+			return RGF_FAILURE;
+
+		m_pStream->SetFrequency(frequency);
+	}
+
+	return RGF_SUCCESS;
+}
+
+
+int StreamingAudio::Modify3D(geVec3d *soundPos, float minRadius)
+{
+	if(!soundPos)
+	{
+		return RGF_FAILURE;
+	}
+
+	if(m_bMp3)
+	{
+		return RGF_SUCCESS;
+	}
+
+	geXForm3d camera;
+	float volDelta, panDelta;
+	float volume, pan, frequency;
+
+	// get the camera xform
+	camera = CCD->CameraManager()->ViewPoint();
+
+	// get 3d sound values
+	geSound3D_GetConfig(CCD->World(),
+						&camera,
+						soundPos,
+						minRadius,
+						0.0f,
+						&volume,
+						&pan,
+						&frequency);
+
+	// return true or false depending on whether or not its worth modifying the sound
+	volDelta = m_Volume - volume;
+
+	if(volDelta < 0.0f)
+	{
+		volDelta = -volDelta;
+	}
+
+	panDelta = m_Pan - pan;
+
+	if(panDelta < 0.0f)
+	{
+		panDelta = -panDelta;
+	}
+
+	if((volDelta < 0.03f) && (panDelta < 0.02f))
+	{
+		return RGF_SUCCESS;
+	}
+
+	long lVolume = static_cast<long>((1.0f - volume) * DSBVOLUME_MIN);
+	if(SetVolume(lVolume) != RGF_SUCCESS)
+		return RGF_FAILURE;
+	m_Volume = volume;
+
+	long lPan = static_cast<long>(pan * DSBPAN_RIGHT);
+	if(SetPan(lPan) != RGF_SUCCESS)
+		return RGF_FAILURE;
+	m_Pan = pan;
+
+	// TODO
+	unsigned long ulFreq = 1;//static_cast<unsigned long>(channel->BaseFreq * frequency);
+
+	//if(ulFreq < 0)
+	//	ulFreq = 0;
+
+	if(SetFrequency(ulFreq) != RGF_SUCCESS)
+		return RGF_FAILURE;
+	m_Frequency = frequency;
+
+	return RGF_SUCCESS;
+}
 
 // ******************* PRIVATE MEMBER FUNCTIONS **********************
 
@@ -596,8 +768,19 @@ int StreamingAudio::PumpWave(int nSize)
 
 	// Ok, if we're at the end of file AND we're flagged to loop, rewind to the
 	// ..beginning of the buffer so we start from the top next time through.
-	if(m_fEOF && m_bLoops)
-		Rewind();						// Hope the sound designer looped the WAVE right!
+	if(m_fEOF)
+	{
+		if(m_bLoops)
+		{
+			Rewind();		// Hope the sound designer looped the WAVE right!
+		}
+		else
+		{
+			m_pStream->GetCurrentPosition(&m_PlayPos, NULL);
+			ResetEvent(m_EndEvent);		// Next time event is set, we're done playing
+		}
+	}
+
 
 	return RGF_SUCCESS;
 }
@@ -646,15 +829,15 @@ DWORD StreamingAudio::GetMaxWriteSize()
 void CALLBACK StreamingAudio::TimerFunction(UINT /*uID*/, UINT /*uMsg*/,
 											DWORD dwUser, DWORD /*dw1*/, DWORD /*dw2*/)
 {
-	StreamingAudio *thePointer = (StreamingAudio*)dwUser;
+	StreamingAudio *thePointer = reinterpret_cast<StreamingAudio*>(dwUser);
 
-	if(thePointer->mp3)
+	if(thePointer->m_bMp3)
 	{
-		if(thePointer->Mpeg3 == NULL)
+		if(thePointer->m_pMp3 == NULL)
 			return;
 
 		if(thePointer->m_fActive && thePointer->m_bLoops)
-			thePointer->Mpeg3->Refresh();
+			thePointer->m_pMp3->Refresh();
 
 		return;
 	}
@@ -709,14 +892,14 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 
 	// Expect the 'fmt' chunk to be at least as large as <PCMWAVEFORMAT>;
 	// if there are extra parameters at the end, we'll ignore them.
-    if(ckIn.cksize < (long) sizeof(PCMWAVEFORMAT))
+	if(ckIn.cksize < static_cast<DWORD>(sizeof(PCMWAVEFORMAT)))
 	{
 		mmioClose(hmmioIn, 0);				// Clean up
 		return -4;
 	}
 
 	// Read the 'fmt ' chunk into <pcmWaveFormat>
-	if(mmioRead(hmmioIn, (HPSTR) &pcmWaveFormat, (long) sizeof(pcmWaveFormat)) != (long) sizeof(pcmWaveFormat))
+	if(mmioRead(hmmioIn, (HPSTR) &pcmWaveFormat, static_cast<LONG>(sizeof(pcmWaveFormat))) != static_cast<LONG>(sizeof(pcmWaveFormat)))
 	{
 		mmioClose(hmmioIn, 0);				// Clean up
 		return -5;
@@ -732,7 +915,8 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	else
 	{
 		// Read in length of extra bytes.
-		if (mmioRead(hmmioIn, (LPSTR) &cbExtraAlloc, (long) sizeof(cbExtraAlloc)) != (long) sizeof(cbExtraAlloc))
+		if(mmioRead(hmmioIn, reinterpret_cast<LPSTR>(&cbExtraAlloc), static_cast<LONG>(sizeof(cbExtraAlloc)))
+			!= static_cast<LONG>(sizeof(cbExtraAlloc)))
 		{
 			mmioClose(hmmioIn, 0);			// Clean up
 			return -6;
@@ -740,7 +924,7 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	}
 
 	// Ok, now allocate that waveformatex structure.
-	if((*ppwfxInfo = (WAVEFORMATEX*)malloc(sizeof(WAVEFORMATEX)+cbExtraAlloc)) == NULL)
+	if((*ppwfxInfo = static_cast<WAVEFORMATEX*>(malloc(sizeof(WAVEFORMATEX) + cbExtraAlloc))) == NULL)
 	{
 		mmioClose(hmmioIn, 0);				// Clean up
 		return -7;
@@ -753,8 +937,8 @@ int StreamingAudio::WaveOpen(char *szFileName, HMMIO *pFileID,
 	// Now, read those extra bytes into the structure, if cbExtraAlloc != 0.
 	if(cbExtraAlloc != 0)
 	{
-		if(mmioRead(hmmioIn, (LPSTR) (((BYTE*)&((*ppwfxInfo)->cbSize))+sizeof(cbExtraAlloc)),
-			(long) (cbExtraAlloc)) != (long) (cbExtraAlloc))
+		if(mmioRead(hmmioIn, (LPSTR)(((BYTE*)&((*ppwfxInfo)->cbSize)) + sizeof(cbExtraAlloc)), static_cast<LONG>(cbExtraAlloc))
+			!= static_cast<LONG>(cbExtraAlloc))
 		{
 			mmioClose(hmmioIn, 0);			// Clean up
 			return -8;

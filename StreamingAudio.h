@@ -15,7 +15,6 @@
 
 class OggAudio;
 class CMp3Manager;
-const int kBufferSize = 48000*4;
 
 /**
  * @brief Streaming audio class
@@ -33,7 +32,10 @@ public:
 	int Delete();							///< Delete stream
 	int Rewind();							///< Rewind stream to beginning
 	bool IsPlaying();						///< Is stream playing?
-	int SetVolume(LONG nVolume);			///< Set volume on audio
+	int SetVolume(long volume);				///< Set volume on audio
+	int SetPan(long pan);
+	int SetFrequency(unsigned long frequency);
+	int Modify3D(geVec3d *soundPos, float minRadius);
 
 private:
 	// Private member functions
@@ -58,7 +60,6 @@ private:
 	int				m_nDataPosition;		///< Start of WAVE data in file
 	int				m_nCurrentPosition;		///< Current read position
 	int				m_nDataSize;			///< Wave data size, in bytes
-	int				m_nDataLeft;			///< # of bytes of data left
 	bool			m_fActive;				///< Playback active flag
 	LPDIRECTSOUNDBUFFER m_pStream;			///< Sound buffers
 	int				m_nTimerID;				///< Timer ID, this instance
@@ -66,11 +67,18 @@ private:
 	MMCKINFO		m_rRiffData;			///< Wave RIFF block
 	bool			m_fEOF;					///< At end of WAVE file
 	int				m_nOffset;				///< WriteCursor position
+	DWORD			m_EndPos;				///< PlayCursor position when end of audio file playback
+	DWORD			m_PlayPos;				///< PlayCursor position when audio file fully read into buffer
 	bool			m_bLoops;				///< Loop this WAVE or not?
-	bool			mp3;
-	bool			ogg;
-	CMp3Manager		*Mpeg3;
-	OggAudio		*Ogg;
+	HANDLE			m_EndEvent;
+	bool			m_bMp3;
+	bool			m_bOgg;
+	CMp3Manager		*m_pMp3;
+	OggAudio		*m_pOgg;
+	float			m_Volume;
+	float			m_Pan;
+	float			m_Frequency;
+	DWORD			m_BaseFrequency;
 };
 
 #endif
