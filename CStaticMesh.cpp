@@ -1038,7 +1038,7 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 		// don't translate the direction!!
 		geXForm3d_Rotate(&theRotationT, &Line, &m_vDir);
 		geVec3d_Scale(&m_vDir, InvScale, &m_vDir);
-		geFloat fL = geVec3d_Normalize(&m_vDir);
+		geVec3d_Normalize(&m_vDir);
 
 		for(int i=0; i<m_MeshList[pMesh->ListIndex]->NumFaces[LODIndex]; ++i)
 		{
@@ -1166,6 +1166,7 @@ void CStaticMesh::CleanUp()
 			SAFE_DELETE_A(m_MeshList[i]->VNormalI[LOD]);
 			SAFE_DELETE_A(m_MeshList[i]->Color[LOD]);
 			SAFE_DELETE_A(m_MeshList[i]->MaterialI[LOD]);
+
 			for(int j=0; j<m_MeshList[i]->MaterialCount[LOD]; ++j)
 			{
 				if(m_MeshList[i]->Bitmaps[LOD][j])
