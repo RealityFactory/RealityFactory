@@ -47,6 +47,9 @@ public:
 	virtual ~CStaticMesh();
 
 	void Tick(geFloat dwTicks);
+
+	void Render();
+
 	bool AddNewMesh(const char *szActorFile);
 
 	int SaveTo(FILE *SaveFD, bool type);					// Save states to a supplied file

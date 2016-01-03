@@ -1215,36 +1215,54 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		pMesh->origin = pMesh->OriginOffset;
 		SetOriginOffset(pMesh->EntityName, pMesh->BoneName, pMesh->Model, &pMesh->origin);
 
+		if(pMesh->Model)
 		{
-			if(pMesh->Model)
-			{
-				geXForm3d Xf;
-				geVec3d  Tmp;
-				geWorld_GetModelXForm(CCD->World(), pMesh->Model, &Xf);
-				geXForm3d_GetEulerAngles(&Xf, &Tmp);
-				geVec3d_Add(&(pMesh->ActorRotation), &Tmp, &(pMesh->Rotation));
-
-			}
-			else if(!EffectC_IsStringNull(pMesh->EntityName))
-			{
-
-				if(!EffectC_IsStringNull(pMesh->BoneName))
-				{
-					SetAngle(pMesh->EntityName, pMesh->BoneName, &(pMesh->Rotation));
-				}
-				else
-				{
-					geActor	*theActor;
-
-					theActor = GetEntityActor(pMesh->EntityName);
-					CCD->ActorManager()->GetRotation(theActor, &(pMesh->Rotation));
-				}
-				geVec3d_Add(&(pMesh->ActorRotation), &(pMesh->Rotation), &(pMesh->Rotation));
-			}
+			geXForm3d Xf;
+			geVec3d angles;
+			geWorld_GetModelXForm(CCD->World(), pMesh->Model, &Xf);
+			geXForm3d_GetEulerAngles(&Xf, &angles);
+			geVec3d_Add(&pMesh->ActorRotation, &angles, &pMesh->Rotation);
 		}
+		else if(!EffectC_IsStringNull(pMesh->EntityName))
+		{
+			if(!EffectC_IsStringNull(pMesh->BoneName))
+			{
+				SetAngle(pMesh->EntityName, pMesh->BoneName, &pMesh->Rotation);
+			}
+			else
+			{
+				geActor	*actor = GetEntityActor(pMesh->EntityName);
+				CCD->ActorManager()->GetRotation(actor, &pMesh->Rotation);
+			}
+
+			geVec3d_Add(&pMesh->ActorRotation, &pMesh->Rotation, &pMesh->Rotation);
+		}
+	}
+
+	Render();
+}
+
+
+void CStaticMesh::Render()
+{
+	if(m_MeshCount == 0) // don't waste precious time
+		return;
+
+	// Ok, see if we have any static meshes we need to set up.
+	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
+
+	if(!pSet)
+		return;
+
+	geEntity *pEntity;
+
+	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	{
+		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
+		geVec3d CamPosition;
 
 		// get the distance between the entity and the camera
-		geVec3d CamPosition;
 		CCD->CameraManager()->GetPosition(&CamPosition);
 
 		// use center of bounding box for LOD determination instead entity origin ( = root bone position of actor)
