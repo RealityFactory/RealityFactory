@@ -231,8 +231,8 @@ CStaticMesh::CStaticMesh() :
 		if(bSunLight)
 		{
 			geEntity *pEntitySunLight = geEntity_EntitySetGetNextEntity(pSetSunLight, NULL);
-			SunLight *pSun = (SunLight*)geEntity_GetUserData(pEntitySunLight);
-			ComputeLighting(pMesh, (void*)pSun, LIGHT_SUNLIGHT);
+			SunLight *pSun = static_cast<SunLight*>(geEntity_GetUserData(pEntitySunLight));
+			ComputeLighting(pMesh, static_cast<void*>(pSun), LIGHT_SUNLIGHT);
 
 			CCD->Log()->Debug("Set Sunlight light for %s", pMesh->szEntityName);
 		}
@@ -243,8 +243,8 @@ CStaticMesh::CStaticMesh() :
 			for(pEntityLight=geEntity_EntitySetGetNextEntity(pSetLight, NULL); pEntityLight;
 				pEntityLight=geEntity_EntitySetGetNextEntity(pSetLight, pEntityLight))
 			{
-				light *pLight = (light*)geEntity_GetUserData(pEntityLight);
-				ComputeLighting(pMesh, (void*)pLight, LIGHT_POINTLIGHT);
+				light *pLight = static_cast<light*>(geEntity_GetUserData(pEntityLight));
+				ComputeLighting(pMesh, static_cast<void*>(pLight), LIGHT_POINTLIGHT);
 			}
 
 			CCD->Log()->Debug("Set Light for %s", pMesh->szEntityName);
@@ -256,8 +256,8 @@ CStaticMesh::CStaticMesh() :
 			for(pEntitySpotlight=geEntity_EntitySetGetNextEntity(pSetSpotlight, NULL);pEntitySpotlight;
 				pEntitySpotlight=geEntity_EntitySetGetNextEntity(pSetSpotlight, pEntitySpotlight))
 			{
-				spotlight *pSpotlight = (spotlight*)geEntity_GetUserData(pEntitySpotlight);
-				ComputeLighting(pMesh, (void*)pSpotlight, LIGHT_SPOTLIGHT);
+				spotlight *pSpotlight = static_cast<spotlight*>(geEntity_GetUserData(pEntitySpotlight));
+				ComputeLighting(pMesh, static_cast<void*>(pSpotlight), LIGHT_SPOTLIGHT);
 			}
 
 			CCD->Log()->Debug("Set Spotlight for %s", pMesh->szEntityName);
