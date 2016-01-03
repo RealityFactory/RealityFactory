@@ -3333,6 +3333,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			Color.r = 0.0f;
 			Color.g = 0.0f;
 			Color.b = 0.0f;
+			Color.a = 255.0f;
 
 			if(arguments.entries() > 2)
 				Color.a = arguments[2].floatValue();
