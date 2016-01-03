@@ -1897,7 +1897,7 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 			return kCollideWorldModel;	// Hit, and processed
 
 		// *NOTE* Add new world-model collision handlers here.
-		if(!bShoot || (bShoot && aType == ENTITY_PROJECTILE))
+		if(!bShoot || aType == ENTITY_PROJECTILE)
 		{
 			if(CCD->Teleporters()->HandleCollision(theCollision.Model, theActor))
 				return kCollideTrigger;	// Hit, and processed
