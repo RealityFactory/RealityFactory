@@ -90,11 +90,6 @@ int CScriptPoint::LocateEntity(const char *szName, void **pEntityData)
 void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 							  int r, int g, int b, int r1, int g1, int b1)
 {
-	geVec3d perp;
-
-	geXForm3d M = CCD->CameraManager()->ViewPoint();
-	geVec3d in;
-
 	GE_LVertex	v[4];
 
 	v[0].u = 0.0f;
@@ -114,7 +109,11 @@ void CScriptPoint::DrawLine3d(const geVec3d *p1, const geVec3d *p2,
 		v[i].a = 255.0f;
 	}
 
+	geVec3d perp;
 	geVec3d_Subtract(p1, p2, &perp);
+
+	geXForm3d M = CCD->CameraManager()->ViewPoint();
+	geVec3d in;
 	geXForm3d_GetIn(&M, &in);
 	geVec3d_CrossProduct(&perp, &in, &perp);
 	geVec3d_Normalize(&perp);
