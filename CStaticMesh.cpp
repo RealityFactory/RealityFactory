@@ -47,8 +47,7 @@ typedef struct	tag_spotlight
 CStaticMesh::CStaticMesh() :
 	m_MeshCount(0)
 {
-	for(int nTemp = 0; nTemp < MESH_LIST_SIZE; nTemp++)
-		MeshList[nTemp] = NULL;
+	memset(m_MeshList, 0, sizeof(LoadedMeshList*)*MESH_LIST_SIZE);
 
 	// Ok, see if we have any static entity proxies we need to set up.
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "StaticMesh");
@@ -179,43 +178,43 @@ CStaticMesh::CStaticMesh() :
 		if(bLights || bAmbientLight)
 		{
 			// alocate color-array
-			pMesh->ColorLOD0 = (GE_RGBA*)malloc(sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[0]));
+			pMesh->ColorLOD0 = new GE_RGBA[3*m_MeshList[pMesh->ListIndex]->NumFaces[0]];
 			if(!pMesh->ColorLOD0)
 				continue;
-			memset(pMesh->ColorLOD0, 0, sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[0]));
+			memset(pMesh->ColorLOD0, 0, sizeof(GE_RGBA)*3*(m_MeshList[pMesh->ListIndex]->NumFaces[0]));
 
-			if(MeshList[pMesh->ListIndex]->Verts[1])
+			if(m_MeshList[pMesh->ListIndex]->Verts[1])
 			{
-				pMesh->ColorLOD1 = (GE_RGBA*)malloc(sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[1]));
+				pMesh->ColorLOD1 = new GE_RGBA[3*m_MeshList[pMesh->ListIndex]->NumFaces[1]];
 				if(!pMesh->ColorLOD1)
 				{
-					free(pMesh->ColorLOD0);
+					SAFE_DELETE_A(pMesh->ColorLOD0);
 					continue;
 				}
-				memset(pMesh->ColorLOD1, 0, sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[1]));
+				memset(pMesh->ColorLOD1, 0, sizeof(GE_RGBA)*3*(m_MeshList[pMesh->ListIndex]->NumFaces[1]));
 			}
-			if(MeshList[pMesh->ListIndex]->Verts[2])
+			if(m_MeshList[pMesh->ListIndex]->Verts[2])
 			{
-				pMesh->ColorLOD2 = (GE_RGBA*)malloc(sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[2]));
+				pMesh->ColorLOD2 = new GE_RGBA[3*m_MeshList[pMesh->ListIndex]->NumFaces[2]];
 				if(!pMesh->ColorLOD2)
 				{
-					free(pMesh->ColorLOD0);
-					free(pMesh->ColorLOD1);
+					SAFE_DELETE_A(pMesh->ColorLOD0);
+					SAFE_DELETE_A(pMesh->ColorLOD1);
 					continue;
 				}
-				memset(pMesh->ColorLOD2, 0, sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[2]));
+				memset(pMesh->ColorLOD2, 0, sizeof(GE_RGBA)*3*(m_MeshList[pMesh->ListIndex]->NumFaces[2]));
 			}
-			if(MeshList[pMesh->ListIndex]->Verts[3])
+			if(m_MeshList[pMesh->ListIndex]->Verts[3])
 			{
-				pMesh->ColorLOD3 = (GE_RGBA*)malloc(sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[3]));
+				pMesh->ColorLOD3 = new GE_RGBA[3*m_MeshList[pMesh->ListIndex]->NumFaces[3]];
 				if(!pMesh->ColorLOD3)
 				{
-					free(pMesh->ColorLOD0);
-					free(pMesh->ColorLOD1);
-					free(pMesh->ColorLOD2);
+					SAFE_DELETE_A(pMesh->ColorLOD0);
+					SAFE_DELETE_A(pMesh->ColorLOD1);
+					SAFE_DELETE_A(pMesh->ColorLOD2);
 					continue;
 				}
-				memset(pMesh->ColorLOD3, 0, sizeof(GE_RGBA)*3*(MeshList[pMesh->ListIndex]->NumFaces[3]));
+				memset(pMesh->ColorLOD3, 0, sizeof(GE_RGBA)*3*(m_MeshList[pMesh->ListIndex]->NumFaces[3]));
 			}
 		}
 		else
@@ -277,7 +276,7 @@ bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 {
 	for(int i=0; i<m_MeshCount; ++i)
 	{
-		if(!strcmp(MeshList[i]->szFilename, szActorFile))
+		if(!strcmp(m_MeshList[i]->szFilename, szActorFile))
 		{
 			*Index = i;
 			return true;
@@ -295,8 +294,8 @@ bool CStaticMesh::IsInList(const char *szActorFile, int *Index)
 /* ------------------------------------------------------------------------------------ */
 bool CStaticMesh::AddNewMesh(const char *szActorFile)
 {
-	MeshList[m_MeshCount] = new LoadedMeshList;
-	memset(MeshList[m_MeshCount], 0, sizeof(LoadedMeshList));
+	m_MeshList[m_MeshCount] = new LoadedMeshList;
+	memset(m_MeshList[m_MeshCount], 0, sizeof(LoadedMeshList));
 
 	char LodName[128], Name[128];
 	geBoolean CleanUp = GE_FALSE;
@@ -310,8 +309,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		if(!LOD)
 		{
 			strcpy(Name, szActorFile);
-			MeshList[m_MeshCount]->szFilename = new char[strlen(szActorFile)+1];
-			memcpy(MeshList[m_MeshCount]->szFilename, szActorFile, strlen(szActorFile)+1);
+			m_MeshList[m_MeshCount]->szFilename = new char[strlen(szActorFile)+1];
+			memcpy(m_MeshList[m_MeshCount]->szFilename, szActorFile, strlen(szActorFile)+1);
 		}
 		else
 		{
@@ -326,11 +325,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 		{
 			if(!LOD)
 			{
-				if(MeshList[m_MeshCount]->szFilename != NULL)
-					delete MeshList[m_MeshCount]->szFilename;
-
-				delete MeshList[m_MeshCount];
-				MeshList[m_MeshCount] = NULL;
+				SAFE_DELETE_A(m_MeshList[m_MeshCount]->szFilename);
+				SAFE_DELETE(m_MeshList[m_MeshCount]);
 				return false;
 			}
 			else
@@ -357,11 +353,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 
 				if(!LOD)
 				{
-					if(MeshList[m_MeshCount]->szFilename != NULL)
-						delete MeshList[m_MeshCount]->szFilename;
-
-					delete MeshList[m_MeshCount];
-					MeshList[m_MeshCount] = NULL;
+					SAFE_DELETE_A(m_MeshList[m_MeshCount]->szFilename);
+					SAFE_DELETE(m_MeshList[m_MeshCount]);
 					return false;
 				}
 				else
@@ -377,11 +370,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				CCD->Log()->Warning("File %s - Line %d: Failed to load actor '%s'",
 									__FILE__, __LINE__, Name);
 
-				if(MeshList[m_MeshCount]->szFilename != NULL)
-					delete MeshList[m_MeshCount]->szFilename;
-
-				delete MeshList[m_MeshCount];
-				MeshList[m_MeshCount] = NULL;
+				SAFE_DELETE_A(m_MeshList[m_MeshCount]->szFilename);
+				SAFE_DELETE(m_MeshList[m_MeshCount]);
 				return false;
 			}
 			else
@@ -399,14 +389,13 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 
 		geActor_ClearPose(theActor, &thePosition);
 
-		MeshList[m_MeshCount]->Bitmaps[LOD] = NULL;
-		MeshList[m_MeshCount]->Verts[LOD] = NULL;
-		MeshList[m_MeshCount]->FaceI[LOD] = NULL;
-		MeshList[m_MeshCount]->Color[LOD] = NULL;
-		MeshList[m_MeshCount]->MaterialI[LOD] = NULL;
-		MeshList[m_MeshCount]->VNormals[LOD] = NULL;
-		MeshList[m_MeshCount]->VNormalI[LOD] = NULL;
-
+		m_MeshList[m_MeshCount]->Bitmaps[LOD] = NULL;
+		m_MeshList[m_MeshCount]->Verts[LOD] = NULL;
+		m_MeshList[m_MeshCount]->FaceI[LOD] = NULL;
+		m_MeshList[m_MeshCount]->Color[LOD] = NULL;
+		m_MeshList[m_MeshCount]->MaterialI[LOD] = NULL;
+		m_MeshList[m_MeshCount]->VNormals[LOD] = NULL;
+		m_MeshList[m_MeshCount]->VNormalI[LOD] = NULL;
 
 		// get the body information of this actor
 		geBody *B = geActor_GetBody(ActorDef);
@@ -431,11 +420,11 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			geFloat Red, Green, Blue;
 
 			// get the number of materials in the body
-			MeshList[m_MeshCount]->MaterialCount[LOD] = geBody_GetMaterialCount(B);
+			m_MeshList[m_MeshCount]->MaterialCount[LOD] = geBody_GetMaterialCount(B);
 
 			// allocate memory for the bitmaps
-			MeshList[m_MeshCount]->Bitmaps[LOD] = (geBitmap**)malloc(sizeof(geBitmap*)*(MeshList[m_MeshCount]->MaterialCount[LOD]));
-			if(!(MeshList[m_MeshCount]->Bitmaps[LOD]))
+			m_MeshList[m_MeshCount]->Bitmaps[LOD] = new geBitmap*[m_MeshList[m_MeshCount]->MaterialCount[LOD]];
+			if(!(m_MeshList[m_MeshCount]->Bitmaps[LOD]))
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -446,15 +435,15 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// get the bitmaps
-			for(i=0;i<(MeshList[m_MeshCount]->MaterialCount[LOD]);i++)
+			for(i=0; i<(m_MeshList[m_MeshCount]->MaterialCount[LOD]); ++i)
 			{
-				geBody_GetMaterial(B, i, &MaterialName, &(MeshList[m_MeshCount]->Bitmaps[LOD][i]),
+				geBody_GetMaterial(B, i, &MaterialName, &(m_MeshList[m_MeshCount]->Bitmaps[LOD][i]),
 									&Red, &Green, &Blue);
 
 				// if this material has a bitmap, add it to the world
-				if(MeshList[m_MeshCount]->Bitmaps[LOD][i])
+				if(m_MeshList[m_MeshCount]->Bitmaps[LOD][i])
 				{
-					if(!geWorld_AddBitmap(CCD->World(), MeshList[m_MeshCount]->Bitmaps[LOD][i]))
+					if(!geWorld_AddBitmap(CCD->World(), m_MeshList[m_MeshCount]->Bitmaps[LOD][i]))
 					{
 						CCD->Log()->Warning("File %s - Line %d: geWorld_AddBitmap %s failed",
 											__FILE__, __LINE__, MaterialName);
@@ -462,10 +451,10 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				}
 			}
 
-			MeshList[m_MeshCount]->NumVerts[LOD] = B->XSkinVertexCount;
+			m_MeshList[m_MeshCount]->NumVerts[LOD] = B->XSkinVertexCount;
 			// allocate memory for the vertexlist information
-			MeshList[m_MeshCount]->Verts[LOD] = (GE_LVertex*)malloc(sizeof(GE_LVertex)*(MeshList[m_MeshCount]->NumVerts[LOD]));//NumFaces[LOD]));
-			if(!MeshList[m_MeshCount]->Verts[LOD])
+			m_MeshList[m_MeshCount]->Verts[LOD] = new GE_LVertex[m_MeshList[m_MeshCount]->NumVerts[LOD]];
+			if(!m_MeshList[m_MeshCount]->Verts[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -476,10 +465,10 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// get the number of faces in the body
-			MeshList[m_MeshCount]->NumFaces[LOD] = B->SkinFaces[0].FaceCount;
+			m_MeshList[m_MeshCount]->NumFaces[LOD] = B->SkinFaces[0].FaceCount;
 			// allocate memory for the vertexlist information, each face has 3 indices for its 3 vertices
-			MeshList[m_MeshCount]->FaceI[LOD] = (int16*)malloc(sizeof(int16)*3*(MeshList[m_MeshCount]->NumFaces[LOD]));
-			if(!MeshList[m_MeshCount]->FaceI[LOD])
+			m_MeshList[m_MeshCount]->FaceI[LOD] = new int16[3*m_MeshList[m_MeshCount]->NumFaces[LOD]];
+			if(!m_MeshList[m_MeshCount]->FaceI[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -490,10 +479,10 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// get the number of VertexNormals in the body
-			MeshList[m_MeshCount]->NumVNormals[LOD] = B->SkinNormalCount;
+			m_MeshList[m_MeshCount]->NumVNormals[LOD] = B->SkinNormalCount;
 			// allocate memory for the normalindices, each face has 3 indices for its 3 vertexnormals
-			MeshList[m_MeshCount]->VNormalI[LOD] = (int16*)malloc(sizeof(int16)*3*(MeshList[m_MeshCount]->NumFaces[LOD]));
-			if(!MeshList[m_MeshCount]->VNormalI[LOD])
+			m_MeshList[m_MeshCount]->VNormalI[LOD] = new int16[3*m_MeshList[m_MeshCount]->NumFaces[LOD]];
+			if(!m_MeshList[m_MeshCount]->VNormalI[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -503,8 +492,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				goto CLEAN_UP;
 			}
 			// allocate memory for the normals
-			MeshList[m_MeshCount]->VNormals[LOD] = (geVec3d*)malloc(sizeof(geVec3d)*(MeshList[m_MeshCount]->NumVNormals[LOD]));
-			if(!MeshList[m_MeshCount]->VNormals[LOD])
+			m_MeshList[m_MeshCount]->VNormals[LOD] = new geVec3d[m_MeshList[m_MeshCount]->NumVNormals[LOD]];
+			if(!m_MeshList[m_MeshCount]->VNormals[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -515,8 +504,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// allocate memory for the materialindices
-			MeshList[m_MeshCount]->Color[LOD] = (GE_RGBA*)malloc(sizeof(GE_RGBA)*(MeshList[m_MeshCount]->NumFaces[LOD]));
-			if(!MeshList[m_MeshCount]->Color[LOD])
+			m_MeshList[m_MeshCount]->Color[LOD] = new GE_RGBA[m_MeshList[m_MeshCount]->NumFaces[LOD]];
+			if(!m_MeshList[m_MeshCount]->Color[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -527,8 +516,8 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// allocate memory for the materialindices
-			MeshList[m_MeshCount]->MaterialI[LOD] = (int16*)malloc(sizeof(int16)*(MeshList[m_MeshCount]->NumFaces[LOD]));
-			if(!MeshList[m_MeshCount]->MaterialI[LOD])
+			m_MeshList[m_MeshCount]->MaterialI[LOD] = new int16[m_MeshList[m_MeshCount]->NumFaces[LOD]];
+			if(!m_MeshList[m_MeshCount]->MaterialI[LOD])
 			{
 				// error - clean up
 				CleanUp = GE_TRUE;
@@ -539,7 +528,7 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 			}
 
 			// now rip out the verts
-			for(i=0;i<MeshList[m_MeshCount]->NumVerts[LOD];i++)//NumFaces[LOD];i++)
+			for(i=0; i<m_MeshList[m_MeshCount]->NumVerts[LOD]; ++i)
 			{
 				geVec3d Point;
 
@@ -552,92 +541,91 @@ bool CStaticMesh::AddNewMesh(const char *szActorFile)
 				geActor_GetBoneTransform(theActor, BoneName, &Transform);
 				geXForm3d_Transform(&Transform, &(Point), &(Point));
 
-				MeshList[m_MeshCount]->Verts[LOD][i].X = Point.X;
-				MeshList[m_MeshCount]->Verts[LOD][i].Y = Point.Y;
-				MeshList[m_MeshCount]->Verts[LOD][i].Z = Point.Z;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].X = Point.X;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].Y = Point.Y;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].Z = Point.Z;
 
 				// get the texture uv coordinates
-				MeshList[m_MeshCount]->Verts[LOD][i].u=B->XSkinVertexArray[i].XU;
-				MeshList[m_MeshCount]->Verts[LOD][i].v=B->XSkinVertexArray[i].XV;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].u = B->XSkinVertexArray[i].XU;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].v = B->XSkinVertexArray[i].XV;
 
 				// give each vertex a default value for now
-				MeshList[m_MeshCount]->Verts[LOD][i].r=128.0f;//B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Red;
-				MeshList[m_MeshCount]->Verts[LOD][i].g=128.0f;//B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Green;
-				MeshList[m_MeshCount]->Verts[LOD][i].b=128.0f;//B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Blue;
-				MeshList[m_MeshCount]->Verts[LOD][i].a=255.0f;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].r = 128.0f;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].g = 128.0f;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].b = 128.0f;
+				m_MeshList[m_MeshCount]->Verts[LOD][i].a = 255.0f;
 
 				// get the maximum and minimum extension of the mesh
 				if(!i)
 				{
-					MeshList[m_MeshCount]->Max[LOD].X = MeshList[m_MeshCount]->Min[LOD].X= Point.X;
-					MeshList[m_MeshCount]->Max[LOD].Y = MeshList[m_MeshCount]->Min[LOD].Y= Point.Y;
-					MeshList[m_MeshCount]->Max[LOD].Z = MeshList[m_MeshCount]->Min[LOD].Z= Point.Z;
+					m_MeshList[m_MeshCount]->Max[LOD].X = m_MeshList[m_MeshCount]->Min[LOD].X = Point.X;
+					m_MeshList[m_MeshCount]->Max[LOD].Y = m_MeshList[m_MeshCount]->Min[LOD].Y = Point.Y;
+					m_MeshList[m_MeshCount]->Max[LOD].Z = m_MeshList[m_MeshCount]->Min[LOD].Z = Point.Z;
 				}
 				else
 				{
-					if(MeshList[m_MeshCount]->Max[LOD].X < Point.X)
-						MeshList[m_MeshCount]->Max[LOD].X = Point.X;
-					if(MeshList[m_MeshCount]->Max[LOD].Y < Point.Y)
-						MeshList[m_MeshCount]->Max[LOD].Y = Point.Y;
-					if(MeshList[m_MeshCount]->Max[LOD].Z < Point.Z)
-						MeshList[m_MeshCount]->Max[LOD].Z = Point.Z;
-					if(MeshList[m_MeshCount]->Min[LOD].X > Point.X)
-						MeshList[m_MeshCount]->Min[LOD].X = Point.X;
-					if(MeshList[m_MeshCount]->Min[LOD].Y > Point.Y)
-						MeshList[m_MeshCount]->Min[LOD].Y = Point.Y;
-					if(MeshList[m_MeshCount]->Min[LOD].Z > Point.Z)
-						MeshList[m_MeshCount]->Min[LOD].Z = Point.Z;
+					if(m_MeshList[m_MeshCount]->Max[LOD].X < Point.X)
+						m_MeshList[m_MeshCount]->Max[LOD].X = Point.X;
+					if(m_MeshList[m_MeshCount]->Max[LOD].Y < Point.Y)
+						m_MeshList[m_MeshCount]->Max[LOD].Y = Point.Y;
+					if(m_MeshList[m_MeshCount]->Max[LOD].Z < Point.Z)
+						m_MeshList[m_MeshCount]->Max[LOD].Z = Point.Z;
+					if(m_MeshList[m_MeshCount]->Min[LOD].X > Point.X)
+						m_MeshList[m_MeshCount]->Min[LOD].X = Point.X;
+					if(m_MeshList[m_MeshCount]->Min[LOD].Y > Point.Y)
+						m_MeshList[m_MeshCount]->Min[LOD].Y = Point.Y;
+					if(m_MeshList[m_MeshCount]->Min[LOD].Z > Point.Z)
+						m_MeshList[m_MeshCount]->Min[LOD].Z = Point.Z;
 				}
 			}
 
 			// make an obb from the min and max values (AABBs can't be rotated)
 			{
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[0].X=1.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[0].Y=0.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[0].Z=0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[0].X = 1.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[0].Y = 0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[0].Z = 0.0f;
 
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[1].X=0.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[1].Y=1.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[1].Z=0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[1].X = 0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[1].Y = 1.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[1].Z = 0.0f;
 
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[2].X=0.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[2].Y=0.0f;
-				MeshList[m_MeshCount]->OBBox[LOD].Axis[2].Z=1.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[2].X = 0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[2].Y = 0.0f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Axis[2].Z = 1.0f;
 
-				MeshList[m_MeshCount]->OBBox[LOD].ALength.X=(MeshList[m_MeshCount]->Max[LOD].X-MeshList[m_MeshCount]->Min[LOD].X)*0.5f;
-				MeshList[m_MeshCount]->OBBox[LOD].ALength.Y=(MeshList[m_MeshCount]->Max[LOD].Y-MeshList[m_MeshCount]->Min[LOD].Y)*0.5f;
-				MeshList[m_MeshCount]->OBBox[LOD].ALength.Z=(MeshList[m_MeshCount]->Max[LOD].Z-MeshList[m_MeshCount]->Min[LOD].Z)*0.5f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].ALength.X = (m_MeshList[m_MeshCount]->Max[LOD].X-m_MeshList[m_MeshCount]->Min[LOD].X)*0.5f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].ALength.Y = (m_MeshList[m_MeshCount]->Max[LOD].Y-m_MeshList[m_MeshCount]->Min[LOD].Y)*0.5f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].ALength.Z = (m_MeshList[m_MeshCount]->Max[LOD].Z-m_MeshList[m_MeshCount]->Min[LOD].Z)*0.5f;
 
-				MeshList[m_MeshCount]->OBBox[LOD].Center.X=(MeshList[m_MeshCount]->Max[LOD].X+MeshList[m_MeshCount]->Min[LOD].X)*0.5f;
-				MeshList[m_MeshCount]->OBBox[LOD].Center.Y=(MeshList[m_MeshCount]->Max[LOD].Y+MeshList[m_MeshCount]->Min[LOD].Y)*0.5f;
-				MeshList[m_MeshCount]->OBBox[LOD].Center.Z=(MeshList[m_MeshCount]->Max[LOD].Z+MeshList[m_MeshCount]->Min[LOD].Z)*0.5f;
-
+				m_MeshList[m_MeshCount]->OBBox[LOD].Center.X = (m_MeshList[m_MeshCount]->Max[LOD].X+m_MeshList[m_MeshCount]->Min[LOD].X)*0.5f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Center.Y = (m_MeshList[m_MeshCount]->Max[LOD].Y+m_MeshList[m_MeshCount]->Min[LOD].Y)*0.5f;
+				m_MeshList[m_MeshCount]->OBBox[LOD].Center.Z = (m_MeshList[m_MeshCount]->Max[LOD].Z+m_MeshList[m_MeshCount]->Min[LOD].Z)*0.5f;
 			}
 
 			// we have the verts, now get the normals
-			for(i=0;i<MeshList[m_MeshCount]->NumVNormals[LOD];i++)
+			for(i=0; i<m_MeshList[m_MeshCount]->NumVNormals[LOD]; ++i)
 			{
-				geVec3d_Copy(&(B->SkinNormalArray[i].Normal), &(MeshList[m_MeshCount]->VNormals[LOD][i]));
+				geVec3d_Copy(&(B->SkinNormalArray[i].Normal), &(m_MeshList[m_MeshCount]->VNormals[LOD][i]));
 			}
 
-
-			for(i=0;i<MeshList[m_MeshCount]->NumFaces[LOD];i++)
+			for(i=0; i<m_MeshList[m_MeshCount]->NumFaces[LOD]; ++i)
 			{
 				// get the material index of this face
-				MeshList[m_MeshCount]->MaterialI[LOD][i] = B->SkinFaces[0].FaceArray[i].MaterialIndex;
+				m_MeshList[m_MeshCount]->MaterialI[LOD][i] = B->SkinFaces[0].FaceArray[i].MaterialIndex;
 
 				// get the material color value, this is per face and not per vertex - ugh!
-				MeshList[m_MeshCount]->Color[LOD][i].r=B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Red;
-				MeshList[m_MeshCount]->Color[LOD][i].g=B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Green;
-				MeshList[m_MeshCount]->Color[LOD][i].b=B->MaterialArray[MeshList[m_MeshCount]->MaterialI[LOD][i]].Blue;
-				MeshList[m_MeshCount]->Color[LOD][i].a=255.0f;
+				m_MeshList[m_MeshCount]->Color[LOD][i].r = B->MaterialArray[m_MeshList[m_MeshCount]->MaterialI[LOD][i]].Red;
+				m_MeshList[m_MeshCount]->Color[LOD][i].g = B->MaterialArray[m_MeshList[m_MeshCount]->MaterialI[LOD][i]].Green;
+				m_MeshList[m_MeshCount]->Color[LOD][i].b = B->MaterialArray[m_MeshList[m_MeshCount]->MaterialI[LOD][i]].Blue;
+				m_MeshList[m_MeshCount]->Color[LOD][i].a = 255.0f;
 
 				for(j=0; j<3; ++j)
 				{
 					// fill in VertexIndices
-					MeshList[m_MeshCount]->FaceI[LOD][i*3+j]=B->SkinFaces[0].FaceArray[i].VtxIndex[j];
+					m_MeshList[m_MeshCount]->FaceI[LOD][i*3+j] = B->SkinFaces[0].FaceArray[i].VtxIndex[j];
+
 					// fill in NormalIndices
-					MeshList[m_MeshCount]->VNormalI[LOD][i*3+j]=B->SkinFaces[0].FaceArray[i].NormalIndex[j];
+					m_MeshList[m_MeshCount]->VNormalI[LOD][i*3+j] = B->SkinFaces[0].FaceArray[i].NormalIndex[j];
 				}
 			}
 		}
@@ -659,42 +647,30 @@ CLEAN_UP:
 		{
 			CleanUp = GE_FALSE;
 
-			for(int i=0;i<MeshList[m_MeshCount]->MaterialCount[LOD];i++)
+			for(int i=0; i<m_MeshList[m_MeshCount]->MaterialCount[LOD]; ++i)
 			{
-				if(MeshList[m_MeshCount]->Bitmaps[LOD][i])
-					geWorld_RemoveBitmap(CCD->World(), MeshList[m_MeshCount]->Bitmaps[LOD][i]);
+				if(m_MeshList[m_MeshCount]->Bitmaps[LOD][i])
+					geWorld_RemoveBitmap(CCD->World(), m_MeshList[m_MeshCount]->Bitmaps[LOD][i]);
 			}
-			free(MeshList[m_MeshCount]->Bitmaps[LOD]);
-			MeshList[m_MeshCount]->Bitmaps[LOD] = NULL;
 
-			free(MeshList[m_MeshCount]->Verts[LOD]);
-			MeshList[m_MeshCount]->Verts[LOD] = NULL;
-
-			free(MeshList[m_MeshCount]->FaceI[LOD]);
-			MeshList[m_MeshCount]->FaceI[LOD] = NULL;
-
-			free(MeshList[m_MeshCount]->VNormals[LOD]);
-			MeshList[m_MeshCount]->VNormals[LOD] = NULL;
-
-			free(MeshList[m_MeshCount]->VNormalI[LOD]);
-			MeshList[m_MeshCount]->VNormalI[LOD] = NULL;
-
-			free(MeshList[m_MeshCount]->Color[LOD]);
-			MeshList[m_MeshCount]->Color[LOD] = NULL;
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->Bitmaps[LOD]);
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->Verts[LOD]);
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->FaceI[LOD]);
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->VNormals[LOD]);
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->VNormalI[LOD]);
+			SAFE_DELETE_A(m_MeshList[m_MeshCount]->Color[LOD]);
 
 			if(!LOD)
 			{
-				if(MeshList[m_MeshCount]->szFilename != NULL)
-					delete MeshList[m_MeshCount]->szFilename;
-				delete MeshList[m_MeshCount];
-				MeshList[m_MeshCount] = NULL;
+				SAFE_DELETE_A(m_MeshList[m_MeshCount]->szFilename);
+				SAFE_DELETE(m_MeshList[m_MeshCount]);
 				return false;
 			}
 		}
 	}
 
 	// add the LODBitmap if it exists
-	MeshList[m_MeshCount]->LODBitmap=NULL;
+	m_MeshList[m_MeshCount]->LODBitmap = NULL;
 	sprintf(Name, "%s.tga", LodName);
 
 	if(CFileManager::GetSingletonPtr()->FileExist(kActorFile, Name))
@@ -703,12 +679,12 @@ CLEAN_UP:
 		CFileManager::GetSingletonPtr()->OpenRFFile(&ImageFile, kActorFile, Name, GE_VFILE_OPEN_READONLY);
 		if(ImageFile)
 		{
-			MeshList[m_MeshCount]->LODBitmap = geBitmap_CreateFromFile(ImageFile);
+			m_MeshList[m_MeshCount]->LODBitmap = geBitmap_CreateFromFile(ImageFile);
 
-			if(MeshList[m_MeshCount]->LODBitmap)
+			if(m_MeshList[m_MeshCount]->LODBitmap)
 			{
-				geBitmap_SetPreferredFormat(MeshList[m_MeshCount]->LODBitmap,GE_PIXELFORMAT_32BIT_ARGB);
-				geWorld_AddBitmap(CCD->World(), MeshList[m_MeshCount]->LODBitmap);
+				geBitmap_SetPreferredFormat(m_MeshList[m_MeshCount]->LODBitmap,GE_PIXELFORMAT_32BIT_ARGB);
+				geWorld_AddBitmap(CCD->World(), m_MeshList[m_MeshCount]->LODBitmap);
 			}
 
 			geVFile_Close(ImageFile);
@@ -725,7 +701,7 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 {
 	for(int LOD=0; LOD<4; ++LOD)
 	{
-		if(!MeshList[pMesh->ListIndex]->Verts[LOD])
+		if(!m_MeshList[pMesh->ListIndex]->Verts[LOD])
 			continue;
 
 		GE_RGBA* pColor = NULL;;
@@ -746,7 +722,7 @@ void CStaticMesh::SetAmbientLight(StaticMesh *pMesh)
 			break;
 		}
 
-		for(int iFace=0;iFace<MeshList[pMesh->ListIndex]->NumFaces[LOD];iFace++)
+		for(int iFace=0; iFace<m_MeshList[pMesh->ListIndex]->NumFaces[LOD]; ++iFace)
 		{
 			for(int j=0; j<3; ++j)
 			{
@@ -820,7 +796,7 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 
 	for(int LOD=0; LOD<4; ++LOD)
 	{
-		if(!MeshList[pMesh->ListIndex]->Verts[LOD])
+		if(!m_MeshList[pMesh->ListIndex]->Verts[LOD])
 			continue;
 
 		switch(LOD)
@@ -839,18 +815,18 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 			break;
 		}
 
-		for(int iFace=0;iFace<MeshList[pMesh->ListIndex]->NumFaces[LOD];iFace++)
+		for(int iFace=0; iFace<m_MeshList[pMesh->ListIndex]->NumFaces[LOD]; ++iFace)
 		{
 			geVec3d Vertex[3];
 			int j;
 
 			for(j=0; j<3; ++j)
 			{
-				int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][iFace*3+j];
+				int VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LOD][iFace*3+j];
 
-				Vertex[j].X=MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
-				Vertex[j].Y=MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
-				Vertex[j].Z=MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
+				Vertex[j].X = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
+				Vertex[j].Y = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
+				Vertex[j].Z = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
 
 				geXForm3d_Transform(&thePosition, &Vertex[j], &Vertex[j]);
 			}
@@ -878,9 +854,9 @@ void CStaticMesh::ComputeLighting(StaticMesh *pMesh, void* pLight, int LType)
 
 				if(pMesh->CompLightSmooth) // if we want a smooth actor-like lighting
 				{
-					int NormalIndex = MeshList[pMesh->ListIndex]->VNormalI[LOD][iFace*3+j];
+					int NormalIndex = m_MeshList[pMesh->ListIndex]->VNormalI[LOD][iFace*3+j];
 
-					geXForm3d_Transform(&theRotation, &(MeshList[pMesh->ListIndex]->VNormals[LOD][NormalIndex]), &Normal);
+					geXForm3d_Transform(&theRotation, &(m_MeshList[pMesh->ListIndex]->VNormals[LOD][NormalIndex]), &Normal);
 
 					//geVec3d_Normalize(&Normal);
 				}
@@ -1063,18 +1039,18 @@ geBoolean CStaticMesh::RayTracing(StaticMesh *CallingMesh, int LOD,
 		geXForm3d_Rotate(&theRotationT, &Line, &m_vDir);
 		geVec3d_Scale(&m_vDir, InvScale, &m_vDir);
 		geFloat fL = geVec3d_Normalize(&m_vDir);
-		for(int i=0; i<MeshList[pMesh->ListIndex]->NumFaces[LODIndex]; i++)
+
+		for(int i=0; i<m_MeshList[pMesh->ListIndex]->NumFaces[LODIndex]; ++i)
 		{
 			geVec3d Vertex[3];
-			int VertIndex, j;
 
-			for(j=0; j<3; ++j)
+			for(int j=0; j<3; ++j)
 			{
-				VertIndex = MeshList[pMesh->ListIndex]->FaceI[LODIndex][i*3+j];
+				int VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LODIndex][i*3+j];
 
-				Vertex[j].X=MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].X;
-				Vertex[j].Y=MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Y;
-				Vertex[j].Z=MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Z;
+				Vertex[j].X = m_MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].X;
+				Vertex[j].Y = m_MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Y;
+				Vertex[j].Z = m_MeshList[pMesh->ListIndex]->Verts[LODIndex][VertIndex].Z;
 			}
 
 			//*********************************************************************
@@ -1174,59 +1150,41 @@ void CStaticMesh::CleanUp()
 	{
 		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
-		if(pMesh->ColorLOD0)
-			free(pMesh->ColorLOD0);
-
-		if(pMesh->ColorLOD1)
-			free(pMesh->ColorLOD1);
-
-		if(pMesh->ColorLOD2)
-			free(pMesh->ColorLOD2);
-
-		if(pMesh->ColorLOD3)
-			free(pMesh->ColorLOD3);
+		SAFE_DELETE_A(pMesh->ColorLOD0);
+		SAFE_DELETE_A(pMesh->ColorLOD1);
+		SAFE_DELETE_A(pMesh->ColorLOD2);
+		SAFE_DELETE_A(pMesh->ColorLOD3);
 	}
 
 	for(int i=0; i<m_MeshCount; ++i)
 	{
 		for(int LOD=0; LOD<4; ++LOD)
 		{
-			free(MeshList[i]->Verts[LOD]);
-
-			free(MeshList[i]->FaceI[LOD]);
-
-			if(MeshList[i]->VNormals[LOD])
-				free(MeshList[i]->VNormals[LOD]);
-
-			if(MeshList[i]->VNormalI[LOD])
-				free(MeshList[i]->VNormalI[LOD]);
-			free(MeshList[i]->Color[LOD]);
-
-			free(MeshList[i]->MaterialI[LOD]);
-
-			for(int j=0;j<MeshList[i]->MaterialCount[LOD];j++)
+			SAFE_DELETE_A(m_MeshList[i]->Verts[LOD]);
+			SAFE_DELETE_A(m_MeshList[i]->FaceI[LOD]);
+			SAFE_DELETE_A(m_MeshList[i]->VNormals[LOD]);
+			SAFE_DELETE_A(m_MeshList[i]->VNormalI[LOD]);
+			SAFE_DELETE_A(m_MeshList[i]->Color[LOD]);
+			SAFE_DELETE_A(m_MeshList[i]->MaterialI[LOD]);
+			for(int j=0; j<m_MeshList[i]->MaterialCount[LOD]; ++j)
 			{
-				if(MeshList[i]->Bitmaps[LOD][j])
+				if(m_MeshList[i]->Bitmaps[LOD][j])
 				{
-					geWorld_RemoveBitmap(CCD->World(), MeshList[i]->Bitmaps[LOD][j]);
+					geWorld_RemoveBitmap(CCD->World(), m_MeshList[i]->Bitmaps[LOD][j]);
 				}
 			}
-			free(MeshList[i]->Bitmaps[LOD]);
+
+			SAFE_DELETE_A(m_MeshList[i]->Bitmaps[LOD]);
 		}
 
-		if(MeshList[i]->LODBitmap)
+		if(m_MeshList[i]->LODBitmap)
 		{
-			geWorld_RemoveBitmap(CCD->World(), MeshList[i]->LODBitmap);
-			geBitmap_Destroy(&(MeshList[i]->LODBitmap));
+			geWorld_RemoveBitmap(CCD->World(), m_MeshList[i]->LODBitmap);
+			geBitmap_Destroy(&(m_MeshList[i]->LODBitmap));
 		}
 
-		if(MeshList[i]->szFilename != NULL)
-		{
-			delete MeshList[i]->szFilename;
-		}
-
-		delete MeshList[i];
-		MeshList[i] = NULL;
+		SAFE_DELETE_A(m_MeshList[i]->szFilename);
+		SAFE_DELETE(m_MeshList[i]);
 	}
 
 	m_MeshCount = 0;
@@ -1298,8 +1256,10 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		geXForm3d_RotateZ(&thePosition, pMesh->Rotation.Z);
 		geXForm3d_RotateX(&thePosition, pMesh->Rotation.X);
 		geXForm3d_RotateY(&thePosition, pMesh->Rotation.Y);
+
 		geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
-		geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
+		geXForm3d_Transform(&thePosition, &m_MeshList[pMesh->ListIndex]->OBBox[0].Center, &Center);
+
 		float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
 
 		// which LOD do we have to render?
@@ -1312,22 +1272,25 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		{
 			if(CCD->GetLODdistance(0) != 0 && dist>CCD->GetLODdistance(0))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[1])
+				if(m_MeshList[pMesh->ListIndex]->Verts[1])
 					LOD = 1;
 			}
+
 			if(CCD->GetLODdistance(1) != 0 && dist>CCD->GetLODdistance(1))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[2])
+				if(m_MeshList[pMesh->ListIndex]->Verts[2])
 					LOD = 2;
 			}
+
 			if(CCD->GetLODdistance(2) != 0 && dist>CCD->GetLODdistance(2))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[3])
+				if(m_MeshList[pMesh->ListIndex]->Verts[3])
 					LOD = 3;
 			}
+
 			if(dist<CCD->GetLODdistance(4) || CCD->GetLODdistance(4) == 0)
 			{
-				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && MeshList[pMesh->ListIndex]->LODBitmap)
+				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
 					LOD = 4;
 			}
 			else
@@ -1354,12 +1317,21 @@ void CStaticMesh::Tick(geFloat dwTicks)
 				}
 				Vertex.u = 0.0f;
 				Vertex.v = 0.0f;
-				float HalfHeight = geBitmap_Height(MeshList[pMesh->ListIndex]->LODBitmap) * pMesh->Scale * 0.5f;
+
+				float halfHeight = geBitmap_Height(m_MeshList[pMesh->ListIndex]->LODBitmap) * pMesh->Scale * 0.5f;
+
 				Vertex.X = pMesh->origin.X;
-				Vertex.Y = pMesh->origin.Y+HalfHeight;
+				Vertex.Y = pMesh->origin.Y + halfHeight;
 				Vertex.Z = pMesh->origin.Z;
-				geWorld_AddPolyOnce(CCD->World(), &Vertex, 1, MeshList[pMesh->ListIndex]->LODBitmap, GE_TEXTURED_POINT,
-					GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS, pMesh->Scale);
+
+				geWorld_AddPolyOnce(
+					CCD->World(),
+					&Vertex,
+					1,
+					m_MeshList[pMesh->ListIndex]->LODBitmap,
+					GE_TEXTURED_POINT,
+					GE_RENDER_DEPTH_SORT_BF | GE_RENDER_DO_NOT_OCCLUDE_OTHERS,
+					pMesh->Scale);
 			}
 		}
 	}
@@ -1405,11 +1377,11 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 		// transform the obb
 		for(i=0; i<3; ++i)
-			geXForm3d_Rotate(&theRotation, &(MeshList[Index]->OBBox[LOD].Axis[i]), &Axis[i]);
+			geXForm3d_Rotate(&theRotation, &(m_MeshList[Index]->OBBox[LOD].Axis[i]), &Axis[i]);
 
-		geXForm3d_Transform(&thePosition, &(MeshList[Index]->OBBox[LOD].Center), &Center);
+		geXForm3d_Transform(&thePosition, &(m_MeshList[Index]->OBBox[LOD].Center), &Center);
 
-		geVec3d_Scale(&(MeshList[Index]->OBBox[LOD].ALength), pMesh->Scale, &ALength);
+		geVec3d_Scale(&(m_MeshList[Index]->OBBox[LOD].ALength), pMesh->Scale, &ALength);
 
 		AABBofOBB(&(Box.Min), &(Box.Max), &ALength, &(Axis[0]), &(Axis[1]), &(Axis[2]));
 
@@ -1448,7 +1420,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 		break;
 	}
 
-	for(i=0; i<MeshList[Index]->NumFaces[LOD]; i++)
+	for(i=0; i<m_MeshList[Index]->NumFaces[LOD]; ++i)
 	{
 		GE_LVertex	Vertex[3];
 		geVec3d temp[3];
@@ -1456,10 +1428,10 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 		for(j=0; j<3; ++j)
 		{
-			int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
-			temp[j].X = MeshList[Index]->Verts[LOD][VertIndex].X;
-			temp[j].Y = MeshList[Index]->Verts[LOD][VertIndex].Y;
-			temp[j].Z = MeshList[Index]->Verts[LOD][VertIndex].Z;
+			int VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
+			temp[j].X = m_MeshList[Index]->Verts[LOD][VertIndex].X;
+			temp[j].Y = m_MeshList[Index]->Verts[LOD][VertIndex].Y;
+			temp[j].Z = m_MeshList[Index]->Verts[LOD][VertIndex].Z;
 
 			geXForm3d_Transform(&thePosition, &temp[j], &temp[j]);
 
@@ -1535,7 +1507,7 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 
 		for(j=0; j<3; ++j)
 		{
-			int VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
+			int VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 
 			if(pMesh->UseFillColor)
 			{
@@ -1562,20 +1534,25 @@ void CStaticMesh::AddPoly(StaticMesh *pMesh, int LOD)
 			}
 			else //default color of the actor
 			{
-				Vertex[j].r = MeshList[Index]->Color[LOD][i].r;
-				Vertex[j].g = MeshList[Index]->Color[LOD][i].g;
-				Vertex[j].b = MeshList[Index]->Color[LOD][i].b;
+				Vertex[j].r = m_MeshList[Index]->Color[LOD][i].r;
+				Vertex[j].g = m_MeshList[Index]->Color[LOD][i].g;
+				Vertex[j].b = m_MeshList[Index]->Color[LOD][i].b;
 			}
 
 			Vertex[j].a = pMesh->Alpha;
-			Vertex[j].u = MeshList[Index]->Verts[LOD][VertIndex].u;
-			Vertex[j].v = MeshList[Index]->Verts[LOD][VertIndex].v;
+			Vertex[j].u = m_MeshList[Index]->Verts[LOD][VertIndex].u;
+			Vertex[j].v = m_MeshList[Index]->Verts[LOD][VertIndex].v;
 		}
 
-		if(MeshList[Index]->Bitmaps[LOD][MeshList[Index]->MaterialI[LOD][i]])
+		if(m_MeshList[Index]->Bitmaps[LOD][m_MeshList[Index]->MaterialI[LOD][i]])
 		{
-			geWorld_AddPolyOnce(CCD->World(), Vertex, 3, MeshList[Index]->Bitmaps[LOD][MeshList[Index]->MaterialI[LOD][i]],
-								GE_TEXTURED_POLY, (uint32)pMesh->RenderFlags, 1.f);
+			geWorld_AddPolyOnce(CCD->World(),
+								Vertex,
+								3,
+								m_MeshList[Index]->Bitmaps[LOD][m_MeshList[Index]->MaterialI[LOD][i]],
+								GE_TEXTURED_POLY,
+								static_cast<uint32>(pMesh->RenderFlags),
+								1.f);
 		}
 		else // material without bitmap
 		{
@@ -1806,27 +1783,27 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_RotateX(&thePosition, pMesh->Rotation.X);
 			geXForm3d_RotateY(&thePosition, pMesh->Rotation.Y);
 			geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
-			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
+			geXForm3d_Transform(&thePosition, &(m_MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
 			float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
 
 			if(CCD->GetLODdistance(0) != 0 && dist > CCD->GetLODdistance(0))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[1])
+				if(m_MeshList[pMesh->ListIndex]->Verts[1])
 					LOD = 1;
 			}
 			if(CCD->GetLODdistance(1) != 0 && dist > CCD->GetLODdistance(1))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[2])
+				if(m_MeshList[pMesh->ListIndex]->Verts[2])
 					LOD = 2;
 			}
 			if(CCD->GetLODdistance(2) != 0 && dist > CCD->GetLODdistance(2))
 			{
-				if(MeshList[pMesh->ListIndex]->Verts[3])
+				if(m_MeshList[pMesh->ListIndex]->Verts[3])
 					LOD = 3;
 			}
 			if(dist < CCD->GetLODdistance(4) || CCD->GetLODdistance(4) == 0)
 			{
-				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && MeshList[pMesh->ListIndex]->LODBitmap)
+				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
 					LOD = 4;
 			}
 			else
@@ -1867,11 +1844,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_RotateY(&theRotation, pMesh->Rotation.Y);
 
 			for(i=0; i<3; ++i)
-				geXForm3d_Rotate(&theRotation, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Axis[i]), &Axis[i]);
+				geXForm3d_Rotate(&theRotation, &(m_MeshList[pMesh->ListIndex]->OBBox[LOD].Axis[i]), &Axis[i]);
 
-			geXForm3d_Transform(&thePosition, &(MeshList[pMesh->ListIndex]->OBBox[LOD].Center), &Center);
+			geXForm3d_Transform(&thePosition, &(m_MeshList[pMesh->ListIndex]->OBBox[LOD].Center), &Center);
 
-			geVec3d_Scale(&(MeshList[pMesh->ListIndex]->OBBox[LOD].ALength), pMesh->Scale, &ALength);
+			geVec3d_Scale(&(m_MeshList[pMesh->ListIndex]->OBBox[LOD].ALength), pMesh->Scale, &ALength);
 			AABBofOBB(&(Box.Min), &(Box.Max), &ALength, &(Axis[0]), &(Axis[1]), &(Axis[2]));
 
 			geVec3d_Add(&Center, &(Box.Max), &(Box.Max));
@@ -1982,7 +1959,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 				geXForm3d_Transform(&thePositionT, &OBBcenter, &center);
 
 				// test each triangle
-				for(i=0; i<MeshList[pMesh->ListIndex]->NumFaces[LOD]; i++)
+				for(i=0; i<m_MeshList[pMesh->ListIndex]->NumFaces[LOD]; ++i)
 				{
 					geVec3d Vertex[3];
 					int VertIndex, j;
@@ -1990,11 +1967,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 					// get the vertices of the actual triangle
 					for(j=0; j<3; ++j)
 					{
-						VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
+						VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 
-						Vertex[j].X = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
-						Vertex[j].Y = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
-						Vertex[j].Z = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
+						Vertex[j].X = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
+						Vertex[j].Y = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
+						Vertex[j].Z = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
 					}
 
 					//************************************************************************
@@ -2139,18 +2116,18 @@ NO_COLLISION:;
 			{
 				geFloat fL = geVec3d_Normalize(&m_vDir);
 
-				for(int i=0; i<MeshList[pMesh->ListIndex]->NumFaces[LOD]; i++)
+				for(int i=0; i<m_MeshList[pMesh->ListIndex]->NumFaces[LOD]; ++i)
 				{
 					geVec3d Vertex[3];
 					int VertIndex, j;
 
 					for(j=0; j<3; ++j)
 					{
-						VertIndex = MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
+						VertIndex = m_MeshList[pMesh->ListIndex]->FaceI[LOD][i*3+j];
 
-						Vertex[j].X = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
-						Vertex[j].Y = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
-						Vertex[j].Z = MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
+						Vertex[j].X = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].X;
+						Vertex[j].Y = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Y;
+						Vertex[j].Z = m_MeshList[pMesh->ListIndex]->Verts[LOD][VertIndex].Z;
 					}
 
 					//*********************************************************************

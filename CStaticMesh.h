@@ -92,7 +92,7 @@ private:
 
 private:
 	int m_MeshCount;
-	LoadedMeshList *MeshList[MESH_LIST_SIZE];
+	LoadedMeshList *m_MeshList[MESH_LIST_SIZE];
 };
 
 #endif
