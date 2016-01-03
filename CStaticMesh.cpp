@@ -1259,7 +1259,7 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		geXForm3d_Translate(&thePosition, pMesh->origin.X, pMesh->origin.Y, pMesh->origin.Z);
 		geXForm3d_Transform(&thePosition, &m_MeshList[pMesh->ListIndex]->OBBox[0].Center, &Center);
 
-		float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
+		float dist = geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom();
 
 		// which LOD do we have to render?
 		if(CCD->GetLODdistance(0) == 0 && CCD->GetLODdistance(1) == 0 && CCD->GetLODdistance(2) == 0
