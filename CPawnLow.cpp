@@ -3054,7 +3054,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 
 			geVec3d Pos, ScreenPos;
 
-			if(arguments[0].str() != "")
+			if(arguments.entries() > 0 && arguments[0].str() != "")
 			{
 				strcpy(param0, arguments[0].str());
 				if(!stricmp(param0, "Player"))
@@ -3082,7 +3082,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 			geVec3d Pos, ScreenPos;
 			strcpy(param0, arguments[0].str());
 
-			if(arguments[0].str() != "")
+			if(arguments.entries() > 0 && arguments[0].str() != "")
 			{
 				if(!stricmp(param0, "Player"))
 					Pos = CCD->Player()->Position();
