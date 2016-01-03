@@ -1350,38 +1350,44 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 	case RGF_SM_SIN:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)sin((double)arguments[0].floatValue());
+			returnValue = sin(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_COS:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)cos((double)arguments[0].floatValue());
+			returnValue = cos(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_TAN:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)tan((double)arguments[0].floatValue());
+			returnValue = tan(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_ASIN:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)asin((double)arguments[0].floatValue());
+			returnValue = asin(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_ACOS:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)acos((double)arguments[0].floatValue());
+			returnValue = acos(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_ATAN:
 		{
+			// deprecated
 			PARMCHECK(1);
-			returnValue = (float)atan((double)arguments[0].floatValue());
+			returnValue = atan(arguments[0].floatValue());
 			return true;
 		}
 	case RGF_SM_GETFLAG:
