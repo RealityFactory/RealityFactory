@@ -1319,7 +1319,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 	case RGF_SM_SETATTRIBUTEVALUELIMITS:
 		{
-			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue),
+			// USAGE:	SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue)
 			//			SetAttributeValueLimits(char* Attribute, int LowValue, int HighValue, char* EntityName)
 
 			PARMCHECK(3);
@@ -1420,7 +1420,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 	default:
 		{
-			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt); // change simkin
+			return skScriptedExecutable::method(methodName, arguments, returnValue, ctxt);
 		}
 	}
 }
