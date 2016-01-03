@@ -10,6 +10,8 @@
 //	* Local defines, constants
 #include "vorbis\\vorbisfile.h"
 
+const int kBufferSize = 48000*4;
+
 /**
  * @brief OggAudio class
  */
@@ -26,7 +28,10 @@ public:
 	int Delete();						///< Delete stream
 	int Rewind();						///< Rewind stream to beginning
 	bool IsPlaying();					///< Is stream playing?
-	int SetVolume(int nVolume);			///< Set volume on audio
+	int SetVolume(long volume);			///< Set volume on audio
+	int SetPan(long pan);
+	int SetFrequency(unsigned long frequency);
+	long GetBaseFrequency() const { return m_BaseFrequency; }
 
 private:
 	// Private member functions
@@ -49,16 +54,19 @@ private:
 private:
 	// Private member variables
 	LPDIRECTSOUND m_pDS;				///< DirectSound bject
-	OggVorbis_File ovf;					///< Handle to Ogg file
-	FILE *vf;							///< the file
-	bool Pumping;
+	OggVorbis_File m_ovf;				///< Handle to Ogg file
+	bool m_Pumping;
 	int m_nDataPosition;				///< Start of Ogg data in file
 	bool m_fActive;						///< Playback active flag
 	LPDIRECTSOUNDBUFFER m_pStream;		///< Sound buffers
 	int m_nTimerID;						///< Timer ID, this instance
 	bool m_fEOF;						///< At end of Ogg file
-	int OggPcmPos;
+	DWORD m_OggPcmPos;
+	DWORD m_EndPos;
+	DWORD m_PlayPos;
 	bool m_bLoops;						///< Loop this Ogg or not?
+	HANDLE m_EndEvent;
+	DWORD m_BaseFrequency;
 };
 
 #endif
