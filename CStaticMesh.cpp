@@ -2040,7 +2040,7 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 							Min0 = V.X*Vertex[0].X+V.Y*Vertex[0].Y+V.Z*Vertex[0].Z;
 							Max0 = Min0;
 
-							geFloat DP = V.X*Vertex[1].X+V.Y*Vertex[1].Y+V.Z*Vertex[1].Z;;
+							geFloat DP = V.X*Vertex[1].X+V.Y*Vertex[1].Y+V.Z*Vertex[1].Z;
 							if(DP < Min0)
 								Min0 = DP;
 							else if(DP > Max0)
