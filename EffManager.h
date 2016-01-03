@@ -166,6 +166,7 @@ typedef struct
 #define BOLT_END		2 //( 1 << 1 )
 #define BOLT_COLOR		4 //( 1 << 2 )
 #define BOLT_ENDOFFSET	8 //( 1 << 3 )
+#define LIGHTNINGSTROKEDURATION	0.05f
 
 /**
  * @brief Electric bolt

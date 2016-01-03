@@ -16,8 +16,6 @@
 #define	ELECTRIC_BOLT_GREENDOMINANT	1
 #define	ELECTRIC_BOLT_BLUEDOMINANT	2
 
-#define	LIGHTNINGSTROKEDURATION	0.05f
-
 typedef struct	Electric_BoltEffect
 {
 	int			beInitialized;
