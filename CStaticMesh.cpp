@@ -1212,8 +1212,6 @@ void CStaticMesh::Tick(geFloat dwTicks)
 	{
 		StaticMesh *pMesh = static_cast<StaticMesh*>(geEntity_GetUserData(pEntity));
 
-		int LOD = 0;
-
 		pMesh->origin = pMesh->OriginOffset;
 		SetOriginOffset(pMesh->EntityName, pMesh->BoneName, pMesh->Model, &pMesh->origin);
 
@@ -1271,6 +1269,8 @@ void CStaticMesh::Tick(geFloat dwTicks)
 		}
 		else
 		{
+			int LOD = 0;
+
 			if(CCD->GetLODdistance(0) != 0 && dist>CCD->GetLODdistance(0))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[1])
