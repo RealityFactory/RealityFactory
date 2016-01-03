@@ -1440,7 +1440,7 @@ int CPlayer::MoveToStart()
 	}
 
 	// Fill the position history with the new location
-	for(int nCtr=0; nCtr<50; nCtr++)
+	for(int nCtr=0; nCtr<50; ++nCtr)
 		m_PositionHistory[nCtr] = m_Translation;
 
 	return RGF_SUCCESS;
@@ -2111,7 +2111,6 @@ void CPlayer::StartJump()
 		return;					// Sorry, no jumping allowed
 
 	m_JumpActive = true;
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -2195,9 +2194,6 @@ geVec3d CPlayer::Position()
 /* ------------------------------------------------------------------------------------ */
 void CPlayer::SwitchCamera(int mode)
 {
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
 	if(LockView)
 		return;
 
@@ -2209,10 +2205,11 @@ void CPlayer::SwitchCamera(int mode)
 			return;
 	}
 
+	geEntity_EntitySet *pSet;
+	geEntity *pEntity;
 	pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
 	pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
 
-	int nFlags = 0;
 	PlayerSetup *pSetup = static_cast<PlayerSetup*>(geEntity_GetUserData(pEntity));
 
 	// Mode
@@ -2224,6 +2221,7 @@ void CPlayer::SwitchCamera(int mode)
 	theAlignRotation.Z = 0.0f;
 	geVec3d theTranslation = {0.0f, 0.0f, 0.0f};
 
+	int nFlags = 0;
 	switch(mode)
 	{
 	default:
@@ -2473,7 +2471,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Sound.Min = CCD->GetAudibleRadius();
 				Sound.Loop = GE_FALSE;
 				Sound.SoundDef = DieSound[rand()%DieSoundAmt];
-				CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+				CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 			}
 
 			Dying = true;
@@ -2504,7 +2502,7 @@ void CPlayer::Tick(geFloat dwTicks)
 				Sound.Min = CCD->GetAudibleRadius();
 				Sound.Loop = GE_FALSE;
 				Sound.SoundDef = InjurySound[rand()%InjurySoundAmt];
-				CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+				CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
 			}
 
 			if(m_PlayerViewPoint != FIRSTPERSON && !FallInjure)
@@ -2652,7 +2650,9 @@ void CPlayer::Tick(geFloat dwTicks)
 	if(theInv->Has("oxygen") && restoreoxy)
 	{
 		if(OldZone < 2)
+		{
 			theInv->Modify("oxygen", theInv->High("oxygen"));
+		}
 	}
 	restoreoxy = true;
 
@@ -2823,7 +2823,7 @@ void CPlayer::Tick(geFloat dwTicks)
 		geXForm3d_GetEulerAngles(&thePosition, &(Gl.Direction));
 		// move the light up/down when looking up/down
 		Gl.Direction.Z += LiteOffset.Z;
-		geVec3d_Scale(&(Gl.Direction), 57.3f, &(Gl.Direction));
+		geVec3d_Scale(&(Gl.Direction), GE_180OVERPI, &(Gl.Direction));
 
 		if(!DecayLite)
 		{
@@ -2908,12 +2908,16 @@ void CPlayer::Tick(geFloat dwTicks)
 						CCD->Weapons()->SetAttackFlag(false);
 					}
 					else
+					{
 						CCD->ActorManager()->SetMotion(Actor, ANIMJUMP);
+					}
 
 					break;
 				}
 				else
+				{
 					m_JumpActive = false;
+				}
 			}
 
 			if(STARTLAND || CSTARTLAND)
@@ -4630,12 +4634,12 @@ int CPlayer::SaveTo(FILE *SaveFD)
 	if(m_Attr)
 	{
 		bAttributes = true;
-		fwrite(&bAttributes, sizeof(bool), 1, SaveFD);
+		fwrite(&bAttributes,	sizeof(bool),		1,	SaveFD);
 		m_Attr->SaveTo(SaveFD, false);
 	}
 	else
 	{
-		fwrite(&bAttributes, sizeof(bool), 1, SaveFD);
+		fwrite(&bAttributes,	sizeof(bool),		1,	SaveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -4700,7 +4704,7 @@ int CPlayer::RestoreFrom(FILE *RestoreFD)
 	}
 
 	bool bAttributes;
-	fread(&bAttributes, sizeof(bool), 1, RestoreFD);
+	fread(&bAttributes,			sizeof(bool),		1,	RestoreFD);
 
 	if(bAttributes)
 	{
@@ -4957,7 +4961,6 @@ bool CPlayer::DoMovements()
 	bool bPlayerMoved = false;
 	m_CoeffSpeed = 1.0f;		//Coef de course
 	int theZone, OldZone;
-	geFloat fTemp;
 
 	CCD->ActorManager()->GetActorZone(Actor, &theZone);
 	CCD->ActorManager()->GetActorOldZone(Actor, &OldZone);
@@ -4991,11 +4994,13 @@ bool CPlayer::DoMovements()
 	}
 
 	// Want a jump ?
-	if (m_Jumping)
+	if(m_Jumping)
 		StartJump();
 
 	if(GetMoving() != MOVEIDLE)
 	{
+		geFloat fTemp;
+
 		switch(GetMoving())
 		{
 		case MOVEWALKFORWARD:
