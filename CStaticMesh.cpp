@@ -140,17 +140,14 @@ CStaticMesh::CStaticMesh() :
 
 	// compute static lighting for the static meshes
 
-	geEntity_EntitySet *pSetLight, *pSetSpotlight, *pSetSunLight;
-	geEntity *pEntityLight, *pEntitySpotlight, *pEntitySunLight;
-
 	// find sunlight entity for lighting computation
-	pSetSunLight = geWorld_GetEntitySet(CCD->World(), "SunLight");
+	geEntity_EntitySet *pSetSunLight = geWorld_GetEntitySet(CCD->World(), "SunLight");
 
 	// lighting from static omni-light
-	pSetLight = geWorld_GetEntitySet(CCD->World(), "light");
+	geEntity_EntitySet *pSetLight = geWorld_GetEntitySet(CCD->World(), "light");
 
 	// lighting from static spotlights
-	pSetSpotlight= geWorld_GetEntitySet(CCD->World(), "spotlight");
+	geEntity_EntitySet *pSetSpotlight= geWorld_GetEntitySet(CCD->World(), "spotlight");
 
 	// if there's no light at all return -
 	// no ambientlight is used if there's no light -> use fillcolor instead
@@ -233,7 +230,7 @@ CStaticMesh::CStaticMesh() :
 
 		if(bSunLight)
 		{
-			pEntitySunLight = geEntity_EntitySetGetNextEntity(pSetSunLight, NULL);
+			geEntity *pEntitySunLight = geEntity_EntitySetGetNextEntity(pSetSunLight, NULL);
 			SunLight *pSun = (SunLight*)geEntity_GetUserData(pEntitySunLight);
 			ComputeLighting(pMesh, (void*)pSun, LIGHT_SUNLIGHT);
 
@@ -242,6 +239,7 @@ CStaticMesh::CStaticMesh() :
 
 		if(bLight)
 		{
+			geEntity *pEntityLight;
 			for(pEntityLight=geEntity_EntitySetGetNextEntity(pSetLight, NULL); pEntityLight;
 				pEntityLight=geEntity_EntitySetGetNextEntity(pSetLight, pEntityLight))
 			{
@@ -254,6 +252,7 @@ CStaticMesh::CStaticMesh() :
 
 		if(bSpotlight)
 		{
+			geEntity *pEntitySpotlight;
 			for(pEntitySpotlight=geEntity_EntitySetGetNextEntity(pSetSpotlight, NULL);pEntitySpotlight;
 				pEntitySpotlight=geEntity_EntitySetGetNextEntity(pSetSpotlight, pEntitySpotlight))
 			{
