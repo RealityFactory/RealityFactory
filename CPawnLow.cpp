@@ -1956,7 +1956,7 @@ bool ScriptedObject::lowmethod(const skString &methodName, skRValueArray &argume
 		strcpy(param0, arguments[0].str());
 
 		//Open File
-		CCD->OpenRFFile(&file, kBitmapFile, param0, GE_VFILE_OPEN_READONLY);
+		CFileManager::GetSingletonPtr()->OpenRFFile(&file, kBitmapFile, param0, GE_VFILE_OPEN_READONLY);
 		returnValue = false;
 		if(file)
 		{
