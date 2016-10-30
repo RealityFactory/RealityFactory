@@ -16,12 +16,15 @@
 
 #include "CInventory.h"
 
+#include "CLevel.h"
 #include "C3DAudioSource.h"
 #include "CAutoDoors.h"
 #include "CFixedCamera.h"
 #include "CMovingPlatforms.h"
 #include "CTriggers.h"
 #include "CWallDecal.h"
+#include "CPawnManager.h"
+
 #include "Simkin\\skScriptedExecutable.h"
 #include "Simkin\\skRValue.h"
 #include "Simkin\\skRValueArray.h"
@@ -83,40 +86,46 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	if(IS_METHOD(methodName, "SetPlatformTargetTime"))
 	{
 		PARMCHECK(2);
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
 		MovingPlatform *pEntity;
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->SetTargetTime(pEntity->Model, float1);
+
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetTargetTime(pEntity->Model, arguments[1].floatValue());
+
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetPlatformTargetTime"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		MovingPlatform *pEntity;
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
+		float1 = 0.0f;
+
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
+
 		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetPlatformCurrentTime"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		MovingPlatform *pEntity;
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
+		float1 = 0.0f;
+
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
+
 		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "PlatformCollision"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		MovingPlatform *pEntity;
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
+		bool1 = false;
+
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
+
 		returnValue = bool1;
 		return true;
 	}
@@ -124,70 +133,71 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	if(IS_METHOD(methodName, "SetDoorTargetTime"))
 	{
 		PARMCHECK(2);
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
 		Door *pEntity;
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->SetTargetTime(pEntity->Model, float1);
+
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetTargetTime(pEntity->Model, arguments[1].floatValue());
+
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetDoorTargetTime"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		Door *pEntity;
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
+		float1 = 0.0f;
+
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->GetTargetTime(pEntity->Model, &float1);
+
 		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetDoorCurrentTime"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		Door *pEntity;
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
+		float1 = 0.0f;
+
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->GetModelCurrentTime(pEntity->Model, &float1);
+
 		returnValue = float1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "DoorCollision"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
 		Door *pEntity;
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
+		bool1 = false;
+
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->ModelInCollision(pEntity->Model, &bool1);
+
 		returnValue = bool1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "ShowWallDecal"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		CCD->WallDecals()->SetProgrammedTrigger(string1, GE_TRUE);
+		CCD->Level()->WallDecals()->SetProgrammedTrigger(arguments[0].str().c_str(), GE_TRUE);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "HideWallDecal"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		CCD->WallDecals()->SetProgrammedTrigger(string1, GE_FALSE);
+		CCD->Level()->WallDecals()->SetProgrammedTrigger(arguments[0].str().c_str(), GE_FALSE);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetWallDecalBitmap"))
 	{
 		PARMCHECK(2);
-		strcpy(string1, arguments[0].str());
-		int bmnum = arguments[1].intValue();
-		CCD->WallDecals()->SetCurrentBitmap(string1, bmnum);
+		CCD->Level()->WallDecals()->SetCurrentBitmap(arguments[0].str().c_str(), arguments[1].intValue());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "ActivateTrigger"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		CCD->Triggers()->HandleTriggerEvent(string1);
+		CCD->Level()->Triggers()->HandleTriggerEvent(arguments[0].str().c_str());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "GetEventState"))
@@ -199,49 +209,46 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	else if(IS_METHOD(methodName, "SetEventState"))
 	{
 		PARMCHECK(2);
-		strcpy(string1, arguments[0].str());
-		bool flag = arguments[1].boolValue();
-		CCD->Pawns()->AddEvent(string1, flag);
+		CCD->Level()->Pawns()->AddEvent(arguments[0].str().c_str(), arguments[1].boolValue());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Start3DAudioSource"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		CCD->Audio3D()->SetProgrammedTrigger(string1, GE_TRUE);
+		CCD->Level()->Audio3D()->SetProgrammedTrigger(arguments[0].str().c_str(), GE_TRUE);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Stop3DAudioSource"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		CCD->Audio3D()->SetProgrammedTrigger(string1, GE_FALSE);
+		CCD->Level()->Audio3D()->SetProgrammedTrigger(arguments[0].str().c_str(), GE_FALSE);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "Get3DAudioSourceState"))
 	{
 		PARMCHECK(1);
-		strcpy(string1, arguments[0].str());
-		bool state = CCD->Audio3D()->IsPlaying(string1);
-		returnValue = (bool)state;
+		bool1 = (CCD->Level()->Audio3D()->IsPlaying(arguments[0].str().c_str()) == GE_TRUE);
+		returnValue = bool1;
 		return true;
 	}
 	else if(IS_METHOD(methodName, "PlaySound"))
 	{
-		PARMCHECK(1);
+		PARMCHECK(4);
 		strcpy(string1, arguments[0].str());
 
 		if(!EffectC_IsStringNull(string1))
 		{
-			geVec3d Position = CCD->Player()->Position();
 			Snd Sound;
 
 			memset(&Sound, 0, sizeof(Sound));
-			geVec3d_Copy(&Position, &(Sound.Pos));
-			Sound.Min = CCD->GetAudibleRadius();
+			Sound.Pos.X = arguments[1].floatValue();
+			Sound.Pos.Y = arguments[2].floatValue();
+			Sound.Pos.Z = arguments[3].floatValue();
 
-			if(arguments.entries() == 2)
-				Sound.Min = arguments[1].floatValue();
+			Sound.Min = CCD->Level()->GetAudibleRadius();
+
+			if(arguments.entries() == 5)
+				Sound.Min = arguments[4].floatValue();
 
 			Sound.Loop = GE_FALSE;
 			Sound.SoundDef = SPool_Sound(string1);
@@ -252,7 +259,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		return true;
 	}
-	// ShowText(Nr, EntityName, Animation, TextString, FontNr, TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha);
+	// TODO
+	// ShowText(Nr, EntityName, Animation, TextString, FontName, TextSound, ScreenOffsetX, ScreenOffsetY, Align, Alpha);
 	// Shows a TextMessage on the screen, attached to a Pawn or Player
 	// Align can be Right, Left or Centre. If left open, Right is used.
 	// The text can include a # to print it in multiple lines
@@ -263,29 +271,30 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		if(Nr < 0 || Nr >= MAXTEXT)
 			return true;
 
-		if(arguments.entries() > 1)
+		if(arguments.entries() > 9)
 		{
-			strcpy(CCD->Pawns()->TextMessage[Nr].EntityName, arguments[1].str());
-			strcpy(CCD->Pawns()->TextMessage[Nr].AnimName, arguments[2].str());
-			//strcpy(CCD->Pawns()->TextMessage[Nr].TextString, arguments[3].str());
-			CCD->Pawns()->TextMessage[Nr].TextString = arguments[3].str();
-			Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+			CCD->Level()->Pawns()->TextMessage[Nr].EntityName	= arguments[1].str().c_str();
+			CCD->Level()->Pawns()->TextMessage[Nr].AnimName		= arguments[2].str().c_str();
+			CCD->Level()->Pawns()->TextMessage[Nr].TextString	= arguments[3].str().c_str();
+			Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+			Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<CR>", "\n");
 
-			CCD->Pawns()->TextMessage[Nr].FontNr = arguments[4].intValue();
-			strcpy(CCD->Pawns()->TextMessage[Nr].TextSound, arguments[5].str());
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[6].intValue();
-			CCD->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[7].intValue();
-			strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
-			CCD->Pawns()->TextMessage[Nr].Alpha = arguments[9].floatValue();
-			CCD->Pawns()->TextMessage[Nr].ShowText = true;
+			CCD->Level()->Pawns()->TextMessage[Nr].FontName		= arguments[4].str().c_str();
+			CCD->Level()->Pawns()->TextMessage[Nr].TextSound	= arguments[5].str().c_str();
+			CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetX = arguments[6].intValue();
+			CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetY = arguments[7].intValue();
+			strncpy(&(CCD->Level()->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
+			CCD->Level()->Pawns()->TextMessage[Nr].Alpha		= arguments[9].floatValue();
+			CCD->Level()->Pawns()->TextMessage[Nr].ShowText		= true;
 		}
 		else
 		{
-			CCD->Pawns()->TextMessage[Nr].ShowText = false;
+			CCD->Level()->Pawns()->TextMessage[Nr].ShowText = false;
 		}
 
 		return true;
 	}
+	// TODO
 	else if(IS_METHOD(methodName, "RemoveText"))
 	{
 		int Nr = arguments[0].intValue();
@@ -293,7 +302,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		if(Nr < 0 || Nr >= MAXTEXT)
 			return true;
 
-		CCD->Pawns()->TextMessage[Nr].ShowText = false;
+		CCD->Level()->Pawns()->TextMessage[Nr].ShowText = false;
 
 		return true;
 	}
@@ -303,11 +312,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		PARMCHECK(2);
 		MovingPlatform *pEntity;
 
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
-
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->SetAnimationSpeed(pEntity->Model, float1);
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetAnimationSpeed(pEntity->Model, arguments[1].floatValue());
 
 		return true;
 	}
@@ -318,11 +324,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		PARMCHECK(2);
 		Door *pEntity;
 
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
-
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-		CCD->ModelManager()->SetAnimationSpeed(pEntity->Model, float1);
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetAnimationSpeed(pEntity->Model, arguments[1].floatValue());
 
 		return true;
 	}
@@ -334,11 +337,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		PARMCHECK(2);
 		MovingPlatform *pEntity;
 
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
-
-		CCD->Platforms()->LocateEntity(string1, (void**)&pEntity);
-        CCD->ModelManager()->SetToTargetTime(pEntity->Model, float1);
+		if(CCD->Level()->Platforms()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetToTargetTime(pEntity->Model, arguments[1].floatValue());
 
 		return true;
 	}
@@ -350,11 +350,8 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		PARMCHECK(2);
 		Door *pEntity;
 
-		strcpy(string1, arguments[0].str());
-		float1 = arguments[1].floatValue();
-
-		CCD->Doors()->LocateEntity(string1, (void**)&pEntity);
-        CCD->ModelManager()->SetToTargetTime(pEntity->Model, float1);
+		if(CCD->Level()->Doors()->LocateEntity(arguments[0].str().c_str(), reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
+			CCD->ModelManager()->SetToTargetTime(pEntity->Model, arguments[1].floatValue());
 
 		return true;
 	}
@@ -367,8 +364,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		if(int1 >= MAXFLAGS)
 			return true;
 
-		bool1 = arguments[1].boolValue();
-		CCD->Pawns()->SetPawnFlag(int1, bool1);
+		CCD->Level()->Pawns()->SetPawnFlag(int1, arguments[1].boolValue());
 
 		return true;
 	}
@@ -384,7 +380,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 			return true;
 		}
 
-		returnValue = CCD->Pawns()->GetPawnFlag(int1);
+		returnValue = CCD->Level()->Pawns()->GetPawnFlag(int1);
 
 		return true;
 	}
@@ -399,7 +395,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		strcpy(string1, arguments[0].str());
 
-		if(CCD->Platforms()->LocateEntity(string1, (void**)&pEntity) == RGF_SUCCESS)
+		if(CCD->Level()->Platforms()->LocateEntity(string1, reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
 		{
 			CCD->ModelManager()->GetPosition(pEntity->Model, &PlatformPos);
 			strcpy(string1, arguments[1].str());
@@ -435,7 +431,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 		strcpy(string1, arguments[0].str());
 
-		if(CCD->Doors()->LocateEntity(string1, (void**)&pEntity) == RGF_SUCCESS)
+		if(CCD->Level()->Doors()->LocateEntity(string1, reinterpret_cast<void**>(&pEntity)) == RGF_SUCCESS)
 		{
 			CCD->ModelManager()->GetPosition(pEntity->Model, &DoorPos);
 			strcpy(string1, arguments[1].str());
@@ -590,16 +586,23 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			if(!stricmp(string1, "Player"))
 			{
+				// deprecated
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
+				sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+				return true;
 			}
 			else
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
-		else
+		else // Player by default
 		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
+			sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+			return true;
 		}
 
 		returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
@@ -618,6 +621,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			if(!stricmp(string1, "Player"))
 			{
+				// deprecated
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
@@ -646,16 +650,23 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			if(!stricmp(string1, "Player"))
 			{
+				// deprecated
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
+				sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+				return true;
 			}
 			else
 			{
 				theInv = CCD->ActorManager()->Inventory(CCD->ActorManager()->GetByEntityName(string1));
 			}
 		}
-		else
+		else // Player by default
 		{
 			theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
+			sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+			return true;
 		}
 
 		returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
@@ -688,6 +699,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 				theInv->SetValueLimits(string1, low, high);
 
+				sxInventory::GetSingletonPtr()->UpdateItem(string1);
 				return true;
 			}
 			else
@@ -705,6 +717,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			theInv->SetValueLimits(string1, low, high);
 
+			sxInventory::GetSingletonPtr()->UpdateItem(string1);
 			return true;
 		}
 
@@ -732,6 +745,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 
 			if(!stricmp(string1, "Player"))
 			{
+				// deprecated
 				theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 			}
 			else
@@ -750,6 +764,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "sin"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = sin(arguments[0].floatValue());
 
@@ -757,6 +772,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "cos"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = cos(arguments[0].floatValue());
 
@@ -764,6 +780,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "tan"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = tan(arguments[0].floatValue());
 
@@ -771,6 +788,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "asin"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = asin(arguments[0].floatValue());
 
@@ -778,6 +796,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "acos"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = acos(arguments[0].floatValue());
 
@@ -785,6 +804,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "atan"))
 	{
+		// deprecated
 		PARMCHECK(1);
 		returnValue = atan(arguments[0].floatValue());
 
@@ -792,26 +812,26 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 	}
 	else if(IS_METHOD(methodName, "SetPlayerWeapon"))
 	{
+		// deprecated: use Player.SetWeapon instead
 		PARMCHECK(1);
 		CCD->Weapons()->SetWeapon(arguments[0].intValue());
 		return true;
 	}
 	else if(IS_METHOD(methodName, "SetUseItem"))
 	{
+		// deprecated: use Player.SetUseItem instead
 		PARMCHECK(1);
 		strcpy(string1, arguments[0].str());
-		CCD->Player()->SetUseAttribute(string1);
-		CCD->HUD()->ActivateElement(string1, true);
+		if(CCD->Player()->SetUseAttribute(string1))
+			CCD->HUD()->ActivateElement(string1, true);
 		return true;
 	}
 	else if(IS_METHOD(methodName, "IsKeyDown"))
 	{
+		// deprecated: use Input.isKeyDown instead
 		PARMCHECK(1);
-		int temp = arguments[0].intValue();
-		returnValue = false;
 
-		if(CCD->Input()->GetKeyCheck(temp) == true)
-			returnValue = true;
+		returnValue = CCD->Input()->IsKeyDown(static_cast<OIS::KeyCode>(arguments[0].intValue()));
 
 		return true;
 	}
@@ -824,7 +844,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Pos.X = arguments[0].floatValue();
 		Pos.Y = arguments[1].floatValue();
 		Pos.Z = arguments[2].floatValue();
-		CCD->FixedCameras()->SetPosition(Pos);
+		CCD->Level()->FixedCameras()->SetPosition(Pos);
 
 		return true;
 	}
@@ -837,7 +857,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Rot.X = GE_PIOVER180*arguments[0].floatValue();
 		Rot.Y = GE_PIOVER180*arguments[1].floatValue();
 		Rot.Z = GE_PIOVER180*arguments[2].floatValue();
-		CCD->FixedCameras()->SetRotation(Rot);
+		CCD->Level()->FixedCameras()->SetRotation(Rot);
 
 		return true;
 	}
@@ -846,7 +866,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		// USAGE: SetFixedCameraFOV(float FOV)
 		PARMCHECK(1);
 
-		CCD->FixedCameras()->SetFOV(arguments[0].floatValue());
+		CCD->Level()->FixedCameras()->SetFOV(arguments[0].floatValue());
 
 		return true;
 	}
@@ -859,7 +879,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Pos.X = arguments[0].floatValue();
 		Pos.Y = arguments[1].floatValue();
 		Pos.Z = arguments[2].floatValue();
-		CCD->FixedCameras()->Move(Pos);
+		CCD->Level()->FixedCameras()->Move(Pos);
 
 		return true;
 	}
@@ -872,7 +892,7 @@ bool ControllerObject::method(const skString& methodName, skRValueArray& argumen
 		Rot.X = GE_PIOVER180*arguments[0].floatValue();
 		Rot.Y = GE_PIOVER180*arguments[1].floatValue();
 		Rot.Z = GE_PIOVER180*arguments[2].floatValue();
-		CCD->FixedCameras()->Rotate(Rot);
+		CCD->Level()->FixedCameras()->Rotate(Rot);
 
 		return true;
 	}
@@ -910,6 +930,7 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 	}
 	else if(fieldName == "key_pressed")
 	{
+		// deprecated: use Input.KeyDown() instead
 		value = CCD->Input()->GetKeyboardInputNoWait();
 		return true;
 	}
@@ -934,6 +955,7 @@ bool ControllerObject::getValue(const skString& fieldName, const skString& attri
 		value = Pos.Z;
 		return true;
 	}
+	// deprecated input methods
 	// Check if left mouse button is pressed
 	else if(fieldName == "lbutton_pressed")
 	{
@@ -1037,11 +1059,12 @@ CLevelController::CLevelController() : m_ConsoleBlock(0)
 		}
 
 		// Ok, put this entity into the Global Entity Registry
-		CCD->EntityRegistry()->AddEntity(pLC->szEntityName, "LevelController");
+		CCD->Level()->EntityRegistry()->AddEntity(pLC->szEntityName, "LevelController");
 
 		// Load the script
 		if(!EffectC_IsStringNull(pLC->ScriptName))
 		{
+			// TODO get directory from filemanager
 			char script[128] = "scripts\\";
 			strcat(script, pLC->ScriptName);
 

@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CWindGenerator.h"
 
 geFloat geVec3d_GetMaxElement(const geVec3d *V)
@@ -39,9 +40,9 @@ CWindGenerator::CWindGenerator() :
 	m_PauseTimer(0.0f),
 	m_Tolerance(0.1f)
 {
-	m_MaxWindSpeed	= CCD->Player()->GetWind();
-	m_MinWindSpeed	= CCD->Player()->GetWind();
-	m_DestWindSpeed	= CCD->Player()->GetWind();
+	m_MaxWindSpeed  = CCD->Level()->GetWind();
+	m_MinWindSpeed  = CCD->Level()->GetWind();
+	m_DestWindSpeed = CCD->Level()->GetWind();
 	geVec3d_Clear(&m_AnchorValue);
 	geVec3d_Clear(&m_ChangeSpeed);
 
@@ -93,24 +94,25 @@ void CWindGenerator::Tick(geFloat dwTicks)
 
 	if(m_CurrentTime > m_ThinkTime)
 	{
-		geVec3d Wind = CCD->Player()->GetWind();
+		geVec3d Wind = CCD->Level()->GetWind();
 
 		switch(m_CurrentState)
 		{
 		case 0: // start
 			//increment the current WindSpeed value
-			CCD->Player()->ModifyWind(&m_ChangeSpeed);
+			CCD->Level()->ModifyWind(&m_ChangeSpeed);
+			Wind = CCD->Level()->GetWind();
 
 			//Now lets look if have (almost) reached the destination wind speed
-			if(geVec3d_Compare(&(CCD->Player()->GetWind()), &m_DestWindSpeed, m_Tolerance))
+			if(geVec3d_Compare(&Wind, &m_DestWindSpeed, m_Tolerance))
 			{
 				//Set a pause time and set the state to 1 (=pause)
 				m_PauseTime = EffectC_Frand(m_MinPauseTime, m_MaxPauseTime);
 
 				//Set a new destination wind speed, add the initial wind speed to it.
-				m_DestWindSpeed.X = EffectC_Frand(m_MinWindSpeed.X, m_MaxWindSpeed.X) + CCD->Player()->GetInitialWind().X;
-				m_DestWindSpeed.Y = EffectC_Frand(m_MinWindSpeed.Y, m_MaxWindSpeed.Y) + CCD->Player()->GetInitialWind().Y;
-				m_DestWindSpeed.Z = EffectC_Frand(m_MinWindSpeed.Z, m_MaxWindSpeed.Z) + CCD->Player()->GetInitialWind().Z;
+				m_DestWindSpeed.X = EffectC_Frand(m_MinWindSpeed.X, m_MaxWindSpeed.X) + CCD->Level()->GetInitialWind().X;
+				m_DestWindSpeed.Y = EffectC_Frand(m_MinWindSpeed.Y, m_MaxWindSpeed.Y) + CCD->Level()->GetInitialWind().Y;
+				m_DestWindSpeed.Z = EffectC_Frand(m_MinWindSpeed.Z, m_MaxWindSpeed.Z) + CCD->Level()->GetInitialWind().Z;
 
 				//Set the Changing speed
 				geVec3d_Subtract(&m_DestWindSpeed, &Wind, &m_ChangeSpeed);
@@ -131,13 +133,15 @@ void CWindGenerator::Tick(geFloat dwTicks)
 			break;
 		case 2: // end
 			// increment the current WindSpeed value
-			CCD->Player()->ModifyWind(&m_ChangeSpeed);
+			CCD->Level()->ModifyWind(&m_ChangeSpeed);
+			Wind = CCD->Level()->GetWind();
 
 			// lets look if have (almost) reached the destination wind speed
 			if(geVec3d_Compare(&Wind, &m_DestWindSpeed, m_Tolerance))
 			{
 				//Set destination WindSpeed to AnchorValue
-				geVec3d_Add(&m_AnchorValue, &CCD->Player()->GetInitialWind(), &m_DestWindSpeed);
+				geVec3d initialWind = CCD->Level()->GetInitialWind();
+				geVec3d_Add(&m_AnchorValue, &initialWind, &m_DestWindSpeed);
 				//Set the Changing speed
 				geVec3d_Subtract(&m_DestWindSpeed, &Wind, &m_ChangeSpeed);
 				geVec3d_Scale(&m_ChangeSpeed, m_CurrentTime/m_ChangeTime, &m_ChangeSpeed);

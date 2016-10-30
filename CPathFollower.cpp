@@ -10,6 +10,7 @@
 
 // Include the One True Header
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CPathDatabase.h"
 #include "CPathFollower.h"
 #include "CMorphingFields.h"
@@ -60,7 +61,7 @@ CPathFollower::CPathFollower() :
 		// ..path head.  This will be where we initially move the entity
 		// ..to.  Also, at this time, get the location of the next point
 		// ..in the path (if any) and store that as our target point
-		CCD->PathDatabase()->Locate(pFollower->PathFirstNode,
+		CCD->Level()->PathDatabase()->Locate(pFollower->PathFirstNode,
 									&pFollower->CurrentNodeType,
 									&pFollower->PathOrigin,
 									&pFollower->PointRange);
@@ -71,9 +72,9 @@ CPathFollower::CPathFollower() :
 		{
 			// Not a ranged point, get the location of our first target
 			// ..node.
-			pFollower->PathHandle = CCD->PathDatabase()->OpenPath(pFollower->PathFirstNode,
-																	&pFollower->PathOrigin);
-			CCD->PathDatabase()->NextPoint(pFollower->PathHandle, &pFollower->CurrentTarget);
+			pFollower->PathHandle = CCD->Level()->PathDatabase()->OpenPath(pFollower->PathFirstNode,
+																			&pFollower->PathOrigin);
+			CCD->Level()->PathDatabase()->NextPoint(pFollower->PathHandle, &pFollower->CurrentTarget);
 		}
 		else
 		{
@@ -108,21 +109,21 @@ CPathFollower::CPathFollower() :
 		{
 		// Effect
 		case 0:		// MorphingField
-			if(CCD->MorphingFields()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
+			if(CCD->Level()->MorphingFields()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				CCD->Log()->Warning("Failed to bind MorphingField entity '%s' to path '%s'",
 									pFollower->EntityName, pFollower->PathFirstNode);
 			}
 			break;
 		case 1:		// StaticEntityProxy
-			if(CCD->Props()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
+			if(CCD->Level()->Props()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				CCD->Log()->Warning("Failed to bind StaticEntityProxy entity '%s' to path '%s'",
 									pFollower->EntityName, pFollower->PathFirstNode);
 			}
 			break;
 		case 2:		// TeleportTarget
-			if(CCD->Teleporters()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
+			if(CCD->Level()->Teleporters()->BindToPath(pFollower->EntityName) != RGF_SUCCESS)
 			{
 				CCD->Log()->Warning("Failed to bind TeleportTarget entity '%s' to path '%s'",
 									pFollower->EntityName, pFollower->PathFirstNode);
@@ -295,12 +296,12 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 
 		// Compute the # of milliseconds since we last moved, then use that
 		// ..to compute the distance we've travelled in that period
-		geFloat nMotionTime = (CCD->FreeRunningCounter_F() - pFollower->LastMotionTick);
+		float nMotionTime = (CCD->FreeRunningCounter_F() - pFollower->LastMotionTick);
 
 		if(nMotionTime > 100.0f)
 			nMotionTime = 100.0f;							// In case of stalls elsewhere
 
-		geFloat fDistance = nMotionTime * (pFollower->Speed * 0.001f); // / 1000.0f);
+		float fDistance = nMotionTime * (pFollower->Speed * 0.001f);
 		pFollower->TimeInMotion += nMotionTime;
 		pFollower->LastMotionTick = CCD->FreeRunningCounter_F();
 
@@ -398,7 +399,7 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 			if(pFollower->bForward == GE_TRUE)
 			{
 				// Get next pathpoint
-				nResult = CCD->PathDatabase()->NextPoint(pFollower->PathHandle, &thePos);
+				nResult = CCD->Level()->PathDatabase()->NextPoint(pFollower->PathHandle, &thePos);
 
 				if(nResult == RGF_NO_NEXT)
 				{
@@ -410,7 +411,7 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 							pFollower->bForward = GE_FALSE;			// Switch direction
 						else
 						{
-							CCD->PathDatabase()->Rewind(pFollower->PathHandle, &thePos);
+							CCD->Level()->PathDatabase()->Rewind(pFollower->PathHandle, &thePos);
 							pFollower->CurrentTarget = thePos;
 						}
 					}
@@ -429,7 +430,7 @@ int CPathFollower::GetNextPosition(const char *szEntityName, geVec3d *NextPositi
 			else
 			{
 				// Get previous pathpoint
-				nResult = CCD->PathDatabase()->PreviousPoint(pFollower->PathHandle, &thePos);
+				nResult = CCD->Level()->PathDatabase()->PreviousPoint(pFollower->PathHandle, &thePos);
 
 				if(nResult == RGF_NO_PREVIOUS)
 				{

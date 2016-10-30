@@ -12,6 +12,7 @@
 // You only need the one, master include file.
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CLevel.h"
 #include "CTriggers.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -274,7 +275,7 @@ int CTriggers::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Soun
 
 	memset(&Sound, 0, sizeof(Sound));
 	geVec3d_Copy(&Origin, &(Sound.Pos));
-    Sound.Min = CCD->GetAudibleRadius();
+	Sound.Min = CCD->Level()->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
 	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));

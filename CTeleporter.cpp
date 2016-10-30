@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CPathFollower.h"
 #include "CTeleporter.h"
 
@@ -206,7 +207,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 						Snd Sound;
 						memset(&Sound, 0, sizeof(Sound));
 						geVec3d_Copy(&(pTeleport->origin), &(Sound.Pos));
-						Sound.Min = CCD->GetAudibleRadius();
+						Sound.Min = CCD->Level()->GetAudibleRadius();
 						Sound.Loop = GE_FALSE;
 						Sound.SoundDef = pTeleport->theSound;
 						CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
@@ -312,7 +313,7 @@ void CTeleporter::Tick(geFloat dwTicks)
 			TeleportTarget *pTarget = static_cast<TeleportTarget*>(geEntity_GetUserData(pEntity));
 
 			if(pTarget->bFollower)
-				CCD->PathFollower()->GetNextPosition(pTarget->Name, &pTarget->origin,	false);
+				CCD->Level()->PathFollower()->GetNextPosition(pTarget->Name, &pTarget->origin,	false);
 			// Seek to next position, if in motion
 		}
 	}

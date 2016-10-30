@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CMovingPlatforms.h"			// Moving platforms subsystem class
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -257,7 +258,7 @@ int CMovingPlatforms::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bo
 
 	memset(&Sound, 0, sizeof(Sound));
 	geVec3d_Copy(&Origin, &(Sound.Pos));
-	Sound.Min = CCD->GetAudibleRadius();
+	Sound.Min = CCD->Level()->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
 	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));

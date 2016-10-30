@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CFirePoint.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -142,7 +143,9 @@ void CFirePoint::Tick(geFloat dwTicks)
 			{
 				Fire->Tick = 0.0f;
 
-				CCD->Weapons()->Add_Projectile(Fire->origin, Fire->origin, Fire->RealAngle, Fire->Projectile, Fire->Attribute, Fire->AltAttribute);
+				CCD->Weapons()->AddProjectile(	Fire->origin, Fire->origin,
+												Fire->RealAngle, Fire->Projectile,
+												Fire->Attribute, Fire->AltAttribute);
 
 				Fire->FireRate = EffectC_Frand(Fire->MinFireRate, Fire->MaxFireRate);
 
@@ -151,7 +154,7 @@ void CFirePoint::Tick(geFloat dwTicks)
 					Snd Sound;
 					memset(&Sound, 0, sizeof(Sound));
 					geVec3d_Copy(&(Fire->origin), &(Sound.Pos));
-					Sound.Min = CCD->GetAudibleRadius();
+					Sound.Min = CCD->Level()->GetAudibleRadius();
 					Sound.Loop = GE_FALSE;
 					Sound.SoundDef = SPool_Sound(Fire->szSoundFile);
 					CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));

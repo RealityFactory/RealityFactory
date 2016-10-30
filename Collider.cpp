@@ -12,11 +12,13 @@
 
 //	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
 #include "CChangeLevel.h"
 #include "CMovingPlatforms.h"
 #include "CPathFollower.h"
+#include "CPawnManager.h"
 #include "CStaticEntity.h"
 #include "CStaticMesh.h"
 #include "CTeleporter.h"
@@ -372,7 +374,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		Result = GE_TRUE;
 	}
 
-	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, NULL))
+	if((Result == GE_FALSE) && CCD->Level()->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, NULL))
 		Result = GE_TRUE;
 
 	// Only do a GetContents if we're not doing a ray collision AND there
@@ -443,7 +445,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 		Result = GE_TRUE;
 	}
 
-	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
+	if((Result == GE_FALSE) && CCD->Level()->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
 		Result = GE_TRUE;
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE) && (!m_IgnoreContents))
@@ -686,10 +688,10 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 								0xffffffff, CBExclusion, Actor,
 								Collision);
 
-	if((Result == GE_FALSE) && CCD->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
+	if((Result == GE_FALSE) && CCD->Level()->Meshes()->CollisionCheck(Min, Max, OldPosition, NewPosition, Collision))
 	{
 		Result = GE_TRUE;
-		Collision->Mesh = (geMesh*)CCD->Meshes();		// just give it a pointer
+		Collision->Mesh = reinterpret_cast<geMesh*>(CCD->Level()->Meshes());		// just give it a pointer
 		Collision->Model = NULL;
 		Collision->Actor = NULL;
 	}
@@ -700,7 +702,7 @@ bool Collider::CheckForCollision(geVec3d *Min, geVec3d *Max,
 	{
 		Collision->Actor = NULL;
 
-		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		if(!(CCD->Level()->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
 		{
 			Result = GE_TRUE;
 			Collision->Impact = OldPosition;
@@ -799,7 +801,7 @@ bool Collider::CheckForWCollision(geVec3d *Min, geVec3d *Max,
 	{
 		Collision->Actor = NULL;
 
-		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		if(!(CCD->Level()->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
 		{
 			Result = GE_TRUE;
 		}
@@ -997,7 +999,7 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox)
 		{
 			Result = GE_TRUE;
 
-			if(CCD->Doors()->IsADoor(Contents.Model))
+			if(CCD->Level()->Doors()->IsADoor(Contents.Model))
 				Result = GE_FALSE;
 		}
 	}
@@ -1063,9 +1065,9 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 	geVec3d temp;
 	geVec3d_Add(thePoint, &theBox->Max, &temp);
 
-	if((Result == GE_FALSE) &&CCD->Meshes()->CollisionCheck(&theBox->Min, &theBox->Max, *thePoint, temp, NULL))
+	if((Result == GE_FALSE) && CCD->Level()->Meshes()->CollisionCheck(&theBox->Min, &theBox->Max, *thePoint, temp, NULL))
 	{
-		Contents.Mesh=(geMesh*)CCD->Meshes();
+		Contents.Mesh = reinterpret_cast<geMesh*>(CCD->Level()->Meshes()); // bad cast!
 		Result = GE_TRUE;
 	}
 
@@ -1091,7 +1093,7 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 		{
 			Result = GE_TRUE;
 
-			if(CCD->Doors()->IsADoor(Contents.Model))
+			if(CCD->Level()->Doors()->IsADoor(Contents.Model))
 				Result = GE_FALSE;
 		}
 	}
@@ -1179,7 +1181,7 @@ bool Collider::CanOccupyPosition(const geVec3d *thePoint, geExtBox *theBox,
 		else
 		{
 			Result = GE_TRUE;
-			if(CCD->Doors()->IsADoor(Contents->Model))
+			if(CCD->Level()->Doors()->IsADoor(Contents->Model))
 				Result = GE_FALSE;
 		}
 	}
@@ -1738,7 +1740,7 @@ geBoolean Collider::Probe(const geXForm3d &theXForm, float fDistance, GE_Collisi
 										theCollision);
 
 	if(ItHit == GE_FALSE)
-		ItHit = CCD->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
+		ItHit = CCD->Level()->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
 
 	return ItHit;					// Return collision status
 }
@@ -1771,7 +1773,7 @@ geBoolean Collider::Probe(const geXForm3d &theXForm, float fDistance, GE_Collisi
 										theCollision);
 
 	if(ItHit == GE_FALSE)
-		ItHit=CCD->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
+		ItHit = CCD->Level()->Meshes()->CollisionCheck(NULL, NULL, Start, End, theCollision);
 
 	return ItHit;					// Return collision status
 }
@@ -1862,7 +1864,7 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 		{
 			if(theActor == CCD->Player()->GetActor())
 			{
-				if(CCD->Changelevel()->CheckChangeLevel(theCollision.Model, false))// && !bShoot)
+				if(CCD->Level()->ChangeLevels()->CheckChangeLevel(theCollision.Model, false))
 				{
 					CCD->SetChangeLevel(true);			// We hit a change level
 					return kCollideWorldModel;
@@ -1871,19 +1873,19 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 		}
 
 		// ..all the other possibilities now.
-		if(CCD->Doors()->HandleCollision(theCollision.Model, bShoot, false, theActor))
+		if(CCD->Level()->Doors()->HandleCollision(theCollision.Model, bShoot, false, theActor))
 		{
 			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 			return kCollideDoor;		// Hit, and processed
 		}
 
-		if(CCD->Platforms()->HandleCollision(theCollision.Model, bShoot, false, theActor))
+		if(CCD->Level()->Platforms()->HandleCollision(theCollision.Model, bShoot, false, theActor))
 		{
 			CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 			return kCollidePlatform;	// Hit, and processed
 		}
 
-		int Result = CCD->Triggers()->HandleCollision(theCollision.Model, bShoot, false, theActor);
+		int Result = CCD->Level()->Triggers()->HandleCollision(theCollision.Model, bShoot, false, theActor);
 
 		int Result1 = CCD->ModelManager()->HandleCollision(theCollision.Model, theActor);
 
@@ -1893,15 +1895,14 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 		if(Result == RGF_EMPTY)
 			return kNoCollision;
 
-		if(CCD->PathFollower()->HandleCollision(theCollision.Model))
+		if(CCD->Level()->PathFollower()->HandleCollision(theCollision.Model))
 			return kCollideWorldModel;	// Hit, and processed
 
 		// *NOTE* Add new world-model collision handlers here.
 		if(!bShoot || aType == ENTITY_PROJECTILE)
 		{
-			if(CCD->Teleporters()->HandleCollision(theCollision.Model, theActor))
+			if(CCD->Level()->Teleporters()->HandleCollision(theCollision.Model, theActor))
 				return kCollideTrigger;	// Hit, and processed
-
 
 			if(Result1 == RGF_SUCCESS)
 				return kCollideWorldModel;	// Hit, and processed
@@ -1932,21 +1933,21 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 			return kCollideActor;
 			break;
 		case ENTITY_NPC:  // NPC
-			result = CCD->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
+			result = CCD->Level()->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
 			if(result==RGF_SUCCESS)
 				return kCollideNPC;
 			if(result==RGF_RECHECK)
 				return kNoCollision;
 			break;
 		case ENTITY_VEHICLE: // Vehicle
-			result = CCD->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
+			result = CCD->Level()->Pawns()->HandleCollision(theCollision.Actor, theActor, Gravity);
 			if(result==RGF_SUCCESS)
 				return kCollideVehicle;
 			if(result==RGF_RECHECK)
 				return kNoCollision;
 			break;
 		case ENTITY_PROP: // StaticEntityProxy
-			result = CCD->Props()->HandleCollision(theCollision.Actor, theActor, Gravity, false);
+			result = CCD->Level()->Props()->HandleCollision(theCollision.Actor, theActor, Gravity, false);
 			if(result==RGF_SUCCESS)
 				return kCollideActor;
 			if(result==RGF_RECHECK)
@@ -1960,7 +1961,7 @@ int Collider::ProcessCollision(const GE_Collision &theCollision, geActor *theAct
 			break;
 		case ENTITY_ATTRIBUTE_MOD: // Attribute
 			if(!bShoot)
-				CCD->Attributes()->HandleCollision(theActor, theCollision.Actor, false);
+				CCD->Level()->Attributes()->HandleCollision(theActor, theCollision.Actor, false);
 			return kCollideActor;
 			break;
 		default:
@@ -2202,7 +2203,7 @@ bool Collider::CanOccupyPositionD(const geVec3d *thePoint, geExtBox *theBox,
 		{
 			Result = GE_TRUE;
 
-			if(CCD->Doors()->IsADoor(Contents->Model))
+			if(CCD->Level()->Doors()->IsADoor(Contents->Model))
 				Result = GE_FALSE;
 		}
 	}
@@ -2291,7 +2292,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 								 const geVec3d &OldPosition, const geVec3d &NewPosition,
 								 GE_Collision *Collision, geActor *Actor,
 								 char *BoneHit, bool BoneLevel,
-								 void *CollisionObject )
+								 void *CollisionObject)
 {
 	GE_Contents Contents;
 
@@ -2301,12 +2302,10 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 	geFloat T;
 	geVec3d Normal;
 
-	geBoolean RayHitActor = GE_FALSE;
-
-	RayHitActor = CCD->ActorManager()->DoesRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject );
+	geBoolean RayHitActor = CCD->ActorManager()->DoesRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject);
 
 	if(!RayHitActor && BoneLevel)
-		RayHitActor = CCD->ActorManager()->DidRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject );
+		RayHitActor = CCD->ActorManager()->DidRayHitActor(OldPosition, NewPosition, &pActor, Actor, &T, &Normal, CollisionObject);
 
 	if(RayHitActor)
 	{
@@ -2361,7 +2360,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 		kCollideFlags, GE_COLLIDE_MODELS, 0x0, NULL, NULL, Collision) == GE_TRUE)
 	{
 		Collision->Actor = NULL;
-		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		if(!(CCD->Level()->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
 			return true;
 		else
 			Collision->Model = NULL;
@@ -2392,7 +2391,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			{
 				Result = GE_TRUE;
 
-				if(CCD->Doors()->IsADoor(Contents.Model))
+				if(CCD->Level()->Doors()->IsADoor(Contents.Model))
 					Result = GE_FALSE;
 			}
 		}
@@ -2446,9 +2445,9 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
-	if(CCD->Meshes()->CollisionCheck(NULL,NULL,/*Min, Max,*/ OldPosition, NewPosition, Collision))
+	if(CCD->Level()->Meshes()->CollisionCheck(NULL, NULL, /*Min, Max,*/ OldPosition, NewPosition, Collision))
 	{
-		Collision->Mesh = (geMesh*)CCD->Meshes();
+		Collision->Mesh = reinterpret_cast<geMesh*>(CCD->Level()->Meshes()); // bad cast!
 		Collision->Actor = NULL;
 		Collision->Model = NULL;
 		return true;
@@ -2492,7 +2491,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 				geBody_GetBone(geActor_GetBody(geActor_GetActorDef(Collision->Actor)),
 								nStatic, &BoneName, &Attachment, &ParentBoneIndex);
 
-				if(BoneName != NULL)
+				if(BoneName)
 					strcpy(BoneHit, BoneName);
 
 				return true;
@@ -2509,12 +2508,11 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 	{
 		Collision->Actor = NULL;
 
-		if(!(CCD->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
+		if(!(CCD->Level()->Doors()->IsADoor(Collision->Model) && CCD->ModelManager()->IsRunning(Collision->Model)))
 			return true;
 		else
 			Collision->Model = NULL;
 	}
-
 
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
@@ -2545,7 +2543,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 			{
 				Result = GE_TRUE;
 
-				if(CCD->Doors()->IsADoor(Contents.Model))
+				if(CCD->Level()->Doors()->IsADoor(Contents.Model))
 					Result = GE_FALSE;
 			}
 		}
@@ -2614,7 +2612,7 @@ bool Collider::CheckSolid(geVec3d *thePoint, geExtBox *theBox, geActor * /*Actor
 		{
 			Result = GE_TRUE;
 
-			if(CCD->Doors()->IsADoor(Contents.Model))
+			if(CCD->Level()->Doors()->IsADoor(Contents.Model))
 				Result = GE_FALSE;
 		}
 	}

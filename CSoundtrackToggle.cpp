@@ -14,6 +14,7 @@
 #include "CFileManager.h"
 #include "CCDAudio.h"
 #include "CMIDIAudio.h"
+#include "CLevel.h"
 #include "CSoundtrackToggle.h"
 
 /* ------------------------------------------------------------------------------------ */
@@ -164,7 +165,7 @@ void CSoundtrackToggle::StopStreaming()
 		SoundtrackToggle *pToggle = static_cast<SoundtrackToggle*>(geEntity_GetUserData(pEntity));
 
 		if((pToggle->szStreamFileOne != NULL) && (strlen(pToggle->szStreamFileOne) > 0))
-			  CCD->AudioStreams()->Stop(pToggle->szStreamFileOne);
+			CCD->Level()->AudioStreams()->Stop(pToggle->szStreamFileOne);
 	}
 }
 

@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CAutoDoors.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -297,7 +298,7 @@ int CAutoDoors::PlaySound(geSound_Def *theSound, const geVec3d &Origin, bool Sou
 
 	memset(&Sound, 0, sizeof(Sound));
 	geVec3d_Copy(&Origin, &(Sound.Pos));
-    Sound.Min = CCD->GetAudibleRadius();
+	Sound.Min = CCD->Level()->GetAudibleRadius();
 	Sound.Loop = SoundLoop;
 	Sound.SoundDef = theSound;
 	int index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));

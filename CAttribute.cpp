@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CInventory.h"
 #include "CAttribute.h"
 
@@ -126,9 +127,9 @@ bool CAttribute::InitAttribute(Attribute *pAttribute)
 
 void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 {
-	char DefaultName[128];
 	if(EffectC_IsStringNull(pAttribute->szEntityName))
 	{
+		char DefaultName[128];
 		sprintf(DefaultName, "Attribute%04d", m_DynamicAttributes);
 		pAttribute->szEntityName = DefaultName;
 		++m_DynamicAttributes;
@@ -228,7 +229,7 @@ void CAttribute::Tick(geFloat dwTicks)
 
 							memset(&Sound, 0, sizeof(Sound));
 							geVec3d_Copy(&(pSource->origin), &(Sound.Pos));
-							Sound.Min = CCD->GetAudibleRadius();
+							Sound.Min = CCD->Level()->GetAudibleRadius();
 							Sound.Loop = GE_FALSE;
 							Sound.SoundDef = SPool_Sound(pSource->szReSpawnSound);
 
@@ -265,7 +266,7 @@ void CAttribute::Tick(geFloat dwTicks)
 						CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 						if(pSource->Gravity)
-							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+							CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Level()->GetGravity());
 
 						CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
 																		pSource->FillColor,
@@ -328,7 +329,7 @@ void CAttribute::Tick(geFloat dwTicks)
 					CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 					if(pSource->Gravity)
-						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+						CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Level()->GetGravity());
 
 					CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
 																	pSource->FillColor,
@@ -538,7 +539,7 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 				Snd Sound;
 				memset(&Sound, 0, sizeof(Sound));
 				geVec3d_Copy(&(pSource->origin), &(Sound.Pos));
-				Sound.Min = CCD->GetAudibleRadius();
+				Sound.Min = CCD->Level()->GetAudibleRadius();
 				Sound.Loop = GE_FALSE;
 				Sound.SoundDef = SPool_Sound(pSource->szSoundFile);
 
@@ -628,7 +629,7 @@ int CAttribute::RestoreFrom(FILE *RestoreFD, bool type)
 			CCD->ActorManager()->Position(pSource->Actor, pSource->origin);
 
 			if(pSource->Gravity)
-				CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Player()->GetGravity());
+				CCD->ActorManager()->SetGravity(pSource->Actor, CCD->Level()->GetGravity());
 
 			CCD->ActorManager()->SetActorDynamicLighting(	pSource->Actor,
 															pSource->FillColor,

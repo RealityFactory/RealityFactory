@@ -18,6 +18,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include <memory>
 #include <Ram.h>
 
@@ -235,7 +236,7 @@ void Particle_SystemFrame(Particle_System *ps, geFloat DeltaTime)
 				// apply wind
 				if(ptcl->ptclFlags & PARTICLE_HASWIND)
 				{
-					geVec3d Wind = CCD->Player()->GetWind();
+					geVec3d Wind = CCD->Level()->GetWind();
 
 					// make wind vector
 					geVec3d_Scale(&Wind, ps->psQuantumSeconds, &Wind);
@@ -827,7 +828,7 @@ void ActorParticle_SystemAddParticle(ActorParticle_System	*ps,
 	CCD->ActorManager()->SetHideRadar(ptcl->Actor, true);
 
 	if(Gravity)
-		CCD->ActorManager()->SetGravity(ptcl->Actor, CCD->Player()->GetGravity());
+		CCD->ActorManager()->SetGravity(ptcl->Actor, CCD->Level()->GetGravity());
 }
 
 /* ------------------------------------------------------------------------------------ */

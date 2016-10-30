@@ -10,6 +10,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CutScene.h"
 
 /* ------------------------------------------------------------------------------------ */
@@ -113,14 +114,14 @@ void CCutScene::Tick(geFloat /*dwTicks*/)
 
 		if(pCutScene->active == GE_TRUE)
 		{
-			CCD->Player()->DisableFog();		// Turn off fogging for cut scene
-			CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
+			CCD->Level()->DisableFog();		// Turn off fogging for cut scene
+			CCD->Level()->DisableClipPlane();	// Turn off the clipping plane as well
 
 			// Play the cut scene
 			CCD->Play(pCutScene->szCutScene, pCutScene->XPos, pCutScene->YPos, pCutScene->Center);
 
-			CCD->Player()->ShowFog();			// Show fog, if enabled
-			CCD->Player()->ActivateClipPlane();	//  Activate clipping plane, if enabled
+			CCD->Level()->ShowFog();			// Show fog, if enabled
+			CCD->Level()->ActivateClipPlane();	// Activate clipping plane, if enabled
 
 			CCD->Engine()->ResetSystem();
 		}

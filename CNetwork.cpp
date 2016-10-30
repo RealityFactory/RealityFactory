@@ -4,6 +4,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
 #include "CDamage.h"
@@ -585,22 +586,22 @@ void NetPlayerMgr::ServerClientCycle()
 				// read in all world info here
 				if(Info == WORLDLIST1)
 				{
-					CCD->Doors()->RestoreFrom(NULL, true);
-					CCD->Platforms()->RestoreFrom(NULL, true);
-					CCD->Props()->RestoreFrom(NULL, true);
-					CCD->Teleporters()->RestoreFrom(NULL, true);
-					CCD->Triggers()->RestoreFrom(NULL, true);
-					CCD->Logic()->RestoreFrom(NULL, true);
+					CCD->Level()->Doors()->RestoreFrom(NULL, true);
+					CCD->Level()->Platforms()->RestoreFrom(NULL, true);
+					CCD->Level()->Props()->RestoreFrom(NULL, true);
+					CCD->Level()->Teleporters()->RestoreFrom(NULL, true);
+					CCD->Level()->Triggers()->RestoreFrom(NULL, true);
+					CCD->Level()->LogicGates()->RestoreFrom(NULL, true);
 
 					connectstate += 1;
 				}
 
 				if(Info == WORLDLIST2)
 				{
-					CCD->Attributes()->RestoreFrom(NULL, true);
-					CCD->Damage()->RestoreFrom(NULL, true);
-					CCD->ElectricEffects()->RestoreFrom(NULL, true);
-					CCD->ModelManager()->RestoreFrom(NULL, true);
+					CCD->Level()->Attributes()->RestoreFrom(NULL, true);
+					CCD->Level()->Damage()->RestoreFrom(NULL, true);
+					CCD->Level()->ElectricBolts()->RestoreFrom(NULL, true);
+					CCD->Level()->ModelManager()->RestoreFrom(NULL, true);
 
 					connectstate += 1;
 				}
@@ -730,12 +731,12 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	outbuffer->Add(1);
 	outbuffer->Add(static_cast<unsigned char>(WORLDLIST1));
 
-	CCD->Doors()->SaveTo(NULL, true);
-	CCD->Platforms()->SaveTo(NULL, true);
-	CCD->Props()->SaveTo(NULL, true);
-	CCD->Teleporters()->SaveTo(NULL, true);
-	CCD->Triggers()->SaveTo(NULL, true);
-	CCD->Logic()->SaveTo(NULL, true);
+	CCD->Level()->Doors()->SaveTo(NULL, true);
+	CCD->Level()->Platforms()->SaveTo(NULL, true);
+	CCD->Level()->Props()->SaveTo(NULL, true);
+	CCD->Level()->Teleporters()->SaveTo(NULL, true);
+	CCD->Level()->Triggers()->SaveTo(NULL, true);
+	CCD->Level()->LogicGates()->SaveTo(NULL, true);
 
 	outbuffer->AddLen();
 
@@ -745,10 +746,10 @@ void NetPlayerMgr::SendWorldInfo(NetBuffer *Buff, NLsocket sock)
 	outbuffer->Add(1);
 	outbuffer->Add(static_cast<unsigned char>(WORLDLIST2));
 
-	CCD->Attributes()->SaveTo(NULL, true);
-	CCD->Damage()->SaveTo(NULL, true);
-	CCD->ElectricEffects()->SaveTo(NULL, true);
-	CCD->ModelManager()->SaveTo(NULL, true);
+	CCD->Level()->Attributes()->SaveTo(NULL, true);
+	CCD->Level()->Damage()->SaveTo(NULL, true);
+	CCD->Level()->ElectricBolts()->SaveTo(NULL, true);
+	CCD->Level()->ModelManager()->SaveTo(NULL, true);
 
 	outbuffer->AddLen();
 	nlWrite(sock, outbuffer->Data, outbuffer->Size);

@@ -9,6 +9,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CPathFollower.h"
 #include "CMorphingFields.h"
 
@@ -164,7 +165,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 						Snd Sound;
 						memset(&Sound, 0, sizeof(Sound));
 						geVec3d_Copy(&(pField->origin), &(Sound.Pos));
-						Sound.Min = CCD->GetAudibleRadius();
+						Sound.Min = CCD->Level()->GetAudibleRadius();
 						Sound.Loop = GE_TRUE;
 						Sound.SoundDef = pField->theSound;
 						pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
@@ -201,7 +202,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 					Snd Sound;
 					memset(&Sound, 0, sizeof(Sound));
 					geVec3d_Copy(&(pField->origin), &(Sound.Pos));
-					Sound.Min = CCD->GetAudibleRadius();
+					Sound.Min = CCD->Level()->GetAudibleRadius();
 					Sound.Loop = GE_TRUE;
 					Sound.SoundDef = pField->theSound;
 					pField->SoundHandle = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
@@ -216,7 +217,7 @@ void CMorphingFields::Tick(geFloat dwTicks)
 			if(pField->bFollower == GE_TRUE)
 			{
 				// Seek to next position, if in motion
-				CCD->PathFollower()->GetNextPosition(pField->szEntityName, &pField->origin,	false);
+				CCD->Level()->PathFollower()->GetNextPosition(pField->szEntityName, &pField->origin,	false);
 			}
 			else
 			{

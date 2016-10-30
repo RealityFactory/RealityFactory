@@ -12,6 +12,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CDamage.h"
 #include "CPathFollower.h"
 #include "CStaticEntity.h"
@@ -86,7 +87,7 @@ CStaticEntity::CStaticEntity() :
 			CCD->ActorManager()->SetType(pProxy->Actor, ENTITY_VEHICLE);	// Make a vehicle
 
 		if(pProxy->SubjectToGravity)
-			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Player()->GetGravity());
+			CCD->ActorManager()->SetGravity(pProxy->Actor, CCD->Level()->GetGravity());
 
 		CCD->ActorManager()->SetActorDynamicLighting(pProxy->Actor, pProxy->FillColor, pProxy->AmbientColor, pProxy->AmbientLightFromFloor);
 
@@ -295,9 +296,9 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 				if(pProxy->AttributeAmt != -1)
 				{
 					if(EffectC_IsStringNull(pProxy->DamageAttribute))
-						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health", "Actor");
+						CCD->Level()->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, "health", pProxy->Damage, "health", "Actor");
 					else
-						CCD->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute, "Actor");
+						CCD->Level()->Damage()->DamageActor(pProxy->Actor, pProxy->Damage, pProxy->DamageAttribute, pProxy->Damage, pProxy->DamageAttribute, "Actor");
 
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = GE_TRUE;
@@ -308,9 +309,9 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 				if(theActor)
 				{
 					if(EffectC_IsStringNull(pProxy->DamageTo))
-						CCD->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
+						CCD->Level()->Damage()->DamageActor(theActor, pProxy->Damage, "health", pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
 					else
-						CCD->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
+						CCD->Level()->Damage()->DamageActor(theActor, pProxy->Damage, pProxy->DamageTo, pProxy->DamageAlt, pProxy->DamageToAlt, "SEP");
 
 					pProxy->Time = 0.0f;
 					pProxy->DoingDamage = GE_TRUE;
@@ -337,7 +338,7 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 
 					memset(&Sound, 0, sizeof(Sound));
 					geVec3d_Copy(&(pProxy->origin), &(Sound.Pos));
-					Sound.Min = CCD->GetAudibleRadius();
+					Sound.Min = CCD->Level()->GetAudibleRadius();
 					Sound.Loop = GE_FALSE;
 					Sound.SoundDef = SPool_Sound(pProxy->szSoundFile);
 					pProxy->index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));
@@ -348,9 +349,9 @@ int CStaticEntity::HandleCollision(const geActor *pActor, const geActor *theActo
 		// If we have a collision animation, switch to that
 		if(!EffectC_IsStringNull(pProxy->szImpactAction))
 		{
-			char *Motion = CCD->ActorManager()->GetMotion(pProxy->Actor);
+			std::string Motion(CCD->ActorManager()->GetMotion(pProxy->Actor));
 
-			if(strcmp(Motion, pProxy->szImpactAction))
+			if(Motion == pProxy->szImpactAction)
 			{
 				CCD->ActorManager()->SetMotion(pProxy->Actor, pProxy->szImpactAction);
 				CCD->ActorManager()->SetNextMotion(pProxy->Actor, pProxy->szDefaultAction);
@@ -515,7 +516,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 			// ..it to the head of the path it's on
 			if(pProxy->bInitialized == GE_FALSE)
 			{
-				CCD->PathFollower()->GetPathOrigin(pProxy->szEntityName, &pProxy->origin);
+				CCD->Level()->PathFollower()->GetPathOrigin(pProxy->szEntityName, &pProxy->origin);
 				CCD->ActorManager()->Position(pProxy->Actor, pProxy->origin);
 				pProxy->bInitialized = GE_TRUE;
 				return;
@@ -527,7 +528,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 			// ..our target vector and do an AddScaled() to the old origin to move
 			// ..in the right direction without point interpolation.  This is very
 			// ..useful for moving "pseudo-NPC" entities around...
-			CCD->PathFollower()->GetNextPosition(pProxy->szEntityName, &(pProxy->origin), false);	 // Seek to next position,
+			CCD->Level()->PathFollower()->GetNextPosition(pProxy->szEntityName, &(pProxy->origin), false);	// Seek to next position,
 			geVec3d pPosition;
 			CCD->ActorManager()->GetPosition(pProxy->Actor, &pPosition);
 
@@ -537,7 +538,7 @@ void CStaticEntity::Tick(geFloat dwTicks)
 			if(pProxy->FaceDestination == GE_TRUE)
 			{
 				geVec3d pTarget;
-				CCD->PathFollower()->GetTarget(pProxy->szEntityName, &pTarget);				// Seek to next position
+				CCD->Level()->PathFollower()->GetTarget(pProxy->szEntityName, &pTarget);				// Seek to next position
 
 				if(pProxy->SubjectToGravity)
 					pTarget.Y = pPosition.Y;

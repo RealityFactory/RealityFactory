@@ -11,6 +11,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CDamage.h"
 #include "CElectric.h"
 
@@ -736,7 +737,7 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 		{
 			int percent;
 
-			if(!CCD->Damage()->IsDestroyable(Collision.Model, &percent))
+			if(!CCD->Level()->Damage()->IsDestroyable(Collision.Model, &percent))
 				Collision.Model = NULL;
 
 			if(Collision.Actor || Collision.Model)
@@ -751,10 +752,10 @@ void CElectric::CheckCollision(ElectricBolt *Bolt)
 						Bolt->DTime = 0.0f;
 
 						if(Collision.Actor)
-							CCD->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute, "Bolt");
+							CCD->Level()->Damage()->DamageActor(Collision.Actor, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute, "Bolt");
 
 						if(Collision.Model)
-							CCD->Damage()->DamageModel(Collision.Model, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
+							CCD->Level()->Damage()->DamageModel(Collision.Model, Bolt->DamageAmt, Bolt->DamageAttribute, Bolt->DamageAltAmt, Bolt->DamageAltAttribute);
 
 						return;
 					}

@@ -8,6 +8,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"		// The One True Include File
+#include "CLevel.h"
 #include "CAutoDoors.h"
 #include "CDamage.h"
 #include "CTriggers.h"
@@ -1276,7 +1277,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 									geFloat Volume, Pan, Frequency;
 									geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 									geSound3D_GetConfig(CCD->World(), &xfmPlayer, &m_MainList[nEntry]->Translation,
-														CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
+														CCD->Level()->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
 									geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), theSound,
 															Volume, Pan, Frequency, GE_FALSE);
 								}
@@ -1288,7 +1289,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 						{
 							if(!EffectC_IsStringNull(Arg[1]))
 							{
-								CCD->Triggers()->HandleTriggerEvent(Arg[1]);
+								CCD->Level()->Triggers()->HandleTriggerEvent(Arg[1]);
 							}
 
 							break;
@@ -1706,7 +1707,7 @@ geBoolean CModelManager::DoesBoxHitModel(const geVec3d &/*thePoint*/, geExtBox t
 		//if(CCD->MenuManager()->GetSEBoundBox())
 		//DrawBoundBox(CCD->World(), &m_MainList[nTemp]->Translation, &Result.Min, &Result.Max);
 
-		if(CCD->Doors()->IsADoor(m_MainList[nTemp]->Model)
+		if(CCD->Level()->Doors()->IsADoor(m_MainList[nTemp]->Model)
 			&& IsRunning(m_MainList[nTemp]->Model)
 			&& m_MainList[nTemp]->bRotating)
 			continue;
@@ -1851,7 +1852,6 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 			continue;								// Not this one
 
 		// Ok, the passed-in model has a MODIFIER.  Let's see what it's supposed to do.
-
 		if(pMod->ForceImparter == GE_TRUE && !pMod->DoForce)
 		{
 			// Need to add force to the actor that hit us...
@@ -1878,7 +1878,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 						geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 
 						geSound3D_GetConfig(CCD->World(), &xfmPlayer, &pMod->origin,
-                           CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
+							CCD->Level()->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
 
 						pMod->FSoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(),
 							pMod->theFSound, Volume, Pan, Frequency, GE_FALSE);
@@ -1895,11 +1895,11 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 			{
 				if(EffectC_IsStringNull(pMod->DamageAttribute))
 				{
-					CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
+					CCD->Level()->Damage()->DamageActor(theActor, pMod->DamageAmount, "health", pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
 				}
 				else
 				{
-					CCD->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
+					CCD->Level()->Damage()->DamageActor(theActor, pMod->DamageAmount, pMod->DamageAttribute, pMod->DamageAltAmount, pMod->DamageAltAttribute, "Model");
 				}
 			}
 
@@ -1917,7 +1917,7 @@ int CModelManager::HandleCollision(const geWorld_Model *theModel, const geActor 
 					geXForm3d xfmPlayer = CCD->Player()->ViewPoint();
 
 					geSound3D_GetConfig(CCD->World(), &xfmPlayer, &pMod->origin,
-                        CCD->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
+						CCD->Level()->GetAudibleRadius(), 2.0f, &Volume, &Pan, &Frequency);
 
 					pMod->DSoundHandle = geSound_PlaySoundDef(CCD->Engine()->AudioSystem(),
 						pMod->theDSound, Volume, Pan, Frequency, GE_FALSE);

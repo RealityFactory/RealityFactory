@@ -10,6 +10,7 @@
 #include "RabidFramework.h"
 #include <body._h>
 #include "CFileManager.h"
+#include "CLevel.h"
 #include "CStaticMesh.h"
 
 extern "C" void	DrawBoundBox(geWorld *World, const geVec3d *Pos, const geVec3d *Min, const geVec3d *Max);
@@ -1238,8 +1239,6 @@ void CStaticMesh::Tick(geFloat dwTicks)
 			geVec3d_Add(&pMesh->ActorRotation, &pMesh->Rotation, &pMesh->Rotation);
 		}
 	}
-
-	Render();
 }
 
 
@@ -1280,8 +1279,11 @@ void CStaticMesh::Render()
 		float dist = geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom();
 
 		// which LOD do we have to render?
-		if(CCD->GetLODdistance(0) == 0 && CCD->GetLODdistance(1) == 0 && CCD->GetLODdistance(2) == 0
-			&& CCD->GetLODdistance(3) == 0 && CCD->GetLODdistance(4) == 0)
+		if(	CCD->Level()->GetLODdistance(0) == 0 &&
+			CCD->Level()->GetLODdistance(1) == 0 &&
+			CCD->Level()->GetLODdistance(2) == 0 &&
+			CCD->Level()->GetLODdistance(3) == 0 &&
+			CCD->Level()->GetLODdistance(4) == 0)
 		{
 			AddPoly(pMesh, 0);
 		}
@@ -1289,27 +1291,27 @@ void CStaticMesh::Render()
 		{
 			int LOD = 0;
 
-			if(CCD->GetLODdistance(0) != 0 && dist>CCD->GetLODdistance(0))
+			if(CCD->Level()->GetLODdistance(0) != 0 && dist > CCD->Level()->GetLODdistance(0))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[1])
 					LOD = 1;
 			}
 
-			if(CCD->GetLODdistance(1) != 0 && dist>CCD->GetLODdistance(1))
+			if(CCD->Level()->GetLODdistance(1) != 0 && dist > CCD->Level()->GetLODdistance(1))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[2])
 					LOD = 2;
 			}
 
-			if(CCD->GetLODdistance(2) != 0 && dist>CCD->GetLODdistance(2))
+			if(CCD->Level()->GetLODdistance(2) != 0 && dist > CCD->Level()->GetLODdistance(2))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[3])
 					LOD = 3;
 			}
 
-			if(dist<CCD->GetLODdistance(4) || CCD->GetLODdistance(4) == 0)
+			if(dist < CCD->Level()->GetLODdistance(4) || CCD->Level()->GetLODdistance(4) == 0)
 			{
-				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
+				if(CCD->Level()->GetLODdistance(3) != 0 && dist > CCD->Level()->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
 					LOD = 4;
 			}
 			else
@@ -1326,12 +1328,13 @@ void CStaticMesh::Render()
 				GE_LVertex	Vertex;
 				Vertex.r = Vertex.g = Vertex.b = Vertex.a = 255.0f;
 
-				if(CCD->GetLODdistance(4) != 0 && CCD->GetLODdistance(4) > CCD->GetLODdistance(3))
+				if(CCD->Level()->GetLODdistance(4) != 0 && CCD->Level()->GetLODdistance(4) > CCD->Level()->GetLODdistance(3))
 				{
-					float diff = CCD->GetLODdistance(4) - CCD->GetLODdistance(3);
-					float alpha = 1.0f - ((dist-CCD->GetLODdistance(3))/diff);
+					float diff = CCD->Level()->GetLODdistance(4) - CCD->Level()->GetLODdistance(3);
+					float alpha = 1.0f - (dist - CCD->Level()->GetLODdistance(3)) / diff;
 					Vertex.a = 255.0f * alpha;
 				}
+
 				Vertex.u = 0.0f;
 				Vertex.v = 0.0f;
 
@@ -1784,8 +1787,11 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 		// get current LOD
 		int LOD = 0;
 
-		if(CCD->GetLODdistance(0) != 0 || CCD->GetLODdistance(1) != 0 || CCD->GetLODdistance(2) != 0
-			|| CCD->GetLODdistance(3) != 0 || CCD->GetLODdistance(4) != 0)
+		if(	CCD->Level()->GetLODdistance(0) != 0 ||
+			CCD->Level()->GetLODdistance(1) != 0 ||
+			CCD->Level()->GetLODdistance(2) != 0 ||
+			CCD->Level()->GetLODdistance(3) != 0 ||
+			CCD->Level()->GetLODdistance(4) != 0)
 		{
 			// get the distance between the entity and the camera
 			geVec3d CamPosition;
@@ -1803,24 +1809,24 @@ bool CStaticMesh::CollisionCheck(geVec3d *Min, geVec3d *Max,
 			geXForm3d_Transform(&thePosition, &(m_MeshList[pMesh->ListIndex]->OBBox[0].Center), &Center);
 			float dist = (geVec3d_DistanceBetween(&CamPosition, &Center) / CCD->CameraManager()->AmtZoom());
 
-			if(CCD->GetLODdistance(0) != 0 && dist > CCD->GetLODdistance(0))
+			if(CCD->Level()->GetLODdistance(0) != 0 && dist > CCD->Level()->GetLODdistance(0))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[1])
 					LOD = 1;
 			}
-			if(CCD->GetLODdistance(1) != 0 && dist > CCD->GetLODdistance(1))
+			if(CCD->Level()->GetLODdistance(1) != 0 && dist > CCD->Level()->GetLODdistance(1))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[2])
 					LOD = 2;
 			}
-			if(CCD->GetLODdistance(2) != 0 && dist > CCD->GetLODdistance(2))
+			if(CCD->Level()->GetLODdistance(2) != 0 && dist > CCD->Level()->GetLODdistance(2))
 			{
 				if(m_MeshList[pMesh->ListIndex]->Verts[3])
 					LOD = 3;
 			}
-			if(dist < CCD->GetLODdistance(4) || CCD->GetLODdistance(4) == 0)
+			if(dist < CCD->Level()->GetLODdistance(4) || CCD->Level()->GetLODdistance(4) == 0)
 			{
-				if(CCD->GetLODdistance(3) != 0 && dist > CCD->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
+				if(CCD->Level()->GetLODdistance(3) != 0 && dist > CCD->Level()->GetLODdistance(3) && m_MeshList[pMesh->ListIndex]->LODBitmap)
 					LOD = 4;
 			}
 			else

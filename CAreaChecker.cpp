@@ -7,7 +7,9 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CAreaChecker.h"
+#include "CPawnManager.h"
 
 /* ------------------------------------------------------------------------------------ */
 // Constructor
@@ -65,14 +67,7 @@ void CAreaChecker::Tick(geFloat /*dwTicks*/)
 			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &cPos);
 		}
 
-		if(IsCloseEnough(S->origin, cPos, S->Diameter))
-		{
-			CCD->Pawns()->AddEvent(S->Trigger, true);
-		}
-		else
-		{
-			CCD->Pawns()->AddEvent(S->Trigger, false);
-		}
+		CCD->Level()->Pawns()->AddEvent(S->Trigger, IsCloseEnough(S->origin, cPos, S->Diameter));
 	}
 }
 

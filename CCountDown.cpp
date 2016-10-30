@@ -5,6 +5,7 @@
  ****************************************************************************************/
 
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CCountDown.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
@@ -130,7 +131,7 @@ void CCountDown::Tick(geFloat dwTicks)
 							Snd Sound;
 							memset(&Sound, 0, sizeof(Sound));
 							CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &(Sound.Pos));
-							Sound.Min=CCD->GetAudibleRadius();
+							Sound.Min = CCD->Level()->GetAudibleRadius();
 							Sound.Loop = GE_TRUE;
 							Sound.SoundDef = SPool_Sound(pItem->SoundFile);
 							pItem->index = CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&Sound));

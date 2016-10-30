@@ -9,6 +9,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "CInventory.h"
 #include "CArmour.h"
 #include "CDamage.h"
@@ -329,13 +330,13 @@ void CDamage::Tick(geFloat dwTicks)
 
 				if(!EffectC_IsStringNull(pDestroy->szSoundFile))
 				{
-					Snd Sound;
-					memset(&Sound, 0, sizeof(Sound));
-					geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, &(Sound.Pos));
-					Sound.Min = CCD->GetAudibleRadius();
-					Sound.Loop = GE_FALSE;
-					Sound.SoundDef = SPool_Sound(pDestroy->szSoundFile);
-					CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
+					Snd sound;
+					memset(&sound, 0, sizeof(sound));
+					geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, &sound.Pos);
+					sound.Min = CCD->Level()->GetAudibleRadius();
+					sound.Loop = GE_FALSE;
+					sound.SoundDef = SPool_Sound(pDestroy->szSoundFile);
+					CCD->EffectManager()->Item_Add(EFF_SND, static_cast<void*>(&sound));
 				}
 			}
 		}

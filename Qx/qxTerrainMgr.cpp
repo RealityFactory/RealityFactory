@@ -13,6 +13,8 @@
 
 #include "..\\RabidFramework.h"
 #include "..\\CScriptManager.h"
+#include "..\\CLevel.h"
+
 #include "qxTerrainMgr.h"
 #include "qxTerrainUtils.h"
 #include "qxTerrainMap.h"
@@ -1081,7 +1083,7 @@ void qxTerrainMgr::UpdateFog()
 		m_CurrentSkyColor.SetS(s);
 
 		CCD->Engine()->SetFogParameters(m_CurrentSkyColor.rgba, fFogStart, fFogEnd);
-		CCD->Player()->ShowFog();
+		CCD->Level()->ShowFog();
 	}
 }
 
