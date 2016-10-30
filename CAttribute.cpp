@@ -404,6 +404,8 @@ void CAttribute::Tick(geFloat dwTicks)
 									theInv->Modify(pSource->Attribute, pSource->Amount);
 							}
 
+							sxInventory::GetSingletonPtr()->UpdateItem(pSource->Attribute, true);
+
 							pSource->active = GE_TRUE;
 						}
 					}
@@ -484,6 +486,8 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 						flag = true;
 					}
 				}
+
+				sxInventory::GetSingletonPtr()->UpdateItem(pSource->AttributeName, true);
 			}
 		}
 
@@ -517,6 +521,8 @@ bool CAttribute::HandleCollision(geActor *theTarget, geActor *pActor, bool UseKe
 							flag = true;
 						}
 					}
+
+					sxInventory::GetSingletonPtr()->UpdateItem(pSource->AttributeAltName, true);
 				}
 			}
 		}
