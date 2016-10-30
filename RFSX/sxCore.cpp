@@ -11,6 +11,7 @@
 #include "sxNew.h"
 #include "sxFile.h"
 #include "sxMath.h"
+#include "sxDialogState.h"
 #include "CEGUI/sxCEGUI.h"
 
 namespace RFSX
@@ -55,6 +56,7 @@ void Install(skInterpreter* Interp)
 	SX_INSTALL_LIB(New);
 	SX_INSTALL_LIB(File);
 	SX_INSTALL_LIB(Math);
+	SX_INSTALL_LIB(DialogState);
 	SX_INSTALL_LIB(GUI);
 
 	called = true;
