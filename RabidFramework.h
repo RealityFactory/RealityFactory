@@ -78,6 +78,7 @@ enum
 #define SAFE_DELETE_A(p)	{ delete[] (p);	(p)=NULL; }
 #define SAFE_FREE(p)		{ free(p);		(p)=NULL; }
 
+#include <CEGUI.h>	// include before windows.h or you'll get messages about undefining min/max
 #include <windows.h>
 #include <stdlib.h>
 
