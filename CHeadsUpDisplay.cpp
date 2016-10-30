@@ -12,6 +12,7 @@
 // Include the One True Header
 #include "RabidFramework.h"
 #include "IniFile.h"
+#include "CGUIManager.h"
 #include "CHeadsUpDisplay.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
@@ -916,9 +917,13 @@ int CHeadsUpDisplay::Render()
 					nValue = CCD->Player()->LightValue();
 				}
 
-				char szBug[256];
-				sprintf(szBug, m_theHUD[nItem].format, nValue);
-				CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, 255.0f);
+				char szText[256];
+				sprintf(szText, m_theHUD[nItem].format, nValue);
+				CEGUI::Rect draw_area(	static_cast<float>(m_theHUD[nItem].nLeft + m_theHUD[nItem].iLeftOffset),
+										static_cast<float>(m_theHUD[nItem].nTop  + m_theHUD[nItem].iTopOffset),
+										CCD->Engine()->Width() - 1.f,
+										CCD->Engine()->Height()- 1.f);
+				CCD->GUIManager()->DrawText(szText, m_theHUD[nItem].font, draw_area, 1.0f);
 
 				break;
 			}
@@ -934,10 +939,14 @@ int CHeadsUpDisplay::Render()
 												ZDEPTH11);
 				}
 
-				char szBug[256];
+				char szText[256];
 				geVec3d Pos = CCD->Player()->Position();
-				sprintf(szBug, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
-				CCD->MenuManager()->WorldFontRect(szBug, (int)m_theHUD[nItem].PixelsPerIncrement, m_theHUD[nItem].nLeft+m_theHUD[nItem].iLeftOffset, m_theHUD[nItem].nTop+m_theHUD[nItem].iTopOffset, 255.0f);
+				sprintf(szText, m_theHUD[nItem].format, Pos.X, Pos.Y, Pos.Z);
+				CEGUI::Rect draw_area(	static_cast<float>(m_theHUD[nItem].nLeft + m_theHUD[nItem].iLeftOffset),
+										static_cast<float>(m_theHUD[nItem].nTop  + m_theHUD[nItem].iTopOffset),
+										CCD->Engine()->Width() - 1.f,
+										CCD->Engine()->Height()- 1.f);
+				CCD->GUIManager()->DrawText(szText, m_theHUD[nItem].font, draw_area, 1.0f);
 
 				break;
 			}

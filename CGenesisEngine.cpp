@@ -13,6 +13,7 @@
 #include "CFileManager.h"
 #include "AutoSelect.h"
 #include "resource.h"
+#include "CGUIManager.h"
 
 
 /* ------------------------------------------------------------------------------------ */
@@ -66,21 +67,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				geEngine_UpdateWindow(CCD->Engine()->Engine());
 			return 0;
 		}
-    }
-/*
-	if(iMessage == WM_CHAR)
-	{
-		if(CCD->GetConsole())
+	case WM_CHAR:
 		{
-			char chCharCode = (TCHAR) wParam;
-			int key = (lParam>>16) & 255;
-
-			char szBug[255];
-			sprintf(szBug,"%x", key);
-			CCD->ReportError(szBug, false);
+			if(CCD->GUIManager())
+				CCD->GUIManager()->Char((unsigned long)wParam);
+			return 0;
 		}
 	}
-*/
+
 	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
@@ -97,8 +91,6 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 {
 	WNDCLASS wc;
 	HWND hWnd;
-
-	unlink(".\\RealityFactory.log");			// Gun old log file
 
 	m_nWidth			= nWidth;
 	m_nHeight			= nHeight;
@@ -219,7 +211,18 @@ CGenesisEngine::CGenesisEngine(bool fFullScreen, int nWidth, int nHeight,
 		exit(-2);
 	}
 
-	m_DebugEnabled = false;							// No debug by default
+	m_DummyWorld = geWorld_Create(NULL);
+	if(!m_DummyWorld)
+	{
+		CCD->Log()->Error("File %s - Line %d: Failed to create dummy World!",
+								__FILE__, __LINE__);
+	}
+
+	if(geEngine_AddWorld(m_Engine, m_DummyWorld) == GE_FALSE)
+	{
+		CCD->Log()->Error("File %s - Line %d: Failed to add dummy World to Engine!",
+								__FILE__, __LINE__);
+	}
 
 	//	Now set up the sound system.
 	m_Audio = geSound_CreateSoundSystem(m_wndMain);
@@ -254,6 +257,8 @@ CGenesisEngine::~CGenesisEngine()
 	if(m_World != NULL)
 		geEngine_RemoveWorld(m_Engine, m_World);
 
+	if(m_DummyWorld != NULL)
+		geEngine_RemoveWorld(m_Engine, m_DummyWorld);
 
 	if(m_Engine != NULL)
 	{
