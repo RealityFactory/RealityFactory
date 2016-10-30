@@ -7,7 +7,7 @@
 #include <malloc.h>
 #include <memory>
 #include <tchar.h>
-#include "genesis.h"
+#include <Genesis.h>
 #include "CNetBuffer.h"
 
 /* ------------------------------------------------------------------------------------ */

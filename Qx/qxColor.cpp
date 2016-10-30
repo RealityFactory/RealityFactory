@@ -28,7 +28,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "genesis.h"
+#include <Genesis.h>
 #include "qxColor.h"
 
 #ifndef QXASSERT

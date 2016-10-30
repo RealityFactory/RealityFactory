@@ -15,7 +15,7 @@
 #ifndef __RGF_GAMEENTITYDATATYPES_H_
 #define __RGF_GAMEENTITYDATATYPES_H_
 
-#include "genesis.h"
+#include <Genesis.h>
 
 //	Typedefs
 

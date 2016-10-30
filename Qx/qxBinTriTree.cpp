@@ -9,7 +9,7 @@
 
 #include <math.h>
 #include <algorithm>
-#include "genesis.h"
+#include <Genesis.h>
 #include "qxBinTriTree.h"
 #include "qxTerrainVert.h"
 #include "qxTerrainTile.h"

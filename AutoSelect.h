@@ -15,7 +15,7 @@
 #ifndef AUTOSELECT_H
 #define AUTOSELECT_H
 
-#include "genesis.h"
+#include <Genesis.h>
 
 #ifdef __cplusplus
 extern "C" {

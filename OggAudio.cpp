@@ -5,7 +5,7 @@
  ****************************************************************************************/
 
 #include <dsound.h>
-#include <genesis.h>
+#include <Genesis.h>
 #include "RGFStatus.h"
 #include "RGFConstants.h"
 #include "CLog.h"

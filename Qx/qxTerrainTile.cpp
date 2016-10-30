@@ -7,7 +7,7 @@
 // Copyright 2000 Quixotic, Inc.  All Rights Reserved.
 //////////////////////////////////////////////////////////////////////
 
-#include "genesis.h"
+#include <Genesis.h>
 #include "qxTerrainMapBase.h"
 #include "qxBinTriTree.h"
 #include "qxTerrainPoly.h"
