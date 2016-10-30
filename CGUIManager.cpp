@@ -1,5 +1,5 @@
 /************************************************************************************//**
- * @file CGUIManager.h
+ * @file CGUIManager.cpp
  * @brief Implementation of GUI Manager
  * @author Daniel Queteschiner
  * @date July 2009
