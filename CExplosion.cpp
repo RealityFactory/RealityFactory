@@ -12,420 +12,125 @@
 #include "RabidFramework.h"
 #include <Ram.h>
 #include "IniFile.h"
+#include "CLevel.h"
 #include "CDamage.h"
 
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-CExplosionInit::CExplosionInit()
+CExplosionManager::CExplosionManager()
 {
-	int i;
+	CIniFile iniFile("explosion.ini");
 
-	for(i=0; i<MAXEXP; i++)
-	{
-		Explosions[i].Active = GE_FALSE;
-
-		for(int j=0; j<10; j++)
-		{
-			Explosions[i].Effect[j][0] = '\0';
-			Explosions[i].Delay[j] = 0.0f;
-			Explosions[i].Offset[j].X = 0.0f;
-			Explosions[i].Offset[j].Y = 0.0f;
-			Explosions[i].Offset[j].Z = 0.0f;
-		}
-	}
-
-	Bottom = NULL;
-
-	CIniFile AttrFile("explosion.ini");
-
-	if(!AttrFile.ReadFile())
+	if(!iniFile.ReadFile())
 	{
 		CCD->Log()->Warning("Failed to open explosion.ini file");
 		return;
 	}
 
-	std::string KeyName = AttrFile.FindFirstKey();
-	std::string Type;
-	int effptr = 0;
-	int expptr = 0;
+	std::string explosionName = iniFile.FindFirstKey();
 
-	while(KeyName != "")
+	while(!explosionName.empty())
 	{
-		std::string Ename, Vector;
-		char szName[64];
-
-		strcpy(Explosions[expptr].Name, KeyName.c_str());
-		Ename = AttrFile.GetValue(KeyName, "effect0");
-
-		if(Ename != "")
+		if(m_Explosions.find(explosionName) != m_Explosions.end())
 		{
-			strcpy(Explosions[expptr].Effect[0], Ename.c_str());
-			Explosions[expptr].Delay[0] = (float)AttrFile.GetValueF(KeyName, "delay0");
-
-			Vector = AttrFile.GetValue(KeyName, "offset0");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[0] = Extract(szName);
-			}
+			CCD->Log()->Warning("Redefinition of explosion [" + explosionName + "] in explosion.ini file.");
+			explosionName = iniFile.FindNextKey();
+			continue;
 		}
 
-		Ename = AttrFile.GetValue(KeyName, "effect1");
+		std::string effectName, vector;
+		std::string effect, delay, offset;
 
-		if(Ename != "")
+		m_Explosions[explosionName] = new ExplosionDefinition;
+
+		for(char i=0; i<10; ++i)
 		{
-			strcpy(Explosions[expptr].Effect[1], Ename.c_str());
-			Explosions[expptr].Delay[1] = (float)AttrFile.GetValueF(KeyName, "delay1");
+			char count = '0' + i;
+			effect	= "effect";	effect	+= count;
+			delay	= "delay";	delay	+= count;
+			offset	= "offset";	offset	+= count;
 
-			Vector = AttrFile.GetValue(KeyName, "offset1");
+			effectName = iniFile.GetValue(explosionName, effect);
 
-			if(Vector != "")
+			if(!effectName.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[1] = Extract(szName);
-			}
-		}
+				m_Explosions[explosionName]->EffectName[i] = effectName;
+				m_Explosions[explosionName]->Delay[i] = static_cast<float>(iniFile.GetValueF(explosionName, delay));
 
-		Ename = AttrFile.GetValue(KeyName, "effect2");
+				vector = iniFile.GetValue(explosionName, offset);
 
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[2], Ename.c_str());
-			Explosions[expptr].Delay[2] = (float)AttrFile.GetValueF(KeyName, "delay2");
-
-			Vector = AttrFile.GetValue(KeyName, "offset2");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[2] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect3");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[3], Ename.c_str());
-			Explosions[expptr].Delay[3] = (float)AttrFile.GetValueF(KeyName, "delay3");
-
-			Vector = AttrFile.GetValue(KeyName, "offset3");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[3] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect4");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[4], Ename.c_str());
-			Explosions[expptr].Delay[4] = (float)AttrFile.GetValueF(KeyName, "delay4");
-
-			Vector = AttrFile.GetValue(KeyName, "offset4");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[4] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect5");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[5], Ename.c_str());
-			Explosions[expptr].Delay[5] = (float)AttrFile.GetValueF(KeyName, "delay5");
-
-			Vector = AttrFile.GetValue(KeyName, "offset5");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[5] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect6");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[6], Ename.c_str());
-			Explosions[expptr].Delay[6] = (float)AttrFile.GetValueF(KeyName, "delay6");
-
-			Vector = AttrFile.GetValue(KeyName, "offset6");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[6] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect7");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[7], Ename.c_str());
-			Explosions[expptr].Delay[7] = (float)AttrFile.GetValueF(KeyName, "delay7");
-
-			Vector = AttrFile.GetValue(KeyName, "offset7");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[7] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect8");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[8], Ename.c_str());
-			Explosions[expptr].Delay[8] = (float)AttrFile.GetValueF(KeyName, "delay8");
-
-			Vector = AttrFile.GetValue(KeyName, "offset8");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[8] = Extract(szName);
-			}
-		}
-
-		Ename = AttrFile.GetValue(KeyName, "effect9");
-
-		if(Ename != "")
-		{
-			strcpy(Explosions[expptr].Effect[9], Ename.c_str());
-			Explosions[expptr].Delay[9] = (float)AttrFile.GetValueF(KeyName, "delay9");
-
-			Vector = AttrFile.GetValue(KeyName, "offset9");
-
-			if(Vector != "")
-			{
-				strcpy(szName, Vector.c_str());
-				Explosions[expptr].Offset[9] = Extract(szName);
-			}
-		}
-
-		Explosions[expptr].Active = true;
-		expptr+=1;
-
-		KeyName = AttrFile.FindNextKey();
-	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	Destructor
-/* ------------------------------------------------------------------------------------ */
-CExplosionInit::~CExplosionInit()
-{
-	DelayExp *pool, *temp;
-	pool = Bottom;
-
-	while(pool!= NULL)
-	{
-		temp = pool->prev;
-		geRam_Free(pool);
-		pool = temp;
-	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AddExplosion
-/* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
-								  geActor *theActor, const char *theBone)
-{
-	int i;
-
-	for(i=0; i<MAXEXP; i++)
-	{
-		if(Explosions[i].Active)
-		{
-			if(!stricmp(Explosions[i].Name, Name))
-			{
-				for(int j=0; j<10; j++)
+				if(!vector.empty())
 				{
-					if(Explosions[i].Effect[j][0] != '\0')
-					{
-						for(int k=0; k<MAXEXPITEM; k++)
-						{
-							if(CCD->Effect()->EffectActive(k))
-							{
-								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
-								{
-									DelayExp *pool;
-									geXForm3d Xf;
-
-									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
-									memset(pool, 0, sizeof(DelayExp));
-									pool->next = NULL;
-									pool->prev = Bottom;
-
-									if(Bottom != NULL)
-										Bottom->next = pool;
-
-									Bottom = pool;
-									pool->Type = k;
-									pool->Offset = Explosions[i].Offset[j];
-									pool->Delay = Explosions[i].Delay[j];
-									geVec3d_Add(&Position, &(pool->Offset), &(pool->Offset));
-									pool->Attached = false;
-									pool->Actor = theActor;
-
-									if(theActor)
-									{
-										pool->Bone[0] = '\0';
-
-										if(theBone != NULL)
-											strcpy(pool->Bone, theBone);
-
-										if(pool->Bone[0] != '\0')
-											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf);
-										else
-											geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf);
-
-										pool->Position = Xf.Translation;
-										pool->Tilt = false;
-									}
-
-									break;
-								}
-							}
-						}
-					}
+					m_Explosions[explosionName]->Offset[i] = ToVec3d(vector);
 				}
 			}
 		}
+
+		explosionName = iniFile.FindNextKey();
 	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+// Destructor
+/* ------------------------------------------------------------------------------------ */
+CExplosionManager::~CExplosionManager()
+{
+	m_DelayExplosions.clear();
+
+	stdext::hash_map<std::string, ExplosionDefinition*>::iterator iter = m_Explosions.begin();
+
+	for(; iter!=m_Explosions.end(); ++iter)
+	{
+		delete (iter->second);
+	}
+
+	m_Explosions.clear();
 }
 
 
 /* ------------------------------------------------------------------------------------ */
 // AddExplosion
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position,
-								  geActor *theActor, const char *theBone, bool Tilt)
+void CExplosionManager::AddExplosion(const std::string& name, const geVec3d& position,
+									geActor* actor, const char* bone, bool tilt)
 {
-	int i;
-
-	for(i=0; i<MAXEXP; i++)
+	if(m_Explosions.find(name) != m_Explosions.end())
 	{
-		if(Explosions[i].Active)
+		for(int i=0; i<10; ++i)
 		{
-			if(!stricmp(Explosions[i].Name, Name))
+			if(!m_Explosions[name]->EffectName[i].empty())
 			{
-				for(int j=0; j<10; j++)
+				if(CCD->Effect()->EffectExists(m_Explosions[name]->EffectName[i]))
 				{
-					if(Explosions[i].Effect[j][0] != '\0')
+					DelayExp explosion;
+
+					explosion.EffectName = m_Explosions[name]->EffectName[i];
+					explosion.Offset = m_Explosions[name]->Offset[i];
+					geVec3d_Add(&position, &explosion.Offset, &explosion.Offset);
+					explosion.Delay = m_Explosions[name]->Delay[i];
+					explosion.Attached = false;
+					explosion.Actor = actor;
+					explosion.Bone[0] = '\0';
+					explosion.Tilt = tilt;
+
+					if(actor != NULL)
 					{
-						for(int k=0; k<MAXEXPITEM; k++)
-						{
-							if(CCD->Effect()->EffectActive(k))
-							{
-								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
-								{
-									DelayExp *pool;
-									geXForm3d Xf;
+						if(bone != NULL)
+							strcpy(explosion.Bone, bone);
 
-									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
-									memset(pool, 0, sizeof(DelayExp));
-									pool->next = NULL;
-									pool->prev = Bottom;
+						geXForm3d xForm;
 
-									if(Bottom != NULL)
-										Bottom->next = pool;
+						if(explosion.Bone[0] != '\0')
+							geActor_GetBoneTransform(explosion.Actor, explosion.Bone, &xForm);
+						else
+							geActor_GetBoneTransform(explosion.Actor, RootBoneName(explosion.Actor), &xForm);
 
-									Bottom = pool;
-									pool->Type = k;
-									pool->Offset = Explosions[i].Offset[j];
-									pool->Delay = Explosions[i].Delay[j];
-									geVec3d_Add(&Position, &pool->Offset, &pool->Offset);
-									pool->Attached = false;
-									pool->Actor = theActor;
-
-									if(theActor)
-									{
-										pool->Bone[0] = '\0';
-
-										if(theBone != NULL)
-											strcpy(pool->Bone, theBone);
-
-										if(pool->Bone[0] != '\0')
-											geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf);
-										else
-											geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf);
-
-										pool->Position = Xf.Translation;
-										pool->Tilt = Tilt;
-									}
-
-									break;
-								}
-							}
-						}
+						explosion.Position = xForm.Translation;
 					}
-				}
-			}
-		}
-	}
-}
 
-/* ------------------------------------------------------------------------------------ */
-//	AddExplosion
-/* ------------------------------------------------------------------------------------ */
-void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position)
-{
-	int i;
-
-	for(i=0; i<MAXEXP; i++)
-	{
-		if(Explosions[i].Active)
-		{
-			if(!stricmp(Explosions[i].Name, Name))
-			{
-				for(int j=0; j<10; j++)
-				{
-					if(Explosions[i].Effect[j][0] != '\0')
-					{
-						for(int k=0; k<MAXEXPITEM; k++)
-						{
-							if(CCD->Effect()->EffectActive(k))
-							{
-								if(!stricmp(Explosions[i].Effect[j], CCD->Effect()->EffectName(k)))
-								{
-									DelayExp *pool;
-									pool = GE_RAM_ALLOCATE_STRUCT(DelayExp);
-									memset(pool, 0, sizeof(DelayExp));
-									pool->next = NULL;
-									pool->prev = Bottom;
-
-									if(Bottom != NULL)
-										Bottom->next = pool;
-
-									Bottom = pool;
-									pool->Type = k;
-									pool->Offset = Explosions[i].Offset[j];
-									pool->Delay = Explosions[i].Delay[j];
-									pool->Position = Position;
-									pool->Attached = false;
-									pool->Actor = NULL;
-									pool->Bone[0] = '\0';
-
-									break;
-								}
-							}
-						}
-					}
+					m_DelayExplosions.push_back(explosion);
 				}
 			}
 		}
@@ -434,242 +139,203 @@ void CExplosionInit::AddExplosion(const char *Name, const geVec3d &Position)
 
 
 /* ------------------------------------------------------------------------------------ */
-//	UnAttach
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::UnAttach(const geActor *Actor)
+struct isAttachedToActor
 {
-	DelayExp *pool, *temp;
+	isAttachedToActor(const geActor *actor): actor_( actor ) {}
 
-	pool=Bottom;
+	bool operator() (const DelayExp& explosion)
+	{ return (explosion.Attached && explosion.Actor == actor_); }
 
-	while(pool != NULL)
-	{
-		temp = pool->prev;
+	const geActor *actor_;
+};
 
-		if(pool->Attached && pool->Actor)
-		{
-			if(Actor == pool->Actor)
-			{
-				if(Bottom == pool)
-					Bottom = pool->prev;
 
-				if(pool->prev != NULL)
-					pool->prev->next = pool->next;
+/* ------------------------------------------------------------------------------------ */
+// UnAttach
+/* ------------------------------------------------------------------------------------ */
+void CExplosionManager::UnAttach(const geActor *actor)
+{
+	if(!actor) return;
 
-				if(pool->next != NULL)
-					pool->next->prev = pool->prev;
-
-				geRam_Free(pool);
-				pool = NULL;
-			}
-		}
-
-		pool = temp;
-	}
+	m_DelayExplosions.remove_if(isAttachedToActor(actor));
 }
 
 
 /* ------------------------------------------------------------------------------------ */
+// Update
 /* ------------------------------------------------------------------------------------ */
-void CExplosionInit::Tick(geFloat dwTicks)
+void CExplosionManager::Tick(float timeElapsed)
 {
-	DelayExp *pool, *temp;
-	geVec3d Zero = {0.0f, 0.0f, 0.0f};
+	geVec3d zero = {0.0f, 0.0f, 0.0f};
 
-	int count = 0;
-	pool = Bottom;
+	std::list<DelayExp>::iterator explosion = m_DelayExplosions.begin();
 
-	while(pool != NULL)
+	while(explosion!=m_DelayExplosions.end())
 	{
-		temp = pool->prev;
-		count += 1;
-		pool = temp;
-	}
+		explosion->Delay -= timeElapsed * 0.001f;
 
-	pool = Bottom;
-
-	while(pool != NULL)
-	{
-		temp = pool->prev;
-		pool->Delay -= (dwTicks*0.001f);
-
-		if(!pool->Attached)
+		if(!explosion->Attached) // not (yet) attached to any actor
 		{
-			if(pool->Delay <= 0.0f)
+			if(explosion->Delay <= 0.0f) // the waiting has come to an end, it's our turn
 			{
-				if(pool->Actor)
+				if(explosion->Actor) // there's an actor to attach to
 				{
-					geXForm3d Xf;
+					geXForm3d xForm;
 
-					if(pool->Bone[0] != '\0')
-						geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf);
+					if(explosion->Bone[0] != '\0')
+						geActor_GetBoneTransform(explosion->Actor, explosion->Bone, &xForm);
 					else
-						geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf);
+						geActor_GetBoneTransform(explosion->Actor, RootBoneName(explosion->Actor), &xForm);
 
-					geVec3d Position = Xf.Translation;
+					geVec3d position = xForm.Translation;
 
-					geActor_GetBoneTransform(pool->Actor, NULL, &Xf);
+					geActor_GetBoneTransform(explosion->Actor, NULL, &xForm);
 
-					if(pool->Tilt)
-						geXForm3d_RotateX(&Xf, CCD->CameraManager()->GetTilt());
+					if(explosion->Tilt)
+						geXForm3d_RotateX(&xForm, CCD->CameraManager()->GetTilt());
 
-					geVec3d Direction;
-					geXForm3d_GetIn(&Xf, &Direction);
+					geVec3d direction;
+					geXForm3d_GetIn(&xForm, &direction);
 
-					if(!pool->Tilt)
-						geVec3d_Inverse(&Direction);
+					if(!explosion->Tilt)
+						geVec3d_Inverse(&direction);
 
-					geVec3d_AddScaled(&Position, &Direction, pool->Offset.Z, &Position);
+					geVec3d_AddScaled(&position, &direction, explosion->Offset.Z, &position);
 
-					geXForm3d_GetUp(&Xf, &Direction);
-					geVec3d_AddScaled(&Position, &Direction, pool->Offset.Y, &Position);
+					geXForm3d_GetUp(&xForm, &direction);
+					geVec3d_AddScaled(&position, &direction, explosion->Offset.Y, &position);
 
-					geXForm3d_GetLeft(&Xf, &Direction);
-					geVec3d_AddScaled(&Position, &Direction, pool->Offset.X, &Position);
+					geXForm3d_GetLeft(&xForm, &direction);
+					geVec3d_AddScaled(&position, &direction, explosion->Offset.X, &position);
 
-					pool->index = CCD->Effect()->AddEffect(pool->Type, Position, Zero);
+					explosion->index = CCD->Effect()->AddEffect(explosion->EffectName, position, zero);
 
-					pool->Attached = true;
+					explosion->Attached = true;
 
-					int type = CCD->Effect()->EffectType(pool->Type);
+					int type = CCD->Effect()->EffectType(explosion->EffectName);
 
 					switch(type)
 					{
 					case EFF_SPRAY:
-						Spray Sp;
-						geVec3d_Copy(&Position, &(Sp.Source));
-						geXForm3d_Copy(&Xf, &Sp.Xform);
-						CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
+						Spray spray;
+						geVec3d_Copy(&position, &spray.Source);
+						geXForm3d_Copy(&xForm, &spray.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_SPRAY, explosion->index, &spray, SPRAY_SOURCE | SPRAY_DEST);
 						break;
 					case EFF_ACTORSPRAY:
-						ActorSpray aSp;
-						geVec3d_Copy(&Position, &(aSp.Source));
-						geXForm3d_Copy(&Xf, &aSp.Xform);
-						CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
+						ActorSpray aSpray;
+						geVec3d_Copy(&position, &aSpray.Source);
+						geXForm3d_Copy(&xForm, &aSpray.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, explosion->index, &aSpray, SPRAY_SOURCE | SPRAY_DEST);
 						break;
 					case EFF_BOLT:
-						EBolt Bl;
-						geVec3d_Copy(&Position, &(Bl.Start));
-						geXForm3d_Copy(&Xf, &Bl.Xform);
-						CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
+						EBolt bolt;
+						geVec3d_Copy(&position, &(bolt.Start));
+						geXForm3d_Copy(&xForm, &bolt.Xform);
+						CCD->EffectManager()->Item_Modify(EFF_BOLT, explosion->index, &bolt, BOLT_START | BOLT_ENDOFFSET);
 						break;
 					}
 				}
 				else // explosion remains unattached
 				{
-					pool->index = CCD->Effect()->AddEffect(pool->Type, pool->Position, pool->Offset);
+					// go, spread your wings ...
+					explosion->index = CCD->Effect()->AddEffect(explosion->EffectName, explosion->Position, explosion->Offset);
 
-					if(Bottom == pool)
-						Bottom = pool->prev;
-
-					if(pool->prev != NULL)
-						pool->prev->next = pool->next;
-
-					if(pool->next != NULL)
-						pool->next->prev = pool->prev;
-
-					geRam_Free(pool);
-					pool = NULL;
+					m_DelayExplosions.erase(explosion++);
+					continue;
 				}
 			}
 		}
 		else // currently attached to an actor
 		{
 			// update position if still alive
-			if(CCD->EffectManager()->Item_Alive(pool->index) && pool->Actor)
+			if(CCD->EffectManager()->Item_Alive(explosion->index) && explosion->Actor)
 			{
-				geXForm3d Xf;
+				geXForm3d xForm;
 
-				if(pool->Bone[0] != '\0')
-					geActor_GetBoneTransform(pool->Actor, pool->Bone, &Xf);
+				if(explosion->Bone[0] != '\0')
+					geActor_GetBoneTransform(explosion->Actor, explosion->Bone, &xForm);
 				else
-					geActor_GetBoneTransform(pool->Actor, RootBoneName(pool->Actor), &Xf);
+					geActor_GetBoneTransform(explosion->Actor, RootBoneName(explosion->Actor), &xForm);
 
-				geVec3d Position = Xf.Translation;
+				geVec3d position = xForm.Translation;
 
-				geVec3d Direction;
+				geVec3d direction;
 
-				geActor_GetBoneTransform(pool->Actor, NULL, &Xf);
+				geActor_GetBoneTransform(explosion->Actor, NULL, &xForm);
 
-				if(pool->Tilt)
-					geXForm3d_RotateX(&Xf, CCD->CameraManager()->GetTilt());
+				if(explosion->Tilt)
+					geXForm3d_RotateX(&xForm, CCD->CameraManager()->GetTilt());
 
-				geXForm3d_GetIn(&Xf, &Direction);
+				geXForm3d_GetIn(&xForm, &direction);
 
-				if(!pool->Tilt)
-					geVec3d_Inverse(&Direction);
+				if(!explosion->Tilt)
+					geVec3d_Inverse(&direction);
 
-				geVec3d_AddScaled(&Position, &Direction, pool->Offset.Z, &Position);
+				geVec3d_AddScaled(&position, &direction, explosion->Offset.Z, &position);
 
-				geXForm3d_GetUp(&Xf, &Direction);
-				geVec3d_AddScaled(&Position, &Direction, pool->Offset.Y, &Position);
+				geXForm3d_GetUp(&xForm, &direction);
+				geVec3d_AddScaled(&position, &direction, explosion->Offset.Y, &position);
 
-				geXForm3d_GetLeft(&Xf, &Direction);
-				geVec3d_AddScaled(&Position, &Direction, pool->Offset.X, &Position);
+				geXForm3d_GetLeft(&xForm, &direction);
+				geVec3d_AddScaled(&position, &direction, explosion->Offset.X, &position);
 
-				int type = CCD->Effect()->EffectType(pool->Type);
+				int type = CCD->Effect()->EffectType(explosion->EffectName);
 
 				switch(type)
 				{
 				case EFF_SPRAY:
-					Spray Sp;
-					geVec3d_Copy(&Position, &(Sp.Source));
-					geXForm3d_Copy(&Xf, &Sp.Xform);
-					CCD->EffectManager()->Item_Modify(EFF_SPRAY, pool->index, &Sp, SPRAY_SOURCE | SPRAY_DEST);
+					Spray spray;
+					geVec3d_Copy(&position, &spray.Source);
+					geXForm3d_Copy(&xForm, &spray.Xform);
+					CCD->EffectManager()->Item_Modify(EFF_SPRAY, explosion->index, &spray, SPRAY_SOURCE | SPRAY_DEST);
 					break;
 				case EFF_LIGHT:
-					Glow Lite;
-					geVec3d_Copy(&Position, &(Lite.Pos));
-					CCD->EffectManager()->Item_Modify(EFF_LIGHT, pool->index, &Lite, GLOW_POS);
+					Glow light;
+					geVec3d_Copy(&position, &light.Pos);
+					CCD->EffectManager()->Item_Modify(EFF_LIGHT, explosion->index, &light, GLOW_POS);
 					break;
 				case EFF_SND:
-					Snd Sound;
-					geVec3d_Copy(&Position, &(Sound.Pos));
-					CCD->EffectManager()->Item_Modify(EFF_SND, pool->index, &Sound, SND_POS);
+					Snd sound;
+					geVec3d_Copy(&position, &sound.Pos);
+					CCD->EffectManager()->Item_Modify(EFF_SND, explosion->index, &sound, SND_POS);
 					break;
 				case EFF_SPRITE:
-					Sprite S;
-					geVec3d_Copy(&Position, &(S.Pos));
-					CCD->EffectManager()->Item_Modify(EFF_SPRITE, pool->index, &S, SPRITE_POS);
+					Sprite sprite;
+					geVec3d_Copy(&position, &sprite.Pos);
+					CCD->EffectManager()->Item_Modify(EFF_SPRITE, explosion->index, &sprite, SPRITE_POS);
 					break;
 				case EFF_CORONA:
-					EffCorona C;
-					C.Vertex.X = Position.X;
-					C.Vertex.Y = Position.Y;
-					C.Vertex.Z = Position.Z;
-					CCD->EffectManager()->Item_Modify(EFF_CORONA, pool->index, &C, CORONA_POS);
+					EffCorona corona;
+					corona.Vertex.X = position.X;
+					corona.Vertex.Y = position.Y;
+					corona.Vertex.Z = position.Z;
+					CCD->EffectManager()->Item_Modify(EFF_CORONA, explosion->index, &corona, CORONA_POS);
 					break;
 				case EFF_BOLT:
-					EBolt Bl;
-					geVec3d_Copy(&Position, &(Bl.Start));
-					geXForm3d_Copy(&Xf, &Bl.Xform);
-					CCD->EffectManager()->Item_Modify(EFF_BOLT, pool->index, &Bl, BOLT_START | BOLT_ENDOFFSET);
+					EBolt bolt;
+					geVec3d_Copy(&position, &bolt.Start);
+					geXForm3d_Copy(&xForm, &bolt.Xform);
+					CCD->EffectManager()->Item_Modify(EFF_BOLT, explosion->index, &bolt, BOLT_START | BOLT_ENDOFFSET);
 					break;
 				case EFF_ACTORSPRAY:
-					ActorSpray aSp;
-					geVec3d_Copy(&Position, &(aSp.Source));
-					geXForm3d_Copy(&Xf, &aSp.Xform);
-					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, pool->index, &aSp, SPRAY_SOURCE | SPRAY_DEST);
+					ActorSpray aSpray;
+					geVec3d_Copy(&position, &aSpray.Source);
+					geXForm3d_Copy(&xForm, &aSpray.Xform);
+					CCD->EffectManager()->Item_Modify(EFF_ACTORSPRAY, explosion->index, &aSpray, SPRAY_SOURCE | SPRAY_DEST);
 					break;
 				}
 			}
 			else // effect is dead, remove element from list
 			{
-				if(Bottom == pool)
-					Bottom = pool->prev;
-
-				if(pool->prev != NULL)
-					pool->prev->next = pool->next;
-
-				if(pool->next != NULL)
-					pool->next->prev = pool->prev;
-
-				geRam_Free(pool);
-				pool = NULL;
+				// alternatively, explosion = m_DelayExplosions.erase(explosion);
+				m_DelayExplosions.erase(explosion++);
+				continue;
 			}
 		}
 
-		pool = temp;
+		++explosion;
 	}
 }
 
@@ -680,7 +346,6 @@ void CExplosionInit::Tick(geFloat dwTicks)
 CExplosion::CExplosion()
 {
 	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
 
 	// Ok, see if we have any Explosion entities at all
 	pSet = geWorld_GetEntitySet(CCD->World(), "Explosion");
@@ -688,22 +353,24 @@ CExplosion::CExplosion()
 	if(!pSet)
 		return;
 
+	geEntity *entity;
+
 	// Look through all of our Explosions
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	for(entity=geEntity_EntitySetGetNextEntity(pSet, NULL); entity;
+		entity=geEntity_EntitySetGetNextEntity(pSet, entity))
 	{
-		Explosion *pSource = (Explosion*)geEntity_GetUserData(pEntity);
+		Explosion *explosion = static_cast<Explosion*>(geEntity_GetUserData(entity));
 
-		pSource->OriginOffset = pSource->origin;
+		explosion->OriginOffset = explosion->origin;
 
-		if(pSource->Model)
+		if(explosion->Model)
 		{
-			geVec3d ModelOrigin;
-	    	geWorld_GetModelRotationalCenter(CCD->World(), pSource->Model, &ModelOrigin);
-			geVec3d_Subtract(&pSource->origin, &ModelOrigin, &pSource->OriginOffset);
-  		}
+			geVec3d modelOrigin;
+			geWorld_GetModelRotationalCenter(CCD->World(), explosion->Model, &modelOrigin);
+			geVec3d_Subtract(&explosion->origin, &modelOrigin, &explosion->OriginOffset);
+		}
 
-		pSource->active = GE_FALSE;
+		explosion->active = GE_FALSE;
 	}
 }
 
@@ -719,72 +386,82 @@ CExplosion::~CExplosion()
 /* ------------------------------------------------------------------------------------ */
 // Tick
 /* ------------------------------------------------------------------------------------ */
-void CExplosion::Tick(geFloat dwTicks)
+void CExplosion::Tick(float /*timeElapsed*/)
 {
-	geEntity *pEntity;
-
 	// Check to see if there are Explosions in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Explosion");
 
 	if(pSet)
 	{
-		//	Ok, we have Explosions somewhere.  Dig through 'em all.
-		for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-			pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+		geEntity *entity;
+
+		// Ok, we have Explosions somewhere. Dig through 'em all.
+		for(entity=geEntity_EntitySetGetNextEntity(pSet, NULL); entity;
+			entity=geEntity_EntitySetGetNextEntity(pSet, entity))
 		{
-			Explosion *pSource = (Explosion*)geEntity_GetUserData(pEntity);
+			Explosion *explosion = static_cast<Explosion*>(geEntity_GetUserData(entity));
 
-			pSource->origin = pSource->OriginOffset;
-			SetOriginOffset(pSource->EntityName, pSource->BoneName, pSource->Model, &(pSource->origin));
+			explosion->origin = explosion->OriginOffset;
+			SetOriginOffset(explosion->EntityName, explosion->BoneName, explosion->Model, &explosion->origin);
 
-			if(!EffectC_IsStringNull(pSource->TriggerName))
+			if(!EffectC_IsStringNull(explosion->TriggerName))
 			{
-				if(GetTriggerState(pSource->TriggerName))
+				if(GetTriggerState(explosion->TriggerName))
 				{
-					if(pSource->active == GE_FALSE)
+					if(explosion->active == GE_FALSE)
 					{
-						CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
+						CCD->Level()->ExplosionManager()->AddExplosion(explosion->ExplosionName, explosion->origin);
 
-						if(pSource->ShakeAmt > 0.0f)
-							CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
+						if(explosion->ShakeAmt > 0.0f)
+							CCD->CameraManager()->SetShake(explosion->ShakeAmt, explosion->ShakeDecay, explosion->origin);
 
-						pSource->active = GE_TRUE;
+						explosion->active = GE_TRUE;
 
-						if(!EffectC_IsStringNull(pSource->DamageAttribute))
+						if(!EffectC_IsStringNull(explosion->DamageAttribute))
 						{
-							if(pSource->Radius > 0.0f)
+							if(explosion->Radius > 0.0f)
 							{
-								CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
-								CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+								CCD->Level()->Damage()->DamageActorInRange(explosion->origin, explosion->Radius,
+													explosion->DamageAmt, explosion->DamageAttribute,
+													explosion->DamageAltAmt, explosion->DamageAltAttribute,
+													"Explosion");
+								CCD->Level()->Damage()->DamageModelInRange(explosion->origin, explosion->Radius,
+													explosion->DamageAmt, explosion->DamageAttribute,
+													explosion->DamageAltAmt, explosion->DamageAltAttribute);
 							}
 						}
 					}
 				}
 				else
 				{
-					if(pSource->active == GE_TRUE)
+					if(explosion->active == GE_TRUE)
 					{
-						pSource->active = GE_FALSE;
+						explosion->active = GE_FALSE;
 					}
 				}
 			}
 			else
 			{
-				if(pSource->active == GE_FALSE)
+				if(explosion->active == GE_FALSE)
 				{
-					CCD->Explosions()->AddExplosion(pSource->ExplosionName, pSource->origin);
+					CCD->Level()->ExplosionManager()->AddExplosion(explosion->ExplosionName, explosion->origin);
 
-					if(pSource->ShakeAmt > 0.0f)
-						CCD->CameraManager()->SetShake(pSource->ShakeAmt, pSource->ShakeDecay, pSource->origin);
+					if(explosion->ShakeAmt > 0.0f)
+						CCD->CameraManager()->SetShake(explosion->ShakeAmt, explosion->ShakeDecay, explosion->origin);
 
-					pSource->active = GE_TRUE;
+					explosion->active = GE_TRUE;
 
-					if(!EffectC_IsStringNull(pSource->DamageAttribute))
+					if(!EffectC_IsStringNull(explosion->DamageAttribute))
 					{
-						if(pSource->Radius > 0.0f)
+						if(explosion->Radius > 0.0f)
 						{
-							CCD->Damage()->DamageActorInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute, "Explosion");
-							CCD->Damage()->DamageModelInRange(pSource->origin, pSource->Radius, pSource->DamageAmt, pSource->DamageAttribute, pSource->DamageAltAmt, pSource->DamageAltAttribute);
+							CCD->Level()->Damage()->DamageActorInRange(explosion->origin, explosion->Radius,
+													explosion->DamageAmt, explosion->DamageAttribute,
+													explosion->DamageAltAmt, explosion->DamageAltAttribute,
+													"Explosion");
+							CCD->Level()->Damage()->DamageModelInRange(explosion->origin, explosion->Radius,
+													explosion->DamageAmt, explosion->DamageAttribute,
+													explosion->DamageAltAmt, explosion->DamageAltAttribute);
 						}
 					}
 				}

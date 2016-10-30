@@ -12,57 +12,98 @@
 #ifndef __RGF_EXPMANAGER_H_
 #define __RGF_EXPMANAGER_H_
 
-#define MAXEXP 50
+#include <hash_map>
+#include <list>
 
 /**
  * @brief Predefined explosion
  */
-typedef struct preExplosion
+typedef struct ExplosionDefinition
 {
-	geBoolean	Active;
-	char		Name[64];
-	char		Effect[10][64];
 	float		Delay[10];
 	geVec3d		Offset[10];
+	std::string	EffectName[10];
 
-} preExplosion;
+} ExplosionDefinition;
+
 
 typedef struct DelayExp
 {
-	DelayExp	*prev;
-	DelayExp	*next;
-	int			Type;
 	geVec3d		Position;
 	geVec3d		Offset;
 	float		Delay;
 	bool		Attached;
-	geActor		*Actor;
+	geActor*	Actor;
 	char		Bone[64];
 	int			index;
 	bool		Tilt;
+	std::string	EffectName;
+
+	DelayExp() :
+		Delay(0.f),
+		Attached(false),
+		Actor(NULL),
+		index(0),
+		Tilt(false)
+	{
+		geVec3d_Clear(&Position);
+		geVec3d_Clear(&Offset);
+	    Bone[0] = 0;
+	}
+
+	// copy constructor
+	DelayExp(const DelayExp& other) :
+		Position(other.Position),
+		Offset(other.Offset),
+		Delay(other.Delay),
+		Attached(other.Attached),
+		Actor(other.Actor),
+		index(other.index),
+		Tilt(other.Tilt),
+		EffectName(other.EffectName)
+	{
+		strcpy(Bone, other.Bone);
+	}
+	//assignment operator
+	DelayExp& operator=(const DelayExp& other)
+	{
+		Position = other.Position;
+		Offset = other.Offset;
+		Delay = other.Delay;
+		Attached = other.Attached;
+		Actor = other.Actor;
+		strcpy(Bone, other.Bone);
+		index = other.index;
+		Tilt = other.Tilt;
+		EffectName = other.EffectName;
+		return *this;
+	}
+
 
 } DelayExp;
 
+
 /**
- * @brief CExplosionInit handles predefined explosion effects
+ * @brief CExplosionManager handles predefined explosion effects
  */
-class CExplosionInit : public CRGFComponent
+class CExplosionManager : public CRGFComponent
 {
 public:
-	CExplosionInit();
-	~CExplosionInit();
+	CExplosionManager();
+	~CExplosionManager();
 
-	void AddExplosion(const char *Name, const geVec3d &Position, geActor *theActor, const char *theBone);
-	void AddExplosion(const char *Name, const geVec3d &Position, geActor *theActor, const char *theBone, bool Tilt);
-	void AddExplosion(const char *Name, const geVec3d &Position);
-	void Tick(geFloat dwTicks);
-	void UnAttach(const geActor *Actor);
+	void AddExplosion(const std::string& name, const geVec3d& position,
+		geActor* actor = NULL, const char* bone = NULL, bool tilt = false);
+
+	void Tick(float timeElapsed);
+
+	void UnAttach(const geActor* actor);
 
 private:
-
-	preExplosion Explosions[MAXEXP];
-	DelayExp *Bottom;
+	stdext::hash_map<std::string, ExplosionDefinition*> m_Explosions;
+	std::list<DelayExp> m_DelayExplosions;
 };
+
 
 /**
  * @brief CExplosion handles Explosion entities
@@ -73,7 +114,7 @@ public:
 	CExplosion();
 	~CExplosion();
 
-	void Tick(geFloat dwTicks);
+	void Tick(float timeElapsed);
 };
 
 #endif
