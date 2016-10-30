@@ -124,6 +124,8 @@ void CChangeAttribute::Tick(geFloat dwTicks)
 					pSource->active = GE_FALSE;
 					continue;
 				}
+
+				sxInventory::GetSingletonPtr()->UpdateItem(pSource->Attribute, true);
 			}
 		}
 	}
