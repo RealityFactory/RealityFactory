@@ -269,11 +269,11 @@ typedef	struct	Particle_System	Particle_System;
 
 typedef struct Eff_Item
 {
-	geBoolean	Active;
 	int			Type;
-	void		*Data;
+	geBoolean	Active;
 	geBoolean	Pause;
 	geBoolean	RemoveNext;
+	void		*Data;
 
 } Eff_Item;
 
