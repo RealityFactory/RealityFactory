@@ -312,10 +312,10 @@ bool NetPlayerMgr::Initialize(bool server, char *serverip)
 int NetPlayerMgr::ReadBuffer(NetBuffer *Buff, NLsocket socket)
 {
 	char bufferlen[10];
-	int readlen;
+	int readlen = nlRead(socket, bufferlen, 4);
 
 	// first 4 bytes are length of following data
-	if(readlen = nlRead(socket, bufferlen, 4) > 0)
+	if(readlen > 0)
 	{
 		int rv;
 		memcpy(&rv, bufferlen, sizeof(int)); // convert to integer value
