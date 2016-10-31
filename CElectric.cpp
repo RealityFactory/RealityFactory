@@ -239,8 +239,6 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 	int		nonDominant2;
 	geVec3d	SubdivideStart;
 	geVec3d	SubdivideEnd;
-	int		LowIndex;
-	int		HighIndex;
 
 	Effect->beStart = *start;
 	Effect->beEnd	= *end;
@@ -325,8 +323,8 @@ void Electric_BoltEffectAnimate(Electric_BoltEffect *Effect,
 	else
 	{
 		Effect->beInitialized = 1;
-		LowIndex = 0;
-		HighIndex = Effect->beNumPoints;
+		int LowIndex = 0;
+		int HighIndex = Effect->beNumPoints;
 		SubdivideStart = *start;
 		SubdivideEnd   = *end;
 
