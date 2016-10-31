@@ -57,7 +57,7 @@ CLiftBelt::~CLiftBelt()
 /* ------------------------------------------------------------------------------------ */
 //	Tick
 /* ------------------------------------------------------------------------------------ */
-void CLiftBelt::Tick(geFloat dwTicks)
+void CLiftBelt::Tick(float timeElapsed)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
@@ -113,7 +113,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 
 							if(pSource->Powerlevel > 0.0f)
 							{
-								pSource->Fuel -= (pSource->PowerUse*dwTicks*0.001f);
+								pSource->Fuel -= (pSource->PowerUse*timeElapsed*0.001f);
 
 								if(pSource->Fuel < 0.0f)
 									pSource->Fuel = 0.0f;
@@ -132,7 +132,7 @@ void CLiftBelt::Tick(geFloat dwTicks)
 							{
 								if(pSource->Powerlevel < pSource->LiftForce)
 								{
-									pSource->Powerlevel += (pSource->AccelRate*dwTicks*0.001f);
+									pSource->Powerlevel += (pSource->AccelRate*timeElapsed*0.001f);
 
 									if(pSource->Powerlevel > pSource->LiftForce)
 										pSource->Powerlevel = pSource->LiftForce;
@@ -185,7 +185,7 @@ void CLiftBelt::ChangeLift(bool increase)
 /* ------------------------------------------------------------------------------------ */
 //	DisableHud
 /* ------------------------------------------------------------------------------------ */
-void CLiftBelt::DisableHud(const char *Attr)
+void CLiftBelt::DisableHud(const std::string& attr)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "LiftBelt");
 
@@ -201,7 +201,7 @@ void CLiftBelt::DisableHud(const char *Attr)
 
 			if(!EffectC_IsStringNull(pSource->EnableAttr))
 			{
-				if(!strcmp(Attr, pSource->EnableAttr))
+				if(attr == pSource->EnableAttr)
 					IsLift = true;
 			}
 		}

@@ -18,11 +18,11 @@ public:
 	CLiftBelt();
 	~CLiftBelt();
 
-	void Tick(geFloat dwTicks);
+	void Tick(float timeElapsed);
 
 	void ChangeLift(bool increase);
 
-	void DisableHud(const char *Attr);
+	void DisableHud(const std::string& attr);
 
 	/**
 	 * @brief Given a name, locate the desired entity in the currently loaded
