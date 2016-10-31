@@ -262,7 +262,7 @@ static void *sock_rpThread(void *p)
     /* allocate memory */
     if(sockets == NULL)
     {
-        sockets = (NLsocket *)malloc(sizeof(NLsocket *) * 16);
+        sockets = (NLsocket *)malloc(sizeof(NLsocket) * 16);
         if(sockets == NULL)
         {
             needThread = NL_TRUE;
@@ -288,7 +288,7 @@ static void *sock_rpThread(void *p)
             {
                 maxsockets *= 2;
             }
-            temp = (NLsocket *)realloc((void *)sockets, sizeof(NLsocket *) * maxsockets);
+            temp = (NLsocket *)realloc((void *)sockets, sizeof(NLsocket) * maxsockets);
             if(temp == NULL)
             {
                 goto cleanup;
