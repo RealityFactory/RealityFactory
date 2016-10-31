@@ -5,16 +5,26 @@
 
 #include "RabidFramework.h"
 #include "Ram.h"
-
-#include "HawkNL\\nl.h"
+#include "CMenuEventHandler.h"
+#include "CFileManager.h"
 #include "IniFile.h"
 #include "Mixer.h"
 #include "CHeadsUpDisplay.h"
 #include "CInventory.h"
+#include "CCharacter.h"
+#include "CGameStateManager.h"
+#include "CPlayState.h"
+#include "CMenuState.h"
+#include "CGUIManager.h"
+#include "CLanguageManager.h"
 #include "CCDAudio.h"
 #include "CMIDIAudio.h"
 
+#include "CLevel.h"
 #include "Qx\\qxTerrainMgr.h"
+
+#include "CEGUI\\CEGUIListBoxTextItemEx.h"
+
 #include "CActMaterial.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
@@ -36,1096 +46,131 @@
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
-// #define BLIT
 
 static void CopyImageFile(const char *srcPath, const char *destPath);
-void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height);
 
-static int GetGammaPercent();
-static void SetGamma(int percent);
-static void SetDetail(int percent);
-static void SetStencilShadows(int current);
-static void SetSens(int percent);
-static void SetVol(int percent);
-static void SetmVol(int percent);
-static void RunJoinGame();
-static void RunHostGame();
-static void RunGame();
-static void SetCDPlayer(int current);
-static void SetReverse(int current);
-static void SetFiltering(int current);
-static void SetBBox(int current);
-static void SetSEBBox(int current);
-static void SetClipping(int current);
-static void ResetAction();
-static void SetSlot();
-static void GetSlot();
-static void PrevChar();
-static void NextChar();
-static void AcceptChar();
-static void SetName();
-static void ResetName();
-static void ChangeMenu();
-static void LanguageRadio(int ID);
-char ServerIP[50];
-char IP[NL_MAX_STRING_LENGTH]="";
-
-#define GAMMAMIN	0.0f
+#define GAMMAMIN	0.2f
 #define GAMMAMAX	2.0f
 
 #define MOUSEMIN	0.0005f
 #define MOUSEMAX	0.005f
 
-#define FADETIME	0.0f
-
-//------------------------------
-// Menu Item Types
-//------------------------------
-typedef enum
-{
-	END_LIST=0,
-	CLICKABLE,
-	SAVEGAMEIMAGE,
-	IMAGE,
-	CHARIMAGE,
-	SLIDER,
-	BOX,
-	RADIO,
-	TEXT,
-	TEXTEDIT,
-	REMAP,
-	SCROLLBAR,
-	LSBOX,
-	EXIT_MENU,
-	CANCEL_MENU
-
-} MENU_ITEM_TYPE;
-
-
-//------------------------------
-// Box On/Off
-//------------------------------
-typedef enum
-{
-	BOX_OFF=0,
-	BOX_ON
-
-} BOX_ON_OFF;
-
-//---------------------------
-// Menu Item Structure
-//---------------------------
-typedef struct MenuItem
-{
-	MENU_ITEM_TYPE Type; // type of item
-	int X;               // X location on screen
-	int Y;               // Y location on screen
-	void *data;          // pointer to item data
-
-} MenuItem;
-
-//---------------------------
-// Clickable menu item
-//---------------------------
-typedef struct Clickable
-{
-	int Width;			// width of graphic
-	int Height;			// height of graphic
-	int Image_Number;	// index of Images bitmap to use
-	int Image_X;		// X location on bitmap of graphic
-	int Image_Y;		// Y location on bitmap of graphic
-	int Mover_X;		// X location of mouse-over graphic
-	int Mover_Y;		// Y location of mouse-over graphic
-	int Action;			// type of action to perform when clicked on
-
-	// Action type 0 - go to another menu
-	// Action type 2 - go to another menu if level is loaded (Save)
-	int title;			// index of title to display
-	int background;		// index of background to use
-	MenuItem *Next;		// menu to go to
-
-	// Action type 1 - execute function
-	// Action type 3 - execute function and clear remap flag
-	// Action type 4 - execute function if SaveBox line is not empty, exit menu when done (Load)
-	void (*proc)();
-	int LoopOnce;		// render screen once more before executing function but without cursor
-	int Animation;
-	int AnimationOver;
-
-} Clickable;
-
-//--------------------------
-// Image menu type
-//--------------------------
-typedef struct Image
-{
-	int Width;			// width of graphic
-	int Height;			// height of graphic
-	int Image_Number;	// index of Images bitmap to use
-	int Image_X;		// X location on bitmap of graphic
-	int Image_Y;		// Y location on bitmap of graphic
-	int Animation;
-
-} Image;
-
-//--------------------------
-// Slider menu type
-//--------------------------
-typedef struct Slider
-{
-	int Width;					// width of graphic
-	int Height;					// height of graphic
-	int Image_Number;			// index of Images bitmap to use
-	int Image_X;				// X location on bitmap of graphic
-	int Image_Y;				// Y location on bitmap of graphic
-	int Min_X;					// distance from origin of slider start
-	int Max_X;					// distance from origin of slider end
-	int On_the_Fly;				// call function each frame = 1
-	int Current;				// inital slider location (Min_X <= >=Max_X)
-	void (*proc)(int percent);	// function to call when slider moves
-	int Animation;
-
-} Slider;
-
-//--------------------------
-// Box menu type
-//--------------------------
-typedef struct Box
-{
-	int Width;					// width of graphic
-	int Height;					// height of graphic
-	int Image_Number;			// index of Images bitmap to use
-	int Image_X;				// X location on bitmap of graphic
-	int Image_Y;				// Y location on bitmap of graphic
-	int Mover_X;				// X location of lit graphic
-	int Mover_Y;				// Y location of lit graphic
-	int Set_X;					// X location of set box graphic
-	int Set_Y;					// Y location of set box graphic
-	int Current;				// state of the box (on/off)
-	void (*proc)(int current);	// function to call when current changes
-	int Animation;
-	int AnimationOver;
-	int AnimationLit;
-
-} Box;
-
-//--------------------------
-// Radio button menu type
-//--------------------------
-typedef struct Radio
-{
-	int Width;				// width of graphic
-	int Height;				// height of graphic
-	int Image_Number;		// index of Images bitmap to use
-	int Image_X;			// X location on bitmap of graphic
-	int Image_Y;			// Y location on bitmap of graphic
-	int Mover_X;			// X location of lit graphic
-	int Mover_Y;			// Y location of lit graphic
-	int Set_X;				// X location of set box graphic
-	int Set_Y;				// Y location of set box graphic
-	int Current;			// state of the box (on/off)
-	int ID;
-	void (*proc)(int ID);	// function to call when current changes
-	int Animation;
-	int AnimationOver;
-	int AnimationLit;
-
-} Radio;
-
-//--------------------------
-// Text menu type
-//--------------------------
-typedef struct Text
-{
-	int Font;			// font to use
-	char *text;			// text to display
-	int ingame;			// display if in game only
-
-} Text;
-
-//--------------------------
-// Save/Load menu info
-//--------------------------
-typedef struct Savedef
-{
-	char *text;			// text to display in line
-	int empty;			// = 0 if unused
-	geBitmap *SGImage;
-
-} Savedef;
-
-//-----------------------------
-// Action codes and their names
-//-----------------------------
-typedef struct Keydef
-{
-	char *text;			// name of action
-	ACTIONCODES	action;	// action value
-
-} Keydef;
-
-//-----------------------------
-// Key codes and their names
-//-----------------------------
-typedef struct Keyname
-{
-	char *text;			// name of key
-	KEYCODES key;		// value of key
-
-} Keyname;
-
-//--------------------------
-// TextEdit menu type
-//--------------------------
-typedef struct TextEdit
-{
-	int Font;			// font to use
-	char text[255];		// text to display
-	int Set_X;			// X location on screen
-	int Set_Y;			// Y location on screen
-	int Width;			// width max of the TextEdit
-	Keyname *keyname;
-
-} TextEdit;
-
-//--------------------------
-// Scroll bar menu type
-//--------------------------
-typedef struct ScrollBar
-{
-	int Image_Number;	// index of Images bitmap to use
-	int Up_X;			// offset to X of up arrow box
-	int Up_Y;			// offset to Y of up arrow box
-	int Up_Width;		// width of up arrow box
-	int Up_Height;		// height of up arrow box
-	int Dwn_X;			// offset to X of down arrow box
-	int Dwn_Y;			// offset to Y of down arrow box
-	int Dwn_Width;		// width of down arrow box
-	int Dwn_Height;		// height of down arrow box
-	int Up_Nor_X;		// X location of up normal bitmap of graphic
-	int Up_Nor_Y;		// Y location of up normal bitmap of graphic
-	int Dwn_Nor_X;		// X location of dwn normal bitmap of graphic
-	int Dwn_Nor_Y;		// Y location of dwn normal bitmap of graphic
-	int Up_Lit_X;		// X location of up lit bitmap of graphic
-	int Up_Lit_Y;		// Y location of up lit bitmap of graphic
-	int Up_Push_X;		// X location of up pushed bitmap of graphic
-	int Up_Push_Y;		// Y location of up pushed bitmap of graphic
-	int Dwn_Lit_X;		// X location of down lit bitmap of graphic
-	int Dwn_Lit_Y;		// Y location of down lit bitmap of graphic
-	int Dwn_Push_X;		// X location of down pushed bitmap of graphic
-	int Dwn_Push_Y;		// Y location of down pushed bitmap of graphic
-	int *Max;			// pointer to max value of scroll bar
-	int *Current;		// pointer to current value of scroll bar
-	int Show;			// maximum # of lines that show on screen
-	int AnimationUp;
-	int AnimationUpOver;
-	int AnimationUpPush;
-	int AnimationDwn;
-	int AnimationDwnOver;
-	int AnimationDwnPush;
-
-} ScrollBar;
-
-//--------------------------
-// Remap menu type
-//--------------------------
-typedef struct Remap
-{
-	int Width;			// width of graphic
-	int Height;			// height of graphic
-	int Image_Number;	// index of Images bitmap to use
-	int Image_X;		// X location on bitmap of graphic
-	int Image_Y;		// Y location on bitmap of graphic
-
-	int Start_X;		// upper left corner offset of line text
-	int Start_Y;
-	int Step;			// height of line
-	int Max_Show;		// max lines to display
-	Keydef *keydef;		// lines to display
-	Keyname *keyname;
-	int Key_X;			// offset from Start_X to key code text
-
-	int Start;			// first line to display
-	int Max;			// max # of lines - is calculated
-	int Current;		// current line highlighted
-	int Corner_X;		// upper left corner of highlight bar
-	int Corner_Y;
-	int Click_Width;	// width of clickable area
-	int Rev_X;			// offset of highlight bar in graphic
-	int Rev_Y;
-	int Rev_Width;		// width of highlight bar
-	int Rev_Height;		// height of highlight bar
-	int RevC_X;			// offset of entry highlight bar in graphic
-	int RevC_Y;
-	int RevC_Width;		// width of entry highlight bar
-	int RevC_Height;	// height of entry highlight bar
-	int Font;
-
-} Remap;
-
-//--------------------------
-// load/save box menu type
-//--------------------------
-typedef struct LSBox
-{
-	int Width;			// width of graphic
-	int Height;			// height of graphic
-	int Image_Number;	// index of Images bitmap to use
-	int Image_X;		// X location on bitmap of graphic
-	int Image_Y;		// Y location on bitmap of graphic
-
-	int Start_X;		// upper left corner offset of line text
-	int Start_Y;
-	int Step;			// height of line
-	int Max_Show;		// max lines to display
-	Savedef *text;		// lines to display
-
-	int Start;			// first line to display
-	int Max;			// max # of lines - is calculated
-	int Current;		// current line highlighted
-	int Corner_X;		// upper left corner of highlight bar
-	int Corner_Y;
-	int Click_Width;	// width of clickable area
-	int Rev_X;			// offset of highlight bar in graphic
-	int Rev_Y;
-	int Rev_Width;		// width of highlight bar
-	int Rev_Height;		// height of highlight bar
-	int Font;
-
-} LSBox;
-
-
-//-----------------------------
-// structure of SaveGameImage
-//-----------------------------
-typedef struct SaveGameImage
-{
-	int X;					// X location on screen
-	int Y;					// Y location on screen
-	int Width;				// width of graphic
-	int Height;				// height of graphic
-	int Image_X;			// X location on bitmap of graphic
-	int Image_Y;			// Y location on bitmap of graphic
-	char EmptySlotImage[64];// name of bitmap of graphic to be displayed when the slot is empty
-
-} SaveGameImage;
-
-//-----------------------------
-// structure of menu titles
-//-----------------------------
-typedef struct MenuTitle
-{
-	int X;            // X location on screen
-	int Y;            // Y location on screen
-	int Width;        // width of graphic
-	int Height;       // height of graphic
-	int Image_Number; // index of Titles bitmap to use
-	int Image_X;      // X location on bitmap of graphic
-	int Image_Y;      // Y location on bitmap of graphic
-	int Animation;
-
-} MenuTitle;
-
-//-------------------------------------
-// Advanced Menu
-//-------------------------------------
-Clickable QuitAdvanced	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Box box1				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, NULL, -1, -1, -1};
-Text xhair_text			= {0, "", 0};
-Box box2				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetReverse, -1, -1, -1};
-Text rev_text			= {0, "", 0};
-Box box4				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetFiltering, -1, -1, -1};
-Text filter_text		= {0, "", 0};
-Image Sens_Img			= {0, 0, 0, 0, 0, -1};
-Text sens_text			= {0, "", 0};
-Slider Sens_Slide		= {0, 0, 0, 0, 0, 0, 1, 0, 0, SetSens, -1};
-
-MenuItem AdvancedMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitAdvanced},
-	{BOX,       0, 0, (void*)&box1},
-	{TEXT,      0, 0, (void*)&xhair_text},
-	{BOX,       0, 0, (void*)&box2},
-	{TEXT,      0, 0, (void*)&rev_text},
-	{BOX,       0, 0, (void*)&box4},
-	{TEXT,      0, 0, (void*)&filter_text},
-	{TEXT,      0, 0, (void*)&sens_text},
-	{IMAGE,     0, 0, (void*)&Sens_Img},
-	{SLIDER,    0, 0, (void*)&Sens_Slide},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Control Menu
-//-------------------------------------
-// names of all the currently defined keys
-Keyname Rename[] =
-{
-	{"1", KEY_1},
-	{"2", KEY_2},
-	{"3", KEY_3},
-	{"4", KEY_4},
-	{"5", KEY_5},
-	{"6", KEY_6},
-	{"7", KEY_7},
-	{"8", KEY_8},
-	{"9", KEY_9},
-	{"0", KEY_0},
-	{"-", KEY_MINUS},
-	{"Backspace", KEY_BACK},
-	{"Tab", KEY_TAB},
-	{"Q", KEY_Q},
-	{"W", KEY_W},
-	{"E", KEY_E},
-	{"R", KEY_R},
-	{"T", KEY_T},
-	{"Y", KEY_Y},
-	{"U", KEY_U},
-	{"I", KEY_I},
-	{"O", KEY_O},
-	{"P", KEY_P},
-	{"Return", KEY_RETURN},
-	{"Ctrl", KEY_CONTROL},
-	{"A", KEY_A},
-	{"S", KEY_S},
-	{"D", KEY_D},
-	{"F", KEY_F},
-	{"G", KEY_G},
-	{"H", KEY_H},
-	{"J", KEY_J},
-	{"K", KEY_K},
-	{"L", KEY_L},
-	{"Tilde", KEY_TILDE},
-	{"Shift", KEY_SHIFT},
-	{"Z", KEY_Z},
-	{"X", KEY_X},
-	{"C", KEY_C},
-	{"V", KEY_V},
-	{"B", KEY_B},
-	{"N", KEY_N},
-	{"M", KEY_M},
-	{".", KEY_PERIOD},
-	{"/", KEY_SLASH},
-	{"Space", KEY_SPACE},
-	{"Alt", KEY_ALT},
-	{"+", KEY_PLUS},
-	{"Ins", KEY_INSERT},
-	{"Home", KEY_HOME},
-	{"PgUp", KEY_PAGEUP},
-	{"Del", KEY_DELETE},
-	{"End", KEY_END},
-	{"PgDn", KEY_PAGEDOWN},
-	{"Up Arrow", KEY_UP},
-	{"Down Arrow", KEY_DOWN},
-	{"Left Arrow", KEY_LEFT},
-	{"Right Arrow", KEY_RIGHT},
-	{"F1", KEY_F1},
-	{"F2", KEY_F2},
-	{"F3", KEY_F3},
-	{"F4", KEY_F3},
-	{"F5", KEY_F5},
-	{"F6", KEY_F6},
-	{"F7", KEY_F7},
-	{"F8", KEY_F8},
-	{"F9", KEY_F9},
-	{"F10", KEY_F10},
-	{"F11", KEY_F11},
-	{"F12", KEY_F12},
-	{"PrtScrn", KEY_SYSRQ},
-	{"Left Button", KEY_LBUTTON},
-	{"Right Button", KEY_RBUTTON},
-	{"Middle Button", KEY_MBUTTON},
-	{"[", KEY_LBRACKET},
-	{"]", KEY_RBRACKET},
-	{"=", KEY_EQUAL},
-	{"\\", KEY_BACKSLASH},
-	{";", KEY_SEMICOLON},
-	{",", KEY_COMMA},
-	{"'", KEY_APOSTROPHE},
-	{"<empty>", KEY_MAXIMUM},
-	{NULL}
-};
-
-Keyname TextEditKeys[] =
-{
-	{"1", KEY_1},
-	{"2", KEY_2},
-	{"3", KEY_3},
-	{"4", KEY_4},
-	{"5", KEY_5},
-	{"6", KEY_6},
-	{"7", KEY_7},
-	{"8", KEY_8},
-	{"9", KEY_9},
-	{"0", KEY_0},
-	{"-", KEY_MINUS},
-	{" ", KEY_TAB},
-	{"Q", KEY_Q},
-	{"W", KEY_W},
-	{"E", KEY_E},
-	{"R", KEY_R},
-	{"T", KEY_T},
-	{"Y", KEY_Y},
-	{"U", KEY_U},
-	{"I", KEY_I},
-	{"O", KEY_O},
-	{"P", KEY_P},
-	{"A", KEY_A},
-	{"S", KEY_S},
-	{"D", KEY_D},
-	{"F", KEY_F},
-	{"G", KEY_G},
-	{"H", KEY_H},
-	{"J", KEY_J},
-	{"K", KEY_K},
-	{"L", KEY_L},
-	{"~", KEY_TILDE},
-	{"Z", KEY_Z},
-	{"X", KEY_X},
-	{"C", KEY_C},
-	{"V", KEY_V},
-	{"B", KEY_B},
-	{"N", KEY_N},
-	{"M", KEY_M},
-	{".", KEY_PERIOD},
-	{"/", KEY_SLASH},
-	{" ", KEY_SPACE},
-	{"+", KEY_PLUS},
-	{"F1", KEY_F1},
-	{"F2", KEY_F2},
-	{"F3", KEY_F3},
-	{"F4", KEY_F3},
-	{"F5", KEY_F5},
-	{"F6", KEY_F6},
-	{"F7", KEY_F7},
-	{"F8", KEY_F8},
-	{"F9", KEY_F9},
-	{"F10", KEY_F10},
-	{"F11", KEY_F11},
-	{"F12", KEY_F12},
-	{"[", KEY_LBRACKET},
-	{"]", KEY_RBRACKET},
-	{"=", KEY_EQUAL},
-	{"\\", KEY_BACKSLASH},
-	{".", KEY_SEMICOLON},
-	{".", KEY_COMMA},
-    {"'", KEY_APOSTROPHE},
-	{"0", KEY_NUMPAD0},
-    {"1", KEY_NUMPAD1},
-    {"2", KEY_NUMPAD2},
-    {"3", KEY_NUMPAD3},
-    {"4", KEY_NUMPAD4},
-    {"5", KEY_NUMPAD5},
-    {"6", KEY_NUMPAD5},
-    {"7", KEY_NUMPAD7},
-    {"8", KEY_NUMPAD8},
-    {"9", KEY_NUMPAD9},
-    {".", KEY_DECIMAL},
-	{"", KEY_MAXIMUM},
-	{NULL}
-};
-
-// names of all actions
-char* RedefNames[50];
-// names of all the currently defined actions
-Keydef Redef[50];
-//-------------------------------------
-// Control Menu
-//-------------------------------------
-Clickable QuitControl	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Clickable AdvancedItem	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, AdvancedMenu, NULL, 0, -1, -1};
-Remap KeyMap			= {0, 0, 0, 0, 0, 0, 0, 0, 0, Redef, Rename, 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-ScrollBar KeyMapBar		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-						   0, 0, 0, 0, &(KeyMap.Max), &(KeyMap.Start), 0, -1, -1, -1, -1, -1, -1};
-Clickable ResetKey		= {0, 0, 0, 0, 0, 0, 0, 3, 0, 0, NULL, ResetAction, 0, -1, -1};
-
-MenuItem ControlMenu[] =
-{
-	{CLICKABLE, 0, 0, (void*)&AdvancedItem},
-	{EXIT_MENU, 0, 0, (void*)&QuitControl},
-	{REMAP,     0, 0, (void*)&KeyMap},
-	{SCROLLBAR, 0, 0, (void*)&KeyMapBar},
-	{CLICKABLE, 0, 0, (void*)&ResetKey},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Video Menu
-//-------------------------------------
-Clickable QuitVideo = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Text gam_text		= {0, "", 0};
-Image Gamma_Img     = {0, 0, 0, 0, 0, -1};
-Slider Gamma_Slide  = {0, 0, 0, 0, 0, 0, 1, 0, 0, SetGamma, -1};
-Text det_text		= {0, "", 0};
-Image Detail_Img    = {0, 0, 0, 0, 0, -1};
-Slider Detail_Slide = {0, 0, 0, 0, 0, 0, 1, 0, 0, SetDetail, -1};
-Box ShadowBox		= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetStencilShadows, -1, -1, -1};
-Text shadow_text	= {0, "", 0};
-
-MenuItem VideoMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitVideo},
-	{TEXT,      0, 0, (void*)&gam_text},
-	{IMAGE,     0, 0, (void*)&Gamma_Img},
-	{SLIDER,    0, 0, (void*)&Gamma_Slide},
-	{TEXT,      0, 0, (void*)&det_text},
-	{IMAGE,     0, 0, (void*)&Detail_Img},
-	{SLIDER,    0, 0, (void*)&Detail_Slide},
-	{BOX,		0, 0, (void*)&ShadowBox},
-	{TEXT,		0, 0, (void*)&shadow_text},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Audio Menu
-//-------------------------------------
-Clickable QuitAudio = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Text vol_text		= {0, "", 0};
-Image Vol_Img		= {0, 0, 0, 0,  0, -1};
-Slider Vol_Slide	= {0, 0, 0, 0, 0, 0, 1, 0, 0, SetVol, -1};
-Text mvol_text		= {0, "", 0};
-Image mVol_Img		= {0, 0, 0, 0,  0, -1};
-Slider mVol_Slide	= {0, 0, 0, 0, 0, 0, 1, 0, 0, SetmVol, -1};
-Box box0			= {0,  0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetCDPlayer, -1, -1, -1};
-Text cd_text		= {0, "", 0};
-
-MenuItem AudioMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitAudio},
-	{TEXT,      0, 0, (void*)&vol_text},
-	{IMAGE,     0, 0, (void*)&Vol_Img},
-	{SLIDER,    0, 0, (void*)&Vol_Slide},
-	{TEXT,      0, 0, (void*)&mvol_text},
-	{IMAGE,     0, 0, (void*)&mVol_Img},
-	{SLIDER,    0, 0, (void*)&mVol_Slide},
-	{BOX,       0, 0, (void*)&box0},
-	{TEXT,      0, 0, (void*)&cd_text},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Debug Menu
-//-------------------------------------
-Clickable QuitDebug = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Box box5			= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, NULL, -1, -1, -1};
-Text debug_text		= {0, "", 0};
-Box box6			= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, NULL, -1, -1, -1};
-Text fps_text		= {0, "", 0};
-Box box7			= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetClipping, -1, -1, -1};
-Text clip_text		= {0, "", 0};
-Box box8			= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetBBox, -1, -1, -1};
-Text bb_text		= {0, "", 0};
-Box box9			= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, SetSEBBox, -1, -1, -1};
-Text sebb_text		= {0, "", 0};
-
-MenuItem DebugMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitDebug},
-	{BOX,       0, 0, (void*)&box5},
-	{TEXT,      0, 0, (void*)&debug_text},
-	{BOX,       0, 0, (void*)&box6},
-	{TEXT,      0, 0, (void*)&fps_text},
-	{BOX,       0, 0, (void*)&box7},
-	{TEXT,      0, 0, (void*)&clip_text},
-	{BOX,       0, 0, (void*)&box8},
-	{TEXT,      0, 0, (void*)&bb_text},
-	{BOX,       0, 0, (void*)&box9},
-	{TEXT,      0, 0, (void*)&sebb_text},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Language Menu
-//-------------------------------------
-Clickable QuitLanguage	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, ChangeMenu, 0, -1, -1};
-Radio boxL5				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, 4, LanguageRadio, -1, -1, -1};
-Text L5text				= {-1, "", 0};
-Radio boxL4				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, 3, LanguageRadio, -1, -1, -1};
-Text L4text				= {-1, "", 0};
-Radio boxL3				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, 2, LanguageRadio, -1, -1, -1};
-Text L3text				= {-1, "", 0};
-Radio boxL2				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, 1, LanguageRadio, -1, -1, -1};
-Text L2text				= {-1, "", 0};
-Radio boxL1				= {0, 0, 0, 0, 0, 0, 0, 0, 0, BOX_OFF, 0, LanguageRadio, -1, -1, -1};
-Text L1text				= {-1, "", 0};
-
-MenuItem LanguageMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitLanguage},
-	{RADIO,     0, 0, (void*)&boxL1},
-	{TEXT,      0, 0, (void*)&L1text},
-	{RADIO,     0, 0, (void*)&boxL2},
-	{TEXT,      0, 0, (void*)&L2text},
-	{RADIO,     0, 0, (void*)&boxL3},
-	{TEXT,      0, 0, (void*)&L3text},
-	{RADIO,     0, 0, (void*)&boxL4},
-	{TEXT,      0, 0, (void*)&L4text},
-	{RADIO,     0, 0, (void*)&boxL5},
-	{TEXT,      0, 0, (void*)&L5text},
-	{END_LIST,	0, 0, NULL}
-};
-
-
-//-------------------------------------
-// Options Menu
-//-------------------------------------
-Clickable QuitOption	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Clickable AudioItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, AudioMenu, NULL, 0, -1, -1};
-Clickable VideoItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, VideoMenu, NULL, 0, -1, -1};
-Clickable ControlItem	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ControlMenu, NULL, 0, -1, -1};
-Clickable DebugItem		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, DebugMenu, NULL, 0, -1, -1};
-Clickable LanguageItem	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, LanguageMenu, NULL, 0, -1, -1};
-
-MenuItem OptionMenu[] =
-{
-	{CLICKABLE, 0, 0, (void*)&AudioItem},
-	{CLICKABLE, 0, 0, (void*)&VideoItem},
-	{CLICKABLE, 0, 0, (void*)&ControlItem},
-	{CLICKABLE, 0, 0, (void*)&LanguageItem},
-	{CLICKABLE, 0, 0, (void*)&DebugItem},
-	{EXIT_MENU, 0, 0, (void*)&QuitOption},
-	{END_LIST, 0, 0, NULL}
-};
-
-//---------------------
-// saved game default
-//---------------------
-Savedef SavedGame[16];
-
-SaveGameImage SaveScreen = {0, 0, 0, 0, 0, 0, NULL};
-geBoolean LoadSGImage;
-
-//-------------------------------------
-// Save Game Menu
-//-------------------------------------
-Clickable QuitSave	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Clickable SaveSlot	= {0, 0, 0, 0, 0, 30, 0, 1, 0, 0, NULL, SetSlot, 0, -1, -1};
-LSBox SaveBox		= {0, 0, 0, 0, 0, 0, 0, 0, 0, SavedGame, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0};
-ScrollBar SaveBar	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, &(SaveBox.Max), &(SaveBox.Start), 0, -1, -1, -1, -1, -1, -1};
-
-MenuItem SaveMenu[] =
-{
-	{EXIT_MENU,		0, 0, (void*)&QuitSave},
-	{CLICKABLE,		0, 0, (void*)&SaveSlot},
-	{LSBOX,			0, 0, (void*)&SaveBox},
-	{SCROLLBAR,		0, 0, (void*)&SaveBar},
-	{END_LIST,		0, 0, NULL}
-};
-
-//-------------------------------------
-// Load Game Menu
-//-------------------------------------
-Clickable QuitLoad	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Clickable LoadSlot	= {0, 0, 0, 0, 0, 0, 0, 4, 0, 0, NULL, GetSlot, 1, -1, -1};
-LSBox LoadBox		= {0, 0, 0, 0, 0, 0, 0, 0, 0, SavedGame, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0};
-ScrollBar LoadBar	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					   0, 0, 0, 0, &(LoadBox.Max), &(LoadBox.Start), 0, -1, -1, -1, -1, -1, -1};
-
-MenuItem LoadGMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitLoad},
-	{CLICKABLE, 0, 0, (void*)&LoadSlot},
-	{LSBOX,     0, 0, (void*)&LoadBox},
-	{SCROLLBAR, 0, 0, (void*)&LoadBar},
-	{END_LIST,	0, 0, NULL}
-};
-
-
-//-------------------------------------
-// Credit Menu
-//-------------------------------------
-Clickable QuitCredit = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Image Credit_Img     = {0, 0, 0, 0, 0, -1};
-
-MenuItem CreditMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitCredit},
-	{IMAGE,		0, 0, (void*)&Credit_Img},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Mods Menu
-//-------------------------------------
-Clickable QuitMods = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-
-MenuItem ModsMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&QuitMods},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Multiplayer Game Menu
-//-------------------------------------
-//
-// Join Game menu
-//
-Text IPAdd_Text				= {0, "", 0};
-TextEdit IPAddress			= {0, "xxx.xxx.xxx.xxx", 10, 10, 100, TextEditKeys};
-Clickable LaunchJoinGame	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, RunJoinGame, 1, -1, -1};
-Clickable QuitJoinGame		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Text MultiplayerHelp_Text	= {0, "", 0};
-
-MenuItem JoinGameMenu[] =
-{
-	{TEXT,		0, 0, (void*)&IPAdd_Text},
-	{TEXTEDIT,	0, 0, (void*)&IPAddress},
-	{CLICKABLE, 0, 0, (void*)&LaunchJoinGame},
-	{EXIT_MENU, 0, 0, (void*)&QuitJoinGame},
-	{TEXT,		0, 0, (void*)&MultiplayerHelp_Text},
-	{END_LIST,	0, 0, NULL}
-};
-
-//
-// Multiplayer menu
-//
-Clickable HostNewGame			= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, RunHostGame, 1, -1, -1};
-Clickable JoinMultiplayerGame	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, JoinGameMenu, NULL, 0, -1, -1};
-Clickable QuitMulti				= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 0, -1, -1};
-Text PlayerIP_Text				= {0, "Your IP :", 0};
-Text PlayerIP1					= {0, IP, 0};
-
-MenuItem MultiMenu[] =
-{
-	{CLICKABLE, 0, 0, (void*)&HostNewGame},
-	{CLICKABLE, 0, 0, (void*)&JoinMultiplayerGame},
-	{EXIT_MENU, 0, 0, (void*)&QuitMulti},
-	{TEXT,		0, 0, (void*)&PlayerIP_Text},
-	{TEXT,		0, 0, (void*)&PlayerIP1},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Character Selection Menu
-//-------------------------------------
-Clickable AcceptSelect	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, AcceptChar, 1, -1, -1};
-Clickable CancelSelect	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
-Clickable PrevSelect	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, PrevChar, 0, -1, -1};
-Clickable NextSelect	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, NextChar, 0, -1, -1};
-
-MenuItem SelectMenu[] =
-{
-	{EXIT_MENU,		0, 0, (void*)&AcceptSelect},
-	{CANCEL_MENU,	0, 0, (void*)&CancelSelect},
-	{CLICKABLE,		0, 0, (void*)&PrevSelect},
-	{CLICKABLE,		0, 0, (void*)&NextSelect},
-	{CHARIMAGE,		0, 0, NULL},
-	{END_LIST,		0, 0, NULL}
-};
-
-//-------------------------------------
-// PlayerName Menu
-//-------------------------------------
-Clickable AcceptName	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, SetName, 1, -1, -1};
-Clickable CancelName	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
-TextEdit PlayerName		= {0, "", 10, 10, 100, TextEditKeys};
-Clickable DefaultName	= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, ResetName, 1, -1, -1};
-
-MenuItem PlayerNameMenu[] =
-{
-	{EXIT_MENU,		0, 0, (void*)&AcceptName},
-	{CANCEL_MENU,	0, 0, (void*)&CancelName},
-	{TEXTEDIT,		0, 0, (void*)&PlayerName},
-	{CLICKABLE,		0, 0, (void*)&DefaultName},
-	{END_LIST,		0, 0, NULL}
-};
-
-//-------------------------------------
-// Difficulty Selection Menu
-//-------------------------------------
-Clickable Difficultlow	= {0, 0, 0, 0, 0, 0, 0, 10, 0, 0, NULL, NULL, 1, -1, -1};
-Clickable Difficultmid	= {0, 0, 0, 0, 0, 0, 0, 11, 0, 0, NULL, NULL, 1, -1, -1};
-Clickable Difficulthi	= {0, 0, 0, 0, 0, 0, 0, 12, 0, 0, NULL, NULL, 1, -1, -1};
-
-MenuItem DifficultMenu[] =
-{
-	{EXIT_MENU, 0, 0, (void*)&Difficultlow},
-	{EXIT_MENU, 0, 0, (void*)&Difficultmid},
-	{EXIT_MENU, 0, 0, (void*)&Difficulthi},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Main Menu
-//-------------------------------------
-Clickable NewGame		= {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, NULL, RunGame, 1, -1, -1};
-Clickable MultiPlayer	= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, MultiMenu, NULL, 0, -1, -1};
-Clickable LoadGame		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, LoadGMenu, NULL, 0, -1, -1};
-Clickable SaveGame		= {0, 0, 0, 0, 0, 0, 0, 2, 0, 0, SaveMenu, NULL, 0, -1, -1};
-Clickable Options		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, OptionMenu, NULL, 0, -1, -1};
-Clickable Credits		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, CreditMenu, NULL, 0, -1, -1};
-Clickable Mods			= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ModsMenu, NULL, 0, -1, -1};
-Clickable QuitGame		= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, -1, -1};
-Text return_text		= {0, "", 1};
-
-MenuItem MainMenu[] =
-{
-	{CLICKABLE, 0, 0, (void*)&NewGame},
-	{CLICKABLE, 0, 0, (void*)&MultiPlayer},
-	{CLICKABLE, 0, 0, (void*)&LoadGame},
-	{CLICKABLE, 0, 0, (void*)&SaveGame},
-	{CLICKABLE, 0, 0, (void*)&Options},
-	{CLICKABLE, 0, 0, (void*)&Credits},
-	{EXIT_MENU, 0, 0, (void*)&QuitGame},
-	{TEXT,      0, 0, (void*)&return_text},
-	{CLICKABLE, 0, 0, (void*)&Mods},
-	{END_LIST,	0, 0, NULL}
-};
-
-//-------------------------------------
-// Titles
-//-------------------------------------
-MenuTitle MTitles[NUM_TITLES];
 char errortext[256];
 
-/* ------------------------------------------------------------------------------------ */
-//	FirstToken
-/* ------------------------------------------------------------------------------------ */
-char *FirstToken(char *string1, char *string2)
+// ------------------------------------------------------
+
+int CRFMenu::GetNumberFromFilename(const std::string& filename)
 {
-	return strtok(string1, string2);
+	// used to get the number of the savegame filename
+	std::string number = filename;
+	number.erase(number.find_last_of("."));
+	number.erase(0, number.find_last_not_of("1234567890") + 1);
+	return atoi(number.c_str());
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	NextToken
-/* ------------------------------------------------------------------------------------ */
-char *NextToken()
-{
-	char *temp;
-	temp = strtok(NULL," \n");
 
-	if(temp == (char*)NULL)
+void CRFMenu::FindSavegames()
+{
+	HANDLE searchHandle;
+	WIN32_FIND_DATA findData;
+	char label[128];
+	std::string filename = CFileManager::GetSingletonPtr()->GetDirectory(kSavegameFile);
+	filename += "/savegame*.sav";
+	searchHandle = FindFirstFile(filename.c_str(), &findData);
+
+	if(searchHandle != INVALID_HANDLE_VALUE)
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Missing menu token in line\n %s",
-				__FILE__, __LINE__, errortext);
-		CCD->ReportError(szBug, false);
-		exit(-100);
-	}
+		do
+		{
+			FILE *save = CFileManager::GetSingletonPtr()->OpenRFFile(kSavegameFile, findData.cFileName, "rb");
+			if(save)
+			{
+				fread(label, sizeof(char), 128, save);
+				fclose(save);
+			}
 
-	return temp;
+			label[127] = 0;
+			m_Savegames[findData.cFileName] = label;
+
+			int maxSave = GetNumberFromFilename(findData.cFileName);
+			if(maxSave > m_SavegameCounter)
+				m_SavegameCounter = maxSave;
+
+		} while(FindNextFile(searchHandle, &findData));
+
+		FindClose(searchHandle);
+		++m_SavegameCounter;
+	}
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	NextString
-/* ------------------------------------------------------------------------------------ */
-char *NextString()
-{
-	char *temp;
-	temp = strtok(NULL,"\n");
 
-	if(temp == (char*)NULL)
+void CRFMenu::SetActiveSection(const std::string& section, bool skipFade)
+{
+	if(m_Sections.find(section) != m_Sections.end())
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Missing menu token in line\n %s",
-				__FILE__, __LINE__, errortext);
-		CCD->ReportError(szBug, false);
-		exit(-100);
+		m_SectionStack.push(m_Sections[section]);
+		if(!skipFade)
+			FadeSet(1, m_TimeFade);
 	}
-
-	return temp;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	NextValue
-/* ------------------------------------------------------------------------------------ */
-int NextValue()
-{
-	char *temp;
-	temp = NextToken();
-	return atoi(temp);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	NextFont
-/* ------------------------------------------------------------------------------------ */
-int NextFont()
-{
-	char *szArg;
-	int index;
-	szArg = NextToken();
-
-	if(!stricmp(szArg,"FONT1"))
-		index = FONT1;
-	else if(!stricmp(szArg,"FONT2"))
-		index = FONT2;
-	else if(!stricmp(szArg,"FONT3"))
-		index = FONT3;
-	else if(!stricmp(szArg,"FONT4"))
-		index = FONT4;
-	else if(!stricmp(szArg,"FONT5"))
-		index = FONT5;
-	else if(!stricmp(szArg,"FONT6"))
-		index = FONT6;
-	else if(!stricmp(szArg,"FONT7"))
-		index = FONT7;
-	else if(!stricmp(szArg,"FONT8"))
-		index = FONT8;
-	else if(!stricmp(szArg,"FONT9"))
-		index = FONT9;
-	else if(!stricmp(szArg,"FONT10"))
-		index = FONT10;
-	else if(!stricmp(szArg,"FONT11"))
-		index = FONT11;
-	else if(!stricmp(szArg,"FONT12"))
-		index = FONT12;
-	else if(!stricmp(szArg,"FONT13"))
-		index = FONT13;
-	else if(!stricmp(szArg,"FONT14"))
-		index = FONT14;
-	else if(!stricmp(szArg,"FONT15"))
-		index = FONT15;
-	else if(!stricmp(szArg,"FONT16"))
-		index = FONT16;
-	else if(!stricmp(szArg,"FONT17"))
-		index = FONT17;
-	else if(!stricmp(szArg,"FONT18"))
-		index = FONT18;
-	else if(!stricmp(szArg,"FONT19"))
-		index = FONT19;
-	else if(!stricmp(szArg,"FONT20"))
-		index = FONT20;
-	else if(!stricmp(szArg,"FONT21"))
-		index = FONT21;
-	else if(!stricmp(szArg,"FONT22"))
-		index = FONT22;
-	else if(!stricmp(szArg,"FONT23"))
-		index = FONT23;
-	else if(!stricmp(szArg,"FONT24"))
-		index = FONT24;
-	else if(!stricmp(szArg,"FONT25"))
-		index = FONT25;
-	else if(!stricmp(szArg,"FONT26"))
-		index = FONT26;
-	else if(!stricmp(szArg,"FONT27"))
-		index = FONT27;
-	else if(!stricmp(szArg,"FONT28"))
-		index = FONT28;
-	else if(!stricmp(szArg,"FONT29"))
-		index = FONT29;
 	else
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Bad font size name %s",
-				__FILE__, __LINE__, szArg);
-		CCD->ReportError(szBug, false);
-		exit(-100);
+		CCD->Log()->Debug("Menu section " + section + " does not exist!");
 	}
+}
 
-	return index;
+
+void CRFMenu::QuitSection()
+{
+	m_SectionStack.pop();
+	FadeSet(1, m_TimeFade);
+}
+
+
+void CRFMenu::PlayMouseClickSound()
+{
+	geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), m_MouseClick, 0.99f, 0.0f, 1.0f, false);
+}
+
+
+void CRFMenu::PlayKeyClickSound()
+{
+	geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), m_KeyClick, 0.99f, 0.5f, 1.0f, false);
+}
+
+
+void CRFMenu::PlaySlideClickSound()
+{
+	geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), m_SlideClick, 0.75f, 0.0f, 1.0f, false);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
-CRFMenu::CRFMenu(const char *szStartLevel)
+CRFMenu::CRFMenu(const char *szStartLevel) :
+	m_FCrosshairs(NULL),
+	m_ScreenshotCount(0),
+	m_bScrnWait(false),
+	m_InGame(0),
+	m_bMusicFade(false),
+	m_bCrosshairs(false),
+	m_MouseClick(NULL),
+	m_KeyClick(NULL),
+	m_SlideClick(NULL),
+	m_Bottom(NULL),
+	m_MusicType(-1),
+	m_Streams(NULL),
+	m_MaxCharacters(0),
+	m_SelectedCharacter(0),
+	m_MIDIPlayer(NULL),
+	m_mVolLevel(0.5f),
+	m_TimeFade(0.0f),
+	//m_Crosshairs(NULL),
+	m_SavegameCounter(0),
+	m_NewSavegameLabel("<New Savegame>"),
+	m_KeyNameUnassigned("<Unassigned>")
 {
-	int i;
-
-
-	CCD->ReportError("Initializing Network...", false);
+// start multiplayer
+	CCD->Log()->Notice("Initializing Network...");
 
 	if(CCD->GetNetwork())
 	{
@@ -1135,3977 +180,667 @@ CRFMenu::CRFMenu(const char *szStartLevel)
 
 			if(serversock != NL_INVALID)
 			{
-				NLaddress   addr;
+				NLaddress addr;
 				nlGetLocalAddr(serversock, &addr);
-				nlAddrToString(&addr, IP);
+				nlAddrToString(&addr, m_IP);
 				nlClose(serversock);
 			}
 		}
 	}
+// end multiplayer
 
-	bShowCursor		= false;
-	theMIDIPlayer	= NULL;
-	m_Streams		= NULL;
-	Bottom			= (SoundList*)NULL;
-	Screen			= 0;
-	ScrnWait		= false;
-	savetime		= 0.0f;
-	musictype		= -1;
-	mVolLevel		= 0.5f;
-	DesignX			= 640;
-	DesignY			= 480;
-	HotX			= 0;
-	HotY			= 0;
-	TimeFade		= FADETIME;
-	MusicFade		= false;
-	fontloaded		= false;
-	theMIDIPlayer	= NULL;
-	strcpy(Loading, "menu\\loading.bmp");
-	ingame			= 0;
-	CurrentLanguage = 0;
+	strcpy(m_Loading, "menu\\loading.bmp");
+	FindSavegames();
 
-	for(i=0; i<5; i++)
+	memset(m_Characters, 0, sizeof(CCharacter*)*NUM_SELECT);
+
+	if(CCD->GetCharacterSelection())
 	{
-		strcpy(MenuInis[i],		CCD->MenuIni());
-		strcpy(Convtxts[i],		"conversation.txt");
-		strcpy(Messagetxts[i],	"message.txt");
+		CCD->Log()->Notice("Loading Character.ini...");
+		LoadCharacterConfiguration(szStartLevel);
 	}
 
+	CCD->Log()->Notice("Loading menu configuration file...");
 
-	return_text.text			= strdup("Press ESC to Return to Game");
-	PlayerIP_Text.text			= strdup("Your IP :");
-	MultiplayerHelp_Text.text	= strdup("Enter a valid server ip, press ENTER and click on Join game");
-	IPAdd_Text.text				= strdup("Server IP Address :");
-	sebb_text.text				= strdup("Entity Bounding Box");
-	bb_text.text				= strdup("Player Bounding Box");
-	clip_text.text				= strdup("No Clipping");
-	fps_text.text				= strdup("Frame Rate");
-	debug_text.text				= strdup("Debug Info");
-	cd_text.text				= strdup("Play CD Music");
-	mvol_text.text				= strdup("Music Volume");
-	vol_text.text				= strdup("Sound Volume");
-	det_text.text				= strdup("Detail Level");
-	gam_text.text				= strdup("Gamma");
-	sens_text.text				= strdup("Mouse sensitivity");
-	filter_text.text			= strdup("Mouse filter");
-	rev_text.text				= strdup("Reverse mouse");
-	xhair_text.text				= strdup("Crosshair");
-	shadow_text.text			= strdup("Enable Stencil Shadows");
+	LoadConfiguration(CCD->LanguageManager()->GetActiveLanguage()->GetMenuConfigFilename());
+	LoadText(CCD->LanguageManager()->GetActiveLanguage()->GetMenuTextFilename());
 
-	L1text.text = NULL;
-	L2text.text = NULL;
-	L3text.text = NULL;
-	L4text.text = NULL;
-	L5text.text = NULL;
-
-	CCD->ReportError("Loading Menu.ini...", false);
-
-	LoadMenuIni(CCD->MenuIni());
-
-	for(i=0; i<16; i++)
-	{
-		SavedGame[i].empty = 0;
-		SavedGame[i].text = NULL;
-		SavedGame[i].SGImage = NULL;
-	}
-
-	// Note: SavedGame[15].text must be NULL,
-	// ..otherwise SaveBox.Max won't be calculated correctly
-	SavedGame[0].text	= strdup("<Slot 1>"	);
-	SavedGame[1].text	= strdup("<Slot 2>"	);
-	SavedGame[2].text	= strdup("<Slot 3>"	);
-	SavedGame[3].text	= strdup("<Slot 4>"	);
-	SavedGame[4].text	= strdup("<Slot 5>"	);
-	SavedGame[5].text	= strdup("<Slot 6>"	);
-	SavedGame[6].text	= strdup("<Slot 7>"	);
-	SavedGame[7].text	= strdup("<Slot 8>"	);
-	SavedGame[8].text	= strdup("<Slot 9>"	);
-	SavedGame[9].text	= strdup("<Slot 10>");
-	SavedGame[10].text	= strdup("<Slot 11>");
-	SavedGame[11].text	= strdup("<Slot 12>");
-	SavedGame[12].text	= strdup("<Slot 13>");
-	SavedGame[13].text	= strdup("<Slot 14>");
-	SavedGame[14].text	= strdup("<Slot 15>");
-
-	strcpy(PlayerName.text, CCD->GetDefaultPlayerName());
-
-	if(CCD->GetCSelect())
-	{
-		CCD->ReportError("Loading Character.ini...", false);
-		CIniFile AttrFile("character.ini");
-
-		if(!AttrFile.ReadFile())
-		{
-			CCD->ReportError("[ERROR] Failed to open character.ini file", false);
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, "Missing character INI file", "Fatal Error", MB_OK);
-			exit(-100);
-		}
-
-		MaxSelect = CurrentSelect = 0;
-		std::string KeyName = AttrFile.FindFirstKey();
-		std::string Type, Vector;
-		char szName[64];
-
-		while(KeyName != "")
-		{
-			strcpy(CharSelect[MaxSelect].Name, KeyName.c_str());
-			CharSelect[MaxSelect].Bitmap = NULL;
-			Type = AttrFile.GetValue(KeyName, "image");
-
-			if(Type != "")
-			{
-				strcpy(szName, Type.c_str());
-				CharSelect[MaxSelect].Bitmap = CreateFromFileName(szName);
-
-				if(!CharSelect[MaxSelect].Bitmap)
-				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] File %s - Line %d: Bad character image file name %s",
-							__FILE__, __LINE__, szName);
-					CCD->ReportError(szBug, false);
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, "Bad character image file name", "Fatal Error", MB_OK);
-					exit(-100);
-				}
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), CharSelect[MaxSelect].Bitmap);
-
-				Type = AttrFile.GetValue(KeyName, "actorname");
-				if(Type == "")
-				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] File %s - Line %d: Missing character actor name %s",
-							__FILE__, __LINE__, szName);
-					CCD->ReportError(szBug, false);
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, "Missing character actor name", "Fatal Error", MB_OK);
-					exit(-100);
-				}
-
-				strcpy(CharSelect[MaxSelect].ActorName, Type.c_str());
-
-				Vector = AttrFile.GetValue(KeyName, "actorrotation");
-				if(Vector != "")
-				{
-					strcpy(szName, Vector.c_str());
-					CharSelect[MaxSelect].Rotation = Extract(szName);
-					CharSelect[MaxSelect].Rotation.X *= GE_PIOVER180;
-					CharSelect[MaxSelect].Rotation.Y *= GE_PIOVER180;
-					CharSelect[MaxSelect].Rotation.Z *= GE_PIOVER180;
-				}
-
-				CharSelect[MaxSelect].ActorScale = (float)AttrFile.GetValueF(KeyName, "actorscale");
-
-				CharSelect[MaxSelect].AnimSpeed = 1.0f;
-				Type = AttrFile.GetValue(KeyName, "animationspeed");
-				if(Type != "")
-					CharSelect[MaxSelect].AnimSpeed = (float)AttrFile.GetValueF(KeyName, "animationspeed");
-
-				CharSelect[MaxSelect].ShadowSize = 0.0f;
-				Type = AttrFile.GetValue(KeyName, "shadowsize");
-				if(Type != "")
-					CharSelect[MaxSelect].ShadowSize = (float)AttrFile.GetValueF(KeyName, "shadowsize");
-
-
-				CharSelect[MaxSelect].ShadowAlpha = 128.0f;
-				Type = AttrFile.GetValue(KeyName, "shadowalpha");
-				if(Type != "")
-					CharSelect[MaxSelect].ShadowAlpha = (float)AttrFile.GetValueF(KeyName, "shadowalpha");
-
-				CharSelect[MaxSelect].ShadowBitmap[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "shadowbitmap");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].ShadowBitmap, Type.c_str());
-
-				CharSelect[MaxSelect].ShadowAlphamap[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "shadowalphamap");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].ShadowAlphamap, Type.c_str());
-
-				CharSelect[MaxSelect].UseProjectedShadows = GE_FALSE;
-				Type = AttrFile.GetValue(KeyName, "projectedshadows");
-				if(Type == "true")
-					CharSelect[MaxSelect].UseProjectedShadows = GE_TRUE;
-
-				CharSelect[MaxSelect].UseStencilShadows = GE_FALSE;
-				Type = AttrFile.GetValue(KeyName, "stencilshadows");
-				if(Type == "true")
-					CharSelect[MaxSelect].UseStencilShadows = GE_TRUE;
-
-				// initialize with default start level
-				strcpy(CharSelect[MaxSelect].StartLevel, szStartLevel);
-				Type = AttrFile.GetValue(KeyName, "startlevel");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].StartLevel, Type.c_str());
-
-				strcpy(CharSelect[MaxSelect].Weapon, "weapon.ini");
-				Type = AttrFile.GetValue(KeyName, "weaponfile");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Weapon, Type.c_str());
-				geVec3d FillColor	 = {255.0f, 255.0f, 255.0f};
-				geVec3d AmbientColor = {255.0f, 255.0f, 255.0f};
-
-				Vector = AttrFile.GetValue(KeyName, "fillcolor");
-				if(Vector != "")
-				{
-					strcpy(szName, Vector.c_str());
-					FillColor = Extract(szName);
-				}
-
-				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
-				if(Vector != "")
-				{
-					strcpy(szName, Vector.c_str());
-					AmbientColor = Extract(szName);
-				}
-
-				CharSelect[MaxSelect].FillColor.r = FillColor.X;
-				CharSelect[MaxSelect].FillColor.g = FillColor.Y;
-				CharSelect[MaxSelect].FillColor.b = FillColor.Z;
-				CharSelect[MaxSelect].FillColor.a = 255.0f;
-
-				CharSelect[MaxSelect].AmbientColor.r = AmbientColor.X;
-				CharSelect[MaxSelect].AmbientColor.g = AmbientColor.Y;
-				CharSelect[MaxSelect].AmbientColor.b = AmbientColor.Z;
-				CharSelect[MaxSelect].AmbientColor.a = 255.0f;
-
-				CharSelect[MaxSelect].AmbientLightFromFloor = GE_TRUE;
-				Type = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
-				if(Type == "false")
-					CharSelect[MaxSelect].AmbientLightFromFloor = GE_FALSE;
-
-
-				CharSelect[MaxSelect].Attribute[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "attributefile");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Attribute, Type.c_str());
-
-				CharSelect[MaxSelect].pSetup[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "playersetupfile");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].pSetup, Type.c_str());
-
-				CharSelect[MaxSelect].Environment[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "environmentfile");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Environment, Type.c_str());
-
-				CharSelect[MaxSelect].PlayerStart[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "playerstartname");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].PlayerStart, Type.c_str());
-
-				CharSelect[MaxSelect].Hud[0] = '\0';
-				Type = AttrFile.GetValue(KeyName, "hudfile");
-				if(Type != "")
-					strcpy(CharSelect[MaxSelect].Hud, Type.c_str());
-
-				Type = AttrFile.GetValue(KeyName, "speed");
-				CharSelect[MaxSelect].Speed = -1.0f;
-				if(Type != "")
-					CharSelect[MaxSelect].Speed = (float)AttrFile.GetValueF(KeyName, "speed");
-
-				Type = AttrFile.GetValue(KeyName, "jumpspeed");
-				CharSelect[MaxSelect].JumpSpeed = -1.0f;
-				if(Type != "")
-					CharSelect[MaxSelect].JumpSpeed = (float)AttrFile.GetValueF(KeyName, "jumpspeed");
-
-				Type = AttrFile.GetValue(KeyName, "stepheight");
-				CharSelect[MaxSelect].StepHeight = -1.0f;
-				if(Type != "")
-					CharSelect[MaxSelect].StepHeight = (float)AttrFile.GetValueF(KeyName, "stepheight");
-
-				CharSelect[MaxSelect].SlopeSlide = -1.0f;
-				if(Type != "")
-					CharSelect[MaxSelect].SlopeSlide = (float)AttrFile.GetValueF(KeyName, "slopeslide");
-
-				CharSelect[MaxSelect].SlopeSpeed = -1.0f;
-				if(Type != "")
-					CharSelect[MaxSelect].SlopeSpeed = (float)AttrFile.GetValueF(KeyName, "slopespeed");
-
-				MaxSelect +=1;
-			}
-
-			KeyName = AttrFile.FindNextKey();
-		}
-
-		if(MaxSelect == 0)
-		{
-			CCD->ReportError("[ERROR] No characters defined", false);
-			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, "No characters defined","Fatal Error", MB_OK);
-			exit(-100);
-		}
-	}
-
+	CCD->Log()->Debug("Creating Audio Mixer...");
 	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
 					NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
 
 	if(mixer.IsOk())
-		WinVol = mixer.GetControlValue();
+		m_WinVol = mixer.GetControlValue();
+}
 
-#ifdef BLIT
-	ScreenBmp = geBitmap_Create(DesignX, DesignY, 1, GE_PIXELFORMAT_16BIT_4444_ARGB);
-	geBitmap_SetPreferredFormat(ScreenBmp, GE_PIXELFORMAT_16BIT_4444_ARGB);
-	geBitmap_ClearMips(ScreenBmp);
-	geEngine_AddBitmap(CCD->Engine()->Engine(), ScreenBmp);
-#endif
 
-	// initalize all menu items that need it
-	CCD->ReportError("Initializing Menu", false);
+/* ------------------------------------------------------------------------------------ */
+// LoadCharacterConfiguration
+/* ------------------------------------------------------------------------------------ */
+void CRFMenu::LoadCharacterConfiguration(const std::string& startLevel)
+{
+	CIniFile iniFile("character.ini");
 
-	MenuInitalize();
+	if(!iniFile.ReadFile())
+	{
+		CCD->Log()->Critical("File %s - Line %d: Failed to open character.ini file!",
+								__FILE__, __LINE__);
+		delete CCD;
+		exit(-100);
+	}
+
+	m_MaxCharacters = m_SelectedCharacter = 0;
+	std::string keyName = iniFile.FindFirstKey();
+
+	while(!keyName.empty())
+	{
+		m_Characters[m_MaxCharacters] = new CCharacter(keyName, startLevel);
+
+		if(m_Characters[m_MaxCharacters]->LoadConfiguration(iniFile) != RGF_SUCCESS)
+		{
+			CCD->Log()->Error("File %s - Line %d: Failed to load configuration for character '%s'!",
+										__FILE__, __LINE__, keyName.c_str());
+			SAFE_DELETE(m_Characters[m_MaxCharacters]);
+		}
+		else
+		{
+			CCD->Log()->Debug("Successfully loaded configuration for character '" + keyName + "'");
+			++m_MaxCharacters;
+		}
+
+		keyName = iniFile.FindNextKey();
+	}
+
+	if(m_MaxCharacters == 0)
+	{
+		CCD->Log()->Critical("File %s - Line %d: No characters defined!", __FILE__, __LINE__);
+		delete CCD;
+		exit(-100);
+	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CRFMenu::LoadText(const std::string& menutxt)
+{
+	CIniFile iniFile(menutxt);
+
+	if(!iniFile.ReadFile())
+	{
+		CCD->Log()->Debug("Failed to open menu text file " + menutxt);
+		return;
+	}
+
+	std::string value;
+	std::string name;
+
+	// Save/Load text
+	value = iniFile.GetValue("SaveLoad", "newsavegame");
+	if(!value.empty())
+	{
+		m_NewSavegameLabel = value;
+
+		if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameList"))
+		{
+			CEGUI::Listbox* savelistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameList"));
+			CEGUI::ListboxTextItemEx *item = NULL;
+
+			if(savelistbox->getItemCount() > 0)
+				item = (CEGUI::ListboxTextItemEx*)savelistbox->getListboxItemFromIndex(0);
+
+			if(item && item->getID() == m_SavegameCounter)
+			{
+				item->setText((CEGUI::utf8*)m_NewSavegameLabel.c_str());
+			}
+		}
+	}
+
+	// Window text
+	name = iniFile.FindFirstName("WindowText");
+
+	while(!name.empty())
+	{
+		value = iniFile.GetValue("WindowText", name);
+		CCD->GUIManager()->SetWindowText(name, value);
+
+		name = iniFile.FindNextName();
+	}
+
+	// Tooltip text
+	name = iniFile.FindFirstName("TooltipText");
+
+	while(!name.empty())
+	{
+		value = iniFile.GetValue("TooltipText", name);
+		CCD->GUIManager()->SetTooltipText(name, value);
+
+		name = iniFile.FindNextName();
+	}
+
+	// Action names
+	name = iniFile.FindFirstName("ActionNames");
+
+	while(!name.empty())
+	{
+		value = iniFile.GetValue("ActionNames", name);
+		if(!value.empty())
+			CCD->Input()->SetActionName(value, Name2ActionID(name));
+
+		name = iniFile.FindNextName();
+	}
+
+	// Key names
+	value = iniFile.GetValue("KeyNames", "mousebuttonleft");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Left);
+
+	value = iniFile.GetValue("KeyNames", "mousebuttonright");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Right);
+
+	value = iniFile.GetValue("KeyNames", "mousebuttonmiddle");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Middle);
+
+	value = iniFile.GetValue("KeyNames", "mousebutton3");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Button3);
+
+	value = iniFile.GetValue("KeyNames", "mousebutton4");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Button4);
+
+	value = iniFile.GetValue("KeyNames", "mousebutton5");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Button5);
+
+	value = iniFile.GetValue("KeyNames", "mousebutton6");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Button6);
+
+	value = iniFile.GetValue("KeyNames", "mousebutton7");
+	if(!value.empty())	CCD->Input()->SetMouseButtonName(value, OIS::MB_Button7);
+
+	value = iniFile.GetValue("KeyNames", "unassigned");
+	if(!value.empty())	m_KeyNameUnassigned = value;
+
+	FillActionMapList();
 }
 
 
 /* ------------------------------------------------------------------------------------ */
 // LoadConfiguration
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::LoadMenuIni(const char *menuini)
+void CRFMenu::LoadConfiguration(const std::string& filename)
 {
-	CCD->ReportError("Parsing Menu.ini...", false);
+	CCD->Log()->Debug("Parsing menu configuration file...");
 
-	geVFile *MainFS;
-	geVFile *SecondFS;
-	geBitmap_Info	BmpInfo;
-	int i;
+	/*
+	TODO
+	crosshairs
+	loadscreen
+	loadmsg
+	savemsg
+	*/
 
-	for(i=0; i<NUM_BACKGROUNDS; i++)
-		Backgrounds[i] = (geBitmap*)NULL;
+	CIniFile iniFile(filename);
 
-	for(i=0; i<NUM_IMAGES; i++)
-		Images[i] = (geBitmap*)NULL;
-
-	for(i=0; i<NUM_TITLES; i++)
-		Titles[i] = (geBitmap*)NULL;
-
-	for(i=0; i<NUM_FONTS; i++)
-		MenuFont[i].Bitmap = (geBitmap*)NULL;
-
-	for(i=0; i<NUM_ANIM; i++)
-		Animation[i] = NULL;
-
-	EmptySlotImage = NULL;
-
-	if(CCD->OpenRFFile(&SecondFS, kInstallFile, menuini, GE_VFILE_OPEN_READONLY))
+	if(!iniFile.ReadFile())
 	{
-		// File there, parse it!
-		char szInputLine[256];
-		char *szAtom;
-		char menuline[256], menuline2[256];
+		CCD->Log()->Error("File %s - Line %d: Failed to open menu config file '%s'",
+							__FILE__, __LINE__, filename.c_str());
+		return;
+	}
 
-		while(geVFile_GetS(SecondFS, szInputLine, 256) == GE_TRUE)
+	std::string section = iniFile.FindFirstKey();
+	std::string value;
+
+	// first load all schemes
+	std::string name = iniFile.FindFirstName("Schemes");
+
+	while(!name.empty())
+	{
+		value = iniFile.GetValue("Schemes", name);
+		CCD->GUIManager()->LoadScheme(value);
+
+		name = iniFile.FindNextName();
+	}
+
+	while(!section.empty())
+	{
+		if(section == "General")
 		{
-			if(szInputLine[0] == ';')
-				continue;				// Comment line
+			m_TimeFade = static_cast<float>(iniFile.GetValueI(section, "fadetime")) * 0.001f;
 
-			if(strlen(szInputLine) <= 5)
-				continue;				// Skip blank lines
-
-			strcpy(errortext,szInputLine);
-			// All config commands are "thing=value"
-			szAtom = FirstToken(szInputLine, " =");
-
-			if(!stricmp(szAtom, "background"))
+			value = iniFile.GetValue(section, "aspectratio");
+			if(!value.empty())
 			{
-				int index = NextValue();
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
-				geBitmap *TB = CreateFromFileName(menuline);
+				// extract ratio
+				float ratio, designratio;
+				int iwidth, iheight;
+				std::string width = value, height = value;
 
-				if(TB == (geBitmap *)NULL)
+				width.erase(width.find_first_of(":"));
+				height.erase(0, height.find_last_of(":")+1);
+				iwidth = atoi(width.c_str());
+				iheight = atoi(height.c_str());
+				ratio = (float)CCD->Engine()->Width()/(float)CCD->Engine()->Height();
+				designratio = (float)iwidth/(float)iheight;
+
+				if(ratio > designratio)
 				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
+					float relwidth = designratio/ratio;
+					CMenuState::GetSingletonPtr()->GetDefaultWindow()->setWidth(CEGUI::UDim(relwidth, 0.0f));
+					CMenuState::GetSingletonPtr()->GetDefaultWindow()->setXPosition(CEGUI::UDim((1.0f - relwidth)*0.5f, 0.0f));
 				}
+				else if(ratio < designratio)
+				{
+					float relheight = ratio/designratio;
+					CMenuState::GetSingletonPtr()->GetDefaultWindow()->setHeight(CEGUI::UDim(relheight, 0.0f));
+					CMenuState::GetSingletonPtr()->GetDefaultWindow()->setYPosition(CEGUI::UDim((1.0f - relheight)*0.5f, 0.0f));
+				}
+			}
 
-				geBitmap_GetInfo(TB, &BmpInfo, NULL);
-				int TBw = BmpInfo.Width;
-				int TBh = BmpInfo.Height;
-				int TBx = (BmpInfo.Width - CCD->Engine()->Width()) / 2;
-
-				if(TBx<0)
-					TBx = 0;
+			// TODO
+			value = iniFile.GetValue(section, "crosshairs");
+			if(!value.empty())
+			{
+				m_FCrosshairs = CreateFromFileName(value.c_str());
+				if(m_FCrosshairs == NULL)
+				{
+					CCD->Log()->Error("Bad file name %s", value.c_str());
+				}
 				else
-					TBw = CCD->Engine()->Width();
-
-				int TBy = (BmpInfo.Height - CCD->Engine()->Height()) / 2;
-
-				if(TBy<0)
-					TBy = 0;
-				else
-					TBh = CCD->Engine()->Height();
-
-				Backgrounds[index] = geBitmap_Create(TBw, TBh, BmpInfo.MaximumMip+1, BmpInfo.Format);
-				geBitmap_Blit(TB, TBx, TBy, Backgrounds[index], 0, 0, TBw, TBh);
-				geBitmap_Destroy(&TB);
-
-				if(Backgrounds[index] == (geBitmap*)NULL)
 				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
+					geEngine_AddBitmap(CCD->Engine()->Engine(), m_FCrosshairs);
 				}
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), Backgrounds[index]);
 			}
-			else if(!stricmp(szAtom, "images"))
+
+			// TODO
+			value = iniFile.GetValue(section, "loadscreen");
+			if(!value.empty())
 			{
-				int index = NextValue();
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
-				strcpy(menuline2, "menu\\");
-				strcat(menuline2, NextToken());
-				Images[index] = CreateFromFileAndAlphaNames(menuline, menuline2);
-
-				if(Images[index] == (geBitmap *)NULL)
-				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
-				}
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), Images[index]);
+				strcpy(m_Loading, value.c_str());
 			}
-			else if(!stricmp(szAtom, "titles"))
+		}
+		else if(section == "Layouts")
+		{
+			std::string name = iniFile.FindFirstName(section);
+
+			while(!name.empty())
 			{
-				int index = NextValue();
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
-				strcpy(menuline2, "menu\\");
-				strcat(menuline2, NextToken());
-				Titles[index] = CreateFromFileAndAlphaNames(menuline, menuline2);
-
-				if(Titles[index] == (geBitmap*)NULL)
+				if(m_Sections.find(name) == m_Sections.end())
 				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
-				}
+					value = iniFile.GetValue(section, name);
 
-				geEngine_AddBitmap(CCD->Engine()->Engine(), Titles[index]);
-			}
-			else if(!stricmp(szAtom, "font"))
-			{
-				int index = NextFont();
-				char fontline[132];
-				strcpy(fontline, NextToken());
-				strcpy(menuline, "fonts\\");
-				strcat(menuline, fontline);
-				strcat(menuline, ".bmp");
-				strcpy(menuline2, "fonts\\a_");
-				strcat(menuline2, fontline);
-				strcat(menuline2, ".bmp");
-				MenuFont[index].Bitmap = CreateFromFileAndAlphaNames(menuline, menuline2);
-
-				if(MenuFont[index].Bitmap == (geBitmap*)NULL)
-				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
-				}
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), MenuFont[index].Bitmap);
-
-				for(int jj=0; jj<CHAR_RANGE; jj++)
-					MenuFont[index].WBitmap[jj] = NULL;
-
-				strcpy(menuline, "fonts\\");
-				strcat(menuline, fontline);
-				strcat(menuline, ".dat");
-				geVFile *datFile;
-				CCD->OpenRFFile(&datFile, kBitmapFile, menuline, GE_VFILE_OPEN_READONLY);
-				geVFile_Read(datFile, &MenuFont[index].font_height, sizeof(int));
-
-				memset(MenuFont[index].dat, 0, sizeof(CharDat)*CHAR_RANGE);
-
-				for(int c=0; c<96; c++)
-				{
-					geVFile_Read(datFile, &MenuFont[index].dat[c].width,sizeof(int));
-					geVFile_Read(datFile, &MenuFont[index].dat[c].x,	sizeof(int));
-					geVFile_Read(datFile, &MenuFont[index].dat[c].y,	sizeof(int));
-				}
-
-				if(geVFile_Read(datFile, &MenuFont[index].dat[96].width,	sizeof(int)))
-				{
-					geVFile_Read(datFile, &MenuFont[index].dat[96].x,		sizeof(int));
-					geVFile_Read(datFile, &MenuFont[index].dat[96].y,		sizeof(int));
-
-					// read extended character set if available
-					for(int cext=97; cext<CHAR_RANGE; cext++)
+					if(!value.empty())
 					{
-						geVFile_Read(datFile, &MenuFont[index].dat[cext].width,	sizeof(int));
-						geVFile_Read(datFile, &MenuFont[index].dat[cext].x,		sizeof(int));
-						geVFile_Read(datFile, &MenuFont[index].dat[cext].y,		sizeof(int));
+						CEGUI::Window *win = CCD->GUIManager()->LoadWindowLayout(value);
+						m_Sections[name] = win;
 					}
 				}
 
-				geVFile_Close(datFile);
+				name = iniFile.FindNextName();
 			}
-			else if(!stricmp(szAtom, "animation"))
-			{
-				int index = NextValue();
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
 
-				if(Animation[index])
+			// set main menu active
+			if(m_Sections.find("main") != m_Sections.end())
+			{
+				m_SectionStack.push(m_Sections["main"]);
+				CMenuState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_SectionStack.top());
+			}
+			// exit if there's no main menu
+			else
+			{
+				CCD->Log()->Critical("No main menu defined!");
+				delete CCD;
+				exit(-100);
+			}
+		}
+		else if(section == "Audio")
+		{
+			value = iniFile.GetValue(section, "mouseclick");
+			if(!value.empty())
+			{
+				geVFile *vFile;
+
+				if(CFileManager::GetSingletonPtr()->OpenRFFile(&vFile, kAudioFile, value.c_str(), GE_VFILE_OPEN_READONLY))
 				{
-					delete Animation[index];
-					Animation[index] = 0;
+					m_MouseClick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), vFile);
+					geVFile_Close(vFile);
 				}
-
-				Animation[index] = new CAnimGif(menuline, kVideoFile);
-			}
-			else if(!stricmp(szAtom, "menutitle"))
-			{
-				int index = NextValue();
-				MTitles[index].Image_Number = NextValue();
-				MTitles[index].X = NextValue();
-				MTitles[index].Y = NextValue();
-				MTitles[index].Width = NextValue();
-				MTitles[index].Height = NextValue();
-				MTitles[index].Image_X = NextValue();
-				MTitles[index].Image_Y = NextValue();
-				MTitles[index].Animation = NextValue();
-			}
-			else if(!stricmp(szAtom, "designsize"))
-			{
-				DesignX = NextValue();
-				DesignY = NextValue();
-			}
-			else if(!stricmp(szAtom, "hotspot"))
-			{
-				HotX = NextValue();
-				HotY = NextValue();
-			}
-			else if(!stricmp(szAtom, "fadetime"))
-			{
-				TimeFade = ((float)NextValue())*0.001f;
-			}
-			else if(!stricmp(szAtom, "loadscreen"))
-			{
-				strcpy(Loading, "menu\\");
-				strcat(Loading, NextToken());
-			}
-			else if(!stricmp(szAtom, "cursor"))
-			{
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
-				strcpy(menuline2, "menu\\");
-				strcat(menuline2, NextToken());
-				Cursor = CreateFromFileAndAlphaNames(menuline, menuline2);
-
-				if(Cursor == (geBitmap*)NULL)
+				else
 				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
+					CCD->Log()->Warning("Missing MouseClick Sound!");
 				}
-
-				geEngine_AddBitmap(CCD->Engine()->Engine(), Cursor);
-				AnimCursor = NextValue();
 			}
-			else if(!stricmp(szAtom,"crosshair"))
-			{
-				strcpy(menuline, "menu\\");
-				strcat(menuline, NextToken());
-				strcpy(menuline2, "menu\\");
-				strcat(menuline2, NextToken());
-				Crosshair = CreateFromFileAndAlphaNames(menuline, menuline2);
 
-				if(Crosshair == (geBitmap*)NULL)
+			value = iniFile.GetValue(section, "keyclick");
+			if(!value.empty())
+			{
+				geVFile *vFile;
+
+				if(CFileManager::GetSingletonPtr()->OpenRFFile(&vFile, kAudioFile, value.c_str(), GE_VFILE_OPEN_READONLY))
 				{
-					char szBug[256];
-					sprintf(szBug, "[ERROR] Bad file name %s", menuline);
-					CCD->ReportError(szBug, false);
-					exit(-100);
+					m_KeyClick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), vFile);
+					geVFile_Close(vFile);
 				}
-
-				FCrosshair = CreateFromFileAndAlphaNames(menuline, menuline2);
-				geEngine_AddBitmap(CCD->Engine()->Engine(), FCrosshair);
-			}
-			else if(!stricmp(szAtom, "main"))
-			{
-				MainBack	= NextValue();
-				MainTitle	= NextValue();
-			}
-			else if(!stricmp(szAtom, "newgame"))
-			{
-				MainMenu[0].X			= NextValue();
-				MainMenu[0].Y			= NextValue();
-				NewGame.Image_Number	= NextValue();
-				NewGame.Width			= NextValue();
-				NewGame.Height			= NextValue();
-				NewGame.Image_X			= NextValue();
-				NewGame.Image_Y			= NextValue();
-				NewGame.Mover_X			= NextValue();
-				NewGame.Mover_Y			= NextValue();
-				NewGame.Animation		= NextValue();
-				NewGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "multiplayer"))
-			{
-				MainMenu[1].X				= NextValue();
-				MainMenu[1].Y				= NextValue();
-				MultiPlayer.Image_Number	= NextValue();
-				MultiPlayer.Width			= NextValue();
-				MultiPlayer.Height			= NextValue();
-				MultiPlayer.Image_X			= NextValue();
-				MultiPlayer.Image_Y			= NextValue();
-				MultiPlayer.Mover_X			= NextValue();
-				MultiPlayer.Mover_Y			= NextValue();
-				MultiPlayer.background		= NextValue();
-				MultiPlayer.title			= NextValue();
-				MultiPlayer.Animation		= NextValue();
-				MultiPlayer.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "loadgame"))
-			{
-				MainMenu[2].X			= NextValue();
-				MainMenu[2].Y			= NextValue();
-				LoadGame.Image_Number	= NextValue();
-				LoadGame.Width			= NextValue();
-				LoadGame.Height			= NextValue();
-				LoadGame.Image_X		= NextValue();
-				LoadGame.Image_Y		= NextValue();
-				LoadGame.Mover_X		= NextValue();
-				LoadGame.Mover_Y		= NextValue();
-				LoadGame.background		= NextValue();
-				LoadGame.title			= NextValue();
-				LoadGame.Animation		= NextValue();
-				LoadGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "savegame"))
-			{
-				MainMenu[3].X			= NextValue();
-				MainMenu[3].Y			= NextValue();
-				SaveGame.Image_Number	= NextValue();
-				SaveGame.Width			= NextValue();
-				SaveGame.Height			= NextValue();
-				SaveGame.Image_X		= NextValue();
-				SaveGame.Image_Y		= NextValue();
-				SaveGame.Mover_X		= NextValue();
-				SaveGame.Mover_Y		= NextValue();
-				SaveGame.background		= NextValue();
-				SaveGame.title			= NextValue();
-				SaveGame.Animation		= NextValue();
-				SaveGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "options"))
-			{
-				MainMenu[4].X			= NextValue();
-				MainMenu[4].Y			= NextValue();
-				Options.Image_Number	= NextValue();
-				Options.Width			= NextValue();
-				Options.Height			= NextValue();
-				Options.Image_X			= NextValue();
-				Options.Image_Y			= NextValue();
-				Options.Mover_X			= NextValue();
-				Options.Mover_Y			= NextValue();
-				Options.background		= NextValue();
-				Options.title			= NextValue();
-				Options.Animation		= NextValue();
-				Options.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "credits"))
-			{
-				MainMenu[5].X			= NextValue();
-				MainMenu[5].Y			= NextValue();
-				Credits.Image_Number	= NextValue();
-				Credits.Width			= NextValue();
-				Credits.Height			= NextValue();
-				Credits.Image_X			= NextValue();
-				Credits.Image_Y			= NextValue();
-				Credits.Mover_X			= NextValue();
-				Credits.Mover_Y			= NextValue();
-				Credits.background		= NextValue();
-				Credits.title			= NextValue();
-				Credits.Animation		= NextValue();
-				Credits.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "mods"))
-			{
-				MainMenu[8].X		= NextValue();
-				MainMenu[8].Y		= NextValue();
-				Mods.Image_Number	= NextValue();
-				Mods.Width			= NextValue();
-				Mods.Height			= NextValue();
-				Mods.Image_X		= NextValue();
-				Mods.Image_Y		= NextValue();
-				Mods.Mover_X		= NextValue();
-				Mods.Mover_Y		= NextValue();
-				Mods.background		= NextValue();
-				Mods.title			= NextValue();
-				Mods.Animation		= NextValue();
-				Mods.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitmain"))
-			{
-				MainMenu[6].X			= NextValue();
-				MainMenu[6].Y			= NextValue();
-				QuitGame.Image_Number	= NextValue();
-				QuitGame.Width			= NextValue();
-				QuitGame.Height			= NextValue();
-				QuitGame.Image_X		= NextValue();
-				QuitGame.Image_Y		= NextValue();
-				QuitGame.Mover_X		= NextValue();
-				QuitGame.Mover_Y		= NextValue();
-				QuitGame.Animation		= NextValue();
-				QuitGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "returntext"))
-			{
-				MainMenu[7].X		= NextValue();
-				MainMenu[7].Y		= NextValue();
-				return_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "hostnewgame"))
-			{
-				MultiMenu[0].X				= NextValue();
-				MultiMenu[0].Y				= NextValue();
-				HostNewGame.Image_Number	= NextValue();
-				HostNewGame.Width			= NextValue();
-				HostNewGame.Height			= NextValue();
-				HostNewGame.Image_X			= NextValue();
-				HostNewGame.Image_Y			= NextValue();
-				HostNewGame.Mover_X			= NextValue();
-				HostNewGame.Mover_Y			= NextValue();
-				HostNewGame.background		= NextValue();
-				HostNewGame.title			= NextValue();
-				HostNewGame.Animation		= NextValue();
-				HostNewGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "joinmultiplayergame"))
-			{
-				MultiMenu[1].X						= NextValue();
-				MultiMenu[1].Y						= NextValue();
-				JoinMultiplayerGame.Image_Number	= NextValue();
-				JoinMultiplayerGame.Width			= NextValue();
-				JoinMultiplayerGame.Height			= NextValue();
-				JoinMultiplayerGame.Image_X			= NextValue();
-				JoinMultiplayerGame.Image_Y			= NextValue();
-				JoinMultiplayerGame.Mover_X			= NextValue();
-				JoinMultiplayerGame.Mover_Y			= NextValue();
-				JoinMultiplayerGame.background		= NextValue();
-				JoinMultiplayerGame.title			= NextValue();
-				JoinMultiplayerGame.Animation		= NextValue();
-				JoinMultiplayerGame.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitmulti"))
-			{
-				MultiMenu[2].X			= NextValue();
-				MultiMenu[2].Y			= NextValue();
-				QuitMulti.Image_Number	= NextValue();
-				QuitMulti.Width			= NextValue();
-				QuitMulti.Height		= NextValue();
-				QuitMulti.Image_X		= NextValue();
-				QuitMulti.Image_Y		= NextValue();
-				QuitMulti.Mover_X		= NextValue();
-				QuitMulti.Mover_Y		= NextValue();
-				QuitMulti.Animation		= NextValue();
-				QuitMulti.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "playerip_text"))
-			{
-				MultiMenu[3].X		= NextValue();
-				MultiMenu[3].Y		= NextValue();
-				PlayerIP_Text.Font	= NextFont();
-			}
-            else if(!stricmp(szAtom, "playerip1"))
-			{
-				MultiMenu[4].X = NextValue();
-				MultiMenu[4].Y = NextValue();
-				PlayerIP1.Font = NextFont();
-			}
-			else if(!stricmp(szAtom, "ipadd_text"))
-			{
-				JoinGameMenu[0].X	= NextValue();
-				JoinGameMenu[0].Y	= NextValue();
-				IPAdd_Text.Font		= NextFont();
-			}
-			else if(!stricmp(szAtom, "ipaddress"))
-			{
-				JoinGameMenu[1].X	= NextValue();
-				JoinGameMenu[1].Y	= NextValue();
-				IPAddress.Font		= NextFont();
-				IPAddress.Set_X		= JoinGameMenu[1].X;
-				IPAddress.Set_Y		= JoinGameMenu[1].Y;
-				IPAddress.Width		= NextValue();
-			}
-			else if(!stricmp(szAtom, "launchjoingame"))
-			{
-				JoinGameMenu[2].X			= NextValue();
-				JoinGameMenu[2].Y			= NextValue();
-
-				LaunchJoinGame.Image_Number = NextValue();
-				LaunchJoinGame.Width		= NextValue();
-				LaunchJoinGame.Height		= NextValue();
-				LaunchJoinGame.Image_X		= NextValue();
-				LaunchJoinGame.Image_Y		= NextValue();
-				LaunchJoinGame.Mover_X		= NextValue();
-				LaunchJoinGame.Mover_Y		= NextValue();
-				LaunchJoinGame.Animation	= NextValue();
-				LaunchJoinGame.AnimationOver= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitjoingame"))
-			{
-				JoinGameMenu[3].X			= NextValue();
-				JoinGameMenu[3].Y			= NextValue();
-				QuitJoinGame.Image_Number	= NextValue();
-				QuitJoinGame.Width			= NextValue();
-				QuitJoinGame.Height			= NextValue();
-				QuitJoinGame.Image_X		= NextValue();
-				QuitJoinGame.Image_Y		= NextValue();
-				QuitJoinGame.Mover_X		= NextValue();
-				QuitJoinGame.Mover_Y		= NextValue();
-				QuitJoinGame.Animation		= NextValue();
-				QuitJoinGame.AnimationOver	= NextValue();
-			}
-            else if(!stricmp(szAtom, "multiplayerhelptext"))
-			{
-				JoinGameMenu[4].X			= NextValue();
-				JoinGameMenu[4].Y			= NextValue();
-				MultiplayerHelp_Text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "quitload"))
-			{
-				LoadGMenu[0].X			= NextValue();
-				LoadGMenu[0].Y			= NextValue();
-				QuitLoad.Image_Number	= NextValue();
-				QuitLoad.Width			= NextValue();
-				QuitLoad.Height			= NextValue();
-				QuitLoad.Image_X		= NextValue();
-				QuitLoad.Image_Y		= NextValue();
-				QuitLoad.Mover_X		= NextValue();
-				QuitLoad.Mover_Y		= NextValue();
-				QuitLoad.Animation		= NextValue();
-				QuitLoad.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "load"))
-			{
-				LoadGMenu[1].X			= NextValue();
-				LoadGMenu[1].Y			= NextValue();
-				LoadSlot.Image_Number	= NextValue();
-				LoadSlot.Width			= NextValue();
-				LoadSlot.Height			= NextValue();
-				LoadSlot.Image_X		= NextValue();
-				LoadSlot.Image_Y		= NextValue();
-				LoadSlot.Mover_X		= NextValue();
-				LoadSlot.Mover_Y		= NextValue();
-				LoadSlot.Animation		= NextValue();
-				LoadSlot.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "loadbox"))
-			{
-				LoadGMenu[2].X			= NextValue();
-				LoadGMenu[2].Y			= NextValue();
-				LoadBox.Image_Number	= NextValue();
-				LoadBox.Width			= NextValue();
-				LoadBox.Height			= NextValue();
-				LoadBox.Image_X			= NextValue();
-				LoadBox.Image_Y			= NextValue();
-				LoadBox.Start_X			= NextValue();
-				LoadBox.Start_Y			= NextValue();
-				LoadBox.Step			= NextValue();
-				LoadBox.Max_Show		= NextValue();
-				LoadBox.Corner_X		= NextValue();
-				LoadBox.Corner_Y		= NextValue();
-				LoadBox.Click_Width		= NextValue();
-				LoadBox.Rev_X			= NextValue();
-				LoadBox.Rev_Y			= NextValue();
-				LoadBox.Rev_Width		= NextValue();
-				LoadBox.Rev_Height		= NextValue();
-				LoadBox.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "loadbar"))
-			{
-				LoadGMenu[3].X			= NextValue();
-				LoadGMenu[3].Y			= NextValue();
-				LoadBar.Image_Number	= NextValue();
-				LoadBar.Up_Width		= NextValue();
-				LoadBar.Up_Height		= NextValue();
-				LoadBar.Up_Nor_X		= NextValue();
-				LoadBar.Up_Nor_Y		= NextValue();
-				LoadBar.Up_Lit_X		= NextValue();
-				LoadBar.Up_Lit_Y		= NextValue();
-				LoadBar.Up_Push_X		= NextValue();
-				LoadBar.Up_Push_Y		= NextValue();
-				LoadBar.Dwn_Width		= NextValue();
-				LoadBar.Dwn_Height		= NextValue();
-				LoadBar.Dwn_Nor_X		= NextValue();
-				LoadBar.Dwn_Nor_Y		= NextValue();
-				LoadBar.Dwn_Lit_X		= NextValue();
-				LoadBar.Dwn_Lit_Y		= NextValue();
-				LoadBar.Dwn_Push_X		= NextValue();
-				LoadBar.Dwn_Push_Y		= NextValue();
-				LoadBar.Up_X			= NextValue();
-				LoadBar.Up_Y			= NextValue();
-				LoadBar.Dwn_X			= NextValue();
-				LoadBar.Dwn_Y			= NextValue();
-				LoadBar.Show			= LoadBox.Max_Show;
-				LoadBar.AnimationUp		= NextValue();
-				LoadBar.AnimationUpOver = NextValue();
-				LoadBar.AnimationUpPush = NextValue();
-				LoadBar.AnimationDwn	= NextValue();
-				LoadBar.AnimationDwnOver= NextValue();
-				LoadBar.AnimationDwnPush= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitsave"))
-			{
-				SaveMenu[0].X			= NextValue();
-				SaveMenu[0].Y			= NextValue();
-				QuitSave.Image_Number	= NextValue();
-				QuitSave.Width			= NextValue();
-				QuitSave.Height			= NextValue();
-				QuitSave.Image_X		= NextValue();
-				QuitSave.Image_Y		= NextValue();
-				QuitSave.Mover_X		= NextValue();
-				QuitSave.Mover_Y		= NextValue();
-				QuitSave.Animation		= NextValue();
-				QuitSave.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "save"))
-			{
-				SaveMenu[1].X			= NextValue();
-				SaveMenu[1].Y			= NextValue();
-				SaveSlot.Image_Number	= NextValue();
-				SaveSlot.Width			= NextValue();
-				SaveSlot.Height			= NextValue();
-				SaveSlot.Image_X		= NextValue();
-				SaveSlot.Image_Y		= NextValue();
-				SaveSlot.Mover_X		= NextValue();
-				SaveSlot.Mover_Y		= NextValue();
-				SaveSlot.Animation		= NextValue();
-				SaveSlot.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "savebox"))
-			{
-				SaveMenu[2].X			= NextValue();
-				SaveMenu[2].Y			= NextValue();
-				SaveBox.Image_Number	= NextValue();
-				SaveBox.Width			= NextValue();
-				SaveBox.Height			= NextValue();
-				SaveBox.Image_X			= NextValue();
-				SaveBox.Image_Y			= NextValue();
-				SaveBox.Start_X			= NextValue();
-				SaveBox.Start_Y			= NextValue();
-				SaveBox.Step			= NextValue();
-				SaveBox.Max_Show		= NextValue();
-				SaveBox.Corner_X		= NextValue();
-				SaveBox.Corner_Y		= NextValue();
-				SaveBox.Click_Width		= NextValue();
-				SaveBox.Rev_X			= NextValue();
-				SaveBox.Rev_Y			= NextValue();
-				SaveBox.Rev_Width		= NextValue();
-				SaveBox.Rev_Height		= NextValue();
-				SaveBox.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "savebar"))
-			{
-				SaveMenu[3].X				= NextValue();
-				SaveMenu[3].Y				= NextValue();
-				SaveBar.Image_Number		= NextValue();
-				SaveBar.Up_Width			= NextValue();
-				SaveBar.Up_Height			= NextValue();
-				SaveBar.Up_Nor_X			= NextValue();
-				SaveBar.Up_Nor_Y			= NextValue();
-				SaveBar.Up_Lit_X			= NextValue();
-				SaveBar.Up_Lit_Y			= NextValue();
-				SaveBar.Up_Push_X			= NextValue();
-				SaveBar.Up_Push_Y			= NextValue();
-				SaveBar.Dwn_Width			= NextValue();
-				SaveBar.Dwn_Height			= NextValue();
-				SaveBar.Dwn_Nor_X			= NextValue();
-				SaveBar.Dwn_Nor_Y			= NextValue();
-				SaveBar.Dwn_Lit_X			= NextValue();
-				SaveBar.Dwn_Lit_Y			= NextValue();
-				SaveBar.Dwn_Push_X			= NextValue();
-				SaveBar.Dwn_Push_Y			= NextValue();
-				SaveBar.Up_X				= NextValue();
-				SaveBar.Up_Y				= NextValue();
-				SaveBar.Dwn_X				= NextValue();
-				SaveBar.Dwn_Y				= NextValue();
-				SaveBar.Show				= SaveBox.Max_Show;
-				SaveBar.AnimationUp			= NextValue();
-				SaveBar.AnimationUpOver		= NextValue();
-				SaveBar.AnimationUpPush		= NextValue();
-				SaveBar.AnimationDwn		= NextValue();
-				SaveBar.AnimationDwnOver	= NextValue();
-				SaveBar.AnimationDwnPush	= NextValue();
-			}
-			else if(!stricmp(szAtom, "savegameimage"))
-			{
-				SaveScreen.X		= NextValue();
-				SaveScreen.Y		= NextValue();
-				SaveScreen.Width	= NextValue();
-				SaveScreen.Height	= NextValue();
-				SaveScreen.Image_X	= NextValue();
-				SaveScreen.Image_Y	= NextValue();
-
-				SaveScreen.EmptySlotImage[0] = '\0';
-
-				char *temp;
-				temp = strtok(NULL," \n");
-
-				if(SaveScreen.Width > 0 && SaveScreen.Height > 0 && temp)
+				else
 				{
-					strcpy(SaveScreen.EmptySlotImage, temp);
+					CCD->Log()->Warning("Missing KeyClick Sound!");
+				}
+			}
 
-					EmptySlotImage = CreateFromFileName(SaveScreen.EmptySlotImage);
+			value = iniFile.GetValue(section, "slideclick");
+			if(!value.empty())
+			{
+				geVFile *vFile;
 
-					if(EmptySlotImage == (geBitmap*)NULL)
+				if(CFileManager::GetSingletonPtr()->OpenRFFile(&vFile, kAudioFile, value.c_str(), GE_VFILE_OPEN_READONLY))
+				{
+					m_SlideClick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), vFile);
+					geVFile_Close(vFile);
+				}
+				else
+				{
+					CCD->Log()->Warning("Missing SlideClick Sound!");
+				}
+			}
+
+			value = iniFile.GetValue(section, "music");
+			if(!value.empty())
+			{
+				if(EndsWith(value, ".mid"))
+				{
+					m_Music = value;
+
+					SAFE_DELETE(m_MIDIPlayer);
+
+					m_MIDIPlayer = new CMIDIAudio();
+
+					if(m_MIDIPlayer == NULL)
 					{
-						char szBug[256];
-						sprintf(szBug, "[ERROR] Bad file name %s", SaveScreen.EmptySlotImage);
-						CCD->ReportError(szBug, false);
-						exit(-100);
+						CCD->Log()->Warning("MIDI Player failed to instantiate");
 					}
-
-					geBitmap_SetColorKey(EmptySlotImage, GE_TRUE, 255, GE_FALSE);
-					geEngine_AddBitmap(CCD->Engine()->Engine(), EmptySlotImage);
-				}
-			}
-			else if(!stricmp(szAtom, "audio"))
-			{
-				OptionMenu[0].X			= NextValue();
-				OptionMenu[0].Y			= NextValue();
-				AudioItem.Image_Number	= NextValue();
-				AudioItem.Width			= NextValue();
-				AudioItem.Height		= NextValue();
-				AudioItem.Image_X		= NextValue();
-				AudioItem.Image_Y		= NextValue();
-				AudioItem.Mover_X		= NextValue();
-				AudioItem.Mover_Y		= NextValue();
-				AudioItem.background	= NextValue();
-				AudioItem.title			= NextValue();
-				AudioItem.Animation		= NextValue();
-				AudioItem.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "video"))
-			{
-				OptionMenu[1].X			= NextValue();
-				OptionMenu[1].Y			= NextValue();
-				VideoItem.Image_Number	= NextValue();
-				VideoItem.Width			= NextValue();
-				VideoItem.Height		= NextValue();
-				VideoItem.Image_X		= NextValue();
-				VideoItem.Image_Y		= NextValue();
-				VideoItem.Mover_X		= NextValue();
-				VideoItem.Mover_Y		= NextValue();
-				VideoItem.background	= NextValue();
-				VideoItem.title			= NextValue();
-				VideoItem.Animation		= NextValue();
-				VideoItem.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "control"))
-			{
-				OptionMenu[2].X				= NextValue();
-				OptionMenu[2].Y				= NextValue();
-				ControlItem.Image_Number	= NextValue();
-				ControlItem.Width			= NextValue();
-				ControlItem.Height			= NextValue();
-				ControlItem.Image_X			= NextValue();
-				ControlItem.Image_Y			= NextValue();
-				ControlItem.Mover_X			= NextValue();
-				ControlItem.Mover_Y			= NextValue();
-				ControlItem.background		= NextValue();
-				ControlItem.title			= NextValue();
-				ControlItem.Animation		= NextValue();
-				ControlItem.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "language"))
-			{
-				OptionMenu[3].X				= NextValue();
-				OptionMenu[3].Y				= NextValue();
-				LanguageItem.Image_Number	= NextValue();
-				LanguageItem.Width			= NextValue();
-				LanguageItem.Height			= NextValue();
-				LanguageItem.Image_X		= NextValue();
-				LanguageItem.Image_Y		= NextValue();
-				LanguageItem.Mover_X		= NextValue();
-				LanguageItem.Mover_Y		= NextValue();
-				LanguageItem.background		= NextValue();
-				LanguageItem.title			= NextValue();
-				LanguageItem.Animation		= NextValue();
-				LanguageItem.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "debug"))
-			{
-				OptionMenu[4].X			= NextValue();
-				OptionMenu[4].Y			= NextValue();
-				DebugItem.Image_Number	= NextValue();
-				DebugItem.Width			= NextValue();
-				DebugItem.Height		= NextValue();
-				DebugItem.Image_X		= NextValue();
-				DebugItem.Image_Y		= NextValue();
-				DebugItem.Mover_X		= NextValue();
-				DebugItem.Mover_Y		= NextValue();
-				DebugItem.background	= NextValue();
-				DebugItem.title			= NextValue();
-				// changed RF063
-				DebugItem.Animation		= NextValue();
-				DebugItem.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "quitoptions"))
-			{
-				OptionMenu[5].X				= NextValue();
-				OptionMenu[5].Y				= NextValue();
-				QuitOption.Image_Number		= NextValue();
-				QuitOption.Width			= NextValue();
-				QuitOption.Height			= NextValue();
-				QuitOption.Image_X			= NextValue();
-				QuitOption.Image_Y			= NextValue();
-				QuitOption.Mover_X			= NextValue();
-				QuitOption.Mover_Y			= NextValue();
-				QuitOption.Animation		= NextValue();
-				QuitOption.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitlanguage"))
-			{
-				LanguageMenu[0].X			= NextValue();
-				LanguageMenu[0].Y			= NextValue();
-				QuitLanguage.Image_Number	= NextValue();
-				QuitLanguage.Width			= NextValue();
-				QuitLanguage.Height			= NextValue();
-				QuitLanguage.Image_X		= NextValue();
-				QuitLanguage.Image_Y		= NextValue();
-				QuitLanguage.Mover_X		= NextValue();
-				QuitLanguage.Mover_Y		= NextValue();
-				QuitLanguage.Animation		= NextValue();
-				QuitLanguage.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l1box"))
-			{
-				LanguageMenu[1].X	= NextValue();
-				LanguageMenu[1].Y	= NextValue();
-				boxL1.Image_Number	= NextValue();
-				boxL1.Width			= NextValue();
-				boxL1.Height		= NextValue();
-				boxL1.Image_X		= NextValue();
-				boxL1.Image_Y		= NextValue();
-				boxL1.Mover_X		= NextValue();
-				boxL1.Mover_Y		= NextValue();
-				boxL1.Set_X			= NextValue();
-				boxL1.Set_Y			= NextValue();
-				boxL1.Animation		= NextValue();
-				boxL1.AnimationOver = NextValue();
-				boxL1.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l1text"))
-			{
-				LanguageMenu[2].X	= NextValue();
-				LanguageMenu[2].Y	= NextValue();
-				L1text.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "l2box"))
-			{
-				LanguageMenu[3].X	= NextValue();
-				LanguageMenu[3].Y	= NextValue();
-				boxL2.Image_Number	= NextValue();
-				boxL2.Width			= NextValue();
-				boxL2.Height		= NextValue();
-				boxL2.Image_X		= NextValue();
-				boxL2.Image_Y		= NextValue();
-				boxL2.Mover_X		= NextValue();
-				boxL2.Mover_Y		= NextValue();
-				boxL2.Set_X			= NextValue();
-				boxL2.Set_Y			= NextValue();
-				boxL2.Animation		= NextValue();
-				boxL2.AnimationOver = NextValue();
-				boxL2.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l2text"))
-			{
-				LanguageMenu[4].X	= NextValue();
-				LanguageMenu[4].Y	= NextValue();
-				L2text.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "l3box"))
-			{
-				LanguageMenu[5].X	= NextValue();
-				LanguageMenu[5].Y	= NextValue();
-				boxL3.Image_Number	= NextValue();
-				boxL3.Width			= NextValue();
-				boxL3.Height		= NextValue();
-				boxL3.Image_X		= NextValue();
-				boxL3.Image_Y		= NextValue();
-				boxL3.Mover_X		= NextValue();
-				boxL3.Mover_Y		= NextValue();
-				boxL3.Set_X			= NextValue();
-				boxL3.Set_Y			= NextValue();
-				boxL3.Animation		= NextValue();
-				boxL3.AnimationOver = NextValue();
-				boxL3.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l3text"))
-			{
-				LanguageMenu[6].X	= NextValue();
-				LanguageMenu[6].Y	= NextValue();
-				L3text.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom,"l4box"))
-			{
-				LanguageMenu[7].X	= NextValue();
-				LanguageMenu[7].Y	= NextValue();
-				boxL4.Image_Number	= NextValue();
-				boxL4.Width			= NextValue();
-				boxL4.Height		= NextValue();
-				boxL4.Image_X		= NextValue();
-				boxL4.Image_Y		= NextValue();
-				boxL4.Mover_X		= NextValue();
-				boxL4.Mover_Y		= NextValue();
-				boxL4.Set_X			= NextValue();
-				boxL4.Set_Y			= NextValue();
-				boxL4.Animation		= NextValue();
-				boxL4.AnimationOver = NextValue();
-				boxL4.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l4text"))
-			{
-				LanguageMenu[8].X	= NextValue();
-				LanguageMenu[8].Y	= NextValue();
-				L4text.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "l5box"))
-			{
-				LanguageMenu[9].X	= NextValue();
-				LanguageMenu[9].Y	= NextValue();
-				boxL5.Image_Number	= NextValue();
-				boxL5.Width			= NextValue();
-				boxL5.Height		= NextValue();
-				boxL5.Image_X		= NextValue();
-				boxL5.Image_Y		= NextValue();
-				boxL5.Mover_X		= NextValue();
-				boxL5.Mover_Y		= NextValue();
-				boxL5.Set_X			= NextValue();
-				boxL5.Set_Y			= NextValue();
-				boxL5.Animation		= NextValue();
-				boxL5.AnimationOver = NextValue();
-				boxL5.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "l5text"))
-			{
-				LanguageMenu[10].X	= NextValue();
-				LanguageMenu[10].Y	= NextValue();
-				L5text.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "languagetext"))
-			{
-				char *language = NextToken();
-				if(!stricmp("standard", language) || !stricmp("default", language))
-					L1text.text = strdup("English");
-				else
-					L1text.text = strdup(language);
-
-				language = NextToken();
-				if(!stricmp("standard", language) || !stricmp("default", language))
-					L2text.text = strdup("Deutsch");
-				else
-					L2text.text = strdup(language);
-
-				language = NextToken();
-				if(!stricmp("standard", language) || !stricmp("default", language))
-					L3text.text = strdup("Francais");
-				else
-					L3text.text = strdup(language);
-
-				language = NextToken();
-				if(!stricmp("standard", language) || !stricmp("default", language))
-					L4text.text = strdup("Espanol");
-				else
-					L4text.text = strdup(language);
-
-				language = NextToken();
-				if(!stricmp("standard", language) || !stricmp("default", language))
-					L5text.text = strdup("Italiano");
-				else
-					L5text.text = strdup(language);
-			}
-			else if(!stricmp(szAtom, "menuinis"))
-			{
-				strcpy(MenuInis[0], NextToken());
-				strcpy(MenuInis[1], NextToken());
-				strcpy(MenuInis[2], NextToken());
-				strcpy(MenuInis[3], NextToken());
-				strcpy(MenuInis[4], NextToken());
-			}
-			else if(!stricmp(szAtom, "convtxts"))
-			{
-				strcpy(Convtxts[0], NextToken());
-				strcpy(Convtxts[1], NextToken());
-				strcpy(Convtxts[2], NextToken());
-				strcpy(Convtxts[3], NextToken());
-				strcpy(Convtxts[4], NextToken());
-			}
-			else if(!stricmp(szAtom, "messagetxts"))
-			{
-				strcpy(Messagetxts[0], NextToken());
-				strcpy(Messagetxts[1], NextToken());
-				strcpy(Messagetxts[2], NextToken());
-				strcpy(Messagetxts[3], NextToken());
-				strcpy(Messagetxts[4], NextToken());
-			}
-			else if(!stricmp(szAtom, "quitdebug"))
-			{
-				DebugMenu[0].X			= NextValue();
-				DebugMenu[0].Y			= NextValue();
-				QuitDebug.Image_Number	= NextValue();
-				QuitDebug.Width			= NextValue();
-				QuitDebug.Height		= NextValue();
-				QuitDebug.Image_X		= NextValue();
-				QuitDebug.Image_Y		= NextValue();
-				QuitDebug.Mover_X		= NextValue();
-				QuitDebug.Mover_Y		= NextValue();
-				QuitDebug.Animation		= NextValue();
-				QuitDebug.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "debugbox"))
-			{
-				DebugMenu[1].X		= NextValue();
-				DebugMenu[1].Y		= NextValue();
-				box5.Image_Number	= NextValue();
-				box5.Width			= NextValue();
-				box5.Height			= NextValue();
-				box5.Image_X		= NextValue();
-				box5.Image_Y		= NextValue();
-				box5.Mover_X		= NextValue();
-				box5.Mover_Y		= NextValue();
-				box5.Set_X			= NextValue();
-				box5.Set_Y			= NextValue();
-				box5.Animation		= NextValue();
-				box5.AnimationOver	= NextValue();
-				box5.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "debugtext"))
-			{
-				DebugMenu[2].X	= NextValue();
-				DebugMenu[2].Y	= NextValue();
-				debug_text.Font = NextFont();
-			}
-			else if(!stricmp(szAtom, "fpsbox"))
-			{
-				DebugMenu[3].X		= NextValue();
-				DebugMenu[3].Y		= NextValue();
-				box6.Image_Number	= NextValue();
-				box6.Width			= NextValue();
-				box6.Height			= NextValue();
-				box6.Image_X		= NextValue();
-				box6.Image_Y		= NextValue();
-				box6.Mover_X		= NextValue();
-				box6.Mover_Y		= NextValue();
-				box6.Set_X			= NextValue();
-				box6.Set_Y			= NextValue();
-				box6.Animation		= NextValue();
-				box6.AnimationOver	= NextValue();
-				box6.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "fpstext"))
-			{
-				DebugMenu[4].X	= NextValue();
-				DebugMenu[4].Y	= NextValue();
-				fps_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "clipbox"))
-			{
-				DebugMenu[5].X		= NextValue();
-				DebugMenu[5].Y		= NextValue();
-				box7.Image_Number	= NextValue();
-				box7.Width			= NextValue();
-				box7.Height			= NextValue();
-				box7.Image_X		= NextValue();
-				box7.Image_Y		= NextValue();
-				box7.Mover_X		= NextValue();
-				box7.Mover_Y		= NextValue();
-				box7.Set_X			= NextValue();
-				box7.Set_Y			= NextValue();
-				box7.Animation		= NextValue();
-				box7.AnimationOver	= NextValue();
-				box7.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "cliptext"))
-			{
-				DebugMenu[6].X = NextValue();
-				DebugMenu[6].Y = NextValue();
-				clip_text.Font = NextFont();
-			}
-			else if(!stricmp(szAtom, "bbbox"))
-			{
-				DebugMenu[7].X		= NextValue();
-				DebugMenu[7].Y		= NextValue();
-				box8.Image_Number	= NextValue();
-				box8.Width			= NextValue();
-				box8.Height			= NextValue();
-				box8.Image_X		= NextValue();
-				box8.Image_Y		= NextValue();
-				box8.Mover_X		= NextValue();
-				box8.Mover_Y		= NextValue();
-				box8.Set_X			= NextValue();
-				box8.Set_Y			= NextValue();
-				box8.Animation		= NextValue();
-				box8.AnimationOver	= NextValue();
-				box8.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "bbtext"))
-			{
-				DebugMenu[8].X	= NextValue();
-				DebugMenu[8].Y	= NextValue();
-				bb_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "sebbbox"))
-			{
-				DebugMenu[9].X		= NextValue();
-				DebugMenu[9].Y		= NextValue();
-				box9.Image_Number	= NextValue();
-				box9.Width			= NextValue();
-				box9.Height			= NextValue();
-				box9.Image_X		= NextValue();
-				box9.Image_Y		= NextValue();
-				box9.Mover_X		= NextValue();
-				box9.Mover_Y		= NextValue();
-				box9.Set_X			= NextValue();
-				box9.Set_Y			= NextValue();
-				box9.Animation		= NextValue();
-				box9.AnimationOver	= NextValue();
-				box9.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "sebbtext"))
-			{
-				DebugMenu[10].X		= NextValue();
-				DebugMenu[10].Y		= NextValue();
-				sebb_text.Font		= NextFont();
-			}
-			else if(!stricmp(szAtom, "quitcredit"))
-			{
-				CreditMenu[0].X			= NextValue();
-				CreditMenu[0].Y			= NextValue();
-				QuitCredit.Image_Number = NextValue();
-				QuitCredit.Width		= NextValue();
-				QuitCredit.Height		= NextValue();
-				QuitCredit.Image_X		= NextValue();
-				QuitCredit.Image_Y		= NextValue();
-				QuitCredit.Mover_X		= NextValue();
-				QuitCredit.Mover_Y		= NextValue();
-				QuitCredit.Animation	= NextValue();
-				QuitCredit.AnimationOver= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitmods"))
-			{
-				ModsMenu[0].X			= NextValue();
-				ModsMenu[0].Y			= NextValue();
-				QuitMods.Image_Number	= NextValue();
-				QuitMods.Width			= NextValue();
-				QuitMods.Height			= NextValue();
-				QuitMods.Image_X		= NextValue();
-				QuitMods.Image_Y		= NextValue();
-				QuitMods.Mover_X		= NextValue();
-				QuitMods.Mover_Y		= NextValue();
-				QuitMods.Animation		= NextValue();
-				QuitMods.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "creditimg"))
-			{
-				CreditMenu[1].X			= NextValue();
-				CreditMenu[1].Y			= NextValue();
-				Credit_Img.Image_Number = NextValue();
-				Credit_Img.Width		= NextValue();
-				Credit_Img.Height		= NextValue();
-				Credit_Img.Image_X		= NextValue();
-				Credit_Img.Image_Y		= NextValue();
-				Credit_Img.Animation	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitaudio"))
-			{
-				AudioMenu[0].X			= NextValue();
-				AudioMenu[0].Y			= NextValue();
-				QuitAudio.Image_Number	= NextValue();
-				QuitAudio.Width			= NextValue();
-				QuitAudio.Height		= NextValue();
-				QuitAudio.Image_X		= NextValue();
-				QuitAudio.Image_Y		= NextValue();
-				QuitAudio.Mover_X		= NextValue();
-				QuitAudio.Mover_Y		= NextValue();
-				QuitAudio.Animation		= NextValue();
-				QuitAudio.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "voltext"))
-			{
-				AudioMenu[1].X	= NextValue();
-				AudioMenu[1].Y	= NextValue();
-				vol_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "volimg"))
-			{
-				AudioMenu[2].X			= NextValue();
-				AudioMenu[2].Y			= NextValue();
-				Vol_Img.Image_Number	= NextValue();
-				Vol_Img.Width			= NextValue();
-				Vol_Img.Height			= NextValue();
-				Vol_Img.Image_X			= NextValue();
-				Vol_Img.Image_Y			= NextValue();
-				Vol_Img.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "volslider"))
-			{
-				AudioMenu[3].X			= NextValue();
-				AudioMenu[3].Y			= NextValue();
-				Vol_Slide.Image_Number	= NextValue();
-				Vol_Slide.Width			= NextValue();
-				Vol_Slide.Height		= NextValue();
-				Vol_Slide.Image_X		= NextValue();
-				Vol_Slide.Image_Y		= NextValue();
-				Vol_Slide.Min_X			= NextValue();
-				Vol_Slide.Max_X			= NextValue();
-				Vol_Slide.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "mvoltext"))
-			{
-				AudioMenu[4].X = NextValue();
-				AudioMenu[4].Y = NextValue();
-				mvol_text.Font = NextFont();
-			}
-			else if(!stricmp(szAtom,"mvolimg"))
-			{
-				AudioMenu[5].X			= NextValue();
-				AudioMenu[5].Y			= NextValue();
-				mVol_Img.Image_Number	= NextValue();
-				mVol_Img.Width			= NextValue();
-				mVol_Img.Height			= NextValue();
-				mVol_Img.Image_X		= NextValue();
-				mVol_Img.Image_Y		= NextValue();
-				mVol_Img.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "mvolslider"))
-			{
-				AudioMenu[6].X			= NextValue();
-				AudioMenu[6].Y			= NextValue();
-				mVol_Slide.Image_Number = NextValue();
-				mVol_Slide.Width		= NextValue();
-				mVol_Slide.Height		= NextValue();
-				mVol_Slide.Image_X		= NextValue();
-				mVol_Slide.Image_Y		= NextValue();
-				mVol_Slide.Min_X		= NextValue();
-				mVol_Slide.Max_X		= NextValue();
-				mVol_Slide.Animation	= NextValue();
-			}
-			else if(!stricmp(szAtom, "cdbox"))
-			{
-				AudioMenu[7].X		= NextValue();
-				AudioMenu[7].Y		= NextValue();
-				box0.Image_Number	= NextValue();
-				box0.Width			= NextValue();
-				box0.Height			= NextValue();
-				box0.Image_X		= NextValue();
-				box0.Image_Y		= NextValue();
-				box0.Mover_X		= NextValue();
-				box0.Mover_Y		= NextValue();
-				box0.Set_X			= NextValue();
-				box0.Set_Y			= NextValue();
-				box0.Animation		= NextValue();
-				box0.AnimationOver	= NextValue();
-				box0.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "cdtext"))
-			{
-				AudioMenu[8].X	= NextValue();
-				AudioMenu[8].Y	= NextValue();
-				cd_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "quitvideo"))
-			{
-				VideoMenu[0].X			= NextValue();
-				VideoMenu[0].Y			= NextValue();
-				QuitVideo.Image_Number	= NextValue();
-				QuitVideo.Width			= NextValue();
-				QuitVideo.Height		= NextValue();
-				QuitVideo.Image_X		= NextValue();
-				QuitVideo.Image_Y		= NextValue();
-				QuitVideo.Mover_X		= NextValue();
-				QuitVideo.Mover_Y		= NextValue();
-				QuitVideo.Animation		= NextValue();
-				QuitVideo.AnimationOver = NextValue();
-			}
-			else if(!stricmp(szAtom, "gammatext"))
-			{
-				VideoMenu[1].X	= NextValue();
-				VideoMenu[1].Y	= NextValue();
-				gam_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "gammaimg"))
-			{
-				VideoMenu[2].X			= NextValue();
-				VideoMenu[2].Y			= NextValue();
-				Gamma_Img.Image_Number	= NextValue();
-				Gamma_Img.Width			= NextValue();
-				Gamma_Img.Height		= NextValue();
-				Gamma_Img.Image_X		= NextValue();
-				Gamma_Img.Image_Y		= NextValue();
-				Gamma_Img.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "gammaslider"))
-			{
-				VideoMenu[3].X				= NextValue();
-				VideoMenu[3].Y				= NextValue();
-				Gamma_Slide.Image_Number	= NextValue();
-				Gamma_Slide.Width			= NextValue();
-				Gamma_Slide.Height			= NextValue();
-				Gamma_Slide.Image_X			= NextValue();
-				Gamma_Slide.Image_Y			= NextValue();
-				Gamma_Slide.Min_X			= NextValue();
-				Gamma_Slide.Max_X			= NextValue();
-				Gamma_Slide.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "detailtext"))
-			{
-				VideoMenu[4].X	= NextValue();
-				VideoMenu[4].Y	= NextValue();
-				det_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "detailimg"))
-			{
-				VideoMenu[5].X			= NextValue();
-				VideoMenu[5].Y			= NextValue();
-				Detail_Img.Image_Number = NextValue();
-				Detail_Img.Width		= NextValue();
-				Detail_Img.Height		= NextValue();
-				Detail_Img.Image_X		= NextValue();
-				Detail_Img.Image_Y		= NextValue();
-				Detail_Img.Animation	= NextValue();
-			}
-			else if(!stricmp(szAtom, "detailslider"))
-			{
-				VideoMenu[6].X				= NextValue();
-				VideoMenu[6].Y				= NextValue();
-				Detail_Slide.Image_Number	= NextValue();
-				Detail_Slide.Width			= NextValue();
-				Detail_Slide.Height			= NextValue();
-				Detail_Slide.Image_X		= NextValue();
-				Detail_Slide.Image_Y		= NextValue();
-				Detail_Slide.Min_X			= NextValue();
-				Detail_Slide.Max_X			= NextValue();
-				Detail_Slide.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "shadowbox"))
-			{
-				VideoMenu[7].X			= NextValue();
-				VideoMenu[7].Y			= NextValue();
-				ShadowBox.Image_Number	= NextValue();
-				ShadowBox.Width			= NextValue();
-				ShadowBox.Height		= NextValue();
-				ShadowBox.Image_X		= NextValue();
-				ShadowBox.Image_Y		= NextValue();
-				ShadowBox.Mover_X		= NextValue();
-				ShadowBox.Mover_Y		= NextValue();
-				ShadowBox.Set_X			= NextValue();
-				ShadowBox.Set_Y			= NextValue();
-				ShadowBox.Animation		= NextValue();
-				ShadowBox.AnimationOver = NextValue();
-				ShadowBox.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "shadowtext"))
-			{
-				VideoMenu[8].X		= NextValue();
-				VideoMenu[8].Y		= NextValue();
-				shadow_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "advance"))
-			{
-				ControlMenu[0].X			= NextValue();
-				ControlMenu[0].Y			= NextValue();
-				AdvancedItem.Image_Number	= NextValue();
-				AdvancedItem.Width			= NextValue();
-				AdvancedItem.Height			= NextValue();
-				AdvancedItem.Image_X		= NextValue();
-				AdvancedItem.Image_Y		= NextValue();
-				AdvancedItem.Mover_X		= NextValue();
-				AdvancedItem.Mover_Y		= NextValue();
-				AdvancedItem.background		= NextValue();
-				AdvancedItem.title			= NextValue();
-				AdvancedItem.Animation		= NextValue();
-				AdvancedItem.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitcontrol"))
-			{
-				ControlMenu[1].X			= NextValue();
-				ControlMenu[1].Y			= NextValue();
-				QuitControl.Image_Number	= NextValue();
-				QuitControl.Width			= NextValue();
-				QuitControl.Height			= NextValue();
-				QuitControl.Image_X			= NextValue();
-				QuitControl.Image_Y			= NextValue();
-				QuitControl.Mover_X			= NextValue();
-				QuitControl.Mover_Y			= NextValue();
-				QuitControl.Animation		= NextValue();
-				QuitControl.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "remapbox"))
-			{
-				ControlMenu[2].X	= NextValue();
-				ControlMenu[2].Y	= NextValue();
-				KeyMap.Image_Number = NextValue();
-				KeyMap.Width		= NextValue();
-				KeyMap.Height		= NextValue();
-				KeyMap.Image_X		= NextValue();
-				KeyMap.Image_Y		= NextValue();
-				KeyMap.Start_X		= NextValue();
-				KeyMap.Start_Y		= NextValue();
-				KeyMap.Step			= NextValue();
-				KeyMap.Max_Show		= NextValue();
-				KeyMap.Corner_X		= NextValue();
-				KeyMap.Corner_Y		= NextValue();
-				KeyMap.Click_Width	= NextValue();
-				KeyMap.Key_X		= NextValue();
-				KeyMap.Rev_X		= NextValue();
-				KeyMap.Rev_Y		= NextValue();
-				KeyMap.Rev_Width	= NextValue();
-				KeyMap.Rev_Height	= NextValue();
-				KeyMap.RevC_X		= NextValue();
-				KeyMap.RevC_Y		= NextValue();
-				KeyMap.RevC_Width	= NextValue();
-				KeyMap.RevC_Height	= NextValue();
-				KeyMap.Font			= NextFont();
-			}
-			else if(!stricmp(szAtom, "remapbar"))
-			{
-				ControlMenu[3].X			= NextValue();
-				ControlMenu[3].Y			= NextValue();
-				KeyMapBar.Image_Number		= NextValue();
-				KeyMapBar.Up_Width			= NextValue();
-				KeyMapBar.Up_Height			= NextValue();
-				KeyMapBar.Up_Nor_X			= NextValue();
-				KeyMapBar.Up_Nor_Y			= NextValue();
-				KeyMapBar.Up_Lit_X			= NextValue();
-				KeyMapBar.Up_Lit_Y			= NextValue();
-				KeyMapBar.Up_Push_X			= NextValue();
-				KeyMapBar.Up_Push_Y			= NextValue();
-				KeyMapBar.Dwn_Width			= NextValue();
-				KeyMapBar.Dwn_Height		= NextValue();
-				KeyMapBar.Dwn_Nor_X			= NextValue();
-				KeyMapBar.Dwn_Nor_Y			= NextValue();
-				KeyMapBar.Dwn_Lit_X			= NextValue();
-				KeyMapBar.Dwn_Lit_Y			= NextValue();
-				KeyMapBar.Dwn_Push_X		= NextValue();
-				KeyMapBar.Dwn_Push_Y		= NextValue();
-				KeyMapBar.Up_X				= NextValue();
-				KeyMapBar.Up_Y				= NextValue();
-				KeyMapBar.Dwn_X				= NextValue();
-				KeyMapBar.Dwn_Y				= NextValue();
-				KeyMapBar.Show				= KeyMap.Max_Show;
-				KeyMapBar.AnimationUp		= NextValue();
-				KeyMapBar.AnimationUpOver	= NextValue();
-				KeyMapBar.AnimationUpPush	= NextValue();
-				KeyMapBar.AnimationDwn		= NextValue();
-				KeyMapBar.AnimationDwnOver	= NextValue();
-				KeyMapBar.AnimationDwnPush	= NextValue();
-			}
-			else if(!stricmp(szAtom, "default"))
-			{
-				ControlMenu[4].X		= NextValue();
-				ControlMenu[4].Y		= NextValue();
-				ResetKey.Image_Number	= NextValue();
-				ResetKey.Width			= NextValue();
-				ResetKey.Height			= NextValue();
-				ResetKey.Image_X		= NextValue();
-				ResetKey.Image_Y		= NextValue();
-				ResetKey.Mover_X		= NextValue();
-				ResetKey.Mover_Y		= NextValue();
-				ResetKey.Animation		= NextValue();
-				ResetKey.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "quitadvance"))
-			{
-				AdvancedMenu[0].X			= NextValue();
-				AdvancedMenu[0].Y			= NextValue();
-				QuitAdvanced.Image_Number	= NextValue();
-				QuitAdvanced.Width			= NextValue();
-				QuitAdvanced.Height			= NextValue();
-				QuitAdvanced.Image_X		= NextValue();
-				QuitAdvanced.Image_Y		= NextValue();
-				QuitAdvanced.Mover_X		= NextValue();
-				QuitAdvanced.Mover_Y		= NextValue();
-				QuitAdvanced.Animation		= NextValue();
-				QuitAdvanced.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "crossbox"))
-			{
-				AdvancedMenu[1].X	= NextValue();
-				AdvancedMenu[1].Y	= NextValue();
-				box1.Image_Number	= NextValue();
-				box1.Width			= NextValue();
-				box1.Height			= NextValue();
-				box1.Image_X		= NextValue();
-				box1.Image_Y		= NextValue();
-				box1.Mover_X		= NextValue();
-				box1.Mover_Y		= NextValue();
-				box1.Set_X			= NextValue();
-				box1.Set_Y			= NextValue();
-				box1.Animation		= NextValue();
-				box1.AnimationOver	= NextValue();
-				box1.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "crosstext"))
-			{
-				AdvancedMenu[2].X	= NextValue();
-				AdvancedMenu[2].Y	= NextValue();
-				xhair_text.Font		= NextFont();
-			}
-			else if(!stricmp(szAtom, "reversebox"))
-			{
-				AdvancedMenu[3].X	= NextValue();
-				AdvancedMenu[3].Y	= NextValue();
-				box2.Image_Number	= NextValue();
-				box2.Width			= NextValue();
-				box2.Height			= NextValue();
-				box2.Image_X		= NextValue();
-				box2.Image_Y		= NextValue();
-				box2.Mover_X		= NextValue();
-				box2.Mover_Y		= NextValue();
-				box2.Set_X			= NextValue();
-				box2.Set_Y			= NextValue();
-				box2.Animation		= NextValue();
-				box2.AnimationOver	= NextValue();
-				box2.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "reversetext"))
-			{
-				AdvancedMenu[4].X	= NextValue();
-				AdvancedMenu[4].Y	= NextValue();
-				rev_text.Font		= NextFont();
-			}
-			else if(!stricmp(szAtom, "filterbox"))
-			{
-				AdvancedMenu[5].X	= NextValue();
-				AdvancedMenu[5].Y	= NextValue();
-				box4.Image_Number	= NextValue();
-				box4.Width			= NextValue();
-				box4.Height			= NextValue();
-				box4.Image_X		= NextValue();
-				box4.Image_Y		= NextValue();
-				box4.Mover_X		= NextValue();
-				box4.Mover_Y		= NextValue();
-				box4.Set_X			= NextValue();
-				box4.Set_Y			= NextValue();
-				box4.Animation		= NextValue();
-				box4.AnimationOver	= NextValue();
-				box4.AnimationLit	= NextValue();
-			}
-			else if(!stricmp(szAtom, "filtertext"))
-			{
-				AdvancedMenu[6].X	= NextValue();
-				AdvancedMenu[6].Y	= NextValue();
-				filter_text.Font	= NextFont();
-			}
-			else if(!stricmp(szAtom, "senstext"))
-			{
-				AdvancedMenu[7].X	= NextValue();
-				AdvancedMenu[7].Y	= NextValue();
-				sens_text.Font		= NextFont();
-			}
-			else if(!stricmp(szAtom, "sensimg"))
-			{
-				AdvancedMenu[8].X		= NextValue();
-				AdvancedMenu[8].Y		= NextValue();
-				Sens_Img.Image_Number	= NextValue();
-				Sens_Img.Width			= NextValue();
-				Sens_Img.Height			= NextValue();
-				Sens_Img.Image_X		= NextValue();
-				Sens_Img.Image_Y		= NextValue();
-				Sens_Img.Animation		= NextValue();
-			}
-			else if(!stricmp(szAtom, "sensslider"))
-			{
-				AdvancedMenu[9].X		= NextValue();
-				AdvancedMenu[9].Y		= NextValue();
-				Sens_Slide.Image_Number = NextValue();
-				Sens_Slide.Width		= NextValue();
-				Sens_Slide.Height		= NextValue();
-				Sens_Slide.Image_X		= NextValue();
-				Sens_Slide.Image_Y		= NextValue();
-				Sens_Slide.Min_X		= NextValue();
-				Sens_Slide.Max_X		= NextValue();
-				Sens_Slide.Animation	= NextValue();
-			}
-			else if(!stricmp(szAtom, "mouseclick"))
-			{
-				char file[256] = "menu\\";
-				strcat(file, NextToken());
-
-				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
-				{
-					char szError[256];
-					sprintf(szError, "[ERROR] Missing MouseClick Sound");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, szError,"Menu", MB_OK);
-					exit(-333);
-				}
-
-				mouseclick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), MainFS);
-				geVFile_Close(MainFS);
-			}
-			else if(!stricmp(szAtom, "keyclick"))
-			{
-				char file[256] = "menu\\";
-				strcat(file, NextToken());
-
-				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
-				{
-					char szError[256];
-					sprintf(szError, "[ERROR] Missing KeyClick Sound");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, szError,"Menu", MB_OK);
-					exit(-333);
-				}
-
-				keyclick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), MainFS);
-				geVFile_Close(MainFS);
-			}
-			else if(!stricmp(szAtom, "slideclick"))
-			{
-				char file[256] = "menu\\";
-				strcat(file, NextToken());
-
-				if(!CCD->OpenRFFile(&MainFS, kAudioFile, file, GE_VFILE_OPEN_READONLY))
-				{
-					char szError[256];
-					sprintf(szError, "[ERROR] Missing SlideClick Sound");
-					CCD->ReportError(szError, false);
-					CCD->ShutdownLevel();
-					delete CCD;
-					CCD = NULL;
-					MessageBox(NULL, szError,"Menu", MB_OK);
-					exit(-333);
-				}
-
-				slideclick = geSound_LoadSoundDef(CCD->Engine()->AudioSystem(), MainFS);
-				geVFile_Close(MainFS);
-			}
-			else if(!stricmp(szAtom, "music"))
-			{
-				musictype = -1;
-				char *musicname = NextToken();
-				int len = strlen(musicname)-4;
-
-				if(stricmp((musicname+len),".mid")==0)
-				{
-					strcpy(music, musicname);
-					if(theMIDIPlayer)
-					{
-						delete theMIDIPlayer;
-						theMIDIPlayer = 0;
-					}
-
-					theMIDIPlayer = new CMIDIAudio();
-
-					if(theMIDIPlayer == NULL)
-						CCD->ReportError("[WARNING] MIDI Player failed to instantiate", false);
 					else
 					{
-						musictype = 1;
+						m_MusicType = 1;
 					}
 				}
 				else
 				{
-					strcpy(music, CCD->GetDirectory(kAudioStreamFile));
-					strcat(music, "\\");
-					strcat(music, musicname);
-					m_dsPtr = (LPDIRECTSOUND)geSound_GetDSound();
+					m_Music = CFileManager::GetSingletonPtr()->GetDirectory(kAudioStreamFile);
+					m_Music += "\\" + value;
+					m_dsPtr = static_cast<LPDIRECTSOUND>(geSound_GetDSound());
 
-					if(m_Streams)
-					{
-						delete m_Streams;
-						m_Streams = 0;
-					}
+					SAFE_DELETE(m_Streams);
 
 					m_Streams = new StreamingAudio(m_dsPtr);
 
 					if(m_Streams)
 					{
-						if(m_Streams->Create(music))
+						char tmp[128];
+						strcpy(tmp, m_Music.c_str());
+						if(m_Streams->Create(tmp))
 						{
-							musictype = 0;
+							m_MusicType = 0;
 						}
 					}
 				}
 			}
-			if(!stricmp(szAtom, "select"))
-			{
-				SelectBack	= NextValue();
-				SelectTitle = NextValue();
-			}
-			else if(!stricmp(szAtom, "acceptchar"))
-			{
-				SelectMenu[0].X				= NextValue();
-				SelectMenu[0].Y				= NextValue();
-				AcceptSelect.Image_Number	= NextValue();
-				AcceptSelect.Width			= NextValue();
-				AcceptSelect.Height			= NextValue();
-				AcceptSelect.Image_X		= NextValue();
-				AcceptSelect.Image_Y		= NextValue();
-				AcceptSelect.Mover_X		= NextValue();
-				AcceptSelect.Mover_Y		= NextValue();
-				AcceptSelect.Animation		= NextValue();
-				AcceptSelect.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "cancelchar"))
-			{
-				SelectMenu[1].X				= NextValue();
-				SelectMenu[1].Y				= NextValue();
-				CancelSelect.Image_Number	= NextValue();
-				CancelSelect.Width			= NextValue();
-				CancelSelect.Height			= NextValue();
-				CancelSelect.Image_X		= NextValue();
-				CancelSelect.Image_Y		= NextValue();
-				CancelSelect.Mover_X		= NextValue();
-				CancelSelect.Mover_Y		= NextValue();
-				CancelSelect.Animation		= NextValue();
-				CancelSelect.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "prevchar"))
-			{
-				SelectMenu[2].X				= NextValue();
-				SelectMenu[2].Y				= NextValue();
-				PrevSelect.Image_Number		= NextValue();
-				PrevSelect.Width			= NextValue();
-				PrevSelect.Height			= NextValue();
-				PrevSelect.Image_X			= NextValue();
-				PrevSelect.Image_Y			= NextValue();
-				PrevSelect.Mover_X			= NextValue();
-				PrevSelect.Mover_Y			= NextValue();
-				PrevSelect.Animation		= NextValue();
-				PrevSelect.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "nextchar"))
-			{
-				SelectMenu[3].X				= NextValue();
-				SelectMenu[3].Y				= NextValue();
-				NextSelect.Image_Number		= NextValue();
-				NextSelect.Width			= NextValue();
-				NextSelect.Height			= NextValue();
-				NextSelect.Image_X			= NextValue();
-				NextSelect.Image_Y			= NextValue();
-				NextSelect.Mover_X			= NextValue();
-				NextSelect.Mover_Y			= NextValue();
-				NextSelect.Animation		= NextValue();
-				NextSelect.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "imagechar"))
-			{
-				SelectMenu[4].X = NextValue();
-				SelectMenu[4].Y = NextValue();
-			}
-			else if(!stricmp(szAtom, "nameselect"))
-			{
-				PlayerNameBack	= NextValue();
-				PlayerNameTitle = NextValue();
-			}
-			else if(!stricmp(szAtom, "acceptname"))
-			{
-				PlayerNameMenu[0].X			= NextValue();
-				PlayerNameMenu[0].Y			= NextValue();
-				AcceptName.Image_Number		= NextValue();
-				AcceptName.Width			= NextValue();
-				AcceptName.Height			= NextValue();
-				AcceptName.Image_X			= NextValue();
-				AcceptName.Image_Y			= NextValue();
-				AcceptName.Mover_X			= NextValue();
-				AcceptName.Mover_Y			= NextValue();
-				AcceptName.Animation		= NextValue();
-				AcceptName.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "cancelname"))
-			{
-				PlayerNameMenu[1].X			= NextValue();
-				PlayerNameMenu[1].Y			= NextValue();
-				CancelName.Image_Number		= NextValue();
-				CancelName.Width			= NextValue();
-				CancelName.Height			= NextValue();
-				CancelName.Image_X			= NextValue();
-				CancelName.Image_Y			= NextValue();
-				CancelName.Mover_X			= NextValue();
-				CancelName.Mover_Y			= NextValue();
-				CancelName.Animation		= NextValue();
-				CancelName.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "playername"))
-			{
-				PlayerNameMenu[2].X	= NextValue();
-				PlayerNameMenu[2].Y	= NextValue();
-				PlayerName.Font		= NextFont();
-				PlayerName.Set_X	= PlayerNameMenu[2].X;
-				PlayerName.Set_Y	= PlayerNameMenu[2].Y;
-				PlayerName.Width	= NextValue();
-			}
-			else if(!stricmp(szAtom, "resetname"))
-			{
-				PlayerNameMenu[3].X			= NextValue();
-				PlayerNameMenu[3].Y			= NextValue();
-				DefaultName.Image_Number	= NextValue();
-				DefaultName.Width			= NextValue();
-				DefaultName.Height			= NextValue();
-				DefaultName.Image_X			= NextValue();
-				DefaultName.Image_Y			= NextValue();
-				DefaultName.Mover_X			= NextValue();
-				DefaultName.Mover_Y			= NextValue();
-				DefaultName.Animation		= NextValue();
-				DefaultName.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "loadmsg"))
-			{
-				LoadFont = NextFont();
-				strcpy(Loadmsg, strtok(NULL,"\n"));
-			}
-			else if(!stricmp(szAtom, "savemsg"))
-			{
-				SaveFont = NextFont();
-				SavingTime = (float)NextValue();
-				strcpy(Savemsg, strtok(NULL,"\n"));
-			}
-			else if(!stricmp(szAtom, "difficult"))
-			{
-				DifficultBack	= NextValue();
-				DifficultTitle	= NextValue();
-			}
-			else if(!stricmp(szAtom, "easy"))
-			{
-				DifficultMenu[0].X			= NextValue();
-				DifficultMenu[0].Y			= NextValue();
-				Difficultlow.Image_Number	= NextValue();
-				Difficultlow.Width			= NextValue();
-				Difficultlow.Height			= NextValue();
-				Difficultlow.Image_X		= NextValue();
-				Difficultlow.Image_Y		= NextValue();
-				Difficultlow.Mover_X		= NextValue();
-				Difficultlow.Mover_Y		= NextValue();
-				Difficultlow.Animation		= NextValue();
-				Difficultlow.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "normal"))
-			{
-				DifficultMenu[1].X			= NextValue();
-				DifficultMenu[1].Y			= NextValue();
-				Difficultmid.Image_Number	= NextValue();
-				Difficultmid.Width			= NextValue();
-				Difficultmid.Height			= NextValue();
-				Difficultmid.Image_X		= NextValue();
-				Difficultmid.Image_Y		= NextValue();
-				Difficultmid.Mover_X		= NextValue();
-				Difficultmid.Mover_Y		= NextValue();
-				Difficultmid.Animation		= NextValue();
-				Difficultmid.AnimationOver	= NextValue();
-			}
-			else if(!stricmp(szAtom, "hard"))
-			{
-				DifficultMenu[2].X			= NextValue();
-				DifficultMenu[2].Y			= NextValue();
-				Difficulthi.Image_Number	= NextValue();
-				Difficulthi.Width			= NextValue();
-				Difficulthi.Height			= NextValue();
-				Difficulthi.Image_X			= NextValue();
-				Difficulthi.Image_Y			= NextValue();
-				Difficulthi.Mover_X			= NextValue();
-				Difficulthi.Mover_Y			= NextValue();
-				Difficulthi.Animation		= NextValue();
-				Difficulthi.AnimationOver	= NextValue();
-			}
+		}
 
-			if(!stricmp(szAtom, "xhairtext"))
+		section = iniFile.FindNextKey();
+	}
+
+	// set window text
+	SetPlayerNameWindowText();
+	CCD->GUIManager()->SetWindowText("Menu/Multiplayer/IP", m_IP);
+	CCD->GUIManager()->HideWindow("Menu/Main/Confirm/Quit");
+	CCD->GUIManager()->HideWindow("Menu/SaveGame/Confirm/DeleteSavegame");
+	CCD->GUIManager()->HideWindow("Menu/SaveGame/Confirm/OverwriteSavegame");
+
+	if(m_InGame == 0)
+	{
+		CCD->GUIManager()->HideWindow("Menu/Main/Return");		// show only if in-game
+		CCD->GUIManager()->DisableWindow("Menu/Main/SaveGame"); // enable only if in-game
+	}
+
+	DisableOrphanedButtons();
+
+	if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameImage"))
+		m_LoadGameDefaultImage = CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameImage")->getProperty("Image");
+
+	if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameImage"))
+		m_SaveGameDefaultImage = CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameImage")->getProperty("Image");
+
+	// fill in savegames
+	CEGUI::Listbox *loadlistbox = NULL;
+	CEGUI::Listbox *savelistbox = NULL;
+
+	if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
+		loadlistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+	if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameList"))
+		savelistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameList"));
+
+	if(loadlistbox || savelistbox)
+	{
+		if(!m_Savegames.empty())
+		{
+			stdext::hash_map<std::string, std::string>::iterator iter = m_Savegames.begin();
+
+			for(; iter!=m_Savegames.end(); ++iter)
 			{
-				SAFE_FREE(xhair_text.text);
-				xhair_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "revtext"))
-			{
-				SAFE_FREE(rev_text.text);
-				rev_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "mfiltertext"))
-			{
-				SAFE_FREE(filter_text.text);
-				filter_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "sensitivetext"))
-			{
-				SAFE_FREE(sens_text.text);
-				sens_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "vgammatext"))
-			{
-				SAFE_FREE(gam_text.text);
-				gam_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "vdetailtext"))
-			{
-				SAFE_FREE(det_text.text);
-				det_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "vshadowtext"))
-			{
-				SAFE_FREE(shadow_text.text);
-				shadow_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "volumetext"))
-			{
-				SAFE_FREE(vol_text.text);
-				vol_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "musicvoltext"))
-			{
-				SAFE_FREE(mvol_text.text);
-				mvol_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "cdplaytext"))
-			{
-				SAFE_FREE(cd_text.text);
-				cd_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "debuggingtext"))
-			{
-				SAFE_FREE(debug_text.text);
-				debug_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "fratetext"))
-			{
-				SAFE_FREE(fps_text.text);
-				fps_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "clippingtext"))
-			{
-				SAFE_FREE(clip_text.text);
-				clip_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "bboxtext"))
-			{
-				SAFE_FREE(bb_text.text);
-				bb_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "enitybbtext"))
-			{
-				SAFE_FREE(sebb_text.text);
-				sebb_text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "ipaddtext"))
-			{
-				SAFE_FREE(IPAdd_Text.text);
-				IPAdd_Text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "mphelptext"))
-			{
-				SAFE_FREE(MultiplayerHelp_Text.text);
-				MultiplayerHelp_Text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "iptext"))
-			{
-				SAFE_FREE(PlayerIP_Text.text);
-				PlayerIP_Text.text = strdup(NextString());
-			}
-			else if(!stricmp(szAtom, "gamereturntext"))
-			{
-				SAFE_FREE(return_text.text);
-				return_text.text = strdup(NextString());
+				int number = GetNumberFromFilename(iter->first);
+				if(loadlistbox)
+					loadlistbox->insertItem(new CEGUI::ListboxTextItemEx(iter->second, number), NULL);
+				if(savelistbox)
+					savelistbox->insertItem(new CEGUI::ListboxTextItemEx(iter->second, number), NULL);
+
+				if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameImage")
+					|| CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameImage"))
+				{
+					char filename[64];
+					sprintf(filename, "savegame%d.jpg", number);
+
+					if(CFileManager::GetSingletonPtr()->FileExist(kSavegameFile, filename))
+					{
+						CCD->GUIManager()->CreateImagesetFromImageFile(filename, filename, "saves");
+					}
+				}
 			}
 		}
 
-		geVFile_Close(SecondFS);
-	}
-	else
-	{
-		CCD->ReportError("[ERROR] Missing menu INI file", false);
-		CCD->ShutdownLevel();
-		delete CCD;
-		CCD = NULL;
-		MessageBox(NULL, "Missing menu INI file","Fatal Error", MB_OK);
-		exit(-336);
+		if(savelistbox)
+			savelistbox->insertItem(new CEGUI::ListboxTextItemEx(m_NewSavegameLabel, m_SavegameCounter), NULL);
 	}
 }
 
+
+void CRFMenu::DisableOrphanedButtons()
+{
+	// disable buttons if they lead nowhere
+	if(m_Sections.find("multiplayer") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Main/Multiplayer");
+
+	if(m_Sections.find("joingame") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Multiplayer/JoinGame");
+
+	if(m_Sections.find("loadgame") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Main/LoadGame");
+
+	if(m_Sections.find("options") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Main/Options");
+
+	if(m_Sections.find("audio") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Options/Audio");
+
+	if(m_Sections.find("video") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Options/Video");
+
+	if(m_Sections.find("controls") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Options/Controls");
+
+	if(m_Sections.find("advanced") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Controls/Advanced");
+
+	if(m_Sections.find("language") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Options/Language");
+
+	if(m_Sections.find("debug") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Options/Debug");
+
+	if(m_Sections.find("mods") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Main/Mods");
+
+	if(m_Sections.find("credits") == m_Sections.end())
+		CCD->GUIManager()->DisableWindow("Menu/Main/Credits");
+}
+
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CRFMenu::~CRFMenu()
 {
 	int i;
 
-	SAFE_FREE(L1text.text);
-	SAFE_FREE(L2text.text);
-	SAFE_FREE(L3text.text);
-	SAFE_FREE(L4text.text);
-	SAFE_FREE(L5text.text);
-
-	SAFE_FREE(return_text.text);
-	SAFE_FREE(PlayerIP_Text.text);
-	SAFE_FREE(MultiplayerHelp_Text.text);
-	SAFE_FREE(IPAdd_Text.text);
-	SAFE_FREE(sebb_text.text);
-	SAFE_FREE(bb_text.text);
-	SAFE_FREE(clip_text.text);
-	SAFE_FREE(fps_text.text);
-	SAFE_FREE(debug_text.text);
-	SAFE_FREE(cd_text.text);
-	SAFE_FREE(mvol_text.text);
-	SAFE_FREE(vol_text.text);
-	SAFE_FREE(det_text.text);
-	SAFE_FREE(gam_text.text);
-	SAFE_FREE(sens_text.text);
-	SAFE_FREE(filter_text.text);
-	SAFE_FREE(rev_text.text);
-	SAFE_FREE(xhair_text.text);
-	SAFE_FREE(shadow_text.text);
-
 	// free click sounds
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), keyclick );
-	geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), slideclick );
-
-	// delete the bitmaps
-	for(i=0; i<NUM_BACKGROUNDS; i++)
+	if(m_MouseClick)
 	{
-		if(Backgrounds[i] != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Backgrounds[i]);
-			geBitmap_Destroy(&Backgrounds[i]);
-		}
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_MouseClick);
+		m_MouseClick = NULL;
+	}
+	if(m_KeyClick)
+	{
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_KeyClick);
+		m_KeyClick = NULL;
+	}
+	if(m_SlideClick)
+	{
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_SlideClick);
+		m_SlideClick = NULL;
 	}
 
-	for(i=0; i<NUM_IMAGES; i++)
+	if(m_FCrosshairs)
 	{
-		if(Images[i] != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Images[i]);
-			geBitmap_Destroy(&Images[i]);
-		}
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), m_FCrosshairs);
+		geBitmap_Destroy(&m_FCrosshairs);
 	}
 
-	for(i=0; i<NUM_TITLES; i++)
-	{
-		if(Titles[i] != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Titles[i]);
-			geBitmap_Destroy(&Titles[i]);
-		}
-	}
+	for(i=0; i<NUM_SELECT; ++i)
+		delete m_Characters[i];
 
-	for(i=0; i<NUM_FONTS; i++)
-	{
-		if(MenuFont[i].Bitmap != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), MenuFont[i].Bitmap);
-			geBitmap_Destroy(&MenuFont[i].Bitmap);
-		}
-	}
-
-	for(i=0; i<NUM_ANIM; i++)
-	{
-		SAFE_DELETE(Animation[i]);
-	}
-
-	if(EmptySlotImage)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
-		geBitmap_Destroy(&EmptySlotImage);
-	}
-
-	if(Cursor)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cursor);
-		geBitmap_Destroy(&Cursor);
-	}
-
-	if(Crosshair)
-	{
-		geBitmap_Destroy(&Crosshair);
-	}
-
-	if(FCrosshair)
-	{
-		geEngine_RemoveBitmap(CCD->Engine()->Engine(), FCrosshair);
-		geBitmap_Destroy(&FCrosshair);
-	}
-
-#ifdef BLIT
-	if(ScreenBmp)
-		geBitmap_Destroy(&ScreenBmp);
-#endif
-
-	if(CCD->GetCSelect())
-	{
-		if(MaxSelect>0)
-		{
-			for(i=0; i<MaxSelect; i++)
-			{
-				if(CharSelect[i].Bitmap)
-				{
-					geEngine_RemoveBitmap(CCD->Engine()->Engine(), CharSelect[i].Bitmap);
-					geBitmap_Destroy(&CharSelect[i].Bitmap);
-				}
-			}
-		}
-	}
-
-	for(i=0; i<16; i++)
-	{
-		SAFE_FREE(SavedGame[i].text);
-
-		if(SavedGame[i].SGImage)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), SavedGame[i].SGImage);
-			geBitmap_Destroy(&(SavedGame[i].SGImage));
-		}
-	}
-
-	char filename[256];
-	sprintf(filename, "%s\\SaveScreen.bmp", CCD->GetDirectory(kBitmapFile));
+	// delete temporary savegame.bmp
+	char filename[_MAX_PATH];
+	sprintf(filename, "%s\\savegame.bmp", CFileManager::GetSingletonPtr()->GetDirectory(kSavegameFile));
 	unlink(filename);
 
-	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-		NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	CMixer mixer(CCD->Engine()->WindowHandle(),
+					MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+					NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
 
 	if(mixer.IsOk())
-		mixer.SetControlValue(WinVol);
+		mixer.SetControlValue(m_WinVol);
 
-	SAFE_DELETE(theMIDIPlayer);
+	delete m_MIDIPlayer;
 
-	return;
+	m_Sections.clear();
+	while(!m_SectionStack.empty())
+		m_SectionStack.pop();
+
+	delete m_EventHandler;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	DoMenu
-/* ------------------------------------------------------------------------------------ */
-int CRFMenu::DoMenu(const char *levelname)
+
+void CRFMenu::Enter()
 {
-	CCD->ReportError("Entering CRFMenu::DoMenu()", false);
-
-	M_CameraRect.Left	= 0;
-	M_CameraRect.Right	= CCD->Engine()->Width() - 1;
-	M_CameraRect.Top	= 0;
-	M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
-	M_Camera = geCamera_Create(2.0f, &M_CameraRect);
-	strcpy(LevelName, levelname);
-	LoopOnce = 0;
-
-	if(musictype != -1)
+	if(m_MusicType != -1)
 	{
-		if(musictype == 1)
-			MIDIPlayer()->Play(music, true);
+		if(m_MusicType == 1)
+			MIDIPlayer()->Play(m_Music.c_str(), true);
 		else
 			m_Streams->Play(true);
 	}
 
-	SetmMusicVol(mVolLevel);
+	SetmMusicVol(m_mVolLevel);
 
-	FadeSet(-1, TimeFade);
+	FadeSet(-1, m_TimeFade);
+}
 
-	int ret = ProcessMenu(MainMenu, MainBack, MainTitle);
 
-	if(musictype != -1)
+void CRFMenu::Exit()
+{
+	if(m_MusicType != -1)
 	{
-		if(musictype == 1)
+		if(m_MusicType == 1)
+		{
 			MIDIPlayer()->Stop();
+		}
 		else
 		{
 			m_Streams->Delete();
-			delete m_Streams;
+			SAFE_DELETE(m_Streams);
 		}
 	}
 
-	CCD->ReportError("Saving Attributes & Settings files...", false);
+	CCD->Log()->Debug("Saving Attributes & Settings files...");
 
-	if(ingame == 1)
+	if(m_InGame == 1)
 		CCD->Player()->SaveAttributesAscii("attributes.txt");
 
-	FILE *fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "wb");
+	SaveSettings();
+
+	CCD->Input()->SaveKeymap("keyboard.ini");
+}
+
+
+void CRFMenu::SaveSettings()
+{
+	FILE *fd = CFileManager::GetSingletonPtr()->OpenRFFile(kConfigFile, "setup.ini", "wb");
 
 	if(!fd)
-		CCD->ReportError("[WARNING] CRFMenu: Failed to create setup.ini file", false);
+	{
+		CCD->Log()->Warning("Failed to create setup.ini file");
+	}
 	else
 	{
-		fwrite(&Gamma_Slide.Current,	sizeof(int), 1, fd);
-		fwrite(&Vol_Slide.Current,		sizeof(int), 1, fd);
-		fwrite(&Sens_Slide.Current,		sizeof(int), 1, fd);
-		fwrite(&box0.Current,			sizeof(int), 1, fd);
-		fwrite(&box1.Current,			sizeof(int), 1, fd);
-		fwrite(&box2.Current,			sizeof(int), 1, fd);
-		fwrite(&box4.Current,			sizeof(int), 1, fd);
-		fwrite(&Detail_Slide.Current,	sizeof(int), 1, fd);
-		fwrite(&mVol_Slide.Current,		sizeof(int), 1, fd);
-		fwrite(&ShadowBox.Current,		sizeof(int), 1, fd);
+		CEGUI::Slider* slider;
+		CEGUI::Checkbox *checkbox;
+		float gamma = GetGamma();
+		float volume = 0.5f;
+		float sensitivity = (m_MouseSen - MOUSEMIN)/(MOUSEMAX - MOUSEMIN);
+		bool cdmusic = false;
+
+		slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Audio/SoundVolume"));
+		if(slider) volume = slider->getCurrentValue();
+
+		checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Audio/CDMusic"));
+		if(checkbox) cdmusic = checkbox->isSelected();
+
+		fwrite(&gamma,				sizeof(float),	1, fd);
+		fwrite(&volume,				sizeof(float),	1, fd);
+		fwrite(&sensitivity,		sizeof(float),	1, fd);
+		fwrite(&cdmusic,			sizeof(bool),	1, fd);
+		fwrite(&m_bCrosshairs,		sizeof(bool),	1, fd);
+		fwrite(&m_bMouseReverse,	sizeof(bool),	1, fd);
+		fwrite(&m_bMouseFilter,		sizeof(bool),	1, fd);
+		fwrite(&m_Detail,			sizeof(float),	1, fd);
+		fwrite(&m_mVolLevel,		sizeof(float),	1, fd);
+		fwrite(&m_bStencilShadows,	sizeof(bool),	1, fd);
 		fclose(fd);
 	}
-
-	CCD->ReportError("Destroying Camera...", false);
-
-	geCamera_Destroy(&M_Camera);
-
-	return ret;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ProcessMenu
-/* ------------------------------------------------------------------------------------ */
-int CRFMenu::ProcessMenu(MenuItem *Menu, int Background_Number, int Title_Number)
-{
-	int x, y, i, max, click, temp;
-	int slide_click, box_click, radio_click, scroll_click, remap_click, lsbox_click;
-	int slide_x, escapeon, scroll_dir, remap_line, focus, remapf, lsbox_line;
-	geBitmap_Info	BmpInfo;
-	geRect 	 BitRect;
-	POINT temppos;
-	Clickable *data;
-	Image *idata;
-	Slider *sdata;
-	Box *bdata;
-	Radio *radiodata;
-	Text *tdata;
-	Remap *rdata;
-	ScrollBar *scdata;
-	LSBox *lrdata;
-	int textedit_click;
-	TextEdit *tedata;
-
-	CCD->ReportError("Entering CRFMenu::ProcessMenu", false);
-
-	x = (CCD->Engine()->Width() - DesignX) / 2;
-	y = (CCD->Engine()->Height() - DesignY) / 2;
-	int bx = 0;
-	int by = 0;
-
-	if(Background_Number >= 0 && Background_Number < NUM_BACKGROUNDS)
-	{
-		if(Backgrounds[Background_Number])
-		{
-			geBitmap_GetInfo(Backgrounds[Background_Number], &BmpInfo, NULL);
-
-			if(CCD->Engine()->Width() > BmpInfo.Width)
-				bx = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
-
-			if(CCD->Engine()->Height() > BmpInfo.Height)
-				by = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
-		}
-	}
-
-	max = 0;
-
-	while(Menu[max].Type != END_LIST)
-		max += 1;
-
-	click					= -1;
-	slide_click				= -1;
-	slide_x					= -1;
-	box_click				= -1;
-	radio_click				= -1;
-	escapeon				= 0;
-	scroll_click			= -1;
-	scroll_dir				= 0;
-	remap_click				= -1;
-	remapf					= -1;
-	focus					= -1;
-	lsbox_click				= -1;
-	textedit_click			= -1;
-
-	POINT pos;
-
-	if(!CCD->Engine()->FullScreen())
-	{
-		RECT client;
-		GetClientRect(CCD->Engine()->WindowHandle(),&client);
-		pos.x = client.left;
-		pos.y = client.top;
-		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);
-	}
-
-	CCD->ReportError("Entering Windows Message Loop, Rendering Game Menu", false);
-
-	for(;;)
-	{
-		MSG msg;
-
-		// If Winblows has something to say, take it in and pass it on in the
-		// ..off-chance someone cares.
-		while(PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-			GetMessage(&msg, NULL, 0, 0);
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		if(!CCD->GetHasFocus())
-			continue;
-
-
-		geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
-
-		if((Background_Number >= 0 && Background_Number < NUM_BACKGROUNDS) && Backgrounds[Background_Number])
-			DrawBitmap(Backgrounds[Background_Number], NULL, bx, by);
-
-		if(MTitles[Title_Number].Animation < 0 || Animation[MTitles[Title_Number].Animation] == NULL)
-		{
-			BitRect.Left	= MTitles[Title_Number].Image_X;
-			BitRect.Top		= MTitles[Title_Number].Image_Y;
-			BitRect.Right	= MTitles[Title_Number].Image_X+MTitles[Title_Number].Width;
-			BitRect.Bottom	= MTitles[Title_Number].Image_Y+MTitles[Title_Number].Height;
-			DrawBitmap(Titles[MTitles[Title_Number].Image_Number], &BitRect, MTitles[Title_Number].X+x, MTitles[Title_Number].Y+y);
-		}
-		else
-		{
-			geBitmap *theBmp = Animation[MTitles[Title_Number].Animation]->NextFrame(true);
-			DrawBitmap(theBmp, NULL, MTitles[Title_Number].X+x, MTitles[Title_Number].Y+y);
-		}
-
-		GetCursorPos(&temppos);
-
-		if(!CCD->Engine()->FullScreen())
-		{
-			temppos.x -= pos.x;
-			temppos.y -= pos.y;
-		}
-
-		if(Fading)
-		{
-			temppos.x = -1;
-			temppos.y = -1;
-		}
-
-		for(i=0; i<max; i++)
-		{
-			switch(Menu[i].Type)
-			{
-			case CLICKABLE:
-			case EXIT_MENU:
-			case CANCEL_MENU:
-				{
-					data = (Clickable*)Menu[i].data;
-
-					if((temppos.x >= Menu[i].X+x)
-						&& (temppos.x <= (Menu[i].X + x + data->Width))
-						&& (temppos.y >= (Menu[i].Y + y))
-						&& (temppos.y <= (Menu[i].Y + y + data->Height))
-						&& slide_click == -1)
-					{
-						if(data->Action == 2 && ingame == 0)
-						{
-							if(data->Animation < 0 || Animation[data->Animation] == NULL)
-							{
-								BitRect.Left	= data->Image_X;
-								BitRect.Top		= data->Image_Y;
-								BitRect.Right	= data->Image_X+data->Width;
-								BitRect.Bottom	= data->Image_Y+data->Height;
-
-								if(data->Width > 0 && data->Height > 0)
-									DrawBitmap(Images[data->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[data->Animation]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-						}
-						else
-						{
-							if(data->AnimationOver < 0 || Animation[data->AnimationOver] == NULL)
-							{
-								BitRect.Left	= data->Mover_X;
-								BitRect.Top		= data->Mover_Y;
-								BitRect.Right	= data->Mover_X+data->Width;
-								BitRect.Bottom	= data->Mover_Y+data->Height;
-
-								if(data->Width > 0 && data->Height > 0)
-									DrawBitmap(Images[data->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[data->AnimationOver]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-							if(GetSystemMetrics(SM_SWAPBUTTON))
-							{
-								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-									click = i;
-							}
-							else
-							{
-								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-									click = i;
-							}
-						}
-					}
-					else
-					{
-						if(data->Animation < 0 || Animation[data->Animation] == NULL)
-						{
-							BitRect.Left	= data->Image_X;
-							BitRect.Top		= data->Image_Y;
-							BitRect.Right	= data->Image_X+data->Width;
-							BitRect.Bottom	= data->Image_Y+data->Height;
-
-							if(data->Width > 0 && data->Height > 0)
-								DrawBitmap(Images[data->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-						}
-						else
-						{
-							geBitmap *theBmp = Animation[data->Animation]->NextFrame(true);
-							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-						}
-					}
-
-					break;
-				}
-			case IMAGE:
-				{
-					idata = (Image*)Menu[i].data;
-
-					if(idata->Animation < 0 || Animation[idata->Animation] == NULL)
-					{
-						BitRect.Left	= idata->Image_X;
-						BitRect.Top		= idata->Image_Y;
-						BitRect.Right	= idata->Image_X+idata->Width;
-						BitRect.Bottom	= idata->Image_Y+idata->Height;
-
-						if(idata->Width > 0 && idata->Height > 0)
-							DrawBitmap(Images[idata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-					}
-					else
-					{
-						geBitmap *theBmp = Animation[idata->Animation]->NextFrame(true);
-						DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-					}
-
-					break;
-				}
-			case CHARIMAGE:
-				{
-					DrawBitmap(CharSelect[CurrentSelect].Bitmap, NULL, Menu[i].X+x, Menu[i].Y+y);
-
-					break;
-				}
-			case SLIDER:
-				{
-					sdata = (Slider*)Menu[i].data;
-					temp = sdata->Current;
-
-					if(sdata->Animation < 0 || Animation[sdata->Animation] == NULL)
-					{
-						BitRect.Left	= sdata->Image_X;
-						BitRect.Top		= sdata->Image_Y;
-						BitRect.Right	= sdata->Image_X+sdata->Width;
-						BitRect.Bottom	= sdata->Image_Y+sdata->Height;
-
-						if(sdata->Width > 0 && sdata->Height > 0)
-							DrawBitmap(Images[sdata->Image_Number], &BitRect, Menu[i].X+x+temp, Menu[i].Y+y);
-					}
-					else
-					{
-						geBitmap *theBmp = Animation[sdata->Animation]->NextFrame(true);
-						DrawBitmap(theBmp, NULL, Menu[i].X+x+temp, Menu[i].Y+y);
-					}
-
-					if((temppos.x >= Menu[i].X+x+temp)
-						&& (temppos.x <= (Menu[i].X+x+temp+sdata->Width))
-						&& (temppos.y >= (Menu[i].Y+y))
-						&& (temppos.y <= (Menu[i].Y+y+data->Height))
-						&& (slide_click == -1))
-					{
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-								slide_click = i;
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								slide_click = i;
-						}
-
-						if(slide_x == -1)
-							slide_x = temppos.x;
-					}
-
-					break;
-				}
-			case BOX:
-				{
-					bdata = (Box*)Menu[i].data;
-
-					if((temppos.x >= Menu[i].X + x)
-						&& (temppos.x <= (Menu[i].X + x + bdata->Width))
-						&& (temppos.y >= (Menu[i].Y + y))
-						&& (temppos.y <= (Menu[i].Y + y + bdata->Height))
-						&& (slide_click == -1)
-						&& (bdata->Current == 0))
-					{
-						if(bdata->AnimationOver < 0 || Animation[bdata->AnimationOver] == NULL)
-						{
-							BitRect.Left	= bdata->Mover_X;
-							BitRect.Top		= bdata->Mover_Y;
-							BitRect.Right	= bdata->Mover_X+bdata->Width;
-							BitRect.Bottom	= bdata->Mover_Y+bdata->Height;
-
-							if(bdata->Width > 0 && bdata->Height > 0)
-								DrawBitmap(Images[bdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-						}
-						else
-						{
-							geBitmap *theBmp = Animation[bdata->AnimationOver]->NextFrame(true);
-							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-						}
-
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-								box_click = i;
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								box_click = i;
-						}
-					}
-					else
-					{
-						if((temppos.x >= Menu[i].X+x)
-							&& (temppos.x <= (Menu[i].X+x+bdata->Width))
-							&& (temppos.y >= (Menu[i].Y+y))
-							&& (temppos.y <= (Menu[i].Y+y+bdata->Height))
-							&& (slide_click == -1))
-						{
-							if(GetSystemMetrics(SM_SWAPBUTTON))
-							{
-								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-									box_click = i;
-							}
-							else
-							{
-								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-									box_click = i;
-							}
-						}
-
-						if(bdata->Current == 0)
-						{
-							if(bdata->Animation < 0 || Animation[bdata->Animation] == NULL)
-							{
-								BitRect.Left	= bdata->Image_X;
-								BitRect.Top		= bdata->Image_Y;
-								BitRect.Right	= bdata->Image_X+bdata->Width;
-								BitRect.Bottom	= bdata->Image_Y+bdata->Height;
-
-								if(bdata->Width > 0 && bdata->Height > 0)
-									DrawBitmap(Images[bdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[bdata->Animation]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-						}
-						else
-						{
-							if(bdata->AnimationLit < 0 || Animation[bdata->AnimationLit] == NULL)
-							{
-								BitRect.Left	= bdata->Set_X;
-								BitRect.Top		= bdata->Set_Y;
-								BitRect.Right	= bdata->Set_X+bdata->Width;
-								BitRect.Bottom	= bdata->Set_Y+bdata->Height;
-
-								if(bdata->Width > 0 && bdata->Height > 0)
-									DrawBitmap(Images[bdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[bdata->AnimationLit]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-						}
-					}
-
-					break;
-				}
-			case RADIO:
-				{
-					radiodata = (Radio*)Menu[i].data;
-
-					if((temppos.x >= Menu[i].X+x)
-						&& (temppos.x <= (Menu[i].X+x+radiodata->Width))
-						&& (temppos.y >= (Menu[i].Y+y))
-						&& (temppos.y <= (Menu[i].Y+y+radiodata->Height))
-						&& (slide_click == -1)
-						&& (radiodata->Current == 0))
-					{
-						if(radiodata->AnimationOver < 0 || Animation[radiodata->AnimationOver] == NULL)
-						{
-							BitRect.Left	= radiodata->Mover_X;
-							BitRect.Top		= radiodata->Mover_Y;
-							BitRect.Right	= radiodata->Mover_X+radiodata->Width;
-							BitRect.Bottom	= radiodata->Mover_Y+radiodata->Height;
-
-							if(radiodata->Width > 0 && radiodata->Height > 0)
-								DrawBitmap(Images[radiodata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-						}
-						else
-						{
-							geBitmap *theBmp = Animation[radiodata->AnimationOver]->NextFrame(true);
-							DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-						}
-
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-								radio_click = i;
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-								radio_click = i;
-						}
-					}
-					else
-					{
-						if((temppos.x >= Menu[i].X+x)
-							&& (temppos.x <= (Menu[i].X+x+radiodata->Width))
-							&& (temppos.y >= (Menu[i].Y+y))
-							&& (temppos.y <= (Menu[i].Y+y+radiodata->Height))
-							&& (slide_click == -1))
-						{
-							if(GetSystemMetrics(SM_SWAPBUTTON))
-							{
-								if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-									radio_click = i;
-							}
-							else
-							{
-								if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-									radio_click = i;
-							}
-						}
-
-						if(radiodata->Current == 0)
-						{
-							if(radiodata->Animation < 0 || Animation[radiodata->Animation] == NULL)
-							{
-								if(radiodata->Width > 0 && radiodata->Height > 0)
-								{
-									BitRect.Left	= radiodata->Image_X;
-									BitRect.Top		= radiodata->Image_Y;
-									BitRect.Right	= radiodata->Image_X+radiodata->Width;
-									BitRect.Bottom	= radiodata->Image_Y+radiodata->Height;
-									DrawBitmap(Images[radiodata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-								}
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[radiodata->Animation]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-						}
-						else
-						{
-							if(radiodata->AnimationLit < 0 || Animation[radiodata->AnimationLit] == NULL)
-							{
-								BitRect.Left	= radiodata->Set_X;
-								BitRect.Top		= radiodata->Set_Y;
-								BitRect.Right	= radiodata->Set_X+radiodata->Width;
-								BitRect.Bottom	= radiodata->Set_Y+radiodata->Height;
-
-								if(radiodata->Width > 0 && radiodata->Height > 0)
-									DrawBitmap(Images[radiodata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-							}
-							else
-							{
-								geBitmap *theBmp = Animation[radiodata->AnimationLit]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x, Menu[i].Y+y);
-							}
-						}
-					}
-
-					break;
-				}
-			case TEXT:
-				{
-					char *s;
-
-					tdata = (Text*)Menu[i].data;
-
-					if(tdata->Font != -1)
-					{
-						s = tdata->text;
-
-						if(tdata->ingame == 0 || ingame == 1)
-							MFontRect(s, tdata->Font, Menu[i].X+x, Menu[i].Y+y);
-					}
-
-					break;
-				}
-			case TEXTEDIT:
-				{
-					tedata = (TextEdit*)Menu[i].data;
-					Keyname *KTEdata = tedata->keyname;
-
-					int32 Size;
-
-					if((temppos.x >= Menu[i].X+x)
-						&& (temppos.x <= Menu[i].X+x+tedata->Width)
-						&& (temppos.y >= Menu[i].Y+y)
-						&& (temppos.y <= Menu[i].Y+y+30))
-					{
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && textedit_click == -1)
-							{
-								strcpy(tedata->text, "_");
-								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-								textedit_click = i;
-								focus = -1;
-							}
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && textedit_click == -1)
-							{
-								strcpy(tedata->text, "_");
-								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-								textedit_click = i;
-								focus = -1;
-							}
-						}
-					}
-
-					if((GetAsyncKeyState(VK_RETURN) & 0x8000) != 0 && textedit_click == i)
-					{
-						Size = strlen( tedata->text );
-						tedata->text[Size-1] = '\0';
-						strcpy(ServerIP,tedata->text);
-						geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-						textedit_click = -1;
-					}
-
-					if(textedit_click == i && focus == -1)
-					{
-						// delete a character...
-						if(((GetAsyncKeyState(VK_BACK) & 0x8000) != 0) || ((GetAsyncKeyState(VK_LEFT) & 0x8000) != 0))
-						{
-							// do nothing if there are no more characters left
-							Size = strlen(tedata->text);
-
-							// strlen returns the number of characters, _excluding_ the terminating null character
-							if(Size >= 2)
-							{
-								// delete as character
-								tedata->text[Size-2] = '\0';
-								strcat(tedata->text, "_");
-								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-							}
-
-							while((GetAsyncKeyState(VK_BACK) & 0x8000) != 0)
-							{
-							}
-							while((GetAsyncKeyState(VK_LEFT) & 0x8000) != 0)
-							{
-							}
-						}
-						else
-						{
-							int keybrd = CCD->Input()->GetAscii();
-
-							if(keybrd != -1 && (unsigned char)keybrd>31)
-							{
-								// do nothing if there is no more room to add characters
-								Size = strlen(tedata->text);
-
-								if(Size+2 <= sizeof(tedata->text))
-								{
-									tedata->text[Size-1] = (unsigned char)keybrd;
-									tedata->text[Size] = '\0';
-									strcat(tedata->text, "_");
-
-									geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-								}
-							}
-
-						}
-					}
-
-					MFontRect(tedata->text, tedata->Font, tedata->Set_X+x, tedata->Set_Y+y);
-
-					break;
-				}
-			case REMAP:
-				{
-					rdata = (Remap*)Menu[i].data;
-					Keydef *Kdata = rdata->keydef;
-					Keyname *KNdata = rdata->keyname;
-
-					if(rdata->Max == -1)
-					{
-						rdata->Max = 0;
-
-						while(Kdata[rdata->Max].text != NULL)
-						{
-							rdata->Max += 1;
-						}
-					}
-
-					BitRect.Left	= rdata->Image_X;
-					BitRect.Top		= rdata->Image_Y;
-					BitRect.Right	= rdata->Image_X+rdata->Width;
-					BitRect.Bottom	= rdata->Image_Y+rdata->Height;
-
-					// draw remap box background
-					if(rdata->Width > 0 && rdata->Height > 0)
-						DrawBitmap(Images[rdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-
-					if((GetAsyncKeyState(VK_RETURN) & 0x8000) == 0 && focus == i)
-					{
-						int keybrd = CCD->Input()->GetKeyboardInput();
-
-						if(keybrd != -1)
-						{
-							char *s = NULL;
-							int idex = 0;
-
-							while(KNdata[idex].text != NULL)
-							{
-								if(keybrd == KNdata[idex].key)
-								{
-									s = KNdata[idex].text;
-									break;
-								}
-
-								idex++;
-							}
-
-							if(s != NULL)
-							{
-								geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-								CCD->Input()->SetKeyAction(CCD->Input()->GetCodes(Kdata[remapf].action), RGF_K_NOACTION);
-								CCD->Input()->SetKeyAction(keybrd, Kdata[remapf].action);
-								focus = -1;
-							}
-						}
-					}
-
-					int tempstep = 0;
-
-					for(int j=rdata->Start; j<rdata->Max; j++)
-					{
-						if(j < (rdata->Start+rdata->Max_Show))
-						{
-							char *s;
-
-							if(j == rdata->Current)
-							{
-								if((GetAsyncKeyState(VK_RETURN) & 0x8000) != 0 && focus == -1)
-								{
-									geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), keyclick, 0.99f, 0.5f, 1.0f, false);
-									remapf = j;
-									focus = i;
-								}
-
-								if(focus == i)
-								{
-									BitRect.Left	= rdata->RevC_X;
-									BitRect.Top		= rdata->RevC_Y;
-									BitRect.Right	= rdata->RevC_X+rdata->RevC_Width;
-									BitRect.Bottom	= rdata->RevC_Y+rdata->RevC_Height;
-								}
-								else
-								{
-									BitRect.Left	= rdata->Rev_X;
-									BitRect.Top		= rdata->Rev_Y;
-									BitRect.Right	= rdata->Rev_X+rdata->Rev_Width;
-									BitRect.Bottom	= rdata->Rev_Y+rdata->Rev_Height;
-								}
-
-								if(rdata->Width > 0 && rdata->Height > 0)
-									DrawBitmap(Images[rdata->Image_Number], &BitRect, Menu[i].X+x+rdata->Corner_X, Menu[i].Y+y+rdata->Corner_Y+tempstep);
-							}
-
-
-							s = Kdata[j].text;
-							MFontRect(s, rdata->Font, Menu[i].X+x+rdata->Start_X, Menu[i].Y+y+rdata->Start_Y+tempstep);
-							s = NULL;
-							int kcode = CCD->Input()->GetCodes(Kdata[j].action);
-
-							if(kcode == -1)
-								kcode = KEY_MAXIMUM;
-
-							int idex = 0;
-
-							while(KNdata[idex].text != NULL)
-							{
-								if(kcode == KNdata[idex].key)
-								{
-									s = KNdata[idex].text;
-									break;
-								}
-
-								idex++;
-							}
-
-							if(rdata->Font != -1)
-								MFontRect(s, rdata->Font, Menu[i].X+x+rdata->Start_X+rdata->Key_X, Menu[i].Y+y+rdata->Start_Y+tempstep);
-						}
-
-						tempstep += rdata->Step;
-					}
-
-					if((temppos.x >= Menu[i].X+x+rdata->Corner_X)
-						&& (temppos.x <= (Menu[i].X+x+rdata->Corner_X+rdata->Click_Width))
-						&& (temppos.y >= (Menu[i].Y+y+rdata->Corner_Y))
-						&& (temppos.y <= (Menu[i].Y+y+rdata->Corner_Y+(rdata->Max_Show*rdata->Step)))
-						&& (slide_click == -1))
-					{
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-							{
-								remap_click = i;
-								remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
-							}
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-							{
-								remap_click = i;
-								remap_line = (temppos.y-(Menu[i].Y+y+rdata->Corner_Y))/rdata->Step;
-							}
-						}
-					}
-
-					break;
-				}
-			case SCROLLBAR:
-				{
-					geBitmap *theBmp;
-					bool up = false;
-					bool dwn = false;
-					scdata = (ScrollBar*)Menu[i].data;
-
-					if(scdata->AnimationUp < 0 || Animation[scdata->AnimationUp] == NULL)
-					{
-						BitRect.Left	= scdata->Up_Nor_X;
-						BitRect.Top		= scdata->Up_Nor_Y;
-						BitRect.Right	= scdata->Up_Nor_X+scdata->Up_Width;
-						BitRect.Bottom	= scdata->Up_Nor_Y+scdata->Up_Height;
-
-						if(scdata->Up_Width > 0 && scdata->Up_Height > 0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-					}
-					else
-					{
-						up = true;
-					}
-
-					if(scdata->AnimationDwn < 0 || Animation[scdata->AnimationDwn] == NULL)
-					{
-						BitRect.Left	= scdata->Dwn_Nor_X;
-						BitRect.Top		= scdata->Dwn_Nor_Y;
-						BitRect.Right	= scdata->Dwn_Nor_X+scdata->Dwn_Width;
-						BitRect.Bottom	= scdata->Dwn_Nor_Y+scdata->Dwn_Height;
-
-						if(scdata->Dwn_Width > 0 && scdata->Dwn_Height > 0)
-							DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-					}
-					else
-					{
-						dwn = true;
-					}
-
-					if((temppos.x >= Menu[i].X+x+scdata->Up_X)
-						&& (temppos.x <= (Menu[i].X+x+scdata->Up_X+scdata->Up_Width))
-						&& (temppos.y >= (Menu[i].Y+y+scdata->Up_Y))
-						&& (temppos.y <= (Menu[i].Y+y+scdata->Up_Y+scdata->Up_Height))
-						&& (slide_click == -1))
-					{
-						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
-							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
-						{
-							if(scdata->AnimationUpPush < 0 || Animation[scdata->AnimationUpPush] == NULL)
-							{
-								BitRect.Left	= scdata->Up_Push_X;
-								BitRect.Top		= scdata->Up_Push_Y;
-								BitRect.Right	= scdata->Up_Push_X+scdata->Up_Width;
-								BitRect.Bottom	= scdata->Up_Push_Y+scdata->Up_Height;
-
-								if(scdata->Up_Width > 0 && scdata->Up_Height > 0)
-									DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-							}
-							else
-							{
-								theBmp = Animation[scdata->AnimationUpPush]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-							}
-
-							up = false;
-							scroll_click = i;
-							scroll_dir = 0;
-						}
-						else
-						{
-							if(scdata->AnimationUpOver < 0 || Animation[scdata->AnimationUpOver] == NULL)
-							{
-								BitRect.Left	= scdata->Up_Lit_X;
-								BitRect.Top		= scdata->Up_Lit_Y;
-								BitRect.Right	= scdata->Up_Lit_X+scdata->Up_Width;
-								BitRect.Bottom	= scdata->Up_Lit_Y+scdata->Up_Height;
-
-								if(scdata->Up_Width > 0 && scdata->Up_Height > 0)
-									DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-							}
-							else
-							{
-								theBmp = Animation[scdata->AnimationUpOver]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-							}
-
-							up = false;
-						}
-					}
-
-					if(up)
-					{
-						theBmp = Animation[scdata->AnimationUp]->NextFrame(true);
-						DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Up_X, Menu[i].Y+y+scdata->Up_Y);
-					}
-
-					if((temppos.x >= Menu[i].X+x+scdata->Dwn_X)
-						&& (temppos.x <= (Menu[i].X+x+scdata->Dwn_X+scdata->Dwn_Width))
-						&& (temppos.y >= (Menu[i].Y+y+scdata->Dwn_Y))
-						&& (temppos.y <= (Menu[i].Y+y+scdata->Dwn_Y+scdata->Dwn_Height))
-						&& (slide_click == -1))
-					{
-						if((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1) ||
-							(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1))
-						{
-							if(scdata->AnimationDwnPush<0 || Animation[scdata->AnimationDwnPush]==NULL)
-							{
-								BitRect.Left	= scdata->Dwn_Push_X;
-								BitRect.Top		= scdata->Dwn_Push_Y;
-								BitRect.Right	= scdata->Dwn_Push_X+scdata->Dwn_Width;
-								BitRect.Bottom	= scdata->Dwn_Push_Y+scdata->Dwn_Height;
-
-								if(scdata->Dwn_Width > 0 && scdata->Dwn_Height > 0)
-									DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-							}
-							else
-							{
-								theBmp = Animation[scdata->AnimationDwnPush]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-							}
-
-							dwn = false;
-							scroll_click = i;
-							scroll_dir = 1;
-						}
-						else
-						{
-							if(scdata->AnimationDwnOver < 0 || Animation[scdata->AnimationDwnOver] == NULL)
-							{
-								BitRect.Left	= scdata->Dwn_Lit_X;
-								BitRect.Top		= scdata->Dwn_Lit_Y;
-								BitRect.Right	= scdata->Dwn_Lit_X+scdata->Dwn_Width;
-								BitRect.Bottom	= scdata->Dwn_Lit_Y+scdata->Dwn_Height;
-
-								if(scdata->Dwn_Width > 0 && scdata->Dwn_Height > 0)
-									DrawBitmap(Images[scdata->Image_Number], &BitRect, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-							}
-							else
-							{
-								theBmp = Animation[scdata->AnimationDwnOver]->NextFrame(true);
-								DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-							}
-
-							dwn = false;
-						}
-					}
-
-					if(dwn)
-					{
-						theBmp = Animation[scdata->AnimationDwn]->NextFrame(true);
-						DrawBitmap(theBmp, NULL, Menu[i].X+x+scdata->Dwn_X, Menu[i].Y+y+scdata->Dwn_Y);
-					}
-
-					break;
-				}
-			case LSBOX:
-				{
-					lrdata = (LSBox*)Menu[i].data;
-					Savedef *Kdata = lrdata->text;
-
-					if(lrdata->Max == -1)
-					{
-						lrdata->Max = 0;
-
-						while(Kdata[lrdata->Max].text != NULL)
-						{
-							lrdata->Max += 1;
-						}
-					}
-
-					BitRect.Left	= lrdata->Image_X;
-					BitRect.Top		= lrdata->Image_Y;
-					BitRect.Right	= lrdata->Image_X+lrdata->Width;
-					BitRect.Bottom	= lrdata->Image_Y+lrdata->Height;
-
-					if(lrdata->Width > 0 && lrdata->Height > 0)
-						DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x, Menu[i].Y+y);
-
-					int tempstep = 0;
-
-					for(int j=lrdata->Start; j<lrdata->Max; j++)
-					{
-						if(j < (lrdata->Start+lrdata->Max_Show))
-						{
-							char *s;
-
-							if(j == lrdata->Current)
-							{
-								BitRect.Left	= lrdata->Rev_X;
-								BitRect.Top		= lrdata->Rev_Y;
-								BitRect.Right	= lrdata->Rev_X+lrdata->Rev_Width;
-								BitRect.Bottom	= lrdata->Rev_Y+lrdata->Rev_Height;
-
-								if(lrdata->Width > 0 && lrdata->Height > 0)
-									DrawBitmap(Images[lrdata->Image_Number], &BitRect, Menu[i].X+x+lrdata->Corner_X, Menu[i].Y+y+lrdata->Corner_Y+tempstep);
-							}
-
-							s = Kdata[j].text;
-							MFontRect(s, lrdata->Font, Menu[i].X+x+lrdata->Start_X, Menu[i].Y+y+lrdata->Start_Y+tempstep);
-						}
-
-						tempstep += lrdata->Step;
-					}
-
-					if((temppos.x >= Menu[i].X+x+lrdata->Corner_X)
-						&& (temppos.x <= (Menu[i].X+x+lrdata->Corner_X+lrdata->Click_Width))
-						&& (temppos.y >= (Menu[i].Y+y+lrdata->Corner_Y))
-						&& (temppos.y <= (Menu[i].Y+y+lrdata->Corner_Y+(lrdata->Max_Show*lrdata->Step)))
-						&& (slide_click == -1))
-					{
-						if(GetSystemMetrics(SM_SWAPBUTTON))
-						{
-							if((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 && focus == -1)
-							{
-								lsbox_click = i;
-								lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
-							}
-						}
-						else
-						{
-							if((GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 && focus == -1)
-							{
-								lsbox_click = i;
-								lsbox_line = (temppos.y-(Menu[i].Y+y+lrdata->Corner_Y))/lrdata->Step;
-							}
-						}
-					}
-
-					if(lrdata->Current > -1)
-					{
-						if(lrdata->text[lrdata->Current].SGImage)
-						{
-							BitRect.Left	= SaveScreen.Image_X;
-							BitRect.Top		= SaveScreen.Image_Y;
-							BitRect.Right	= SaveScreen.Image_X+SaveScreen.Width;
-							BitRect.Bottom	= SaveScreen.Image_Y+SaveScreen.Height;
-
-							DrawBitmap(lrdata->text[lrdata->Current].SGImage, &BitRect, SaveScreen.X+x, SaveScreen.Y+y);
-						}
-						else if(EmptySlotImage)
-						{
-							BitRect.Left	= SaveScreen.Image_X;
-							BitRect.Top		= SaveScreen.Image_Y;
-							BitRect.Right	= SaveScreen.Image_X+SaveScreen.Width;
-							BitRect.Bottom	= SaveScreen.Image_Y+SaveScreen.Height;
-
-							DrawBitmap(EmptySlotImage, &BitRect, SaveScreen.X+x, SaveScreen.Y+y);
-						}
-					}
-
-					break;
-				}
-			}
-		}
-
-#ifdef BLIT
-		geEngine_DrawBitmap(CCD->Engine()->Engine(), ScreenBmp, NULL, 0, 0);
-#endif
-
-		if(LoopOnce == 0 && !Fading)
-		{
-			if(AnimCursor < 0 || Animation[AnimCursor] == NULL)
-			{
-				geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY);
-			}
-			else
-			{
-				geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
-				DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY);
-			}
-		}
-
-		if(Fading)
-		{
-			DoFade();
-		}
-
-		geEngine_EndFrame(CCD->Engine()->Engine());
-
-		if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && escapeon == 0 && ingame == 1)
-		{
-			escapeon = 1;
-			FadeSet(1, TimeFade);
-		}
-
-		if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) == 0 && escapeon == 1 && !Fading)
-		{
-			CCD->ReportError("Exiting Menu, Returning to Game", false);
-			escapeon = 0;
-
-			if(ingame == 1)
-			{
-				if(musictype != -1)
-				{
-					if(musictype == 1)
-						MIDIPlayer()->Stop();
-					else
-						m_Streams->Stop();
-				}
-
-				CCD->AudioStreams()->PauseAll(); // restart streaming audio
-
-				if(CCD->CDPlayer())
-				{
-					if(CCD->CDPlayer()->GetCdOn())
-						CCD->CDPlayer()->Restore(); // restart CD music if CD is on
-				}
-
-				if(CCD->MIDIPlayer())
-					CCD->MIDIPlayer()->Restore(); // restart midi if it was playing
-
-				ResetVol();
-				GameLevel();
-			}
-		}
-
-		if(!Fading)
-		{
-			//--------------------------------------
-			// if clicked on Clickable or Exit Menu
-			//--------------------------------------
-			if(click !=-1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				if(LoopOnce == 0)
-					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-
-				data = (Clickable *)Menu[click].data;
-
-				if(LoopOnce == 0 && !Fading)
-				{
-					FadeSet(1, TimeFade);
-					LoopOnce = 3;
-				}
-				else if(LoopOnce == 3 && !Fading)
-				{
-					LoopOnce = 0;
-
-					if(Menu[click].Type == EXIT_MENU)
-					{
-						FadeSet(-1, TimeFade);
-
-						if(remapf != -1)
-							CCD->Input()->SaveKeymap("keyboard.ini");
-
-						if(data->proc != NULL)
-							data->proc();
-						if(data->Action >= 10)
-							return data->Action-9;
-
-						return 0;
-					}
-					else if(Menu[click].Type == CANCEL_MENU)
-					{
-						if(remapf != -1)
-							CCD->Input()->SaveKeymap("keyboard.ini");
-						return 1;
-					}
-					else if(Menu[click].Type == CLICKABLE)
-					{
-						FadeSet(-1, TimeFade);
-
-						if(data->Next != NULL && (data->Action == 0 || data->Action == 2))
-						{
-							ProcessMenu(data->Next, data->background, data->title);
-						}
-						else if(data->proc != NULL && data->Action == 1)
-						{
-							data->proc();
-						}
-						else if(data->proc != NULL && data->Action == 3)
-						{
-							data->proc();
-							remapf = 0;
-						}
-						else if(data->proc != NULL && data->Action == 4)
-						{
-							if(LoadBox.Current != -1)
-							{
-								if(LoadBox.text[LoadBox.Current].empty != 0)
-								{
-									data->proc();
-									return 0;
-								}
-							}
-						}
-					}
-
-					click = -1;
-				}
-			}
-
-			//--------------------------
-			// if clicked on slider
-			//--------------------------
-
-			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				temp = temppos.x-slide_x;
-				sdata = (Slider*)Menu[slide_click].data;
-				sdata->Current += temp;
-
-				if(sdata->Current > sdata->Max_X)
-					sdata->Current = sdata->Max_X;
-
-				if(sdata->Current < sdata->Min_X)
-					sdata->Current = sdata->Min_X;
-
-				slide_x = temppos.x;
-				temp = (sdata->Current*100)/sdata->Max_X;
-
-				if(sdata->proc != NULL && sdata->On_the_Fly == 0)
-					sdata->proc(temp);
-
-				slide_click=-1;
-			}
-
-			if(slide_click == -1)
-				slide_x = -1;
-
-			if(slide_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0)))
-			{
-				if(slide_x != temppos.x)
-				{
-					temp = temppos.x-slide_x;
-					sdata = (Slider*)Menu[slide_click].data;
-					sdata->Current += temp;
-
-					if(sdata->Current > sdata->Max_X)
-						sdata->Current = sdata->Max_X;
-
-					if(sdata->Current < sdata->Min_X)
-						sdata->Current = sdata->Min_X;
-
-					slide_x = temppos.x;
-					temp = (sdata->Current*100)/sdata->Max_X;
-					geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), slideclick, 0.75f, 0.0f, 1.0f, false);
-
-					if(sdata->proc != NULL && sdata->On_the_Fly == 1)
-						sdata->proc(temp);
-				}
-			}
-
-			//--------------------------
-			// if clicked on box
-			//--------------------------
-
-			if(box_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-				bdata = (Box*)Menu[box_click].data;
-				bdata->Current = (bdata->Current+1) & 1;
-
-				if(bdata->proc != NULL)
-					bdata->proc(bdata->Current);
-
-				box_click = -1;
-			}
-
-			//--------------------------
-			// if clicked on radio box
-			//--------------------------
-
-			if(radio_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-				radiodata = (Radio*)Menu[radio_click].data;
-
-				for(i=0; i<max; i++)
-				{
-					if(Menu[i].Type == RADIO)
-					{
-						Radio *radiodata1 = (Radio*)Menu[i].data;
-						radiodata1->Current = 0;
-					}
-				}
-
-				radiodata->Current = 1;
-
-				if(radiodata->proc != NULL)
-					radiodata->proc(radiodata->ID);
-
-				radio_click = -1;
-			}
-
-			//--------------------------
-			// if clicked on remap
-			//--------------------------
-
-			if(remap_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-				rdata = (Remap*)Menu[remap_click].data;
-				rdata->Current = remap_line + rdata->Start;
-				remap_click = -1;
-			}
-
-			//--------------------------
-			// if clicked on scrollbar
-			//--------------------------
-
-			if(scroll_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-				scdata = (ScrollBar*)Menu[scroll_click].data;
-				int max = *(scdata->Max);
-				int current = *(scdata->Current);
-
-				if(scroll_dir == 0)
-				{
-					if(current > 0)
-						*(scdata->Current) -= 1;
-				}
-				else
-				{
-					if(current < (max-scdata->Show))
-						*(scdata->Current) += 1;
-				}
-
-				scroll_click = -1;
-			}
-
-			//--------------------------
-			// if clicked on lsbox
-			//--------------------------
-
-			if(lsbox_click != -1 && ((GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_RBUTTON) & 0x8000) == 0) ||
-								(!GetSystemMetrics(SM_SWAPBUTTON) && (GetAsyncKeyState(VK_LBUTTON) & 0x8000) == 0)))
-			{
-				geSound_PlaySoundDef(CCD->Engine()->AudioSystem(), mouseclick, 0.99f, 0.0f, 1.0f, false);
-				lrdata = (LSBox*)Menu[lsbox_click].data;
-				lrdata->Current = lsbox_line + lrdata->Start;
-				lsbox_click = -1;
-			}
-		}
-	}
-
-	return 1;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	DrawBitmap
+// DrawBitmap
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DrawBitmap(const geBitmap *Bitmap, geRect *Source, uint32 x, uint32 y)
 {
-#ifdef BLIT
-	geBitmap_Info	BmpInfo;
-	int SrcPositionX;
-	int SrcPositionY;
-	int SizeX;
-	int SizeY;
-
-	if(!Source)
-	{
-		geBitmap_GetInfo(Bitmap, &BmpInfo, NULL);
-		SizeX = BmpInfo.Width;
-		SizeY = BmpInfo.Height;
-		SrcPositionX = 0;
-		SrcPositionY = 0;
-
-		if(x == 0 && y == 0)
-			geBitmap_BlitBitmap(Bitmap, ScreenBmp);
-		else
-			geBitmap_Blit(Bitmap, SrcPositionX, SrcPositionY, ScreenBmp, x, y, SizeX, SizeY);
-	}
-	else
-	{
-		SrcPositionX = Source->Left;
-		SrcPositionY = Source->Top;
-		SizeX = Source->Right - SrcPositionX;
-		SizeY = Source->Bottom - SrcPositionY;
-		geBitmap_Blit(Bitmap, SrcPositionX, SrcPositionY, ScreenBmp, x, y, SizeX, SizeY);
-	}
-#else
 	geEngine_DrawBitmap(CCD->Engine()->Engine(), Bitmap, Source, x, y);
-#endif
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	MFontRect
+// Stop Menu Music
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::MFontRect(const char *s, int FontNumber, int x, int y)
+void CRFMenu::StopMusic()
 {
-	unsigned char chr;
-
-	if(MenuFont[FontNumber].Bitmap == NULL)
+	if(m_MusicType != -1)
 	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
-				__FILE__, __LINE__, FontNumber, FontNumber+1);
-		CCD->ReportError(szBug, false);
-		return;
-	}
-
-	if(s)
-	{
-		geEngine *theEngine = CCD->Engine()->Engine();
-
-		while(*s != 0)
-		{
-			chr = (unsigned char)(*s)-32;
-
-			fRect.Top		= MenuFont[FontNumber].dat[chr].y;
-			fRect.Bottom	= MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height;
-			fRect.Left		= MenuFont[FontNumber].dat[chr].x;
-			fRect.Right		= MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width;
-
-			geEngine_DrawBitmap(theEngine, MenuFont[FontNumber].Bitmap, &fRect, x, y);
-
-			x += MenuFont[FontNumber].dat[chr].width;
-			s++;
-		}
-	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	setup bitmap rectangle for
-//	the letter in the given font
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::FontRect(const char *s, int FontNumber, int x, int y)
-{
-	unsigned char chr;
-
-	if(MenuFont[FontNumber].Bitmap == NULL)
-	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
-				__FILE__, __LINE__, FontNumber, FontNumber+1);
-		CCD->ReportError(szBug, false);
-
-		return;
-	}
-
-	if(s)
-	{
-		geEngine *theEngine = CCD->Engine()->Engine();
-
-		while(*s != 0)
-		{
-			chr = (unsigned char)(*s)-32;
-
-			fRect.Top		= MenuFont[FontNumber].dat[chr].y;
-			fRect.Bottom	= MenuFont[FontNumber].dat[chr].y+MenuFont[FontNumber].font_height-1;
-			fRect.Left		= MenuFont[FontNumber].dat[chr].x;
-			fRect.Right		= MenuFont[FontNumber].dat[chr].x+MenuFont[FontNumber].dat[chr].width-1;
-
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FontNumber].Bitmap, &fRect, x, y);
-
-			x += MenuFont[FontNumber].dat[chr].width;
-			s++;
-		}
-	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	FontHeight
-/* ------------------------------------------------------------------------------------ */
-int CRFMenu::FontHeight(int FontNumber)
-{
-	if(MenuFont[FontNumber].Bitmap == NULL)
-	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
-				__FILE__, __LINE__, FontNumber, FontNumber+1);
-		CCD->ReportError(szBug, false);
-		return 0;
-	}
-
-	return MenuFont[FontNumber].font_height;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	FontWidth
-/* ------------------------------------------------------------------------------------ */
-int CRFMenu::FontWidth(int FontNumber, const char *s)
-{
-	int charoff;
-	unsigned char chr;
-
-	if(MenuFont[FontNumber].Bitmap == NULL)
-	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
-				__FILE__, __LINE__, FontNumber, FontNumber+1);
-		CCD->ReportError(szBug, false);
-		return 0;
-	}
-
-	if(s != NULL)
-	{
-		charoff = 0;
-
-		while(*s!=0)
-		{
-			chr = (unsigned char)(*s)-32;
-			charoff += MenuFont[FontNumber].dat[chr].width;
-			s++;
-		}
-
-		return charoff;
-	}
-	else
-		return 0;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	StopMenuMusic
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::StopMenuMusic()
-{
-	if(musictype != -1)
-	{
-		if(musictype == 1)
+		if(m_MusicType == 1)
 			MIDIPlayer()->Stop();
 		else
 			m_Streams->Stop();
@@ -5113,528 +848,114 @@ void CRFMenu::StopMenuMusic()
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetMusicVol
+// SetMusicVol
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::SetMusicVol(float vol)
 {
-	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-		NO_SOURCE, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	CMixer mixer(CCD->Engine()->WindowHandle(),
+					MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+					NO_SOURCE,
+					MIXERCONTROL_CONTROLTYPE_VOLUME);
 
 	if(!mixer.IsOk())
 		return;
 
-	DWORD dw = (DWORD)(vol*65535.0f);
+	DWORD dw = static_cast<DWORD>(vol * 65535.0f);
 	mixer.SetControlValue(dw);
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	SetmMusicVol
+// SetmMusicVol
+// vol in range [0; 1]
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::SetmMusicVol(float vol)
 {
-	mVolLevel = vol;
-	LONG nVolume = (LONG)((vol*10000.0f)-10000);
+	m_mVolLevel = vol;
+	//long volume = static_cast<long>(vol * 10000.f - 10000.f); // [-10000; 0] (min/max in DirectSound)
+	long volume = static_cast<long>(vol * 10000.f);
 
-	if(musictype != -1)
+	if(volume <= 1)
+		volume = -10000;
+	else if(volume > 10000)
+		volume = 0;
+	else
+		volume = static_cast<long>(log10(static_cast<float>(volume)) * 2500.f - 10000.f);
+
+	// [-10000; 0] (min/max in DirectSound)
+	if(m_MusicType != -1)
 	{
-		if(musictype != 1)
-			m_Streams->SetVolume(nVolume);
+		if(m_MusicType != 1)
+			m_Streams->SetVolume(volume);
 	}
 
-	if(CCD->AudioStreams())
-		CCD->AudioStreams()->SetVolume(nVolume);
+	if(CCD->Level())
+	{
+		if(CCD->Level()->AudioStreams())
+			CCD->Level()->AudioStreams()->SetVolume(volume);
 
-	if(CCD->SoundtrackToggles())
-		CCD->SoundtrackToggles()->SetVolume(nVolume);
+		if(CCD->Level()->SoundtrackToggles())
+			CCD->Level()->SoundtrackToggles()->SetVolume(volume);
+	}
 
-	CMixer mixer(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-		MIXERLINE_COMPONENTTYPE_SRC_SYNTHESIZER, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	CMixer mixer(CCD->Engine()->WindowHandle(),
+					MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+					MIXERLINE_COMPONENTTYPE_SRC_SYNTHESIZER,
+					MIXERCONTROL_CONTROLTYPE_VOLUME);
 
 	if(mixer.IsOk())
 	{
-		DWORD dw = (DWORD)(vol*65535.0f);
+		DWORD dw = static_cast<DWORD>(vol * 65535.0f);
 		mixer.SetControlValue(dw);
 	}
 
-	CMixer mixercd(CCD->Engine()->WindowHandle(), MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
-		MIXERLINE_COMPONENTTYPE_SRC_COMPACTDISC, MIXERCONTROL_CONTROLTYPE_VOLUME);
+	CMixer mixercd(CCD->Engine()->WindowHandle(),
+					MIXERLINE_COMPONENTTYPE_DST_SPEAKERS,
+					MIXERLINE_COMPONENTTYPE_SRC_COMPACTDISC,
+					MIXERCONTROL_CONTROLTYPE_VOLUME);
 
 	if(mixercd.IsOk())
 	{
-		DWORD dw = (DWORD)(vol*65535.0f);
+		DWORD dw = static_cast<DWORD>(vol * 65535.0f);
 		mixercd.SetControlValue(dw);
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GameLoop
+// GameLoop
 //
 // setup and run level
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::GameLoop()
 {
-	//	Now that we have the initial inventory and attributes for the
-	//	..first level, we're going to save them off to a temp. file so
-	//	..if the player gets killed, when we restart we can do a fast
-	//	..and easy reload of the "game startup" attributes and
-	//	..inventory.
+	// Now that we have the initial inventory and attributes for the
+	// ..first level, we're going to save them off to a temp. file so
+	// ..if the player gets killed, when we restart we can do a fast
+	// ..and easy reload of the "game startup" attributes and
+	// ..inventory.
 
-	CCD->ReportError("CRFMenu::GameLoop() - Setup and Run Level", false);
+	CCD->Log()->Debug("Setup and Run Level");
 
-	CCD->Player()->ShowFog();			// Show fog, if enabled
-	CCD->Player()->ActivateClipPlane();	// Activate clipping plane, if enabled
+	CCD->Level()->ShowFog();			// Show fog, if enabled
+	CCD->Level()->ActivateClipPlane();	// Activate clipping plane, if enabled
 
-	//	On the load of the first level, we want to set up the player
-	//	..attributes and HUD display format.
+	// On the load of the first level, we want to set up the player
+	// ..attributes and HUD display format.
 	CCD->HUD()->LoadConfiguration();
 	CCD->Player()->SaveAttributes("pdoa.bin");
 	CCD->Player()->SaveAttributesAscii("attributes.txt");
 	CCD->SetLevelData();
 
-	CCD->MenuManager()->SetInGame();
-	GameLevel();
+	SetInGame();
+	CCD->GUIManager()->EnableWindow("Menu/Main/SaveGame");
+
+	CGameStateManager::GetSingletonPtr()->PushState(CPlayState::GetSingletonPtr());
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GameLevel
-//
-//	Main game loop
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::GameLevel()
-{
-	CCD->ReportError("CRFMenu::GameLevel() - Entering Inner Game Loop", false);
-	MSG msg;
-	int FirstFont;
-	geRect firstRect;
-	int framecount;
-
-	for(int i=0; i<MAXTEXT; i++)
-		CCD->Pawns()->TextMessage[i].ShowText = false;
-
-	CCD->Player()->ShowFog();
-
-	//	Main game loop.  Until it's time for us to quit, we'll check for
-	//	..motion, move the player, etc.
-	if(box6.Current == BOX_ON)
-		CCD->Engine()->ShowFrameRate(true);
-
-	CCD->Engine()->ResetSystem();
-
-	for(FirstFont=0; FirstFont<NUM_FONTS; FirstFont++)
-	{
-		if(MenuFont[FirstFont].Bitmap != NULL)
-		{
-			firstRect.Top		= MenuFont[FirstFont].dat[0].y;
-			firstRect.Bottom	= MenuFont[FirstFont].dat[0].y+MenuFont[0].font_height;
-			firstRect.Left		= MenuFont[FirstFont].dat[0].x;
-			firstRect.Right		= MenuFont[FirstFont].dat[0].x+MenuFont[FirstFont].dat[0].width;
-
-			break;
-		}
-	}
-
-	FadeSet(-1, TimeFade);
-	MusicSet();
-
-	framecount = 0;
-
-// center mouse on window befor returning to game
-	POINT pos;
-	if(CCD->Engine()->FullScreen())
-	{
-		pos.x = CCD->Engine()->Width()/2;			// calculate the center of the screen
-		pos.y = CCD->Engine()->Height()/2;			// calculate the center of the screen
-		SetCursorPos(pos.x, pos.y);					// set the cursor in the center of the screen
-	}
-	else
-	{
-		RECT client;
-		GetClientRect(CCD->Engine()->WindowHandle(),&client);	// get the client area of the window
-		pos.x = client.right/2;									// calculate the center of the client area
-		pos.y = client.bottom/2;								// calculate the center of the client area
-		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);		// convert to SCREEN coordinates
-		SetCursorPos(pos.x,pos.y);								// put the cursor in the middle of the window
-	}
-
-	for(;;)
-	{
-		// If Winblows has something to say, take it in and pass it on in the
-		// ..off-chance someone cares.
-		while(PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
-		{
-			GetMessage(&msg, NULL, 0, 0);
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		if(!CCD->GetHasFocus())
-			continue;
-
-		if(CCD->HandleGameInput() == true)
-		{
-			// Ok, send a Tick() call to all components that use time
-			if(CCD->Inventory()->GetStopTime())
-				CCD->DispatchTick();
-
-			bool cflag = false;
-
-			if(box1.Current == BOX_ON
-				&& CCD->Player()->GetViewPoint() == FIRSTPERSON
-				&& CCD->Weapons()->CrossHair())	// display crosshair
-			{
-				if(!CCD->Weapons()->CrossHairFixed() && CCD->Weapons()->GetCrossHair())
-				{
-					DisplayCrossHair();
-					cflag = true;
-				}
-			}
-
-			CCD->Pawns()->AnimateWeapon();
-			CCD->Weapons()->DoAttack();
-			CCD->Explosions()->Tick(CCD->GetTicksGoneBy());
-			CCD->EffectManager()->Tick(CCD->GetTicksGoneBy());
-
-			// Entities animated, render _EVERYTHING_
-			CCD->Engine()->BeginFrame();				// Start up rendering for this frame
-
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), MenuFont[FirstFont].Bitmap, &firstRect, 0, 0);
-
-			CCD->RenderComponents();					// Render the RGF components
-
-			CCD->Engine()->RenderWorld();				// Render the world
-
-			//Fills a rectangle on the screen with color / alpha (can be used for color/alpha fading)
-			for(int i=0; i<MAXFILLAREA; i++)
-				CCD->Pawns()->FillScreenArea(i);
-
-			if(box1.Current == BOX_ON
-				&& (CCD->Player()->GetViewPoint() == FIRSTPERSON || CCD->Player()->GetViewPoint() == THIRDPERSON)
-				&& !CCD->Player()->GetMonitorMode())
-			{
-				if(CCD->Weapons()->CrossHair() && CCD->Weapons()->CrossHairFixed() && CCD->Weapons()->GetCrossHair())
-				{
-					CCD->Weapons()->DisplayCrossHair();
-				}
-				else
-				{
-					if(!cflag)
-					{
-						geBitmap *theBmp;
-						geBitmap_Info	BmpInfo;
-						int x, y;
-
-						theBmp = CCD->MenuManager()->GetFCrossHair();
-
-						if(geBitmap_GetInfo(theBmp, &BmpInfo, NULL) == GE_TRUE)
-						{
-							if(CCD->Player()->GetViewPoint() == THIRDPERSON
-								&& !(CCD->Weapons()->GetCurrent() == -1 || CCD->Weapons()->GetCurrent() == 11))
-							{
-								geVec3d ProjectedPoint = CCD->Weapons()->GetProjectedPoint();
-								x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
-								y = (int)ProjectedPoint.Y - (BmpInfo.Height) / 2;
-							}
-							else
-							{
-								x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
-								y = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
-							}
-							geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y);
-						}
-					}
-				}
-			}
-
-			if(box5.Current == BOX_ON)
-			{
-				CCD->Weapons()->WeaponData();
-
-				char szBug[256];
-				geVec3d Pos = CCD->Player()->Position();
-				sprintf(szBug, "Player X : %4.2f Player Y : %4.2f Player Z : %4.2f Actors %d", Pos.X, Pos.Y, Pos.Z, CCD->ActorManager()->CountActors());
-				CCD->MenuManager()->WorldFontRect(szBug, FONT10, 5, CCD->Engine()->Height()- 20, 255.0f);
-			}
-
-			CCD->Messages()->Display();
-
-			CCD->PWXImMgr()->Display();//PWX
-
-			if(CCD->GetSaving())
-			{
-				savetime = SavingTime;
-				CCD->SetSaving(false);
-			}
-
-			if(savetime > 0.0f)
-			{
-				savetime -= (CCD->LastElapsedTime_F()*0.001f);
-				int width	= FontWidth(SaveFont, Savemsg);
-				int height	= FontHeight(SaveFont);
-				int xoffset = (CCD->Engine()->Width()-width)/2;
-				int yoffset = (CCD->Engine()->Height()-height)/2;
-				FontRect(Savemsg, SaveFont, xoffset, yoffset);
-			}
-			else
-				savetime = 0.0f;
-
-			if(CCD->GetConsole())
-			{
-				// call the console render function here as it is active
-				CCD->ConsoleRender();
-			}
-
-			CCD->Inventory()->Display(); // render Inventory / HUD
-
-
-			// Displays a text on the screen that tracks position with an Entity
-			for(int ii=0; ii<MAXTEXT; ii++)
-				CCD->Pawns()->ShowText(ii);
-
-
-			CCD->Teleporters()->DoFade();
-
-			if(Fading)
-				DoFade();
-
-			if(framecount < 2)
-			{
-				GE_Rect Rect;
-				GE_RGBA	Color;
-
-				Rect.Left = Rect.Top = 0;
-				Rect.Right = CCD->Engine()->Width() - 1;
-				Rect.Bottom = CCD->Engine()->Height() - 1;
-
-				Color.r = 0.0f;
-				Color.g = 0.0f;
-				Color.b = 0.0f;
-				Color.a = 255;
-
-				geEngine_FillRect(CCD->Engine()->Engine(), &Rect, &Color);
-				framecount += 1;
-			}
-
-			DisplayCursor();
-
-			// Everything rendered, now end the frame.
-			CCD->Engine()->EndFrame();					// All done, do the necessary flip
-
-			if(CCD->GetPaused())
-			{
-				if(CCD->GetUseEffect())
-				{
-					geFog *theFog;
-					int nTemp;
-					CCD->CameraManager()->TrackMotion();
-					geVec3d Pos;
-					CCD->CameraManager()->GetPosition(&Pos);
-					GE_RGBA cColor = CCD->GetFogColor();
-					cColor.a = 255.0f;
-					theFog = geWorld_AddFog(CCD->World());
-					geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f, 1500.0f, 240.0f);
-
-					for(nTemp=1000; nTemp<6000; nTemp+=200)
-					{
-						CCD->Engine()->BeginFrame();
-						geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f,
-											(geFloat)nTemp+500.0f, 240.0f+(geFloat)(nTemp/400));
-						CCD->Engine()->RenderWorld();
-						CCD->Engine()->EndFrame();
-					}
-
-					for(nTemp=6000; nTemp>0; nTemp-= 200)
-					{
-						CCD->Engine()->BeginFrame();
-						geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f,
-							(geFloat)nTemp+500.0f, 240.0f+(geFloat)(nTemp/400));
-						CCD->Engine()->RenderWorld();
-						CCD->Engine()->EndFrame();
-					}
-
-					geWorld_RemoveFog(CCD->World(), theFog);
-					savetime = 0.0f;
-					CCD->Engine()->ResetSystem();
-					framecount = 0;
-				}
-
-				CCD->SetPaused(false);
-			}
-
-			CCD->CheckMediaPlayers();						// Poll media players
-
-			if(!CCD->Player()->GetAlive())
-			{
-				geEntity_EntitySet *pSet;
-				geEntity *pEntity;
-				pSet = geWorld_GetEntitySet(CCD->World(), "PlayerSetup");
-				pEntity= geEntity_EntitySetGetNextEntity(pSet, NULL);
-				PlayerSetup *pSetup = (PlayerSetup*)geEntity_GetUserData(pEntity);
-
-				if(pSetup->UseDeathFog)
-				{
-					geFog *theFog;
-					int nTemp;
-					CCD->CameraManager()->TrackMotion();
-					geVec3d Pos;
-					CCD->CameraManager()->GetPosition(&Pos);
-					GE_RGBA cColor = pSetup->DeathFogColor;
-					cColor.a = 255.0f;
-					theFog = geWorld_AddFog(CCD->World());
-					geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f, 1500.0f, 50.0f);
-
-					for(nTemp=1000; nTemp<6000; nTemp+=200)
-					{
-						CCD->Engine()->BeginFrame();
-						geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f,
-							(geFloat)nTemp+500.0f, 50.0f+(geFloat)(nTemp/200));
-						CCD->Engine()->RenderWorld();
-						CCD->Engine()->EndFrame();
-					}
-
-					for(nTemp=6000; nTemp>=0; nTemp-=200)
-					{
-						CCD->Engine()->BeginFrame();
-						geFog_SetAttributes(theFog, &Pos, &cColor, 0.0f,
-							(geFloat)nTemp+500.0f, 50.0f+(geFloat)(nTemp/200));
-						CCD->Engine()->RenderWorld();
-						CCD->Engine()->EndFrame();
-					}
-
-					geWorld_RemoveFog(CCD->World(), theFog);
-				}
-
-				CCD->Player()->DisableFog();		// Fogging OFF
-				CCD->Player()->DisableClipPlane();	// Clip plane OFF
-
-				if(!pSetup->KeepAttrAtDeath)
-					CCD->Player()->LoadAttributes("pdoa.bin");
-				else
-				{
-					CCD->Player()->SaveAttributes("temp.bin");
-					CCD->Player()->LoadAttributes("pdoa.bin");
-					CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-					int health = theInv->Value("health");
-					CCD->Player()->LoadAttributes("temp.bin");
-					theInv->Set("health", health);
-				}
-
-				CCD->Weapons()->ClearWeapon();
-				CCD->ProcessLevelChange();
-				CCD->Player()->SetAlive(true);
-				CCD->Player()->ShowFog();					// Fog on, if any there
-				CCD->Player()->ActivateClipPlane();	// Clip plane on, if any there
-
-				savetime = 0.0f;
-				CCD->Engine()->ResetSystem();
-				framecount = 0;
-			}
-			else
-			{
-				// The player has moved, frame updated and rendered.  What we do now is
-				// ..check to see if, during the course of all this, the player hit a
-				// ..changelevel entity.  If so, we need to flush the current level
-				// ..and load the new one.
-				// Version 053
-				if(CCD->ChangeLevel())
-				{
-					CCD->ReportError("CRFMenu::GameLevel() - ChangeLevel Triggered, begin Changelevel Process...", false);
-					CCD->Player()->DisableFog();		// Fogging OFF
-					CCD->Player()->DisableClipPlane();	// Clip plane OFF
-					CCD->SetMouseControl(true);
-					bShowCursor = false;
-
-					if(EffectC_IsStringNull(CCD->NextLevel()))
-					{
-						CCD->AudioStreams()->StopAll(); // stop old streaming audio that might be paused
-						CCD->ShutdownLevel();
-						CCD->MenuManager()->DeleteSound();
-
-						if(CCD->CDPlayer())
-							CCD->CDPlayer()->Stop();
-
-						if(CCD->MIDIPlayer())
-							CCD->MIDIPlayer()->Stop();
-
-						if(musictype != -1)
-						{
-							if(musictype == 1)
-								MIDIPlayer()->Play(music, true);
-							else
-								m_Streams->Play(true);
-						}
-
-						SetmMusicVol(mVolLevel);
-
-						ingame = 0;
-						CCD->SetChangeLevel(false);
-						return;
-					}
-
-					CCD->Weapons()->ClearWeapon();
-					CCD->ProcessLevelChange();			// Do the level change
-					CCD->Player()->ShowFog();					// Fog on, if any there
-					CCD->Player()->ActivateClipPlane();	// Clip plane on, if any there
-					CCD->Player()->SaveAttributes("pdoa.bin");
-					CCD->Player()->SaveAttributesAscii("attributes.txt");
-					CCD->Engine()->ResetSystem();
-					framecount = 0;
-				}
-			}
-		}
-		else
-		{
-			break;
-		}
-	}	// End main game loop
-
-// save the screen just before switching to the menu (in RF dir)
-	if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
-	{
-		char szTemp[256];
-		strcpy(szTemp, CCD->GetDirectory(kBitmapFile));
-		strcat(szTemp, "\\");
-		strcat(szTemp, "SaveScreen.bmp");
-		geEngine_ScreenShot(CCD->Engine()->Engine(), szTemp);
-		ScaleBitmapFromFile(szTemp, SaveScreen.Width, SaveScreen.Height);
-	}
-
-	while((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
-	{
-	}
-
-	if(CCD->AudioStreams())
-		CCD->AudioStreams()->PauseAll();// pause streaming audio
-
-	if(CCD->CDPlayer())
-		CCD->CDPlayer()->Stop();		// stop CD music
-
-	if(CCD->MIDIPlayer())
-		CCD->MIDIPlayer()->Stop();		// stop midi music
-
-	CCD->Engine()->ShowFrameRate(false);
-	ClearVol();
-	CCD->Player()->DisableFog();
-
-	if(musictype != -1)
-	{
-		if(musictype == 1)
-			MIDIPlayer()->Play(music, true);
-		else
-			m_Streams->Play(true);
-	}
-
-	SetmMusicVol(mVolLevel);
-
-	FadeSet(-1, TimeFade);
-	MusicSet();
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	DisplayCrossHair
+// DisplayCrossHair
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DisplayCrossHair()
 {
-
 	geVec3d theRotation;
 	geVec3d thePosition;
 	geXForm3d Xf;
@@ -5650,7 +971,7 @@ void CRFMenu::DisplayCrossHair()
 	theBox.Min.X = theBox.Min.Y = theBox.Min.Z = -0.1f;
 	theBox.Max.X = theBox.Max.Y = theBox.Max.Z = 0.1f;
 
-	geFloat CurrentDistance = 400.0f;
+	float CurrentDistance = 400.0f;
 
 	CCD->CameraManager()->GetRotation(&theRotation);
 	CCD->CameraManager()->GetPosition(&thePosition);
@@ -5689,8 +1010,10 @@ void CRFMenu::DisplayCrossHair()
 				geActor_GetBoneTransform(Collision.Actor, RootBoneName(Collision.Actor), &Xf);
 				geXForm3d_GetTranspose(&Xf, &XfT);
 				geXForm3d_Rotate(&XfT, &Fill, &NewFillNormal);
-				geActor_SetLightingOptions(Collision.Actor, GE_TRUE, &NewFillNormal, 255.0f, 255.0f, 255.0f,
-											255.0f, 255.0f, 255.0f, GE_TRUE, 6, NULL, GE_FALSE);
+				geActor_SetLightingOptions(Collision.Actor, GE_TRUE, &NewFillNormal,
+											255.0f, 255.0f, 255.0f,
+											255.0f, 255.0f, 255.0f,
+											GE_TRUE, 6, NULL, GE_FALSE);
 				geVec3d LitColor = CCD->Weapons()->GetLitColor();
 
 				Vert.r = LitColor.X;
@@ -5708,85 +1031,64 @@ void CRFMenu::DisplayCrossHair()
 	Vert.Y = Back.Y;
 	Vert.Z = Back.Z;
 
-    geWorld_AddPolyOnce(CCD->World(), &Vert, 1, CCD->Weapons()->GetCrossHair(),
-		GE_TEXTURED_POINT, GE_RENDER_DO_NOT_OCCLUDE_SELF | GE_RENDER_DEPTH_SORT_BF, 1.0f);
+
+	// Add "| GE_RENDER_DEPTH_SORT_BF" so that crosshair always draws on top of wall decals
+	geWorld_AddPolyOnce(CCD->World(),
+						&Vert,
+						1,
+						CCD->Weapons()->GetCrossHair(),
+						GE_TEXTURED_POINT,
+						GE_RENDER_DO_NOT_OCCLUDE_SELF | GE_RENDER_DEPTH_SORT_BF,
+						1.0f);
 }
 
-void CRFMenu::DisplayCursor()
-{
-	if(bShowCursor)
-	{
-		POINT pos = {0, 0};
-		POINT temppos;
-		GetCursorPos(&temppos);	// get the mouse position in SCREEN coordinates
-
-		if(!CCD->Engine()->FullScreen())
-		{
-			RECT client;
-			GetClientRect(CCD->Engine()->WindowHandle(), &client);
-			pos.x = client.left;
-			pos.y = client.top;
-			ClientToScreen(CCD->Engine()->WindowHandle(), &pos);
-			temppos.x -= pos.x;
-			temppos.y -= pos.y;
-		}
-
-		if(AnimCursor < 0 || Animation[AnimCursor] == NULL)
-		{
-			geEngine_DrawBitmap(CCD->Engine()->Engine(), Cursor, NULL, temppos.x-HotX, temppos.y-HotY);
-		}
-		else
-		{
-			geBitmap *theBmp = Animation[AnimCursor]->NextFrame(true);
-			DrawBitmap(theBmp, NULL, temppos.x-HotX, temppos.y-HotY);
-		}
-	}
-}
 
 /* ------------------------------------------------------------------------------------ */
-//	DisplaySplash
+// TODO: DisplaySplash
+// except for color key, function is very similar to CGenesisEngine::DisplaySplash
 //
-// display splash screen with color 255
-// as transparent
+// display splash screen with color 255 as transparent
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DisplaySplash()
 {
-	geBitmap *theBmp;
-	geBitmap_Info	BmpInfo;
-	int x, y;
-
-	theBmp = CreateFromFileName(Loading);
+	geBitmap *theBmp = CreateFromFileName(m_Loading);
+	geBitmap_Info BmpInfo;
 
 	if(theBmp != NULL)
 	{
 		if(geBitmap_GetInfo(theBmp, &BmpInfo, NULL) == GE_TRUE)
 		{
-			x = (CCD->Engine()->Width() - BmpInfo.Width)/2;
-			y = (CCD->Engine()->Height() - BmpInfo.Height)/2;
+			int x = (CCD->Engine()->Width() - BmpInfo.Width) / 2;
+			int y = (CCD->Engine()->Height() - BmpInfo.Height) / 2;
+
 			geBitmap_SetColorKey(theBmp, GE_TRUE, 255, GE_FALSE);
 
 			if(geEngine_AddBitmap(CCD->Engine()->Engine(), theBmp) == GE_FALSE)
 			{
-				char szError[200];
-				sprintf(szError, "[WARNING] File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'\n",
-						__FILE__, __LINE__, Loading);
-				CCD->ReportError(szError, false);
+				CCD->Log()->Warning("File %s - Line %d: DisplaySplash: AddBitmap failed on '%s'",
+									__FILE__, __LINE__, m_Loading);
 				return;
 			}
 
 			if(CCD->GetHasFocus())
 			{
-				geEngine_BeginFrame(CCD->Engine()->Engine(), M_Camera, GE_TRUE);
+				geRect cameraRect;
+				cameraRect.Left	= 0;
+				cameraRect.Right	= CCD->Engine()->Width() - 1;
+				cameraRect.Top	= 0;
+				cameraRect.Bottom = CCD->Engine()->Height() - 1;
+				geCamera *camera = geCamera_Create(2.0f, &cameraRect);
+
+				geEngine_BeginFrame(CCD->Engine()->Engine(), camera, GE_TRUE);
 
 				if(geEngine_DrawBitmap(CCD->Engine()->Engine(), theBmp, NULL, x, y) == GE_FALSE)
 				{
-					char szError[200];
-					sprintf(szError, "[WARNING] File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'\n",
-							__FILE__, __LINE__, Loading);
-					CCD->ReportError(szError, false);
+					CCD->Log()->Warning("File %s - Line %d: DisplaySplash: DrawBitmap failed on '%s'",
+										__FILE__, __LINE__, m_Loading);
 				}
 
 				geEngine_EndFrame(CCD->Engine()->Engine());
+				geCamera_Destroy(&camera);
 			}
 
 			geEngine_RemoveBitmap(CCD->Engine()->Engine(), theBmp);
@@ -5794,990 +1096,251 @@ void CRFMenu::DisplaySplash()
 
 		geBitmap_Destroy(&theBmp);
 	}
-
-	return;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	save a screen shot
+// save a screen shot
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::ScreenShot()
 {
-	char filename[256];
+	char filename[MAX_PATH];
 
-	sprintf(filename, "screen%.3d.bmp",Screen);
+	sprintf(filename, "%s\\screen%.3d.bmp",
+		CFileManager::GetSingletonPtr()->GetDirectory(kScreenshotFile),
+		m_ScreenshotCount);
 
-	if(geEngine_ScreenShot(CCD->Engine()->Engine(), filename) == false)
+	if(geEngine_ScreenShot(CCD->Engine()->Engine(), filename) == GE_FALSE)
 	{
-		CCD->ReportError("[WARNING] Failed to create screenshot file!", false);
+		sxLog::GetSingletonPtr()->Debug("Failed to create screenshot file");
 		return;
 	}
 
-	Screen += 1;
+	sxLog::GetSingletonPtr()->Debug("Screenshot saved to %s", filename);
+
+	++m_ScreenshotCount;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//
-// functions called by menu items
-//
-/* ------------------------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------------------------ */
-//	MenuInitalize
-//
-//	initalize all menu items
+// initialize all menu items
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::MenuInitalize()
+void CRFMenu::Initialize()
 {
-	// set gamma slider from engine gamma
-	Gamma_Slide.Current=((Gamma_Slide.Max_X-Gamma_Slide.Min_X)*GetGammaPercent())/100;
-	Detail_Slide.Current=Detail_Slide.Min_X + ((Detail_Slide.Max_X-Detail_Slide.Min_X)/2);
-	Detail = 50;
+	CCD->Log()->Debug("Initializing Menu...");
 
-	// set volume slider to max
-	Vol_Slide.Current = Vol_Slide.Max_X/2;
-	mVol_Slide.Current = mVol_Slide.Max_X/2;
+	InitializeWidgets();
+
+	// now that all widgets are initialized set up the event handling
+	m_EventHandler = new CMenuEventHandler(*this);
+	m_EventHandler->SubscribeEvents();
+
+	LoadControlConfiguration();
+
+	FillActionMapList();
+}
+
+
+void CRFMenu::InitializeWidgets()
+{
+	float gamma = GetGamma();
+	m_Detail = 0.5f;
+	m_bStencilShadows = false;
+	float volume = 0.5f;
+	float sensitivity;
+	bool cdmusic = false;
 
 	// set CD Music box from CD player status
-	box0.Current = BOX_OFF;
-
 	if(CCD->CDPlayer()->GetCdOn())
-		box0.Current = BOX_ON;
-
-	// set mouse sensitivity slider
-	MouseSen = 0.002f;
-	Sens_Slide.Current = ((Sens_Slide.Max_X-Sens_Slide.Min_X)*((int)(((MouseSen-MOUSEMIN)/(MOUSEMAX-MOUSEMIN))*100)))/100;
-
-	// set mouse reverse
-	MouseReverse = false;
-	box2.Current = BOX_OFF;
-
-	// set mouse filter
-	MouseFilter = false;
-	box4.Current = BOX_OFF;
-	Filter.x = -1;
-
-	// set crosshair
-	box1.Current = BOX_OFF;
-
-	// set no clipping
-	NoClip = false;
-	box7.Current = BOX_OFF;
-
-	// set framerate box
-	box5.Current = BOX_OFF;
-
-	// set debug info box
-	box6.Current = BOX_OFF;
-
-	// set bounding box
-	BoundingBox = false;
-	box8.Current = BOX_OFF;
-	SEBoundingBox = false;
-	box9.Current = BOX_OFF;
-
-	ShadowBox.Current = BOX_OFF;
-	StencilShadows = false;
-
-	CurrentLanguage = CCD->GetLanguage();
-
-	if(CurrentLanguage == 0)
-		boxL1.Current = BOX_ON;
-	else if(CurrentLanguage == 1)
-		boxL2.Current = BOX_ON;
-	else if(CurrentLanguage == 2)
-		boxL3.Current = BOX_ON;
-	else if(CurrentLanguage == 3)
-		boxL4.Current = BOX_ON;
-	else if(CurrentLanguage == 4)
-		boxL5.Current = BOX_ON;
-
-	// load saved game file if it exists
-	FILE *fd;
-
-	if(CCD->FileExist(kSavegameFile, "savedgames.rgf"))
 	{
-		fd = CCD->OpenRFFile(kSavegameFile, "savedgames.rgf", "rb");
-
-		if(fd)
-		{
-			fread(&SaveBox.Max, sizeof(int), 1, fd);
-
-			for(int nTemp = 0; nTemp < SaveBox.Max; nTemp++)
-			{
-				SAFE_FREE(SaveBox.text[nTemp].text);
-
-				SaveBox.text[nTemp].text = (char*)malloc(30);
-				fread(SaveBox.text[nTemp].text, 30, 1, fd);
-				fread(&SaveBox.text[nTemp].empty, sizeof(int), 1, fd);
-
-				if(SaveBox.text[nTemp].empty != 0)
-				{
-					if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
-					{
-						char filename[64];
-						sprintf(filename, "SaveScreen%d.bmp", nTemp);
-
-						if(CCD->FileExist(kBitmapFile, filename))
-						{
-							SavedGame[nTemp].SGImage = CreateFromFileName(filename);
-
-							if(SavedGame[nTemp].SGImage == (geBitmap*)NULL)
-							{
-								char szBug[256];
-								sprintf(szBug, "[ERROR] Bad file name %s", filename);
-								CCD->ReportError(szBug, false);
-								exit(-100);
-							}
-
-							geEngine_AddBitmap(CCD->Engine()->Engine(), SavedGame[nTemp].SGImage);
-						}
-					}
-				}
-			}
-
-			fclose(fd);
-		}
+		cdmusic = true;
 	}
 
-	fd = CCD->OpenRFFile(kInstallFile, "setup.ini", "rb");
+	// set mouse sensitivity slider
+	m_MouseSen = 0.002f;
+	sensitivity = (m_MouseSen - MOUSEMIN)/(MOUSEMAX - MOUSEMIN);
+
+	// set mouse reverse
+	m_bMouseReverse = false;
+
+	// set mouse filter
+	m_bMouseFilter = false;
+	m_Filter.x = -1;
+
+	// set crosshair
+	m_bCrosshairs = false;
+
+	// set no clipping
+	m_bNoClip = false;
+
+	// set framerate box
+	m_bFrameRate = false;
+
+	// set debug info box
+	m_bDebugInfo = false;
+
+	// set bounding box
+	m_bBoundingBox = false;
+	m_bSEBoundingBox = false;
+
+
+	// load setup file if it exists
+
+	sxLog::GetSingletonPtr()->SetMBPriority(LP_CRITICAL);
+	FILE *fd;
+	fd = CFileManager::GetSingletonPtr()->OpenRFFile(kConfigFile, "setup.ini", "rb");
+	sxLog::GetSingletonPtr()->SetMBPriority(LP_ERROR);
 
 	if(fd)
 	{
-		fread(&Gamma_Slide.Current, sizeof(int), 1, fd);
-		SetGamma((Gamma_Slide.Current*100)/Gamma_Slide.Max_X);
+		fread(&gamma,				sizeof(float),	1, fd);
+		SetGamma(gamma);
 
-		fread(&Vol_Slide.Current, sizeof(int), 1, fd);
-		SetVol((Vol_Slide.Current*100)/Vol_Slide.Max_X);
+		fread(&volume,				sizeof(float),	1, fd);
+		fread(&sensitivity,			sizeof(float),	1, fd);
+		m_MouseSen = sensitivity * (MOUSEMAX - MOUSEMIN) + MOUSEMIN;
 
-		fread(&Sens_Slide.Current, sizeof(int), 1, fd);
-		MouseSen = ((((float)((Sens_Slide.Current*100)/Sens_Slide.Max_X)/100.0f)*(MOUSEMAX-MOUSEMIN))+MOUSEMIN);
-
-		fread(&box0.Current, sizeof(int), 1, fd);
-
-		if(CCD->CDPlayer()->GetCdOn())
-			SetCDPlayer(box0.Current);
-
-		fread(&box1.Current, sizeof(int), 1, fd);
-		fread(&box2.Current, sizeof(int), 1, fd);
-
-		if(box2.Current==BOX_ON)
-			MouseReverse = true;
-		else
-			MouseReverse = false;
-
-		fread(&box4.Current, sizeof(int), 1, fd);
-		if(box4.Current==BOX_ON)
-			MouseFilter = true;
-		else
-			MouseFilter = false;
-
-		fread(&Detail_Slide.Current, sizeof(int), 1, fd);
-		Detail = (Detail_Slide.Current*100)/Detail_Slide.Max_X;
-
-		fread(&mVol_Slide.Current, sizeof(int), 1, fd);
-		int percent = (mVol_Slide.Current*100)/mVol_Slide.Max_X;
-		mVolLevel=((float)percent/100.0f);
-
-		if(percent == 0)
-			mVolLevel = 0.0f;
-
-
-		fread(&ShadowBox.Current, sizeof(int), 1, fd);
-		if(ShadowBox.Current==BOX_ON)
-			StencilShadows = true;
-		else
-			StencilShadows = false;
+		fread(&cdmusic,				sizeof(bool),	1, fd);
+		fread(&m_bCrosshairs,		sizeof(bool),	1, fd);
+		fread(&m_bMouseReverse,		sizeof(bool),	1, fd);
+		fread(&m_bMouseFilter,		sizeof(bool),	1, fd);
+		fread(&m_Detail,			sizeof(float),	1, fd);
+		fread(&m_mVolLevel,			sizeof(float),	1, fd);
+		fread(&m_bStencilShadows,	sizeof(bool),	1, fd);
 
 		fclose(fd);
 	}
 
-	int index = 0;
-	bool flg = false;
-	CIniFile AttrFile("control.ini");
+	CEGUI::Checkbox *checkbox;
+	CEGUI::Slider *slider;
+	CEGUI::RadioButton *radio;
 
-	if(AttrFile.ReadFile())
+	// language
+	std::string windowname = "Menu/Language/" + CCD->LanguageManager()->GetActiveLanguage()->GetName();
+	radio = static_cast<CEGUI::RadioButton*>(CCD->GUIManager()->GetWindow(windowname));
+	if(radio) radio->setSelected(true);
+
+	// video
+	slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Video/Gamma"));
+	if(slider) slider->setCurrentValue(gamma);
+
+	slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Video/Detail"));
+	if(slider) slider->setCurrentValue(m_Detail);
+
+	checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Video/Shadows"));
+	if(checkbox) checkbox->setSelected(m_bStencilShadows);
+
+	// advanced
+	slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Advanced/MouseSensitivity"));
+	if(slider) slider->setCurrentValue(sensitivity);
+
+	checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Advanced/Crosshairs"));
+	if(checkbox) checkbox->setSelected(m_bCrosshairs);
+
+	checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Advanced/ReverseMouse"));
+	if(checkbox) checkbox->setSelected(m_bMouseReverse);
+
+	checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Advanced/MouseFilter"));
+	if(checkbox) checkbox->setSelected(m_bMouseFilter);
+
+	// audio
+	checkbox = static_cast<CEGUI::Checkbox*>(CCD->GUIManager()->GetWindow("Menu/Audio/CDMusic"));
+	if(checkbox) checkbox->setSelected(cdmusic);
+	if(CCD->CDPlayer()->GetCdOn() && !cdmusic)
 	{
-		std::string KeyName = AttrFile.FindFirstKey();
-		std::string Type;
+		CCD->CDPlayer()->SetCdOn(false);
+		CCD->CDPlayer()->Stop();
+	}
 
-		while(KeyName != "")
+	slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Audio/SoundVolume"));
+	if(slider) slider->setCurrentValue(volume);
+	SetMusicVol(volume);
+
+	slider = static_cast<CEGUI::Slider*>(CCD->GUIManager()->GetWindow("Menu/Audio/MusicVolume"));
+	if(slider) slider->setCurrentValue(m_mVolLevel);
+	SetmMusicVol(m_mVolLevel);
+
+	if(CCD->GetCharacterSelection() && CCD->GUIManager()->IsWindowPresent("Menu/Character/CharacterImage"))
+		CCD->GUIManager()->GetWindow("Menu/Character/CharacterImage")->setProperty("Image",	(const CEGUI::utf8*)(GetSelectedCharacter()->GetImage().c_str()));
+}
+
+
+void CRFMenu::LoadControlConfiguration()
+{
+	CIniFile iniFile("control.ini");
+
+	if(iniFile.ReadFile())
+	{
+		bool flg = false;
+		std::string name = iniFile.FindFirstName("Controls");
+
+		while(!name.empty())
 		{
-			if(KeyName == "Controls")
-			{
-				Type = AttrFile.GetValue(KeyName, "moveforward");
+			flg = true;
 
-				if(Type == "true")
-				{
-					Redef[index].text = "Move Forward";
-					Redef[index].action = RGF_K_FORWARD;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_FORWARD);
+			std::string value = iniFile.GetValue("Controls", name);
 
-				Type = AttrFile.GetValue(KeyName, "movebackward");
+			if(value == "true")
+				m_Controls.push_back(Name2ActionID(name));
+			else
+				CCD->Input()->ClearCodes(Name2ActionID(name));
 
-				if(Type == "true")
-				{
-					Redef[index].text = "Move Backward";
-					Redef[index].action = RGF_K_BACKWARD;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_BACKWARD);
-
-				Type = AttrFile.GetValue(KeyName, "strafeleft");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Strafe Left";
-					Redef[index].action = RGF_K_LEFT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LEFT);
-
-				Type = AttrFile.GetValue(KeyName, "straferight");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Strafe Right";
-					Redef[index].action = RGF_K_RIGHT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_RIGHT);
-
-				Type = AttrFile.GetValue(KeyName, "jump");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Jump";
-					Redef[index].action = RGF_K_JUMP;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_JUMP);
-
-				Type = AttrFile.GetValue(KeyName, "crouch");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Crouch";
-					Redef[index].action = RGF_K_CROUCH;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_CROUCH);
-
-				Type = AttrFile.GetValue(KeyName, "run");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Run";
-					Redef[index].action = RGF_K_RUN;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_RUN);
-
-				Type = AttrFile.GetValue(KeyName, "lookup");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Look Up";
-					Redef[index].action = RGF_K_LOOKUP;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LOOKUP);
-
-				Type = AttrFile.GetValue(KeyName, "lookdown");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Look Down";
-					Redef[index].action = RGF_K_LOOKDOWN;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LOOKDOWN);
-
-				Type = AttrFile.GetValue(KeyName, "turnleft");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Turn Left";
-					Redef[index].action = RGF_K_TURN_LEFT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_TURN_LEFT);
-
-				Type = AttrFile.GetValue(KeyName, "turnright");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Turn Right";
-					Redef[index].action = RGF_K_TURN_RIGHT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_TURN_RIGHT);
-
-				Type = AttrFile.GetValue(KeyName, "lookstraight");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Look Straight";
-					Redef[index].action = RGF_K_LOOKSTRAIGHT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LOOKSTRAIGHT);
-
-				Type = AttrFile.GetValue(KeyName, "attack");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Attack";
-					Redef[index].action = RGF_K_FIRE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_FIRE);
-
-				Type = AttrFile.GetValue(KeyName, "altattack");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Alt Attack";
-					Redef[index].action = RGF_K_ALTFIRE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_ALTFIRE);
-
-				Type = AttrFile.GetValue(KeyName, "weapon0");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 0";
-					Redef[index].action = RGF_K_WEAPON_0;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_0);
-
-				Type = AttrFile.GetValue(KeyName, "weapon1");
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 1";
-					Redef[index].action = RGF_K_WEAPON_1;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_1);
-
-				Type = AttrFile.GetValue(KeyName, "weapon2");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 2";
-					Redef[index].action = RGF_K_WEAPON_2;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_2);
-
-				Type = AttrFile.GetValue(KeyName, "weapon3");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 3";
-					Redef[index].action = RGF_K_WEAPON_3;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_3);
-
-				Type = AttrFile.GetValue(KeyName, "weapon4");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 4";
-					Redef[index].action = RGF_K_WEAPON_4;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_4);
-
-				Type = AttrFile.GetValue(KeyName, "weapon5");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 5";
-					Redef[index].action = RGF_K_WEAPON_5;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_5);
-
-				Type = AttrFile.GetValue(KeyName, "weapon6");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 6";
-					Redef[index].action = RGF_K_WEAPON_6;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_6);
-
-				Type = AttrFile.GetValue(KeyName, "weapon7");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 7";
-					Redef[index].action = RGF_K_WEAPON_7;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_7);
-
-				Type = AttrFile.GetValue(KeyName, "weapon8");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 8";
-					Redef[index].action = RGF_K_WEAPON_8;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_8);
-
-				Type = AttrFile.GetValue(KeyName, "weapon9");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Weapon 9";
-					Redef[index].action = RGF_K_WEAPON_9;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_WEAPON_9);
-
-				Type = AttrFile.GetValue(KeyName, "lookmode");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Look Mode";
-					Redef[index].action = RGF_K_LOOKMODE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LOOKMODE);
-
-				Type = AttrFile.GetValue(KeyName, "cameramode");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Camera Mode";
-					Redef[index].action = RGF_K_CAMERA;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_CAMERA);
-
-				Type = AttrFile.GetValue(KeyName, "zoomin");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Zoom In";
-					Redef[index].action = RGF_K_ZOOM_IN;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_ZOOM_IN);
-
-				Type = AttrFile.GetValue(KeyName, "zoomout");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Zoom Out";
-					Redef[index].action = RGF_K_ZOOM_OUT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_ZOOM_OUT);
-
-				Type = AttrFile.GetValue(KeyName, "zoomweapon");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Zoom Weapon";
-					Redef[index].action = RGF_K_ZOOM_WEAPON;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_ZOOM_WEAPON);
-
-				Type = AttrFile.GetValue(KeyName, "holsterweapon");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Holster Weapon";
-					Redef[index].action = RGF_K_HOLSTER_WEAPON;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_HOLSTER_WEAPON);
-
-				Type = AttrFile.GetValue(KeyName, "camerareset");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Camera Reset";
-					Redef[index].action = RGF_K_CAMERA_RESET;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_CAMERA_RESET);
-
-				Type = AttrFile.GetValue(KeyName, "quicksave");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Quick Save";
-					Redef[index].action = RGF_K_QUICKSAVE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_QUICKSAVE);
-
-				Type = AttrFile.GetValue(KeyName, "quickload");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Quick Load";
-					Redef[index].action = RGF_K_QUICKLOAD;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_QUICKLOAD);
-
-				Type = AttrFile.GetValue(KeyName, "1stperson");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "1st Person";
-					Redef[index].action = RGF_K_FIRST_PERSON_VIEW;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_FIRST_PERSON_VIEW);
-
-				Type = AttrFile.GetValue(KeyName, "3rdperson");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "3rd Person";
-					Redef[index].action = RGF_K_THIRD_PERSON_VIEW;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_THIRD_PERSON_VIEW);
-
-				Type = AttrFile.GetValue(KeyName, "isometric");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Isometric";
-					Redef[index].action = RGF_K_ISO_VIEW;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_ISO_VIEW);
-
-				Type = AttrFile.GetValue(KeyName, "screenshot");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Screenshot";
-					Redef[index].action = RGF_K_SCRNSHOT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_SCRNSHOT);
-
-				Type = AttrFile.GetValue(KeyName, "help");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Help";
-					Redef[index].action = RGF_K_HELP;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_HELP);
-
-				Type = AttrFile.GetValue(KeyName, "hud");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Hud";
-					Redef[index].action = RGF_K_HUD;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_HUD);
-
-				Type = AttrFile.GetValue(KeyName, "lightonoff");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Light On/Off";
-					Redef[index].action = RGF_K_LIGHT;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_LIGHT);
-
-				Type = AttrFile.GetValue(KeyName, "useitem");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Use Item";
-					Redef[index].action = RGF_K_USE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_USE);
-
-				Type = AttrFile.GetValue(KeyName, "inventory");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Inventory";
-					Redef[index].action = RGF_K_INVENTORY;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_INVENTORY);
-
-				Type = AttrFile.GetValue(KeyName, "console");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Console";
-					Redef[index].action = RGF_K_CONSOLE;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_CONSOLE);
-
-				Type = AttrFile.GetValue(KeyName, "dropweapon");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Drop Weapon";
-					Redef[index].action = RGF_K_DROP;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_DROP);
-
-				Type = AttrFile.GetValue(KeyName, "reload");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Reload Weapon";
-					Redef[index].action = RGF_K_RELOAD;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_RELOAD);
-
-				Type = AttrFile.GetValue(KeyName, "powerup");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Increase Power";
-					Redef[index].action = RGF_K_POWERUP;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_POWERUP);
-
-				Type = AttrFile.GetValue(KeyName, "powerdown");
-
-				if(Type == "true")
-				{
-					Redef[index].text = "Decrease Power";
-					Redef[index].action = RGF_K_POWERDWN;
-					index++;
-				}
-				else
-					CCD->Input()->ClearCodes(RGF_K_POWERDWN);
-
-				Redef[index].text = NULL;
-				flg = true;
-				break;
-			}
-			KeyName = AttrFile.FindNextKey();
+			name = iniFile.FindNextName();
 		}
 
 		if(!flg)
 		{
-			char szError[256];
-			sprintf(szError, "[ERROR] File %s - Line %d: Missing section in Control.ini", __FILE__, __LINE__);
-			CCD->ReportError(szError, false);
-			CCD->ShutdownLevel();
+			CCD->Log()->Critical("File %s - Line %d: Missing section in Control.ini", __FILE__, __LINE__);
 			delete CCD;
-			CCD = NULL;
-			MessageBox(NULL, szError, "Controls", MB_OK);
 			exit(-333);
 		}
 	}
 	else
 	{
-		Redef[index].text = "Move Forward";
-		Redef[index].action = RGF_K_FORWARD;
-
-		index++;
-
-		Redef[index].text = "Move Backward";
-		Redef[index].action = RGF_K_BACKWARD;
-
-		index++;
-
-		Redef[index].text = "Strafe Left";
-		Redef[index].action = RGF_K_LEFT;
-
-		index++;
-
-		Redef[index].text = "Strafe Right";
-		Redef[index].action = RGF_K_RIGHT;
-
-		index++;
-
-		Redef[index].text = "Jump";
-		Redef[index].action = RGF_K_JUMP;
-
-		index++;
-
-		Redef[index].text = "Crouch";
-		Redef[index].action = RGF_K_CROUCH;
-
-		index++;
-
-		Redef[index].text = "Run";
-		Redef[index].action = RGF_K_RUN;
-
-		index++;
-
-		Redef[index].text = "Look Up";
-		Redef[index].action = RGF_K_LOOKUP;
-
-		index++;
-
-		Redef[index].text = "Look Down";
-		Redef[index].action = RGF_K_LOOKDOWN;
-
-		index++;
-
-		Redef[index].text = "Turn Left";
-		Redef[index].action = RGF_K_TURN_LEFT;
-
-		index++;
-
-		Redef[index].text = "Turn Right";
-		Redef[index].action = RGF_K_TURN_RIGHT;
-
-		index++;
-
-		Redef[index].text = "Look Straight";
-		Redef[index].action = RGF_K_LOOKSTRAIGHT;
-
-		index++;
-
-		Redef[index].text = "Attack";
-		Redef[index].action = RGF_K_FIRE;
-
-		index++;
-
-		Redef[index].text = "Alt Attack";
-		Redef[index].action = RGF_K_ALTFIRE;
-
-		index++;
-
-		Redef[index].text = "Weapon 0";
-		Redef[index].action = RGF_K_WEAPON_0;
-
-		index++;
-
-		Redef[index].text = "Weapon 1";
-		Redef[index].action = RGF_K_WEAPON_1;
-
-		index++;
-
-		Redef[index].text = "Weapon 2";
-		Redef[index].action = RGF_K_WEAPON_2;
-
-		index++;
-
-		Redef[index].text = "Weapon 3";
-		Redef[index].action = RGF_K_WEAPON_3;
-
-		index++;
-
-		Redef[index].text = "Weapon 4";
-		Redef[index].action = RGF_K_WEAPON_4;
-
-		index++;
-
-		Redef[index].text = "Weapon 5";
-		Redef[index].action = RGF_K_WEAPON_5;
-
-		index++;
-
-		Redef[index].text = "Weapon 6";
-		Redef[index].action = RGF_K_WEAPON_6;
-
-		index++;
-
-		Redef[index].text = "Weapon 7";
-		Redef[index].action = RGF_K_WEAPON_7;
-
-		index++;
-
-		Redef[index].text = "Weapon 8";
-		Redef[index].action = RGF_K_WEAPON_8;
-
-		index++;
-
-		Redef[index].text = "Weapon 9";
-		Redef[index].action = RGF_K_WEAPON_9;
-
-		index++;
-
-		Redef[index].text = "Look Mode";
-		Redef[index].action = RGF_K_LOOKMODE;
-
-		index++;
-
-		Redef[index].text = "Camera Mode";
-		Redef[index].action = RGF_K_CAMERA;
-
-		index++;
-
-		Redef[index].text = "Zoom In";
-		Redef[index].action = RGF_K_ZOOM_IN;
-
-		index++;
-
-		Redef[index].text = "Zoom Out";
-		Redef[index].action = RGF_K_ZOOM_OUT;
-
-		index++;
-
-		Redef[index].text = "Zoom Weapon";
-		Redef[index].action = RGF_K_ZOOM_WEAPON;
-
-		index++;
-
-		Redef[index].text = "Holster Weapon";
-		Redef[index].action = RGF_K_HOLSTER_WEAPON;
-
-		index++;
-
-		Redef[index].text = "Camera Reset";
-		Redef[index].action = RGF_K_CAMERA_RESET;
-
-		index++;
-
-		Redef[index].text = "Quick Save";
-		Redef[index].action = RGF_K_QUICKSAVE;
-
-		index++;
-
-		Redef[index].text = "Quick Load";
-		Redef[index].action = RGF_K_QUICKLOAD;
-
-		index++;
-
-		Redef[index].text = "1st Person";
-		Redef[index].action = RGF_K_FIRST_PERSON_VIEW;
-
-		index++;
-
-		Redef[index].text = "3rd Person";
-		Redef[index].action = RGF_K_THIRD_PERSON_VIEW;
-
-		index++;
-
-		Redef[index].text = "Isometric";
-		Redef[index].action = RGF_K_ISO_VIEW;
-
-		index++;
-
-		Redef[index].text = "Screenshot";
-		Redef[index].action = RGF_K_SCRNSHOT;
-
-		index++;
-
-		Redef[index].text = "Help";
-		Redef[index].action = RGF_K_HELP;
-
-		index++;
-
-		Redef[index].text = "Hud";
-		Redef[index].action = RGF_K_HUD;
-
-		index++;
-
-		Redef[index].text = "Light On/Off";
-		Redef[index].action = RGF_K_LIGHT;
-
-		index++;
-
-		Redef[index].text = "Use Item";
-		Redef[index].action = RGF_K_USE;
-
-		index++;
-
-		Redef[index].text = "Inventory";
-		Redef[index].action = RGF_K_INVENTORY;
-
-		index++;
-
-		Redef[index].text = "Console";
-		Redef[index].action = RGF_K_CONSOLE;
-
-		index++;
-
-		Redef[index].text = "Drop Weapon";
-		Redef[index].action = RGF_K_DROP;
-
-		index++;
-
-		Redef[index].text = "Reload Weapon";
-		Redef[index].action = RGF_K_RELOAD;
-
-		index++;
-
-		Redef[index].text = "Increase Power";
-		Redef[index].action = RGF_K_POWERUP;
-
-		index++;
-
-		Redef[index].text = "Decrease Power";
-		Redef[index].action = RGF_K_POWERDWN;
-
-		index++;
-
-		Redef[index].text = NULL;
+		for(int i=1; i<RGF_K_MAXACTION; ++i)
+			m_Controls.push_back(i);
+	}
+}
+
+
+void CRFMenu::FillActionMapList()
+{
+	CEGUI::MultiColumnList *listbox = static_cast<CEGUI::MultiColumnList*>(CCD->GUIManager()->GetWindow("Menu/Controls/ActionKeyMap"));
+	if(listbox)
+	{
+		listbox->resetList();
+
+		std::vector<int>::iterator iter = m_Controls.begin();
+		for(; iter!=m_Controls.end(); ++iter)
+		{
+			int action = *iter;
+			int row = listbox->addRow();
+
+			// Action ID Name
+			CEGUI::ListboxTextItemEx *item = new CEGUI::ListboxTextItemEx((const CEGUI::utf8*)CCD->Input()->GetActionName(action).c_str(), action);
+			listbox->setItem(item, CEGUI::MCLGridRef(row, 0));
+
+			// Mapped Column
+			std::string keyname = m_KeyNameUnassigned;
+			int id = -1;
+
+			if((id = CCD->Input()->GetKeyCode(action)) != -1)
+			{
+				keyname = CCD->Input()->GetKeyName((OIS::KeyCode)id);
+				item = new CEGUI::ListboxTextItemEx(keyname, 0);
+			}
+			else
+			{
+				if((id = CCD->Input()->GetMouseButtonID(action)) != -1)
+				{
+					keyname = CCD->Input()->GetMouseButtonName((OIS::MouseButtonID)id);
+				}
+
+				item = new CEGUI::ListboxTextItemEx((const CEGUI::utf8*)keyname.c_str(), 0);
+			}
+
+			//item = new CEGUI::ListboxTextItemEx((const CEGUI::utf8*)keyname.c_str(), 0);
+			listbox->setItem(item, CEGUI::MCLGridRef(row, 1));
+		}
 	}
 }
 
@@ -6799,8 +1362,8 @@ geSound* CRFMenu::PlaySoundDef(geSound_System *SoundS, geSound_Def *SoundDef,
 	{
 		pool = GE_RAM_ALLOCATE_STRUCT(SoundList);
 		memset(pool, 0xdd, sizeof(SoundList));
-		pool->next = Bottom;
-		Bottom = pool;
+		pool->next = m_Bottom;
+		m_Bottom = pool;
 
 		if(pool->next)
 			pool->next->prev = pool;
@@ -6823,7 +1386,7 @@ geBoolean CRFMenu::StopSound(geSound_System *SoundS, geSound *Sound)
 {
 	SoundList *pool, *temp;
 
-	pool = Bottom;
+	pool = m_Bottom;
 
 	while(pool != NULL)
 	{
@@ -6831,19 +1394,19 @@ geBoolean CRFMenu::StopSound(geSound_System *SoundS, geSound *Sound)
 
 		if(pool->Sound == Sound)
 		{
-			if(Bottom == pool)
+			if(m_Bottom == pool)
 			{
-				Bottom = pool->next;
+				m_Bottom = pool->next;
 
-				if(Bottom != (SoundList *)NULL)
-					Bottom->prev = (SoundList *)NULL;
+				if(m_Bottom != NULL)
+					m_Bottom->prev = NULL;
 			}
 			else
 			{
-				pool->prev->next=pool->next;
+				pool->prev->next = pool->next;
 
-				if(pool->next != (SoundList *)NULL)
-					pool->next->prev=pool->prev;
+				if(pool->next != NULL)
+					pool->next->prev = pool->prev;
 			}
 
 			geRam_Free(pool);
@@ -6859,11 +1422,11 @@ geBoolean CRFMenu::StopSound(geSound_System *SoundS, geSound *Sound)
 /* ------------------------------------------------------------------------------------ */
 // zero volume of all looping sounds
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::ClearVol()
+void CRFMenu::ClearVolume()
 {
 	SoundList *pool, *temp;
 
-	pool = Bottom;
+	pool = m_Bottom;
 
 	while(pool != NULL)
 	{
@@ -6875,19 +1438,19 @@ void CRFMenu::ClearVol()
 		}
 		else
 		{
-			if(Bottom == pool)
+			if(m_Bottom == pool)
 			{
-				Bottom = pool->next;
+				m_Bottom = pool->next;
 
-				if(Bottom != (SoundList *)NULL)
-					Bottom->prev = (SoundList *)NULL;
+				if(m_Bottom != NULL)
+					m_Bottom->prev = NULL;
 			}
 			else
 			{
-				pool->prev->next=pool->next;
+				pool->prev->next = pool->next;
 
-				if(pool->next != (SoundList *)NULL)
-					pool->next->prev=pool->prev;
+				if(pool->next != NULL)
+					pool->next->prev = pool->prev;
 			}
 
 			free(pool);
@@ -6900,11 +1463,11 @@ void CRFMenu::ClearVol()
 /* ------------------------------------------------------------------------------------ */
 // ResetVolume
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::ResetVol()
+void CRFMenu::ResetVolume()
 {
 	SoundList *pool, *temp;
 
-	pool = Bottom;
+	pool = m_Bottom;
 
 	while(pool != NULL)
 	{
@@ -6925,7 +1488,7 @@ void CRFMenu::DeleteSound()
 {
 	SoundList *pool, *temp;
 
-	pool = Bottom;
+	pool = m_Bottom;
 
 	while(pool != NULL)
 	{
@@ -6934,54 +1497,53 @@ void CRFMenu::DeleteSound()
 		pool = temp;
 	}
 
-	Bottom = (SoundList*)NULL;
+	m_Bottom = NULL;
 }
 
 /* ------------------------------------------------------------------------------------ */
 // get percentage from gamma setting (0.0 ... 1.0)
 /* ------------------------------------------------------------------------------------ */
-static int GetGammaPercent()
+float CRFMenu::GetGamma()
 {
 	float gamma;
-
 	geEngine_GetGamma(CCD->Engine()->Engine(), &gamma);
-	return (int)(((gamma-GAMMAMIN)/(GAMMAMAX-GAMMAMIN))*100);
+	return (gamma - GAMMAMIN) / (GAMMAMAX - GAMMAMIN);
 }
 
 /* ------------------------------------------------------------------------------------ */
 // set gamma from slider percentage
 /* ------------------------------------------------------------------------------------ */
-static void SetGamma(int percent)
+void CRFMenu::SetGamma(float gamma)
 {
-	float gamma;
-
-	gamma = (((float)percent/100.0f)*(GAMMAMAX-GAMMAMIN))+GAMMAMIN;
+	gamma = gamma * (GAMMAMAX - GAMMAMIN) + GAMMAMIN;
 	geEngine_SetGamma(CCD->Engine()->Engine(), gamma);
 }
 
 /* ------------------------------------------------------------------------------------ */
 // set detail from slider percentage
 /* ------------------------------------------------------------------------------------ */
-static void SetDetail(int percent)
+void CRFMenu::SetDetail(float value)
 {
-	CCD->MenuManager()->SetDetail(percent);
+	m_Detail = value;
 
-	if(CCD->MenuManager()->GetInGame()==1)
+	if(m_InGame)
 	{
-		EnvironmentSetup *theState = CCD->Player()->GetEnvSetup();
-		float detailevel = (float)CCD->MenuManager()->GetDetail();
+		EnvironmentSetup *envSetup = CCD->Level()->GetEnvironmentSetup();
 
-		if(theState->EnableDistanceFog == GE_TRUE)
+		if(envSetup)
 		{
-			float start = theState->FogStartDistLow + ((theState->FogStartDistHigh - theState->FogStartDistLow)*(detailevel/100));
-			float end = theState->TotalFogDistLow + ((theState->TotalFogDistHigh - theState->TotalFogDistLow)*(detailevel/100));
-			CCD->Engine()->SetFogParameters(theState->DistanceFogColor,	start, end);
-		}
+			if(envSetup->EnableDistanceFog == GE_TRUE)
+			{
+				float start = envSetup->FogStartDistLow + (envSetup->FogStartDistHigh - envSetup->FogStartDistLow) * m_Detail;
+				float end = envSetup->TotalFogDistLow + (envSetup->TotalFogDistHigh - envSetup->TotalFogDistLow) * m_Detail;
+				CCD->Engine()->SetFogParameters(envSetup->DistanceFogColor,	start, end);
+			}
 
-		if(theState->UseFarClipPlane == GE_TRUE)
-		{
-			float dist = theState->FarClipPlaneDistLow + ((theState->FarClipPlaneDistHigh - theState->FarClipPlaneDistLow)*(detailevel/100));
-			CCD->CameraManager()->SetFarClipPlane(dist);
+			if(envSetup->UseFarClipPlane == GE_TRUE)
+			{
+				float dist = envSetup->FarClipPlaneDistLow + (envSetup->FarClipPlaneDistHigh - envSetup->FarClipPlaneDistLow) * m_Detail;
+				CCD->CameraManager()->SetFarClipPlane(dist);
+			}
 		}
 	}
 }
@@ -6989,56 +1551,33 @@ static void SetDetail(int percent)
 /* ------------------------------------------------------------------------------------ */
 // SetStencilShadows
 /* ------------------------------------------------------------------------------------ */
-static void SetStencilShadows(int current)
+void CRFMenu::SetStencilShadows(bool state)
 {
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetStencilShadows(true);
-	else
-		CCD->MenuManager()->SetStencilShadows(false);
+	m_bStencilShadows = state;
 
-	if(CCD->MenuManager()->GetInGame() == 1)
+	if(m_InGame)
 	{
-		EnvironmentSetup *theState = CCD->Player()->GetEnvSetup();
+		EnvironmentSetup *theState = CCD->Level()->GetEnvironmentSetup();
 
-		geEngine_SetStencilShadowsEnable(CCD->Engine()->Engine(), current, theState->SShadowsMaxLightToUse,
-			theState->SShadowsColor.r, theState->SShadowsColor.g, theState->SShadowsColor.b, theState->SShadowsAlpha);
+		if(theState)
+		{
+			geEngine_SetStencilShadowsEnable(CCD->Engine()->Engine(),
+											state,
+											theState->SShadowsMaxLightToUse,
+											theState->SShadowsColor.r,
+											theState->SShadowsColor.g,
+											theState->SShadowsColor.b,
+											theState->SShadowsAlpha);
+		}
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
 // set mouse sensitivity from slider percentage
 /* ------------------------------------------------------------------------------------ */
-static void SetSens(int percent)
+void CRFMenu::SetMouseSensitivity(float value)
 {
-	CCD->MenuManager()->SetMouseSen((((float)percent*0.01f)*(MOUSEMAX-MOUSEMIN))+MOUSEMIN);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	set volume from slider percentage
-/* ------------------------------------------------------------------------------------ */
-static void SetVol(int percent)
-{
-	float vol;
-	vol = ((float)percent*0.01f);
-
-	if(percent == 0)
-		vol = 0.0f;
-
-	CCD->MenuManager()->SetMusicVol(vol);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	set volume from slider percentage
-/* ------------------------------------------------------------------------------------ */
-static void SetmVol(int percent)
-{
-	float vol;
-	vol = ((float)percent*0.01f);
-
-	if(percent == 0)
-		vol = 0.0f;
-
-	CCD->MenuManager()->SetmMusicVol(vol);
+	m_MouseSen = value * (MOUSEMAX - MOUSEMIN) + MOUSEMIN;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -7046,70 +1585,55 @@ static void SetmVol(int percent)
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::DoGame(bool editor)
 {
-	useselect = false;
-	usenameselect = false; // changed QD 12/15/05
-	bShowCursor = false;
+	m_bUseSelect = false;
+	m_bUseNameSelect = false;
 
-	if(CCD->GetCSelect() || CCD->GetCDifficult() || CCD->GetNSelect())
+	if(CCD->GetCharacterSelection() || CCD->GetDifficultSelection() || CCD->GetNameSelection())
 	{
 		if(editor)
 		{
-			M_CameraRect.Left	= 0;
-			M_CameraRect.Right	= CCD->Engine()->Width() - 1;
-			M_CameraRect.Top	= 0;
-			M_CameraRect.Bottom = CCD->Engine()->Height() - 1;
-			M_Camera = geCamera_Create(2.0f, &M_CameraRect);
-			LoopOnce = 0;
-
-			if(musictype != -1)
+			if(m_MusicType != -1)
 			{
-				if(musictype == 1)
-					MIDIPlayer()->Play(music, true);
+				if(m_MusicType == 1)
+					MIDIPlayer()->Play(m_Music.c_str(), true);
 				else
 					m_Streams->Play(true);
 			}
 		}
 
-		if(CCD->GetCSelect())
+		if(CCD->GetCharacterSelection())
 		{
-			if(CCD->MenuManager()->ProcessMenu(SelectMenu, SelectBack, SelectTitle)==1)
-			{
-				FadeSet(-1, TimeFade);
-				return;
-			}
-
-			useselect = true;
+			m_bUseSelect = true;
 		}
 
-		if(CCD->GetNSelect())
+		if(CCD->GetNameSelection())
 		{
-			if(CCD->MenuManager()->ProcessMenu(PlayerNameMenu, PlayerNameBack, PlayerNameTitle)==1)
-			{
-				FadeSet(-1, TimeFade);
-				return;
-			}
-
-			usenameselect = true;
+			m_bUseNameSelect = true;
 		}
 
-		if(CCD->GetCDifficult())
+		while(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildCount() > 0)
 		{
-			CCD->SetDifficultLevel(CCD->MenuManager()->ProcessMenu(DifficultMenu, DifficultBack, DifficultTitle));
+			CMenuState::GetSingletonPtr()->GetDefaultWindow()->removeChildWindow(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildAtIdx(0));
 		}
+
+		while(!m_SectionStack.empty())
+			m_SectionStack.pop();
+
+		m_SectionStack.push(m_Sections["main"]);
+
+		// add active section
+		CMenuState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_SectionStack.top());
 	}
 
-	if(CCD->MenuManager()->GetMusicType() != -1)
-	{
-		CCD->MenuManager()->StopMenuMusic();
-	}
+	StopMusic();
 
 	if(!editor)
 	{
-		if(CCD->MenuManager()->GetInGame() == 1)
+		if(GetInGame() == 1)
 		{
-			CCD->AudioStreams()->StopAll(); // stop old streaming audio that might be paused
-			CCD->ShutdownLevel();
-			CCD->MenuManager()->DeleteSound();
+			CCD->Level()->AudioStreams()->StopAll(); // stop old streaming audio that might be paused
+			CCD->Level()->Shutdown();
+			DeleteSound();
 
 			if(CCD->CDPlayer())
 				CCD->CDPlayer()->Stop();
@@ -7117,37 +1641,39 @@ void CRFMenu::DoGame(bool editor)
 			if(CCD->MIDIPlayer())
 				CCD->MIDIPlayer()->Stop();
 		}
-		CCD->MenuManager()->DisplaySplash(); // changed RF064
+
+		DisplaySplash();
 	}
 	else
 	{
-		if(CCD->GetCSelect() || CCD->GetCDifficult() || CCD->GetNSelect())
-			CCD->MenuManager()->DisplaySplash(); // changed RF064
+		if(CCD->GetCharacterSelection() || CCD->GetDifficultSelection() || CCD->GetNameSelection())
+			DisplaySplash();
 	}
 
 // start multiplayer
 	if(CCD->GetMultiPlayer())
 	{
-		if(!CCD->NetPlayerManager()->Initialize(CCD->GetServer(), ServerIP))
+		if(!CCD->NetPlayerManager()->Initialize(CCD->GetServer(), m_ServerIP))
 		{
 			CCD->Log()->Warning("Can't begin Multiplayer session");
 			return;
 		}
 	}
 // end multiplayer
+	CPlayState::GetSingletonPtr()->ShowCursor(CCD->GetInGameCursor());
+	CCD->SetMouseControl(!CCD->GetInGameCursor());
 
-	if((CCD->InitializeLevel(CCD->MenuManager()->GetLevelName())) != 0)
+	if(CCD->Level()->Initialize(GetLevelName()) != 0)
 	{
 		CCD->Log()->Critical("Failed to initialize first level");
 		delete CCD;						// Kill off the engine and such
 		exit(-333);
 	}
 
-	CCD->Player()->DisableFog();				// Turn off fogging for cut scene
-	CCD->Player()->DisableClipPlane();	// Turn off the clipping plane as well
-	CCD->SetMouseControl(true);
+	CCD->Level()->DisableFog();				// Turn off fogging for cut scene
+	CCD->Level()->DisableClipPlane();			// Turn off the clipping plane as well
 
-	CCD->TerrainMgr()->Init();
+	CCD->Level()->TerrainManager()->Init();
 
 	// Ok, move the player avatar to the correct player start in the
 	// ..game level.
@@ -7161,250 +1687,184 @@ void CRFMenu::DoGame(bool editor)
 	// Play the opening cut scene, if one exists
 	CCD->PlayOpeningCutScene();
 
+	// start multiplayer
 	if(CCD->GetMultiPlayer())
 	{
 		SetTimer(CCD->Engine()->WindowHandle(), NULL, TIMERINTERVAL, NULL);
 	}
+	// end multiplayer
 
-	CCD->MenuManager()->GameLoop();
+	GameLoop();
 }
 
 /* ------------------------------------------------------------------------------------ */
 // change selected character
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::ChangeCurrent(bool direction)
+void CRFMenu::ChangeSelectedCharacter(bool direction)
 {
 	if(direction)
 	{
-		CurrentSelect += 1;
+		++m_SelectedCharacter;
 
-		if(CurrentSelect >= MaxSelect)
-			CurrentSelect = 0;
+		if(m_SelectedCharacter >= m_MaxCharacters)
+			m_SelectedCharacter = 0;
 	}
 	else
 	{
-		CurrentSelect -= 1;
+		--m_SelectedCharacter;
 
-		if(CurrentSelect < 0)
-			CurrentSelect = MaxSelect-1;
-	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	PrevChar
-/* ------------------------------------------------------------------------------------ */
-static void PrevChar()
-{
-	CCD->MenuManager()->ChangeCurrent(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	NextChar
-/* ------------------------------------------------------------------------------------ */
-static void NextChar()
-{
-	CCD->MenuManager()->ChangeCurrent(true);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AcceptChar
-//
-//	Do character specific game preparations
-/* ------------------------------------------------------------------------------------ */
-static void AcceptChar()
-{
-	if(!CCD->GetUseDialog() && !CCD->GetCmdLine())
-	{
-		const char *StartLevel = CCD->MenuManager()->GetCurrentStartLevel();
-
-		if(StartLevel[0] != 0)
-			CCD->MenuManager()->SetLevelName(StartLevel);
+		if(m_SelectedCharacter < 0)
+			m_SelectedCharacter = m_MaxCharacters - 1;
 	}
 
-	if(CCD->GetNSelect())
-		strcpy(PlayerName.text, CCD->MenuManager()->GetCurrentName());
-
+	if(CCD->GUIManager()->IsWindowPresent("Menu/Character/CharacterImage"))
+		CCD->GUIManager()->GetWindow("Menu/Character/CharacterImage")->setProperty("Image", (const CEGUI::utf8*)(GetSelectedCharacter()->GetImage().c_str()));
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	SetName - set Player Name
-/* ------------------------------------------------------------------------------------ */
-static void SetName()
-{
-	CCD->MenuManager()->SetSelectedName(PlayerName.text);
-}
 
 /* ------------------------------------------------------------------------------------ */
-//	ResetName - reset Player Name
 /* ------------------------------------------------------------------------------------ */
-static void ResetName()
+void CRFMenu::SetPlayerNameWindowText()
 {
-	if(CCD->MenuManager()->GetUseSelect())
-		strcpy(PlayerName.text, CCD->MenuManager()->GetCurrentName());
-	else
-		strcpy(PlayerName.text, CCD->GetDefaultPlayerName());
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	Run the level
-/* ------------------------------------------------------------------------------------ */
-
-static void RunHostGame()
-{
-	CCD->ShutDownNetWork();
-	CCD->SetMultiPlayer(true, true);
-    CCD->MenuManager()->DoGame(false);
-}
-
-static void RunJoinGame()
-{
-	CCD->ShutDownNetWork();
-	CCD->SetMultiPlayer(true, false);
-    CCD->MenuManager()->DoGame(false);
-}
-
-static void RunGame()
-{
-	CCD->ShutDownNetWork();
-	CCD->SetMultiPlayer(false, false);
-	CCD->MenuManager()->DoGame(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	turn CD music on/off
-/* ------------------------------------------------------------------------------------ */
-static void SetCDPlayer(int current)
-{
-	if(current == BOX_ON)
+	if(CCD->GetCharacterSelection())
 	{
-		CCD->CDPlayer()->SetCdOn(true);
+		CCD->GUIManager()->SetWindowText("Menu/PlayerName/PlayerNameStatic",	GetSelectedCharacter()->GetName());
+		CCD->GUIManager()->SetWindowText("Menu/PlayerName/PlayerName",			GetSelectedCharacter()->GetName());
 	}
 	else
 	{
-		CCD->CDPlayer()->SetCdOn(false);
-		CCD->CDPlayer()->Stop();
+		CCD->GUIManager()->SetWindowText("Menu/PlayerName/PlayerNameStatic",	CCD->GetDefaultPlayerName());
+		CCD->GUIManager()->SetWindowText("Menu/PlayerName/PlayerName",			CCD->GetDefaultPlayerName());
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	turn mouse reverse on/off
+// reset keys to default actions
 /* ------------------------------------------------------------------------------------ */
-static void SetReverse(int current)
-{
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetMouseReverse(true);
-	else
-		CCD->MenuManager()->SetMouseReverse(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	turn mouse filter on/off
-/* ------------------------------------------------------------------------------------ */
-static void SetFiltering(int current)
-{
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetMouseFilter(true);
-	else
-		CCD->MenuManager()->SetMouseFilter(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	turn player bounding box on/off
-/* ------------------------------------------------------------------------------------ */
-static void SetBBox(int current)
-{
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetBoundBox(true);
-	else
-		CCD->MenuManager()->SetBoundBox(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	turn entity bounding box on/off
-/* ------------------------------------------------------------------------------------ */
-static void SetSEBBox(int current)
-{
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetSEBoundBox(true);
-	else
-		CCD->MenuManager()->SetSEBoundBox(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	turn no clipping on/off
-/* ------------------------------------------------------------------------------------ */
-static void SetClipping(int current)
-{
-	if(current == BOX_ON)
-		CCD->MenuManager()->SetNoClip(true);
-	else
-		CCD->MenuManager()->SetNoClip(false);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	reset keys to default actions
-/* ------------------------------------------------------------------------------------ */
-static void ResetAction()
+void CRFMenu::ResetActionMapList()
 {
 	CCD->Input()->Default();
+	RefreshActionMapList();
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	save game to current slot
+// refresh the action map listbox
 /* ------------------------------------------------------------------------------------ */
-static void SetSlot()
+void CRFMenu::RefreshActionMapList()
 {
-	if(SaveBox.Current != -1) // must have selected a slot
+	CEGUI::MultiColumnList *listbox = static_cast<CEGUI::MultiColumnList*>(CCD->GUIManager()->GetWindow("Menu/Controls/ActionKeyMap"));
+
+	if(listbox)
 	{
-		// slot must be visible in table
-		if(SaveBox.Current >= SaveBox.Start && SaveBox.Current < (SaveBox.Max_Show+SaveBox.Start))
+		float pos = 0.f;
+		CEGUI::Scrollbar *scrollbar = listbox->getVertScrollbar();
+		if(scrollbar) pos = scrollbar->getScrollPosition();
+		FillActionMapList();
+		if(scrollbar) scrollbar->setScrollPosition(pos);
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+std::string CRFMenu::MakeSavegameFilename(int number)
+{
+	std::ostringstream oss;
+	oss << "savegame" << number << ".sav";
+	return oss.str();
+}
+
+
+std::string CRFMenu::MakeSavegameLabel()
+{
+	struct tm *newtime;
+	time_t long_time;
+	std::string timetext;
+	std::string filename;
+
+	time(&long_time);
+	newtime = localtime(&long_time);
+	timetext = asctime(newtime);
+	// alternative to asctime:
+	// size_t strftime (char* ptr, size_t maxsize, const char* format, const struct tm* timeptr);
+	timetext.erase(0, 4);
+	TrimRight(timetext);
+	filename = CCD->Engine()->LevelName();
+	filename.erase(filename.find_last_of("."));
+
+	return timetext + " " + filename;
+}
+
+
+void CRFMenu::DeleteSavegame(bool confirm)
+{
+	if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameList"))
+	{
+		CEGUI::Listbox *savelistbox = NULL;
+		savelistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameList"));
+
+		if(savelistbox->getFirstSelectedItem())
 		{
-			struct tm *newtime;
-			time_t long_time;
-			char *ttext;
-			char filename[256];
+			int number = savelistbox->getFirstSelectedItem()->getID();
 
-			time(&long_time);
-			newtime = localtime(&long_time);
-			ttext = asctime(newtime);
-			ttext += 4;
-			strcpy(filename, CCD->Engine()->LevelName());
-			*(strrchr(filename,'.')) = 0;
+			if(number == m_SavegameCounter)
+				return;
 
-			// set date/time and level name
-			SAFE_FREE(SaveBox.text[SaveBox.Current].text);
-
-			SaveBox.text[SaveBox.Current].text = (char*)malloc(30);
-			sprintf(SaveBox.text[SaveBox.Current].text, "%.12s %.16s", ttext, filename);
-
-			// mark slot as in use
-			SaveBox.text[SaveBox.Current].empty = 1;
-
-			// save file of saved game info
-			FILE *fd = CCD->OpenRFFile(kSavegameFile, "savedgames.rgf", "wb");
-
-			if(fd == NULL)
+			if(confirm && CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/Confirm/DeleteSavegame"))
 			{
-				char szBug[200];
-				sprintf(szBug, "[WARNING] File %s - Line %d: Save Game: Failed to create savedgames.rgf\n",
-						__FILE__, __LINE__);
-				CCD->ReportError(szBug, false);
-				return;										// Fatal error
+				CCD->GUIManager()->GetWindow("Menu/SaveGame/Confirm/DeleteSavegame")->setModalState(true);
+				CCD->GUIManager()->GetWindow("Menu/SaveGame/Confirm/DeleteSavegame")->moveToFront();
+				CCD->GUIManager()->ShowWindow("Menu/SaveGame/Confirm/DeleteSavegame");
+				return;
 			}
 
-			fwrite(&SaveBox.Max, sizeof(int), 1, fd);
+			std::string filename = MakeSavegameFilename(number);
+			char imagename[_MAX_PATH];
+			sprintf(imagename, "savegame%d.jpg", number);
 
-			for(int nTemp=0; nTemp<SaveBox.Max; nTemp++)
+			bool deleted = CFileManager::GetSingletonPtr()->DeleteRFFile(kSavegameFile, filename.c_str());
+			deleted = (CFileManager::GetSingletonPtr()->DeleteRFFile(kSavegameFile, imagename)|| deleted);
+			if(deleted)
 			{
-				fwrite(SaveBox.text[nTemp].text, 30, 1, fd);
-				fwrite(&SaveBox.text[nTemp].empty, sizeof(int), 1, fd);
+				savelistbox->removeItem(savelistbox->getFirstSelectedItem());
+				if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
+				{
+					CEGUI::Listbox *loadlistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+					loadlistbox->removeItem(loadlistbox->findItemWithText(m_Savegames[filename], NULL));
+				}
+				m_Savegames.erase(filename);
 			}
+		}
+	}
+}
 
-			fclose(fd);
+
+void CRFMenu::SaveGame(bool confirm)
+{
+	if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameList"))
+	{
+		CEGUI::Listbox *savelistbox = NULL;
+		savelistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameList"));
+
+		if(savelistbox->getFirstSelectedItem())
+		{
+			int number = savelistbox->getFirstSelectedItem()->getID();
+			std::string filename = MakeSavegameFilename(number);
+			std::string label = MakeSavegameLabel();
+			label.resize(127); label.resize(128);
+
+			if(number != m_SavegameCounter)
+			{
+				if(confirm && CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/Confirm/OverwriteSavegame"))
+				{
+					CCD->GUIManager()->GetWindow("Menu/SaveGame/Confirm/OverwriteSavegame")->setModalState(true);
+					CCD->GUIManager()->GetWindow("Menu/SaveGame/Confirm/OverwriteSavegame")->moveToFront();
+					CCD->GUIManager()->ShowWindow("Menu/SaveGame/Confirm/OverwriteSavegame");
+					return;
+				}
+			}
 
 			// save game information
-			sprintf(filename, "savgame%d.sav", SaveBox.Current);
-			FILE *outFD = CCD->OpenRFFile(kSavegameFile, filename, "wb");
+			FILE *outFD = CFileManager::GetSingletonPtr()->OpenRFFile(kSavegameFile, filename.c_str(), "wb");
 
 			if(outFD == NULL)
 			{
@@ -7412,81 +1872,120 @@ static void SetSlot()
 				return;
 			}
 
+			fwrite(label.c_str(), sizeof(char), 128, outFD);
+
 			CCD->Engine()->SaveTo(outFD);
 			CCD->MenuManager()->SaveTo(outFD, false);
 			CCD->Player()->SaveTo(outFD);
-			CCD->Doors()->SaveTo(outFD, false);
-			CCD->Platforms()->SaveTo(outFD, false);
-			CCD->Props()->SaveTo(outFD, false);
-			CCD->Meshes()->SaveTo(outFD, false);
-			CCD->Teleporters()->SaveTo(outFD, false);
-			CCD->MorphingFields()->SaveTo(outFD);
+			CCD->Level()->Doors()->SaveTo(outFD, false);
+			CCD->Level()->Platforms()->SaveTo(outFD, false);
+			CCD->Level()->Props()->SaveTo(outFD, false);
+			CCD->Level()->Meshes()->SaveTo(outFD, false);
+			CCD->Level()->Teleporters()->SaveTo(outFD, false);
+			CCD->Level()->MorphingFields()->SaveTo(outFD);
 			CCD->MIDIPlayer()->SaveTo(outFD);
 			CCD->CDPlayer()->SaveTo(outFD);
-			CCD->Triggers()->SaveTo(outFD, false);
-			CCD->Logic()->SaveTo(outFD, false);
-			CCD->Attributes()->SaveTo(outFD, false);
-			CCD->Damage()->SaveTo(outFD, false);
+			CCD->Level()->Triggers()->SaveTo(outFD, false);
+			CCD->Level()->LogicGates()->SaveTo(outFD, false);
+			CCD->Level()->Attributes()->SaveTo(outFD, false);
+			CCD->Level()->Damage()->SaveTo(outFD, false);
 			CCD->CameraManager()->SaveTo(outFD);
 			CCD->Weapons()->SaveTo(outFD);
-			CCD->ElectricEffects()->SaveTo(outFD, false);
-			CCD->CountDownTimers()->SaveTo(outFD, false);
-			CCD->ChangeAttributes()->SaveTo(outFD, false);
-			CCD->Changelevel()->SaveTo(outFD, false);
-			CCD->ActMaterials()->SaveTo(outFD, false);
-			CCD->ModelManager()->SaveTo(outFD, false);
+			CCD->Level()->ElectricBolts()->SaveTo(outFD, false);
+			CCD->Level()->CountDownTimers()->SaveTo(outFD, false);
+			CCD->Level()->ChangeAttributes()->SaveTo(outFD, false);
+			CCD->Level()->ChangeLevels()->SaveTo(outFD, false);
+			CCD->Level()->ActorMaterials()->SaveTo(outFD, false);
+			CCD->Level()->ModelManager()->SaveTo(outFD, false);
 			CCD->SaveTo(outFD);
 
 			fclose(outFD);
 
-			if(SaveScreen.Width > 0 && SaveScreen.Height > 0)
-			{
-				char oldname[256];
-				sprintf(oldname, "%s\\SaveScreen.bmp", CCD->GetDirectory(kBitmapFile));
-				sprintf(filename, "%s\\SaveScreen%d.bmp", CCD->GetDirectory(kBitmapFile), SaveBox.Current);
+			savelistbox->getFirstSelectedItem()->setText(label);
+			savelistbox->requestRedraw();
+			m_Savegames[filename] = label;
 
-				if(SaveBox.text[SaveBox.Current].SGImage)
+			if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameImage")
+				|| CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameImage"))
+			{
+				char oldname[_MAX_PATH];
+				char newname[_MAX_PATH];
+				sprintf(oldname, "%s\\savegame.bmp", CFileManager::GetSingletonPtr()->GetDirectory(kSavegameFile));
+				sprintf(newname, "%s\\savegame%d.jpg", CFileManager::GetSingletonPtr()->GetDirectory(kSavegameFile), number);
+
+				unlink(newname);
+				CopyImageFile(oldname, newname);
+
+				sprintf(newname, "savegame%d.jpg", number);
+				CCD->GUIManager()->DestroyImageset(newname);
+				CCD->GUIManager()->CreateImagesetFromImageFile(newname, newname, "saves");
+
+				std::string value = "set:";
+				value += newname;
+				value += " image:full_image";
+
+				if(CCD->GUIManager()->IsWindowPresent("Menu/SaveGame/SavegameImage"))
+					CCD->GUIManager()->GetWindow("Menu/SaveGame/SavegameImage")->setProperty("Image", value);
+
+				if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameImage")
+					&& CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
 				{
-					geEngine_RemoveBitmap(CCD->Engine()->Engine(), SaveBox.text[SaveBox.Current].SGImage);
-					geBitmap_Destroy(&(SaveBox.text[SaveBox.Current].SGImage));
+					CEGUI::Listbox *loadlistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+					if(loadlistbox->getFirstSelectedItem())
+					{
+						if(loadlistbox->getFirstSelectedItem()->getID() == number)
+							CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameImage")->setProperty("Image", value);
+					}
+				}
+			}
+
+			// update savegame listbox
+			if(number == m_SavegameCounter) // add new savegame item
+			{
+				if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
+				{
+					CEGUI::Listbox *loadlistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+					loadlistbox->insertItem(new CEGUI::ListboxTextItemEx(label, m_SavegameCounter), NULL);
 				}
 
-				unlink(filename); // delete if there is already a file with this name (old save game image)
-				CopyImageFile(oldname, filename);
-
+				++m_SavegameCounter;
+				savelistbox->insertItem(new CEGUI::ListboxTextItemEx(m_NewSavegameLabel, m_SavegameCounter), NULL);
+			}
+			else // update already existing savegame entry
+			{
+				if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
 				{
-					sprintf(filename, "SaveScreen%d.bmp", SaveBox.Current);
-					SaveBox.text[SaveBox.Current].SGImage = CreateFromFileName(filename);
+					CEGUI::Listbox *loadlistbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+					loadlistbox->resetList();
 
-					if(SaveBox.text[SaveBox.Current].SGImage == (geBitmap*)NULL)
+					stdext::hash_map<std::string, std::string>::iterator iter = m_Savegames.begin();
+
+					for(; iter!=m_Savegames.end(); ++iter)
 					{
-						char szBug[256];
-						sprintf(szBug, "[ERROR] SetSlot: Bad file name %s", filename);
-						CCD->ReportError(szBug, false);
-						exit(-100);
+						int number = GetNumberFromFilename(iter->first);
+						loadlistbox->addItem(new CEGUI::ListboxTextItemEx(iter->second, number));
 					}
-
-					geEngine_AddBitmap(CCD->Engine()->Engine(), SaveBox.text[SaveBox.Current].SGImage);
 				}
 			}
 		}
 	}
 }
 
-/* ------------------------------------------------------------------------------------ */
-// load game from current slot and then run it
-/* ------------------------------------------------------------------------------------ */
-static void GetSlot()
-{
-	if(LoadBox.Current != -1) // must have selected saved game
-	{
-		// must be visible in table
-		if(LoadBox.Current >= LoadBox.Start && LoadBox.Current < (LoadBox.Max_Show+LoadBox.Start))
-		{
-			char filename[256];
 
-			sprintf(filename, "savgame%d.sav",LoadBox.Current);
-			FILE *inFD = CCD->OpenRFFile(kSavegameFile, filename, "rb");
+void CRFMenu::LoadGame()
+{
+	if(CCD->GUIManager()->IsWindowPresent("Menu/LoadGame/SavegameList"))
+	{
+		CEGUI::Listbox *lbox = NULL;
+		lbox = static_cast<CEGUI::Listbox*>(CCD->GUIManager()->GetWindow("Menu/LoadGame/SavegameList"));
+
+		if(lbox->getFirstSelectedItem())
+		{
+			char filename[64];
+
+			sprintf(filename, "savegame%d.sav", lbox->getFirstSelectedItem()->getID());
+
+			FILE *inFD = CFileManager::GetSingletonPtr()->OpenRFFile(kSavegameFile, filename, "rb");
 
 			if(inFD == NULL)
 			{
@@ -7494,8 +1993,8 @@ static void GetSlot()
 				return;
 			}
 
-			CCD->MenuManager()->DisplaySplash(); // changed RF064
-			CCD->ShutdownLevel();
+			DisplaySplash();
+			CCD->Level()->Shutdown();
 
 			if(CCD->CDPlayer())
 				CCD->CDPlayer()->Stop();
@@ -7503,46 +2002,45 @@ static void GetSlot()
 			if(CCD->MIDIPlayer())
 				CCD->MIDIPlayer()->Stop();
 
+			CPlayState::GetSingletonPtr()->ShowCursor(CCD->GetInGameCursor());
+			CCD->SetMouseControl(!CCD->GetInGameCursor());
+
+			char label[128];
+			fread(label, sizeof(char), 128, inFD);
 			CCD->Engine()->RestoreFrom(inFD);
 			CCD->MenuManager()->RestoreFrom(inFD, false);
-			CCD->InitializeLevel(CCD->Engine()->LevelName());
-			CCD->TerrainMgr()->Init(); // Pickles
+			CCD->Level()->Initialize(CCD->Engine()->LevelName());
+			CCD->TerrainManager()->Init();
 			CCD->Player()->RestoreFrom(inFD);
-			CCD->TerrainMgr()->Frame(); // Pickles
-			CCD->Doors()->RestoreFrom(inFD, false);
-			CCD->Platforms()->RestoreFrom(inFD, false);
-			CCD->Props()->RestoreFrom(inFD, false);
-			CCD->Meshes()->RestoreFrom(inFD, false);
-			CCD->Teleporters()->RestoreFrom(inFD, false);
-			CCD->MorphingFields()->RestoreFrom(inFD);
+			CCD->TerrainManager()->Frame();
+			CCD->Level()->Doors()->RestoreFrom(inFD, false);
+			CCD->Level()->Platforms()->RestoreFrom(inFD, false);
+			CCD->Level()->Props()->RestoreFrom(inFD, false);
+			CCD->Level()->Meshes()->RestoreFrom(inFD, false);
+			CCD->Level()->Teleporters()->RestoreFrom(inFD, false);
+			CCD->Level()->MorphingFields()->RestoreFrom(inFD);
 			CCD->MIDIPlayer()->RestoreFrom(inFD);
 			CCD->CDPlayer()->RestoreFrom(inFD);
-			CCD->Triggers()->RestoreFrom(inFD, false);
-			CCD->Logic()->RestoreFrom(inFD, false);
-			CCD->Attributes()->RestoreFrom(inFD, false);
-			CCD->Damage()->RestoreFrom(inFD, false);
+			CCD->Level()->Triggers()->RestoreFrom(inFD, false);
+			CCD->Level()->LogicGates()->RestoreFrom(inFD, false);
+			CCD->Level()->Attributes()->RestoreFrom(inFD, false);
+			CCD->Level()->Damage()->RestoreFrom(inFD, false);
 			CCD->CameraManager()->RestoreFrom(inFD);
 			CCD->Weapons()->RestoreFrom(inFD);
-			CCD->ElectricEffects()->RestoreFrom(inFD, false);
-			CCD->CountDownTimers()->RestoreFrom(inFD, false);
-			CCD->ChangeAttributes()->RestoreFrom(inFD, false);
-			CCD->Changelevel()->RestoreFrom(inFD, false);
-			CCD->ActMaterials()->RestoreFrom(inFD, false);
-			CCD->ModelManager()->RestoreFrom(inFD, false);
+			CCD->Level()->ElectricBolts()->RestoreFrom(inFD, false);
+			CCD->Level()->CountDownTimers()->RestoreFrom(inFD, false);
+			CCD->Level()->ChangeAttributes()->RestoreFrom(inFD, false);
+			CCD->Level()->ChangeLevels()->RestoreFrom(inFD, false);
+			CCD->Level()->ActorMaterials()->RestoreFrom(inFD, false);
+			CCD->Level()->ModelManager()->RestoreFrom(inFD, false);
 			CCD->RestoreFrom(inFD);
 
 			fclose(inFD);
 
 			// run game
-			if(CCD->MenuManager()->GetMusicType() != -1)
-			{
-				CCD->MenuManager()->StopMenuMusic();
-			}
-
-			CCD->MenuManager()->DisplaySplash(); // changed RF064
-			CCD->MenuManager()->GameLoop();
-			// set flag for game running
-			CCD->MenuManager()->SetInGame();
+			StopMusic(); // stop menu music
+			DisplaySplash();
+			GameLoop();
 		}
 	}
 }
@@ -7554,177 +2052,7 @@ static void CopyImageFile(const char *srcPath, const char *destPath)
 	if(fif >= 0)
 	{
 		FIBITMAP *Fbmp = FreeImage_Load(fif, srcPath, 0);
-		FreeImage_Save(fif, Fbmp, destPath, 0);
-	}
-}
-
-
-/* ------------------------------------------------------------------------------------ */
-//	rescales a bitmap file
-/* ------------------------------------------------------------------------------------ */
-void ScaleBitmapFromFile(const char *FileName, int dst_width, int dst_height)
-{
-	FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename(FileName);
-	FREE_IMAGE_FILTER myfilter = FILTER_BOX;
-
-	if(fif >= 0)
-	{
-		FIBITMAP *Fbmp = FreeImage_Load(fif, FileName, 0);
-		Fbmp = FreeImage_ConvertTo32Bits(Fbmp);
-		Fbmp = FreeImage_Rescale(Fbmp, dst_width, dst_height, myfilter);
-		Fbmp = FreeImage_ConvertTo24Bits(Fbmp);
-		FreeImage_Save(fif, Fbmp, FileName, 0);
-		FreeImage_Unload(Fbmp);
-	}
-}
-
-
-/* ------------------------------------------------------------------------------------ */
-//	PowerOfTwo
-/* ------------------------------------------------------------------------------------ */
-static int PowerOfTwo(int value)
-{
-	if(value>128)
-		return 256;
-	if(value>64)
-		return 128;
-	if(value>32)
-		return 64;
-	if(value>16)
-		return 32;
-	if(value>8)
-		return 16;
-	return 8;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	LoadWBitmap
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::LoadWBitmap()
-{
-	geBitmap *Alpha, *BAlpha;
-
-	for(int i=0; i<NUM_FONTS; i++)
-	{
-		if(MenuFont[i].Bitmap != NULL)
-		{
-			BAlpha = geBitmap_GetAlpha(MenuFont[i].Bitmap);
-
-			int h = PowerOfTwo(MenuFont[i].font_height);
-
-			for(int chr=0; chr<CHAR_RANGE ; chr++)
-			{
-				int w = PowerOfTwo(MenuFont[i].dat[chr].width);
-
-
-				if(MenuFont[i].dat[chr].width == 0)
-					w = PowerOfTwo(MenuFont[i].dat[0].width);
-
-				MenuFont[i].WBitmap[chr] = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);//GE_PIXELFORMAT_8BIT);
-
-				if(MenuFont[i].dat[chr].width == 0)
-				{
-					geBitmap_Blit(MenuFont[i].Bitmap,
-						MenuFont[i].dat[0].x, MenuFont[i].dat[0].y,
-						MenuFont[i].WBitmap[chr], 0, 0,
-						MenuFont[i].dat[0].width, MenuFont[i].font_height);
-				}
-				else
-				{
-					geBitmap_Blit(MenuFont[i].Bitmap,
-						MenuFont[i].dat[chr].x,	MenuFont[i].dat[chr].y,
-						MenuFont[i].WBitmap[chr], 0, 0,
-						MenuFont[i].dat[chr].width, MenuFont[i].font_height);
-				}
-
-				Alpha = geBitmap_Create(w, h, 0, GE_PIXELFORMAT_16BIT_565_RGB);
-
-				if(MenuFont[i].dat[chr].width == 0)
-				{
-					geBitmap_Blit(BAlpha,
-						MenuFont[i].dat[0].x, MenuFont[i].dat[0].y,
-						Alpha, 0, 0,
-						MenuFont[i].dat[0].width, MenuFont[i].font_height);
-
-					MenuFont[i].dat[chr].width = MenuFont[i].dat[0].width;
-				}
-				else
-				{
-					geBitmap_Blit(BAlpha,
-						MenuFont[i].dat[chr].x,	MenuFont[i].dat[chr].y,
-						Alpha, 0, 0,
-						MenuFont[i].dat[chr].width, MenuFont[i].font_height);
-				}
-
-				geWorld_AddBitmap(CCD->World(), MenuFont[i].WBitmap[chr]);
-				geBitmap_SetPreferredFormat(MenuFont[i].WBitmap[chr],GE_PIXELFORMAT_32BIT_ARGB);
-				geBitmap_SetAlpha(MenuFont[i].WBitmap[chr], Alpha);
-				geBitmap_Destroy(&Alpha);
-			}
-		}
-	}
-
-	fontloaded = true;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	UnLoadWBitmap
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::UnLoadWBitmap()
-{
-	if(!fontloaded)
-		return;
-
-	for(int i=0; i<NUM_FONTS; i++)
-	{
-		if(MenuFont[i].Bitmap != NULL)
-		{
-			for(int j=0; j<CHAR_RANGE; j++)
-			{
-				if(MenuFont[i].WBitmap[j])
-				{
-					geWorld_RemoveBitmap(CCD->World(), MenuFont[i].WBitmap[j]);
-					geBitmap_Destroy(&MenuFont[i].WBitmap[j]);
-				}
-			}
-		}
-	}
-
-	fontloaded = false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	WorldFontRect
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::WorldFontRect(const char *s, int FontNumber, int x, int y, float Alpha)
-{
-	unsigned char chr;
-
-	if(MenuFont[FontNumber].Bitmap == NULL)
-	{
-		char szBug[256];
-		sprintf(szBug, "[WARNING] File %s - Line %d: No defined Font # %d (FONT%d in Menu.ini)",
-				__FILE__, __LINE__, FontNumber, FontNumber+1);
-		CCD->ReportError(szBug, false);
-		return;
-	}
-
-	if(s != NULL)
-	{
-		while(*s != 0)
-		{
-			chr = (unsigned char)(*s)-32;
-
-			fRect.Top		= 0;
-			fRect.Bottom	= MenuFont[FontNumber].font_height-1;
-			fRect.Left		= 0;
-			fRect.Right		= MenuFont[FontNumber].dat[chr].width-1;
-
-			CCD->Engine()->DrawBitmap(MenuFont[FontNumber].WBitmap[chr], &fRect, x, y, Alpha, 1.0f);
-
-			x += MenuFont[FontNumber].dat[chr].width;
-			s++;
-		}
+		FreeImage_Save(FIF_JPEG, Fbmp, destPath, JPEG_QUALITYSUPERB);
 	}
 }
 
@@ -7733,20 +2061,20 @@ void CRFMenu::WorldFontRect(const char *s, int FontNumber, int x, int y, float A
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::FadeSet(int Dir, float Time)
 {
-	Fading = false;
+	m_bFading = false;
 
 	if(Time > 0)
-		Fading = true;
+		m_bFading = true;
 
-	FadeDir = Dir;
+	m_FadeDir = Dir;
 
-	if(FadeDir == -1)
-		FadeAlpha = 255.0f;
+	if(m_FadeDir == -1)
+		m_FadeAlpha = 255.0f;
 	else
-		FadeAlpha = 0.0f;
+		m_FadeAlpha = 0.0f;
 
-	CurrentFadeTime = CCD->FreeRunningCounter_F();
-	FadeTime = Time;
+	m_CurrentFadeTime = CCD->FreeRunningCounter_F();
+	m_FadeTime = Time;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -7755,38 +2083,38 @@ void CRFMenu::FadeSet(int Dir, float Time)
 void CRFMenu::DoFade()
 {
 	float FadeDelta, VolDelta;
-	float DeltaTime = (CCD->FreeRunningCounter_F() - CurrentFadeTime)*0.001f;
+	float DeltaTime = (CCD->FreeRunningCounter_F() - m_CurrentFadeTime) * 0.001f;
 
-	if(FadeDir == -1)
+	if(m_FadeDir == -1)
 	{
-		FadeDelta = 255.0f - (255.0f * (DeltaTime/FadeTime));
+		FadeDelta = 255.0f - (255.0f * (DeltaTime / m_FadeTime));
 
-		if(MusicFade)
+		if(m_bMusicFade)
 		{
-			VolDelta = OldMVol*(DeltaTime/FadeTime);
+			VolDelta = m_OldMVol * (DeltaTime / m_FadeTime);
 
-			if(VolDelta > OldMVol)
-				VolDelta = OldMVol;
+			if(VolDelta > m_OldMVol)
+				VolDelta = m_OldMVol;
 		}
 	}
 	else
 	{
-		FadeDelta = 255.0f * (DeltaTime/FadeTime);
+		FadeDelta = 255.0f * (DeltaTime / m_FadeTime);
 
-		if(MusicFade)
+		if(m_bMusicFade)
 		{
-			VolDelta = OldMVol - (OldMVol*(DeltaTime/FadeTime));
+			VolDelta = m_OldMVol - (m_OldMVol * (DeltaTime / m_FadeTime));
 
 			if(VolDelta < 0)
 				VolDelta = 0;
 		}
 	}
 
-	if(Fading)
+	if(m_bFading)
 	{
-		FadeAlpha = FadeDelta;
+		m_FadeAlpha = FadeDelta;
 
-		if(FadeAlpha >= 0.0f)
+		if(m_FadeAlpha >= 0.0f)
 		{
 			GE_Rect Rect;
 			GE_RGBA	Color;
@@ -7797,7 +2125,7 @@ void CRFMenu::DoFade()
 			Color.r = 0.0f;
 			Color.g = 0.0f;
 			Color.b = 0.0f;
-			Color.a = FadeAlpha;
+			Color.a = m_FadeAlpha;
 
 			if(Color.a < 0.0f)
 				Color.a = 0.0f;
@@ -7807,28 +2135,37 @@ void CRFMenu::DoFade()
 			geEngine_FillRect(CCD->Engine()->Engine(), &Rect, &Color);
 		}
 
-		if(MusicFade)
+		if(m_bMusicFade)
 		{
 			SetmMusicVol(VolDelta);
 		}
 
-		if(FadeDir == -1 && FadeAlpha < 0.0f)
-			Fading = false;
-		else if(FadeDir == 1 && FadeAlpha > 255.0f)
-			Fading = false;
-
-		if(!Fading && MusicFade)
+		if(m_FadeDir == -1 && m_FadeAlpha < 0.0f)
 		{
-			MusicFade = false;
+			m_bFading = false;
+		}
+		else if(m_FadeDir == 1 && m_FadeAlpha > 255.0f)
+		{
+			m_bFading = false;
+		}
+
+		if(!m_bFading && m_bMusicFade)
+		{
+			m_bMusicFade = false;
+		}
+
+		if(m_FadeDir == 1 && !m_bFading)
+		{
+			// remove all children
+			while(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildCount() > 0)
+			{
+				CMenuState::GetSingletonPtr()->GetDefaultWindow()->removeChildWindow(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildAtIdx(0));
+			}
+			// add active section
+			CMenuState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_SectionStack.top());
+			FadeSet(-1, m_TimeFade);
 		}
 	}
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	MusicSet
-/* ------------------------------------------------------------------------------------ */
-void CRFMenu::MusicSet()
-{
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -7838,10 +2175,9 @@ void CRFMenu::MusicSet()
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::SaveTo(FILE *SaveFD, bool type)
 {
-
-	WRITEDATA(type, &useselect,		sizeof(bool),	1, SaveFD);
-	WRITEDATA(type, &CurrentSelect, sizeof(int),	1, SaveFD);
-	WRITEDATA(type, &usenameselect, sizeof(bool),	1, SaveFD);
+	WRITEDATA(type, &m_bUseSelect,			sizeof(bool),	1, SaveFD);
+	WRITEDATA(type, &m_SelectedCharacter,	sizeof(int),	1, SaveFD);
+	WRITEDATA(type, &m_bUseNameSelect,		sizeof(bool),	1, SaveFD);
 
 	return RGF_SUCCESS;
 }
@@ -7853,9 +2189,9 @@ int CRFMenu::SaveTo(FILE *SaveFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 int CRFMenu::RestoreFrom(FILE *RestoreFD, bool type)
 {
-	READDATA(type, &useselect,		sizeof(bool),	1, RestoreFD);
-	READDATA(type, &CurrentSelect,	sizeof(int),	1, RestoreFD);
-	READDATA(type, &usenameselect,	sizeof(bool),	1, RestoreFD);
+	READDATA(type, &m_bUseSelect,			sizeof(bool),	1, RestoreFD);
+	READDATA(type, &m_SelectedCharacter,	sizeof(int),	1, RestoreFD);
+	READDATA(type, &m_bUseNameSelect,		sizeof(bool),	1, RestoreFD);
 
 	return RGF_SUCCESS;
 }
@@ -7863,1313 +2199,171 @@ int CRFMenu::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 // ChangeMenuIni
 /* ------------------------------------------------------------------------------------ */
-void CRFMenu::ChangeMenuIni()
+void CRFMenu::ChangeConfiguration(const std::string& filename)
 {
-	int i, l;
-
-	l = CCD->GetLanguage();
-
-	if(CurrentLanguage == l)
-		return;
-
-	if(stricmp(MenuInis[l], MenuInis[CurrentLanguage]))
+	// stop music
+	if(m_MusicType != -1)
 	{
-		SAFE_FREE(L1text.text);
-		SAFE_FREE(L2text.text);
-		SAFE_FREE(L3text.text);
-		SAFE_FREE(L4text.text);
-		SAFE_FREE(L5text.text);
-
-		// stop music
-		if(musictype != -1)
+		if(m_MusicType == 1)
 		{
-			if(musictype == 1)
-			{
-				MIDIPlayer()->Stop();
-			}
-			else
-			{
-				if(m_Streams)
-				{
-					m_Streams->Delete();
-					delete m_Streams;
-					m_Streams = 0;
-				}
-			}
+			MIDIPlayer()->Stop();
 		}
-
-		// free click sounds
-		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), mouseclick );
-		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), keyclick );
-		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), slideclick );
-
-		// delete the bitmaps
-		for(i=0; i<NUM_BACKGROUNDS; i++)
-		{
-			if(Backgrounds[i] != (geBitmap*)NULL)
-			{
-				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Backgrounds[i]);
-				geBitmap_Destroy(&Backgrounds[i]);
-			}
-		}
-
-		for(i=0; i<NUM_IMAGES; i++)
-		{
-			if(Images[i] != (geBitmap*)NULL)
-			{
-				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Images[i]);
-				geBitmap_Destroy(&Images[i]);
-			}
-		}
-
-		for(i=0; i<NUM_TITLES; i++)
-		{
-			if(Titles[i] != (geBitmap*)NULL)
-			{
-				geEngine_RemoveBitmap(CCD->Engine()->Engine(), Titles[i]);
-				geBitmap_Destroy(&Titles[i]);
-			}
-		}
-
-		if(ingame)
-			UnLoadWBitmap();
-
-		for(i=0; i<NUM_FONTS; i++)
-		{
-			if(MenuFont[i].Bitmap != (geBitmap*)NULL)
-			{
-				geEngine_RemoveBitmap(CCD->Engine()->Engine(), MenuFont[i].Bitmap);
-				geBitmap_Destroy(&MenuFont[i].Bitmap);
-			}
-		}
-
-		for(i=0; i<NUM_ANIM; i++)
-		{
-			if(Animation[i] != NULL)
-				delete Animation[i];
-		}
-
-		if(EmptySlotImage)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), EmptySlotImage);
-			geBitmap_Destroy(&EmptySlotImage);
-		}
-
-		if(Cursor != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), Cursor);
-			geBitmap_Destroy(&Cursor);
-		}
-
-		if(Crosshair != (geBitmap*)NULL)
-		{
-			geBitmap_Destroy(&Crosshair);
-		}
-
-		if(FCrosshair != (geBitmap*)NULL)
-		{
-			geEngine_RemoveBitmap(CCD->Engine()->Engine(), FCrosshair);
-			geBitmap_Destroy(&FCrosshair);
-		}
-
-		Cursor = NULL;
-		Crosshair = NULL;
-		FCrosshair = NULL;
-
-		Reset();
-
-		/* load new menu.ini file */
-		if(!stricmp("standard", MenuInis[l]) || !stricmp("default", MenuInis[l]))
-			LoadMenuIni(CCD->MenuIni());
 		else
-			LoadMenuIni(MenuInis[l]);
-
-		if(ingame)
-			LoadWBitmap();
-
-		if(musictype != -1)
 		{
-			if(musictype == 1)
-				MIDIPlayer()->Play(music, true);
-			else
-				m_Streams->Play(true);
+			if(m_Streams)
+			{
+				m_Streams->Delete();
+				SAFE_DELETE(m_Streams);
+			}
 		}
 	}
 
-	if(stricmp(Convtxts[l], Convtxts[CurrentLanguage]))
+	// free click sounds
+	if(m_MouseClick)
 	{
-		if(CCD->Pawns() != NULL)
-		{
-			if(!stricmp("standard", Convtxts[l]) || !stricmp("default", Convtxts[l]))
-				CCD->Pawns()->LoadConv("conversation.txt");
-			else
-				CCD->Pawns()->LoadConv(Convtxts[l]);
-		}
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_MouseClick);
+		m_MouseClick = NULL;
 	}
-
-	if(stricmp(Messagetxts[l], Messagetxts[CurrentLanguage]))
+	if(m_KeyClick)
 	{
-		if(CCD->Messages() != NULL)
-		{
-			if(!stricmp("standard", Messagetxts[l]) || !stricmp("default", Messagetxts[l]))
-				CCD->Messages()->LoadText("message.txt");
-			else
-				CCD->Messages()->LoadText(Messagetxts[l]);
-		}
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_KeyClick);
+		m_KeyClick = NULL;
+	}
+	if(m_SlideClick)
+	{
+		geSound_FreeSoundDef(CCD->Engine()->AudioSystem(), m_SlideClick);
+		m_SlideClick = NULL;
 	}
 
-	CurrentLanguage = l;
+	if(m_FCrosshairs != NULL)
+	{
+		geEngine_RemoveBitmap(CCD->Engine()->Engine(), m_FCrosshairs);
+		geBitmap_Destroy(&m_FCrosshairs);
+		m_FCrosshairs = NULL;
+	}
+
+	SaveSettings();
+
+	Reset();
+
+	// load new menu configuration file
+	LoadConfiguration(filename);
+	// reload text / load new text
+	LoadText(CCD->LanguageManager()->GetActiveLanguage()->GetMenuTextFilename());
+
+	InitializeWidgets();
+
+	m_EventHandler->SubscribeEvents();
+
+	FillActionMapList();
+
+	m_SectionStack.push(m_Sections["options"]);
+	m_SectionStack.push(m_Sections["language"]);
+	while(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildCount() > 0)
+	{
+		CMenuState::GetSingletonPtr()->GetDefaultWindow()->removeChildWindow(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildAtIdx(0));
+	}
+	CMenuState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_SectionStack.top());
+
+	if(m_MusicType != -1)
+	{
+		if(m_MusicType == 1)
+			MIDIPlayer()->Play(m_Music.c_str(), true);
+		else
+			m_Streams->Play(true);
+	}
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	GetConvtxts
-/* ------------------------------------------------------------------------------------ */
-char *CRFMenu::GetConvtxts()
-{
-	static char defaultconvtxt[] = "conversation.txt";
-
-	if(!stricmp("standard", Convtxts[CCD->GetLanguage()]) ||
-		!stricmp("default", Convtxts[CCD->GetLanguage()]))
-		return defaultconvtxt;// "conversation.txt";
-
-	return Convtxts[CCD->GetLanguage()];
-}
 
 /* ------------------------------------------------------------------------------------ */
-//	GetMessagetxts
-/* ------------------------------------------------------------------------------------ */
-char *CRFMenu::GetMessagetxts()
-{
-	static char defaultmessagetxt[] = "message.txt";
-
-	if(!stricmp("standard", Messagetxts[CCD->GetLanguage()]) ||
-		!stricmp("default", Messagetxts[CCD->GetLanguage()]))
-		return defaultmessagetxt;// "message.txt";
-
-	return Messagetxts[CCD->GetLanguage()];
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ChangeMenu
-/* ------------------------------------------------------------------------------------ */
-void ChangeMenu()
-{
-	CCD->MenuManager()->ChangeMenuIni();
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	LanguageRadio
-/* ------------------------------------------------------------------------------------ */
-void LanguageRadio(int ID)
-{
-	CCD->SetLanguage(ID);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	Reset
+// Reset
 //
-//	reset menu to default values
+// reset menu to default values
 /* ------------------------------------------------------------------------------------ */
 void CRFMenu::Reset()
 {
-	int i;
+	//m_LoadFont = 0;
+	//m_SaveFont = 0;
 
-	for(i=0;i<NUM_TITLES;i++)
+	m_EventHandler->RemoveAllEvents();
+
+	// remove all children
+	while(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildCount() > 0)
 	{
-		MTitles[i].Image_Number = 0;
-		MTitles[i].X			= 0;
-		MTitles[i].Y			= 0;
-		MTitles[i].Width		= 0;
-		MTitles[i].Height		= 0;
-		MTitles[i].Image_X		= 0;
-		MTitles[i].Image_Y		= 0;
-		MTitles[i].Animation	= -1;
+		CMenuState::GetSingletonPtr()->GetDefaultWindow()->removeChildWindow(CMenuState::GetSingletonPtr()->GetDefaultWindow()->getChildAtIdx(0));
 	}
 
-	for(i=0; i<8; i++)
+	// destroy all windows
+	stdext::hash_map<std::string, CEGUI::Window*>::iterator iter = m_Sections.begin();
+	for(; iter!=m_Sections.end(); ++iter)
 	{
-		MainMenu[i].X = 0;
-		MainMenu[i].Y = 0;
+		CCD->GUIManager()->DestroyWindow(iter->second);
 	}
-
-	for(i=0; i<4; i++)
-	{
-		LoadGMenu[i].X	= 0;
-		LoadGMenu[i].Y	= 0;
-		SaveMenu[i].X	= 0;
-		SaveMenu[i].Y	= 0;
-		PlayerNameMenu[i].X = 0;
-		PlayerNameMenu[i].Y = 0;
-	}
-
-	for(i=0; i<5; i++)
-	{
-		MultiMenu[i].X		= 0;
-		MultiMenu[i].Y		= 0;
-		JoinGameMenu[i].X	= 0;
-		JoinGameMenu[i].Y	= 0;
-		ControlMenu[i].X	= 0;
-		ControlMenu[i].Y	= 0;
-		SelectMenu[i].X		= 0;
-		SelectMenu[i].Y		= 0;
-	}
-
-	for(i=0; i<6; i++)
-	{
-		OptionMenu[i].X = 0;
-		OptionMenu[i].Y = 0;
-	}
-
-	for(i=0; i<11; i++)
-	{
-		LanguageMenu[i].X = 0;
-		LanguageMenu[i].Y = 0;
-		DebugMenu[i].X = 0;
-		DebugMenu[i].Y = 0;
-	}
-
-
-
-	CreditMenu[0].X = 0;
-	CreditMenu[0].Y = 0;
-	CreditMenu[1].X = 0;
-	CreditMenu[1].Y = 0;
-
-	ModsMenu[0].X = 0;
-	ModsMenu[0].Y = 0;
-
-	for(i=0; i<9; i++)
-	{
-		AudioMenu[i].X = 0;
-		AudioMenu[i].Y = 0;
-	}
-
-	for(i=0; i<9; i++)
-	{
-		VideoMenu[i].X = 0;
-		VideoMenu[i].Y = 0;
-	}
-
-	for(i=0; i<10; i++)
-	{
-		AdvancedMenu[i].X = 0;
-		AdvancedMenu[i].Y = 0;
-	}
-
-	for(i=0; i<3; i++)
-	{
-		DifficultMenu[i].X = 0;
-		DifficultMenu[i].Y = 0;
-	}
-
-	MainBack = 0;
-	MainTitle = 0;
-
-	NewGame.Image_Number	= 0;
-	NewGame.Width			= 0;
-	NewGame.Height			= 0;
-	NewGame.Image_X			= 0;
-	NewGame.Image_Y			= 0;
-	NewGame.Mover_X			= 0;
-	NewGame.Mover_Y			= 0;
-	NewGame.Animation		= -1;
-	NewGame.AnimationOver	= -1;
-
-	MultiPlayer.Image_Number	= 0;
-	MultiPlayer.Width			= 0;
-	MultiPlayer.Height			= 0;
-	MultiPlayer.Image_X			= 0;
-	MultiPlayer.Image_Y			= 0;
-	MultiPlayer.Mover_X			= 0;
-	MultiPlayer.Mover_Y			= 0;
-	MultiPlayer.background		= 0;
-	MultiPlayer.title			= 0;
-	MultiPlayer.Animation		= -1;
-	MultiPlayer.AnimationOver	= -1;
-
-	LoadGame.Image_Number	= 0;
-	LoadGame.Width			= 0;
-	LoadGame.Height			= 0;
-	LoadGame.Image_X		= 0;
-	LoadGame.Image_Y		= 0;
-	LoadGame.Mover_X		= 0;
-	LoadGame.Mover_Y		= 0;
-	LoadGame.background		= 0;
-	LoadGame.title			= 0;
-	LoadGame.Animation		= -1;
-	LoadGame.AnimationOver	= -1;
-
-	SaveGame.Image_Number	= 0;
-	SaveGame.Width			= 0;
-	SaveGame.Height			= 0;
-	SaveGame.Image_X		= 0;
-	SaveGame.Image_Y		= 0;
-	SaveGame.Mover_X		= 0;
-	SaveGame.Mover_Y		= 0;
-	SaveGame.background		= 0;
-	SaveGame.title			= 0;
-	SaveGame.Animation		= -1;
-	SaveGame.AnimationOver	= -1;
-
-	SaveScreen.X		= 0;
-	SaveScreen.Y		= 0;
-	SaveScreen.Width	= 0;
-	SaveScreen.Height	= 0;
-	SaveScreen.Image_X	= 0;
-	SaveScreen.Image_Y	= 0;
-
-	Options.Image_Number	= 0;
-	Options.Width			= 0;
-	Options.Height			= 0;
-	Options.Image_X			= 0;
-	Options.Image_Y			= 0;
-	Options.Mover_X			= 0;
-	Options.Mover_Y			= 0;
-	Options.background		= 0;
-	Options.title			= 0;
-	Options.Animation		= -1;
-	Options.AnimationOver	= -1;
-
-	Credits.Image_Number	= 0;
-	Credits.Width			= 0;
-	Credits.Height			= 0;
-	Credits.Image_X			= 0;
-	Credits.Image_Y			= 0;
-	Credits.Mover_X			= 0;
-	Credits.Mover_Y			= 0;
-	Credits.background		= 0;
-	Credits.title			= 0;
-	Credits.Animation		= -1;
-	Credits.AnimationOver	= -1;
-
-	Mods.Image_Number	= 0;
-	Mods.Width			= 0;
-	Mods.Height			= 0;
-	Mods.Image_X		= 0;
-	Mods.Image_Y		= 0;
-	Mods.Mover_X		= 0;
-	Mods.Mover_Y		= 0;
-	Mods.background		= 0;
-	Mods.title			= 0;
-	Mods.Animation		= -1;
-	Mods.AnimationOver	= -1;
-
-	QuitGame.Image_Number	= 0;
-	QuitGame.Width			= 0;
-	QuitGame.Height			= 0;
-	QuitGame.Image_X		= 0;
-	QuitGame.Image_Y		= 0;
-	QuitGame.Mover_X		= 0;
-	QuitGame.Mover_Y		= 0;
-	QuitGame.Animation		= -1;
-	QuitGame.AnimationOver	= -1;
-
-	return_text.Font = 0;
-
-	HostNewGame.Image_Number	= 0;
-	HostNewGame.Width			= 0;
-	HostNewGame.Height			= 0;
-	HostNewGame.Image_X			= 0;
-	HostNewGame.Image_Y			= 0;
-	HostNewGame.Mover_X			= 0;
-	HostNewGame.Mover_Y			= 0;
-	HostNewGame.background		= 0;
-	HostNewGame.title			= 0;
-	HostNewGame.Animation		= -1;
-	HostNewGame.AnimationOver	= -1;
-
-	JoinMultiplayerGame.Image_Number	= 0;
-	JoinMultiplayerGame.Width			= 0;
-	JoinMultiplayerGame.Height			= 0;
-	JoinMultiplayerGame.Image_X			= 0;
-	JoinMultiplayerGame.Image_Y			= 0;
-	JoinMultiplayerGame.Mover_X			= 0;
-	JoinMultiplayerGame.Mover_Y			= 0;
-	JoinMultiplayerGame.background		= 0;
-	JoinMultiplayerGame.title			= 0;
-	JoinMultiplayerGame.Animation		= -1;
-	JoinMultiplayerGame.AnimationOver	= -1;
-
-	QuitMulti.Image_Number	= 0;
-	QuitMulti.Width			= 0;
-	QuitMulti.Height		= 0;
-	QuitMulti.Image_X		= 0;
-	QuitMulti.Image_Y		= 0;
-	QuitMulti.Mover_X		= 0;
-	QuitMulti.Mover_Y		= 0;
-	QuitMulti.Animation		= -1;
-	QuitMulti.AnimationOver = -1;
-
-	PlayerIP_Text.Font = 0;
-	PlayerIP1.Font = 0;
-
-	IPAdd_Text.Font = 0;
-
-	IPAddress.Font	= 0;
-	IPAddress.Set_X = 10;
-	IPAddress.Set_Y = 10;
-	IPAddress.Width = 100;
-
-	LaunchJoinGame.Image_Number		= 0;
-	LaunchJoinGame.Width			= 0;
-	LaunchJoinGame.Height			= 0;
-	LaunchJoinGame.Image_X			= 0;
-	LaunchJoinGame.Image_Y			= 0;
-	LaunchJoinGame.Mover_X			= 0;
-	LaunchJoinGame.Mover_Y			= 0;
-	LaunchJoinGame.Animation		= -1;
-	LaunchJoinGame.AnimationOver	= -1;
-
-	QuitJoinGame.Image_Number	= 0;
-	QuitJoinGame.Width			= 0;
-	QuitJoinGame.Height			= 0;
-	QuitJoinGame.Image_X		= 0;
-	QuitJoinGame.Image_Y		= 0;
-	QuitJoinGame.Mover_X		= 0;
-	QuitJoinGame.Mover_Y		= 0;
-	QuitJoinGame.Animation		= -1;
-	QuitJoinGame.AnimationOver	= -1;
-
-	MultiplayerHelp_Text.Font = 0;
-
-	QuitLoad.Image_Number	= 0;
-	QuitLoad.Width			= 0;
-	QuitLoad.Height			= 0;
-	QuitLoad.Image_X		= 0;
-	QuitLoad.Image_Y		= 0;
-	QuitLoad.Mover_X		= 0;
-	QuitLoad.Mover_Y		= 0;
-	QuitLoad.Animation		= -1;
-	QuitLoad.AnimationOver	= -1;
-
-	LoadSlot.Image_Number	= 0;
-	LoadSlot.Width			= 0;
-	LoadSlot.Height			= 0;
-	LoadSlot.Image_X		= 0;
-	LoadSlot.Image_Y		= 0;
-	LoadSlot.Mover_X		= 0;
-	LoadSlot.Mover_Y		= 0;
-	LoadSlot.Animation		= 0;
-	LoadSlot.AnimationOver	= 0;
-
-	LoadBox.Image_Number	= 0;
-	LoadBox.Width			= 0;
-	LoadBox.Height			= 0;
-	LoadBox.Image_X			= 0;
-	LoadBox.Image_Y			= 0;
-	LoadBox.Start_X			= 0;
-	LoadBox.Start_Y			= 0;
-	LoadBox.Step			= 0;
-	LoadBox.Max_Show		= 0;
-	LoadBox.Corner_X		= 0;
-	LoadBox.Corner_Y		= 0;
-	LoadBox.Click_Width		= 0;
-	LoadBox.Rev_X			= 0;
-	LoadBox.Rev_Y			= 0;
-	LoadBox.Rev_Width		= 0;
-	LoadBox.Rev_Height		= 0;
-	LoadBox.Font			= 0;
-
-	LoadBar.Image_Number	= 0;
-	LoadBar.Up_Width		= 0;
-	LoadBar.Up_Height		= 0;
-	LoadBar.Up_Nor_X		= 0;
-	LoadBar.Up_Nor_Y		= 0;
-	LoadBar.Up_Lit_X		= 0;
-	LoadBar.Up_Lit_Y		= 0;
-	LoadBar.Up_Push_X		= 0;
-	LoadBar.Up_Push_Y		= 0;
-	LoadBar.Dwn_Width		= 0;
-	LoadBar.Dwn_Height		= 0;
-	LoadBar.Dwn_Nor_X		= 0;
-	LoadBar.Dwn_Nor_Y		= 0;
-	LoadBar.Dwn_Lit_X		= 0;
-	LoadBar.Dwn_Lit_Y		= 0;
-	LoadBar.Dwn_Push_X		= 0;
-	LoadBar.Dwn_Push_Y		= 0;
-	LoadBar.Up_X			= 0;
-	LoadBar.Up_Y			= 0;
-	LoadBar.Dwn_X			= 0;
-	LoadBar.Dwn_Y			= 0;
-	LoadBar.Show			= 0;
-	LoadBar.AnimationUp		= -1;
-	LoadBar.AnimationUpOver = -1;
-	LoadBar.AnimationUpPush = -1;
-	LoadBar.AnimationDwn	= -1;
-	LoadBar.AnimationDwnOver= -1;
-	LoadBar.AnimationDwnPush= -1;
-
-	QuitSave.Image_Number	= 0;
-	QuitSave.Width			= 0;
-	QuitSave.Height			= 0;
-	QuitSave.Image_X		= 0;
-	QuitSave.Image_Y		= 0;
-	QuitSave.Mover_X		= 0;
-	QuitSave.Mover_Y		= 0;
-	QuitSave.Animation		= -1;
-	QuitSave.AnimationOver	= -1;
-
-	SaveSlot.Image_Number	= 0;
-	SaveSlot.Width			= 0;
-	SaveSlot.Height			= 0;
-	SaveSlot.Image_X		= 0;
-	SaveSlot.Image_Y		= 0;
-	SaveSlot.Mover_X		= 0;
-	SaveSlot.Mover_Y		= 0;
-	SaveSlot.Animation		= -1;
-	SaveSlot.AnimationOver	= -1;
-
-	SaveBox.Image_Number	= 0;
-	SaveBox.Width			= 0;
-	SaveBox.Height			= 0;
-	SaveBox.Image_X			= 0;
-	SaveBox.Image_Y			= 0;
-	SaveBox.Start_X			= 0;
-	SaveBox.Start_Y			= 0;
-	SaveBox.Step			= 0;
-	SaveBox.Max_Show		= 0;
-	SaveBox.Corner_X		= 0;
-	SaveBox.Corner_Y		= 0;
-	SaveBox.Click_Width		= 0;
-	SaveBox.Rev_X			= 0;
-	SaveBox.Rev_Y			= 0;
-	SaveBox.Rev_Width		= 0;
-	SaveBox.Rev_Height		= 0;
-	SaveBox.Font			= 0;
-
-	SaveBar.Image_Number	= 0;
-	SaveBar.Up_Width		= 0;
-	SaveBar.Up_Height		= 0;
-	SaveBar.Up_Nor_X		= 0;
-	SaveBar.Up_Nor_Y		= 0;
-	SaveBar.Up_Lit_X		= 0;
-	SaveBar.Up_Lit_Y		= 0;
-	SaveBar.Up_Push_X		= 0;
-	SaveBar.Up_Push_Y		= 0;
-	SaveBar.Dwn_Width		= 0;
-	SaveBar.Dwn_Height		= 0;
-	SaveBar.Dwn_Nor_X		= 0;
-	SaveBar.Dwn_Nor_Y		= 0;
-	SaveBar.Dwn_Lit_X		= 0;
-	SaveBar.Dwn_Lit_Y		= 0;
-	SaveBar.Dwn_Push_X		= 0;
-	SaveBar.Dwn_Push_Y		= 0;
-	SaveBar.Up_X			= 0;
-	SaveBar.Up_Y			= 0;
-	SaveBar.Dwn_X			= 0;
-	SaveBar.Dwn_Y			= 0;
-	SaveBar.Show			= 0;
-	SaveBar.AnimationUp		= -1;
-	SaveBar.AnimationUpOver = -1;
-	SaveBar.AnimationUpPush = -1;
-	SaveBar.AnimationDwn	= -1;
-	SaveBar.AnimationDwnOver= -1;
-	SaveBar.AnimationDwnPush= -1;
-
-	AudioItem.Image_Number	= 0;
-	AudioItem.Width			= 0;
-	AudioItem.Height		= 0;
-	AudioItem.Image_X		= 0;
-	AudioItem.Image_Y		= 0;
-	AudioItem.Mover_X		= 0;
-	AudioItem.Mover_Y		= 0;
-	AudioItem.background	= 0;
-	AudioItem.title			= 0;
-	AudioItem.Animation		= -1;
-	AudioItem.AnimationOver = -1;
-
-	VideoItem.Image_Number	= 0;
-	VideoItem.Width			= 0;
-	VideoItem.Height		= 0;
-	VideoItem.Image_X		= 0;
-	VideoItem.Image_Y		= 0;
-	VideoItem.Mover_X		= 0;
-	VideoItem.Mover_Y		= 0;
-	VideoItem.background	= 0;
-	VideoItem.title			= 0;
-	VideoItem.Animation		= -1;
-	VideoItem.AnimationOver = -1;
-
-	ControlItem.Image_Number	= 0;
-	ControlItem.Width			= 0;
-	ControlItem.Height			= 0;
-	ControlItem.Image_X			= 0;
-	ControlItem.Image_Y			= 0;
-	ControlItem.Mover_X			= 0;
-	ControlItem.Mover_Y			= 0;
-	ControlItem.background		= 0;
-	ControlItem.title			= 0;
-	ControlItem.Animation		= -1;
-	ControlItem.AnimationOver	= -1;
-
-	LanguageItem.Image_Number	= 0;
-	LanguageItem.Width			= 0;
-	LanguageItem.Height			= 0;
-	LanguageItem.Image_X		= 0;
-	LanguageItem.Image_Y		= 0;
-	LanguageItem.Mover_X		= 0;
-	LanguageItem.Mover_Y		= 0;
-	LanguageItem.background		= 0;
-	LanguageItem.title			= 0;
-	LanguageItem.Animation		= -1;
-	LanguageItem.AnimationOver	= -1;
-
-	DebugItem.Image_Number	= 0;
-	DebugItem.Width			= 0;
-	DebugItem.Height		= 0;
-	DebugItem.Image_X		= 0;
-	DebugItem.Image_Y		= 0;
-	DebugItem.Mover_X		= 0;
-	DebugItem.Mover_Y		= 0;
-	DebugItem.background	= 0;
-	DebugItem.title			= 0;
-	DebugItem.Animation		= -1;
-	DebugItem.AnimationOver = -1;
-
-	QuitOption.Image_Number		= 0;
-	QuitOption.Width			= 0;
-	QuitOption.Height			= 0;
-	QuitOption.Image_X			= 0;
-	QuitOption.Image_Y			= 0;
-	QuitOption.Mover_X			= 0;
-	QuitOption.Mover_Y			= 0;
-	QuitOption.Animation		= -1;
-	QuitOption.AnimationOver	= -1;
-
-	QuitLanguage.Image_Number	= 0;
-	QuitLanguage.Width			= 0;
-	QuitLanguage.Height			= 0;
-	QuitLanguage.Image_X		= 0;
-	QuitLanguage.Image_Y		= 0;
-	QuitLanguage.Mover_X		= 0;
-	QuitLanguage.Mover_Y		= 0;
-	QuitLanguage.Animation		= -1;
-	QuitLanguage.AnimationOver	= -1;
-
-	boxL1.Image_Number	= 0;
-	boxL1.Width			= 0;
-	boxL1.Height		= 0;
-	boxL1.Image_X		= 0;
-	boxL1.Image_Y		= 0;
-	boxL1.Mover_X		= 0;
-	boxL1.Mover_Y		= 0;
-	boxL1.Set_X			= 0;
-	boxL1.Set_Y			= 0;
-	boxL1.Animation		= -1;
-	boxL1.AnimationOver = -1;
-	boxL1.AnimationLit	= -1;
-
-	L1text.Font = -1;
-
-	boxL2.Image_Number	= 0;
-	boxL2.Width			= 0;
-	boxL2.Height		= 0;
-	boxL2.Image_X		= 0;
-	boxL2.Image_Y		= 0;
-	boxL2.Mover_X		= 0;
-	boxL2.Mover_Y		= 0;
-	boxL2.Set_X			= 0;
-	boxL2.Set_Y			= 0;
-	boxL2.Animation		= -1;
-	boxL2.AnimationOver = -1;
-	boxL2.AnimationLit	= -1;
-
-	L2text.Font = -1;
-
-	boxL3.Image_Number	= 0;
-	boxL3.Width			= 0;
-	boxL3.Height		= 0;
-	boxL3.Image_X		= 0;
-	boxL3.Image_Y		= 0;
-	boxL3.Mover_X		= 0;
-	boxL3.Mover_Y		= 0;
-	boxL3.Set_X			= 0;
-	boxL3.Set_Y			= 0;
-	boxL3.Animation		= -1;
-	boxL3.AnimationOver = -1;
-	boxL3.AnimationLit	= -1;
-
-	L3text.Font = -1;
-
-	boxL4.Image_Number	= 0;
-	boxL4.Width			= 0;
-	boxL4.Height		= 0;
-	boxL4.Image_X		= 0;
-	boxL4.Image_Y		= 0;
-	boxL4.Mover_X		= 0;
-	boxL4.Mover_Y		= 0;
-	boxL4.Set_X			= 0;
-	boxL4.Set_Y			= 0;
-	boxL4.Animation		= -1;
-	boxL4.AnimationOver = -1;
-	boxL4.AnimationLit	= -1;
-
-	L4text.Font = -1;
-
-	boxL5.Image_Number	= 0;
-	boxL5.Width			= 0;
-	boxL5.Height		= 0;
-	boxL5.Image_X		= 0;
-	boxL5.Image_Y		= 0;
-	boxL5.Mover_X		= 0;
-	boxL5.Mover_Y		= 0;
-	boxL5.Set_X			= 0;
-	boxL5.Set_Y			= 0;
-	boxL5.Animation		= -1;
-	boxL5.AnimationOver = -1;
-	boxL5.AnimationLit	= -1;
-
-	L5text.Font = -1;
-
-	QuitDebug.Image_Number	= 0;
-	QuitDebug.Width			= 0;
-	QuitDebug.Height		= 0;
-	QuitDebug.Image_X		= 0;
-	QuitDebug.Image_Y		= 0;
-	QuitDebug.Mover_X		= 0;
-	QuitDebug.Mover_Y		= 0;
-	QuitDebug.Animation		= -1;
-	QuitDebug.AnimationOver = -1;
-
-	box5.Image_Number	= 0;
-	box5.Width			= 0;
-	box5.Height			= 0;
-	box5.Image_X		= 0;
-	box5.Image_Y		= 0;
-	box5.Mover_X		= 0;
-	box5.Mover_Y		= 0;
-	box5.Set_X			= 0;
-	box5.Set_Y			= 0;
-	box5.Animation		= -1;
-	box5.AnimationOver	= -1;
-	box5.AnimationLit	= -1;
-
-	debug_text.Font = 0;
-
-	box6.Image_Number	= 0;
-	box6.Width			= 0;
-	box6.Height			= 0;
-	box6.Image_X		= 0;
-	box6.Image_Y		= 0;
-	box6.Mover_X		= 0;
-	box6.Mover_Y		= 0;
-	box6.Set_X			= 0;
-	box6.Set_Y			= 0;
-	box6.Animation		= -1;
-	box6.AnimationOver	= -1;
-	box6.AnimationLit	= -1;
-
-	fps_text.Font = 0;
-
-	box7.Image_Number	= 0;
-	box7.Width			= 0;
-	box7.Height			= 0;
-	box7.Image_X		= 0;
-	box7.Image_Y		= 0;
-	box7.Mover_X		= 0;
-	box7.Mover_Y		= 0;
-	box7.Set_X			= 0;
-	box7.Set_Y			= 0;
-	box7.Animation		= -1;
-	box7.AnimationOver	= -1;
-	box7.AnimationLit	= -1;
-
-	clip_text.Font = 0;
-
-	box8.Image_Number	= 0;
-	box8.Width			= 0;
-	box8.Height			= 0;
-	box8.Image_X		= 0;
-	box8.Image_Y		= 0;
-	box8.Mover_X		= 0;
-	box8.Mover_Y		= 0;
-	box8.Set_X			= 0;
-	box8.Set_Y			= 0;
-	box8.Animation		= -1;
-	box8.AnimationOver	= -1;
-	box8.AnimationLit	= -1;
-
-	bb_text.Font = 0;
-
-	box9.Image_Number	= 0;
-	box9.Width			= 0;
-	box9.Height			= 0;
-	box9.Image_X		= 0;
-	box9.Image_Y		= 0;
-	box9.Mover_X		= 0;
-	box9.Mover_Y		= 0;
-	box9.Set_X			= 0;
-	box9.Set_Y			= 0;
-	box9.Animation		= -1;
-	box9.AnimationOver	= -1;
-	box9.AnimationLit	= -1;
-
-	sebb_text.Font = 0;
-
-	QuitCredit.Image_Number		= 0;
-	QuitCredit.Width			= 0;
-	QuitCredit.Height			= 0;
-	QuitCredit.Image_X			= 0;
-	QuitCredit.Image_Y			= 0;
-	QuitCredit.Mover_X			= 0;
-	QuitCredit.Mover_Y			= 0;
-	QuitCredit.Animation		= -1;
-	QuitCredit.AnimationOver	= -1;
-
-	Credit_Img.Image_Number = 0;
-	Credit_Img.Width		= 0;
-	Credit_Img.Height		= 0;
-	Credit_Img.Image_X		= 0;
-	Credit_Img.Image_Y		= 0;
-	Credit_Img.Animation	= -1;
-
-	QuitAudio.Image_Number	= 0;
-	QuitAudio.Width			= 0;
-	QuitAudio.Height		= 0;
-	QuitAudio.Image_X		= 0;
-	QuitAudio.Image_Y		= 0;
-	QuitAudio.Mover_X		= 0;
-	QuitAudio.Mover_Y		= 0;
-	QuitAudio.Animation		= -1;
-	QuitAudio.AnimationOver = -1;
-
-	vol_text.Font = 0;
-
-	Vol_Img.Image_Number	= 0;
-	Vol_Img.Width			= 0;
-	Vol_Img.Height			= 0;
-	Vol_Img.Image_X			= 0;
-	Vol_Img.Image_Y			= 0;
-	Vol_Img.Animation		= -1;
-
-	Vol_Slide.Image_Number	= 0;
-	Vol_Slide.Width			= 0;
-	Vol_Slide.Height		= 0;
-	Vol_Slide.Image_X		= 0;
-	Vol_Slide.Image_Y		= 0;
-	Vol_Slide.Min_X			= 0;
-	Vol_Slide.Max_X			= 1;
-	Vol_Slide.Animation		= -1;
-
-	mvol_text.Font = 0;
-
-	mVol_Img.Image_Number	= 0;
-	mVol_Img.Width			= 0;
-	mVol_Img.Height			= 0;
-	mVol_Img.Image_X		= 0;
-	mVol_Img.Image_Y		= 0;
-	mVol_Img.Animation		= -1;
-
-	mVol_Slide.Image_Number = 0;
-	mVol_Slide.Width		= 0;
-	mVol_Slide.Height		= 0;
-	mVol_Slide.Image_X		= 0;
-	mVol_Slide.Image_Y		= 0;
-	mVol_Slide.Min_X		= 0;
-	mVol_Slide.Max_X		= 1;
-	mVol_Slide.Animation	= -1;
-
-	box0.Image_Number	= 0;
-	box0.Width			= 0;
-	box0.Height			= 0;
-	box0.Image_X		= 0;
-	box0.Image_Y		= 0;
-	box0.Mover_X		= 0;
-	box0.Mover_Y		= 0;
-	box0.Set_X			= 0;
-	box0.Set_Y			= 0;
-	box0.Animation		= -1;
-	box0.AnimationOver	= -1;
-	box0.AnimationLit	= -1;
-
-	cd_text.Font = 0;
-
-	QuitVideo.Image_Number	= 0;
-	QuitVideo.Width			= 0;
-	QuitVideo.Height		= 0;
-	QuitVideo.Image_X		= 0;
-	QuitVideo.Image_Y		= 0;
-	QuitVideo.Mover_X		= 0;
-	QuitVideo.Mover_Y		= 0;
-	QuitVideo.Animation		= -1;
-	QuitVideo.AnimationOver = -1;
-
-	gam_text.Font = 0;
-
-	Gamma_Img.Image_Number	= 0;
-	Gamma_Img.Width			= 0;
-	Gamma_Img.Height		= 0;
-	Gamma_Img.Image_X		= 0;
-	Gamma_Img.Image_Y		= 0;
-	Gamma_Img.Animation		= -1;
-
-	Gamma_Slide.Image_Number	= 0;
-	Gamma_Slide.Width			= 0;
-	Gamma_Slide.Height			= 0;
-	Gamma_Slide.Image_X			= 0;
-	Gamma_Slide.Image_Y			= 0;
-	Gamma_Slide.Min_X			= 0;
-	Gamma_Slide.Max_X			= 1;
-	Gamma_Slide.Animation		= -1;
-
-	det_text.Font = 0;
-
-	Detail_Img.Image_Number = 0;
-	Detail_Img.Width		= 0;
-	Detail_Img.Height		= 0;
-	Detail_Img.Image_X		= 0;
-	Detail_Img.Image_Y		= 0;
-	Detail_Img.Animation	= -1;
-
-	Detail_Slide.Image_Number	= 0;
-	Detail_Slide.Width			= 0;
-	Detail_Slide.Height			= 0;
-	Detail_Slide.Image_X		= 0;
-	Detail_Slide.Image_Y		= 0;
-	Detail_Slide.Min_X			= 0;
-	Detail_Slide.Max_X			= 1;
-	Detail_Slide.Animation		= -1;
-
-	ShadowBox.Image_Number	= 0;
-	ShadowBox.Width			= 0;
-	ShadowBox.Height		= 0;
-	ShadowBox.Image_X		= 0;
-	ShadowBox.Image_Y		= 0;
-	ShadowBox.Mover_X		= 0;
-	ShadowBox.Mover_Y		= 0;
-	ShadowBox.Set_X			= 0;
-	ShadowBox.Set_Y			= 0;
-	ShadowBox.Animation		= -1;
-	ShadowBox.AnimationOver = -1;
-	ShadowBox.AnimationLit	= -1;
-
-	shadow_text.Font = 0;
-
-	AdvancedItem.Image_Number	= 0;
-	AdvancedItem.Width			= 0;
-	AdvancedItem.Height			= 0;
-	AdvancedItem.Image_X		= 0;
-	AdvancedItem.Image_Y		= 0;
-	AdvancedItem.Mover_X		= 0;
-	AdvancedItem.Mover_Y		= 0;
-	AdvancedItem.background		= 0;
-	AdvancedItem.title			= 0;
-	AdvancedItem.Animation		= -1;
-	AdvancedItem.AnimationOver	= -1;
-
-	QuitControl.Image_Number	= 0;
-	QuitControl.Width			= 0;
-	QuitControl.Height			= 0;
-	QuitControl.Image_X			= 0;
-	QuitControl.Image_Y			= 0;
-	QuitControl.Mover_X			= 0;
-	QuitControl.Mover_Y			= 0;
-	QuitControl.Animation		= -1;
-	QuitControl.AnimationOver	= -1;
-
-	KeyMap.Image_Number = 0;
-	KeyMap.Width		= 0;
-	KeyMap.Height		= 0;
-	KeyMap.Image_X		= 0;
-	KeyMap.Image_Y		= 0;
-	KeyMap.Start_X		= 0;
-	KeyMap.Start_Y		= 0;
-	KeyMap.Step			= 0;
-	KeyMap.Max_Show		= 0;
-	KeyMap.Corner_X		= 0;
-	KeyMap.Corner_Y		= 0;
-	KeyMap.Click_Width	= 0;
-	KeyMap.Key_X		= 0;
-	KeyMap.Rev_X		= 0;
-	KeyMap.Rev_Y		= 0;
-	KeyMap.Rev_Width	= 0;
-	KeyMap.Rev_Height	= 0;
-	KeyMap.RevC_X		= 0;
-	KeyMap.RevC_Y		= 0;
-	KeyMap.RevC_Width	= 0;
-	KeyMap.RevC_Height	= 0;
-	KeyMap.Font			= 0;
-
-	KeyMapBar.Image_Number	= 0;
-	KeyMapBar.Up_Width		= 0;
-	KeyMapBar.Up_Height		= 0;
-	KeyMapBar.Up_Nor_X		= 0;
-	KeyMapBar.Up_Nor_Y		= 0;
-	KeyMapBar.Up_Lit_X		= 0;
-	KeyMapBar.Up_Lit_Y		= 0;
-	KeyMapBar.Up_Push_X		= 0;
-	KeyMapBar.Up_Push_Y		= 0;
-	KeyMapBar.Dwn_Width		= 0;
-	KeyMapBar.Dwn_Height	= 0;
-	KeyMapBar.Dwn_Nor_X		= 0;
-	KeyMapBar.Dwn_Nor_Y		= 0;
-	KeyMapBar.Dwn_Lit_X		= 0;
-	KeyMapBar.Dwn_Lit_Y		= 0;
-	KeyMapBar.Dwn_Push_X	= 0;
-	KeyMapBar.Dwn_Push_Y	= 0;
-	KeyMapBar.Up_X			= 0;
-	KeyMapBar.Up_Y			= 0;
-	KeyMapBar.Dwn_X			= 0;
-	KeyMapBar.Dwn_Y			= 0;
-	KeyMapBar.Show			= 0;
-	KeyMapBar.AnimationUp		= -1;
-	KeyMapBar.AnimationUpOver	= -1;
-	KeyMapBar.AnimationUpPush	= -1;
-	KeyMapBar.AnimationDwn		= -1;
-	KeyMapBar.AnimationDwnOver	= -1;
-	KeyMapBar.AnimationDwnPush	= -1;
-
-	ResetKey.Image_Number	= 0;
-	ResetKey.Width			= 0;
-	ResetKey.Height			= 0;
-	ResetKey.Image_X		= 0;
-	ResetKey.Image_Y		= 0;
-	ResetKey.Mover_X		= 0;
-	ResetKey.Mover_Y		= 0;
-	ResetKey.Animation		= -1;
-	ResetKey.AnimationOver	= -1;
-
-	QuitAdvanced.Image_Number	= 0;
-	QuitAdvanced.Width			= 0;
-	QuitAdvanced.Height			= 0;
-	QuitAdvanced.Image_X		= 0;
-	QuitAdvanced.Image_Y		= 0;
-	QuitAdvanced.Mover_X		= 0;
-	QuitAdvanced.Mover_Y		= 0;
-	QuitAdvanced.Animation		= -1;
-	QuitAdvanced.AnimationOver	= -1;
-
-	box1.Image_Number	= 0;
-	box1.Width			= 0;
-	box1.Height			= 0;
-	box1.Image_X		= 0;
-	box1.Image_Y		= 0;
-	box1.Mover_X		= 0;
-	box1.Mover_Y		= 0;
-	box1.Set_X			= 0;
-	box1.Set_Y			= 0;
-	box1.Animation		= -1;
-	box1.AnimationOver	= -1;
-	box1.AnimationLit	= -1;
-
-	xhair_text.Font = 0;
-
-	box2.Image_Number	= 0;
-	box2.Width			= 0;
-	box2.Height			= 0;
-	box2.Image_X		= 0;
-	box2.Image_Y		= 0;
-	box2.Mover_X		= 0;
-	box2.Mover_Y		= 0;
-	box2.Set_X			= 0;
-	box2.Set_Y			= 0;
-	box2.Animation		= -1;
-	box2.AnimationOver	= -1;
-	box2.AnimationLit	= -1;
-
-	rev_text.Font = 0;
-
-	box4.Image_Number	= 0;
-	box4.Width			= 0;
-	box4.Height			= 0;
-	box4.Image_X		= 0;
-	box4.Image_Y		= 0;
-	box4.Mover_X		= 0;
-	box4.Mover_Y		= 0;
-	box4.Set_X			= 0;
-	box4.Set_Y			= 0;
-	box4.Animation		= -1;
-	box4.AnimationOver	= -1;
-	box4.AnimationLit	= -1;
-
-	filter_text.Font = 0;
-
-	sens_text.Font = 0;
-
-	Sens_Img.Image_Number	= 0;
-	Sens_Img.Width			= 0;
-	Sens_Img.Height			= 0;
-	Sens_Img.Image_X		= 0;
-	Sens_Img.Image_Y		= 0;
-	Sens_Img.Animation		= -1;
-
-	Sens_Slide.Image_Number = 0;
-	Sens_Slide.Width		= 0;
-	Sens_Slide.Height		= 0;
-	Sens_Slide.Image_X		= 0;
-	Sens_Slide.Image_Y		= 0;
-	Sens_Slide.Min_X		= 0;
-	Sens_Slide.Max_X		= 1;
-	Sens_Slide.Animation	= -1;
-
-	SelectBack = 0;
-	SelectTitle = 0;
-
-	AcceptSelect.Image_Number	= 0;
-	AcceptSelect.Width			= 0;
-	AcceptSelect.Height			= 0;
-	AcceptSelect.Image_X		= 0;
-	AcceptSelect.Image_Y		= 0;
-	AcceptSelect.Mover_X		= 0;
-	AcceptSelect.Mover_Y		= 0;
-	AcceptSelect.Animation		= -1;
-	AcceptSelect.AnimationOver	= -1;
-
-	CancelSelect.Image_Number	= 0;
-	CancelSelect.Width			= 0;
-	CancelSelect.Height			= 0;
-	CancelSelect.Image_X		= 0;
-	CancelSelect.Image_Y		= 0;
-	CancelSelect.Mover_X		= 0;
-	CancelSelect.Mover_Y		= 0;
-	CancelSelect.Animation		= -1;
-	CancelSelect.AnimationOver	= -1;
-
-	PrevSelect.Image_Number		= 0;
-	PrevSelect.Width			= 0;
-	PrevSelect.Height			= 0;
-	PrevSelect.Image_X			= 0;
-	PrevSelect.Image_Y			= 0;
-	PrevSelect.Mover_X			= 0;
-	PrevSelect.Mover_Y			= 0;
-	PrevSelect.Animation		= -1;
-	PrevSelect.AnimationOver	= -1;
-
-	NextSelect.Image_Number		= 0;
-	NextSelect.Width			= 0;
-	NextSelect.Height			= 0;
-	NextSelect.Image_X			= 0;
-	NextSelect.Image_Y			= 0;
-	NextSelect.Mover_X			= 0;
-	NextSelect.Mover_Y			= 0;
-	NextSelect.Animation		= -1;
-	NextSelect.AnimationOver	= -1;
-
-	PlayerNameBack = 0;
-	PlayerNameTitle = 0;
-
-	AcceptName.Image_Number		= 0;
-	AcceptName.Width			= 0;
-	AcceptName.Height			= 0;
-	AcceptName.Image_X			= 0;
-	AcceptName.Image_Y			= 0;
-	AcceptName.Mover_X			= 0;
-	AcceptName.Mover_Y			= 0;
-	AcceptName.Animation		= -1;
-	AcceptName.AnimationOver	= -1;
-
-	CancelName.Image_Number		= 0;
-	CancelName.Width			= 0;
-	CancelName.Height			= 0;
-	CancelName.Image_X			= 0;
-	CancelName.Image_Y			= 0;
-	CancelName.Mover_X			= 0;
-	CancelName.Mover_Y			= 0;
-	CancelName.Animation		= -1;
-	CancelName.AnimationOver	= -1;
-
-	PlayerName.Font		= 0;
-	PlayerName.Set_X	= 10;
-	PlayerName.Set_Y	= 10;
-	PlayerName.Width	= 100;
-
-	DefaultName.Image_Number	= 0;
-	DefaultName.Width			= 0;
-	DefaultName.Height			= 0;
-	DefaultName.Image_X			= 0;
-	DefaultName.Image_Y			= 0;
-	DefaultName.Mover_X			= 0;
-	DefaultName.Mover_Y			= 0;
-	DefaultName.Animation		= -1;
-	DefaultName.AnimationOver	= -1;
-
-	LoadFont = 0;
-
-	SaveFont = 0;
-
-	DifficultBack = 0;
-	DifficultTitle = 0;
-
-	Difficultlow.Image_Number	= 0;
-	Difficultlow.Width			= 0;
-	Difficultlow.Height			= 0;
-	Difficultlow.Image_X		= 0;
-	Difficultlow.Image_Y		= 0;
-	Difficultlow.Mover_X		= 0;
-	Difficultlow.Mover_Y		= 0;
-	Difficultlow.Animation		= -1;
-	Difficultlow.AnimationOver	= -1;
-
-	Difficultmid.Image_Number	= 0;
-	Difficultmid.Width			= 0;
-	Difficultmid.Height			= 0;
-	Difficultmid.Image_X		= 0;
-	Difficultmid.Image_Y		= 0;
-	Difficultmid.Mover_X		= 0;
-	Difficultmid.Mover_Y		= 0;
-	Difficultmid.Animation		= -1;
-	Difficultmid.AnimationOver	= -1;
-
-	Difficulthi.Image_Number	= 0;
-	Difficulthi.Width			= 0;
-	Difficulthi.Height			= 0;
-	Difficulthi.Image_X			= 0;
-	Difficulthi.Image_Y			= 0;
-	Difficulthi.Mover_X			= 0;
-	Difficulthi.Mover_Y			= 0;
-	Difficulthi.Animation		= -1;
-	Difficulthi.AnimationOver	= -1;
-
-	QuitMods.Image_Number	= 0;
-	QuitMods.Width			= 0;
-	QuitMods.Height			= 0;
-	QuitMods.Image_X		= 0;
-	QuitMods.Image_Y		= 0;
-	QuitMods.Mover_X		= 0;
-	QuitMods.Mover_Y		= 0;
-	QuitMods.Animation		= -1;
-	QuitMods.AnimationOver	= -1;
-
-	SAFE_FREE(return_text.text);
-	SAFE_FREE(PlayerIP_Text.text);
-	SAFE_FREE(MultiplayerHelp_Text.text);
-	SAFE_FREE(IPAdd_Text.text);
-	SAFE_FREE(sebb_text.text);
-	SAFE_FREE(bb_text.text);
-	SAFE_FREE(clip_text.text);
-	SAFE_FREE(fps_text.text);
-	SAFE_FREE(debug_text.text);
-	SAFE_FREE(cd_text.text);
-	SAFE_FREE(mvol_text.text);
-	SAFE_FREE(vol_text.text);
-	SAFE_FREE(det_text.text);
-	SAFE_FREE(gam_text.text);
-	SAFE_FREE(sens_text.text);
-	SAFE_FREE(filter_text.text);
-	SAFE_FREE(rev_text.text);
-	SAFE_FREE(xhair_text.text);
-	SAFE_FREE(shadow_text.text);
-
-	return_text.text			= strdup("Press ESC to Return to Game");
-	PlayerIP_Text.text			= strdup("Your IP :");
-	MultiplayerHelp_Text.text	= strdup("Enter a valid server ip, press ENTER and click on Join game");
-	IPAdd_Text.text				= strdup("Server IP Address :");
-	sebb_text.text				= strdup("Entity Bounding Box");
-	bb_text.text				= strdup("Player Bounding Box");
-	clip_text.text				= strdup("No Clipping");
-	fps_text.text				= strdup("Frame Rate");
-	debug_text.text				= strdup("Debug Info");
-	cd_text.text				= strdup("Play CD Music");
-	mvol_text.text				= strdup("Music Volume");
-	vol_text.text				= strdup("Sound Volume");
-	det_text.text				= strdup("Detail Level");
-	gam_text.text				= strdup("Gamma");
-	sens_text.text				= strdup("Mouse sensitivity");
-	filter_text.text			= strdup("Mouse filter");
-	rev_text.text				= strdup("Reverse mouse");
-	xhair_text.text				= strdup("Crosshair");
-	shadow_text.text			= strdup("Enable Stencil Shadows");
-
+	CCD->GUIManager()->CleanDeadWindowPool();
+
+	m_Sections.clear();
+	while(!m_SectionStack.empty())
+		m_SectionStack.pop();
+
+	CCD->Input()->ResetActionNames();
+	CCD->Input()->ResetMouseButtonNames();
+	m_KeyNameUnassigned = "<Unassigned>";
+}
+
+
+int CRFMenu::Name2ActionID(const std::string& name)
+{
+	if(name == "noaction")		return RGF_K_NOACTION;
+	if(name == "moveforward")	return RGF_K_FORWARD;
+	if(name == "movebackward")	return RGF_K_BACKWARD;
+	if(name == "turnleft")		return RGF_K_TURN_LEFT;
+	if(name == "turnright")		return RGF_K_TURN_RIGHT;
+	if(name == "strafeleft")	return RGF_K_LEFT;
+	if(name == "straferight")	return RGF_K_RIGHT;
+	if(name == "jump")			return RGF_K_JUMP;
+	if(name == "crouch")		return RGF_K_CROUCH;
+	if(name == "lookup")		return RGF_K_LOOKUP;
+	if(name == "lookdown")		return RGF_K_LOOKDOWN;
+	if(name == "lookstraight")	return RGF_K_LOOKSTRAIGHT;
+	if(name == "attack")		return RGF_K_FIRE;
+	if(name == "altattack")		return RGF_K_ALTFIRE;
+	if(name == "weapon0")		return RGF_K_WEAPON_0;
+	if(name == "weapon1")		return RGF_K_WEAPON_1;
+	if(name == "weapon2")		return RGF_K_WEAPON_2;
+	if(name == "weapon3")		return RGF_K_WEAPON_3;
+	if(name == "weapon4")		return RGF_K_WEAPON_4;
+	if(name == "weapon5")		return RGF_K_WEAPON_5;
+	if(name == "weapon6")		return RGF_K_WEAPON_6;
+	if(name == "weapon7")		return RGF_K_WEAPON_7;
+	if(name == "weapon8")		return RGF_K_WEAPON_8;
+	if(name == "weapon9")		return RGF_K_WEAPON_9;
+	if(name == "run")			return RGF_K_RUN;
+	if(name == "cameramode")	return RGF_K_CAMERA;
+	if(name == "zoomin")		return RGF_K_ZOOM_IN;
+	if(name == "zoomout")		return RGF_K_ZOOM_OUT;
+	if(name == "camerareset")	return RGF_K_CAMERA_RESET;
+	if(name == "quicksave")		return RGF_K_QUICKSAVE;
+	if(name == "quickload")		return RGF_K_QUICKLOAD;
+	if(name == "1stperson")		return RGF_K_FIRST_PERSON_VIEW;
+	if(name == "3rdperson")		return RGF_K_THIRD_PERSON_VIEW;
+	if(name == "isometric")		return RGF_K_ISO_VIEW;
+	if(name == "skip")			return RGF_K_SKIP;
+	if(name == "help")			return RGF_K_HELP;
+	if(name == "hud")			return RGF_K_HUD;
+	if(name == "lookmode")		return RGF_K_LOOKMODE;
+	if(name == "screenshot")	return RGF_K_SCRNSHOT;
+	if(name == "zoomweapon")	return RGF_K_ZOOM_WEAPON;
+	if(name == "holsterweapon")	return RGF_K_HOLSTER_WEAPON;
+	if(name == "lightonoff")	return RGF_K_LIGHT;
+	if(name == "useitem")		return RGF_K_USE;
+	if(name == "inventory")		return RGF_K_INVENTORY;
+	if(name == "console")		return RGF_K_CONSOLE;
+	if(name == "dropweapon")	return RGF_K_DROP;
+	if(name == "reload")		return RGF_K_RELOAD;
+	if(name == "powerup")		return RGF_K_POWERUP;
+	if(name == "powerdown")		return RGF_K_POWERDWN;
+
+	return -1;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
