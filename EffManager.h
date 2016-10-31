@@ -323,7 +323,6 @@ private:
 	void Bolt_Remove(EBolt *Data);
 	geBoolean Bolt_Process(EBolt  *Data, float TimeDelta);
 	geBoolean Bolt_Modify(EBolt *Data, EBolt *NewData, uint32 Flags);
-	void Bolt_Pause(EBolt *Data, geBoolean Pause );
 
 	// CORONA
 	void *Corona_Add(void *Data);
