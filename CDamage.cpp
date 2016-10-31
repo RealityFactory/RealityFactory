@@ -91,7 +91,7 @@ CDamage::~CDamage()
 /* ------------------------------------------------------------------------------------ */
 // Tick
 /* ------------------------------------------------------------------------------------ */
-void CDamage::Tick(geFloat dwTicks)
+void CDamage::Tick(float /*timeElapsed*/)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
@@ -349,7 +349,7 @@ void CDamage::Tick(geFloat dwTicks)
 //
 // Save the current state off to an open file.
 /* ------------------------------------------------------------------------------------ */
-int CDamage::SaveTo(FILE *SaveFD, bool type)
+int CDamage::SaveTo(FILE* saveFD, bool type)
 {
 	// Ok, check to see if there are DestroyableModel in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
@@ -365,7 +365,7 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 	{
 		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		WRITEDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, SaveFD);
+		WRITEDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, saveFD);
 	}
 
 	return RGF_SUCCESS;
@@ -376,7 +376,7 @@ int CDamage::SaveTo(FILE *SaveFD, bool type)
 //
 // Restore the state from an open file.
 /* ------------------------------------------------------------------------------------ */
-int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
+int CDamage::RestoreFrom(FILE* restoreFD, bool type)
 {
 	// Ok, check to see if there are DestroyableModel in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
@@ -391,7 +391,7 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 	{
 		DestroyableModel *pDestroy = static_cast<DestroyableModel*>(geEntity_GetUserData(pEntity));
 
-		READDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, RestoreFD);
+		READDATA(type, &pDestroy->AttributeAmt, sizeof(geFloat), 1, restoreFD);
 	}
 
 	return RGF_SUCCESS;
@@ -401,44 +401,55 @@ int CDamage::RestoreFrom(FILE *RestoreFD, bool type)
 /* ------------------------------------------------------------------------------------ */
 // DamageActor
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageActor(const geActor *Actor,
-						  float amount, const char *Attr,
-						  float Altamount, const char *AltAttr, const char *name)
+void CDamage::DamageActor(const geActor *actor,
+						  float amount, const std::string& attr,
+						  float altAmount, const std::string& altAttr, const std::string& name)
 {
-	int ActualAmount;
-
-	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
+	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(actor);
 
 	if(theInv)
 	{
-		if(!EffectC_IsStringNull(Attr))
-		{
-			if(theInv->Has(Attr) && (theInv->Value(Attr) > theInv->Low(Attr)))
-			{
-				ActualAmount = (int)amount;
+		int actualAmount;
 
-				if(Actor == CCD->Player()->GetActor())
+		if(!attr.empty())
+		{
+			if(theInv->Has(attr) && (theInv->Value(attr) > theInv->Low(attr)))
+			{
+				actualAmount = static_cast<int>(amount);
+
+				if(actor == CCD->Player()->GetActor())
 				{
-					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, Attr);
+					actualAmount = CCD->Armours()->AdjustDamage(actualAmount, name, attr);
 				}
 
-				theInv->Modify(Attr, -ActualAmount);
+				theInv->Modify(attr, -actualAmount);
+
+				if(actor == CCD->Player()->GetActor())
+				{
+					sxInventory::GetSingletonPtr()->UpdateItem(attr, true);
+				}
+
 				return;
 			}
 		}
 
-		if(!EffectC_IsStringNull(AltAttr))
+		if(!altAttr.empty())
 		{
-			if(theInv->Has(AltAttr) && (theInv->Value(AltAttr)>theInv->Low(AltAttr)))
+			if(theInv->Has(altAttr) && (theInv->Value(altAttr)>theInv->Low(altAttr)))
 			{
-				ActualAmount = (int)Altamount;
+				actualAmount = static_cast<int>(altAmount);
 
-				if(Actor == CCD->Player()->GetActor())
+				if(actor == CCD->Player()->GetActor())
 				{
-					ActualAmount = CCD->Armours()->AdjustDamage(ActualAmount, name, AltAttr);
+					actualAmount = CCD->Armours()->AdjustDamage(actualAmount, name, altAttr);
 				}
 
-				theInv->Modify(AltAttr, -ActualAmount);
+				theInv->Modify(altAttr, -actualAmount);
+
+				if(actor == CCD->Player()->GetActor())
+				{
+					sxInventory::GetSingletonPtr()->UpdateItem(altAttr, true);
+				}
 			}
 		}
 	}
@@ -448,19 +459,17 @@ void CDamage::DamageActor(const geActor *Actor,
 /* ------------------------------------------------------------------------------------ */
 // DamageActorInRange
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
-								 float amount, const char *Attr,
-								 float Altamount, const char *AltAttr, const char *name)
+void CDamage::DamageActorInRange(geVec3d point, float range,
+								 float amount, const std::string& attr,
+								 float altAmount, const std::string& altAttr, const std::string& name)
 {
-	geActor *ActorsInRange[512];
+	geActor *actorsInRange[512];
 
-	int nActorCount = CCD->ActorManager()->GetActorsInRange(Point, Range, 512, &ActorsInRange[0]);
+	int actorCount = CCD->ActorManager()->GetActorsInRange(point, range, 512, actorsInRange);
 
+	for(int nTemp=0; nTemp<actorCount; ++nTemp)
 	{
-		for(int nTemp=0; nTemp<nActorCount; nTemp++)
-		{
-			DamageActor(ActorsInRange[nTemp], amount, Attr, Altamount, AltAttr, name);
-		}
+		DamageActor(actorsInRange[nTemp], amount, attr, altAmount, altAttr, name);
 	}
 }
 
@@ -468,9 +477,9 @@ void CDamage::DamageActorInRange(geVec3d Point, geFloat Range,
 /* ------------------------------------------------------------------------------------ */
 // DamageModel
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageModel(const geWorld_Model *Model,
-						  float amount, const char *Attr,
-						  float Altamount, const char *AltAttr)
+void CDamage::DamageModel(const geWorld_Model* model,
+						  float amount, const std::string& attr,
+						  float altAmount, const std::string& altAttr)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
@@ -487,27 +496,34 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 		if(!pDestroy->Model)
 			continue;
 
-		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
-			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
+		if(	model != pDestroy->Model  &&
+			model != pDestroy->Model1 &&
+			model != pDestroy->Model2 &&
+			model != pDestroy->Model3 &&
+			model != pDestroy->Model4)
 			continue;
 
 		if(EffectC_IsStringNull(pDestroy->Attribute))
 		{
-			if(!stricmp(Attr, "health") && pDestroy->AttributeAmt > 0)
+			if(attr == "health" && pDestroy->AttributeAmt > 0)
 			{
 				pDestroy->AttributeAmt -= amount;
 			}
-			else if(!stricmp(AltAttr, "health"))
-				pDestroy->AttributeAmt -= Altamount;
+			else if(altAttr == "health")
+			{
+				pDestroy->AttributeAmt -= altAmount;
+			}
 		}
 		else
 		{
-			if(!stricmp(Attr, pDestroy->Attribute) && pDestroy->AttributeAmt > 0)
+			if(attr == pDestroy->Attribute && pDestroy->AttributeAmt > 0)
 			{
 				pDestroy->AttributeAmt -= amount;
 			}
-			else if(!stricmp(AltAttr, pDestroy->Attribute))
-				pDestroy->AttributeAmt -= Altamount;
+			else if(altAttr == pDestroy->Attribute)
+			{
+				pDestroy->AttributeAmt -= altAmount;
+			}
 		}
 	}
 }
@@ -516,16 +532,16 @@ void CDamage::DamageModel(const geWorld_Model *Model,
 /* ------------------------------------------------------------------------------------ */
 // DamageModelInRange
 /* ------------------------------------------------------------------------------------ */
-void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
-								 float amount, const char *Attr,
-								 float Altamount, const char *AltAttr)
+void CDamage::DamageModelInRange(geVec3d point, float range,
+								 float amount, const std::string& attr,
+								 float altAmount, const std::string& altAttr)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
 	if(!pSet)
 		return;
 
-	geFloat Range2 = Range*Range;
+	float range2 = range * range;
 	geEntity *pEntity;
 
 	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
@@ -538,75 +554,78 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 
 		if(pDestroy->active && pDestroy->bState)
 		{
-			geVec3d thePosition;
+			geVec3d position;
+			geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, &position);
 
-			float Distance2, MinDistance2;
-			geVec3d Temp;
+			geVec3d temp;
+			geVec3d_Subtract(&point, &position, &temp);
 
-			geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model, &thePosition);
-
-			geVec3d_Subtract(&Point, &thePosition, &Temp);
-			MinDistance2 = geVec3d_DotProduct(&Temp, &Temp);
+			float distance2;
+			float minDistance2 = geVec3d_DotProduct(&temp, &temp);
 
 			if(pDestroy->Model1)
 			{
-				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model1, &thePosition);
-				geVec3d_Subtract(&Point, &thePosition, &Temp);
-				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model1, &position);
+				geVec3d_Subtract(&point, &position, &temp);
+				distance2 = geVec3d_DotProduct(&temp, &temp);
 
-				if(Distance2 < MinDistance2)
-					MinDistance2 = Distance2;
+				if(distance2 < minDistance2)
+					minDistance2 = distance2;
 			}
 
 			if(pDestroy->Model2)
 			{
-				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model2, &thePosition);
-				geVec3d_Subtract(&Point, &thePosition, &Temp);
-				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model2, &position);
+				geVec3d_Subtract(&point, &position, &temp);
+				distance2 = geVec3d_DotProduct(&temp, &temp);
 
-				if(Distance2 < MinDistance2)
-					MinDistance2 = Distance2;
+				if(distance2 < minDistance2)
+					minDistance2 = distance2;
 			}
 
 			if(pDestroy->Model3)
 			{
-				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model3, &thePosition);
-				geVec3d_Subtract(&Point, &thePosition, &Temp);
-				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model3, &position);
+				geVec3d_Subtract(&point, &position, &temp);
+				distance2 = geVec3d_DotProduct(&temp, &temp);
 
-				if(Distance2 < MinDistance2)
-					MinDistance2 = Distance2;
+				if(distance2 < minDistance2)
+					minDistance2 = distance2;
 			}
 
 			if(pDestroy->Model4)
 			{
-				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model4, &thePosition);
-				geVec3d_Subtract(&Point, &thePosition, &Temp);
-				Distance2 = geVec3d_DotProduct(&Temp, &Temp);
+				geWorld_GetModelRotationalCenter(CCD->World(), pDestroy->Model4, &position);
+				geVec3d_Subtract(&point, &position, &temp);
+				distance2 = geVec3d_DotProduct(&temp, &temp);
 
-				if(Distance2 < MinDistance2)
-					MinDistance2 = Distance2;
+				if(distance2 < minDistance2)
+					minDistance2 = distance2;
 			}
 
-			if(MinDistance2 <= Range2)
+			if(minDistance2 <= range2)
 			{
 				if(EffectC_IsStringNull(pDestroy->Attribute))
 				{
-					if(!stricmp(Attr, "health") && pDestroy->AttributeAmt > 0)
+					if(attr == "health" && pDestroy->AttributeAmt > 0)
 					{
 						pDestroy->AttributeAmt -= amount;
 					}
-					else if(!stricmp(AltAttr, "health"))
-						pDestroy->AttributeAmt -= Altamount;
+					else if(altAttr == "health")
+					{
+						pDestroy->AttributeAmt -= altAmount;
+					}
 				}
 				else
 				{
-					if(!stricmp(Attr, pDestroy->Attribute) && pDestroy->AttributeAmt > 0)
+					if(attr == pDestroy->Attribute && pDestroy->AttributeAmt > 0)
 					{
 						pDestroy->AttributeAmt -= amount;
 					}
-					else if(!stricmp(AltAttr, pDestroy->Attribute))
-						pDestroy->AttributeAmt -= Altamount;
+					else if(altAttr == pDestroy->Attribute)
+					{
+						pDestroy->AttributeAmt -= altAmount;
+					}
 				}
 			}
 		}
@@ -617,7 +636,7 @@ void CDamage::DamageModelInRange(geVec3d Point, geFloat Range,
 /* ------------------------------------------------------------------------------------ */
 // IsDestroyable
 /* ------------------------------------------------------------------------------------ */
-bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
+bool CDamage::IsDestroyable(geWorld_Model* model, int* percentage)
 {
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "DestroyableModel");
 
@@ -634,11 +653,14 @@ bool CDamage::IsDestroyable(geWorld_Model *Model, int *Percentage)
 		if(!pDestroy->Model)
 			continue;
 
-		if(Model != pDestroy->Model && Model != pDestroy->Model1 && Model != pDestroy->Model2
-			&& Model != pDestroy->Model3 && Model != pDestroy->Model4)
+		if(	model != pDestroy->Model  &&
+			model != pDestroy->Model1 &&
+			model != pDestroy->Model2 &&
+			model != pDestroy->Model3 &&
+			model != pDestroy->Model4)
 			continue;
 
-		*Percentage = ((int)pDestroy->AttributeAmt * 100)/(int)pDestroy->OriginalAmt;
+		*percentage = (static_cast<int>(pDestroy->AttributeAmt) * 100)/static_cast<int>(pDestroy->OriginalAmt);
 
 		return true;
 	}

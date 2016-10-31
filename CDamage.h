@@ -20,26 +20,29 @@ public:
 	CDamage();
 	~CDamage();
 
-	void Tick(geFloat dwTicks);
-	int SaveTo(FILE *SaveFD, bool type);
-	int RestoreFrom(FILE *RestoreFD, bool type);
+	void Tick(float timeElapsed);
 
-	void DamageActor(const geActor *Actor,
-							float amount, const char *Attr,
-							float Altamount, const char *AltAttr, const char *name);
-	void DamageActorInRange(geVec3d Point, geFloat Range,
-							float amount, const char *Attr,
-							float Altamount, const char *AltAttr, const char *name);
+	int SaveTo(FILE* saveFD, bool type);
 
-	void DamageModel(const geWorld_Model *Model,
-							float amount, const char *Attr,
-							float Altamount, const char *AltAttr);
-	void DamageModelInRange(geVec3d Point, geFloat Range,
-							float amount, const char *Attr,
-							float Altamount, const char *AltAttr);
+	int RestoreFrom(FILE* restoreFD, bool type);
 
-	bool IsDestroyable(geWorld_Model *Model, int *Percentage);
+	void DamageActor(const geActor* actor,
+							float amount, const std::string& attr,
+							float altAmount, const std::string& altAttr, const std::string& name);
 
+	void DamageActorInRange(geVec3d point, float range,
+							float amount, const std::string& attr,
+							float altAmount, const std::string& altAttr, const std::string& name);
+
+	void DamageModel(const geWorld_Model* model,
+							float amount, const std::string& attr,
+							float altAmount, const std::string& altAttr);
+
+	void DamageModelInRange(geVec3d point, float range,
+							float amount, const std::string& attr,
+							float altAmount, const std::string& altAttr);
+
+	bool IsDestroyable(geWorld_Model* model, int* percentage);
 
 	/**
 	 * @brief Given a name, locate the desired entity in the currently loaded
