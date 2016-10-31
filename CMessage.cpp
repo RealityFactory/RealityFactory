@@ -4,6 +4,7 @@
  *
  * This file contains the class implementation for Message handling.
  * @author Ralph Deane
+ * @author Daniel Queteschiner
  *//*
  * Copyright (c) 2001 Ralph Deane; All Rights Reserved.
  ****************************************************************************************/
@@ -11,16 +12,51 @@
 // Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CFileManager.h"
 #include "IniFile.h"
+#include "CGameStateManager.h"
+#include "CPlayState.h"
+#include "CDialogState.h"
+#include "CGUIManager.h"
+#include "CLanguageManager.h"
 #include "CMessage.h"
 
-extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
-							  const char *BName, const char *AName);
+enum
+{
+	FADE_NONE = 0,
+	FADE_IN,
+	FADE_OUT
+};
+
+
+class MessageType
+{
+public:
+	MessageType()
+		: m_Scripted(false), m_TimeElapsed(0.f), m_DisplayTime(0.f),
+		m_FadeInTime(0.f), m_FadeOutTime(0.f), m_FadeTime(0.f), m_FadeDir(FADE_NONE),
+		m_Alpha(1.f), m_AlphaStep(0.f), m_Window(NULL), m_TextWindow(NULL)
+	{ }
+
+public:
+	bool		m_Scripted; // modal or modeless
+	float		m_TimeElapsed;
+	float		m_DisplayTime;
+	float		m_FadeInTime;
+	float		m_FadeOutTime;
+	float		m_FadeTime;
+	int			m_FadeDir;
+	float		m_Alpha;
+	float		m_AlphaStep;
+	CEGUI::Window* m_Window;
+	CEGUI::Window* m_TextWindow;
+};
 
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
-CMessage::CMessage()
+CMessage::CMessage() :
+	m_Active(false)
 {
 	// Ok, check to see if there are Messages in this world
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
@@ -28,16 +64,12 @@ CMessage::CMessage()
 	if(!pSet)
 		return;
 
-	active = true;
-
-	LoadText(CCD->MenuManager()->GetMessagetxts());
-
-	AttrFile.SetPath("message.ini");
-	if(!AttrFile.ReadFile())
-	{
-		active = false;
+	if(!LoadConfiguration(CCD->LanguageManager()->GetActiveLanguage()->GetMessageConfigFilename()))
 		return;
-	}
+
+	LoadText(CCD->LanguageManager()->GetActiveLanguage()->GetMessageTextFilename());
+
+	m_Active = true;
 
 	geEntity *pEntity;
 
@@ -56,182 +88,118 @@ CMessage::CMessage()
 
 		// Ok, put this entity into the Global Entity Registry
 		CCD->EntityRegistry()->AddEntity(pSource->szEntityName, "Message");
-		pSource->Data = NULL;
+		pSource->Time = 0.0f;
 
-		if(!EffectC_IsStringNull(pSource->DisplayType))
+		if(m_MessageTypes.find(pSource->DisplayType) == m_MessageTypes.end())
 		{
-			MessageData *Data = new MessageData;
-
-			if(Data)
-				memset(Data,0,sizeof(MessageData));
-			else
-				continue;
-
-			pSource->Data = (void*)Data;
-			std::string KeyName = AttrFile.FindFirstKey();
-			std::string Type;
-
-			char szName[64], szAlpha[64];
-
-			while(KeyName != "")
-			{
-				if(!strcmp(KeyName.c_str(), pSource->DisplayType))
-				{
-					Type = AttrFile.GetValue(KeyName, "type");
-
-					if(Type == "")
-					{
-						delete pSource->Data;
-						pSource->Data = NULL;
-						break;
-					}
-
-					if(Type == "static")
-					{
-						Data->type = 0;
-						Data->centerx = false;
-
-						Type = AttrFile.GetValue(KeyName, "positionx");
-
-						if(Type == "center")
-							Data->centerx = true;
-
-						Data->posx = AttrFile.GetValueI(KeyName, "positionx");
-						Data->centery = false;
-
-						Type = AttrFile.GetValue(KeyName, "positiony");
-
-						if(Type == "center")
-							Data->centery = true;
-
-						Data->posy = AttrFile.GetValueI(KeyName, "positiony");
-						Data->time = (float)AttrFile.GetValueF(KeyName, "displaytime");
-						Data->fadeintime = (float)AttrFile.GetValueF(KeyName, "fadeintime");
-						Data->fadeouttime = (float)AttrFile.GetValueF(KeyName, "fadeouttime");
-						Data->font = AttrFile.GetValueI(KeyName, "fontsize");
-						Data->graphic = NULL;
-
-						Type = AttrFile.GetValue(KeyName, "graphic");
-
-						if(Type != "")
-						{
-							Data->graphiccenterx = false;
-
-							Type = AttrFile.GetValue(KeyName, "graphicpositionx");
-
-							if(Type == "center")
-								Data->graphiccenterx = true;
-
-							Data->graphicposx = AttrFile.GetValueI(KeyName, "graphicpositionx");
-							Data->graphiccentery = false;
-
-							Type = AttrFile.GetValue(KeyName, "graphicpositiony");
-
-							if(Type == "center")
-								Data->graphiccentery = true;
-
-							Data->graphicposy = AttrFile.GetValueI(KeyName, "graphicpositiony");
-							Data->graphicstyle = AttrFile.GetValueI(KeyName, "graphicstyle");
-							Data->graphicframes = AttrFile.GetValueI(KeyName, "graphicframes");
-
-							if(Data->graphicframes == 0)
-								Data->graphicframes = 1;
-
-							Data->graphicspeed = AttrFile.GetValueI(KeyName, "graphicspeed");
-
-							if(Data->graphicspeed == 0)
-								Data->graphicspeed = 1;
-
-							Data->graphicfadeintime = (float)AttrFile.GetValueF(KeyName, "graphicfadeintime");
-							Data->graphicfadeouttime = (float)AttrFile.GetValueF(KeyName, "graphicfadeouttime");
-							Data->graphic = (geBitmap**)geRam_AllocateClear(sizeof(geBitmap*)*(Data->graphicframes));
-
-							if(Data->graphic)
-							{
-								Type = AttrFile.GetValue(KeyName, "graphic");
-
-								strcpy(szName,Type.c_str());
-
-								Type = AttrFile.GetValue(KeyName, "graphicalpha");
-
-								if(Type == "")
-									Type = AttrFile.GetValue(KeyName, "graphic");
-
-								strcpy(szAlpha, Type.c_str());
-
-								if(Data->graphicstyle == 0)
-								{
-									Data->graphic[0] = TPool_Bitmap(szName, szAlpha, NULL, NULL);
-								}
-								else
-								{
-									for(int i=0; i<Data->graphicframes; i++)
-									{
-										char BmpName[256];
-										char AlphaName[256];
-										// build bmp and alpha names
-										sprintf(BmpName, "%s%d%s", szName, i, ".bmp");
-										sprintf(AlphaName, "%s%d%s", szAlpha, i, ".bmp");
-										Data->graphic[i] = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
-									}
-								}
-							}
-						}
-
-						Data->active = false;
-					}
-
-					break;
-				}
-
-				KeyName = AttrFile.FindNextKey();
-			}
+			CCD->Log()->Warning("Display Type %s of Message entity %s not defined",
+				pSource->DisplayType, pSource->szEntityName);
 		}
 	}
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Destructor
+// Destructor
 /* ------------------------------------------------------------------------------------ */
 CMessage::~CMessage()
 {
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
+	ClearMessageTypes();
+}
 
-	// Ok, check to see if there are Messages in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
 
-	if(!pSet)
-		return;
+void CMessage::ClearMessageTypes()
+{
+	stdext::hash_map<std::string, MessageType*>::iterator iter = m_MessageTypes.begin();
 
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	for(; iter!=m_MessageTypes.end(); ++iter)
 	{
-		Message *pSource = (Message*)geEntity_GetUserData(pEntity);
-
-		if(pSource->Data)
-		{
-			MessageData *Data = (MessageData*)(pSource->Data);
-
-			if(Data->graphic)
-			{
-				geRam_Free(Data->graphic);
-				Data->graphic = NULL;
-			}
-
-			delete Data;
-			pSource->Data = NULL;
-		}
+		CCD->GUIManager()->DestroyWindow(iter->second->m_Window);
+		delete (iter->second);
 	}
+
+	m_MessageTypes.clear();
+
+	CCD->GUIManager()->CleanDeadWindowPool();
+}
+
+
+bool CMessage::LoadConfiguration(const std::string& filename)
+{
+	CIniFile iniFile(filename);
+
+	if(!iniFile.ReadFile())
+	{
+		CCD->Log()->Warning("Failed to open " + filename + " file.");
+		return false;
+	}
+
+	ClearMessageTypes();
+
+	std::string keyName = iniFile.FindFirstKey();
+	std::string value;
+
+	while(!keyName.empty())
+	{
+		if(m_MessageTypes.find(keyName) != m_MessageTypes.end())
+		{
+			CCD->Log()->Warning("Redefinition of Message Type [" + keyName + "] in " + filename + " file.");
+			keyName = iniFile.FindNextKey();
+			continue;
+		}
+
+		value = iniFile.GetValue(keyName, "layout");
+
+		if(value.empty())
+		{
+			CCD->Log()->Warning("No layout file defined for Message Type [" + keyName + "]");
+			keyName = iniFile.FindNextKey();
+			continue;
+		}
+
+		m_MessageTypes[keyName] = new MessageType();
+
+		m_MessageTypes[keyName]->m_Window = CCD->GUIManager()->LoadWindowLayout(value);
+
+		value = iniFile.GetValue(keyName, "textwindow");
+		m_MessageTypes[keyName]->m_TextWindow = CCD->GUIManager()->GetWindow(value);
+
+		m_MessageTypes[keyName]->m_DisplayTime = static_cast<float>(iniFile.GetValueF(keyName, "displaytime"));
+		m_MessageTypes[keyName]->m_FadeInTime = static_cast<float>(iniFile.GetValueF(keyName, "fadeintime"));
+		m_MessageTypes[keyName]->m_FadeOutTime = static_cast<float>(iniFile.GetValueF(keyName, "fadeouttime"));
+
+		m_MessageTypes[keyName]->m_Window->hide();
+
+		{
+			value = iniFile.GetValue(keyName, "script");
+			if(!value.empty())
+			{
+				m_MessageTypes[keyName]->m_Scripted = true;
+				CEGUI::System::getSingleton().executeScriptFile(value.c_str());
+			}
+		}
+
+		if(iniFile.GetValue(keyName, "gamestate") == "dialog")
+		{
+			CDialogState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_MessageTypes[keyName]->m_Window);
+		}
+		else
+		{
+			CPlayState::GetSingletonPtr()->GetDefaultWindow()->addChildWindow(m_MessageTypes[keyName]->m_Window);
+		}
+
+		keyName = iniFile.FindNextKey();
+	}
+
+	return true;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//  Tick
+// Tick
 /* ------------------------------------------------------------------------------------ */
-void CMessage::Tick(geFloat dwTicks)
+void CMessage::Tick(float timeElapsed)
 {
 	// Ok, check to see if there are Messages in this world
-	if(!active)
+	if(!m_Active)
 		return;
 
 	geEntity_EntitySet *pSet = geWorld_GetEntitySet(CCD->World(), "Message");
@@ -246,289 +214,151 @@ void CMessage::Tick(geFloat dwTicks)
 		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
 	{
 		Message *pSource = static_cast<Message*>(geEntity_GetUserData(pEntity));
-		MessageData *Data = (MessageData*)pSource->Data;
+		pSource->Time -= timeElapsed * 0.001f;
 
-		if(!EffectC_IsStringNull(pSource->TriggerName))
+		if(pSource->Time <= 0.0f && !EffectC_IsStringNull(pSource->TriggerName))
 		{
 			if(GetTriggerState(pSource->TriggerName))
 			{
-				if(!(Data->active))
+				std::string type = pSource->DisplayType;
+
+				if(m_MessageTypes.find(type) != m_MessageTypes.end())
 				{
-					Data->ticks = 0.0f;
-					Data->graphicticks = 0.0f;
-					Data->active = true;
-					Data->fadetime = Data->fadeintime;
-					Data->fadein = 0;
-					Data->alpha = 255.0f;
+					pSource->Time = m_MessageTypes[type]->m_DisplayTime;
+					if(pSource->Time <= 0.1f) pSource->Time = 1.f;
 
-					if(Data->fadetime > 0.0f)
+					if(m_MessageTypes[type]->m_Window->isVisible())
 					{
-						Data->fadein = 1;
-						Data->alpha = 0.0f;
-						Data->alphastep = 255.0f/Data->fadetime;
-					}
-					else
-					{
-						Data->fadetime = Data->fadeouttime;
-						if(Data->fadetime > 0.0f)
-						{
-							Data->fadein = 2;
-							Data->alpha = 255.0f;
-							Data->alphastep = 255.0f/Data->fadetime;
-						}
-					}
+						if(m_MessageTypes[type]->m_Scripted)
+							continue;
 
-					if(Data->graphic)
-					{
-						Data->graphiccur = 0;
-						Data->graphicdir = 1;
-						Data->graphicfadetime = Data->graphicfadeintime;
-						Data->graphicfadein = 0;
-						Data->graphicalpha = 255.0f;
-
-						if(Data->graphicfadetime > 0.0f)
+						if((m_MessageTypes[type]->m_DisplayTime - m_MessageTypes[type]->m_TimeElapsed) <= m_MessageTypes[type]->m_FadeOutTime)
 						{
-							Data->graphicfadein = 1;
-							Data->graphicalpha = 0.0f;
-							Data->graphicalphastep = 255.0f/Data->graphicfadetime;
-						}
-						else
-						{
-							Data->graphicfadetime = Data->graphicfadeouttime;
+							m_MessageTypes[type]->m_FadeTime = m_MessageTypes[type]->m_FadeInTime;
+							m_MessageTypes[type]->m_FadeDir = FADE_NONE;
+							m_MessageTypes[type]->m_TimeElapsed = m_MessageTypes[type]->m_Alpha * m_MessageTypes[type]->m_FadeInTime;
 
-							if(Data->graphicfadetime > 0.0f)
+							if(m_MessageTypes[type]->m_FadeTime > 0.0f)
 							{
-								Data->graphicfadein = 2;
-								Data->graphicalpha = 255.0f;
-								Data->graphicalphastep = 255.0f/Data->graphicfadetime;
+								m_MessageTypes[type]->m_FadeDir = FADE_IN;
+								m_MessageTypes[type]->m_AlphaStep = 1.0f / m_MessageTypes[type]->m_FadeInTime;
+							}
+						}
+						else if(m_MessageTypes[type]->m_TimeElapsed > m_MessageTypes[type]->m_FadeInTime)
+						{
+							m_MessageTypes[type]->m_FadeTime = m_MessageTypes[type]->m_FadeOutTime;
+							m_MessageTypes[type]->m_TimeElapsed = m_MessageTypes[type]->m_FadeInTime;
+							m_MessageTypes[type]->m_FadeDir = FADE_NONE;
+
+							if(m_MessageTypes[type]->m_FadeTime > 0.0f)
+							{
+								m_MessageTypes[type]->m_FadeDir = FADE_OUT;
+								m_MessageTypes[type]->m_AlphaStep = 1.0f / m_MessageTypes[type]->m_FadeTime;
 							}
 						}
 					}
-				}
-			}
-		}
-
-		if(Data->active)
-		{
-			Data->ticks += dwTicks;
-
-			if((Data->ticks*0.001f) >= Data->time)
-			{
-				Data->active = false;
-			}
-			else
-			{
-				// fade in/out
-				if(Data->fadein == 1)
-				{
-					if((Data->ticks*0.001f) <= Data->fadetime)
-					{
-						Data->alpha += (Data->alphastep*(dwTicks*0.001f));
-
-						if(Data->alpha > 255.0f)
-							Data->alpha = 255.0f;
-					}
 					else
 					{
-						Data->fadetime = Data->fadeouttime;
-						Data->fadein = 0;
-						Data->alpha = 255.0f;
+						m_MessageTypes[type]->m_TextWindow->setText(GetText(pSource->TextName));
 
-						if(Data->fadetime > 0.0f)
+						m_MessageTypes[type]->m_TimeElapsed = 0.0f;
+
+						m_MessageTypes[type]->m_FadeDir = FADE_NONE;
+						m_MessageTypes[type]->m_Alpha = 1.0f;
+
+						if(!m_MessageTypes[type]->m_Scripted)
 						{
-							Data->fadein = 2;
-							Data->alpha = 255.0f;
-							Data->alphastep = 255.0f/Data->fadetime;
-						}
-					}
-				}
-				else if(Data->fadein == 2)
-				{
-					if((Data->time-(Data->ticks*0.001f)) <= Data->fadetime)
-					{
-						Data->alpha -= (Data->alphastep*(dwTicks*0.001f));
+							m_MessageTypes[type]->m_FadeTime = m_MessageTypes[type]->m_FadeInTime;
 
-						if(Data->alpha < 0.0f)
-							Data->alpha = 0.0f;
-					}
-				}
-
-				if(Data->graphic)
-				{
-					Data->graphicticks += dwTicks;
-
-					if(Data->graphicfadein == 1)
-					{
-						if((Data->ticks*0.001f) <= Data->graphicfadetime)
-						{
-							Data->graphicalpha += (Data->graphicalphastep*(dwTicks*0.001f));
-
-							if(Data->graphicalpha > 255.0f)
-								Data->graphicalpha = 255.0f;
-						}
-						else
-						{
-							Data->graphicfadetime = Data->graphicfadeouttime;
-							Data->graphicfadein = 0;
-							Data->graphicalpha = 255.0f;
-
-							if(Data->graphicfadetime > 0.0f)
+							if(m_MessageTypes[type]->m_FadeTime > 0.0f)
 							{
-								Data->graphicfadein = 2;
-								Data->graphicalpha = 255.0f;
-								Data->graphicalphastep = 255.0f/Data->graphicfadetime;
+								m_MessageTypes[type]->m_FadeDir = FADE_IN;
+								m_MessageTypes[type]->m_Alpha = 0.0f;
+								m_MessageTypes[type]->m_AlphaStep = 1.0f / m_MessageTypes[type]->m_FadeTime;
 							}
-						}
-					}
-					else if(Data->graphicfadein == 2)
-					{
-						if((Data->time-(Data->ticks*0.001f)) <= Data->graphicfadetime)
-						{
-							Data->graphicalpha -= (Data->graphicalphastep*(dwTicks*0.001f));
-
-							if(Data->graphicalpha < 0.0f)
-								Data->graphicalpha = 0.0f;
-						}
-					}
-
-					if(Data->graphicstyle != 0)
-					{
-						if(Data->graphicticks >= (1000.0f/Data->graphicspeed))
-						{
-							Data->graphicticks = 0.0f;
-
-							switch(Data->graphicstyle)
+							else
 							{
-							case 1:
-								Data->graphiccur += 1;
-								if(Data->graphiccur >= Data->graphicframes)
-									Data->graphiccur = 0;
-								break;
-							case 2:
-								Data->graphiccur += Data->graphicdir;
-								if(Data->graphiccur >= Data->graphicframes || Data->graphiccur < 0)
+								m_MessageTypes[type]->m_FadeTime = m_MessageTypes[type]->m_FadeOutTime;
+
+								if(m_MessageTypes[type]->m_FadeTime > 0.0f)
 								{
-									Data->graphicdir = -Data->graphicdir;
-									Data->graphiccur += Data->graphicdir;
+									m_MessageTypes[type]->m_FadeDir = FADE_OUT;
+									m_MessageTypes[type]->m_AlphaStep = 1.0f / m_MessageTypes[type]->m_FadeTime;
 								}
-								break;
-							case 3:
-								Data->graphiccur = (rand() % Data->graphicframes);
-								break;
-							case 4:
-								Data->graphiccur +=1;
-								if(Data->graphiccur >= Data->graphicframes)
-									Data->graphiccur = Data->graphicframes-1;
-								break;
 							}
 						}
+
+						m_MessageTypes[type]->m_Window->show();
 					}
+
+					m_MessageTypes[type]->m_Window->setAlpha(m_MessageTypes[type]->m_Alpha);
+					m_MessageTypes[type]->m_TextWindow->setText(GetText(pSource->TextName));
 				}
 			}
 		}
 	}
 
-}
-
-/* ------------------------------------------------------------------------------------ */
-//  Display
-/* ------------------------------------------------------------------------------------ */
-void CMessage::Display()
-{
-	geEntity_EntitySet *pSet;
-	geEntity *pEntity;
-
-	if(!active)
-		return;
-
-	// Ok, check to see if there are Messages in this world
-	pSet = geWorld_GetEntitySet(CCD->World(), "Message");
-
-	if(!pSet)
-		return;
-
-	// Ok, we have Messages somewhere.  Dig through 'em all.
-	for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-		pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+	stdext::hash_map<std::string, MessageType*>::iterator iter = m_MessageTypes.begin();
+	for(; iter!=m_MessageTypes.end(); ++iter)
 	{
-		Message *pSource = (Message*)geEntity_GetUserData(pEntity);
-		MessageData *Data = (MessageData *)pSource->Data;
+		if(iter->second->m_Scripted)
+			continue;
 
-		if(Data->active)
+		if(iter->second->m_Window->isVisible())
 		{
-			if(!EffectC_IsStringNull(pSource->TextName))
+			iter->second->m_TimeElapsed += timeElapsed * 0.001f;
+
+			if((iter->second->m_TimeElapsed) >= iter->second->m_DisplayTime)
 			{
-				std::string Textt = GetText(pSource->TextName);
-
-				// static type message
-				if(Data->type == 0)
+				iter->second->m_Window->hide();
+			}
+			else
+			{
+				// fade in/out
+				switch(iter->second->m_FadeDir)
 				{
-					int posx, posy;
-
-					if(Data->graphic)
+				case FADE_IN:
 					{
-						posx = Data->graphicposx;
-						posy = Data->graphicposy;
-
-						if(posx < 0)
-							posx = CCD->Engine()->Width() + posx;
-
-						if(posy < 0)
-							posy = CCD->Engine()->Height() + posy;
-
-						if(Data->graphiccenterx)
-							posx = (CCD->Engine()->Width() - geBitmap_Width(Data->graphic[Data->graphiccur]))/2;
-
-						if(Data->graphiccentery)
-							posy = (CCD->Engine()->Height() - geBitmap_Height(Data->graphic[Data->graphiccur]))/2;
-
-						CCD->Engine()->DrawBitmap(Data->graphic[Data->graphiccur], NULL, posx, posy, Data->graphicalpha, 1.0f);
-					}
-
-					char *szText = NULL;
-
-					posx = Data->posx;
-					posy = Data->posy;
-
-					if(posx < 0)
-						posx = CCD->Engine()->Width() + posx;
-
-					if(posy < 0)
-						posy = CCD->Engine()->Height() + posy;
-
-					if(Data->centery)
-						posy = (CCD->Engine()->Height() - CCD->MenuManager()->FontHeight(Data->font))/2;
-
-					while(1)
-					{
-						int Index = Textt.find((char)1);
-
-						if(Index == -1) // no newline indicator ( <CR> ) found
+						if(iter->second->m_TimeElapsed <= iter->second->m_FadeTime)
 						{
-							szText = new char[Textt.length()+1];
-							strcpy(szText, Textt.c_str());
+							iter->second->m_Alpha += iter->second->m_AlphaStep * timeElapsed * 0.001f;
 
-							if(Data->centerx)
-								posx = (CCD->Engine()->Width() - CCD->MenuManager()->FontWidth(Data->font, szText))/2;
+							if(iter->second->m_Alpha > 1.0f)
+								iter->second->m_Alpha = 1.0f;
 
-							CCD->MenuManager()->WorldFontRect(szText, Data->font, posx, posy, Data->alpha);
-
-							delete szText;
-							break;
+							iter->second->m_Window->setAlpha(iter->second->m_Alpha);
 						}
 						else
 						{
-							szText = new char[Textt.length()+1];
-							strcpy(szText, Textt.substr(0, Index).c_str());
+							iter->second->m_FadeTime = iter->second->m_FadeOutTime;
+							iter->second->m_FadeDir = FADE_NONE;
+							iter->second->m_Alpha = 1.0f;
+							iter->second->m_Window->setAlpha(1.0f);
 
-							if(Data->centerx)
-								posx = (CCD->Engine()->Width() - CCD->MenuManager()->FontWidth(Data->font, szText))/2;
-
-							CCD->MenuManager()->WorldFontRect(szText, Data->font, posx, posy, Data->alpha);
-							delete szText;
-							posy += CCD->MenuManager()->FontHeight(Data->font) + 2;
-							Textt = Textt.substr(Index+1);
+							if(iter->second->m_FadeTime > 0.0f)
+							{
+								iter->second->m_FadeDir = FADE_OUT;
+								iter->second->m_Alpha = 1.0f;
+								iter->second->m_AlphaStep = 1.0f/iter->second->m_FadeTime;
+							}
 						}
+						break;
+					}
+				case FADE_OUT:
+					{
+						if((iter->second->m_DisplayTime - iter->second->m_TimeElapsed) <= iter->second->m_FadeTime)
+						{
+							iter->second->m_Alpha -= iter->second->m_AlphaStep * timeElapsed * 0.001f;
+
+							if(iter->second->m_Alpha < 0.0f)
+							{
+								iter->second->m_Alpha = 0.0f;
+								iter->second->m_Window->hide();
+							}
+
+							iter->second->m_Window->setAlpha(iter->second->m_Alpha);
+						}
+						break;
 					}
 				}
 			}
@@ -584,13 +414,12 @@ int CMessage::ReSynchronize()
 /* ------------------------------------------------------------------------------------ */
 // LoadText
 /* ------------------------------------------------------------------------------------ */
-void CMessage::LoadText(const char *messagetxt)
+void CMessage::LoadText(const std::string& messagetxt)
 {
 	geVFile *MainFS;
+	m_Text.clear();
 
-	Text.resize(0);
-
-	if(!CCD->OpenRFFile(&MainFS, kInstallFile, messagetxt, GE_VFILE_OPEN_READONLY))
+	if(!CFileManager::GetSingletonPtr()->OpenRFFile(&MainFS, kInstallFile, messagetxt.c_str(), GE_VFILE_OPEN_READONLY))
 		return;
 
 	char szInputLine[256];
@@ -615,11 +444,8 @@ void CMessage::LoadText(const char *messagetxt)
 			{
 				if(!keyname.empty() && !text.empty())
 				{
-					Text.resize(Text.size()+1);
-					int keynum = Text.size()-1;
-					Text[keynum].Name = keyname;
-					Text[keynum].Text = text;
-					Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
+					m_Text[keyname] = text;
+					Replace(m_Text[keyname], "<Player>", CCD->Player()->GetPlayerName());
 				}
 
 				keyname = readinfo;
@@ -631,12 +457,11 @@ void CMessage::LoadText(const char *messagetxt)
 			{
 				if(readinfo == "<CR>")
 				{
-					text += " ";
-					text[text.length()-1] = (char)1;
+					text += '\n';
 				}
 				else
 				{
-					if(text != "" && text[text.length()-1] != 1)
+					if(!text.empty() && text[text.length()-1] != '\n')
 						text += " ";
 
 					text += readinfo;
@@ -647,11 +472,8 @@ void CMessage::LoadText(const char *messagetxt)
 
 	if(!keyname.empty() && !text.empty())
 	{
-		Text.resize(Text.size()+1);
-		int keynum = Text.size()-1;
-		Text[keynum].Name = keyname;
-		Text[keynum].Text = text;
-		Replace(Text[keynum].Text, "<Player>", CCD->Player()->GetPlayerName());
+		m_Text[keyname] = text;
+		Replace(m_Text[keyname], "<Player>", CCD->Player()->GetPlayerName());
 	}
 
 	geVFile_Close(MainFS);
@@ -660,20 +482,12 @@ void CMessage::LoadText(const char *messagetxt)
 /* ------------------------------------------------------------------------------------ */
 // GetText
 /* ------------------------------------------------------------------------------------ */
-std::string CMessage::GetText(const char *Name)
+const utf8* CMessage::GetText(const std::string& name)
 {
-	int size = Text.size();
+	if(m_Text.find(name) != m_Text.end())
+		return reinterpret_cast<const utf8*>(m_Text[name].c_str());
 
-	if(size < 1)
-		return "";
-
-	for(int i=0; i<size; i++)
-	{
-		if(Text[i].Name == Name)
-			return Text[i].Text;
-	}
-
-	return "";
+	return NULL;
 }
 
 

@@ -2198,7 +2198,7 @@ typedef struct _LogicGate
 typedef struct _Message
 {
 #pragma GE_Private
-	void	*Data;
+	geFloat	Time;
 #pragma GE_Published
 	geVec3d origin;
 	char	*szEntityName;	// Name of this entity
@@ -2207,11 +2207,11 @@ typedef struct _Message
 	char	*TextName;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(szEntityName, "")
-#pragma GE_DefaultValue(DisplayType, "Static")
+#pragma GE_DefaultValue(DisplayType, "")
 #pragma GE_DefaultValue(TriggerName, "")
 #pragma GE_DefaultValue(TextName, "")
 #pragma GE_Documentation(szEntityName, "Name of entity (used in scripting and triggers)")
-#pragma GE_Documentation(DisplayType, "Name of message type (can only be Static currently)")
+#pragma GE_Documentation(DisplayType, "Name of message type (as defined in message.ini file)")
 #pragma GE_Documentation(TriggerName, "Name of trigger entity to use")
 #pragma GE_Documentation(TextName, "Name of text section to display")
 } Message;

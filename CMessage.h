@@ -11,51 +11,9 @@
 #ifndef __RGF_CMESSAGE_H_
 #define __RGF_CMESSAGE_H_
 
+#include <hash_map>
 
-typedef struct MessageText
-{
-	std::string Text;
-	std::string Name;
-
-} MessageText;
-
-
-typedef struct MessageData
-{
-	bool		active;
-	float		ticks;
-	int			type;
-	int			posx;
-	int			posy;
-	bool		centerx;
-	bool		centery;
-	float		time;
-	float		fadeintime;
-	float		fadeouttime;
-	int			font;
-	float		fadetime;
-	int			fadein;
-	float		alpha;
-	float		alphastep;
-	geBitmap	**graphic;
-	int			graphicposx;
-	int			graphicposy;
-	bool		graphiccenterx;
-	bool		graphiccentery;
-	int			graphicstyle;
-	int			graphicframes;
-	int			graphicspeed;
-	float		graphicfadeintime;
-	float		graphicfadeouttime;
-	float		graphicfadetime;
-	int			graphicfadein;
-	float		graphicalpha;
-	float		graphicalphastep;
-	float		graphicticks;
-	int			graphiccur;
-	int			graphicdir;
-
-} MessageData;
+class MessageType;
 
 
 class CMessage : public CRGFComponent
@@ -64,8 +22,7 @@ public:
 	CMessage();
 	~CMessage();
 
-	void Tick(geFloat dwTicks);
-	void Display();
+	void Tick(float timeElapsed);
 
 	/**
 	 * @brief Given a name, locate the desired entity in the currently loaded
@@ -78,15 +35,19 @@ public:
 	 * lost when outside the game loop (typically in "menu mode").
 	 */
 	int ReSynchronize();
-	void LoadText(const char *messagetxt);
+
+	void LoadText(const std::string& messagetxt);
+
+	bool LoadConfiguration(const std::string& filename);
 
 private:
-	std::string GetText(const char *Name);
+	const utf8* GetText(const std::string& name);
+	void ClearMessageTypes();
 
 private:
-	std::vector<MessageText> Text;
-	CIniFile AttrFile;
-	bool active;
+	stdext::hash_map<std::string, std::string> m_Text;
+	stdext::hash_map<std::string, MessageType*> m_MessageTypes;
+	bool m_Active;
 };
 
 #endif
