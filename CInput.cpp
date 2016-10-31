@@ -1,28 +1,112 @@
 /************************************************************************************//**
  * @file CInput.cpp
- * @author Ralph Deane
  * @brief Keyboard and mouse input handler
  *
  * This file contains the class implementation for the CInput class that
  * encapsulates all mouse and keyboard input for RGF-based games.
+ * @author Ralph Deane
+ * @author Daniel Queteschiner
  *//*
  ****************************************************************************************/
 
-//	You only need the one, master include file.
 #include "RabidFramework.h"
+#include "CFileManager.h"
+#include "CScriptManager.h"
+#include "CInputKey.h"
+#include "CInputMouseButton.h"
+#include "CInputAction.h"
+#include "RFSX/CEGUI/sxCEGUIVector2.h"
 
-/* ------------------------------------------------------------------------------------ */
-//	CInput
-//
-//	Default constructor
-/* ------------------------------------------------------------------------------------ */
-CInput::CInput()
+#ifdef SX_IMPL_TYPE
+#undef SX_IMPL_TYPE
+#endif
+#define SX_IMPL_TYPE CInput
+
+CInput* CInput::m_InputManager;
+
+std::string CInput::m_DefaultActionNames[] =
 {
-	// Ok, let's set up the default input keymaps
-  	memset(m_WindowKeys, 0, sizeof(int) * 100);
-	memset(m_RGFKeys, 0, sizeof(int) * 100);
+	"No Action",
+	"Move Forward",
+	"Move Backward",
+	"Turn Left",
+	"Turn Right",
+	"Strafe Left",
+	"Strafe Right",
+	"Jump",
+	"Crouch",
+	"Look Up",
+	"Look Down",
+	"Look Straight",
+	"Attack",
+	"Alt Attack",
+	"Weapon 0",
+	"Weapon 1",
+	"Weapon 2",
+	"Weapon 3",
+	"Weapon 4",
+	"Weapon 5",
+	"Weapon 6",
+	"Weapon 7",
+	"Weapon 8",
+	"Weapon 9",
+	"Run",
+	"Camera Mode",
+	"Zoom In",
+	"Zoom Out",
+	"Camera Reset",
+	"Exit",
+	"Quick Save",
+	"Quick Load",
+	"1st Person",
+	"3rd Person",
+	"Isometric",
+	"Skip",
+	"Help",
+	"HUD",
+	"Look Mode",
+	"Screenshot",
+	"Zoom Weapon",
+	"Holster Weapon",
+	"Light On/Off",
+	"Use Item",
+	"Inventory",
+	"Console",
+	"Drop Weapon",
+	"Reload Weapon",
+	"Increase Power",
+	"Decrease Power",
+	"Max Action"
+};
 
-  	m_nMappedKeys = KEY_MAXIMUM;			// # of keys we have mapped
+std::string CInput::m_DefaultMouseButtonNames[] =
+{
+	"Left Mouse Button",
+	"Right Mouse Button",
+	"Middle Mouse Button",
+	"Mouse Button 3",
+	"Mouse Button 4",
+	"Mouse Button 5",
+	"Mouse Button 6",
+	"Mouse Button 7"
+};
+
+/* ------------------------------------------------------------------------------------ */
+// Default constructor
+/* ------------------------------------------------------------------------------------ */
+CInput::CInput() : m_InputSystem(0), m_Mouse(0), m_Keyboard(0)
+{
+	memset(m_KeyActionMap, 0, sizeof(m_KeyActionMap));
+	memset(m_MouseActionMap, 0, sizeof(m_MouseActionMap));
+
+	m_MousePos.x = m_MousePos.y = 0;
+
+	m_pKey = new RFSX::sxKey();
+	m_pMouseButton = new RFSX::sxMouseButton();
+	m_pAction = new RFSX::sxAction();
+
+	ResetActionNames();
+	ResetMouseButtonNames();
 
 	if(LoadKeymap("keyboard.ini") == RGF_SUCCESS)
 		return;
@@ -31,326 +115,749 @@ CInput::CInput()
 }
 
 /* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+CInput::~CInput()
+{
+	ScriptManager::RemoveGlobalVariable("Input");
+
+	delete m_pKey;
+	delete m_pMouseButton;
+	delete m_pAction;
+
+	if(m_InputSystem)
+	{
+		if(m_Mouse)
+		{
+			m_InputSystem->destroyInputObject(m_Mouse);
+		}
+
+		if(m_Keyboard)
+		{
+			m_InputSystem->destroyInputObject(m_Keyboard);
+		}
+
+		if(m_Joysticks.size() > 0)
+		{
+			itJoystick    = m_Joysticks.begin();
+			itJoystickEnd = m_Joysticks.end();
+
+			for(; itJoystick != itJoystickEnd; ++itJoystick)
+			{
+				m_InputSystem->destroyInputObject(*itJoystick);
+			}
+
+			m_Joysticks.clear();
+		}
+
+		OIS::InputManager::destroyInputSystem(m_InputSystem);
+
+		// Clear Listeners
+		m_KeyListeners.clear();
+		m_MouseListeners.clear();
+		m_JoystickListeners.clear();
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::Initialize(HWND hWnd, int width, int height)
+{
+	if(!m_InputSystem)
+	{
+		// Setup basic variables
+		OIS::ParamList paramList;
+		std::ostringstream windowHndStr;
+
+		// Fill parameter list
+		windowHndStr << (unsigned int)hWnd;
+		paramList.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
+
+		if(!CCD->Engine()->FullScreen())
+		{
+			paramList.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_FOREGROUND" )));
+			paramList.insert(std::make_pair(std::string("w32_mouse"), std::string("DISCL_NONEXCLUSIVE")));
+		}
+
+		// Create inputsystem
+		m_InputSystem = OIS::InputManager::createInputSystem(paramList);
+
+		// If possible create a buffered keyboard
+		if(m_InputSystem->getNumberOfDevices(OIS::OISKeyboard) > 0)
+		{
+			m_Keyboard = static_cast<OIS::Keyboard*>(m_InputSystem->createInputObject(OIS::OISKeyboard, true));
+			m_Keyboard->setEventCallback(this);
+		}
+
+		// If possible create a buffered mouse
+		if(m_InputSystem->getNumberOfDevices(OIS::OISMouse) > 0)
+		{
+			m_Mouse = static_cast<OIS::Mouse*>(m_InputSystem->createInputObject(OIS::OISMouse, true));
+			m_Mouse->setEventCallback(this);
+
+			// Set mouse region
+			this->SetWindowExtents(width, height);
+		}
+
+		// If possible create all joysticks in buffered mode
+		if(m_InputSystem->getNumberOfDevices(OIS::OISJoyStick) > 0)
+		{
+			m_Joysticks.resize(m_InputSystem->getNumberOfDevices(OIS::OISJoyStick));
+
+			itJoystick    = m_Joysticks.begin();
+			itJoystickEnd = m_Joysticks.end();
+
+			for(; itJoystick != itJoystickEnd; ++itJoystick)
+			{
+				(*itJoystick) = static_cast<OIS::JoyStick*>(m_InputSystem->createInputObject(OIS::OISJoyStick, true));
+				(*itJoystick)->setEventCallback(this);
+			}
+		}
+
+		sxLog::GetSingletonPtr()->Info("Found %d joysticks", m_InputSystem->getNumberOfDevices(OIS::OISJoyStick));
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::Capture()
+{
+	// Need to capture / update each device every frame
+	if(m_Mouse)
+	{
+		m_Mouse->capture();
+	}
+
+	if(m_Keyboard)
+	{
+		m_Keyboard->capture();
+	}
+
+	if(m_Joysticks.size() > 0)
+	{
+		itJoystick    = m_Joysticks.begin();
+		itJoystickEnd = m_Joysticks.end();
+
+		for(; itJoystick != itJoystickEnd; ++itJoystick)
+		{
+			(*itJoystick)->capture();
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::AddKeyListener(OIS::KeyListener *keyListener, const std::string& instanceName)
+{
+	if(m_Keyboard)
+	{
+		// Check for duplicate items
+		itKeyListener = m_KeyListeners.find(instanceName);
+		if(itKeyListener == m_KeyListeners.end())
+		{
+			m_KeyListeners[instanceName] = keyListener;
+		}
+		else
+		{
+			// Duplicate Item
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::AddMouseListener(OIS::MouseListener *mouseListener, const std::string& instanceName)
+{
+	if(m_Mouse)
+	{
+		// Check for duplicate items
+		itMouseListener = m_MouseListeners.find(instanceName);
+		if(itMouseListener == m_MouseListeners.end())
+		{
+			m_MouseListeners[instanceName] = mouseListener;
+		}
+		else
+		{
+			// Duplicate Item
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::AddJoystickListener(OIS::JoyStickListener *joystickListener, const std::string& instanceName)
+{
+	if(m_Joysticks.size() > 0)
+	{
+		// Check for duplicate items
+		itJoystickListener = m_JoystickListeners.find(instanceName);
+		if(itJoystickListener != m_JoystickListeners.end())
+		{
+			m_JoystickListeners[instanceName] = joystickListener;
+		}
+		else
+		{
+			// Duplicate Item
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveKeyListener(const std::string& instanceName)
+{
+	// Check if item exists
+	itKeyListener = m_KeyListeners.find(instanceName);
+	if(itKeyListener != m_KeyListeners.end())
+	{
+		m_KeyListeners.erase(itKeyListener);
+	}
+	else
+	{
+		// Doesn't Exist
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveMouseListener(const std::string& instanceName)
+{
+	// Check if item exists
+	itMouseListener = m_MouseListeners.find(instanceName);
+	if(itMouseListener != m_MouseListeners.end())
+	{
+		m_MouseListeners.erase(itMouseListener);
+	}
+	else
+	{
+		// Doesn't Exist
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveJoystickListener(const std::string& instanceName)
+{
+	// Check if item exists
+	itJoystickListener = m_JoystickListeners.find(instanceName);
+	if(itJoystickListener != m_JoystickListeners.end())
+	{
+		m_JoystickListeners.erase(itJoystickListener);
+	}
+	else
+	{
+		// Doesn't Exist
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveKeyListener(OIS::KeyListener *keyListener)
+{
+	itKeyListener    = m_KeyListeners.begin();
+	itKeyListenerEnd = m_KeyListeners.end();
+	for(; itKeyListener != itKeyListenerEnd; ++itKeyListener)
+	{
+		if(itKeyListener->second == keyListener)
+		{
+			m_KeyListeners.erase(itKeyListener);
+			break;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveMouseListener(OIS::MouseListener *mouseListener)
+{
+	itMouseListener    = m_MouseListeners.begin();
+	itMouseListenerEnd = m_MouseListeners.end();
+	for(; itMouseListener != itMouseListenerEnd; ++itMouseListener)
+	{
+		if(itMouseListener->second == mouseListener)
+		{
+			m_MouseListeners.erase(itMouseListener);
+			break;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveJoystickListener(OIS::JoyStickListener *joystickListener)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		if(itJoystickListener->second == joystickListener)
+		{
+			m_JoystickListeners.erase(itJoystickListener);
+			break;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveAllListeners()
+{
+	m_KeyListeners.clear();
+	m_MouseListeners.clear();
+	m_JoystickListeners.clear();
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveAllKeyListeners()
+{
+	m_KeyListeners.clear();
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveAllMouseListeners()
+{
+	m_MouseListeners.clear();
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::RemoveAllJoystickListeners()
+{
+	m_JoystickListeners.clear();
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::SetWindowExtents(int width, int height)
+{
+	// Set mouse region (if window resizes, we should alter this to reflect as well)
+	const OIS::MouseState &mouseState = m_Mouse->getMouseState();
+	mouseState.width  = width;
+	mouseState.height = height;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+OIS::Mouse* CInput::GetMouse()
+{
+	return m_Mouse;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+OIS::Keyboard* CInput::GetKeyboard()
+{
+	return m_Keyboard;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+OIS::JoyStick* CInput::GetJoystick(unsigned int index)
+{
+	// Make sure it's a valid index
+	if(index < m_Joysticks.size())
+	{
+		return m_Joysticks[index];
+	}
+
+	return NULL;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetNumberOfJoysticks()
+{
+	// Cast to keep compiler happy
+	return static_cast<int>(m_Joysticks.size());
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::keyPressed(const OIS::KeyEvent &e)
+{
+	if(m_KeyListeners.empty())
+		return true;
+
+	itKeyListener    = m_KeyListeners.begin();
+	itKeyListenerEnd = m_KeyListeners.end();
+	for(; itKeyListener != itKeyListenerEnd; ++itKeyListener)
+	{
+		if(!itKeyListener->second->keyPressed(e))
+			return false;
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::keyReleased(const OIS::KeyEvent &e)
+{
+	if(m_KeyListeners.empty())
+		return true;
+
+	itKeyListener    = m_KeyListeners.begin();
+	itKeyListenerEnd = m_KeyListeners.end();
+	for(; itKeyListener != itKeyListenerEnd; ++itKeyListener)
+	{
+		if(!itKeyListener->second->keyReleased(e))
+			return false;
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::mouseMoved(const OIS::MouseEvent &e)
+{
+	// keep track of our own mouse position as OIS starts out at (0,0)
+	// and this can't be changed
+	if(!CCD->Engine()->FullScreen())
+	{
+		// relative mouse coordinate are garbage in window mode
+		m_MousePos.x = e.state.X.abs;
+		m_MousePos.y = e.state.Y.abs;
+	}
+	else
+	{
+		m_MousePos.x += e.state.X.rel;
+		m_MousePos.y += e.state.Y.rel;
+	}
+
+	if(m_MouseListeners.empty())
+		return true;
+
+	itMouseListener    = m_MouseListeners.begin();
+	itMouseListenerEnd = m_MouseListeners.end();
+	for(; itMouseListener != itMouseListenerEnd; ++itMouseListener)
+	{
+		if(!itMouseListener->second->mouseMoved(e))
+			return false;
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::mousePressed(const OIS::MouseEvent &e, OIS::MouseButtonID id)
+{
+	if(m_MouseListeners.empty())
+		return true;
+
+	itMouseListener    = m_MouseListeners.begin();
+	itMouseListenerEnd = m_MouseListeners.end();
+	for(; itMouseListener != itMouseListenerEnd; ++itMouseListener)
+	{
+		if(!itMouseListener->second->mousePressed(e, id))
+			return false;
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::mouseReleased(const OIS::MouseEvent &e, OIS::MouseButtonID id)
+{
+	if(m_MouseListeners.empty())
+		return true;
+
+	itMouseListener    = m_MouseListeners.begin();
+	itMouseListenerEnd = m_MouseListeners.end();
+	for(; itMouseListener != itMouseListenerEnd; ++itMouseListener)
+	{
+		if(!itMouseListener->second->mouseReleased(e, id))
+			return false;
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::povMoved(const OIS::JoyStickEvent &e, int pov)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		itJoystickListener->second->povMoved(e, pov);
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::axisMoved(const OIS::JoyStickEvent &e, int axis)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		itJoystickListener->second->axisMoved(e, axis);
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::sliderMoved(const OIS::JoyStickEvent &e, int sliderID)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		itJoystickListener->second->sliderMoved(e, sliderID);
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::buttonPressed(const OIS::JoyStickEvent &e, int button)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		itJoystickListener->second->buttonPressed(e, button);
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::buttonReleased(const OIS::JoyStickEvent &e, int button)
+{
+	itJoystickListener    = m_JoystickListeners.begin();
+	itJoystickListenerEnd = m_JoystickListeners.end();
+	for(; itJoystickListener != itJoystickListenerEnd; ++itJoystickListener)
+	{
+		itJoystickListener->second->buttonReleased(e, button);
+	}
+
+	return true;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+CInput* CInput::GetSingletonPtr()
+{
+	if(!m_InputManager)
+	{
+		m_InputManager = new CInput();
+		ScriptManager::AddGlobalVariable("Input", m_InputManager);
+	}
+
+	return m_InputManager;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetKeyAction(OIS::KeyCode key)
+{
+	return m_KeyActionMap[key];
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetMouseAction(OIS::MouseButtonID button)
+{
+	return m_MouseActionMap[button];
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::ClearKeyAction(int action)
+{
+	int id = GetKeyCode(action);
+	if(id != -1)
+		SetKeyAction((OIS::KeyCode)id, RGF_K_NOACTION);
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::ClearMouseAction(int action)
+{
+	int id = GetMouseButtonID(action);
+	if(id != -1)
+		SetMouseAction((OIS::MouseButtonID)id, RGF_K_NOACTION);
+}
+
+
+/* ------------------------------------------------------------------------------------ */
 //	Default
 //
 //	Set default values
 /* ------------------------------------------------------------------------------------ */
 void CInput::Default()
 {
-	m_WindowKeys[KEY_ESC] = VK_ESCAPE;			m_RGFKeys[KEY_ESC] = RGF_K_EXIT;
-	m_WindowKeys[KEY_1] = 0x31;					m_RGFKeys[KEY_1] = RGF_K_WEAPON_1;
-	m_WindowKeys[KEY_2] = 0x32;					m_RGFKeys[KEY_2] = RGF_K_WEAPON_2;
-	m_WindowKeys[KEY_3] = 0x33;					m_RGFKeys[KEY_3] = RGF_K_WEAPON_3;
-	m_WindowKeys[KEY_4] = 0x34;					m_RGFKeys[KEY_4] = RGF_K_WEAPON_4;
-	m_WindowKeys[KEY_5] = 0x35;					m_RGFKeys[KEY_5] = RGF_K_WEAPON_5;
-	m_WindowKeys[KEY_6] = 0x36;					m_RGFKeys[KEY_6] = RGF_K_WEAPON_6;
-	m_WindowKeys[KEY_7] = 0x37;					m_RGFKeys[KEY_7] = RGF_K_WEAPON_7;
-	m_WindowKeys[KEY_8] = 0x38;					m_RGFKeys[KEY_8] = RGF_K_WEAPON_8;
-	m_WindowKeys[KEY_9] = 0x39;					m_RGFKeys[KEY_9] = RGF_K_WEAPON_9;
-	m_WindowKeys[KEY_0] = 0x30;					m_RGFKeys[KEY_0] = RGF_K_WEAPON_0;
-	m_WindowKeys[KEY_MINUS] = VK_SUBTRACT;		m_RGFKeys[KEY_MINUS] = RGF_K_ZOOM_IN;
-	m_WindowKeys[KEY_BACK] = VK_BACK;			m_RGFKeys[KEY_BACK] = RGF_K_ZOOM_WEAPON;
-	m_WindowKeys[KEY_TAB] = VK_TAB;				m_RGFKeys[KEY_TAB] = RGF_K_HUD;
-	m_WindowKeys[KEY_Q] = 0x51;
-	m_WindowKeys[KEY_W] = 0x57;					m_RGFKeys[KEY_W] = RGF_K_FORWARD;
-	m_WindowKeys[KEY_E] = 0x45;					m_RGFKeys[KEY_E] = RGF_K_JUMP;
-// changed RF064
-	m_WindowKeys[KEY_R] = 0x52;					m_RGFKeys[KEY_R] = RGF_K_RELOAD;
-// end change RF064
-	m_WindowKeys[KEY_T] = 0x54;
-	m_WindowKeys[KEY_Y] = 0x59;
-// changed RF063
-	m_WindowKeys[KEY_U] = 0x55;					m_RGFKeys[KEY_U] = RGF_K_USE;
-	m_WindowKeys[KEY_I] = 0x49;					m_RGFKeys[KEY_I] = RGF_K_INVENTORY;
-// end change RF063
-	m_WindowKeys[KEY_O] = 0x4f;
-// changed RF064
-	m_WindowKeys[KEY_P] = 0x50;					m_RGFKeys[KEY_P] = RGF_K_DROP;
-// end change RF064
-	m_WindowKeys[KEY_RETURN] = VK_RETURN;
-	m_WindowKeys[KEY_A] = 0x41;					m_RGFKeys[KEY_A] = RGF_K_LEFT;
-	m_WindowKeys[KEY_S] = 0x53;					m_RGFKeys[KEY_S] = RGF_K_BACKWARD;
-	m_WindowKeys[KEY_D] = 0x44;					m_RGFKeys[KEY_D] = RGF_K_RIGHT;
-	m_WindowKeys[KEY_F] = 0x46;
-	m_WindowKeys[KEY_G] = 0x47;
-	m_WindowKeys[KEY_H] = 0x48;					m_RGFKeys[KEY_H] = RGF_K_HOLSTER_WEAPON;
-	m_WindowKeys[KEY_J] = 0x4a;
-	m_WindowKeys[KEY_K] = 0x4b;
-	m_WindowKeys[KEY_L] = 0x4c;					m_RGFKeys[KEY_L] = RGF_K_LIGHT;
-	m_WindowKeys[KEY_SHIFT] = VK_SHIFT;			m_RGFKeys[KEY_SHIFT] = RGF_K_RUN;
-	m_WindowKeys[KEY_Z] = 0x5a;
-	m_WindowKeys[KEY_X] = 0x58;
-	m_WindowKeys[KEY_C] = 0x43;					m_RGFKeys[KEY_C] = RGF_K_CROUCH;
-	m_WindowKeys[KEY_V] = 0x56;
-	m_WindowKeys[KEY_B] = 0x42;
-	m_WindowKeys[KEY_N] = 0x4e;
-	m_WindowKeys[KEY_M] = 0x4d;
-// start multiplayer
-	m_WindowKeys[KEY_PERIOD] = 0xbe;
-// end multiplayer
-	m_WindowKeys[KEY_SLASH] = 191;
-	m_WindowKeys[KEY_SPACE] = VK_SPACE;			m_RGFKeys[KEY_SPACE] = RGF_K_SKIP;
-	m_WindowKeys[KEY_ALT] = VK_MENU;			m_RGFKeys[KEY_ALT] = RGF_K_LOOKMODE;
-	m_WindowKeys[KEY_CONTROL] = VK_CONTROL;		m_RGFKeys[KEY_CONTROL] = RGF_K_CAMERA;
-	m_WindowKeys[KEY_PLUS] = VK_ADD;			m_RGFKeys[KEY_PLUS] = RGF_K_ZOOM_OUT;
-	m_WindowKeys[KEY_INSERT] = VK_INSERT;		m_RGFKeys[KEY_INSERT] = RGF_K_CAMERA_RESET;
-	m_WindowKeys[KEY_HOME] = VK_HOME;
-	m_WindowKeys[KEY_PAGEUP] = VK_PRIOR;		m_RGFKeys[KEY_PAGEUP] = RGF_K_POWERUP;
-	m_WindowKeys[KEY_DELETE] = VK_DELETE;		m_RGFKeys[KEY_DELETE] = RGF_K_LOOKSTRAIGHT;
-	m_WindowKeys[KEY_END] = VK_END;
-	m_WindowKeys[KEY_PAGEDOWN] = VK_NEXT;		m_RGFKeys[KEY_PAGEDOWN] = RGF_K_POWERDWN;
-	m_WindowKeys[KEY_UP] = VK_UP;				m_RGFKeys[KEY_UP] = RGF_K_LOOKUP;
-	m_WindowKeys[KEY_DOWN] = VK_DOWN;			m_RGFKeys[KEY_DOWN] = RGF_K_LOOKDOWN;
-	m_WindowKeys[KEY_LEFT] = VK_LEFT;			m_RGFKeys[KEY_LEFT] = RGF_K_TURN_LEFT;
-	m_WindowKeys[KEY_RIGHT] = VK_RIGHT;			m_RGFKeys[KEY_RIGHT] = RGF_K_TURN_RIGHT;
-	m_WindowKeys[KEY_F1] = VK_F1;				m_RGFKeys[KEY_F1] = RGF_K_FIRST_PERSON_VIEW;
-	m_WindowKeys[KEY_F2] = VK_F2;				m_RGFKeys[KEY_F2] = RGF_K_THIRD_PERSON_VIEW;
-	m_WindowKeys[KEY_F3] = VK_F3;				m_RGFKeys[KEY_F3] = RGF_K_ISO_VIEW;
-	m_WindowKeys[KEY_F4] = VK_F4;
-	m_WindowKeys[KEY_F5] = VK_F5;
-	m_WindowKeys[KEY_F6] = VK_F6;
-	m_WindowKeys[KEY_F7] = VK_F7;
-	m_WindowKeys[KEY_F8] = VK_F8;				m_RGFKeys[KEY_F8] = RGF_K_SCRNSHOT; // Update #1
-	m_WindowKeys[KEY_F9] = VK_F9;				m_RGFKeys[KEY_F9] = RGF_K_QUICKSAVE;
-	m_WindowKeys[KEY_F10] = VK_F10;				m_RGFKeys[KEY_F10] = RGF_K_QUICKLOAD;
-	m_WindowKeys[KEY_F11] = VK_F11;
-	m_WindowKeys[KEY_F12] = VK_F12;				m_RGFKeys[KEY_F12] = RGF_K_HELP;
-	m_WindowKeys[KEY_SYSRQ] = VK_SNAPSHOT;
-// changed QD 02/01/07
+	m_KeyActionMap[OIS::KC_ESCAPE]	= RGF_K_EXIT;
+	m_KeyActionMap[OIS::KC_1]		= RGF_K_WEAPON_1;
+	m_KeyActionMap[OIS::KC_2]		= RGF_K_WEAPON_2;
+	m_KeyActionMap[OIS::KC_3]		= RGF_K_WEAPON_3;
+	m_KeyActionMap[OIS::KC_4]		= RGF_K_WEAPON_4;
+	m_KeyActionMap[OIS::KC_5]		= RGF_K_WEAPON_5;
+	m_KeyActionMap[OIS::KC_6]		= RGF_K_WEAPON_6;
+	m_KeyActionMap[OIS::KC_7]		= RGF_K_WEAPON_7;
+	m_KeyActionMap[OIS::KC_8]		= RGF_K_WEAPON_8;
+	m_KeyActionMap[OIS::KC_9]		= RGF_K_WEAPON_9;
+	m_KeyActionMap[OIS::KC_0]		= RGF_K_WEAPON_0;
+	m_KeyActionMap[OIS::KC_BACK]	= RGF_K_ZOOM_WEAPON;
+	m_KeyActionMap[OIS::KC_TAB]		= RGF_K_HUD;
+	m_KeyActionMap[OIS::KC_W]		= RGF_K_FORWARD;
+	m_KeyActionMap[OIS::KC_E]		= RGF_K_JUMP;
+	m_KeyActionMap[OIS::KC_R]		= RGF_K_RELOAD;
+	m_KeyActionMap[OIS::KC_U]		= RGF_K_USE;
+	m_KeyActionMap[OIS::KC_I]		= RGF_K_INVENTORY;
+	m_KeyActionMap[OIS::KC_P]		= RGF_K_DROP;
+	m_KeyActionMap[OIS::KC_LCONTROL]= RGF_K_CAMERA;
+	m_KeyActionMap[OIS::KC_A]		= RGF_K_LEFT;
+	m_KeyActionMap[OIS::KC_S]		= RGF_K_BACKWARD;
+	m_KeyActionMap[OIS::KC_D]		= RGF_K_RIGHT;
+	m_KeyActionMap[OIS::KC_H]		= RGF_K_HOLSTER_WEAPON;
+	m_KeyActionMap[OIS::KC_L]		= RGF_K_LIGHT;
+	m_KeyActionMap[OIS::KC_GRAVE]	= RGF_K_CONSOLE;
+	m_KeyActionMap[OIS::KC_LSHIFT]	= RGF_K_RUN;
+	m_KeyActionMap[OIS::KC_C]		= RGF_K_CROUCH;
+	m_KeyActionMap[OIS::KC_LMENU]	= RGF_K_LOOKMODE; // Alt
+	m_KeyActionMap[OIS::KC_SPACE]	= RGF_K_SKIP;
+	m_KeyActionMap[OIS::KC_F1]		= RGF_K_FIRST_PERSON_VIEW;
+	m_KeyActionMap[OIS::KC_F2]		= RGF_K_THIRD_PERSON_VIEW;
+	m_KeyActionMap[OIS::KC_F3]		= RGF_K_ISO_VIEW;
+	m_KeyActionMap[OIS::KC_F8]		= RGF_K_SCRNSHOT;
+	m_KeyActionMap[OIS::KC_F9]		= RGF_K_QUICKSAVE;
+	m_KeyActionMap[OIS::KC_F10]		= RGF_K_QUICKLOAD;
+	m_KeyActionMap[OIS::KC_SUBTRACT]= RGF_K_ZOOM_IN;
+	m_KeyActionMap[OIS::KC_ADD]		= RGF_K_ZOOM_OUT;
+	m_KeyActionMap[OIS::KC_F12]		= RGF_K_HELP;
+	m_KeyActionMap[OIS::KC_UP]		= RGF_K_LOOKUP;
+	m_KeyActionMap[OIS::KC_PGUP]	= RGF_K_POWERUP;
+	m_KeyActionMap[OIS::KC_LEFT]	= RGF_K_TURN_LEFT;
+	m_KeyActionMap[OIS::KC_RIGHT]	= RGF_K_TURN_RIGHT;
+	m_KeyActionMap[OIS::KC_DOWN]	= RGF_K_LOOKDOWN;
+	m_KeyActionMap[OIS::KC_PGDOWN]	= RGF_K_POWERDWN;
+	m_KeyActionMap[OIS::KC_INSERT]	= RGF_K_CAMERA_RESET;
+	m_KeyActionMap[OIS::KC_DELETE]	= RGF_K_LOOKSTRAIGHT;
+
 	if(GetSystemMetrics(SM_SWAPBUTTON))
 	{
-		m_WindowKeys[KEY_LBUTTON] = VK_RBUTTON;		m_RGFKeys[KEY_LBUTTON] = RGF_K_ALTFIRE;
-		m_WindowKeys[KEY_RBUTTON] = VK_LBUTTON;		m_RGFKeys[KEY_RBUTTON] = RGF_K_FIRE;
+		m_MouseActionMap[OIS::MB_Left]	= RGF_K_ALTFIRE;
+		m_MouseActionMap[OIS::MB_Right]	= RGF_K_FIRE;
 	}
 	else
 	{
-		m_WindowKeys[KEY_LBUTTON] = VK_LBUTTON;		m_RGFKeys[KEY_LBUTTON] = RGF_K_ALTFIRE;
-		m_WindowKeys[KEY_RBUTTON] = VK_RBUTTON;		m_RGFKeys[KEY_RBUTTON] = RGF_K_FIRE;
+		m_MouseActionMap[OIS::MB_Left]	= RGF_K_FIRE;
+		m_MouseActionMap[OIS::MB_Right]	= RGF_K_ALTFIRE;
 	}
-// end change
-	m_WindowKeys[KEY_MBUTTON] = 0x04; // update #2
-	m_WindowKeys[KEY_LBRACKET] = 0xdb;
-	m_WindowKeys[KEY_RBRACKET] = 0xdd;
-	m_WindowKeys[KEY_EQUAL] = 0xbb;
-	m_WindowKeys[KEY_BACKSLASH] = 0xdc;
-	m_WindowKeys[KEY_SEMICOLON] = 0xba;
-	m_WindowKeys[KEY_COMMA] = 0xbc;
-// start multiplayer
-	m_WindowKeys[KEY_TILDE] = 0xc0;				m_RGFKeys[KEY_TILDE] = RGF_K_CONSOLE;
-// end multiplayer
-	m_WindowKeys[KEY_APOSTROPHE] = 0xde;
-// start multiplayer
-	m_WindowKeys[KEY_DECIMAL] = VK_DECIMAL;
-// end multiplayer
-
 }
 
+
 /* ------------------------------------------------------------------------------------ */
-//	~CInput
+// GetKeyboardInputNoWait
 //
-//	Default destructor
-/* ------------------------------------------------------------------------------------ */
-CInput::~CInput()
-{
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetFirstInput
-//
-//	This routine scans the keyboard and the mouse buttons, gathers in the
-//	..current state of the input system and returns the FIRST key status from
-//	..the input stack.  To retrieve the rest of the keys in the input stack,
-//	..use GetNextInput(). A return value of RGF_NO_INPUT means no user input.
-/* ------------------------------------------------------------------------------------ */
-int CInput::GetFirstInput()
-{
-	ScanKeyboardInput();
-
-	if(m_KeyStackCount == 0)
-	  return RGF_NO_INPUT;				// No input from the user
-
-	m_KeyStackCount--;					// One less on the stack
-
-	return m_KeyStack[m_KeyStackPointer++];
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetNextInput
-//
-//	This routine pulls the next key down off the user input
-//	..stack, if there is one, and returns it to the caller.
-//	..A return value of RGF_NO_INPUT indicates 'end of input'.
-/* ------------------------------------------------------------------------------------ */
-int CInput::GetNextInput()
-{
-	if(m_KeyStackCount == 0)
-		return RGF_NO_INPUT;			// We're fresh out of input
-
-	m_KeyStackCount--;					// One less input to process
-
-	return m_KeyStack[m_KeyStackPointer++];
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	ScanKeyboardInput
-//
-//	Check the current state of the keyboard and return what's happening. All
-//	..currently pressed keys are put into the 'key stack', a FIFO list of
-//	..pressed keys that can be sequentially processed by the caller. Note that
-//	..the three modifier keys (SHIFT, CONTROL, and ALT) are always guaranteed
-//	..to appear prior to any other keypresses.
-/* ------------------------------------------------------------------------------------ */
-void CInput::ScanKeyboardInput()
-{
-	m_KeyStackCount = 0;
-	m_KeyStackPointer = 0;
-
-	// First, check for SHIFT, CONTROL, and ALT
-	if((GetAsyncKeyState(m_WindowKeys[KEY_CONTROL]) & 0x8000) != 0)
-		m_KeyStack[m_KeyStackCount++] = m_RGFKeys[KEY_CONTROL];
-
-	if((GetAsyncKeyState(m_WindowKeys[KEY_SHIFT]) & 0x8000) != 0)
-		m_KeyStack[m_KeyStackCount++] = m_RGFKeys[KEY_SHIFT];
-
-	if((GetAsyncKeyState(m_WindowKeys[KEY_ALT]) & 0x8000) != 0)
-		m_KeyStack[m_KeyStackCount++] = m_RGFKeys[KEY_ALT];
-
-	//	Ok, we've checked the state of the modifier keys, now on
-	//	..to the rest we're going to process.  We have a table
-	//	..of WINDOWS KEYS (the usual VK_whatever) that are mapped
-	//	..to RGF KEYS (in the m_RGFKeys array).  By doing this,
-	//	..it's possible to save and load user keymaps.  Note that
-	//	..it's not possible to remap the modifier keys, this is
-	//	..by design.
-
-	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
-	{
-		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
-			m_KeyStack[m_KeyStackCount++] = m_RGFKeys[nKey];
-	}
-
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetRGFKey
-/* ------------------------------------------------------------------------------------ */
-int CInput::GetRGFKey(int key)
-{
-	int value;
-	value = m_RGFKeys[key];
-	return value;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetKeyboardInput
-//
-//	get a key from the keyboard and wait until released
-/* ------------------------------------------------------------------------------------ */
-int CInput::GetKeyboardInput()
-{
-	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
-	{
-		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
-		{
-			while((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
-			{
-			}
-
-			return nKey;
-		}
-	}
-
-	return -1;
-}
-
-// changed RF064
-/* ------------------------------------------------------------------------------------ */
-//	GetKeyboardInputNoWait
-//
-//	get a key from the keyboard with no wait
+// get a key from the keyboard with no wait
 /* ------------------------------------------------------------------------------------ */
 int CInput::GetKeyboardInputNoWait()
 {
-	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
+	if(m_Keyboard)
 	{
-		if((GetAsyncKeyState(m_WindowKeys[nKey]) & 0x8000) != 0)
+		for(int nKey=0; nKey<MAX_KEYCODES; ++nKey)
 		{
-			return nKey;
+			if(m_KeyActionMap[nKey])
+				if(m_Keyboard->isKeyDown(static_cast<OIS::KeyCode>(nKey)))
+					return nKey;
 		}
 	}
 
-	return -1;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetKeyCheck
+// IsKeyDown
 /* ------------------------------------------------------------------------------------ */
-bool CInput::GetKeyCheck(int keytemp)
+bool CInput::IsKeyDown(OIS::KeyCode key)
 {
-	if((GetAsyncKeyState(m_WindowKeys[keytemp]) & 0x8000) != 0)
+	if(m_Keyboard)
+		return m_Keyboard->isKeyDown(key);
+
+	return false;
+}
+
+/* ------------------------------------------------------------------------------------ */
+// Check mouse button status
+/* ------------------------------------------------------------------------------------ */
+bool CInput::IsMouseButtonDown(OIS::MouseButtonID button)
+{
+	if(m_Mouse)
+		return m_Mouse->getMouseState().buttonDown(button);
+
+	return false;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetJoystickAxis(unsigned int joystick, unsigned int axis)
+{
+	if(joystick < m_Joysticks.size())
 	{
-		return true;
+		if(m_Joysticks[joystick]->getJoyStickState().mAxes.size() > axis)
+			return m_Joysticks[joystick]->getJoyStickState().mAxes[axis].abs;
+	}
+
+	return 0;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CInput::IsJoystickButtonDown(unsigned int joystick, unsigned int button)
+{
+	if(joystick < m_Joysticks.size())
+	{
+		if(m_Joysticks[joystick]->getJoyStickState().mButtons.size() > button)
+			return m_Joysticks[joystick]->getJoyStickState().mButtons[button];
 	}
 
 	return false;
 }
-// end change RF064
+
 
 /* ------------------------------------------------------------------------------------ */
-//	GetAscii
-/* ------------------------------------------------------------------------------------ */
-int CInput::GetAscii()
-{
-	for(int nKey=1; nKey<256; nKey++)
-	{
-		if( nKey==VK_MENU || nKey==VK_LMENU || nKey==VK_RMENU ||
-			nKey==VK_SHIFT || nKey==VK_LSHIFT || nKey==VK_RSHIFT ||
-			nKey==VK_CONTROL || nKey==VK_LCONTROL || nKey==VK_RCONTROL ||
-			nKey==VK_ESCAPE)
-			continue;
-
-		if((GetAsyncKeyState(nKey) & 0x8000) != 0)
-		{
-			while((GetAsyncKeyState(nKey) & 0x8000) != 0)
-			{
-			}
-
-			WORD CharValue;
-			BYTE KeyboardState[256];
-			GetKeyboardState(KeyboardState);
-			if(ToAscii(nKey, 0, KeyboardState, &CharValue, 0) > 0)
-				return (unsigned char)CharValue;
-		}
-	}
-
-	return -1;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	SaveKeymap
+// SaveKeymap
 //
-//	Take the current Windows-keys to RGF-keys maps and save 'em
-//	..off to a file.
+// Take the current keys to actions maps and save them off to a file.
 /* ------------------------------------------------------------------------------------ */
-int CInput::SaveKeymap(const char *szFilename)
+int CInput::SaveKeymap(const std::string& filename)
 {
-	FILE *fd = CCD->OpenRFFile(kInstallFile, szFilename, "wb");
+	FILE *fd = CFileManager::GetSingletonPtr()->OpenRFFile(kConfigFile, filename.c_str(), "wb");
 
 	if(!fd)
 	{
-		char szBug[256];
-		sprintf(szBug, "[ERROR] File %s - Line %d: Failed to create keymap file %s\n",
-			__FILE__, __LINE__, szFilename);
-		CCD->ReportError(szBug, false);
-		return RGF_FAILURE;										// Fatal error
+		CCD->Log()->Error("File %s - Line %d: Failed to create keymap file %s",
+							__FILE__, __LINE__, filename.c_str());
+		return RGF_FAILURE;
 	}
 
-	// QD: why are we saving m_WindowKeys? They do not change...
-	for(int nKey=0; nKey<100; nKey++)
+	for(int nKey=0; nKey<MAX_KEYCODES; ++nKey)
 	{
-		fwrite(&m_WindowKeys[nKey],	sizeof(int), 1, fd);	// Window key out
-		fwrite(&m_RGFKeys[nKey],		sizeof(int), 1, fd);	// RGF key out
+		fwrite(&m_KeyActionMap[nKey],	sizeof(int), 1, fd);
 	}
+
+	for(int nButton=0; nButton<MAX_MOUSEBUTTONS; ++nButton)
+	{
+		fwrite(&m_MouseActionMap[nButton],sizeof(int), 1, fd);
+	}
+
+	int swap = GetSystemMetrics(SM_SWAPBUTTON);
+	fwrite(&swap, sizeof(int), 1, fd);
 
 	fclose(fd);
 
@@ -358,51 +865,51 @@ int CInput::SaveKeymap(const char *szFilename)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	LoadKeymap
+// LoadKeymap
 //
-//	Load a Windows-keys to RGF-keys map from a file into memory.
+// Load a Windows-keys to RGF-keys map from a file into memory.
 /* ------------------------------------------------------------------------------------ */
-int CInput::LoadKeymap(const char *szFilename)
+int CInput::LoadKeymap(const std::string& filename)
 {
-	FILE *fd = CCD->OpenRFFile(kInstallFile, szFilename, "rb");
+	sxLog::GetSingletonPtr()->SetMBPriority(LP_CRITICAL);
+	FILE *fd = CFileManager::GetSingletonPtr()->OpenRFFile(kConfigFile, filename.c_str(), "rb");
+	sxLog::GetSingletonPtr()->SetMBPriority(LP_ERROR);
 
 	if(!fd)
 		return RGF_FAILURE;
 
-	for(int nKey=0; nKey<100; nKey++)
+	for(int nKey=0; nKey<MAX_KEYCODES; ++nKey)
 	{
-		fread(&m_WindowKeys[nKey], sizeof(int), 1, fd);	// Window key in
-		fread(&m_RGFKeys[nKey],	sizeof(int), 1, fd);	// RGF key in
+		fread(&m_KeyActionMap[nKey],	sizeof(int), 1, fd);
 	}
+
+	for(int nButton=0; nButton<MAX_MOUSEBUTTONS; ++nButton)
+	{
+		fread(&m_MouseActionMap[nButton],sizeof(int), 1, fd);
+	}
+
+	int swap;
+	fread(&swap, sizeof(int), 1, fd);
 
 	fclose(fd);
 
-// changed QD 02/01/07
-	if(GetSystemMetrics(SM_SWAPBUTTON))
+	if(swap != GetSystemMetrics(SM_SWAPBUTTON))
 	{
-		m_WindowKeys[KEY_LBUTTON] = VK_RBUTTON;
-		m_WindowKeys[KEY_RBUTTON] = VK_LBUTTON;
+		int temp = m_MouseActionMap[OIS::MB_Left];
+		m_MouseActionMap[OIS::MB_Left] = m_MouseActionMap[OIS::MB_Right];
+		m_MouseActionMap[OIS::MB_Right] = temp;
 	}
-	else
-	{
-		m_WindowKeys[KEY_LBUTTON] = VK_LBUTTON;
-		m_WindowKeys[KEY_RBUTTON] = VK_RBUTTON;
-	}
-// end change
 
 	return RGF_SUCCESS;
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	GetCodes
-//
-//	get key that action is bound to
 /* ------------------------------------------------------------------------------------ */
-int CInput::GetCodes(int action)
+int CInput::GetKeyCode(int action)
 {
-	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
+	for(int nKey=0; nKey<MAX_KEYCODES; ++nKey)
 	{
-		if(m_RGFKeys[nKey] == action)
+		if(m_KeyActionMap[nKey] == action)
 			return nKey;
 	}
 
@@ -410,24 +917,405 @@ int CInput::GetCodes(int action)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ClearCodes
-//
-//	clear key that action is bound to
+/* ------------------------------------------------------------------------------------ */
+int CInput::GetMouseButtonID(int action)
+{
+	for(int nButton=0; nButton<MAX_MOUSEBUTTONS; ++nButton)
+	{
+		if(m_MouseActionMap[nButton] == action)
+			return nButton;
+	}
+
+	return -1;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+const std::string& CInput::GetKeyName(OIS::KeyCode key)
+{
+	return m_Keyboard->getAsString(key);
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::SetMouseButtonName(const std::string& name, OIS::MouseButtonID button)
+{
+	m_MouseButtonNames[button] = name;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+const std::string& CInput::GetMouseButtonName(OIS::MouseButtonID button)
+{
+	return m_MouseButtonNames[button];
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::ResetMouseButtonNames()
+{
+	for(int i=0; i<MAX_MOUSEBUTTONS; ++i)
+		m_MouseButtonNames[i] = m_DefaultMouseButtonNames[i];
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::SetActionName(const std::string& name, int action)
+{
+	if(action < 0 || action >= RGF_K_MAXACTION)
+		return;
+
+	m_ActionNames[action] = name;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+const std::string& CInput::GetActionName(int action)
+{
+	if(action < 0 || action >= RGF_K_MAXACTION)
+		return m_ActionNames[0];
+
+	return m_ActionNames[action];
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::ResetActionNames()
+{
+	for(int i=0; i<RGF_K_MAXACTION; ++i)
+		m_ActionNames[i] = m_DefaultActionNames[i];
+}
+
+/* ------------------------------------------------------------------------------------ */
+// Clear key/button that action is bound to
 /* ------------------------------------------------------------------------------------ */
 void CInput::ClearCodes(int action)
 {
-	for(int nKey=0; nKey<m_nMappedKeys; nKey++)
+	for(int nKey=0; nKey<MAX_MOUSEBUTTONS; ++nKey)
 	{
-		if(m_RGFKeys[nKey] == action)
+		if(m_MouseActionMap[nKey] == action)
 		{
-			m_RGFKeys[nKey] = 0;
+			m_MouseActionMap[nKey] = RGF_K_NOACTION;
 			return;
 		}
 	}
 
+	for(int nKey=0; nKey<MAX_KEYCODES; ++nKey)
+	{
+		if(m_KeyActionMap[nKey] == action)
+		{
+			m_KeyActionMap[nKey] = RGF_K_NOACTION;
+			return;
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::GetMousePos(long *pos_x, long *pos_y)
+{
+	if(pos_x)	*pos_x = m_MousePos.x;
+	if(pos_y)	*pos_y = m_MousePos.y;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::SetMousePos(long pos_x, long pos_y)
+{
+	if(pos_x < 0) pos_x = 0;
+	else if(pos_x > CCD->Engine()->Width()) pos_x = CCD->Engine()->Width();
+	if(pos_y < 0) pos_y = 0;
+	else if(pos_y > CCD->Engine()->Height()) pos_y = CCD->Engine()->Height();
+
+	SetCursorPos(pos_x, pos_y);
+
+	m_MousePos.x = pos_x;
+	m_MousePos.y = pos_y;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void CInput::CenterMouse(long *center_x, long *center_y)
+{
+	RECT client;
+	POINT mPos;
+
+	if(CCD->Engine()->FullScreen())
+	{
+		m_MousePos.x = CCD->Engine()->Width()/2;			// calculate the center of the screen
+		m_MousePos.y = CCD->Engine()->Height()/2;			// calculate the center of the screen
+		mPos.x = CCD->Engine()->Width()/2;			// calculate the center of the screen
+		mPos.y = CCD->Engine()->Height()/2;			// calculate the center of the screen
+	}
+	else
+	{
+		GetClientRect(CCD->Engine()->WindowHandle(), &client);	// get the client area of the window
+		m_MousePos.x = client.right/2;								// calculate the center of the client area
+		m_MousePos.y = client.bottom/2;								// calculate the center of the client area
+		ClientToScreen(CCD->Engine()->WindowHandle(), &m_MousePos);	// convert to SCREEN coordinates
+		mPos.x = client.right/2;								// calculate the center of the client area
+		mPos.y = client.bottom/2;								// calculate the center of the client area
+		ClientToScreen(CCD->Engine()->WindowHandle(), &mPos);	// convert to SCREEN coordinates
+	}
+
+	SetCursorPos(mPos.x, mPos.y);					// put the cursor in the middle of the window
+
+	if(center_x) *center_x = mPos.x;
+	if(center_y) *center_y = mPos.y;
+}
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+
+bool SX_IMPL_TYPE::method(const skString& m_name, skRValueArray& args, skRValue& r_val, skExecutableContext& ctxt)
+{
+	if(h_method(this, m_name, args, r_val, ctxt))
+		return true;
+	else
+		return skExecutable::method(m_name, args, r_val, ctxt);
 }
 
 
-/* ----------------------------------- END OF FILE ------------------------------------ */
+bool SX_IMPL_TYPE::getValue(const skString& name ,const skString& att, skRValue& val)
+{
+	if(name == "Key")
+	{
+		val.assignObject(m_pKey);
+		return true;
+	}
+	if(name == "MouseButton")
+	{
+		val.assignObject(m_pMouseButton);
+		return true;
+	}
+	if(name == "Action")
+	{
+		val.assignObject(m_pAction);
+		return true;
+	}
 
+	return skExecutable::getValue(name, att, val);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// CInput method functions
+//////////////////////////////////////////////////////////////////////////////////////////
+
+SX_METHOD_IMPL(GetActionName)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = skString(caller->GetActionName(args[0].intValue()).c_str());
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetKey) // from action
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetKeyCode(args[0].intValue());
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetKeyAction)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetKeyAction(static_cast<OIS::KeyCode>(args[0].intValue()));
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetKeyName)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = skString(caller->GetKeyName(static_cast<OIS::KeyCode>(args[0].intValue())).c_str());
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetMouseButton) // from action
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetMouseButtonID(args[0].intValue());
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetMouseButtonAction)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetMouseAction(static_cast<OIS::MouseButtonID>(args[0].intValue()));
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetMouseButtonName)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = skString(caller->GetMouseButtonName(static_cast<OIS::MouseButtonID>(args[0].intValue())).c_str());
+	return true;
+}
+
+SX_METHOD_IMPL(GetJoystickAxisX)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetJoystickAxis(args[0].intValue(), 0);
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetJoystickAxisY)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetJoystickAxis(args[0].intValue(), 1);
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetJoystickAxisZ)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->GetJoystickAxis(args[0].intValue(), 2);
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetNumberOfJoysticks)
+{
+	r_val = caller->GetNumberOfJoysticks();
+	return true;
+}
+
+
+SX_METHOD_IMPL(IsJoystickButtonDown)
+{
+	if(args.entries() != 2)
+		return false;
+
+	r_val = caller->IsJoystickButtonDown(args[0].intValue(), args[1].intValue());
+	return true;
+}
+
+
+SX_METHOD_IMPL(IsKeyDown)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->IsKeyDown(static_cast<OIS::KeyCode>(args[0].intValue()));
+	return true;
+}
+
+
+SX_METHOD_IMPL(IsMouseButtonDown)
+{
+	if(args.entries() != 1)
+		return false;
+
+	r_val = caller->IsMouseButtonDown(static_cast<OIS::MouseButtonID>(args[0].intValue()));
+	return true;
+}
+
+
+SX_METHOD_IMPL(KeyDown)
+{
+	r_val = caller->GetKeyboardInputNoWait();
+	return true;
+}
+
+
+SX_METHOD_IMPL(SetEnabled)
+{
+	if(args.entries() != 1)
+		return false;
+
+	// TODO: move from ccd to input class
+	CCD->SetKeyPaused(!args[0].boolValue());
+	return true;
+}
+
+
+SX_METHOD_IMPL(SetMousePosition) // expects client-area coordinates
+{
+	if(args.entries() != 1)
+		return false;
+
+	RFSX::sxVector2 *vec = RFSX::IS_VECTOR2(args[0]);
+	if(!vec)
+		return false;
+
+	POINT mPos = { static_cast<long>(vec->Vector2()->d_x), static_cast<long>(vec->Vector2()->d_y) };
+	if(!CCD->Engine()->FullScreen())
+	{
+		ClientToScreen(CCD->Engine()->WindowHandle(), &mPos);
+	}
+
+	caller->SetMousePos(mPos.x, mPos.y);
+	CEGUI::System::getSingleton().injectMousePosition(static_cast<float>(mPos.x), static_cast<float>(mPos.y));
+	return true;
+}
+
+
+SX_METHOD_IMPL(GetMousePosition) // returns client-area coordinates
+{
+	POINT mPos;
+	caller->GetMousePos(&mPos.x, &mPos.y);
+	if(!CCD->Engine()->FullScreen())
+	{
+		ScreenToClient(CCD->Engine()->WindowHandle(), &mPos);
+	}
+
+	r_val.assignObject(new RFSX::sxVector2(static_cast<float>(mPos.x), static_cast<float>(mPos.y)), true);
+	return true;
+}
+
+
+RFSX::SX_INIT_MHT(SXINPUT_METHODS);
+void SX_IMPL_TYPE::InitMHT()
+{
+	SX_ADD_METHOD(GetActionName);
+	SX_ADD_METHOD(GetKey);
+	SX_ADD_METHOD(GetKeyAction);
+	SX_ADD_METHOD(GetKeyName);
+	SX_ADD_METHOD(GetMouseButton);
+	SX_ADD_METHOD(GetMouseButtonAction);
+	SX_ADD_METHOD(GetMouseButtonName);
+	SX_ADD_METHOD(GetJoystickAxisX);
+	SX_ADD_METHOD(GetJoystickAxisY);
+	SX_ADD_METHOD(GetJoystickAxisZ);
+	SX_ADD_METHOD(GetNumberOfJoysticks);
+	SX_ADD_METHOD(IsJoystickButtonDown);
+	SX_ADD_METHOD(IsKeyDown);
+	SX_ADD_METHOD(IsMouseButtonDown);
+	SX_ADD_METHOD(KeyDown);
+	SX_ADD_METHOD(SetEnabled);
+	SX_ADD_METHOD(SetMousePosition);
+	SX_ADD_METHOD(GetMousePosition);
+}
+
+
+#undef SX_IMPL_TYPE
+
+/* ----------------------------------- END OF FILE ------------------------------------ */
 
