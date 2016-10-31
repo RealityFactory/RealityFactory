@@ -9,21 +9,14 @@
 #ifndef __RGF_CARMOUR_H_
 #define __RGF_CARMOUR_H_
 
-#define MAXARMOUR 20
+#include <hash_map>
+
 #define MAXDAMAGEBY 10
 
 /**
  * @brief Armour type definition
  */
-typedef struct ArmourType
-{
-	char	*Name;
-	char	*Attribute;
-	char	*DamageBy[MAXDAMAGEBY];
-	int		Protection[MAXDAMAGEBY];
-	int		DamageTo[MAXDAMAGEBY];
-
-} ArmourType;
+typedef struct ArmourType ArmourType;
 
 /**
  * @brief CArmour handles armour of player
@@ -36,12 +29,21 @@ public:
 	CArmour();
 	~CArmour();
 
-	void DisableHud(const char *Attr);
-	int AdjustDamage(int Amount, const char *name, const char *Attr);
+	bool IsArmour(const std::string &attr) const;
+
+	void DisableHud(const std::string& attr) const;
+
+	/**
+	 * @brief Reduce damage according to armour
+	 * @param amount original amount of damage
+	 * @param name name of damage dealer
+	 * @param attr attribute to be damaged
+	 * @returns adjusted amount of damage
+	 */
+	int AdjustDamage(int amount, const std::string& name, const std::string& attr) const;
 
 private:
-	ArmourType List[MAXARMOUR];
-	int ListPtr;
+	stdext::hash_map<std::string, ArmourType*> m_Armours;
 };
 
 #endif

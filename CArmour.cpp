@@ -12,68 +12,82 @@
 #include "CHeadsUpDisplay.h"
 #include "CInventory.h"
 
+struct ArmourType
+{
+	int			Protection[MAXDAMAGEBY]; // percentage of protection
+	int			DamageTo[MAXDAMAGEBY]; // percentage of damage taken
+	std::string	DamageBy[MAXDAMAGEBY]; // effective against these damage dealers
+	std::string	Attribute; // protected attribute
+};
+
+
 /* ------------------------------------------------------------------------------------ */
 // Constructor
 /* ------------------------------------------------------------------------------------ */
 CArmour::CArmour()
 {
-	ListPtr = -1;
-	CIniFile AttrFile("armour.ini");
+	CIniFile iniFile("armour.ini");
 
-	if(!AttrFile.ReadFile())
+	if(!iniFile.ReadFile())
 		return;
 
-	std::string KeyName = AttrFile.FindFirstKey();
-	std::string Type, Value;
-	geVec3d Vector;
-	char szName[64];
+	std::string armourName = iniFile.FindFirstKey();
+	std::string type, value;
+	geVec3d vector;
 
-	while(KeyName != "")
+	while(!armourName.empty())
 	{
-		ListPtr +=1;
-
-		if(ListPtr >= MAXARMOUR)
+		if(m_Armours.find(armourName) != m_Armours.end())
 		{
-			ListPtr = MAXARMOUR-1;
-			break;
+			// already defined
+			sxLog::GetSingletonPtr()->Warning("Armour type [" + armourName + "] already defined");
+			armourName = iniFile.FindNextKey();
+			continue;
 		}
 
-		List[ListPtr].Name = strdup(KeyName.c_str());
+		if(iniFile.GetValue(armourName, "attribute").empty())
+		{
+			// no attribute specified
+			sxLog::GetSingletonPtr()->Warning("No attribute defined for armour type [" + armourName + "]");
+			continue;
+		}
 
-		for(int i=0; i<MAXDAMAGEBY; i++)
-			List[ListPtr].DamageBy[i] = NULL;
+		m_Armours[armourName] = new ArmourType;
+		memset(m_Armours[armourName]->Protection, 0, sizeof(int)*MAXDAMAGEBY);
+		memset(m_Armours[armourName]->DamageTo,   0, sizeof(int)*MAXDAMAGEBY);
 
-		List[ListPtr].Attribute = NULL;
-		Type = AttrFile.FindFirstName(KeyName);
-		Value = AttrFile.FindFirstValue();
+		type = iniFile.FindFirstName(armourName);
+		value = iniFile.FindFirstValue();
 
 		int j = 0;
 
-		while(Type != "")
+		while(!type.empty())
 		{
 			if(j >= MAXDAMAGEBY)
-				break;
-
-			if(Type == "attribute")
 			{
-				List[ListPtr].Attribute = strdup(Value.c_str());
+				sxLog::GetSingletonPtr()->Warning("Too many damage name entries defined for armour type [" + armourName + "]");
+				break;
+			}
+
+			if(type == "attribute")
+			{
+				m_Armours[armourName]->Attribute = value;
 			}
 			else
 			{
-				List[ListPtr].DamageBy[j] = strdup(Type.c_str());
-				strncpy(szName, Value.c_str(), 63);
-				szName[63] = 0;
-				Vector = Extract(szName);
-				List[ListPtr].Protection[j] = (int)Vector.X;
-				List[ListPtr].DamageTo[j] = (int)Vector.Y;
-				j += 1;
+				m_Armours[armourName]->DamageBy[j] = type;
+
+				vector = ToVec3d(value);
+				m_Armours[armourName]->Protection[j] = static_cast<int>(vector.X);
+				m_Armours[armourName]->DamageTo[j] = static_cast<int>(vector.Y);
+				++j;
 			}
 
-			Type = AttrFile.FindNextName();
-			Value = AttrFile.FindNextValue();
+			type = iniFile.FindNextName();
+			value = iniFile.FindNextValue();
 		}
 
-		KeyName = AttrFile.FindNextKey();
+		armourName = iniFile.FindNextKey();
 	}
 }
 
@@ -83,58 +97,37 @@ CArmour::CArmour()
 /* ------------------------------------------------------------------------------------ */
 CArmour::~CArmour()
 {
-	if(ListPtr != -1)
-	{
-		for(int i=0; i<=ListPtr; i++)
-		{
-			if(List[i].Name)
-			{
-				free(List[i].Name);
-				List[i].Name = 0;
-			}
+	stdext::hash_map<std::string, ArmourType*>::iterator it = m_Armours.begin();
+	for(; it!=m_Armours.end(); ++it)
+		delete it->second;
+}
 
-			if(List[i].Attribute)
-			{
-				free(List[i].Attribute);
-				List[i].Attribute = 0;
-			}
 
-			for(int j=0; j<MAXDAMAGEBY; j++)
-			{
-				if(List[i].DamageBy[j])
-				{
-					free(List[i].DamageBy[j]);
-					List[i].DamageBy[j] = 0;
-				}
-			}
-		}
-	}
+/* ------------------------------------------------------------------------------------ */
+// IsArmour
+/* ------------------------------------------------------------------------------------ */
+bool CArmour::IsArmour(const std::string &attr) const
+{
+	return (m_Armours.find(attr) != m_Armours.end());
 }
 
 
 /* ------------------------------------------------------------------------------------ */
 // DisableHud
 /* ------------------------------------------------------------------------------------ */
-void CArmour::DisableHud(const char *Attr)
+void CArmour::DisableHud(const std::string& attr) const
 {
-	int i;
-
-	if(ListPtr != -1)
+	// if 'attr' is an armour, disable all armour
+	// (the 'attr' armour will be enabled by the code calling this function afterwards)
+	if(m_Armours.find(attr) != m_Armours.end())
 	{
-		for(i=0; i<=ListPtr; i++)
+		stdext::hash_map<std::string, ArmourType*>::const_iterator it = m_Armours.begin();
+		for(; it!=m_Armours.end(); ++it)
 		{
-			if(!strcmp(Attr, List[i].Name))
+			if(CCD->Player()->GetUseAttribute(it->first))
 			{
-				for(int j=0; j<=ListPtr; j++)
-				{
-					if(CCD->Player()->GetUseAttribute(List[j].Name))
-					{
-						CCD->Player()->DelUseAttribute(List[j].Name);
-						CCD->HUD()->ActivateElement(List[j].Name, false);
-					}
-				}
-
-				break;
+				CCD->Player()->DelUseAttribute(it->first);
+				CCD->HUD()->ActivateElement(it->first, false);
 			}
 		}
 	}
@@ -144,52 +137,48 @@ void CArmour::DisableHud(const char *Attr)
 /* ------------------------------------------------------------------------------------ */
 // AdjustDamage
 /* ------------------------------------------------------------------------------------ */
-int CArmour::AdjustDamage(int Amount, const char *name, const char *Attr)
+int CArmour::AdjustDamage(int amount, const std::string& name, const std::string& attr) const
 {
-	if(ListPtr == -1)
-		return Amount;
-
-	for(int i=0; i<=ListPtr; i++)
+	stdext::hash_map<std::string, ArmourType*>::const_iterator it = m_Armours.begin();
+	for(; it!=m_Armours.end(); ++it)
 	{
-		if(CCD->Player()->GetUseAttribute(List[i].Name) && List[i].Attribute)
+		if(it->second->Attribute != attr)
+			continue;
+
+		if(CCD->Player()->GetUseAttribute(it->first))
 		{
-			if(!strcmp(Attr, List[i].Attribute))
+			for(int j=0; j<MAXDAMAGEBY; ++j)
 			{
-				for(int j=0; j<MAXDAMAGEBY; j++)
+				if(it->second->DamageBy[j] != name)
+					continue;
+
+				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+				int protect = (amount * it->second->Protection[j]) / 100;
+
+				if(theInv->Value(it->first) < protect)
+					protect = theInv->Value(it->first);
+
+				int actual = amount - protect;
+
+				if(actual < 0)
+					actual = 0;
+
+				theInv->Modify(it->first, -(amount * it->second->DamageTo[j]) / 100);
+
+				if(theInv->Value(it->first) <= theInv->Low(it->first))
 				{
-					if(List[i].DamageBy[j])
-					{
-						if(!strcmp(name, List[i].DamageBy[j]))
-						{
-							int Actual;
-							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-							int Protect = ((Amount*List[i].Protection[j])/100);
-
-							if(theInv->Value(List[i].Name)<Protect)
-								Protect = theInv->Value(List[i].Name);
-
-							Actual = Amount - Protect;
-
-							if(Actual < 0)
-								Actual = 0;
-
-							theInv->Modify(List[i].Name, -((Amount*List[i].DamageTo[j])/100));
-
-							if(theInv->Value(List[i].Name) <= theInv->Low(List[i].Name))
-							{
-								CCD->Player()->DelUseAttribute(List[i].Name);
-								CCD->HUD()->ActivateElement(List[i].Name, false);
-							}
-
-							return Actual;
-						}
-					}
+					CCD->Player()->DelUseAttribute(it->first);
+					CCD->HUD()->ActivateElement(it->first, false);
 				}
+
+				sxInventory::GetSingletonPtr()->UpdateItem(it->first, true);
+
+				return actual;
 			}
 		}
 	}
 
-	return Amount;
+	return amount;
 }
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
