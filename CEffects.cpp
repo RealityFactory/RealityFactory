@@ -11,6 +11,7 @@
 
 //	Include the One True Header
 #include "RabidFramework.h"
+#include "CLevel.h"
 #include "IniFile.h"
 #include <Ram.h>
 
@@ -18,583 +19,496 @@ extern geSound_Def *SPool_Sound(const char *SName);
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
 							  const char *BName, const char *AName);
 
+class EffectDefinition
+{
+public:
+	EffectDefinition(int type, void* data): m_Type(type), m_Data(data) {}
+	~EffectDefinition()
+	{
+		if(m_Data != NULL)
+		{
+			if(m_Type == EFF_SPRITE)
+			{
+				Sprite *sprite = static_cast<Sprite*>(m_Data);
+				if(sprite->Texture)	geRam_Free(sprite->Texture);
+			}
+			geRam_Free(m_Data);
+		}
+	}
+
+	int		m_Type;
+	void*	m_Data;
+};
+
+
 /* ------------------------------------------------------------------------------------ */
-//	Constructor
+// Constructor
 /* ------------------------------------------------------------------------------------ */
 CPreEffect::CPreEffect()
 {
-	int i;
+	CIniFile iniFile("effect.ini");
 
-	for(i=0; i<MAXEXPITEM; i++)
-	{
-		Effects[i].Active = GE_FALSE;
-		Effects[i].Data = NULL;
-	}
-
-	CIniFile AttrFile("effect.ini");
-
-	if(!AttrFile.ReadFile())
+	if(!iniFile.ReadFile())
 	{
 		CCD->Log()->Warning("Failed to open effect.ini file.");
 		return;
 	}
 
-	std::string KeyName = AttrFile.FindFirstKey();
-	std::string Type;
-	int effptr = 0;
+	std::string effectName = iniFile.FindFirstKey();
+	std::string effectType;
 
-	while(KeyName != "" && effptr<MAXEXPITEM)
+	while(!effectName.empty())
 	{
-		Type = AttrFile.GetValue(KeyName, "type");
-		strncpy(Effects[effptr].Name, KeyName.c_str(), 63);
-		Effects[effptr].Name[63] = 0;
-		if(Type == "spray")
+		if(EffectExists(effectName))
 		{
-			std::string Tname, Talpha, Vector;
-			char szName[64], szAlpha[64];
-			geVec3d convert;
-			Spray *Sp;
+			CCD->Log()->Warning("Redefinition of effect [" + effectName + "] in effect.ini file.");
+			effectName = iniFile.FindNextKey();
+			continue;
+		}
 
-			Effects[effptr].Type = EFF_SPRAY;
-			Tname = AttrFile.GetValue(KeyName, "bitmapname");
+		effectType = iniFile.GetValue(effectName, "type");
 
-			if(Tname != "")
+		if(effectType == "spray")
+		{
+			std::string textureName = iniFile.GetValue(effectName, "bitmapname");
+
+			if(!textureName.empty())
 			{
-				Talpha = AttrFile.GetValue(KeyName, "alphamapname");
+				std::string textureAlphaName(iniFile.GetValue(effectName, "alphamapname"));
 
-				if(Talpha == "")
-					Talpha = Tname;
+				if(textureAlphaName.empty())
+					textureAlphaName = textureName;
 
-				strcpy(szName, Tname.c_str());
-				strcpy(szAlpha, Talpha.c_str());
+				Spray *spray = GE_RAM_ALLOCATE_STRUCT(Spray);
+				memset(spray, 0, sizeof(Spray));
+				spray->Texture = TPool_Bitmap(textureName.c_str(), textureAlphaName.c_str(), NULL, NULL);
 
-				Sp = GE_RAM_ALLOCATE_STRUCT(Spray);
-				memset(Sp, 0, sizeof(Spray));
-				Sp->ColorMax.a = 255.0f;
-				Sp->ColorMin.a = 255.0f;
-				Sp->Texture = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				std::string value(iniFile.GetValue(effectName, "angles"));
 
-				Vector = AttrFile.GetValue(KeyName, "angles");
-
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					Sp->Angle = Extract(szName);
+					spray->Angle = ToVec3d(value);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "colormax");
+				value = iniFile.GetValue(effectName, "colormax");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->ColorMax.r = convert.X;
-					Sp->ColorMax.g = convert.Y;
-					Sp->ColorMax.b = convert.Z;
+					spray->ColorMax = ToRGBA(value);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "colormaxalpha");
+				value = iniFile.GetValue(effectName, "colormaxalpha");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					Sp->ColorMax.a = (float)AttrFile.GetValueI(KeyName, "colormaxalpha");
+					spray->ColorMax.a = static_cast<float>(iniFile.GetValueI(effectName, "colormaxalpha"));
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "colormin");
+				value = iniFile.GetValue(effectName, "colormin");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->ColorMin.r = convert.X;
-					Sp->ColorMin.g = convert.Y;
-					Sp->ColorMin.b = convert.Z;
+					spray->ColorMin = ToRGBA(value);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "colorminalpha");
+				value = iniFile.GetValue(effectName, "colorminalpha");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					Sp->ColorMin.a = (float)AttrFile.GetValueI(KeyName, "colorminalpha");
+					spray->ColorMin.a = static_cast<float>(iniFile.GetValueI(effectName, "colorminalpha"));
 				}
 
-				Sp->SourceVariance	= AttrFile.GetValueI(KeyName, "sourcevariance");
-				Sp->DestVariance	= AttrFile.GetValueI(KeyName, "destvariance");
+				spray->SourceVariance	= iniFile.GetValueI(effectName, "sourcevariance");
+				spray->DestVariance		= iniFile.GetValueI(effectName, "destvariance");
 
-				Vector = AttrFile.GetValue(KeyName, "gravity");
+				value = iniFile.GetValue(effectName, "gravity");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					Sp->Gravity = Extract(szName);
+					spray->Gravity = ToVec3d(value);
 				}
 
-				Sp->MaxScale	= (float)AttrFile.GetValueF(KeyName, "maxscale");
-				Sp->MinScale	= (float)AttrFile.GetValueF(KeyName, "minscale");
-				Sp->MaxSpeed	= (float)AttrFile.GetValueF(KeyName, "maxspeed");
-				Sp->MinSpeed	= (float)AttrFile.GetValueF(KeyName, "minspeed");
-				Sp->MaxUnitLife = (float)AttrFile.GetValueF(KeyName, "maxunitlife");
-				Sp->MinUnitLife = (float)AttrFile.GetValueF(KeyName, "minunitlife");
-				Sp->Rate		= (float)AttrFile.GetValueF(KeyName, "particlecreationrate");
-				Sp->SprayLife	= (float)AttrFile.GetValueF(KeyName, "totallife");
-				Sp->Bounce		= GE_FALSE;
+				spray->MaxScale		= static_cast<float>(iniFile.GetValueF(effectName, "maxscale"));
+				spray->MinScale		= static_cast<float>(iniFile.GetValueF(effectName, "minscale"));
+				spray->MaxSpeed		= static_cast<float>(iniFile.GetValueF(effectName, "maxspeed"));
+				spray->MinSpeed		= static_cast<float>(iniFile.GetValueF(effectName, "minspeed"));
+				spray->MaxUnitLife	= static_cast<float>(iniFile.GetValueF(effectName, "maxunitlife"));
+				spray->MinUnitLife	= static_cast<float>(iniFile.GetValueF(effectName, "minunitlife"));
+				spray->Rate			= static_cast<float>(iniFile.GetValueF(effectName, "particlecreationrate"));
+				spray->SprayLife	= static_cast<float>(iniFile.GetValueF(effectName, "totallife"));
+				spray->Bounce		= GE_FALSE;
 
-				Vector = AttrFile.GetValue(KeyName, "bounce");
+				value = iniFile.GetValue(effectName, "bounce");
 
-				if(Vector == "true")
-					Sp->Bounce = GE_TRUE;
+				if(value == "true")
+				{
+					spray->Bounce = GE_TRUE;
+				}
 
-				Effects[effptr].Data = Sp;
-				Effects[effptr].Active = GE_TRUE;
-				effptr +=1;
+				m_Effects[effectName] = new EffectDefinition(EFF_SPRAY, spray);
 			}
 		}
-		else if(Type == "light")
+		else if(effectType == "light")
 		{
-			std::string Vector;
-			char szName[64];
-			geVec3d convert;
-			Glow *Lite;
+			Glow *light = GE_RAM_ALLOCATE_STRUCT(Glow);
+			memset(light, 0, sizeof(Glow));
+			light->LightLife = 1.0f;
+			light->Intensity = 1.0f;
 
-			strcpy(Effects[effptr].Name, KeyName.c_str());
-			Effects[effptr].Type = EFF_LIGHT;
-			Lite = GE_RAM_ALLOCATE_STRUCT(Glow);
-			memset(Lite, 0, sizeof(Glow));
-			Lite->LightLife = 1.0f;
-			Lite->Intensity = 1.0f;
-			Vector = AttrFile.GetValue(KeyName, "colormax");
+			std::string value(iniFile.GetValue(effectName, "colormax"));
 
-			if(Vector != "")
+			if(!value.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				convert = Extract(szName);
-				Lite->ColorMax.r = convert.X;
-				Lite->ColorMax.g = convert.Y;
-				Lite->ColorMax.b = convert.Z;
+				light->ColorMax = ToRGBA(value);
 			}
 
-			Vector = AttrFile.GetValue(KeyName, "colormin");
+			value = iniFile.GetValue(effectName, "colormin");
 
-			if(Vector != "")
+			if(!value.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				convert = Extract(szName);
-				Lite->ColorMin.r = convert.X;
-				Lite->ColorMin.g = convert.Y;
-				Lite->ColorMin.b = convert.Z;
+				light->ColorMin = ToRGBA(value);
 			}
 
-			Vector = AttrFile.GetValue(KeyName, "offsetangles");
+			value = iniFile.GetValue(effectName, "offsetangles");
 
-			if(Vector != "")
+			if(!value.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				Lite->Direction = Extract(szName);
+				light->Direction = ToVec3d(value);
 			}
 
-			Lite->Spot = GE_FALSE;
+			light->Spot = GE_FALSE;
 
-			Type = AttrFile.GetValue(KeyName, "spotlight");
+			value = iniFile.GetValue(effectName, "spotlight");
 
-			if(Type == "true")
-				Lite->Spot = GE_TRUE;
+			if(value == "true")
+				light->Spot = GE_TRUE;
 
-			Lite->Arc			= (float)AttrFile.GetValueF(KeyName, "arc");
-			Lite->Style			= AttrFile.GetValueI(KeyName, "style");
+			light->Arc			= static_cast<float>(iniFile.GetValueF(effectName, "arc"));
+			light->Style		= iniFile.GetValueI(effectName, "style");
 
-			Lite->RadiusMax		= (float)AttrFile.GetValueF(KeyName, "radiusmax");
-			Lite->RadiusMin		= (float)AttrFile.GetValueF(KeyName, "radiusmin");
-			Lite->Intensity		= (float)AttrFile.GetValueF(KeyName, "intensity");
-			Lite->LightLife		= (float)AttrFile.GetValueF(KeyName, "totallife");
-			Lite->DoNotClip		= GE_FALSE;
-			Lite->CastShadows	= GE_TRUE;
+			light->RadiusMax	= static_cast<float>(iniFile.GetValueF(effectName, "radiusmax"));
+			light->RadiusMin	= static_cast<float>(iniFile.GetValueF(effectName, "radiusmin"));
+			light->Intensity	= static_cast<float>(iniFile.GetValueF(effectName, "intensity"));
+			light->LightLife	= static_cast<float>(iniFile.GetValueF(effectName, "totallife"));
+			light->DoNotClip	= GE_FALSE;
+			light->CastShadows	= GE_TRUE;
 
-			Effects[effptr].Data = Lite;
-			Effects[effptr].Active = GE_TRUE;
-			effptr +=1;
+			m_Effects[effectName] = new EffectDefinition(EFF_LIGHT, light);
 		}
-		else if(Type == "sprite")
+		else if(effectType == "sprite")
 		{
-			std::string Tname, Talpha, Vector;
-			char szName[64], szAlpha[64];
-			geVec3d convert;
-			Sprite *Sp;
+			std::string textureName(iniFile.GetValue(effectName, "basebitmapname"));
 
-			Effects[effptr].Type = EFF_SPRITE;
-			Tname = AttrFile.GetValue(KeyName, "basebitmapname");
-
-			if(Tname != "")
+			if(!textureName.empty())
 			{
-				Talpha = AttrFile.GetValue(KeyName, "basealphamapname");
+				std::string textureAlphaName(iniFile.GetValue(effectName, "basealphamapname"));
 
-				if(Talpha == "")
-					Talpha = Tname;
+				if(textureAlphaName.empty())
+					textureAlphaName = textureName;
 
-				strcpy(szName, Tname.c_str());
-				strcpy(szAlpha, Talpha.c_str());
-				int Count = AttrFile.GetValueI(KeyName, "bitmapcount");
+				int textureCount = iniFile.GetValueI(effectName, "bitmapcount");
 
-				if(Count > 0)
+				if(textureCount > 0)
 				{
-					Sp = GE_RAM_ALLOCATE_STRUCT(Sprite);
-					memset(Sp, 0, sizeof(Sprite));
-					Sp->TotalTextures = Count;
-					Sp->Texture = (geBitmap**)geRam_AllocateClear(sizeof(geBitmap*)*Count);
+					Sprite *sprite = GE_RAM_ALLOCATE_STRUCT(Sprite);
+					memset(sprite, 0, sizeof(Sprite));
+					sprite->TotalTextures = textureCount;
+					sprite->Texture = static_cast<geBitmap**>(geRam_AllocateClear(sizeof(geBitmap*) * textureCount));
 
-					for(int i=0; i<Count; i++ )
+					for(int i=0; i<textureCount; ++i)
 					{
-						char BmpName[256];
-						char AlphaName[256];
+						char bmpName[256];
+						char alphaName[256];
 						// build bmp and alpha names
-						sprintf(BmpName, "%s%d%s", szName, i, ".bmp");
-						sprintf(AlphaName, "%s%d%s", szAlpha, i, ".bmp");
-						Sp->Texture[i] = TPool_Bitmap(BmpName, AlphaName, NULL, NULL);
+						sprintf(bmpName, "%s%d%s", textureName.c_str(), i, ".bmp");
+						sprintf(alphaName, "%s%d%s", textureAlphaName.c_str(), i, ".bmp");
+						sprite->Texture[i] = TPool_Bitmap(bmpName, alphaName, NULL, NULL);
 					}
 
-					Vector = AttrFile.GetValue(KeyName, "color");
+					std::string value(iniFile.GetValue(effectName, "color"));
 
-					if(Vector != "")
+					if(!value.empty())
 					{
-						strcpy(szName, Vector.c_str());
-						convert = Extract(szName);
-						Sp->Color.r = convert.X;
-						Sp->Color.g = convert.Y;
-						Sp->Color.b = convert.Z;
+						sprite->Color = ToRGBA(value);
 					}
 
-					Sp->TextureRate		= 1.0f/(float)AttrFile.GetValueF(KeyName, "texturerate");
-					Sp->Scale			= (float)AttrFile.GetValueF(KeyName, "scale");
-					Sp->ScaleRate		= (float)AttrFile.GetValueF(KeyName, "scalerate");
-					Sp->Rotation		= GE_PIOVER180*(float)AttrFile.GetValueF(KeyName, "rotation");
-					Sp->RotationRate	= GE_PIOVER180*(float)AttrFile.GetValueF(KeyName, "rotationrate");
-					Sp->Color.a			= (float)AttrFile.GetValueF(KeyName, "alpha");
-					Sp->AlphaRate		= (float)AttrFile.GetValueF(KeyName, "alpharate");
-					Sp->LifeTime		= (float)AttrFile.GetValueF(KeyName, "lifetime");
+					sprite->TextureRate		= 1.0f/static_cast<float>(iniFile.GetValueF(effectName, "texturerate"));
+					sprite->Scale			= static_cast<float>(iniFile.GetValueF(effectName, "scale"));
+					sprite->ScaleRate		= static_cast<float>(iniFile.GetValueF(effectName, "scalerate"));
+					sprite->Rotation		= GE_PIOVER180*static_cast<float>(iniFile.GetValueF(effectName, "rotation"));
+					sprite->RotationRate	= GE_PIOVER180*static_cast<float>(iniFile.GetValueF(effectName, "rotationrate"));
+					sprite->Color.a			= static_cast<float>(iniFile.GetValueF(effectName, "alpha"));
+					sprite->AlphaRate		= static_cast<float>(iniFile.GetValueF(effectName, "alpharate"));
+					sprite->LifeTime		= static_cast<float>(iniFile.GetValueF(effectName, "lifetime"));
 
-					Tname = AttrFile.GetValue(KeyName, "style");
+					value = iniFile.GetValue(effectName, "style");
 
-					if(Tname == "")
-						Sp->Style = SPRITE_CYCLE_ONCE;
+					if(value.empty())
+					{
+						sprite->Style = SPRITE_CYCLE_ONCE;
+					}
 					else
 					{
-						if(Tname == "none")
-							Sp->Style = SPRITE_CYCLE_NONE;
-						else if(Tname == "reset")
-							Sp->Style = SPRITE_CYCLE_RESET;
-						else if(Tname == "reverse")
-							Sp->Style = SPRITE_CYCLE_REVERSE;
-						else if(Tname == "random")
-							Sp->Style = SPRITE_CYCLE_RANDOM;
+						if(value == "none")
+							sprite->Style = SPRITE_CYCLE_NONE;
+						else if(value == "reset")
+							sprite->Style = SPRITE_CYCLE_RESET;
+						else if(value == "reverse")
+							sprite->Style = SPRITE_CYCLE_REVERSE;
+						else if(value == "random")
+							sprite->Style = SPRITE_CYCLE_RANDOM;
 						else
-							Sp->Style = SPRITE_CYCLE_ONCE;
+							sprite->Style = SPRITE_CYCLE_ONCE;
 					}
-					Effects[effptr].Data = Sp;
-					Effects[effptr].Active = GE_TRUE;
-					effptr +=1;
+
+					m_Effects[effectName] = new EffectDefinition(EFF_SPRITE, sprite);
 				}
 			}
 		}
-		else if(Type == "sound")
+		else if(effectType == "sound")
 		{
-			Snd *Sound;
-			std::string Vector;
-			char szName[64];
+			std::string name(iniFile.GetValue(effectName, "name"));
 
-			strcpy(Effects[effptr].Name, KeyName.c_str());
-			Effects[effptr].Type = EFF_SND;
-			Vector = AttrFile.GetValue(KeyName, "name");
-
-			if(Vector != "")
+			if(!name.empty())
 			{
-				Sound = GE_RAM_ALLOCATE_STRUCT(Snd);
-				memset(Sound, 0, sizeof(Snd));
-				strcpy(szName, Vector.c_str());
-				Sound->SoundDef = SPool_Sound(szName);
-				Sound->Min = CCD->GetAudibleRadius();
-				Sound->Loop = GE_FALSE;
-				Effects[effptr].Data = Sound;
-				Effects[effptr].Active = GE_TRUE;
-				effptr +=1;
+				Snd *sound = GE_RAM_ALLOCATE_STRUCT(Snd);
+				memset(sound, 0, sizeof(Snd));
+				sound->SoundDef = SPool_Sound(name.c_str());
+				sound->Min = CCD->Level()->GetAudibleRadius();
+				sound->Loop = GE_FALSE;
+
+				m_Effects[effectName] = new EffectDefinition(EFF_SND, sound);
 			}
 		}
-		else if(Type == "corona")
+		else if(effectType == "corona")
 		{
-			EffCorona *C;
-			std::string Vector;
-			geVec3d convert;
-			char szName[64];
+			EffCorona *corona = GE_RAM_ALLOCATE_STRUCT(EffCorona);
+			memset(corona, 0, sizeof(EffCorona));
+			corona->Texture = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
 
-			strcpy(Effects[effptr].Name, KeyName.c_str());
-			Effects[effptr].Type = EFF_CORONA;
-			C = GE_RAM_ALLOCATE_STRUCT(EffCorona);
-			memset(C, 0, sizeof(EffCorona));
-			C->Texture = TPool_Bitmap("corona.bmp", "a_corona.bmp", NULL, NULL);
-			Vector = AttrFile.GetValue(KeyName, "color");
+			std::string value(iniFile.GetValue(effectName, "color"));
 
-			if(Vector != "")
+			if(!value.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				convert = Extract(szName);
-				C->Vertex.r = convert.X;
-				C->Vertex.g = convert.Y;
-				C->Vertex.b = convert.Z;
+				geVec3d convert = ToVec3d(value);
+				corona->Vertex.r = convert.X;
+				corona->Vertex.g = convert.Y;
+				corona->Vertex.b = convert.Z;
 			}
 
-			C->FadeTime				= (float)AttrFile.GetValueF(KeyName, "fadetime");
-			C->MinRadius			= (float)AttrFile.GetValueF(KeyName, "minradius");
-			C->MaxRadius			= (float)AttrFile.GetValueF(KeyName, "maxradius");
-			C->MinRadiusDistance	= (float)AttrFile.GetValueF(KeyName, "minradiusdistance");
-			C->MaxRadiusDistance	= (float)AttrFile.GetValueF(KeyName, "maxradiusdistance");
-			C->MaxVisibleDistance	= (float)AttrFile.GetValueF(KeyName, "maxvisibledistance");
-			C->LifeTime				= (float)AttrFile.GetValueF(KeyName, "totallife");
+			corona->FadeTime			= static_cast<float>(iniFile.GetValueF(effectName, "fadetime"));
+			corona->MinRadius			= static_cast<float>(iniFile.GetValueF(effectName, "minradius"));
+			corona->MaxRadius			= static_cast<float>(iniFile.GetValueF(effectName, "maxradius"));
+			corona->MinRadiusDistance	= static_cast<float>(iniFile.GetValueF(effectName, "minradiusdistance"));
+			corona->MaxRadiusDistance	= static_cast<float>(iniFile.GetValueF(effectName, "maxradiusdistance"));
+			corona->MaxVisibleDistance	= static_cast<float>(iniFile.GetValueF(effectName, "maxvisibledistance"));
+			corona->LifeTime			= static_cast<float>(iniFile.GetValueF(effectName, "totallife"));
 
-			Effects[effptr].Data = C;
-			Effects[effptr].Active = GE_TRUE;
-			effptr +=1;
+			m_Effects[effectName] = new EffectDefinition(EFF_CORONA, corona);
 		}
-		else if(Type == "bolt")
+		else if(effectType == "bolt")
 		{
-			std::string Tname, Talpha, Vector;
-			char szName[64], szAlpha[64];
-			geVec3d convert;
-			EBolt *Bl;
+			EBolt *bolt = GE_RAM_ALLOCATE_STRUCT(EBolt);
+			memset(bolt, 0, sizeof(EBolt));
 
-			Effects[effptr].Type = EFF_BOLT;
-			Bl = GE_RAM_ALLOCATE_STRUCT(EBolt);
-			memset(Bl, 0, sizeof(EBolt));
+			std::string textureName(iniFile.GetValue(effectName, "bitmapname"));
 
-			Tname = AttrFile.GetValue(KeyName, "bitmapname");
-
-			if(Tname != "")
+			if(!textureName.empty())
 			{
-				Talpha = AttrFile.GetValue(KeyName, "alphamapname");
+				std::string textureAlphaName(iniFile.GetValue(effectName, "alphamapname"));
 
-				if(Talpha == "")
-					Talpha = Tname;
+				if(textureAlphaName.empty())
+					textureAlphaName = textureName;
 
-				strcpy(szName, Tname.c_str());
-				strcpy(szAlpha, Talpha.c_str());
-				Bl->Bitmap = TPool_Bitmap(szName, szAlpha, NULL, NULL);
+				bolt->Bitmap = TPool_Bitmap(textureName.c_str(), textureAlphaName.c_str(), NULL, NULL);
 			}
 			else
-				Bl->Bitmap = TPool_Bitmap("bolt.bmp", "bolt.bmp", NULL, NULL);
-
-			Vector = AttrFile.GetValue(KeyName, "color");
-
-			if(Vector != "")
 			{
-				strcpy(szName, Vector.c_str());
-				convert = Extract(szName);
-				Bl->Color.r = convert.X;
-				Bl->Color.g = convert.Y;
-				Bl->Color.b = convert.Z;
-				Bl->Color.a = 255.0f;
+				bolt->Bitmap = TPool_Bitmap("bolt.bmp", "bolt.bmp", NULL, NULL);
 			}
 
-			Vector = AttrFile.GetValue(KeyName, "endoffset");
+			std::string value(iniFile.GetValue(effectName, "color"));
 
-			if(Vector != "")
+			if(!value.empty())
 			{
-				strcpy(szName, Vector.c_str());
-				convert = Extract(szName);
-				Bl->EndOffset.X = convert.X;
-				Bl->EndOffset.Y = convert.Y;
-				Bl->EndOffset.Z = convert.Z;
+				bolt->Color = ToRGBA(value);
 			}
 
-			Bl->Width			= AttrFile.GetValueI(KeyName, "width");
-			Bl->NumPoints		= AttrFile.GetValueI(KeyName, "numberpoints");
-			Bl->Wildness		= (float)AttrFile.GetValueF(KeyName, "wildness");
-			Bl->Intermittent	= GE_FALSE;
+			value = iniFile.GetValue(effectName, "endoffset");
 
-			Vector = AttrFile.GetValue(KeyName, "intermittent");
+			if(!value.empty())
+			{
+				bolt->EndOffset = ToVec3d(value);
+			}
 
-			if(Vector == "true")
-				Bl->Intermittent = GE_TRUE;
+			bolt->Width			= iniFile.GetValueI(effectName, "width");
+			bolt->NumPoints		= iniFile.GetValueI(effectName, "numberpoints");
+			bolt->Wildness		= static_cast<float>(iniFile.GetValueF(effectName, "wildness"));
+			bolt->Intermittent	= GE_FALSE;
 
-			Bl->MinFrequency	= (float)AttrFile.GetValueF(KeyName, "minfrequency");
-			Bl->MaxFrequency	= (float)AttrFile.GetValueF(KeyName, "maxfrequency");
-			Bl->DominantColor	= AttrFile.GetValueI(KeyName, "dominantcolor");
-			Bl->CompleteLife	= (float)AttrFile.GetValueF(KeyName, "totallife");
+			value = iniFile.GetValue(effectName, "intermittent");
 
-			Effects[effptr].Data = Bl;
-			Effects[effptr].Active = GE_TRUE;
-			effptr +=1;
+			if(value == "true")
+			{
+				bolt->Intermittent = GE_TRUE;
+			}
+
+			bolt->MinFrequency	= static_cast<float>(iniFile.GetValueF(effectName, "minfrequency"));
+			bolt->MaxFrequency	= static_cast<float>(iniFile.GetValueF(effectName, "maxfrequency"));
+			bolt->DominantColor	= iniFile.GetValueI(effectName, "dominantcolor");
+			bolt->CompleteLife	= static_cast<float>(iniFile.GetValueF(effectName, "totallife"));
+
+			m_Effects[effectName] = new EffectDefinition(EFF_BOLT, bolt);
 		}
-		else if(Type == "actorspray")
+		else if(effectType == "actorspray")
 		{
-			std::string Tname, Vector;
-			char szName[64];
-			geVec3d convert;
-			ActorSpray *Sp;
+			std::string actorName(iniFile.GetValue(effectName, "basename"));
 
-			Effects[effptr].Type = EFF_ACTORSPRAY;
-			Tname = AttrFile.GetValue(KeyName, "basename");
-
-			if(Tname != "")
+			if(!actorName.empty())
 			{
-				Sp = GE_RAM_ALLOCATE_STRUCT(ActorSpray);
-				memset(Sp, 0, sizeof(ActorSpray));
-				strcpy(Sp->BaseName, Tname.c_str());
-				Sp->NumActors = AttrFile.GetValueI(KeyName, "numberactors");
-				Sp->Style = AttrFile.GetValueI(KeyName, "style");
-				Sp->Alpha = (float)AttrFile.GetValueF(KeyName, "alpha");
-				Sp->AlphaRate = (float)AttrFile.GetValueF(KeyName, "alpharate");
+				ActorSpray *aSpray = GE_RAM_ALLOCATE_STRUCT(ActorSpray);
+				memset(aSpray, 0, sizeof(ActorSpray));
+				strcpy(aSpray->BaseName, actorName.c_str());
+				aSpray->NumActors	= iniFile.GetValueI(effectName, "numberactors");
+				aSpray->Style		= iniFile.GetValueI(effectName, "style");
+				aSpray->Alpha		= static_cast<float>(iniFile.GetValueF(effectName, "alpha"));
+				aSpray->AlphaRate	= static_cast<float>(iniFile.GetValueF(effectName, "alpharate"));
 
-				Vector = AttrFile.GetValue(KeyName, "baserotation");
+				std::string value(iniFile.GetValue(effectName, "baserotation"));
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-
-					Sp->BaseRotation.X = GE_PIOVER180*convert.X;
-					Sp->BaseRotation.Y = GE_PIOVER180*convert.Y;
-					Sp->BaseRotation.Z = GE_PIOVER180*convert.Z;
+					aSpray->BaseRotation = ToVec3d(value);
+					geVec3d_Scale(&aSpray->BaseRotation, GE_PIOVER180, &aSpray->BaseRotation);
 				}
 
-				char Name[64];
-				convert.X = 0.0f; convert.Y = 0.0f; convert.Z = 0.0f;
+				char name[128];
+				geVec3d zero;
+				geVec3d_Clear(&zero);
 
-				for(int i=0; i<Sp->NumActors; i++)
+				for(int i=0; i<aSpray->NumActors; ++i)
 				{
-					sprintf(Name, "%s%d%s", Sp->BaseName, i, ".act");
-					geActor *Actor = CCD->ActorManager()->SpawnActor(Name,
-						convert, Sp->BaseRotation, "", "", NULL);
-
-					if(!Actor)
+					sprintf(name, "%s%d%s", aSpray->BaseName, i, ".act");
+					geActor *actor = CCD->ActorManager()->SpawnActor(	name,
+																		zero,
+																		aSpray->BaseRotation,
+																		"", "", NULL);
+					if(!actor)
 					{
 						CCD->Log()->Critical("File %s - Line %d: %s : Missing Actor '%s'",
-												__FILE__, __LINE__, KeyName, Name);
-						CCD->ShutdownLevel();
+												__FILE__, __LINE__, effectName.c_str(), name);
+
 						delete CCD;
 						CCD = NULL;
 						exit(-333);
 					}
 
-					CCD->ActorManager()->RemoveActor(Actor);
-					geActor_Destroy(&Actor);
-					Actor = NULL;
+					CCD->ActorManager()->RemoveActor(actor);
+					geActor_Destroy(&actor);
+					actor = NULL;
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "minrotationspeed");
+				value = iniFile.GetValue(effectName, "minrotationspeed");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->MinRotationSpeed.X = GE_PIOVER180*convert.X;
-					Sp->MinRotationSpeed.Y = GE_PIOVER180*convert.Y;
-					Sp->MinRotationSpeed.Z = GE_PIOVER180*convert.Z;
+					aSpray->MinRotationSpeed = ToVec3d(value);
+					geVec3d_Scale(&aSpray->MinRotationSpeed, GE_PIOVER180, &aSpray->MinRotationSpeed);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "maxrotationspeed");
+				value = iniFile.GetValue(effectName, "maxrotationspeed");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->MaxRotationSpeed.X = GE_PIOVER180*convert.X;
-					Sp->MaxRotationSpeed.Y = GE_PIOVER180*convert.Y;
-					Sp->MaxRotationSpeed.Z = GE_PIOVER180*convert.Z;
+					aSpray->MaxRotationSpeed = ToVec3d(value);
+					geVec3d_Scale(&aSpray->MaxRotationSpeed, GE_PIOVER180, &aSpray->MaxRotationSpeed);
 				}
 
-				Sp->FillColor.a = 255.0f;
-				Sp->AmbientColor.a = 255.0f;
+				aSpray->FillColor.a = 255.0f;
+				aSpray->AmbientColor.a = 255.0f;
 
-				Vector = AttrFile.GetValue(KeyName, "angles");
+				value = iniFile.GetValue(effectName, "angles");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					Sp->Angle = Extract(szName);
+					aSpray->Angle = ToVec3d(value);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "fillcolor");
+				value = iniFile.GetValue(effectName, "fillcolor");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->FillColor.r = convert.X;
-					Sp->FillColor.g = convert.Y;
-					Sp->FillColor.b = convert.Z;
+					aSpray->FillColor = ToRGBA(value);
 				}
 
-				Vector = AttrFile.GetValue(KeyName, "ambientcolor");
+				value = iniFile.GetValue(effectName, "ambientcolor");
 
-				if(Vector != "")
+				if(!value.empty())
 				{
-					strcpy(szName, Vector.c_str());
-					convert = Extract(szName);
-					Sp->AmbientColor.r = convert.X;
-					Sp->AmbientColor.g = convert.Y;
-					Sp->AmbientColor.b = convert.Z;
+					aSpray->AmbientColor = ToRGBA(value);
 				}
 
-				Sp->AmbientLightFromFloor = GE_TRUE;
+				aSpray->AmbientLightFromFloor = GE_TRUE;
 
-				Vector = AttrFile.GetValue(KeyName, "ambientlightfromfloor");
+				value = iniFile.GetValue(effectName, "ambientlightfromfloor");
 
-				if(Vector == "false")
-					Sp->AmbientLightFromFloor = GE_FALSE;
+				if(value == "false")
+					aSpray->AmbientLightFromFloor = GE_FALSE;
 
-				Sp->EnvironmentMapping = GE_FALSE;
+				aSpray->EnvironmentMapping = GE_FALSE;
 
-				Vector = AttrFile.GetValue(KeyName, "environmentmapping");
+				value = iniFile.GetValue(effectName, "environmentmapping");
 
-				if(Vector == "true")
+				if(value == "true")
 				{
-					Sp->EnvironmentMapping = GE_TRUE;
-					Sp->AllMaterial	= GE_FALSE;
+					aSpray->EnvironmentMapping = GE_TRUE;
+					aSpray->AllMaterial	= GE_FALSE;
 
-					Vector = AttrFile.GetValue(KeyName, "allmaterial");
+					value = iniFile.GetValue(effectName, "allmaterial");
 
-					if(Vector == "true")
-						Sp->AllMaterial = GE_TRUE;
+					if(value == "true")
+						aSpray->AllMaterial = GE_TRUE;
 
-					Sp->PercentMapping	= (float)AttrFile.GetValueF(KeyName, "percentmapping");
-					Sp->PercentMaterial = (float)AttrFile.GetValueF(KeyName, "percentmaterial");
+					aSpray->PercentMapping	= static_cast<float>(iniFile.GetValueF(effectName, "percentmapping"));
+					aSpray->PercentMaterial = static_cast<float>(iniFile.GetValueF(effectName, "percentmaterial"));
 				}
 
-				Sp->SourceVariance	= AttrFile.GetValueI(KeyName, "sourcevariance");
-				Sp->DestVariance	= AttrFile.GetValueI(KeyName, "destvariance");
-				Sp->Gravity			= true;
+				aSpray->SourceVariance	= iniFile.GetValueI(effectName, "sourcevariance");
+				aSpray->DestVariance	= iniFile.GetValueI(effectName, "destvariance");
+				aSpray->Gravity			= true;
 
-				Vector = AttrFile.GetValue(KeyName, "gravity");
+				value = iniFile.GetValue(effectName, "gravity");
 
-				if(Vector == "false")
-					Sp->Gravity = false;
+				if(value == "false")
+					aSpray->Gravity = false;
 
-				Sp->MaxScale	= (float)AttrFile.GetValueF(KeyName, "maxscale");
-				Sp->MinScale	= (float)AttrFile.GetValueF(KeyName, "minscale");
-				Sp->MaxSpeed	= (float)AttrFile.GetValueF(KeyName, "maxspeed");
-				Sp->MinSpeed	= (float)AttrFile.GetValueF(KeyName, "minspeed");
-				Sp->MaxUnitLife = (float)AttrFile.GetValueF(KeyName, "maxunitlife");
-				Sp->MinUnitLife = (float)AttrFile.GetValueF(KeyName, "minunitlife");
-				Sp->Rate		= (float)AttrFile.GetValueF(KeyName, "particlecreationrate");
-				Sp->SprayLife	= (float)AttrFile.GetValueF(KeyName, "totallife");
-				Sp->Bounce		= GE_FALSE;
+				aSpray->MaxScale	= static_cast<float>(iniFile.GetValueF(effectName, "maxscale"));
+				aSpray->MinScale	= static_cast<float>(iniFile.GetValueF(effectName, "minscale"));
+				aSpray->MaxSpeed	= static_cast<float>(iniFile.GetValueF(effectName, "maxspeed"));
+				aSpray->MinSpeed	= static_cast<float>(iniFile.GetValueF(effectName, "minspeed"));
+				aSpray->MaxUnitLife = static_cast<float>(iniFile.GetValueF(effectName, "maxunitlife"));
+				aSpray->MinUnitLife = static_cast<float>(iniFile.GetValueF(effectName, "minunitlife"));
+				aSpray->Rate		= static_cast<float>(iniFile.GetValueF(effectName, "particlecreationrate"));
+				aSpray->SprayLife	= static_cast<float>(iniFile.GetValueF(effectName, "totallife"));
+				aSpray->Bounce		= GE_FALSE;
 
-				Vector = AttrFile.GetValue(KeyName, "bounce");
+				value = iniFile.GetValue(effectName, "bounce");
 
-				if(Vector == "true")
-					Sp->Bounce = GE_TRUE;
+				if(value == "true")
+					aSpray->Bounce = GE_TRUE;
 
-				Sp->Solid = GE_FALSE;
+				aSpray->Solid = GE_FALSE;
 
-				Vector = AttrFile.GetValue(KeyName, "solid");
+				value = iniFile.GetValue(effectName, "solid");
 
-				if(Vector == "true")
-					Sp->Solid = GE_TRUE;
+				if(value == "true")
+					aSpray->Solid = GE_TRUE;
 
-				Effects[effptr].Data = Sp;
-				Effects[effptr].Active = GE_TRUE;
-				effptr +=1;
+				m_Effects[effectName] = new EffectDefinition(EFF_ACTORSPRAY, aSpray);
 			}
 		}
 
-		KeyName = AttrFile.FindNextKey();
+		effectName = iniFile.FindNextKey();
 	}
 }
 
@@ -604,114 +518,139 @@ CPreEffect::CPreEffect()
 /* ------------------------------------------------------------------------------------ */
 CPreEffect::~CPreEffect()
 {
-	int i;
+	stdext::hash_map<std::string, EffectDefinition*>::iterator iter = m_Effects.begin();
 
-	for(i=0; i<MAXEXPITEM; i++)
+	for(; iter!=m_Effects.end(); ++iter)
 	{
-		if(Effects[i].Data)
-		{
-			if(Effects[i].Type == EFF_SPRITE)
-			{
-				Sprite *Sp;
-				Sp = (Sprite *)Effects[i].Data;
-
-				if(Sp->Texture)
-					geRam_Free(Sp->Texture);
-			}
-
-			geRam_Free(Effects[i].Data);
-		}
+		delete (iter->second);
 	}
+
+	m_Effects.clear();
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+bool CPreEffect::EffectExists(const std::string& effectName)
+{
+	return (m_Effects.find(effectName) != m_Effects.end());
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+int CPreEffect::EffectType(const std::string& effectName)
+{
+	return m_Effects[effectName]->m_Type;
 }
 
 
 /* ------------------------------------------------------------------------------------ */
 // AddEffect
 /* ------------------------------------------------------------------------------------ */
-int CPreEffect::AddEffect(int k, const geVec3d &Position, const geVec3d &Offset)
+int CPreEffect::AddEffect(const std::string& effectName, const geVec3d& position, const geVec3d& offset)
 {
 	int index = -1;
 
-	switch(Effects[k].Type)
+	switch(m_Effects[effectName]->m_Type)
 	{
 	case EFF_SPRAY:
 		{
-		Spray Sp;
-		geVec3d	In;
-		geXForm3d	Xf;
-		memcpy(&Sp, Effects[k].Data, sizeof(Sp));
-		geVec3d_Copy(&Position, &(Sp.Source));
-		geVec3d_Add(&(Sp.Source ), &Offset, &(Sp.Source));
-		geXForm3d_SetXRotation(&Xf, (Sp.Angle.X * GE_PIOVER180));
-		geXForm3d_RotateY(&Xf,		(Sp.Angle.Y - 90.0f) * GE_PIOVER180); // / 57.3f);
-		geXForm3d_RotateZ(&Xf,		(Sp.Angle.Z * GE_PIOVER180)); // / 57.3f));
-		geXForm3d_GetIn(&Xf, &In);
-		geVec3d_Inverse(&In);
-		geVec3d_Add(&(Sp.Source), &In, &(Sp.Dest));
-		index = CCD->EffectManager()->Item_Add(EFF_SPRAY, &Sp);
-		break;
+			Spray spray;
+			geVec3d in;
+			geXForm3d xForm;
+
+			memcpy(&spray, m_Effects[effectName]->m_Data, sizeof(spray));
+			geVec3d_Copy(&position, &spray.Source);
+			geVec3d_Add(&spray.Source, &offset, &spray.Source);
+
+			geXForm3d_SetXRotation(&xForm,	(spray.Angle.X * GE_PIOVER180));
+			geXForm3d_RotateY(&xForm,		(spray.Angle.Y - 90.0f) * GE_PIOVER180);
+			geXForm3d_RotateZ(&xForm,		(spray.Angle.Z * GE_PIOVER180));
+
+			geXForm3d_GetIn(&xForm, &in);
+			geVec3d_Inverse(&in);
+			geVec3d_Add(&spray.Source, &in, &spray.Dest);
+			index = CCD->EffectManager()->Item_Add(EFF_SPRAY, &spray);
+			break;
 		}
 	case EFF_LIGHT:
 		{
-		Glow Lite;
-		memcpy(&Lite, Effects[k].Data, sizeof(Lite));
-		geVec3d_Copy(&(Position), &(Lite.Pos));
-		geVec3d_Add(&(Lite.Pos), &Offset,&(Lite.Pos));
-		index = CCD->EffectManager()->Item_Add(EFF_LIGHT, &Lite);
-		break;
+			Glow light;
+
+			memcpy(&light, m_Effects[effectName]->m_Data, sizeof(light));
+			geVec3d_Copy(&position, &light.Pos);
+			geVec3d_Add(&light.Pos, &offset, &light.Pos);
+
+			index = CCD->EffectManager()->Item_Add(EFF_LIGHT, &light);
+			break;
 		}
 	case EFF_SND:
 		{
-		Snd Sound;
-		memcpy(&Sound, Effects[k].Data, sizeof(Sound));
-		geVec3d_Copy(&Position, &(Sound.Pos));
-		geVec3d_Add(&(Sound.Pos), &Offset, &(Sound.Pos));
-		index = CCD->EffectManager()->Item_Add(EFF_SND, &Sound);
-		break;
+			Snd sound;
+
+			memcpy(&sound, m_Effects[effectName]->m_Data, sizeof(sound));
+			geVec3d_Copy(&position, &sound.Pos);
+			geVec3d_Add(&sound.Pos, &offset, &sound.Pos);
+
+			index = CCD->EffectManager()->Item_Add(EFF_SND, &sound);
+			break;
 		}
 	case EFF_SPRITE:
 		{
-		Sprite S;
-		memcpy(&S, Effects[k].Data, sizeof(S));
-		geVec3d_Copy(&Position, &(S.Pos));
-		geVec3d_Add(&(S.Pos), &Offset, &(S.Pos));
-		index = CCD->EffectManager()->Item_Add(EFF_SPRITE, &S);
-		break;
+			Sprite sprite;
+
+			memcpy(&sprite, m_Effects[effectName]->m_Data, sizeof(sprite));
+			geVec3d_Copy(&position, &sprite.Pos);
+			geVec3d_Add(&sprite.Pos, &offset, &sprite.Pos);
+
+			index = CCD->EffectManager()->Item_Add(EFF_SPRITE, &sprite);
+			break;
 		}
 	case EFF_CORONA:
 		{
-		EffCorona C;
-		memcpy(&C, Effects[k].Data, sizeof(C));
-		C.Vertex.X = Position.X + Offset.X;
-		C.Vertex.Y = Position.Y + Offset.Y;
-		C.Vertex.Z = Position.Z + Offset.Z;
-		index = CCD->EffectManager()->Item_Add(EFF_CORONA, &C);
-		break;
+			EffCorona corona;
+
+			memcpy(&corona, m_Effects[effectName]->m_Data, sizeof(corona));
+			corona.Vertex.X = position.X + offset.X;
+			corona.Vertex.Y = position.Y + offset.Y;
+			corona.Vertex.Z = position.Z + offset.Z;
+
+			index = CCD->EffectManager()->Item_Add(EFF_CORONA, &corona);
+			break;
 		}
 	case EFF_BOLT:
 		{
-		EBolt Bl;
-		memcpy(&Bl, Effects[k].Data, sizeof(Bl));
-		geVec3d_Copy(&Position, &(Bl.Start));
-		geVec3d_Add(&(Bl.Start), &Offset, &(Bl.Start));
-		geVec3d_Add(&(Bl.Start), &(Bl.EndOffset), &(Bl.End));
-		index = CCD->EffectManager()->Item_Add(EFF_BOLT, &Bl);
-		break;
+			EBolt bolt;
+
+			memcpy(&bolt, m_Effects[effectName]->m_Data, sizeof(bolt));
+			geVec3d_Copy(&position, &bolt.Start);
+			geVec3d_Add(&bolt.Start, &offset, &bolt.Start);
+			geVec3d_Add(&bolt.Start, &bolt.EndOffset, &bolt.End);
+
+			index = CCD->EffectManager()->Item_Add(EFF_BOLT, &bolt);
+			break;
 		}
 	case EFF_ACTORSPRAY:
 		{
-		ActorSpray aSp;
-		memcpy(&aSp, Effects[k].Data, sizeof(aSp));
-		geVec3d_Copy(&Position, &(aSp.Source));
-		geVec3d_Add(&(aSp.Source), &Offset,&(aSp.Source));
-		geXForm3d_SetZRotation(&Xf, (aSp.Angle.Z * GE_PIOVER180));
-		geXForm3d_RotateX(&Xf,-(aSp.Angle.X * GE_PIOVER180)); // / 57.3f);
-		geXForm3d_RotateY(&Xf, (aSp.Angle.Y - 90.0f) * GE_PIOVER180); // / 57.3f);
-		geXForm3d_GetIn(&Xf, &In);
-		geVec3d_Inverse(&In);
-		geVec3d_Add(&(aSp.Source), &In, &(aSp.Dest));
-		index = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, &aSp);
-		break;
+			ActorSpray aSpray;
+			geVec3d in;
+			geXForm3d xForm;
+
+			memcpy(&aSpray, m_Effects[effectName]->m_Data, sizeof(aSpray));
+			geVec3d_Copy(&position, &aSpray.Source);
+			geVec3d_Add(&aSpray.Source, &offset, &aSpray.Source);
+
+			geXForm3d_SetZRotation(&xForm,	 (aSpray.Angle.Z * GE_PIOVER180));
+			geXForm3d_RotateX(&xForm,		-(aSpray.Angle.X * GE_PIOVER180));
+			geXForm3d_RotateY(&xForm,		 (aSpray.Angle.Y - 90.0f) * GE_PIOVER180);
+
+			geXForm3d_GetIn(&xForm, &in);
+			geVec3d_Inverse(&in);
+			geVec3d_Add(&aSpray.Source, &in, &aSpray.Dest);
+
+			index = CCD->EffectManager()->Item_Add(EFF_ACTORSPRAY, &aSpray);
+			break;
 		}
 	}
 

@@ -12,16 +12,9 @@
 #ifndef __RGF_PREEFFMANAGER_H_
 #define __RGF_PREEFFMANAGER_H_
 
-#define MAXEXPITEM 200
+#include <hash_map>
 
-typedef struct ExpItem
-{
-	geBoolean	Active;
-	char		Name[64];
-	int			Type;
-	void		*Data;
-
-} ExpItem;
+class EffectDefinition;
 
 /**
  * @brief CPreEffect handles predefined effects
@@ -32,13 +25,14 @@ public:
 	CPreEffect();
 	~CPreEffect();
 
-	int AddEffect(int k, const geVec3d &Position, const geVec3d &Offset);
-	bool EffectActive(int k)	{ return Effects[k].Active; }
-	char *EffectName(int k)		{ return Effects[k].Name;	}
-	int EffectType(int k)		{ return Effects[k].Type;	}
+	bool EffectExists(const std::string& effectName);
+
+	int EffectType(const std::string& effectName);
+
+	int AddEffect(const std::string& effectName, const geVec3d& position, const geVec3d& offset);
 
 private:
-	ExpItem Effects[MAXEXPITEM];
+	stdext::hash_map<std::string, EffectDefinition*> m_Effects;
 };
 
 #endif
