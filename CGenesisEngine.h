@@ -107,11 +107,6 @@ public:
 	int SetFogParameters(GE_RGBA FogColor, geFloat FogStart, geFloat FogEnd);
 	void EnableFog(geBoolean FogOn);				///< Enable/disable fog
 
-	/**
-	 * @brief Report error to error log file
-	 */
-	bool ReportError(const char *szError, bool bMessageBoxIt);
-
 	int SaveTo(FILE *SaveFD);						///< Save engine data to file
 	int RestoreFrom(FILE *RestoreFD);				///< Restore engine data from file
 	void ResetSystem();
@@ -127,7 +122,6 @@ public:
 	geSound_System *AudioSystem()	{ return m_Audio;		}	///< Audio system pointer
 	char *LevelName()				{ return m_CurrentLevel;}	///< Current level name
 
-	void SetDebugging(bool fOn)		{ m_DebugEnabled = fOn;	}	///< Activate/deactivate debug output
 	float GetFogEnd() const			{ return m_FogEnd;		}
 	float GetFogStart() const		{ return m_FogStart;	}
 
@@ -169,8 +163,6 @@ private:
 	char			m_CurrentLevel[256];	///< Current level name, if any
 	GE_RGBA			m_FogColor;				///< Color for distance fog
 	geFloat			m_FogStart, m_FogEnd;	///< Fog start, end distances
-	bool			m_DebugEnabled;			///< Debug output enabled flag
-	geFloat			FarClipPlaneDistance;	///< Distance to far clip plane
 };
 
 #endif

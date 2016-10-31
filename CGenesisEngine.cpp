@@ -1406,60 +1406,6 @@ void CGenesisEngine::EnableFog(geBoolean FogOn)
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	ReportError
-//
-//	Log an error message to the RGF log file.  If bMessageBoxIt is
-//	..TRUE, the user gets a Windows message box containing the
-//	..offending message.
-/* ------------------------------------------------------------------------------------ */
-bool CGenesisEngine::ReportError(const char *szError, bool bMessageBoxIt)
-{
-	FILE *fd;
-
-	if(m_DebugEnabled == false)
-		return true;										// DEBUG disabled, ignore call
-
-	int OldDebugLevel = CCD->SetDebugLevel(kNoDebugOutput);
-
-	if((fd = CCD->OpenRFFile(kRawFile, ".\\RealityFactory.log", "at")) == NULL)
-	{
-		OutputDebugString("Error logging failure!\n");
-
-		if(bMessageBoxIt)
-			MessageBox(NULL, "Error Logging Failure!", "RGF Error Report",
-			MB_ICONEXCLAMATION | MB_OK);
-
-		CCD->SetDebugLevel(OldDebugLevel);
-		return false;						// Seriously bad - error not logged
-	}
-
-	struct tm *newtime;
-	time_t aclock;
-
-	// Log date and time of error, as well
-	time(&aclock);
-	newtime = localtime(&aclock);
-
-	// fputs(asctime(newtime), fd);
-	fputs(szError, fd); fputs("\n", fd);
-
-	fclose(fd);
-
-	// Ok, out to a file, now to be sure we can track it in the debugger
-
-	// OutputDebugString(asctime(newtime));
-	OutputDebugString(szError);
-	OutputDebugString("\n");
-
-	if(bMessageBoxIt)
-		MessageBox(NULL, szError, "Game Error", MB_ICONEXCLAMATION | MB_OK);
-
-	CCD->SetDebugLevel(OldDebugLevel);
-
-	return true;							// Error logged
-}
-
-/* ------------------------------------------------------------------------------------ */
 // SaveTo
 //
 // Save off the current level name to the supplied file
