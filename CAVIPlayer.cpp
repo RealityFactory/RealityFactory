@@ -585,7 +585,6 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 
 	geBitmap *theBmp, *LockedBMP;
 	geBitmap_Info Info;
-	unsigned char *wptr ,*pptr;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
 	geBitmap_SetPreferredFormat(theBmp, nFormat);
@@ -615,8 +614,8 @@ int CAVIPlayer::DisplayFrameAt(int XPos, int YPos, DWORD dwTime)
 				return RGF_FAILURE;
 		}
 
-		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
-		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+		unsigned char *wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		unsigned char *pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
 		// ..to copy it to the target bitmap from the bottom
@@ -758,7 +757,6 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 
 	geBitmap *theBmp, *LockedBMP;
 	geBitmap_Info Info;
-	unsigned char *wptr ,*pptr;
 
 	theBmp = geBitmap_Create(nWidth, nHeight, 1, nFormat);
 	geBitmap_SetPreferredFormat(theBmp, nFormat);
@@ -788,8 +786,8 @@ int CAVIPlayer::DisplayFrame(int XPos, int YPos, int FrameID)
 				return RGF_FAILURE;
 		}
 
-		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
-		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+		unsigned char *wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		unsigned char *pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
 
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
@@ -960,7 +958,6 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 
 	geBitmap *LockedBMP;
 	geBitmap_Info Info;
-	unsigned char *wptr ,*pptr;
 
 	geBitmap_GetInfo(theBitmap,&Info,NULL);
 	geBitmap_ClearMips(theBitmap);
@@ -986,8 +983,8 @@ int CAVIPlayer::DisplayFrameTexture(int nFrame, const char *szTextureName)
 				return RGF_FAILURE;
 		}
 
-		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
-		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+		unsigned char *wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		unsigned char *pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
 
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
@@ -1095,7 +1092,6 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 	int nStatus = RGF_FAILURE;			// Assume failure
 	LPBITMAPINFOHEADER pBmp;			// Will hold decompressed frame
 	geBitmap *LockedBMP;
-	unsigned char *wptr ,*pptr;
 
 	// If this is the first frame, clear out all the timing variables
 	if(bFirstFrame)
@@ -1187,8 +1183,8 @@ int CAVIPlayer::DisplayNextFrameTexture(const char *szTextureName, bool bFirstFr
 				return RGF_FAILURE;
 		}
 
-		wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
-		pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
+		unsigned char *wptr = static_cast<unsigned char*>(geBitmap_GetBits(LockedBMP));
+		unsigned char *pptr = reinterpret_cast<unsigned char*>(pBmp) + pBmp->biSize;
 
 		// The following weirdness is required because the DIB
 		// ..coming in from the AVI file is INVERTED, so we have
