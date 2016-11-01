@@ -63,56 +63,56 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->TerrainMgr()->SetRenderWireframe(flag);
+		CCD->TerrainManager()->SetRenderWireframe(flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "RenderLandscape"))
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->TerrainMgr()->SetRenderLandscape(flag);
+		CCD->TerrainManager()->SetRenderLandscape(flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetVertScale"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetScaleY(param1);
+		CCD->TerrainManager()->SetScaleY(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetHorizScale"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetScaleXZ(param1);
+		CCD->TerrainManager()->SetScaleXZ(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetHeightOrigin"))
 	{
 		PARMCHECK(1);
 		param3 = arguments[0].intValue();
-		CCD->TerrainMgr()->SetOffsetY(param3);
+		CCD->TerrainManager()->SetOffsetY(param3);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSkyDomeHeightOffset"))
 	{
 		PARMCHECK(1);
 		param3 = arguments[0].intValue();
-		CCD->TerrainMgr()->SetSkyDomeOffsetY(param3);
+		CCD->TerrainManager()->SetSkyDomeOffsetY(param3);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetDesiredTriangles"))
 	{
 		PARMCHECK(1);
 		param3 = arguments[0].intValue();
-		CCD->TerrainMgr()->SetDesiredTriangles(param3);
+		CCD->TerrainManager()->SetDesiredTriangles(param3);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetLandscapeSize"))
 	{
 		PARMCHECK(1);
 		param3 = arguments[0].intValue();
-		CCD->TerrainMgr()->SetLandscapeSize(param3);
+		CCD->TerrainManager()->SetLandscapeSize(param3);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetAmbientLightColor"))
@@ -122,21 +122,21 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		float g = arguments[1].floatValue();
 		float b = arguments[2].floatValue();
 		float a = arguments[3].floatValue();
-		CCD->TerrainMgr()->SetAmbientLightColor(r,g,b,a);
+		CCD->TerrainManager()->SetAmbientLightColor(r,g,b,a);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetTwilightDistanceFromHorizon"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetTwilightDistanceFromHorizon(param1);
+		CCD->TerrainManager()->SetTwilightDistanceFromHorizon(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetTimeScale"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetTimeScale(param1);
+		CCD->TerrainManager()->SetTimeScale(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSkyDome"))
@@ -144,7 +144,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		PARMCHECK(2);
 		int param6 = arguments[0].intValue();
 		float param5 = arguments[1].floatValue();
-		CCD->TerrainMgr()->SetSky(param6, param5);
+		CCD->TerrainManager()->SetSky(param6, param5);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSkyTexture"))
@@ -152,7 +152,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		PARMCHECK(1);
 		strcpy(param0, "terrain\\");
 		strcat(param0, arguments[0].str());
-		CCD->TerrainMgr()->SetSkyTexture(param0);
+		CCD->TerrainManager()->SetSkyTexture(param0);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSkyColor"))
@@ -162,7 +162,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		float g = arguments[1].floatValue();
 		float b = arguments[2].floatValue();
 		float a = arguments[3].floatValue();
-		CCD->TerrainMgr()->SetSkyColor(r,g,b,a);
+		CCD->TerrainManager()->SetSkyColor(r,g,b,a);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetTwilightColor"))
@@ -172,7 +172,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		float g = arguments[1].floatValue();
 		float b = arguments[2].floatValue();
 		float a = arguments[3].floatValue();
-		CCD->TerrainMgr()->SetTwilightColor(r,g,b,a);
+		CCD->TerrainManager()->SetTwilightColor(r,g,b,a);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSunColor"))
@@ -182,21 +182,21 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		float g = arguments[1].floatValue();
 		float b = arguments[2].floatValue();
 		float a = arguments[3].floatValue();
-		CCD->TerrainMgr()->SetSunColor(r,g,b,a);
+		CCD->TerrainManager()->SetSunColor(r,g,b,a);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetDistanceFromSunFactor"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetDistanceFromSunFactor(param1);
+		CCD->TerrainManager()->SetDistanceFromSunFactor(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetSunScale"))
 	{
 		PARMCHECK(1);
 		param1 = arguments[0].floatValue();
-		CCD->TerrainMgr()->SetSunScale(param1);
+		CCD->TerrainManager()->SetSunScale(param1);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetMoonColor"))
@@ -206,14 +206,14 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		float g = arguments[1].floatValue();
 		float b = arguments[2].floatValue();
 		float a = arguments[3].floatValue();
-		CCD->TerrainMgr()->SetMoonColor(r,g,b,a);
+		CCD->TerrainManager()->SetMoonColor(r,g,b,a);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetMoonPhase"))
 	{
 		PARMCHECK(1);
 		int phase = arguments[0].intValue();
-		CCD->TerrainMgr()->SetMoonPhase(phase);
+		CCD->TerrainManager()->SetMoonPhase(phase);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetLocation"))
@@ -223,7 +223,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		int mon = arguments[1].intValue();
 		int day = arguments[2].intValue();
 		int hour = arguments[3].intValue();
-		CCD->TerrainMgr()->SetLocation(lat, mon, day, hour);
+		CCD->TerrainManager()->SetLocation(lat, mon, day, hour);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetTerrain"))
@@ -234,33 +234,33 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 		char terr[128];
 		strcpy(terr, "terrain\\");
 		strcat(terr, arguments[1].str());
-		CCD->TerrainMgr()->SetTerrain(param0, terr);
+		CCD->TerrainManager()->SetTerrain(param0, terr);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "DisableSun"))
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->TerrainMgr()->SetAllowSun(!flag);
+		CCD->TerrainManager()->SetAllowSun(!flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "UseSkyFog"))
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->TerrainMgr()->SetAllowSkyFog(flag);
+		CCD->TerrainManager()->SetAllowSkyFog(flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "DisableCloud"))
 	{
 		PARMCHECK(1);
 		bool flag = arguments[0].boolValue();
-		CCD->TerrainMgr()->SetAllowCloud(!flag);
+		CCD->TerrainManager()->SetAllowCloud(!flag);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "ToggleMoveWithCamera"))
 	{
-		CCD->TerrainMgr()->ToggleSkyFollow();
+		CCD->TerrainManager()->ToggleSkyFollow();
 		return true;
 	}
 	else if (IS_METHOD(methodName, "SetWindDirection"))
@@ -284,7 +284,7 @@ bool TerrainObject::method(const skString& methodName, skRValueArray& arguments,
 			dir = DIRECTION_E;
 		else if(!stricmp(param0, "west"))
 			dir = DIRECTION_W;
-		CCD->TerrainMgr()->SetWindDir(dir);
+		CCD->TerrainManager()->SetWindDir(dir);
 		return true;
 	}
 	else if (IS_METHOD(methodName, "debug"))
@@ -304,12 +304,12 @@ bool TerrainObject::getValue(const skString& fieldName, const skString& attribut
 {
 	if (fieldName == "time")
 	{
-		value = CCD->TerrainMgr()->GetElapsedTime();
+		value = CCD->TerrainManager()->GetElapsedTime();
 		return true;
 	}
 	else if (fieldName == "daytime")
 	{
-		value = CCD->TerrainMgr()->GetTerrainTime();
+		value = CCD->TerrainManager()->GetTerrainTime();
 		return true;
 	}
 	else
@@ -1022,7 +1022,7 @@ inline bool qxTerrainMgr::LoadMap( int OffsetX, int OffsetZ )
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = GetFarPlane();
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_eType = TT_LAND; // water mod
 	m_pTerrainDefinitionFile->m_pTerrainDef->m_eHeightFieldSourceType = HEIGHTFIELD_GREY_BMP;
-	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = CCD->TerrainMgr()->GetFarPlane();
+	m_pTerrainDefinitionFile->m_pTerrainDef->m_nFarPlane = CCD->TerrainManager()->GetFarPlane();
 
 	qxTerrainMapBase* pMap = 0;
 

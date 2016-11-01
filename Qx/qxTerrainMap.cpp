@@ -281,7 +281,7 @@ bool qxTerrainMap::BuildTextures( )
 void qxTerrainMap::ShadeTexture()
 {
 
-	int method = CCD->TerrainMgr()->GetShadingMethod();
+	int method = CCD->TerrainManager()->GetShadingMethod();
 
 	if( method == 1 )
 		ShadeLambert();
@@ -397,8 +397,8 @@ bool qxTerrainMap::LoadHeightMap()
 	} // HEIGHTFIELD_GREY_BMP
 
 
-	if( CCD->TerrainMgr()->GetScaleY() != 1.0f)
-		Scale( CCD->TerrainMgr()->GetScaleY() );
+	if( CCD->TerrainManager()->GetScaleY() != 1.0f)
+		Scale( CCD->TerrainManager()->GetScaleY() );
 
 	if(pHeightBMP)
 		geBitmap_Destroy(&pHeightBMP);
@@ -434,9 +434,9 @@ void qxTerrainMap::ShadeLambert()
 	int R, G, B, A;
 	uint8 bpp;
 
-	geVec3d* pLightSource	= CCD->TerrainMgr()->GetLightSource();
-	float fAmbient			= CCD->TerrainMgr()->GetLightAmbient();
-	float fIntensity		= CCD->TerrainMgr()->GetLightIntensity();
+	geVec3d* pLightSource	= CCD->TerrainManager()->GetLightSource();
+	float fAmbient			= CCD->TerrainManager()->GetLightAmbient();
+	float fIntensity		= CCD->TerrainManager()->GetLightIntensity();
 
 
 	geVec3d Normal;
@@ -545,7 +545,7 @@ void qxTerrainMap::ShadeLambert()
 			geBitmap_RefreshMips(bmp);
 			//QXASSERT(success);
 
-			gePixelFormat newformat = CCD->TerrainMgr()->GetPixelFormatFinal();
+			gePixelFormat newformat = CCD->TerrainManager()->GetPixelFormatFinal();
 			success = geBitmap_SetFormat(bmp, newformat, GE_FALSE, 0, (geBitmap_Palette *)NULL);
 			QXASSERT(success);
 		}
@@ -564,14 +564,14 @@ void qxTerrainMap::ShadeGouraud()
 	geBitmap_Info Info;
 	geBoolean success;
 
-	geVec3d* pLightSource	= CCD->TerrainMgr()->GetLightSource();
-	float fAmbient			= CCD->TerrainMgr()->GetLightAmbient();
-	float fIntensity		= CCD->TerrainMgr()->GetLightIntensity();
+	geVec3d* pLightSource	= CCD->TerrainManager()->GetLightSource();
+	float fAmbient			= CCD->TerrainManager()->GetLightAmbient();
+	float fIntensity		= CCD->TerrainManager()->GetLightIntensity();
 
 	gePixelFormat format = GE_PIXELFORMAT_24BIT_RGB;
 	float shade;	// textel color intensity, 0 to 1.
 
-	int TERRAIN_FINALFORMAT = CCD->TerrainMgr()->GetPixelFormatFinal();
+	int TERRAIN_FINALFORMAT = CCD->TerrainManager()->GetPixelFormatFinal();
 
 	uint8 *bits, *bptr, *bptr2;
 	int R, G, B, A;
@@ -783,10 +783,10 @@ bool qxTerrainMap::FractalGenerate()
 	//
 	// Make the edges match the neighboring map, if any
 	//
-	qxTerrainMapBase* pEast		= CCD->TerrainMgr()->GetEastNeighbor(this);
-	qxTerrainMapBase* pWest		= CCD->TerrainMgr()->GetWestNeighbor(this);
-	qxTerrainMapBase* pNorth	= CCD->TerrainMgr()->GetNorthNeighbor(this);
-	qxTerrainMapBase* pSouth	= CCD->TerrainMgr()->GetSouthNeighbor(this);
+	qxTerrainMapBase* pEast		= CCD->TerrainManager()->GetEastNeighbor(this);
+	qxTerrainMapBase* pWest		= CCD->TerrainManager()->GetWestNeighbor(this);
+	qxTerrainMapBase* pNorth	= CCD->TerrainManager()->GetNorthNeighbor(this);
+	qxTerrainMapBase* pSouth	= CCD->TerrainManager()->GetSouthNeighbor(this);
 
 	// 0, 0
 	// Western neighbor's eastern edge
@@ -1033,5 +1033,15 @@ int16 qxTerrainMap::GetElementHeightUnscaled( int x, int z )
 	QXASSERT(m_pHeightMapData);
 
 	return (int)((float)m_pHeightMapData[(m_nHeightMapLength * z) + x]
-			/ CCD->TerrainMgr()->GetScaleY());
+			/ CCD->TerrainManager()->GetScaleY());
+}
+
+int16 qxTerrainMap::GetElementHeight( int x, int z )
+{
+
+	QXASSERT(x < m_nHeightMapWidth && x >= 0);
+	QXASSERT(z < m_nHeightMapLength && z >= 0);
+	QXASSERT(m_pHeightMapData);
+
+	return m_pHeightMapData[(m_nHeightMapLength * z) + x] + CCD->TerrainManager()->GetOffsetY();
 }

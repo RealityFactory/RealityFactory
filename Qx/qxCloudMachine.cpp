@@ -32,8 +32,8 @@ qxCloudMachine::qxCloudMachine()
 {
 	//prevents flicker, but may slow system down
 	m_nRenderStyle = GE_RENDER_DO_NOT_OCCLUDE_OTHERS | GE_RENDER_DEPTH_SORT_BF | GE_RENDER_NO_CLIP | GE_RENDER_NO_FOG;
-	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
-	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
+	m_nHeightMin		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight();
+	m_nHeightMax		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight()*2;
 }
 
 
@@ -47,7 +47,7 @@ bool qxCloudMachine::Init()
 {
 	geVec3d_Clear(&Origin);
 	Origin.Y = Frand((float)m_nHeightMin,(float)m_nHeightMax);
-	float Size = (float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f;
+	float Size = (float)CCD->TerrainManager()->GetLandscapeSize()/2.0f;
 	Origin.X = Frand(-Size, Size);
 	Origin.Z = Frand(-Size, Size);
 
@@ -139,7 +139,7 @@ int qxCloudMachine::Frame()
 
 		//Get the far limits of the fog.
 		//float fStart = CCD->Engine()->GetFogEnd()*2.0f;
-		float fStart = (float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f;
+		float fStart = (float)CCD->TerrainManager()->GetLandscapeSize()/2.0f;
 
 		geVec3d thePosition;
 		CCD->CameraManager()->GetPosition(&thePosition);
@@ -190,8 +190,8 @@ void qxCloudMachine::DoCloudless()
 	SpeedMax			= 30;
 	SpeedMin			= 2;
 
-	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
-	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
+	m_nHeightMin		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight();
+	m_nHeightMax		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight()*2;
 
 	qxEffectParticleChamber::ReInit();
 
@@ -242,8 +242,8 @@ void qxCloudMachine::DoWhiteFluffy()
 	SpeedMax			= 10;
 	SpeedMin			= 2;
 
-	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
-	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
+	m_nHeightMin		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight();
+	m_nHeightMax		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight()*2;
 
 	qxEffectParticleChamber::ReInit();
 
@@ -280,8 +280,8 @@ void qxCloudMachine::DoGreyOvercast()
 	SpeedMax			= 50;
 	SpeedMin			= 20;
 
-	m_nHeightMin		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight();
-	m_nHeightMax		= (int)CCD->TerrainMgr()->GetSkyDome()->GetMaxSkyHeight()*2;
+	m_nHeightMin		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight();
+	m_nHeightMax		= (int)CCD->TerrainManager()->GetSkyDome()->GetMaxSkyHeight()*2;
 
 	qxEffectParticleChamber::ReInit();
 
@@ -327,7 +327,7 @@ void qxCloudMachine::KillInvisibleParticles( float fDistThreshold )
 
 void qxCloudMachine::SetAngles()
 {
-	m_eWindDir = CCD->TerrainMgr()->GetWindDir();
+	m_eWindDir = CCD->TerrainManager()->GetWindDir();
 
 	switch(m_eWindDir)
 	{
@@ -348,12 +348,12 @@ void qxCloudMachine::UpdateColors()
 {
 	// Find the sun or moon
 	// and brighten the triangles with alpha
-	static const qxSun* pSun = CCD->TerrainMgr()->GetSun();
+	static const qxSun* pSun = CCD->TerrainManager()->GetSun();
 
 	if(!pSun)
 		return;
 
-	qxColor SunColor( *(CCD->TerrainMgr()->GetSkyDome()->GetCurrentSunColor()) );
+	qxColor SunColor( *(CCD->TerrainManager()->GetSkyDome()->GetCurrentSunColor()) );
 
 	for ( int i=0; i < ParticlesMax; i++ )
 	{
@@ -362,7 +362,7 @@ void qxCloudMachine::UpdateColors()
 
 		GE_LVertex* pVect = &m_pParticles[i]->m_vVertex;
 
-		float	fSunIntensity = CCD->TerrainMgr()->GetSkyDome()->GetSunIntensity();
+		float	fSunIntensity = CCD->TerrainManager()->GetSkyDome()->GetSunIntensity();
 
 		pVect->r = SunColor.rgba.r * fSunIntensity ;
 		pVect->g = SunColor.rgba.g * fSunIntensity;

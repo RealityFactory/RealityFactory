@@ -171,8 +171,6 @@ void qxTerrainPoly::Render( )
 */
 		geTClip_UnclippedTriangle(verts);
 
-		//geEngine_RenderPoly(CCD->Engine()->Engine(), (GE_TLVertex *)verts, 3, CCD->TerrainMgr()->GetTexture(),
-			//CCD->TerrainMgr()->GetRender());
 
 		//geTClip_Triangle(verts);
 		return;

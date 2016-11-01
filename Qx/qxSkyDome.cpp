@@ -42,7 +42,7 @@ qxSkyDome::qxSkyDome(	qxTerrainDefinition& TerrainDef, int HeightMapWidthLength,
 ,	m_fMinBlueSkyColor(16.0f)
 {
 
-	m_fMaxHeight = fMaxHeight * CCD->TerrainMgr()->GetScaleXZ();
+	m_fMaxHeight = fMaxHeight * CCD->TerrainManager()->GetScaleXZ();
 
 	m_nHeightMapWidth	=  HeightMapWidthLength;
 	m_nHeightMapLength	= HeightMapWidthLength;
@@ -95,7 +95,7 @@ bool qxSkyDome::Init()
 
 	CenterOnCamera();
 
-	if(CCD->TerrainMgr()->GetTextureFlow())
+	if(CCD->TerrainManager()->GetTextureFlow())
 	{
 /*		pTextureFlow = new qxEffectTextureFlow("test", g_VoidNull);
 		Type = AttrFile->GetValue(KeyName, "skytextureflowbmp");
@@ -110,19 +110,20 @@ bool qxSkyDome::Init()
 		pTextureFlow->Init(); */
 	}
 
-	GE_RGBA rgba = CCD->TerrainMgr()->Getrgba();
+	GE_RGBA rgba = CCD->TerrainManager()->Getrgba();
 	SetCurrentVertColor(&rgba);
 
-	m_fMinBlueSkyColor = CCD->TerrainMgr()->GetMinBlueSkyColor();
-	m_fDistanceFromSunFactor = CCD->TerrainMgr()->GetDistanceFromSunFactor();
-	m_fDistanceFromSunFactor *= CCD->TerrainMgr()->GetScaleXZ();
-	GE_RGBA color = CCD->TerrainMgr()->Getcolor();;
+	m_fMinBlueSkyColor = CCD->TerrainManager()->GetMinBlueSkyColor();
 
+	m_fDistanceFromSunFactor = CCD->TerrainManager()->GetDistanceFromSunFactor();
+	m_fDistanceFromSunFactor *= CCD->TerrainManager()->GetScaleXZ();
+
+	GE_RGBA color = CCD->TerrainManager()->Getcolor();
 	m_TwilightColor.SetRGBA(color.r, color.g, color.b);
 
 	ScaleXZ();
 
-	m_fColorUpdateTime = CCD->TerrainMgr()->GetColorUpdateTime();
+	m_fColorUpdateTime = CCD->TerrainManager()->GetColorUpdateTime();
 
 	return true;
 }
@@ -232,7 +233,7 @@ bool qxSkyDome::LoadHeightMap()
 	memset(m_pHeightMapData, 0, (sizeof(int16))*(m_nHeightMapSize));
 
 
-	float fPlanetSize = (float)CCD->TerrainMgr()->GetLandscapeSize() * CCD->TerrainMgr()->GetScaleXZ();// * 8.0f;
+	float fPlanetSize = (float)CCD->TerrainManager()->GetLandscapeSize() * CCD->TerrainManager()->GetScaleXZ();// * 8.0f;
 	float planesize = 2.0f * (float)sqrt( (	m_fMaxHeight*m_fMaxHeight) -
 											fPlanetSize);
 
@@ -260,7 +261,7 @@ bool qxSkyDome::LoadHeightMap()
 				|| x == m_nHeightMapWidth-1 ) && height > 0.0f)
 				height = 0.0f;
 
-			height += (float)CCD->TerrainMgr()->GetSkyDomeOffsetY();
+			height += static_cast<float>(CCD->TerrainManager()->GetSkyDomeOffsetY());
 			SetElementHeight(x, z, static_cast<int16>(height));
 		}
 	}
@@ -332,7 +333,7 @@ void qxSkyDome::AdjustSkyColor()
 
 	// Find the sun or moon
 	// and brighten the nearer triangles
-	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
+	static qxSun* pSun = CCD->TerrainManager()->GetSun();
 
 	m_CurrentSunColor = qxColorWhite;
 	m_fSunIntensity = 1.0f;
@@ -340,11 +341,13 @@ void qxSkyDome::AdjustSkyColor()
 	if(pSun)
 	{
 		// -1.0 midnight, 1.0 noon
-		float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
-		// distance above and below horizon 
-		float fTwilightDist = CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
+		float fSunPercentToZenith = CCD->TerrainManager()->GetSunPercentToZenith();
+
+		// distance above and below horizon
+		float fTwilightDist = CCD->TerrainManager()->GetTwilightDistanceFromHorizon();
+
 		// Twilight distance is 0.0 to 1.0 ( from approx -.2 to .2 above horizon)
-		float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent() ;
+		float fTwilightPercent = CCD->TerrainManager()->GetTwilightPercent() ;
 
 		//
 		// SUN COLOR
@@ -418,7 +421,7 @@ void qxSkyDome::LightVertex(qxTerrainVert* pVert)
 
 	// Find the sun or moon
 	// and brighten the triangles with alpha
-	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
+	static qxSun* pSun = CCD->TerrainManager()->GetSun();
 
 	if(!pSun)
 	{
@@ -430,11 +433,11 @@ void qxSkyDome::LightVertex(qxTerrainVert* pVert)
 		return;
 	}
 
-	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent();
+	float fTwilightPercent = CCD->TerrainManager()->GetTwilightPercent();
 	float fDist = geVec3d_DistanceBetween(	&pSun->Origin,
 		((geVec3d*)&(pVert->CurrentVert.X)));
 
-	if( fDist != 0.0f )
+	if( fDist > 0.0f )
 	{
 		float fDistClamped = m_fDistanceFromSunFactor / fDist;
 		fDist = fDistClamped;

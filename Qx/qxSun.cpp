@@ -42,8 +42,8 @@ bool qxSun::Init()
 {
 	// The particle chamber handles only the flares for the sun
 
-	geVec3d_Set(&m_vSunOrigin, 0, 0, (CCD->TerrainMgr()->GetLandscapeSize()*.5f) );
-	m_fScale = CCD->TerrainMgr()->GetScaleXZ()*CCD->TerrainMgr()->GetScaleSun();
+	geVec3d_Set(&m_vSunOrigin, 0, 0, (CCD->TerrainManager()->GetLandscapeSize()*.5f) );
+	m_fScale = CCD->TerrainManager()->GetScaleXZ()*CCD->TerrainManager()->GetScaleSun();
 
 	Origin = m_vSunOrigin;
 
@@ -95,7 +95,7 @@ bool qxSun::Init()
 
 bool qxSun::InitFlares()
 {
-	m_ColorSun = CCD->TerrainMgr()->GetSuncolor();
+	m_ColorSun = CCD->TerrainManager()->GetSuncolor();
 
 	int i = 0;
 
@@ -160,7 +160,7 @@ int qxSun::Frame()
 {
 	geVec3d Translation = m_vSunOrigin;
 
-	geXForm3d_Rotate(CCD->TerrainMgr()->GetEarthRotation(),
+	geXForm3d_Rotate(CCD->TerrainManager()->GetEarthRotation(),
 						&m_vSunOrigin, &Translation);
 
 	//

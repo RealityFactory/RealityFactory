@@ -43,7 +43,7 @@ bool qxStarField::Init()
 
 bool qxStarField::InitStarsMajor()
 {
-	float Scale = (CCD->TerrainMgr()->GetLandscapeSize())/1000.0f;
+	float Scale = (CCD->TerrainManager()->GetLandscapeSize())/1000.0f;
 
 	// Random stars. We should in the end use actual star coordinates for
 	// reality's sake
@@ -121,7 +121,7 @@ bool qxStarField::InitStarsMajor()
 int qxStarField::Frame()
 {
 	// -1.0 midnight, 1.0 noon
-	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
+	float fSunPercentToZenith = CCD->TerrainManager()->GetSunPercentToZenith();
 
 	float fSunupAlphaAdjust = 1.0f;
 
@@ -133,9 +133,9 @@ int qxStarField::Frame()
 		fSunupAlphaAdjust = 0.0f;
 	}
 	// Somewhere in twilight
-	else if ( fSunPercentToZenith >= - CCD->TerrainMgr()->GetTwilightDistanceFromHorizon() )
+	else if ( fSunPercentToZenith >= - CCD->TerrainManager()->GetTwilightDistanceFromHorizon() )
 	{
-		fSunupAlphaAdjust = -fSunPercentToZenith / CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
+		fSunupAlphaAdjust = -fSunPercentToZenith / CCD->TerrainManager()->GetTwilightDistanceFromHorizon();
 	}
 
 	geVec3d thePosition;
@@ -149,7 +149,7 @@ int qxStarField::Frame()
 		GE_LVertex v;
 		gePoly_GetLVertex( m_Stars[i].m_pPoly, 0, &v );
 
-		geXForm3d_Rotate(CCD->TerrainMgr()->GetEarthRotation(),
+		geXForm3d_Rotate(CCD->TerrainManager()->GetEarthRotation(),
 			&m_Stars[i].m_vOrigin, &Translation);
 
 		geVec3d_Add(pCam, &Translation, (geVec3d*)&v.X);

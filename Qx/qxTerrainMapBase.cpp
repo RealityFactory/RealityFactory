@@ -46,11 +46,11 @@ qxTerrainMapBase::qxTerrainMapBase( qxTerrainDefinition& TerrainDef )
 ,m_SunLight(false)
 ,m_bRenderBackFace(false)
 {
-	m_nDesiredPolyCount =	CCD->TerrainMgr()->GetDesiredTriangles();
-	m_nDistanceDetail	=	CCD->TerrainMgr()->GetDistanceDetail();
-	m_pPolyPool			= 	CCD->TerrainMgr()->GetPolyPoolQX();
-	m_pVertPool			=	CCD->TerrainMgr()->GetVertPoolQX();
-	m_nLandscapeSize	= 	CCD->TerrainMgr()->GetLandscapeSize();
+	m_nDesiredPolyCount =	CCD->TerrainManager()->GetDesiredTriangles();
+	m_nDistanceDetail	=	CCD->TerrainManager()->GetDistanceDetail();
+	m_pPolyPool			= 	CCD->TerrainManager()->GetPolyPoolQX();
+	m_pVertPool			=	CCD->TerrainManager()->GetVertPoolQX();
+	m_nLandscapeSize	= 	CCD->TerrainManager()->GetLandscapeSize();
 	m_nFarPlane			=	TerrainDef.m_nFarPlane;
 	m_nMapOffsetX		=	m_nMapOffsetIndexX * m_nLandscapeSize;
 	m_nMapOffsetZ		=	m_nMapOffsetIndexZ * m_nLandscapeSize;
@@ -58,8 +58,8 @@ qxTerrainMapBase::qxTerrainMapBase( qxTerrainDefinition& TerrainDef )
 	m_pSplitQueue		=	new qxSplitQueue;
 	m_pMergeQueue		=	new qxMergeQueue;
 
-	SetCurrentVertColor(CCD->TerrainMgr()->GetAmbientLightColor() );
-	SetNormalDistanceToCamera(CCD->TerrainMgr()->GetNormalDistanceToCamera() );
+	SetCurrentVertColor(CCD->TerrainManager()->GetAmbientLightColor() );
+	SetNormalDistanceToCamera(CCD->TerrainManager()->GetNormalDistanceToCamera() );
 }
 
 
@@ -156,8 +156,8 @@ void qxTerrainMapBase::OffsetAllVerts()
 
 	while( pVert != NULL)
 	{
-		pVert->CurrentVert.X -= (((float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f));// + vCenter.X);
-		pVert->CurrentVert.Z -= (((float)CCD->TerrainMgr()->GetLandscapeSize()/2.0f));// + vCenter.Z);
+		pVert->CurrentVert.X -= (((float)CCD->TerrainManager()->GetLandscapeSize()/2.0f));// + vCenter.X);
+		pVert->CurrentVert.Z -= (((float)CCD->TerrainManager()->GetLandscapeSize()/2.0f));// + vCenter.Z);
 		pVert = pVert->m_pNext;
 	}
 
@@ -173,8 +173,8 @@ void qxTerrainMapBase::OffsetAllVerts()
 
 void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 {
-	qxSkyDome *SkyDome = CCD->TerrainMgr()->GetSkyDome();
-	static qxSun* pSun = CCD->TerrainMgr()->GetSun();
+	qxSkyDome *SkyDome = CCD->TerrainManager()->GetSkyDome();
+	static qxSun* pSun = CCD->TerrainManager()->GetSun();
 
 	if(!SkyDome)
 		return;
@@ -189,9 +189,9 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 		return;
 	}
 
-	float fTwilightPercent = CCD->TerrainMgr()->GetTwilightPercent();
-	float fSunPercentToZenith = CCD->TerrainMgr()->GetSunPercentToZenith();
-	float fTwilightDist = CCD->TerrainMgr()->GetTwilightDistanceFromHorizon();
+	float fTwilightPercent = CCD->TerrainManager()->GetTwilightPercent();
+	float fSunPercentToZenith = CCD->TerrainManager()->GetSunPercentToZenith();
+	float fTwilightDist = CCD->TerrainManager()->GetTwilightDistanceFromHorizon();
 
 	qxColor m_CurrentSunColor;
 
@@ -237,7 +237,7 @@ void qxTerrainMapBase::LightVertexSunLight(qxTerrainVert* pVert)
 	float fDist = geVec3d_DistanceBetween(	&pSun->Origin,
 		((geVec3d*)&(pVert->CurrentVert.X)));
 
-	if( fDist != 0.0f )
+	if( fDist > 0.0f )
 	{
 		float fDistClamped = (SkyDome->GetDistanceFromSunFactor()) / fDist;
 		fDist = fDistClamped;
@@ -629,7 +629,7 @@ bool qxTerrainMapBase::Render()
 
 	geTClip_SetRenderFlags( m_nRenderFlags );
 
-	CCD->TerrainMgr()->SetRender( m_nRenderFlags );
+	CCD->TerrainManager()->SetRender( m_nRenderFlags );
 
 	//
 	// render all polys
@@ -647,7 +647,7 @@ bool qxTerrainMapBase::Render()
 				!( (m_ppBaseTiles[i])->IsRTRootOut() ) )
 		{
 
-			CCD->TerrainMgr()->SetTexture(GetTexture(i));
+			CCD->TerrainManager()->SetTexture(GetTexture(i));
 
 			geTClip_SetTexture( GetTexture(i) );
 
@@ -692,7 +692,7 @@ bool qxTerrainMapBase::RenderWireframe()
 
 
 	geTClip_SetRenderFlags(m_nRenderFlags);
-	CCD->TerrainMgr()->SetRender( m_nRenderFlags );
+	CCD->TerrainManager()->SetRender( m_nRenderFlags );
 
 	// render all polys
 	for(int i = 0; i < m_nTilesCountTotal; i++)
@@ -1130,8 +1130,8 @@ void qxTerrainMapBase::Merge(qxTerrainPoly* pPoly)
 
 bool qxTerrainMapBase::InitBaseVerts()
 {
-	m_nMapOffsetX -= (CCD->TerrainMgr()->GetLandscapeSize()/2);
-	m_nMapOffsetZ -= (CCD->TerrainMgr()->GetLandscapeSize()/2);
+	m_nMapOffsetX -= (CCD->TerrainManager()->GetLandscapeSize()/2);
+	m_nMapOffsetZ -= (CCD->TerrainManager()->GetLandscapeSize()/2);
 
 	// array of pointers to base tiles
 	m_ppBaseTiles = new qxTerrainTile*[m_nTilesCountTotal];

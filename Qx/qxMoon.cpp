@@ -38,14 +38,14 @@ qxMoon::~qxMoon()
 
 bool qxMoon::Init()
 {
-	m_ColorMoon = CCD->TerrainMgr()->GetMooncolor();
+	m_ColorMoon = CCD->TerrainManager()->GetMooncolor();
 
 	// This places the moon opposite the sun (at zenith at midnight)
-	geVec3d_Set(&m_vMoonOrigin, 0.0f, 0.0f, (float)-(CCD->TerrainMgr()->GetLandscapeSize()) );
+	geVec3d_Set(&m_vMoonOrigin, 0.0f, 0.0f, (float)-(CCD->TerrainManager()->GetLandscapeSize()) );
 
-	float Scale = (CCD->TerrainMgr()->GetLandscapeSize())/1000.0f;
+	float Scale = (CCD->TerrainManager()->GetLandscapeSize())/1000.0f;
 
-	m_eMoonPhase = (eMOON_PHASE)CCD->TerrainMgr()->GetMoonPhase();
+	m_eMoonPhase = (eMOON_PHASE)CCD->TerrainManager()->GetMoonPhase();
 	switch (m_eMoonPhase)
 	{
 		case MOON_PHASE_FULL:
@@ -109,7 +109,7 @@ int qxMoon::Frame()
 	gePoly_GetLVertex( m_pPoly, 0, &v );
 	geVec3d Translation;
 
-	geXForm3d_Rotate(CCD->TerrainMgr()->GetEarthRotation(),
+	geXForm3d_Rotate(CCD->TerrainManager()->GetEarthRotation(),
 						&m_vMoonOrigin, &Translation);
 
 	geVec3d_Add(pCam, &Translation, (geVec3d*)&v.X);

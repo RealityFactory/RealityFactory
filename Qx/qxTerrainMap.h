@@ -105,15 +105,4 @@ inline void qxTerrainMap::SetElementHeight(int X, int Z, int16 Y)
 	m_pHeightMapData[(m_nHeightMapLength * Z) + X] =  Y;
 }
 
-
-inline int16 qxTerrainMap::GetElementHeight( int x, int z )
-{
-	QXASSERT(x < m_nHeightMapWidth && x >= 0);
-	QXASSERT(z < m_nHeightMapLength && z >= 0);
-	QXASSERT(m_pHeightMapData);
-
-	return m_pHeightMapData[(m_nHeightMapLength * z) + x]+CCD->TerrainMgr()->GetOffsetY();
-}
-
-
 #endif
