@@ -11,6 +11,7 @@
 // Include the One True Header
 #include "RabidFramework.h"
 #include <Ram.h>
+#include "CCharacter.h"
 #include "CHeadsUpDisplay.h"
 #include "CLogic.h"
 
@@ -109,7 +110,7 @@ void CLogic::Tick(geFloat dwTicks)
 			{
 				pSource->time += dwTicks;
 
-				if(pSource->time>=(pSource->Delay*1000.0f))
+				if(pSource->time >= (pSource->Delay * 1000.0f))
 				{
 					pSource->bState = pSource->OldState;
 					pSource->inDelay = GE_FALSE;
@@ -295,12 +296,12 @@ void CLogic::Tick(geFloat dwTicks)
 			pSource->bState = GE_FALSE;
 			if(!stricmp(pSource->Trigger1Name, "All"))
 			{
-				if(!(CCD->Weapons()->GetCurrent() == -1 || CCD->Weapons()->GetCurrent() == 11))
+				if(!CCD->Weapons()->GetCurrent().empty())
 					pSource->bState = GE_TRUE;
 			}
 			else
 			{
-				if(CCD->Weapons()->GetCurrent() == atoi(pSource->Trigger1Name))
+				if(CCD->Weapons()->GetCurrent() == pSource->Trigger1Name)
 					pSource->bState = GE_TRUE;
 			}
 			break;
@@ -308,7 +309,7 @@ void CLogic::Tick(geFloat dwTicks)
 			pSource->bState = GE_FALSE;
 			if(CCD->MenuManager()->GetUseSelect())
 			{
-				if(!stricmp(pSource->Trigger1Name, CCD->MenuManager()->GetCurrentName()))
+				if(CCD->MenuManager()->GetSelectedCharacter()->GetName() == pSource->Trigger1Name)
 					pSource->bState = GE_TRUE;
 			}
 			break;
@@ -359,6 +360,7 @@ int CLogic::SaveTo(FILE *SaveFD, bool type)
 
 	return RGF_SUCCESS;
 }
+
 
 /* ------------------------------------------------------------------------------------ */
 // RestoreFrom
