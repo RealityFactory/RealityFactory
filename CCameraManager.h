@@ -10,7 +10,23 @@
 #ifndef __CCAMERAMANAGER_H_
 #define __CCAMERAMANAGER_H_
 
-#define DEFAULTFOV 2.0f
+#include "RFSX\\RFSX.h"
+#include <queue>
+
+
+#ifdef SX_IMPL_TYPE
+#undef SX_IMPL_TYPE
+#endif
+#define SX_IMPL_TYPE CCameraManager
+
+#ifdef SX_METHOD_ARGS
+#undef SX_METHOD_ARGS
+#endif
+#define SX_METHOD_ARGS sxCameraMethodArgs
+
+class SX_METHOD_ARGS;
+
+#define SXCAMERAMANAGER_METHODS 19
 
 /**
  * @brief Camera Manager class
@@ -18,122 +34,150 @@
  * The Camera Manager is responsible for handling the motion of the
  * player viewpoint camera during the game.
  */
-class CCameraManager: public CRGFComponent
+class CCameraManager: public CRGFComponent, skExecutable
 {
 public:
-	CCameraManager();
 	~CCameraManager();
+	static void InitMHT();
+
+	virtual bool method(const skString& m_name, skRValueArray& args, skRValue& r_val, skExecutableContext& ctxt);
+	virtual int executableType() { return RFSXU_CAMERA; }
 
 	void Defaults();
 
-	int SaveTo(FILE *SaveFD);
-	int RestoreFrom(FILE *RestoreFD);
+	int SaveTo(FILE* saveFD);
+	int RestoreFrom(FILE* restoreFD);
 
 	void SaveToS();
 	void RestoreFromS();
 
-	void SetJerk(float MaxAmount, geFloat Decay);
-	void Tick(geFloat dwTicks);
+	void SetJerk(float maxAmount, float decay);
+
+	void Update(float timeElapsed);
+
+	void Enqueue(SX_METHOD_ARGS* ma);
+	void Dequeue();
+	void DequeueAll();
 
 	void SetZoom(bool flag);
 	void CancelZoom();
 
-	void SetShake(float MaxAmount, geFloat Decay, geVec3d Pos);
-	void GetShake(float *x, float *y);
+	void SetShake(float maxAmount, float decay, const geVec3d& pos);
+	void GetShake(float* x, float* y) const;
 
 	int Center();								///< Center camera view
-	int Position(const geVec3d &thePosition);	///< Set camera position
-	int Rotate(const geVec3d &theRotation);		///< Set camera rotation
-	int GetPosition(geVec3d *thePosition);		///< Get camera position
-	int GetRotation(geVec3d *theRotation);		///< Get camera rotation
+	int SetPosition(const geVec3d& position);	///< Set camera position
+	int GetPosition(geVec3d* position) const;	///< Get camera position
 
-	int TurnLeft(geFloat fAmount);				///< Turn camera LEFT
-	int TurnRight(geFloat fAmount);				///< Turn camera RIGHT
+	int SetRotation(const geVec3d& rotation);	///< Set camera rotation
+	int GetRotation(geVec3d* rotation) const;	///< Get camera rotation
 
-	int TiltUp(geFloat fAmount);				///< Tilt camera UP
-	int TiltDown(geFloat fAmount);				///< Tilt camera DOWN
-	int TiltXUp(geFloat fAmount);				///< Tilt camera UP
-	int TiltXDown(geFloat fAmount);				///< Tilt camera DOWN
-	float GetTiltPercent();
-	float GetTilt();
+	int TurnLeft(float amount);					///< Turn camera LEFT
+	int TurnRight(float amount);				///< Turn camera RIGHT
 
+	int TiltUp(float amount);					///< Tilt camera UP
+	int TiltDown(float amount);					///< Tilt camera DOWN
+	int TiltXUp(float amount);					///< Tilt camera UP
+	int TiltXDown(float amount);				///< Tilt camera DOWN
+	float GetTiltPercent() const;
+	float GetTilt() const;
 
-	int BindToActor(geActor *theActor);								///< Bind camera to actor
-	int BindToActorBone(geActor *theActor, const char *szBoneName);	///< Bind to actor bone
-	int BindToWorldModel(geWorld_Model *theModel);					///< Bind camera to world model
+	int BindToActor(geActor* actor);								///< Bind camera to actor
+	int BindToActorBone(geActor* actor, const char* szBoneName);	///< Bind to actor bone
+	int BindToWorldModel(geWorld_Model* model);						///< Bind camera to world model
 	int Unbind();													///< Remove camera bindings
 
 	// Set camera XYZ/Rot offset
-	int SetCameraOffset(const geVec3d &theTranslation, const geVec3d &theRotation);
-	int GetCameraOffset(geVec3d *theTranslation, geVec3d *theRotation);
+	int SetCameraOffset(const geVec3d& translation, const geVec3d& rotation);
+	int GetCameraOffset(geVec3d* translation, geVec3d* rotation);
 
-	int SetBoundingBox(const geExtBox &theBox);	///< Set camera collision box
+	int SetBoundingBox(const geExtBox& box);	///< Set camera collision box
 	int ClearBoundingBox();						///< Remove bounding box
 	int RenderView();							///< Render the view from the camera
 	bool InCollision();							///< Check for camera in collision
 
-	int SetFarClipPlane(geFloat fDistance);		///< Set camera clip plane distance
-	void EnableFarClipPlane(geBoolean ClipOn);	///< Enable/disable clip plane
+	int		SetFarClipPlane(float distance);		///< Set camera clip plane distance
+	void	EnableFarClipPlane(geBoolean clipOn);	///< Enable/disable clip plane
+	float	GetFarClipPlane() const		{ return m_FarClipPlaneDistance;}
+	bool	GetClipEnable() const		{ return m_ClipEnable;			}
 
 	int TrackMotion();							///< Track motion, if required
-	inline void SetTrackingFlags(int nFlags)	///< Set camera tracking flags
-				{ TrackingFlags = nFlags; }
-	inline int GetTrackingFlags()				///< Get camera tracking flags
-				{ return TrackingFlags; }
+	inline void SetTrackingFlags(int flags)		///< Set camera tracking flags
+				{ m_TrackingFlags = flags; }
+	inline int GetTrackingFlags() const			///< Get camera tracking flags
+				{ return m_TrackingFlags; }
 
-	inline geCamera *Camera() { return EngineCamera;}
+	inline geCamera* Camera() { return m_EngineCamera;}
 
-	void CameraRotX(bool direction);
-	void CameraRotY(bool direction, float Speed);
-	void ResetCamera();
-	void ChangeDistance(bool direction, float Speed);
+	void	CameraRotX(bool direction);
+	void	CameraRotY(bool direction, float speed);
+	void	ResetCamera();
+	void	ChangeDistance(bool direction, float speed);
 	geXForm3d ViewPoint();
 
 	// Head bob functions
-	void SetHeadBobOffset(geFloat fOffset)	{ m_HeadBobOffset = fOffset;}
-	geFloat GetHeadBobOffset()				{ return m_HeadBobOffset;}
-	bool EnableHeadBob(bool fEnable)		{ bool xtmp = m_HeadBob; m_HeadBob = fEnable; return xtmp;}
+	void	SetHeadBobOffset(float offset)	{ m_HeadBobOffset = offset; }
+	float	GetHeadBobOffset() const		{ return m_HeadBobOffset; }
+	bool	EnableHeadBob(bool enable)		{ bool xtmp = m_HeadBob; m_HeadBob = enable; return xtmp; }
 
-	void Get3rdData(float *distance, float *camerax, float *cameray);
-	void Set3rdData(float distance, float camerax, float cameray);
+	void	Set3rdData(float distance, float cameraX, float cameraY);
+	void	Get3rdData(float* distance, float* cameraX, float* cameraY);
 
-	void SetFOV(geFloat Fov)			{ FOV = Fov;					}
-	geFloat GetFOV()					{ return FOV;					}
+	void	SetFOV(float fov)				{ m_DefaultFOV = m_FOV = fov;	}
+	float	GetFOV() const					{ return m_FOV;					}
 
-	geFloat AmtZoom()					{ return DEFAULTFOV/FOV;		}
-	void	SetShakeMin(float Min)		{ shakemin = Min;				}
+	float	AmtZoom() const					{ return m_DefaultFOV/m_FOV;	}
+	void	SetShakeMin(float min)			{ m_ShakeMin = min;				}
 
-	float	GetViewHeight()				{ return viewheight;			}
-	float	GetPlayerHeight()			{ return playerheight;			}
-	float	GetPlayerAngleUp()			{ return playerangleup;			}
-	float	GetPlayerDistance()			{ return playerdistance;		}
-	float	GetPlayerMinDistance()		{ return playermindistance;		}
-	float	GetPlayerMaxDistance()		{ return playermaxdistance;		}
-	bool	GetPlayerZoom()				{ return playerzoom;			}
-	bool	GetPlayerAllowLook()		{ return playerallowlook;		}
-	bool	GetPlayerMouseRotation()	{ return playermouserotation;	}
-	float	GetIsoHeight()				{ return isoheight;				}
-	float	GetIsoAngleUp()				{ return isoangleup;			}
-	float	GetIsoAngleAround()			{ return isoanglearound;		}
-	float	GetIsoDistance()			{ return isodistance;			}
-	bool	GetIsoFlag()				{ return IsoCollFlag;			}
-	bool	GetSwitchAllowed()			{ return switchallowed;			}
-	bool	GetSwitch1st()				{ return switch1st;				}
-	bool	GetSwitch3rd()				{ return switch3rd;				}
-	bool	GetSwitchIso()				{ return switchiso;				}
-	bool	GetZooming()				{ return zoommode;				}
-	float	GetJerk()					{ return jerkamt;				}
-	float	GetOverlayDist()			{ return OverlayDist;			}
-	bool	GetViewChanged()			{ return m_bViewChanged;		}
-	bool	GetPositionMoved()			{ return m_bPositionMoved;		}
-	float	GetDistanceMoved()			{ return geVec3d_Length(&m_vMoveDif); }
-	bool	GetAllowMouse1st()			{ return allowmouse1st;			}
-	bool	GetAllowMouse3rd()			{ return allowmouse3rd;			}
-	bool	GetAllowMouseIso()			{ return allowmouseiso;			}
-	float	GetFarClipPlane()			{ return FarClipPlaneDistance;	}
-	bool	GetClipEnable()				{ return ClipEnable;			}
-	const geVec3d* GetMoveDif()			{ return &m_vMoveDif;			}
-	void SetDesiredHeight(float height)	{ DesiredHeight = height;		}
+	float	GetViewHeight() const			{ return m_ViewHeight;			}
+	float	GetPlayerHeight() const			{ return m_PlayerHeight;		}
+	float	GetPlayerAngleUp() const		{ return m_PlayerAngleUp;		}
+	float	GetPlayerDistance() const		{ return m_PlayerDistance;		}
+	float	GetPlayerMinDistance() const	{ return m_PlayerMinDistance;	}
+	float	GetPlayerMaxDistance() const	{ return m_PlayerMaxDistance;	}
+	bool	GetPlayerZoom() const			{ return m_PlayerZoom;			}
+	bool	GetPlayerAllowLook() const		{ return m_PlayerAllowLook;		}
+	bool	GetPlayerMouseRotation() const	{ return m_PlayerMouseRotation;	}
+	float	GetIsoHeight() const			{ return m_IsoHeight;			}
+	float	GetIsoAngleUp() const			{ return m_IsoAngleUp;			}
+	float	GetIsoAngleAround() const		{ return m_IsoAngleAround;		}
+	float	GetIsoDistance() const			{ return m_IsoDistance;			}
+	bool	GetIsoFlag() const				{ return m_IsoCollFlag;			}
+	bool	GetSwitchAllowed() const		{ return m_SwitchAllowed;		}
+	bool	GetSwitch1st() const			{ return m_Switch1st;			}
+	bool	GetSwitch3rd() const			{ return m_Switch3rd;			}
+	bool	GetSwitchIso() const			{ return m_SwitchIso;			}
+
+	bool	GetZooming() const				{ return m_ZoomMode;			}
+	float	GetJerk() const					{ return m_JerkAmount;			}
+
+	float	GetOverlayDist() const			{ return m_OverlayDist;			}
+	bool	GetViewChanged() const			{ return m_bViewChanged;		}
+	bool	GetPositionMoved() const		{ return m_bPositionMoved;		}
+	float	GetDistanceMoved() const		{ return geVec3d_Length(&m_vMoveDif); }
+	bool	GetAllowMouse1st() const		{ return m_AllowMouse1st;		}
+	bool	GetAllowMouse3rd() const		{ return m_AllowMouse3rd;		}
+	bool	GetAllowMouseIso() const		{ return m_AllowMouseIso;		}
+	const geVec3d* GetMoveDif() const		{ return &m_vMoveDif;			}
+	void SetDesiredHeight(float height)		{ m_DesiredHeight = height;		}
+
+	static CCameraManager* GetSingletonPtr();
+
+	Q_METHOD_DECL(SetFOV);
+	Q_METHOD_DECL(SetClippingRect);
+	Q_METHOD_DECL(SetPosition);
+	Q_METHOD_DECL(SetFarClipPlane);
+	Q_METHOD_DECL(EnableFarClipPlane);
+	Q_METHOD_DECL(DisableFarClipPlane);
+	Q_METHOD_DECL(Move);
+	Q_METHOD_DECL(Rotate);
+	Q_METHOD_DECL(LookAt);
+	Q_METHOD_DECL(SyncPoint);
+
+	void InsertScriptSyncPoint();
+	void ReachScriptSyncPoint() { ++m_SyncPoints; }
+private:
+	int m_SyncPoints;
 
 private:
 	// Member functions
@@ -142,98 +186,140 @@ private:
 
 private:
 	// Member data
-	geVec3d			Translation;				///< Camera translation
-	geVec3d			Rotation;					///< Camera rotation
-	bool			bBindToActor;				///< TRUE if camera bound to actor
-	geActor			*theActor;					///< Actor camera bound to, if any
-	char			szActorBone[128];			///< Bone to bind to on actor, if any
-	geVec3d			CameraOffsetTranslation;	///< Camera offset from actor, TRANSLATION
-	geVec3d			CameraOffsetRotation;		///< Camera offset from actor, ROTATION
-	geExtBox		CameraExtBox;				///< Camera bounding box, if used
-	bool			bUseExtBox;					///< TRUE if camera collision checking used
-	geWorld_Model	*theModel;					///< World model to bind to
-	bool			bBindToModel;				///< TRUE if camera bound to world model
-	geCamera		*EngineCamera;				///< Camera used for G3D rendering
-	geRect			theCameraRect;				///< Genesis3D camera rectangle
-	geFloat			FarClipPlaneDistance;		///< Far clip plane distance
-	bool			ClipEnable;
-	int				TrackingFlags;				///< Camera tracking control flags
+	geVec3d			m_Translation;				///< Camera translation
+	geVec3d			m_Rotation;					///< Camera rotation (rad)
+	bool			m_bBindToActor;				///< TRUE if camera bound to actor
+	geActor*		m_Actor;					///< Actor camera bound to, if any
+	char			m_szActorBone[128];			///< Bone to bind to on actor, if any
+	geVec3d			m_CameraOffsetTranslation;	///< Camera offset from actor, TRANSLATION
+	geVec3d			m_CameraOffsetRotation;		///< Camera offset from actor, ROTATION
+	geExtBox		m_CameraExtBox;				///< Camera bounding box, if used
+	bool			m_bUseExtBox;				///< TRUE if camera collision checking used
+	geWorld_Model*	m_Model;					///< World model to bind to
+	bool			m_bBindToModel;				///< TRUE if camera bound to world model
+	geCamera*		m_EngineCamera;				///< Camera used for G3D rendering
+	geRect			m_CameraRect;				///< Genesis3D camera rectangle
+	float			m_FarClipPlaneDistance;		///< Far clip plane distance
+	bool			m_ClipEnable;
+	int				m_TrackingFlags;			///< Camera tracking control flags
 
-	geFloat			m_defaultdistance;
-	geFloat			m_currentdistance;
+	float			m_DefaultDistance;
+	float			m_CurrentDistance;
 
-	geFloat			m_cameraX;
-	geFloat			m_cameraY;
-	geFloat			m_oldrotationx;
+	float			m_CameraX; // in rad
+	float			m_CameraY; // in rad
+	float			m_OldRotationX;
 
-	geFloat			m_HeadBobOffset;			///< head bobbing offset
+	// Head bobbing vars
+	float			m_HeadBobOffset;			///< Head bobbing offset
 	bool			m_HeadBob;					///< Head bob enable flag
 
-	geFloat			m_LookUp;
-	geFloat			m_LookDwn;
+	float			m_LookUp;
+	float			m_LookDwn;
 
-	bool			IsoCollFlag;
-	geFloat			FOV;
+	float			m_DefaultFOV;
+	float			m_FOV;
 
-	bool			zooming;
-	bool			zoommode;
+	bool			m_Zooming;
+	bool			m_ZoomMode;
 
-	bool			shake;
-	float			shakeamt;
-	float			shakedecay;
-	float			shakex, shakey;
-	float			shakemin;
+	bool			m_Shake;
+	float			m_ShakeAmount;
+	float			m_ShakeDecay;
+	float			m_ShakeX, m_ShakeY;
+	float			m_ShakeMin;
 
-	float			viewheight;
+	float			m_ViewHeight;
 
-	float			playerheight;
-	float			playerangleup;
-	float			playerdistance;
-	float			playermindistance;
-	float			playermaxdistance;
-	bool			playerzoom;
-	bool			playerallowlook;
-	bool			playermouserotation;
+	float			m_PlayerHeight;
+	float			m_PlayerAngleUp;
+	float			m_PlayerDistance;
+	float			m_PlayerMinDistance;
+	float			m_PlayerMaxDistance;
+	bool			m_PlayerZoom;
+	bool			m_PlayerAllowLook;
+	bool			m_PlayerMouseRotation;
 
-	float			isoheight;
-	float			isoangleup;
-	float			isoanglearound;
-	float			isodistance;
+	float			m_IsoHeight;
+	float			m_IsoAngleUp;
+	float			m_IsoAngleAround;
+	float			m_IsoDistance;
+	bool			m_IsoCollFlag;
 
-	bool			switchallowed;
-	bool			switch1st;
-	bool			switch3rd;
-	bool			switchiso;
+	bool			m_SwitchAllowed;
+	bool			m_Switch1st;
+	bool			m_Switch3rd;
+	bool			m_SwitchIso;
 
-	bool			jerk;
-	float			jerkamt;
-	float			jerkdecay;
+	bool			m_Jerk;
+	float			m_JerkAmount;
+	float			m_JerkDecay;
 
-	geVec3d			sTranslation;
-	geVec3d			sRotation;
-	geVec3d			sCameraOffsetTranslation;
-	geVec3d			sCameraOffsetRotation;
+	// save camera settings to temp variables
+	geVec3d			m_sTranslation;
+	geVec3d			m_sRotation;
+	geVec3d			m_sCameraOffsetTranslation;
+	geVec3d			m_sCameraOffsetRotation;
 
-	geFloat			sm_defaultdistance;
-	geFloat			sm_currentdistance;
-	geFloat			sm_cameraX;
-	geFloat			sm_cameraY;
-	geFloat			sm_oldrotationx;
-	geFloat			sFOV;
+	float			m_sDefaultDistance;
+	float			m_sCurrentDistance;
+	float			m_sCameraX;
+	float			m_sCameraY;
+	float			m_sOldRotationX;
+	float			m_sFOV;
 
-	geFloat			DesiredHeight;
-	float			HeightSpeed;
-	float			OverlayDist;
+	float			m_DesiredHeight;
+	float			m_HeightSpeed;
+	float			m_OverlayDist;
 	geXForm3d		m_OldXForm;
 	geVec3d			m_vMoveDif;
 	bool			m_bViewChanged;
 	bool			m_bPositionMoved;
 
-	bool			allowmouse1st;
-	bool			allowmouse3rd;
-	bool			allowmouseiso;
-	bool			allowtilt3rd;
+	bool			m_AllowMouse1st;
+	bool			m_AllowMouse3rd;
+	bool			m_AllowMouseIso;
+	bool			m_AllowTilt3rd;
+
+protected:
+	SX_METHOD_DECL(SetFOV);
+	SX_METHOD_DECL(SetClippingRect);
+	SX_METHOD_DECL(SetPosition);
+	SX_METHOD_DECL(SetFarClipPlane);
+	SX_METHOD_DECL(EnableFarClipPlane);
+	SX_METHOD_DECL(DisableFarClipPlane);
+	SX_METHOD_DECL(Move);
+	SX_METHOD_DECL(MoveForward);
+	SX_METHOD_DECL(MoveBackward);
+	SX_METHOD_DECL(MoveLeft);
+	SX_METHOD_DECL(MoveRight);
+	SX_METHOD_DECL(MoveUp);
+	SX_METHOD_DECL(MoveDown);
+	SX_METHOD_DECL(Rotate);
+	SX_METHOD_DECL(LookAt);
+
+	// low level
+	SX_METHOD_DECL(GetFOV);
+	SX_METHOD_DECL(GetClippingRect);
+	SX_METHOD_DECL(GetPosition);
+	SX_METHOD_DECL(GetFarClipPlane);
+
+private:
+	SX_IMPL_TYPE();
+	SX_IMPL_TYPE(const SX_IMPL_TYPE&) {}
+	SX_IMPL_TYPE& operator = (const SX_IMPL_TYPE&);
+
+	bool					m_Skip;
+
+	std::queue<SX_METHOD_ARGS*>	m_MethodQueue;
+
+private:
+	static RFSX::sxMHT<SX_IMPL_TYPE>	h_method;
+	static SX_IMPL_TYPE*				m_CameraManager;
 };
+
+#undef SX_METHOD_ARGS
+#undef SX_IMPL_TYPE
 
 #endif
 
