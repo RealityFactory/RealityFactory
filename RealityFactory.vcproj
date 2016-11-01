@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;C:\RF_VS2005\Genesis_03102005\GenesisLib\include"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;&quot;$(ProjectDir)\include&quot;;&quot;$(ProjectDir)\include\Genesis3D&quot;;&quot;$(ProjectDir)\include\CEGUI&quot;;&quot;$(ProjectDir)\include\OIS&quot;;&quot;$(ProjectDir)\RFSX&quot;"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug/RealityFactory.pch"
@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="genesisd.lib vorbisfile_d.lib vorbis_d.lib ogg_d.lib winmm.lib vfw32.lib dxguid.lib gdi32.lib decrypt.lib wsock32.lib advapi32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib Joystick.lib"
+				AdditionalDependencies="genesisd_vc8.lib libvorbisfile_d.lib libvorbis_d.lib libogg_d.lib winmm.lib vfw32.lib dxguid.lib gdi32.lib decrypt.lib wsock32.lib advapi32.lib uuid.lib odbc32.lib odbccp32.lib freeimage.lib CEGUIBase_d.lib ois_static_d_vc8.lib strmiids.lib"
 				OutputFile="..\RealityFactoryD.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -147,20 +147,23 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				InlineFunctionExpansion="2"
-				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;C:\RF_VS2005\Genesis_03102005\GenesisLib\include"
+				EnableIntrinsicFunctions="false"
+				FavorSizeOrSpeed="1"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;&quot;$(ProjectDir)\include&quot;;&quot;$(ProjectDir)\include\Genesis3D&quot;;&quot;$(ProjectDir)\include\CEGUI&quot;;&quot;$(ProjectDir)\include\OIS&quot;;&quot;$(ProjectDir)\RFSX&quot;"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				MinimalRebuild="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/RealityFactory.pch"
+				AssemblerOutput="0"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -176,7 +179,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="genesis.lib vorbisfile.lib vorbis.lib ogg.lib winmm.lib vfw32.lib dxguid.lib decrypt.lib wsock32.lib freeimage.lib Joystick.lib"
+				AdditionalDependencies="genesis_vc8.lib libvorbisfile.lib libvorbis.lib libogg.lib winmm.lib vfw32.lib dxguid.lib decrypt.lib wsock32.lib freeimage.lib ceguibase.lib ois_static_vc8.lib strmiids.lib"
 				OutputFile="..\RealityFactory.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -184,6 +187,8 @@
 				IgnoreDefaultLibraryNames="libc"
 				ProgramDatabaseFile=".\Release/RealityFactory.pdb"
 				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -542,6 +547,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CCharacter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="CCommonData.cpp"
 				>
 				<FileConfiguration
@@ -560,6 +569,14 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CConversation.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CConversationManager.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CCorona.cpp"
@@ -906,6 +923,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CGameStateManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath="CGenesisEngine.cpp"
 				>
 				<FileConfiguration
@@ -924,6 +945,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CGUIManager.cpp"
+				>
 			</File>
 			<File
 				RelativePath="Chaos.cpp"
@@ -1004,6 +1029,22 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CInventoryItem.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CLanguage.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CLanguageManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CLevel.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CLevelController.cpp"
@@ -1092,6 +1133,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CMenuEventHandler.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CMessage.cpp"
@@ -1436,6 +1481,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CPawnManager.cpp"
+				>
 			</File>
 			<File
 				RelativePath="CPersistentAttributes.cpp"
@@ -3646,20 +3695,802 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="HashTable"
+				Name="CEGUI"
 				>
 				<File
-					RelativePath="hashtable\hash_fun.h"
+					RelativePath=".\CEGUI\CEGUIGenesis3DRenderer.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUIGenesis3DRenderer.h"
 					>
 				</File>
 				<File
-					RelativePath="hashtable\hash_table.h"
+					RelativePath=".\CEGUI\CEGUIGenesis3DResourceProvider.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUIGenesis3DResourceProvider.h"
 					>
 				</File>
 				<File
-					RelativePath="hashtable\Stl.h"
+					RelativePath=".\CEGUI\CEGUIGenesis3DTexture.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)\$(InputName)1.obj"
+							XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUIGenesis3DTexture.h"
 					>
 				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUIListboxTextItemEx.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUIListboxTextItemEx.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUISimkin.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CEGUI\CEGUISimkin.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GameStates"
+				>
+				<File
+					RelativePath=".\CDialogState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CDialogState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CGameState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CGameState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CMenuState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CMenuState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CPlayState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CPlayState.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="RFSX"
+				>
+				<File
+					RelativePath=".\CInputAction.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CInputAction.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CInputKey.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CInputMouseButton.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CInputMouseButton.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\RFSX.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxCore.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxCore.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxDialogState.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxDialogState.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxFile.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxFile.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxMath.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxMath.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxMHT.inl"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxNew.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxNew.h"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxVector.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\RFSX\sxVector.h"
+					>
+				</File>
+				<Filter
+					Name="CEGUI"
+					>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUI.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUI.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIColour.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIColour.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIColourRect.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIColourRect.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUICoordConverter.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUICoordConverter.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEvent.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEvent.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventArgs.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventArgs.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventConnection.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventConnection.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventSet.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIEventSet.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIFont.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIFont.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIFontManager.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIFontManager.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIGlobalEventSet.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIGlobalEventSet.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImage.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImage.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImageset.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImageset.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImagesetManager.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIImagesetManager.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIIterators.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIIterators.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIKey.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIKey.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUILogger.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUILogger.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIMouseCursor.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIMouseCursor.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIProperty.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIProperty.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIPropertyHelper.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIPropertyHelper.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIRect.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIRect.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIRenderer.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIRenderer.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIScheme.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIScheme.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISchemeManager.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISchemeManager.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISize.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISize.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISystem.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUISystem.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUITexture.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUITexture.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIUDim.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIUDim.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIURect.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIURect.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIUVector2.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIUVector2.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIVector2.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIVector2.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIWindow.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIWindow.h"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIWindowManager.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\RFSX\CEGUI\sxCEGUIWindowManager.h"
+						>
+					</File>
+					<Filter
+						Name="elements"
+						>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIButtonBase.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIButtonBase.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUICheckbox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUICheckbox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUICombobox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUICombobox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIComboDropList.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIComboDropList.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIDragContainer.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIDragContainer.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIEditbox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIEditbox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIFrameWindow.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIFrameWindow.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIGroupBox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIGroupBox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIGUISheet.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIGUISheet.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemEntry.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemEntry.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemListBase.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemListBase.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemListbox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIItemListbox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListbox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListbox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListboxItem.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListboxItem.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListboxTextItem.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListboxTextItem.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListHeader.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListHeader.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListHeaderSegment.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIListHeaderSegment.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMCLGridRef.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMCLGridRef.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMenuBase.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMenuBase.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMenuItem.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMenuItem.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMultiColumnList.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMultiColumnList.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMultiLineEditbox.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIMultiLineEditbox.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIPopupMenu.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIPopupMenu.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIProgressBar.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIProgressBar.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIPushButton.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIPushButton.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIRadioButton.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIRadioButton.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrollablePane.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrollablePane.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrollbar.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrollbar.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrolledContainer.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrolledContainer.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrolledItemListBase.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIScrolledItemListBase.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUISlider.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUISlider.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUISpinner.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUISpinner.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITabButton.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITabButton.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITabControl.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITabControl.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIThumb.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUIThumb.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITitlebar.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITitlebar.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITooltip.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITooltip.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITree.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITree.h"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITreeItem.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\RFSX\CEGUI\elements\sxCEGUITreeItem.h"
+							>
+						</File>
+					</Filter>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -3731,7 +4562,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CCharacter.h"
+				>
+			</File>
+			<File
 				RelativePath="CCommonData.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CConversation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CConversationManager.h"
 				>
 			</File>
 			<File
@@ -3807,7 +4650,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CGameStateManager.h"
+				>
+			</File>
+			<File
 				RelativePath="CGenesisEngine.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CGUIManager.h"
 				>
 			</File>
 			<File
@@ -3824,6 +4675,22 @@
 			</File>
 			<File
 				RelativePath="CInventory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CInventoryItem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CLanguage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CLanguageManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CLevel.h"
 				>
 			</File>
 			<File
@@ -3848,6 +4715,10 @@
 			</File>
 			<File
 				RelativePath="CMenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CMenuEventHandler.h"
 				>
 			</File>
 			<File
@@ -3908,6 +4779,10 @@
 			</File>
 			<File
 				RelativePath="CPawn.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CPawnManager.h"
 				>
 			</File>
 			<File
@@ -4019,11 +4894,11 @@
 				>
 			</File>
 			<File
-				RelativePath="PWXImageManager.h"
+				RelativePath="RabidFramework.h"
 				>
 			</File>
 			<File
-				RelativePath="RabidFramework.h"
+				RelativePath=".\RGFConstants.h"
 				>
 			</File>
 			<File
