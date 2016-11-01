@@ -271,7 +271,7 @@ bool CTeleporter::HandleCollision(const geWorld_Model *pModel, geActor *theActor
 
 							if(CCD->Player()->GetActor() == theActor && CCD->Player()->GetViewPoint() == FIRSTPERSON)
 							{
-								CCD->CameraManager()->Rotate(RealAngle);
+								CCD->CameraManager()->SetRotation(RealAngle);
 							}
 						}
 					}
@@ -534,7 +534,7 @@ void CTeleporter::DoFade(void)
 							if(CCD->Player()->GetActor() == pTeleport->theActor &&
 								CCD->Player()->GetViewPoint() == FIRSTPERSON)
 							{
-								CCD->CameraManager()->Rotate(RealAngle);
+								CCD->CameraManager()->SetRotation(RealAngle);
 							}
 						}
 					}
