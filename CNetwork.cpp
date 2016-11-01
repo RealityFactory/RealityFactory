@@ -15,9 +15,6 @@
 #include "CTeleporter.h"
 #include "CTriggers.h"
 
-#include <crtdbg.h>
-#define DEBUG_NW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NW
 
 /* ------------------------------------------------------------------------------------ */
 // NetPlayer Constructor
