@@ -528,7 +528,7 @@ void NetPlayerMgr::ServerClientCycle()
 			int index = GetIndexFromId(PlayerId);
 
 			strcpy(Player[index]->ActorName, CCD->Player()->GetActorName());
-			strcpy(Player[index]->PlayerName, CCD->Player()->GetPlayerName());
+			strcpy(Player[index]->PlayerName, CCD->Player()->GetPlayerName().c_str());
 			CCD->ActorManager()->GetScale(CCD->Player()->GetActor(), &Player[index]->Scale);
 
 			CCD->ActorManager()->GetAligningRotation(CCD->Player()->GetActor(), &Player[index]->BaseRotation);
@@ -537,7 +537,7 @@ void NetPlayerMgr::ServerClientCycle()
 			CCD->ActorManager()->GetRotate(CCD->Player()->GetActor(), &Player[index]->oldRotation);
 			CCD->ActorManager()->GetPosition(CCD->Player()->GetActor(), &Player[index]->oldTranslation);
 
-			strcpy(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
+			strcpy(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()).c_str());
 			Player[index]->AnimTime = CCD->ActorManager()->GetAnimationTime(CCD->Player()->GetActor());
 
 			// got to next stage of connection next pass
@@ -802,7 +802,7 @@ void NetPlayerMgr::ClientUpdate()
 	bool flag2 = geVec3d_Compare(&Player[index]->localTranslation, &Player[index]->oldTranslation, 0.0f);
 
 	// see if animation has changed
-	bool flag3 = !strcmp(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
+	bool flag3 = (CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()) == Player[index]->Animation);
 
 	// something has changed
 	if(!flag1 || !flag2 || !flag3)
@@ -832,7 +832,7 @@ void NetPlayerMgr::ClientUpdate()
 		// animation has changed
 		if(!flag3)
 		{
-			strcpy(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()));
+			strcpy(Player[index]->Animation, CCD->ActorManager()->GetMotion(CCD->Player()->GetActor()).c_str());
 			Player[index]->AnimTime = CCD->ActorManager()->GetAnimationTime(CCD->Player()->GetActor());
 			Buffer->Add(static_cast<unsigned char>(ANIMATION));
 			Buffer->AddString(Player[index]->Animation, strlen(Player[index]->Animation));
