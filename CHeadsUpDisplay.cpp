@@ -13,6 +13,7 @@
 #include "RabidFramework.h"
 #include "IniFile.h"
 #include "CGUIManager.h"
+#include "CCharacter.h"
 #include "CHeadsUpDisplay.h"
 
 extern geBitmap *TPool_Bitmap(const char *DefaultBmp, const char *DefaultAlpha,
@@ -32,8 +33,7 @@ CHeadsUpDisplay::CHeadsUpDisplay() :
 	// Clear the HUD array
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
-		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
-		m_theHUD[nTemp].active = false;
+		m_theHUD[nTemp].clear();
 	}
 }
 
@@ -47,10 +47,7 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 	// Clean up all the HUD bitmaps
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
-		if(m_theHUD[nTemp].GifData)
-			delete m_theHUD[nTemp].GifData;
-
-		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
+		m_theHUD[nTemp].clear();
 	}
 }
 
@@ -62,12 +59,13 @@ CHeadsUpDisplay::~CHeadsUpDisplay()
 /* ------------------------------------------------------------------------------------ */
 int CHeadsUpDisplay::LoadConfiguration()
 {
-	char				*HudInfo;
+	std::string HudInfo;
 
 	// Ok, check to see if there's a PlayerSetup around...
-	if(CCD->MenuManager()->GetUseSelect() && !EffectC_IsStringNull(CCD->MenuManager()->GetCurrentHud()))
+	if(CCD->MenuManager()->GetUseSelect()
+		&& !CCD->MenuManager()->GetSelectedCharacter()->GetHudConfigFilename().empty())
 	{
-		HudInfo = CCD->MenuManager()->GetCurrentHud();
+		HudInfo = CCD->MenuManager()->GetSelectedCharacter()->GetHudConfigFilename();
 	}
 	else
 	{
@@ -93,24 +91,21 @@ int CHeadsUpDisplay::LoadConfiguration()
 	if(!AttrFile.ReadFile())
 	{
 		CCD->Log()->Error("File %s - Line %d: Failed to open HUD config file '%s'",
-							__FILE__, __LINE__, HudInfo);
+							__FILE__, __LINE__, HudInfo.c_str());
 		return RGF_FAILURE;
 	}
 
 	// Something is there, so let's clean up all the HUD bitmaps to prepare
 	for(int nTemp=0; nTemp<MAXHUD; ++nTemp)
 	{
-		if(m_theHUD[nTemp].GifData)
-			delete m_theHUD[nTemp].GifData;
-
-		memset(&m_theHUD[nTemp], 0, sizeof(HUDEntry));
+		m_theHUD[nTemp].clear();
 	}
 
 	std::string KeyName = AttrFile.FindFirstKey();
 	char szAttr[64], szType[64], szName[64], szAlpha[64];
 	std::string Tname, Talpha;
+	std::string font;
 	HUDTYPE Type;
-	float Font, DisplayTime;
 	char format[16];
 	CAnimGif *GifAnim;
 
@@ -126,11 +121,11 @@ int CHeadsUpDisplay::LoadConfiguration()
 		bool modify = false;
 		bool flipindicator = false;
 		int Style = NONE;
-		Font = 0.0f;
 		int direction = 0;
 		geBitmap *TempBmp1 = NULL;
 		geBitmap *TempBmp2 = NULL;
 		geBitmap *TempBmp3 = NULL;
+		float PixelsPerIncrement = 0.0f;
 		int Height = 0;
 		int nTop = 0;
 		int nLeft = 0;
@@ -223,14 +218,14 @@ int CHeadsUpDisplay::LoadConfiguration()
 			else
 				TempBmp3 = TempBmp2;
 
-			Font = (float)AttrFile.GetValueI(KeyName, "range");
+			PixelsPerIncrement = static_cast<float>(AttrFile.GetValueI(KeyName, "range"));
 		}
 		else if(!stricmp(szType, "position"))
 		{
 			Type = PPOS;
 			strcpy(szAttr, "position");
 			valid = true;
-			Font = (float)AttrFile.GetValueI(KeyName, "font");
+			font = AttrFile.GetValue(KeyName, "font");
 			int width = AttrFile.GetValueI(KeyName, "width");
 
 			if(width <= 0)
@@ -270,7 +265,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 				{
 					valid = true;
 					Type = VALUE;
-					Font = (float)AttrFile.GetValueI(KeyName, "font");
+					font = AttrFile.GetValue(KeyName, "font");
 					int width = AttrFile.GetValueI(KeyName, "width");
 
 					if(width <= 0)
@@ -382,7 +377,7 @@ int CHeadsUpDisplay::LoadConfiguration()
 				modify = true;
 			}
 
-			DisplayTime = static_cast<float>(AttrFile.GetValueF(KeyName, "displaytime"));
+			float DisplayTime = static_cast<float>(AttrFile.GetValueF(KeyName, "displaytime"));
 
 			if(AttrFile.GetValue(KeyName, "modifydirection") == "down")
 				direction = 1;
@@ -408,17 +403,18 @@ int CHeadsUpDisplay::LoadConfiguration()
 				m_theHUD[nItem].Identifier			= TempBmp1;
 				m_theHUD[nItem].Indicator			= TempBmp2;
 				m_theHUD[nItem].Indicator2			= TempBmp3;
-				strcpy(m_theHUD[nItem].szAttributeName, szAttr);
+				m_theHUD[nItem].AttributeName		= szAttr;
 				strcpy(m_theHUD[nItem].format, format);
 				m_theHUD[nItem].nTop				= nTop;
 				m_theHUD[nItem].nLeft				= nLeft;
 				m_theHUD[nItem].iTopOffset			= iTopOffset;
 				m_theHUD[nItem].iLeftOffset			= iLeftOffset;
-				m_theHUD[nItem].PixelsPerIncrement	= Font;
+				m_theHUD[nItem].PixelsPerIncrement	= PixelsPerIncrement;
 				m_theHUD[nItem].iHeight				= Height;
 				m_theHUD[nItem].Style				= Style;
 				m_theHUD[nItem].flipindicator		= flipindicator;
 				m_theHUD[nItem].GifData				= GifAnim;
+				m_theHUD[nItem].font				= font;
 			}
 		}
 
@@ -457,16 +453,13 @@ int CHeadsUpDisplay::Deactivate()
 //
 // Remove the named element from the HUD display list.
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
+int CHeadsUpDisplay::RemoveElement(const std::string& attributeName)
 {
 	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
-		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
+		if(attributeName == m_theHUD[nItem].AttributeName)
 		{
-			if(m_theHUD[nItem].GifData)
-				delete m_theHUD[nItem].GifData;
-
-			memset(&m_theHUD[nItem], 0, sizeof(HUDEntry));
+			m_theHUD[nItem].clear();
 			return RGF_SUCCESS;					// It's outta here
 		}
 	}
@@ -478,13 +471,13 @@ int CHeadsUpDisplay::RemoveElement(const char *szAttributeName)
 /* ------------------------------------------------------------------------------------ */
 // ActivateElement
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
+int CHeadsUpDisplay::ActivateElement(const std::string& attributeName, bool activate)
 {
 	bool flag = false;
 
 	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
-		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
+		if(attributeName == m_theHUD[nItem].AttributeName)
 		{
 			m_theHUD[nItem].display = activate;
 			flag = true;					// It's outta here
@@ -501,11 +494,11 @@ int CHeadsUpDisplay::ActivateElement(const char *szAttributeName, bool activate)
 /* ------------------------------------------------------------------------------------ */
 // SetElementLeftTop
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop)
+int CHeadsUpDisplay::SetElementLeftTop(const std::string& attributeName, int nLeft, int nTop)
 {
 	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
-		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
+		if(attributeName == m_theHUD[nItem].AttributeName)
 		{
 			m_theHUD[nItem].nLeft = nLeft;
 			m_theHUD[nItem].nTop = nTop;
@@ -519,11 +512,11 @@ int CHeadsUpDisplay::SetElementLeftTop(const char *szAttributeName, int nLeft, i
 /* ------------------------------------------------------------------------------------ */
 // SetElementILeftTop
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset)
+int CHeadsUpDisplay::SetElementILeftTop(const std::string& attributeName, int iLeftOffset, int iTopOffset)
 {
 	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
-		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
+		if(attributeName == m_theHUD[nItem].AttributeName)
 		{
 			m_theHUD[nItem].iLeftOffset = iLeftOffset;
 			m_theHUD[nItem].iTopOffset = iTopOffset;
@@ -537,15 +530,15 @@ int CHeadsUpDisplay::SetElementILeftTop(const char *szAttributeName, int iLeftOf
 /* ------------------------------------------------------------------------------------ */
 // SetElementDisplayTime
 /* ------------------------------------------------------------------------------------ */
-int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float DisplayTime)
+int CHeadsUpDisplay::SetElementDisplayTime(const std::string& attributeName, float displayTime)
 {
 	for(int nItem = 0; nItem < MAXHUD; ++nItem)
 	{
-		if(!strcmp(szAttributeName, m_theHUD[nItem].szAttributeName))
+		if(attributeName == m_theHUD[nItem].AttributeName)
 		{
-			m_theHUD[nItem].DisplayTime = DisplayTime;
+			m_theHUD[nItem].DisplayTime = displayTime;
 
-			if(DisplayTime == 0.0f)
+			if(displayTime == 0.0f)
 				m_theHUD[nItem].modify = false;
 			else
 				m_theHUD[nItem].modify = true;
@@ -560,7 +553,7 @@ int CHeadsUpDisplay::SetElementDisplayTime(const char *szAttributeName, float Di
 /* ------------------------------------------------------------------------------------ */
 // Tick
 /* ------------------------------------------------------------------------------------ */
-void CHeadsUpDisplay::Tick(geFloat dwTick)
+void CHeadsUpDisplay::Tick(float dwTick)
 {
 	for(int nItem=0; nItem<MAXHUD; ++nItem)
 	{
@@ -570,9 +563,9 @@ void CHeadsUpDisplay::Tick(geFloat dwTick)
 		if(m_theHUD[nItem].Type == VERT || m_theHUD[nItem].Type == HORIZ || m_theHUD[nItem].Type == VALUE)
 		{
 			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
-			int HudValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+			int HudValue = theInv->Value(m_theHUD[nItem].AttributeName);
 
-			if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+			if(m_theHUD[nItem].AttributeName == "LightValue")
 				HudValue = CCD->Player()->LightValue();
 
 			if(m_theHUD[nItem].OldAmount == -99999)
@@ -585,7 +578,7 @@ void CHeadsUpDisplay::Tick(geFloat dwTick)
 				{
 					bool flag = false;
 
-					if(m_theHUD[nItem].direction == 0 && (m_theHUD[nItem].OldAmount < theInv->Value(m_theHUD[nItem].szAttributeName)))
+					if(m_theHUD[nItem].direction == 0 && (m_theHUD[nItem].OldAmount < theInv->Value(m_theHUD[nItem].AttributeName)))
 						flag = true;
 					else if(m_theHUD[nItem].direction == 1 && (m_theHUD[nItem].OldAmount > HudValue))
 						flag = true;
@@ -704,17 +697,17 @@ int CHeadsUpDisplay::Render()
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				if(!theInv->Has(m_theHUD[nItem].AttributeName))
 					continue;
 
-				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+				nValue = theInv->Value(m_theHUD[nItem].AttributeName);
 
-				nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
-				nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+				nHigh = theInv->High(m_theHUD[nItem].AttributeName);
+				nLow = theInv->Low(m_theHUD[nItem].AttributeName);
 
 				if(m_theHUD[nItem].Style != NONE)
 				{
-					if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+					if(m_theHUD[nItem].AttributeName == CCD->Weapons()->GetWeaponAmmo())
 					{
 						int magsize = CCD->Weapons()->GetMagSize();
 
@@ -745,7 +738,7 @@ int CHeadsUpDisplay::Render()
 					}
 				}
 
-				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+				if(m_theHUD[nItem].AttributeName == "LightValue")
 				{
 					nValue = CCD->Player()->LightValue();
 					nLow = 0;
@@ -792,17 +785,17 @@ int CHeadsUpDisplay::Render()
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				if(!theInv->Has(m_theHUD[nItem].AttributeName))
 					continue;
 
-				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+				nValue = theInv->Value(m_theHUD[nItem].AttributeName);
 
-				nHigh = theInv->High(m_theHUD[nItem].szAttributeName);
-				nLow = theInv->Low(m_theHUD[nItem].szAttributeName);
+				nHigh = theInv->High(m_theHUD[nItem].AttributeName);
+				nLow = theInv->Low(m_theHUD[nItem].AttributeName);
 
 				if(m_theHUD[nItem].Style!=NONE)
 				{
-					if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+					if(m_theHUD[nItem].AttributeName == CCD->Weapons()->GetWeaponAmmo())
 					{
 						int magsize = CCD->Weapons()->GetMagSize();
 
@@ -833,7 +826,7 @@ int CHeadsUpDisplay::Render()
 					}
 				}
 
-				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+				if(m_theHUD[nItem].AttributeName == "LightValue")
 				{
 					nValue = CCD->Player()->LightValue();
 					nLow = 0;
@@ -880,14 +873,14 @@ int CHeadsUpDisplay::Render()
 
 				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 
-				if(!theInv->Has(m_theHUD[nItem].szAttributeName))
+				if(!theInv->Has(m_theHUD[nItem].AttributeName))
 					continue;
 
-				nValue = theInv->Value(m_theHUD[nItem].szAttributeName);
+				nValue = theInv->Value(m_theHUD[nItem].AttributeName);
 
 				if(m_theHUD[nItem].Style != NONE)
 				{
-					if(!strcmp(m_theHUD[nItem].szAttributeName, CCD->Weapons()->GetWeaponAmmo()))
+					if(m_theHUD[nItem].AttributeName == CCD->Weapons()->GetWeaponAmmo())
 					{
 						int magsize = CCD->Weapons()->GetMagSize();
 
@@ -912,7 +905,7 @@ int CHeadsUpDisplay::Render()
 					}
 				}
 
-				if(!strcmp(m_theHUD[nItem].szAttributeName, "LightValue"))
+				if(m_theHUD[nItem].AttributeName == "LightValue")
 				{
 					nValue = CCD->Player()->LightValue();
 				}
@@ -995,7 +988,7 @@ int CHeadsUpDisplay::Render()
 
 									float dist = geVec3d_DistanceBetween(&Pos, &APos) * scale;
 									geVec3d_Subtract(&APos, &Pos, &Orient);
-									Orient.Y = (float)atan2(Orient.X, Orient.Z) + GE_PI;
+									Orient.Y = atan2(Orient.X, Orient.Z) + GE_PI;
 
 									float angle = RPos.Y - Orient.Y;
 									float mulx = -1.0f;

@@ -39,25 +39,72 @@ typedef enum
 struct HUDEntry
 {
 	bool		active;
-	char		szAttributeName[64];	///< Attribute name to display
-	geBitmap	*Identifier;			///< Identifier bitmap
-	geBitmap	*Indicator;				///< Indicator (level) bitmap
-	geBitmap	*Indicator2;
+	bool		display;
+	bool		modify;
+	bool		flipindicator;			///< flip the indicator scaling
+	CAnimGif*	GifData;
+	geBitmap*	Identifier;				///< Identifier bitmap
+	geBitmap*	Indicator;				///< Indicator (level) bitmap
+	geBitmap*	Indicator2;
 	int			nTop, nLeft;			///< Top/left point of HUD display element
 	int			iTopOffset, iLeftOffset;
 	int			iHeight;
-	geFloat		PixelsPerIncrement;		///< # of pixels per unit of measure
+	float		PixelsPerIncrement;		///< # of pixels per unit of measure
 	HUDTYPE		Type;
 	char		format[16];
-	bool		display;
-	bool		modify;
 	int			direction;
 	float		DisplayTime;
 	float		CurrentTime;
 	int			OldAmount;
 	int			Style;
-	bool		flipindicator;			///< flip the indicator scaling
-	CAnimGif	*GifData;
+	std::string	AttributeName;			///< Attribute name to display
+	std::string	font;					///< font to use to display text
+
+	HUDEntry() :
+		active(false),
+		display(false),
+		modify(false),
+		flipindicator(false),
+		GifData(NULL),
+		Identifier(NULL),
+		Indicator(NULL),
+		Indicator2(NULL),
+		nTop(0),nLeft(0),
+		iTopOffset(0),iLeftOffset(0),
+		iHeight(0),
+		PixelsPerIncrement(0.f),
+		Type(UNDEFINED),
+		direction(0),
+		DisplayTime(0.f),
+		CurrentTime(0.f),
+		OldAmount(0),
+		Style(0)
+	{ format[0] = 0; }
+
+	void clear()
+	{
+		active = false;
+		display = false;
+		modify = false;
+		flipindicator = false;
+		SAFE_DELETE(GifData);
+		Identifier = NULL;
+		Indicator = NULL;
+		Indicator2 = NULL;
+		nTop = 0; nLeft = 0;
+		iTopOffset = 0; iLeftOffset = 0;
+		iHeight = 0;
+		PixelsPerIncrement = 0.f;
+		Type = UNDEFINED;
+		format[0] = 0;
+		direction = 0;
+		DisplayTime = 0.f;
+		CurrentTime = 0.f;
+		OldAmount = 0;
+		Style = 0;
+		AttributeName.clear();
+		font.clear();
+	}
 };
 
 /**
@@ -75,18 +122,21 @@ public:
 
 	int Deactivate();							///< Turn HUD off
 
-	int RemoveElement(const char *szAttributeName);	///< Remove element from HUD
-	int ActivateElement(const char *szAttributeName, bool activate);
+	int RemoveElement(const std::string& attributeName);	///< Remove element from HUD
+
+	int ActivateElement(const std::string& attributeName, bool activate);
 
 	int Render();								///< Render the HUD out
 
-	void Tick(geFloat dwTick);
+	void Tick(float dwTick);
 
 	bool GetActive() const { return m_bHUDActive; }
 
-	int SetElementLeftTop(const char *szAttributeName, int nLeft, int nTop);
-	int SetElementILeftTop(const char *szAttributeName, int iLeftOffset, int iTopOffset);
-	int SetElementDisplayTime(const char *szAttributeName, float DisplayTime);
+	int SetElementLeftTop(const std::string& attributeName, int nLeft, int nTop);
+
+	int SetElementILeftTop(const std::string& attributeName, int iLeftOffset, int iTopOffset);
+
+	int SetElementDisplayTime(const std::string& attributeName, float displayTime);
 
 private:
 	bool m_bHUDActive;							///< HUD displayed flag
