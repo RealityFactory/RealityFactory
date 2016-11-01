@@ -211,7 +211,7 @@ void CPlayState::Update(float timeElapsed)
 
 	CCD->Level()->ActorManager()->Update(timeElapsed);
 	CCD->Level()->HUD()->Tick(timeElapsed);
-	CCD->Level()->Messages()->Update(timeElapsed);
+	CCD->Level()->Messages()->Tick(timeElapsed);
 	CCD->Level()->CutScenes()->Tick(timeElapsed);
 
 	CCD->NetPlayerManager()->Tick(timeElapsed);
