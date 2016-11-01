@@ -9,6 +9,8 @@
 #ifndef __RGF_CPAWN_H__
 #define __RGF_CPAWN_H__
 
+#include <queue>
+#include "RFSX\\RFSX.h"
 #include "Simkin\\skScriptedExecutable.h"
 
 #define DEBUGLINES	8
@@ -17,67 +19,21 @@
 #define MAXFILLAREA 20
 
 
-typedef struct TxtMessage
+typedef struct MethodQueueVariables
 {
-	bool		ShowText;
-	char		EntityName[64];
-	char		AnimName[64];
-	std::string	TextString;
-	int			FontNr;
-	int			TextWidth;
-	char		TextSound[64];
-	int			ScreenOffsetX;
-	int			ScreenOffsetY;
-	float		Alpha;
-	char		Alignment;
-
-} TxtMessage;
-
-typedef struct FillSArea
-{
-	bool	DoFillScreenArea;
-	bool	FillScreenAreaKeep;
-	GE_Rect FillScreenAreaRect;
-	GE_RGBA	FillScreenAreaColor;
-
-} FillSArea;
-
-typedef struct ActionList
-{
-	ActionList	*next;
-	ActionList	*prev;
-	char		AnimName[64];
-	int			Action;
-	float		Value1, Value2, Value3, Value4;
-	float		Speed;
-	bool		Flag;
-	char		SoundName[256];
-	char		TriggerName[256];
-
-} ActionList;
-
-
-typedef struct ActionStack
-{
-	ActionStack	*next;
-	ActionStack *prev;
-
-	ActionList	*Top;
-	ActionList	*Bottom;
-	ActionList	*Index;
-
-	char		Order[64];
-	char		Point[64];
-	char		NextOrder[64];
+	std::string	Order;
+	std::string	Point;
+	std::string	NextOrder;
+	std::string	DistOrder;
 	geVec3d		CurrentPoint;
 	bool		ActionActive;
 	bool		ValidPoint;
 	geVec3d		Vec2Point;
 	bool		DistActive;
 	float		MinDistance;
-	char		DistOrder[64];
 
-} ActionStack;
+} MethodQueueVariables;
+
 
 typedef enum
 {
@@ -91,133 +47,54 @@ typedef enum
 	PEND
 };
 
-typedef struct TriggerStack
+
+struct TriggerOrder
 {
-	TriggerStack	*next;
-	TriggerStack	*prev;
-	char			OrderName[64];
-	float			Delay;
+	TriggerOrder(
+		const std::string& order = "",
+		int		type = PTRIGGER,
+		float	delay = 0.0f,
+		bool	flag = false,
+		int		pflg = 0,
+		float	time = 0.0f,
+		float	low = 0.0f,
+		float	high = 0.0f
+		) :
+		Type(type),
+		PFlg(pflg),
+		Delay(delay),
+		Time(time),
+		Low(low),
+		High(high),
+		Flag(flag),
+		OrderName(order)
+	{}
+
 	int				Type;
-	bool			Flag;
 	int				PFlg;
+	float			Delay;
 	float			Time;
 	float			Low;
 	float			High;
-	char			TriggerName[128];
-
-} TriggerStack;
-
-typedef struct EventStack
-{
-	EventStack *next;
-	EventStack *prev;
-	bool State;
-	char EventName[128];
-
-} EventStack;
-
-/**
- * @brief ScriptConverse class
- */
-class ScriptedConverse : public skScriptedExecutable
-{
-public:
-	ScriptedConverse(const char *fileName);
-	~ScriptedConverse();
-
-	bool getValue(const skString &fieldName, const skString &attribute, skRValue &value);
-	bool setValue(const skString &fieldName, const skString &attribute, const skRValue &value);
-	bool method(const skString& methodName, skRValueArray &arguments, skRValue &returnValue, skExecutableContext &ctxt);
-
-	int DoConversation(int charpersec);
-	int DoSoundConversation(int charpersec, bool RenderHUD);
-
-
-	void TextDisplay(const char *Text, int Width, int Font);
-	int TextOut(int startline, int Height, int Font, int X, int Y);
-	int TextOutLine(int startline, int Font, int X, int Y);
-
-	void CreateCamera()		{ M_Camera = geCamera_Create(2.0f, &M_CameraRect); }
-	void DestroyCamera()	{ geCamera_Destroy(&M_Camera); }
-
-public:
-	char		Order[64];
-	geBitmap	*Background;
-	geBitmap	*rBackground;	// changed Nout
-	geBitmap	*Icon;
-	geBitmap	*rIcon;			// changed Nout
-	int			SpeachWindowX;
-	int			SpeachWindowY;
-	int			ReplyWindowX;
-	int			ReplyWindowY;
-	int			rBackgroundX;
-	int			rBackgroundY;
-	bool		DrawBackground;
-	bool		DrawrBackground;
-	bool		ReplyInSpeakWindow;
-	StreamingAudio *m_Streams_reply;
-	std::string	ReplySoundFileName[9];
-	bool		ClearScreen;
-	geVec3d		PawnPos;
-
-	//Sound Conversation
-	int SpeakShowTime;
-	int ReplyShowTime;
-
-	int BackgroundX;
-	int BackgroundY;
-	int IconX;
-	int IconY;
-	int SpeachX;
-	int SpeachY;
-	int SpeachWidth;
-	int SpeachHeight;
-	int SpeachFont;
-	int ReplyX;
-	int ReplyY;
-	int ReplyWidth;
-	int ReplyHeight;
-	int ReplyFont;
-	bool replyflg[9];
-	std::string Text;
-	StreamingAudio *m_Streams;
-
-	int MyReplyWidth;
-	int MyReplyHeight;
-	bool ShowSelectedReply;
-
-	LPDIRECTSOUND m_dsPtr;
-	std::string Reply[9];
-
-	std::vector<std::string> TextLines;
-	bool ConvFlag;
-
-	geBitmap *ReplyMenuBar;
-	bool MouseReply;
-	int	MouseRepPosX[9];
-	int	MouseRepPosY[9];
-	int	MouseRepWidth[9];
-	int	MouseRepHeight[9];
-	int	LastReplyNr;
-	int ReplyMenuFont;
-	bool RestoreBackground;
-	int ReplyGifNr[9];
-	int GifX;
-	int GifY;
-	StreamingAudio *m_Streams_click;
-	StreamingAudio *m_Streams_mouseover;
-	bool MouseMenu;
-	geBitmap	*BGBitmap[9];
-	std::string	SoundAtClick[9];
-	std::string	SoundMouseOver[9];
-	geBitmap	*MouseOverBitmap[9];
-
-private:
-	geCamera *M_Camera;
-	geRect 	 M_CameraRect;
-
+	bool			Flag;
+	std::string		OrderName;
 };
 
+
+
+class CConversation;
+
+#ifdef SX_IMPL_TYPE
+#undef SX_IMPL_TYPE
+#endif
+#define SX_IMPL_TYPE ScriptedObject
+
+#ifdef SX_METHOD_ARGS
+#undef SX_METHOD_ARGS
+#endif
+#define SX_METHOD_ARGS sxScriptedObjectMethodArgs
+
+typedef struct SX_METHOD_ARGS SX_METHOD_ARGS;
 
 /**
  * @brief ScriptedObject class
@@ -236,8 +113,13 @@ public:
 
 	void Push();
 	void Pop();
-	void RemoveTriggerStack(TriggerStack *tpool);
+	void Enqueue(SX_METHOD_ARGS* ma);
+	void Dequeue();
+	void DequeueTop();
+	void DequeueAll();
 	void GetAngles(bool flag);
+
+	void Update(float timeElapsed);
 
 	// Quake 2 movement functions
 	bool CheckBottom();
@@ -250,283 +132,299 @@ public:
 	bool CloseEnough(float dist);
 	void MoveToGoal(float dist);
 
+	inline const std::string& GetIcon()const { return m_Icon; }
+
+	void SetSpeakBone(const std::string& bone) { m_SpeakBone = bone; }
+	const std::string& GetSpeakBone() const { return m_SpeakBone; }
+	geVec3d GetSpeakBonePosition();
+	geVec3d GetPosition();
+
 public:
-	bool		active;
-	bool		alive;
-	bool		highlevel;
-	char		ActorName[64];
-	float		ActorAlpha;
-	char		szName[128];
-	float		AnimSpeed;
-	geVec3d		Rotation;
-	float		YRotation;
-	geFloat		Scale;
-	GE_RGBA		FillColor;
-	GE_RGBA		AmbientColor;
-	bool		AmbientLightFromFloor;
-	bool		EnvironmentMapping;
-	bool		AllMaterial;
-	float		PercentMapping;
-	float		PercentMaterial;
-	float		ShadowSize;
-	geFloat		ShadowAlpha;
-	char		ShadowBitmap[64];
-	char		ShadowAlphamap[64];
-	// projected shadows configurable per pawn type
-	bool		ProjectedShadows;
-	geBoolean	StencilShadows;
-	bool		HideFromRadar;
-	char		ChangeMaterial[64];
-	char		Attribute[64];
-	int			OldAttributeAmount;
-	geVec3d		Gravity;
-	char		BoxAnim[64];
-	geVec3d		Location;
-	char		RootBone[64];
-	char		Order[64];
-	char		Point[64];
-	bool		RunOrder;
-	geVec3d		CurrentPoint;
-	bool		ValidPoint;
-	bool		ActionActive;
-	bool		StartAction;
-	geVec3d		TempPoint;
-	geVec3d		Vec2Point;
-	char		NextOrder[64];
-	float		Time;
-	bool		DistActive;
-	float		MinDistance;
-	char		DistOrder[64];
-	char		PainOrder[64];
-	bool		PainActive;
-	int			PainPercent;
-	char		AvoidOrder[64];
-	char		DeadOrder[64];
-	geVec3d		DeadPos;
-	int			Direction;
-	float		TotalDist;
-	bool		AvoidMode;
-	bool		TriggerWait;
-	float		TriggerTime;
-	char		TriggerOrder[64];
-	int			SoundIndex;
-	float		AudibleRadius;
-	bool		FacePlayer;
-	bool		FaceAxis;
-	bool		UseKey;
-	float		FOV;
-	char		FOVBone[64];
-	char		Group[64];
-	bool		HostilePlayer;
-	bool		HostileDiff;
-	bool		HostileSame;
-	bool		TargetFind;
-	char		TargetOrder[64];
-	char		TargetAttr[64];
-	float		TargetDistance;
-	bool		TargetDisable;
-	char		TargetGroup[64];
-	geVec3d		LastTargetPoint;
-	geVec3d		SavePoint;
-	bool		collision;
-	bool		pushable;
-	bool		console;
-	char		DamageAttr[64];
-	geVec3d		UpdateTargetPoint;
-	char		*ConsoleHeader;
-	char		*ConsoleError;
-	char		*ConsoleDebug[DEBUGLINES];
-	char		Indicate[2];
-	geVec3d		WRotation;
-	geVec3d		WScale;
-	bool		SoundLoop;
-	float		Circle;
+	bool		m_Active;
+	bool		m_Alive;
+	geBoolean	m_HighLevel;
+	std::string	m_ActorName;
+	float		m_ActorAlpha;
+	std::string	szName;
+	float		m_AnimSpeed;
+	geVec3d		m_Rotation;
+	float		m_YRotation;
+	float		m_Scale;
+	GE_RGBA		m_FillColor;
+	GE_RGBA		m_AmbientColor;
+	bool		m_AmbientLightFromFloor;
+	bool		m_EnvironmentMapping;
+	bool		m_AllMaterial;
+	float		m_PercentMapping;
+	float		m_PercentMaterial;
+	float		m_ShadowSize;
+	float		m_ShadowAlpha;
+	std::string	m_ShadowBitmap;
+	std::string	m_ShadowAlphamap;
+	bool		m_ProjectedShadows;
+	geBoolean	m_StencilShadows;
+	bool		m_HideFromRadar;
+	std::string	m_ChangeMaterial;
+	std::string	m_Attribute;
+	int			m_OldAttributeAmount;
+	geVec3d		m_Gravity;
+	std::string	m_BoxAnim;
+	geVec3d		m_Location;
+	std::string	m_RootBone;
+	std::string	m_SpeakBone;
+	std::string	Order;
+	std::string	m_Point;
+	bool		m_RunOrder;
+	geVec3d		m_CurrentPoint;
+	bool		m_ValidPoint;
+	bool		m_ActionActive;
+	bool		m_StartAction;
+	geVec3d		m_TempPoint;
+	geVec3d		m_Vec2Point;
+	std::string	m_NextOrder;
+	float		m_Time;
+	bool		m_DistActive;
+	float		m_MinDistance;
+	std::string	m_DistOrder;
+	std::string	m_PainOrder;
+	bool		m_PainActive;
+	int			m_PainPercent;
+	std::string	m_AvoidOrder;
+	std::string	m_DeadOrder;
+	geVec3d		m_DeadPos;
+	int			m_Direction;
+	float		m_TotalDist;
+	bool		m_AvoidMode;
+	bool		m_TriggerWait;
+	float		m_TriggerTime;
+	std::string	m_TriggerOrder;
+	int			m_SoundID;
+	float		m_AudibleRadius;
+	bool		m_FacePlayer;
+	bool		m_FaceAxis;
+	bool		m_UseKey;
+	float		m_FOV;
+	std::string	m_FOVBone;
+	std::string	m_Group;
+	bool		m_HostilePlayer;
+	bool		m_HostileDiff;
+	bool		m_HostileSame;
+	bool		m_TargetFind;
+	std::string	m_TargetOrder;
+	std::string	m_TargetAttr;
+	float		m_TargetDistance;
+	bool		m_TargetDisable;
+	std::string	m_TargetGroup;
+	geVec3d		m_LastTargetPoint;
+	geVec3d		m_SavePoint;
+	bool		m_Collision;
+	bool		m_Pushable;
+	std::string	m_DamageAttr;
+	geVec3d		m_UpdateTargetPoint;
+	bool		m_Console;
+	char*		m_ConsoleHeader;
+	char*		m_ConsoleError;
+	char*		m_ConsoleDebug[DEBUGLINES];
+	char		m_Indicate[2];
+	geVec3d		m_WRotation;
+	geVec3d		m_WScale;
+	bool		m_SoundLoop;
+	float		m_Circle;
 
-	bool PointFind;
-	char PointOrder[64];
-	geActor	*Prev_HL_Actor;
-	GE_RGBA Prev_HL_FillColor;
-	GE_RGBA Prev_HL_AmbientColor;
-	geBoolean Prev_HL_AmbientLightFromFloor;
+	bool		m_PointFind;
+	std::string m_PointOrder;
 
-// Low Level variables
-	float		lowTime;
-	float		ThinkTime;
-	float		ElapseTime;
-	geActor		*TargetActor;
-	char		thinkorder[64];
-	float		attack_finished;
-	int			attack_state;
-	float		yaw_speed;
-	float		ideal_yaw;
-	float		actoryaw;
-	float		targetyaw;
-	float		actorpitch;
-	float		targetpitch;
-	float		pitch_speed;
-	float		ideal_pitch;
-	geActor		*Actor;
-	geActor		*WeaponActor;
-	ActionList	*Top;
-	ActionList	*Bottom;
-	ActionList	*Index;
-	ActionStack *Stack;
-	TriggerStack *Trigger;
-	geBitmap	*Icon;
-	ScriptedConverse *Converse;
+	geActor*	m_TargetActor;
 
 private:
-	void AddAction(int Action, const char *AnimName, float Speed, bool Flag,
-		float Value1, float Value2, float Value3, float Value4,
-		const char *Sound, const char *Trigger);
+	geActor*	m_Prev_HL_Actor;
+	GE_RGBA		m_Prev_HL_FillColor;
+	GE_RGBA		m_Prev_HL_AmbientColor;
+	geBoolean	m_Prev_HL_AmbientLightFromFloor;
+	std::set<int> m_SoundHandles;
+	StreamingAudio *m_StreamingAudio;
 
-};
+	void RestoreHLActorDynamicLighting();
 
-typedef struct ConversationText
-{
-	std::string Text;
-	std::string Name;
+private:
+	// Low Level variables
+	float		m_lowTime;
+	float		m_ThinkTime;
+	float		m_ElapseTime;
+	std::string	m_thinkorder;
+	float		m_attack_finished;
+	int			m_attack_state;
+	float		m_yaw_speed;
+	float		m_ideal_yaw;
+	float		m_actoryaw;
+	float		m_targetyaw;
+	float		m_actorpitch;
+	float		m_targetpitch;
+	float		m_pitch_speed;
+	float		m_ideal_pitch;
 
-} ConversationText;
-
-typedef struct BitampPreCache
-{
-	std::string Name;
-	geBitmap *Bitmap;
-
-} BitmapPreCache;
-
-typedef struct ActorPreCache
-{
-	std::string	Name;
-	char		ActorName[64];
-	geVec3d		Rotation;
-	geFloat		Scale;
-	GE_RGBA		FillColor;
-	GE_RGBA		AmbientColor;
-	bool		AmbientLightFromFloor;
-	bool		EnvironmentMapping;
-	bool		AllMaterial;
-	float		PercentMapping;
-	float		PercentMaterial;
-
-} ActorPreCache;
-
-/**
- * @brief CPawn class
- */
-class CPawn : public CRGFComponent
-{
 public:
-	CPawn();	// Constructor
-	~CPawn();
+	geActor*			m_Actor;
+	geActor*			m_WeaponActor;
 
-	void Tick(geFloat dwTicks);
-	int HandleCollision(const geActor *pActor, const geActor *theActor, bool Gravity);
-	int SaveTo(FILE *SaveFD, bool type);
-	int RestoreFrom(FILE *RestoreFD, bool type);
-	bool Converse(const geActor *pActor);
-	void RunConverse(ScriptedConverse *Converse, const char *szName, geBitmap *OIcon);
-	int LocateEntity(const char *szName, void **pEntityData);
-	void AddEvent(const char *Event, bool State);
-	bool GetEventState(const char *Event);
-	std::string GetText(const char *Name);
-	geBitmap *GetCache(const char *Name);
+	stdext::hash_map<std::string, TriggerOrder*>	m_WatchedTriggers;
+	std::stack<std::queue<SX_METHOD_ARGS*>*>		m_MethodQueueStack;
+	std::stack<MethodQueueVariables*>				m_MethodQueueVariablesStack;
+
+	std::string			m_Icon;
+
+	CConversation*		m_Conversation;
+
+private:
+	void Spawn();
 	void AnimateWeapon();
+	void UpdateHigh(float timeElapsed);
+	void UpdateLow(float timeElapsed);
 
-	bool GetConvFlag()						{ return ConvFlag;			}
-	void SetConvFlag(bool flag)				{ ConvFlag = flag;			}
-	bool GetPawnFlag(int index)				{ return PawnFlag[index];	}
-	void SetPawnFlag(int index, bool flag)	{ PawnFlag[index] = flag;	}
+	int  PlaySound(const char* sound, int soundHandle = -1, geBoolean loop = GE_TRUE, float radius = -1.0f);
+	void UpdateSounds();
+	void StopSound(int soundHandle);
 
-	void GetGifXY(int *pGifX, int *pGifY)	{ if(pGifX)*pGifX=GifX; if(pGifY)*pGifY=GifY; }
+	void UpdateWatchedTriggers(float timeElapsed);
+	void CheckWatchedTriggers();
+	void ClearWatchedTriggers();
 
-	bool CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const char *Bone);
-	bool CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const char *Bone);
+	void FindScriptPoint();
+	void FindTarget();
 
-	int GetBlock()	{ return ConsoleBlock;	}
-	void IncBlock()	{ ConsoleBlock += 1;	}
+	void ClearActionList();
 
-	void LoadConv(const char *convtxt);
+	bool PlayerDistance(float minDistance);
 
-	// changed Nout 12/15/05
-	bool Area(const char *FromActorName, const char *ToActorName, bool DistanceMode,
-				float MinScr, float MaxScr, float MinDist, float MaxDist,
-				bool IgnoreX, bool IgnoreY, bool IgnoreZ);
-	void ShowText(int Nr);
-	void FillScreenArea(int Nr);
+	bool CanSee(float FOV, const geActor *Actor, const geActor* TargetActor, const std::string& Bone);
+	bool CanSeePoint(float FOV, const geActor *Actor, const geVec3d* TargetPoint, const std::string& Bone);
 
-public:
-	TxtMessage		TextMessage[MAXTEXT];
-	StreamingAudio	*m_Streams;
-	LPDIRECTSOUND	m_dsPtr;
-	FillSArea		FillScrArea[MAXFILLAREA];
-	CAnimGif		*GifFile[9];
-private:
-	void TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks);
-	void TickLow(Pawn *pSource, ScriptedObject *Object, float dwTicks);
-	void Spawn(void *Data);
-	bool RotateToPoint		(void *Data, float dwTicks);
-	bool RotateAroundPoint	(void *Data, float dwTicks);
-	bool RotateToAlign		(void *Data, float dwTicks);
-	bool Rotate				(void *Data, float dwTicks);
-	bool MoveToPoint		(void *Data, float dwTicks);
-	bool Move				(void *Data, float dwTicks);
-	bool RotateMoveToPoint	(void *Data, float dwTicks);
-	bool RotateMove			(void *Data, float dwTicks);
-	bool NextPoint			(void *Data, float dwTicks);
-	bool NextOrder			(void *Data, float dwTicks);
-	bool NextPath			(void *Data, float dwTicks);
-	bool Jump				(void *Data, float dwTicks);
-	bool AddTriggerOrder	(void *Data, float dwTicks);
-	bool DelTriggerOrder	(void *Data, float dwTicks);
-	bool RotateToPlayer		(void *Data, float dwTicks);
-	void PreLoad(const char *filename);
-	void PreLoadC(const char *filename);
-	bool PlayerDistance(float FOV, float distance, const geActor *Actor, const geVec3d &DeadPos, const char *Bone);
+	bool MoveToPoint(float timeElapsed, skRValueArray& args);
+	bool RotateToPoint(float timeElapsed, const std::string& animation, float rSpeed, bool rotateXY);
+	bool Rotate(float timeElapsed, const std::string& animation, float speed, geVec3d *angle);
+	bool RotateMoveToPoint(float timeElapsed, const std::string& animation, float rSpeed, float speed, bool rotateXY);
+	bool Move(float timeElapsed, const std::string& animation, float speed, float totalDistance,
+		float angleX = 0.0f, float angleY = 0.0f, float angleZ = 0.0f);
 
 private:
-	CIniFile AttrFile;
-	geBitmap	*Background;
-	geBitmap	*rBackground;	// changed Nout
-	geBitmap	*Icon;
-	geBitmap	*rIcon;			// changed Nout
-
-	int SpeachWindowX;
-	int SpeachWindowY;
-	int ReplyWindowX;
-	int ReplyWindowY;
-	int rBackgroundX;
-	int rBackgroundY;
-
-	geBitmap *ReplyMenuBar;
-	int ReplyMenuFont;
-	int GifX;
-	int GifY;
-
-	int BackgroundX;
-	int BackgroundY;
-	int IconX;
-	int IconY;
-	int SpeachX;
-	int SpeachY;
-	int SpeachWidth;
-	int SpeachHeight;
-	int SpeachFont;
-	int ReplyX;
-	int ReplyY;
-	int ReplyWidth;
-	int ReplyHeight;
-	int ReplyFont;
-	bool ConvFlag;
-	bool PawnFlag[MAXFLAGS];
-	std::vector<ConversationText> Text;
-	EventStack *Events;
-	std::vector<ActorPreCache> WeaponCache;
-	std::vector<ActorPreCache> AccessoryCache;
-	std::vector<BitmapPreCache> BitmapCache;
-	int ConsoleBlock;
+	// returning true if finished, else false
+	Q_METHOD_DECL(MoveToPoint);
+	Q_METHOD_DECL(RotateToPoint);
+	Q_METHOD_DECL(NewOrder);
+	Q_METHOD_DECL(NextOrder);
+	Q_METHOD_DECL(RotateToAlign);
+	Q_METHOD_DECL(NextPoint);
+	Q_METHOD_DECL(Delay);
+	Q_METHOD_DECL(PlayAnimation);
+	Q_METHOD_DECL(BlendToAnimation);
+	Q_METHOD_DECL(LoopAnimation);
+	Q_METHOD_DECL(Rotate);
+	Q_METHOD_DECL(RotateMoveToPoint);
+	Q_METHOD_DECL(RotateMove);
+	Q_METHOD_DECL(NewPath);
+	Q_METHOD_DECL(RestartOrder);
+	Q_METHOD_DECL(PlayerDistOrder);
+	//Q_METHOD_DECL(Console);
+	Q_METHOD_DECL(AudibleRadius);
+	Q_METHOD_DECL(AddPainOrder);
+	Q_METHOD_DECL(FindTargetOrder);
+	Q_METHOD_DECL(FindPointOrder);
+	Q_METHOD_DECL(NewPoint);
+	Q_METHOD_DECL(MoveForward);
+	Q_METHOD_DECL(MoveBackward);
+	Q_METHOD_DECL(MoveLeft);
+	Q_METHOD_DECL(MoveRight);
+	Q_METHOD_DECL(Move);
+	Q_METHOD_DECL(AvoidOrder);
+	Q_METHOD_DECL(Return);
+	Q_METHOD_DECL(Align);
+	Q_METHOD_DECL(Jump);
+	Q_METHOD_DECL(AddTriggerOrder);
+	Q_METHOD_DECL(DelTriggerOrder);
+	Q_METHOD_DECL(SetEventState);
+	Q_METHOD_DECL(FacePlayer);
+	Q_METHOD_DECL(RotateToPlayer);
+	Q_METHOD_DECL(RotateAroundPoint);
+	//Q_METHOD_DECL(RotateAroundPointLeft);
+	//Q_METHOD_DECL(RotateAroundPointRight);
+	Q_METHOD_DECL(TeleportToPoint);
+	Q_METHOD_DECL(AnimationSpeed);
+	Q_METHOD_DECL(SetFlag);
+	//Q_METHOD_DECL(AddFlagOrder);
+	//Q_METHOD_DECL(DelFlagOrder);
+	Q_METHOD_DECL(ChangeMaterial);
+	Q_METHOD_DECL(ChangeWeaponMaterial);
+	//Q_METHOD_DECL(AddTimerOrder);
+	//Q_METHOD_DECL(DelTimerOrder);
+	//Q_METHOD_DECL(AddRandomSound);
+	//Q_METHOD_DECL(DelRandomSound);
+	//Q_METHOD_DECL(AddDistanceOrder);
+	//Q_METHOD_DECL(DelDistanceOrder);
+	//Q_METHOD_DECL(AddCollisionOrder);
+	//Q_METHOD_DECL(DelCollisionOrder);
+	Q_METHOD_DECL(AnimateStop);
+	Q_METHOD_DECL(AttributeOrder);
+	Q_METHOD_DECL(Remove);
+	Q_METHOD_DECL(SetKeyPause);
+	Q_METHOD_DECL(SetNoCollision);
+	Q_METHOD_DECL(SetCollision);
+	Q_METHOD_DECL(AllowUseKey);
+	Q_METHOD_DECL(SetHudDraw);
+	Q_METHOD_DECL(HideFromRadar);
+	Q_METHOD_DECL(Conversation);
+	Q_METHOD_DECL(FadeIn);
+	Q_METHOD_DECL(FadeOut);
+	Q_METHOD_DECL(SetFOV);
+	Q_METHOD_DECL(StepHeight);
+	Q_METHOD_DECL(SetGroup);
+	Q_METHOD_DECL(HostilePlayer);
+	Q_METHOD_DECL(HostileDifferent);
+	Q_METHOD_DECL(HostileSame);
+	Q_METHOD_DECL(Gravity);
+	Q_METHOD_DECL(SoundLoop);
+	Q_METHOD_DECL(Speak);
+	Q_METHOD_DECL(IsPushable);
+	Q_METHOD_DECL(IsVehicle);
+	Q_METHOD_DECL(MoveToTarget);
+	Q_METHOD_DECL(RotateToTarget);
+	Q_METHOD_DECL(RotateMoveToTarget);
+	Q_METHOD_DECL(LowLevel);
+	Q_METHOD_DECL(BoxWidth);
+	Q_METHOD_DECL(BoxHeight);
+	Q_METHOD_DECL(Scale);
+	Q_METHOD_DECL(SetScale);
+	Q_METHOD_DECL(FireProjectile);
+	Q_METHOD_DECL(AddExplosion);
+	Q_METHOD_DECL(TargetGroup);
+	Q_METHOD_DECL(TestDamageOrder);
+	Q_METHOD_DECL(SetLODDistance);
+	Q_METHOD_DECL(AttachToActor);
+	Q_METHOD_DECL(DetachFromActor);
+	Q_METHOD_DECL(AttachBlendActor);
+	Q_METHOD_DECL(DetachBlendActor);
+	Q_METHOD_DECL(AttachAccessory);
+	Q_METHOD_DECL(DetachAccessory);
+	Q_METHOD_DECL(SetWeapon);
+	Q_METHOD_DECL(RemoveWeapon);
+	//Q_METHOD_DECL(random);
+	Q_METHOD_DECL(debug);
+	Q_METHOD_DECL(ShowTextDelay);
+	Q_METHOD_DECL(ShowText);
+	Q_METHOD_DECL(RemoveText);
+	//Q_METHOD_DECL(GetConvReplyNr);
+	//Q_METHOD_DECL(Concat);
+	//Q_METHOD_DECL(GetAttribute);
+	//Q_METHOD_DECL(ModifyAttribute);
+	//Q_METHOD_DECL(SetAttribute);
+	//Q_METHOD_DECL(AddAttribute);
+	//Q_METHOD_DECL(SetAttributeValueLimits);
+	//Q_METHOD_DECL(GetFlag);
+	Q_METHOD_DECL(MouseControlledPlayer);
+	//Q_METHOD_DECL(GetEventState);
+	Q_METHOD_DECL(EndScript);
 };
+
+#undef SX_IMPL_TYPE
 
 #endif
 

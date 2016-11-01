@@ -13,10 +13,17 @@
 #include <Ram.h>
 #include "RGFScriptMethods.h"
 #include "CScriptManager.h"
+#include "CGUIManager.h"
 #include "CHeadsUpDisplay.h"
 #include "CInventory.h"
+#include "CConversation.h"
+#include "CConversationManager.h"
+#include "CLanguageManager.h"
+#include "CLevel.h"
 #include "CScriptPoint.h"
 #include "CPawn.h"
+#include "CPawnManager.h"
+#include "RFSX/sxVector.h"
 
 extern geSound_Def *SPool_Sound(const char *SName);
 
@@ -111,7 +118,6 @@ typedef enum
 	SPEAK,
 	ROTATEAROUNDPOINTLEFT,
 	ROTATEAROUNDPOINTRIGHT,
-	ROTATEAROUNDPOINT,
 	SETLODDISTANCE,
 	DELAY,
 	SHOWTEXTDELAY,
@@ -214,7 +220,6 @@ char *ActionText[] =
 	"Speak"
 	"RotateAroundPointLeft",
 	"RotateAroundPointRight",
-	"RotateAroundPoint",
 	"SetLODDistance",
 	"Delay",
 	"ShowTextDelay",
@@ -232,164 +237,278 @@ char *ActionText[] =
 	"debug"
 };
 
+
+#ifdef SX_IMPL_TYPE
+#undef SX_IMPL_TYPE
+#endif
+#define SX_IMPL_TYPE ScriptedObject
+
+#ifdef SX_METHOD_ARGS
+#undef SX_METHOD_ARGS
+#endif
+#define SX_METHOD_ARGS sxScriptedObjectMethodArgs
+
+typedef struct SX_METHOD_ARGS
+{
+	bool (SX_IMPL_TYPE::*method) (float timeElapsed, skRValueArray& args);
+	skRValueArray args;
+	unsigned long action;
+} SX_METHOD_ARGS;
+
+
+void SX_IMPL_TYPE::Enqueue(SX_METHOD_ARGS* ma)
+{
+	if(ma)
+	{
+		if(m_MethodQueueStack.empty())
+		{
+			m_MethodQueueStack.push(new std::queue<SX_METHOD_ARGS*>());
+			m_MethodQueueVariablesStack.push(new MethodQueueVariables());
+		}
+
+		m_MethodQueueStack.top()->push(ma);
+	}
+}
+
+void SX_IMPL_TYPE::Dequeue()
+{
+	if(!m_MethodQueueStack.empty())
+	{
+		if(!m_MethodQueueStack.top()->empty())
+		{
+			delete m_MethodQueueStack.top()->front();
+			m_MethodQueueStack.top()->pop();
+		}
+	}
+}
+
+void SX_IMPL_TYPE::DequeueTop()
+{
+	if(!m_MethodQueueStack.empty())
+	{
+		while(!m_MethodQueueStack.top()->empty())
+		{
+			delete m_MethodQueueStack.top()->front();
+			m_MethodQueueStack.top()->pop();
+		}
+	}
+}
+
+void SX_IMPL_TYPE::DequeueAll()
+{
+	while(!m_MethodQueueStack.empty())
+	{
+		while(!m_MethodQueueStack.top()->empty())
+		{
+			delete m_MethodQueueStack.top()->front();
+			m_MethodQueueStack.top()->pop();
+		}
+
+		delete m_MethodQueueStack.top();
+		m_MethodQueueStack.pop();
+		delete m_MethodQueueVariablesStack.top();
+		m_MethodQueueVariablesStack.pop();
+	}
+}
+
+#define USE_METHOD_QUEUE_STACK	1
+
 /* ------------------------------------------------------------------------------------ */
 //	calls a method in this object
 /* ------------------------------------------------------------------------------------ */
 bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& arguments,
 								skRValue& returnValue,skExecutableContext &ctxt)
 {
-	char param0[128], param7[128], param8[128];
-	float param1, param3, param4; //param5, param6;
-	bool param2;
+	char param0[128];
+	int iparam;
 
 	param0[0] = '\0';
-	param7[0] = '\0';
-	param8[0] = '\0';
-
 
 	switch(ScriptManager::GetHashMethod(methodName))
 	{
 	case RGF_SM_MOVETOPOINT:
 		{
 			PARMCHECK(3);
-			AddAction(MOVETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveToPoint);
+			ma->args = arguments;
+			ma->action = MOVETOPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATETOPOINT:
 		{
 			PARMCHECK(4);
-			AddAction(ROTATETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateToPoint);
+			ma->args = arguments;
+			ma->action = ROTATETOPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_NEWORDER:
 		{
 			PARMCHECK(1);
-			AddAction(NEWORDER, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(NewOrder);
+			ma->args = arguments;
+			ma->action = NEWORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_NEXTORDER:
 		{
-			AddAction(NEXTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(NextOrder);
+			ma->args = arguments;
+			ma->action = NEXTORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATETOALIGN:
 		{
 			PARMCHECK(4);
-			AddAction(ROTATETOALIGN, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateToAlign);
+			ma->args = arguments;
+			ma->action = ROTATETOALIGN;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_NEXTPOINT:
 		{
-			AddAction(NEXTPOINT, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(NextPoint);
+			ma->args = arguments;
+			ma->action = NEXTPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELAY:
 		{
 			PARMCHECK(3);
-			AddAction(DELAY, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Delay);
+			ma->args = arguments;
+			ma->action = DELAY;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_PLAYANIMATION:
 		{
 			PARMCHECK(3);
-			AddAction(PLAYANIMATION, arguments[0].str().c_str(), 0.0f,
-				arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(PlayAnimation);
+			ma->args = arguments;
+			ma->action = PLAYANIMATION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_BLENDTOANIMATION:
 		{
 			PARMCHECK(4);
-			AddAction(BLENDTOANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(BlendToAnimation);
+			ma->args = arguments;
+			ma->action = BLENDTOANIMATION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_LOOPANIMATION:
 		{
 			PARMCHECK(3);
-			AddAction(LOOPANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(LoopAnimation);
+			ma->args = arguments;
+			ma->action = LOOPANIMATION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATE:
 		{
 			PARMCHECK(6);
-			AddAction(ROTATE, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), arguments[3].floatValue(),
-				arguments[4].floatValue(), 0.0f, arguments[5].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Rotate);
+			ma->args = arguments;
+			ma->action = ROTATE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATEMOVETOPOINT:
 		{
 			PARMCHECK(5);
-			AddAction(ROTATEMOVETOPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[3].boolValue(), arguments[2].floatValue(), 0.0f, 0.0f, 0.0f,
-				arguments[4].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateMoveToPoint);
+			ma->args = arguments;
+			ma->action = ROTATEMOVETOPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATEMOVE:
 		{
 			PARMCHECK(7);
-			AddAction(ROTATEMOVE, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[3].floatValue(), arguments[4].floatValue(), arguments[5].floatValue(),
-				arguments[2].floatValue(), arguments[6].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateMove);
+			ma->args = arguments;
+			ma->action = ROTATEMOVE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_NEWPATH:
 		{
 			PARMCHECK(1);
-			AddAction(NEWPATH, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(NewPath);
+			ma->args = arguments;
+			ma->action = NEWPATH;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_RESTARTORDER:
 		{
-			AddAction(RESTARTORDER, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RestartOrder);
+			ma->args = arguments;
+			ma->action = RESTARTORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_PLAYERDISTORDER:
 		{
 			PARMCHECK(2);
-			MinDistance = arguments[0].floatValue();
-
-			if(MinDistance != 0.0f)
-			{
-				DistActive = true;
-				strcpy(DistOrder, arguments[1].str());
-			}
-			else
-				DistActive = false;
-
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(PlayerDistOrder);
+			ma->args = arguments;
+			ma->action = PLAYERDISTORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_CONSOLE:
 		{
 			PARMCHECK(1);
-			console = arguments[0].boolValue();
+			m_Console = arguments[0].boolValue();
 
-			if(console)
+			if(m_Console)
 			{
-				ConsoleHeader = (char *)malloc(128);
-				*ConsoleHeader = '\0';
-				ConsoleError = (char *)malloc(128);
-				*ConsoleError = '\0';
+				m_ConsoleHeader = new char[128];
+				*m_ConsoleHeader = '\0';
+				m_ConsoleError = new char[128];
+				*m_ConsoleError = '\0';
 
-				for(int i=0; i<DEBUGLINES; i++)
+				for(int i=0; i<DEBUGLINES; ++i)
 				{
-					ConsoleDebug[i] = (char*)malloc(64);
-					*ConsoleDebug[i] = '\0';
+					m_ConsoleDebug[i] = new char[64];
+					*m_ConsoleDebug[i] = '\0';
 				}
 			}
 			else
 			{
-				SAFE_FREE(ConsoleHeader);
-				SAFE_FREE(ConsoleError);
+				SAFE_DELETE_A(m_ConsoleHeader);
+				SAFE_DELETE_A(m_ConsoleError);
 
-				for(int i=0; i<DEBUGLINES; i++)
+				for(int i=0; i<DEBUGLINES; ++i)
 				{
-					SAFE_FREE(ConsoleDebug[i]);
+					SAFE_DELETE_A(m_ConsoleDebug[i]);
 				}
 			}
 
@@ -398,351 +517,584 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	case RGF_SM_AUDIBLERADIUS:
 		{
 			PARMCHECK(1);
-			AudibleRadius = arguments[0].floatValue();
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AudibleRadius);
+			ma->args = arguments;
+			ma->action = AUDIBLERADIUS;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDPAINORDER:
 		{
 			PARMCHECK(2);
-			PainActive = true;
-			strcpy(PainOrder, arguments[0].str());
-			PainPercent = arguments[1].intValue();
-			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Actor);
-			OldAttributeAmount = theInv->Value(Attribute);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddPainOrder);
+			ma->args = arguments;
+			ma->action = ADDPAINORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FINDTARGETORDER:
 		{
 			PARMCHECK(3);
-			TargetDistance = arguments[0].floatValue();
-
-			if(TargetDistance != 0.0f)
-			{
-				TargetDisable = false;
-				TargetFind = true;
-				strcpy(TargetOrder, arguments[1].str());
-				strcpy(TargetAttr, arguments[2].str());
-			}
-			else
-				TargetFind = false;
-
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FindTargetOrder);
+			ma->args = arguments;
+			ma->action = FINDTARGETORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FINDPOINTORDER:
 		{
 			PARMCHECK(1);
-			PointFind = true;
-			strcpy(PointOrder, arguments[0].str());
-
-			if(EffectC_IsStringNull(PointOrder))
-				PointFind = false;
-
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FindPointOrder);
+			ma->args = arguments;
+			ma->action = FINDPOINTORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_NEWPOINT:
 		{
 			PARMCHECK(1);
-			AddAction(NEWPOINT, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(NewPoint);
+			ma->args = arguments;
+			ma->action = NEWPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVEFORWARD:
 		{
 			PARMCHECK(4);
-			AddAction(MOVEFORWARD, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveForward);
+			ma->args = arguments;
+			ma->action = MOVEFORWARD;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVEBACKWARD:
 		{
 			PARMCHECK(4);
-			AddAction(MOVEBACKWARD, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveBackward);
+			ma->args = arguments;
+			ma->action = MOVEBACKWARD;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVELEFT:
 		{
 			PARMCHECK(4);
-			AddAction(MOVELEFT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveLeft);
+			ma->args = arguments;
+			ma->action = MOVELEFT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVERIGHT:
 		{
 			PARMCHECK(4);
-			AddAction(MOVERIGHT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveRight);
+			ma->args = arguments;
+			ma->action = MOVERIGHT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVE:
 		{
-			PARMCHECK(7);
-			AddAction(MOVE, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
-				arguments[5].floatValue(), arguments[6].str().c_str(), NULL);
+			PARMCHECK(3);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			if(arguments.entries() < 7)
+			{
+				if(arguments.entries() < 6)
+				{
+					if(arguments.entries() < 5)
+					{
+						if(arguments.entries() < 4)
+						{
+							ma->args.append(0.0f);
+						}
+						ma->args.append(0.0f);
+					}
+					ma->args.append(0.0f);
+				}
+				ma->args.append(skString(""));
+			}
+			ma->method = Q_P_FUNC(Move);
+			ma->args = arguments;
+			ma->action = MOVE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_AVOIDORDER:
 		{
 			PARMCHECK(1);
-			AddAction(AVOIDORDER, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AvoidOrder);
+			ma->args = arguments;
+			ma->action = AVOIDORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_RETURN:
 		{
-			AddAction(RETURN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Return);
+			ma->args = arguments;
+			ma->action = RETURN;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ALIGN:
 		{
-			AddAction(ALIGN, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Align);
+			ma->args = arguments;
+			ma->action = ALIGN;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_JUMP:
 		{
 			PARMCHECK(4);
-			AddAction(JUMPCMD, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Jump);
+			ma->args = arguments;
+			ma->action = JUMPCMD;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDTRIGGERORDER:
 		{
 			PARMCHECK(3);
-			AddAction(ADDTRIGGERORDER, arguments[0].str().c_str(), arguments[2].floatValue(),
-				false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddTriggerOrder);
+			ma->args.append(arguments[1].str());
+			ma->args.append(arguments[0].str());
+			ma->args.append(PTRIGGER);
+			ma->args.append(arguments[2].floatValue());
+			ma->args.append(false);
+			ma->args.append(0);
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->action = ADDTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELTRIGGERORDER:
 		{
 			PARMCHECK(1);
-			AddAction(DELTRIGGERORDER, arguments[0].str().c_str(), 0.0f, false, PTRIGGER, 0.0f, 0.0f, 0.0f, NULL, param0);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args = arguments;
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETEVENTSTATE:
 		{
 			PARMCHECK(2);
-			AddAction(SETEVENTSTATE, arguments[0].str().c_str(), 0.0f, arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetEventState);
+			ma->args = arguments;
+			ma->action = SETEVENTSTATE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FACEPLAYER:
 		{
 			PARMCHECK(2);
-			param1 = 0.0f;
-
-			if(arguments[1].boolValue())
-				param1 = 1.0f;
-
-			AddAction(FACEPLAYER, NULL, param1, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FacePlayer);
+			ma->args = arguments;
+			ma->action = FACEPLAYER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATETOPLAYER:
 		{
 			PARMCHECK(4);
-			AddAction(ROTATETOPLAYER, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateToPlayer);
+			ma->args = arguments;
+			ma->action = ROTATETOPLAYER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATEAROUNDPOINTLEFT:
 		{
 			PARMCHECK(4);
-			AddAction(ROTATEAROUNDPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, arguments[2].floatValue(), 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateAroundPoint);
+			ma->args = arguments;
+			ma->args.append(false);
+			ma->action = ROTATEAROUNDPOINTLEFT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATEAROUNDPOINTRIGHT:
 		{
 			PARMCHECK(4);
-			AddAction(ROTATEAROUNDPOINT, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 1.0f, arguments[2].floatValue(), 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateAroundPoint);
+			ma->args = arguments;
+			ma->args.append(true);
+			ma->action = ROTATEAROUNDPOINTRIGHT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_TELEPORTTOPOINT:
 		{
 			PARMCHECK(1);
-			float Offx = 0.0f;
-			float Offy = 0.0f;
-			float Offz = 0.0f;
-			param2 = false;
-			param8[0] = 0;
-
-			// - use scriptpoint angles as actor orientation after teleporting
-			// - specify actor to teleport
-			if(arguments.entries() > 3)
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(TeleportToPoint);
+			ma->args = arguments;
+			if(arguments.entries() < 6)
 			{
-				Offx = arguments[1].floatValue();
-				Offy = arguments[2].floatValue();
-				Offz = arguments[3].floatValue();
-
-				if(arguments.entries() > 4)
+				if(arguments.entries() < 5)
 				{
-					param2 = arguments[4].boolValue();
-
-					if(arguments.entries() > 5)
-						strcpy(param8, arguments[5].str());
+					if(arguments.entries() < 4)
+					{
+						if(arguments.entries() < 3)
+						{
+							if(arguments.entries() < 2)
+							{
+								ma->args.append(0.0f);
+							}
+							ma->args.append(0.0f);
+						}
+						ma->args.append(0.0f);
+					}
+					ma->args.append(false);
 				}
+				ma->args.append(skString(""));
 			}
 
-			AddAction(TELEPORTTOPOINT, arguments[0].str().c_str(), 0.0f, param2, Offx, Offy, Offz, 0.0f, NULL, param8);
-
+			ma->action = TELEPORTTOPOINT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ANIMATIONSPEED:
 		{
 			PARMCHECK(1);
-			AddAction(ANIMATIONSPEED, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AnimationSpeed);
+			ma->args = arguments;
+			ma->action = ANIMATIONSPEED;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETFLAG:
 		{
 			PARMCHECK(2);
-			param1 = (float)arguments[0].intValue();
+			iparam = arguments[0].intValue();
 
-			if(param1 >= 0.0f && param1 < MAXFLAGS)
-				AddAction(SETFLAG, NULL, param1, arguments[1].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-
+			if(iparam >= 0 && iparam < MAXFLAGS)
+			{
+				SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+				ma->method = Q_P_FUNC(SetFlag);
+				ma->args = arguments;
+				ma->action = SETFLAG;
+				Enqueue(ma);
+			}
 			return true;
 		}
 	case RGF_SM_ADDFLAGORDER:
 		{
 			PARMCHECK(3);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PawnFlag%d", (int)param1);
+			iparam = arguments[0].intValue();
 
-			if(param1 >= 0.0f && param1 < MAXFLAGS)
-				AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
-					arguments[1].boolValue(), PFLAG, param1, 0.0f, 0.0f, NULL, param7);
+			if(iparam >= 0 && iparam < MAXFLAGS)
+			{
+				sprintf(param0, "PawnFlag%d", iparam);
 
+				SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+				ma->method = Q_P_FUNC(AddTriggerOrder);
+				ma->args.append(param0);
+				ma->args.append(arguments[2].str());
+				ma->args.append(PFLAG);
+				ma->args.append(0.0f);
+				ma->args.append(arguments[1].boolValue());
+				ma->args.append(arguments[0].intValue());
+				ma->args.append(0.0f);
+				ma->args.append(0.0f);
+				ma->args.append(0.0f);
+				ma->action = ADDTRIGGERORDER;
+				Enqueue(ma);
+			}
 			return true;
 		}
 	case RGF_SM_DELFLAGORDER:
 		{
 			PARMCHECK(1);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PawnFlag%d", (int)param1);
-			AddAction(DELTRIGGERORDER, NULL, param1, false, PFLAG, 0.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "PawnFlag%d", arguments[0].intValue());
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args.append(param0);
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_CHANGEMATERIAL:
 		{
 			PARMCHECK(1);
-			AddAction(CHANGEMATERIAL, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(ChangeMaterial);
+			ma->args = arguments;
+			ma->action = CHANGEMATERIAL;
+			Enqueue(ma);
+			return true;
+		}
+	case RGF_SM_CHANGEWEAPONMATERIAL:
+		{
+			PARMCHECK(1);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(ChangeWeaponMaterial);
+			ma->args = arguments;
+			ma->action = CHANGEWEAPONMATERIAL;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDTIMERORDER:
 		{
 			PARMCHECK(3);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PawnTimer%d", (int)param1);
-			AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
-				false, PTIMER, param1, arguments[1].floatValue(), 0.0f, NULL, param7);
+			iparam = arguments[0].intValue();
+			sprintf(param0, "PawnTimer%d", iparam);
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddTriggerOrder);
+			ma->args.append(param0);
+			ma->args.append(arguments[2].str());
+			ma->args.append(PTIMER);
+			ma->args.append(0.0f);
+			ma->args.append(false);
+			ma->args.append(iparam);
+			ma->args.append(arguments[1].floatValue());
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->action = ADDTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELTIMERORDER:
 		{
 			PARMCHECK(1);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PawnTimer%d", (int)param1);
-			AddAction(DELTRIGGERORDER, NULL, param1, false, PTIMER, 0.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "PawnTimer%d", arguments[0].intValue());
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args.append(param0);
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
+			return true;
+		}
+	case RGF_SM_SPEAK:
+		{
+			PARMCHECK(1);
+			if(sxConversationManager::GetSingletonPtr()->IsConversing())
+			{
+				skRValueArray setIconArgs;
+				setIconArgs.append(skString(m_Icon.c_str()));
+				sxConversationManager::M_SetIcon(sxConversationManager::GetSingletonPtr(), setIconArgs, returnValue, ctxt);
+				skRValue pos(new RFSX::sxVector(GetSpeakBonePosition()), true);
+				arguments.append(pos);
+				sxConversationManager::M_Speak(sxConversationManager::GetSingletonPtr(), arguments, returnValue, ctxt);
+				return true;
+			}
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Speak);
+			ma->args = arguments;
+			ma->action = SPEAK;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDRANDOMSOUND:
 		{
 			PARMCHECK(3);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "RandomSound%d", (int)param1);
-			AddAction(ADDTRIGGERORDER, arguments[3].str().c_str(), 0.0f,
-				false, PSOUND, param1, arguments[1].floatValue(), arguments[2].floatValue(), NULL, param7);
+			iparam = arguments[0].intValue();
+			sprintf(param0, "RandomSound%d", iparam);
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddTriggerOrder);
+			ma->args.append(param0);
+			ma->args.append(arguments[3].str());
+			ma->args.append(PSOUND);
+			ma->args.append(0.0f);
+			ma->args.append(false);
+			ma->args.append(iparam);
+			ma->args.append(0.0f);
+			ma->args.append(arguments[1].floatValue());
+			ma->args.append(arguments[2].floatValue());
+			ma->action = ADDTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELRANDOMSOUND:
 		{
 			PARMCHECK(1);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "RandomSound%d", (int)param1);
-			AddAction(DELTRIGGERORDER, NULL, param1, false, PSOUND, 0.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "RandomSound%d", arguments[0].intValue());
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args.append(param0);
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDDISTANCEORDER:
 		{
 			PARMCHECK(3);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PlayerDist%d", (int)param1);
-			AddAction(ADDTRIGGERORDER, arguments[2].str().c_str(), 0.0f,
-				false, PDIST, param1, arguments[1].floatValue(), 0.0f, NULL, param7);
+			iparam = arguments[0].intValue();
+			sprintf(param0, "PlayerDist%d", iparam);
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddTriggerOrder);
+			ma->args.append(param0);
+			ma->args.append(arguments[2].str());
+			ma->args.append(PDIST);
+			ma->args.append(0.0f);
+			ma->args.append(false);
+			ma->args.append(iparam);
+			ma->args.append(arguments[1].floatValue());
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->action = ADDTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELDISTANCEORDER:
 		{
 			PARMCHECK(1);
-			param1 = (float)arguments[0].intValue();
-			sprintf(param7, "PlayerDist%d", (int)param1);
-			AddAction(DELTRIGGERORDER, NULL, param1, false, PDIST, 0.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "PlayerDist%d", arguments[0].intValue());
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args.append(param0);
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDCOLLISIONORDER:
 		{
 			PARMCHECK(1);
-			sprintf(param7, "PlayerColl%d", 1);
-			AddAction(ADDTRIGGERORDER, arguments[0].str().c_str(), 0.0f, false, PCOLLIDE, 1.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "PlayerColl%d", 1);
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddTriggerOrder);
+			ma->args.append(param0);
+			ma->args.append(arguments[0].str());
+			ma->args.append(PCOLLIDE);
+			ma->args.append(0.0f);
+			ma->args.append(false);
+			ma->args.append(1);
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->args.append(0.0f);
+			ma->action = ADDTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DELCOLLISIONORDER:
 		{
-			sprintf(param7, "PlayerColl%d", 1);
-			AddAction(DELTRIGGERORDER, NULL, 1.0f, false, PCOLLIDE, 0.0f, 0.0f, 0.0f, NULL, param7);
+			sprintf(param0, "PlayerColl%d", 1);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DelTriggerOrder);
+			ma->args.append(param0);
+			ma->action = DELTRIGGERORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ANIMATESTOP:
 		{
 			PARMCHECK(3);
-			AddAction(STOPANIMATION, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AnimateStop);
+			ma->args = arguments;
+			ma->action = STOPANIMATION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ATTRIBUTEORDER:
 		{
 			PARMCHECK(3);
-			AddAction(ATTRIBUTEORDER, arguments[0].str().c_str(), (float)arguments[1].intValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[2].str().c_str());
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AttributeOrder);
+			ma->args = arguments;
+			ma->action = ATTRIBUTEORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_REMOVE:
 		{
 			PARMCHECK(1);
-			AddAction(REMOVE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Remove);
+			ma->args = arguments;
+			ma->action = REMOVE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETKEYPAUSE:
 		{
 			PARMCHECK(1);
-			AddAction(SETKEYPAUSE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetKeyPause);
+			ma->args = arguments;
+			ma->action = SETKEYPAUSE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETNOCOLLISION:
 		{
-			AddAction(SETNOCOLLISION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetNoCollision);
+			ma->action = SETNOCOLLISION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETCOLLISION:
 		{
-			AddAction(SETNOCOLLISION, NULL, 0.0f, true, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetCollision);
+			ma->action = SETCOLLISION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ALLOWUSEKEY:
 		{
 			PARMCHECK(1);
-			AddAction(ALLOWUSE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AllowUseKey);
+			ma->args = arguments;
+			ma->action = ALLOWUSE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETHUDDRAW:
 		{
 			PARMCHECK(1);
-			AddAction(SETHUDDRAW, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetHudDraw);
+			ma->args = arguments;
+			ma->action = SETHUDDRAW;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_HIDEFROMRADAR:
 		{
 			PARMCHECK(1);
-			AddAction(HIDEFROMRADAR, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(HideFromRadar);
+			ma->args = arguments;
+			ma->action = HIDEFROMRADAR;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_CONVERSATION:
@@ -751,124 +1103,193 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			// Conversation(OrderName);
 			// Allows to define a different start-order to be used for this conversation
 			if(arguments.entries() > 0)
-				strcpy(Converse->Order, arguments[0].str());
-			CCD->Pawns()->SetConvFlag(false);
-			AddAction(CONVERSATION, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+				m_Conversation->SetOrder(arguments[0].str().c_str());
+
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Conversation);
+			ma->action = CONVERSATION;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FADEIN:
 		{
 			PARMCHECK(2);
-			AddAction(FADEIN, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FadeIn);
+			ma->args = arguments;
+			ma->action = FADEIN;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FADEOUT:
 		{
 			PARMCHECK(2);
-			AddAction(FADEOUT, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(), 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FadeOut);
+			ma->args = arguments;
+			ma->action = FADEOUT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETFOV:
 		{
 			PARMCHECK(1);
 
-			if(arguments.entries() == 2)
-				strcpy(param0, arguments[1].str());
-
-			AddAction(FIELDOFVIEW, param0, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetFOV);
+			ma->args = arguments;
+			ma->action = FIELDOFVIEW;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_STEPHEIGHT:
 		{
 			PARMCHECK(1);
-			AddAction(STEPHEIGHT, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(StepHeight);
+			ma->args = arguments;
+			ma->action = STEPHEIGHT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETGROUP:
 		{
 			PARMCHECK(1);
-			AddAction(SETGROUP, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetGroup);
+			ma->args = arguments;
+			ma->action = SETGROUP;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_HOSTILEPLAYER:
 		{
 			PARMCHECK(1);
-			AddAction(HOSTILEPLAYER, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(HostilePlayer);
+			ma->args = arguments;
+			ma->action = HOSTILEPLAYER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_HOSTILEDIFFERENT:
 		{
 			PARMCHECK(1);
-			AddAction(HOSTILEDIFF, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(HostileDifferent);
+			ma->args = arguments;
+			ma->action = HOSTILEDIFF;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_HOSTILESAME:
 		{
 			PARMCHECK(1);
-			AddAction(HOSTILESAME, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(HostileSame);
+			ma->args = arguments;
+			ma->action = HOSTILESAME;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_GRAVITY:
 		{
 			PARMCHECK(1);
-			AddAction(GRAVITY, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Gravity);
+			ma->args = arguments;
+			ma->action = GRAVITY;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SOUNDLOOP:
 		{
 			PARMCHECK(1);
-			AddAction(SOUNDLOOP, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SoundLoop);
+			ma->args = arguments;
+			ma->action = SOUNDLOOP;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ISPUSHABLE:
 		{
 			PARMCHECK(1);
-			AddAction(ISPUSHABLE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(IsPushable);
+			ma->args = arguments;
+			ma->action = ISPUSHABLE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ISVEHICLE:
 		{
 			PARMCHECK(1);
-			AddAction(ISVEHICLE, NULL, 0.0f, arguments[0].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(IsVehicle);
+			ma->args = arguments;
+			ma->action = ISVEHICLE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_MOVETOTARGET:
 		{
 			PARMCHECK(3);
-			AddAction(MOVETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
-				false, 0.0f, 0.0f, 0.0f, 0.0f, arguments[2].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MoveToTarget);
+			ma->args = arguments;
+			ma->action = MOVETOTARGET;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATETOTARGET:
 		{
 			PARMCHECK(3);
-			AddAction(ROTATETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[2].boolValue(), 0.0f, 0.0f, 0.0f, 0.0f, arguments[3].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateToTarget);
+			ma->args = arguments;
+			ma->action = ROTATETOTARGET;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ROTATEMOVETOTARGET:
 		{
 			PARMCHECK(5);
-			AddAction(ROTATEMOVETOTARGET, arguments[0].str().c_str(), arguments[1].floatValue(),
-				arguments[3].boolValue(), arguments[2].floatValue(), 0.0f, 0.0f, 0.0f, arguments[4].str().c_str(), NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RotateMoveToTarget);
+			ma->args = arguments;
+			ma->action = ROTATEMOVETOTARGET;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_LOWLEVEL:
 		{
 			PARMCHECK(1);
-			AddAction(LOWLEVEL, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(LowLevel);
+			ma->args = arguments;
+			ma->action = LOWLEVEL;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_BOXWIDTH:
 		{
 			PARMCHECK(1);
-			AddAction(BOXWIDTH, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(BoxWidth);
+			ma->args = arguments;
+			ma->action = BOXWIDTH;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_BOXHEIGHT:
 		{
 			PARMCHECK(1);
-			AddAction(BOXHEIGHT, NULL, arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(BoxHeight);
+			ma->args = arguments;
+			ma->action = BOXHEIGHT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SCALE:
@@ -876,165 +1297,150 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			// USAGE:	Scale(Scale)
 			//			Scale(ScaleX, ScaleY, ScaleZ)
 			PARMCHECK(1);
-			param1 = arguments[0].floatValue();
-
-			if(arguments.entries() > 2)
-			{
-				param3 = arguments[1].floatValue();
-				param4 = arguments[2].floatValue();
-			}
-			else
-				param3 = param4 = param1;
-
-			AddAction(SCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(Scale);
+			ma->args = arguments;
+			ma->action = SCALE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETSCALE:
 		{
 			PARMCHECK(1);
-			param1 = arguments[0].floatValue();
-
-			if(arguments.entries() > 2)
-			{
-				param3 = arguments[1].floatValue();
-				param4 = arguments[2].floatValue();
-			}
-			else
-				param3 = param4 = param1;
-
-			AddAction(SETSCALE, NULL, param1, false, param3, param4, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetScale);
+			ma->args = arguments;
+			ma->action = SETSCALE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_FIREPROJECTILE:
 		{
 			PARMCHECK(7);
-			strcpy(param0, arguments[0].str());
-			param1 = (float)strlen(param0);
-			strcat(param0, arguments[5].str());
-			AddAction(FIREPROJECTILE, param0, param1, false,
-				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
-				0.0f, arguments[6].str().c_str(), arguments[1].str().c_str());
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(FireProjectile);
+			ma->args = arguments;
+			ma->action = FIREPROJECTILE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ADDEXPLOSION:
 		{
 			PARMCHECK(5);
-			AddAction(ADDEFFECT, arguments[0].str().c_str(), 0.0f, false,
-				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(),
-				0.0f, NULL, arguments[1].str().c_str());
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AddExplosion);
+			ma->args = arguments;
+			ma->action = ADDEFFECT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_TARGETGROUP:
 		{
 			PARMCHECK(1);
-			AddAction(TARGETGROUP, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(TargetGroup);
+			ma->args = arguments;
+			ma->action = TARGETGROUP;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_TESTDAMAGEORDER:
 		{
 			PARMCHECK(2);
-			AddAction(TESTDAMAGEORDER, arguments[1].str().c_str(), arguments[0].floatValue(), false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(TestDamageOrder);
+			ma->args = arguments;
+			ma->action = TESTDAMAGEORDER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETLODDISTANCE:
 		{
 			PARMCHECK(5);
-			AddAction(SETLODDISTANCE, NULL, arguments[0].floatValue(), false, arguments[1].floatValue(),
-				arguments[2].floatValue(), arguments[3].floatValue(), arguments[4].floatValue(), NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetLODDistance);
+			ma->args = arguments;
+			ma->action = SETLODDISTANCE;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ATTACHTOACTOR:
 		{
-			float x0,y0,z0,x1,y1,z1;
 			PARMCHECK(9);
-			strcpy(param0, arguments[0].str());
-			param3 = (float)strlen(param0);
-			strcpy(param7, arguments[1].str());
-			param1 = (float)strlen(param7);
-			strcat(param0, param7);
-			strcpy(param7, arguments[2].str());
-			strcat(param0, param7);
-			x0 = arguments[3].floatValue();
-			y0 = arguments[4].floatValue();
-			z0 = arguments[5].floatValue();
-			x1 = arguments[6].floatValue();
-			y1 = arguments[7].floatValue();
-			z1 = arguments[8].floatValue();
-			sprintf(param7,"%f %f %f %f %f %f", x0,y0,z0,x1,y1,z1);
-			AddAction(ATTACHTOACTOR, param0, param3, false, param1, 0.0f, 0.0f, 0.0f, NULL, param7);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AttachToActor);
+			ma->args = arguments;
+			ma->action = ATTACHTOACTOR;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DETACHFROMACTOR:
 		{
 			PARMCHECK(1);
-			AddAction(DETACHFROMACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DetachFromActor);
+			ma->args = arguments;
+			ma->action = DETACHFROMACTOR;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ATTACHBLENDACTOR:
 		{
 			PARMCHECK(1);
-
-			if(arguments.entries() > 1)
-			{
-				AddAction(ATTACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
-			}
-			else
-			{
-				AddAction(ATTACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-			}
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AttachBlendActor);
+			ma->args = arguments;
+			ma->action = ATTACHBLENDACTOR;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DETACHBLENDACTOR:
 		{
 			PARMCHECK(1);
-
-			if(arguments.entries() > 1)
-			{
-				AddAction(DETACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
-			}
-			else
-			{
-				AddAction(DETACHBLENDACTOR, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-			}
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DetachBlendActor);
+			ma->args = arguments;
+			ma->action = DETACHBLENDACTOR;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_ATTACHACCESSORY:
 		{
 			PARMCHECK(1);
-
-			if(arguments.entries() > 1)
-			{
-				AddAction(ATTACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
-			}
-			else
-			{
-				AddAction(ATTACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-			}
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(AttachAccessory);
+			ma->args = arguments;
+			ma->action = ATTACHACCESSORY;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_DETACHACCESSORY:
 		{
 			PARMCHECK(1);
-
-			if(arguments.entries() > 1)
-			{
-				AddAction(DETACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, arguments[1].str().c_str());
-			}
-			else
-			{
-				AddAction(DETACHACCESSORY, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
-			}
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(DetachAccessory);
+			ma->args = arguments;
+			ma->action = DETACHACCESSORY;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SETWEAPON:
 		{
 			PARMCHECK(1);
-			AddAction(SETWEAPON, arguments[0].str().c_str(), 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(SetWeapon);
+			ma->args = arguments;
+			ma->action = SETWEAPON;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_REMOVEWEAPON:
 		{
-			AddAction(REMOVEWEAPON, NULL, 0.0f, false, 0.0f, 0.0f, 0.0f, 0.0f, NULL, NULL);
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RemoveWeapon);
+			ma->args = arguments;
+			ma->action = REMOVEWEAPON;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_RANDOM:
@@ -1054,35 +1460,11 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		{
 			PARMCHECK(1);
 
-			if(console)
-			{
-				int index = -1;
-				int i;
-
-				for(i=0; i<DEBUGLINES; i++)
-				{
-					if(EffectC_IsStringNull(ConsoleDebug[i]))
-					{
-						index = i;
-						break;
-					}
-				}
-
-				if(index != -1)
-				{
-					strcpy(ConsoleDebug[index], arguments[0].str().c_str());
-				}
-				else
-				{
-					for(i=1; i<DEBUGLINES; i++)
-					{
-						strcpy(ConsoleDebug[i-1], ConsoleDebug[i]);
-					}
-
-					strcpy(ConsoleDebug[DEBUGLINES-1], arguments[0].str().c_str());
-				}
-			}
-
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(debug);
+			ma->args = arguments;
+			ma->action = DEBUG;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SHOWTEXTDELAY:
@@ -1099,27 +1481,26 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 10)
 			{
-				strcpy(CCD->Pawns()->TextMessage[Nr].EntityName,	arguments[1].str());
-				strcpy(CCD->Pawns()->TextMessage[Nr].AnimName,		arguments[2].str());
+				CCD->Level()->Pawns()->TextMessage[Nr].EntityName			= arguments[1].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].AnimName				= arguments[2].str().c_str();
 
-				CCD->Pawns()->TextMessage[Nr].TextString =			arguments[3].str();
-				Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+				CCD->Level()->Pawns()->TextMessage[Nr].TextString			= arguments[3].str().c_str();
+				Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+				Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<CR>", "\n");
 
-				CCD->Pawns()->TextMessage[Nr].FontNr =				arguments[4].intValue();
-				strcpy(CCD->Pawns()->TextMessage[Nr].TextSound,		arguments[6].str());
-				CCD->Pawns()->TextMessage[Nr].ScreenOffsetX =		arguments[7].intValue();
-				CCD->Pawns()->TextMessage[Nr].ScreenOffsetY =		arguments[8].intValue();
-				strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[9].str(), 1);
-				CCD->Pawns()->TextMessage[Nr].Alpha =				arguments[10].floatValue();
-
-				AddAction(SHOWTEXTDELAY, arguments[2].str().c_str(), arguments[5].floatValue(),
-					true, float(Nr), 0.0f, 0.0f, 0.0f, arguments[6].str().c_str(), NULL);
-			}
-			else
-			{
-				AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+				CCD->Level()->Pawns()->TextMessage[Nr].FontName				= arguments[4].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].TextSound			= arguments[6].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetX		= arguments[7].intValue();
+				CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetY		= arguments[8].intValue();
+				strncpy(&(CCD->Level()->Pawns()->TextMessage[Nr].Alignment), arguments[9].str(), 1);
+				CCD->Level()->Pawns()->TextMessage[Nr].Alpha				= arguments[10].floatValue();
 			}
 
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(ShowTextDelay);
+			ma->args = arguments;
+			ma->action = SHOWTEXTDELAY;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_SHOWTEXT:
@@ -1135,26 +1516,25 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 9)
 			{
-				strcpy(CCD->Pawns()->TextMessage[Nr].EntityName,	arguments[1].str());
-				strcpy(CCD->Pawns()->TextMessage[Nr].AnimName,		arguments[2].str());
-				CCD->Pawns()->TextMessage[Nr].TextString =			arguments[3].str();
-				Replace(CCD->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+				CCD->Level()->Pawns()->TextMessage[Nr].EntityName			= arguments[1].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].AnimName				= arguments[2].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].TextString			= arguments[3].str().c_str();
+				Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<Player>", CCD->Player()->GetPlayerName());
+				Replace(CCD->Level()->Pawns()->TextMessage[Nr].TextString, "<CR>", "\n");
 
-				CCD->Pawns()->TextMessage[Nr].FontNr =				arguments[4].intValue();
-				strcpy(CCD->Pawns()->TextMessage[Nr].TextSound,		arguments[5].str());
-				CCD->Pawns()->TextMessage[Nr].ScreenOffsetX =		arguments[6].intValue();
-				CCD->Pawns()->TextMessage[Nr].ScreenOffsetY =		arguments[7].intValue();
-				strncpy(&(CCD->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
-				CCD->Pawns()->TextMessage[Nr].Alpha =				arguments[9].floatValue();
-
-				AddAction(SHOWTEXT, arguments[2].str().c_str(), 0.0f,
-					true, float(Nr), 0.0f, 0.0f, 0.0f, arguments[5].str().c_str(), NULL);
-			}
-			else
-			{
-				AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
+				CCD->Level()->Pawns()->TextMessage[Nr].FontName				= arguments[4].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].TextSound			= arguments[5].str().c_str();
+				CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetX		= arguments[6].intValue();
+				CCD->Level()->Pawns()->TextMessage[Nr].ScreenOffsetY		= arguments[7].intValue();
+				strncpy(&(CCD->Level()->Pawns()->TextMessage[Nr].Alignment), arguments[8].str(), 1);
+				CCD->Level()->Pawns()->TextMessage[Nr].Alpha				= arguments[9].floatValue();
 			}
 
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(ShowText);
+			ma->args = arguments;
+			ma->action = SHOWTEXT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_REMOVETEXT:
@@ -1164,18 +1544,17 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			if(Nr < 0 || Nr >= MAXTEXT)
 				return true;
 
-			AddAction(SHOWTEXT, NULL, 0.0f, false, float(Nr), 0.0f, 0.0f, 0.0f, NULL, NULL);
-
-			return true;
-		}
-	case RGF_SM_GETCONVREPLYNR:
-		{
-			// GetConvReplyNr: returns the number of the last reply message choosen from a conversation
-			returnValue = Converse->LastReplyNr;
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(RemoveText);
+			ma->args = arguments;
+			ma->action = REMOVETEXT;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_CONCAT:
 		{
+			// deprecated
+
 			// Concatenate string elements to 1 new string
 			PARMCHECK(2);
 
@@ -1184,7 +1563,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 			if(arguments.entries() > 2)
 			{
-				for(int i=2; i<int(arguments.entries()); i++)
+				for(unsigned int i=2; i<arguments.entries(); ++i)
 					strcat(param0, arguments[i].str());
 			}
 
@@ -1203,6 +1582,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 				if(!stricmp(param0, "Player"))
 				{
+					// deprecated
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
@@ -1212,8 +1592,9 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(Actor);
+				theInv = CCD->ActorManager()->Inventory(m_Actor);
 			}
+
 			returnValue = theInv->Value(arguments[0].str().c_str());
 			return true;
 		}
@@ -1229,7 +1610,11 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 				if(!stricmp(param0, "Player"))
 				{
+					// deprecated
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+					returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
+					sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+					return true;
 				}
 				else
 				{
@@ -1238,8 +1623,9 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(Actor);
+				theInv = CCD->ActorManager()->Inventory(m_Actor);
 			}
+
 			returnValue = theInv->Modify(arguments[0].str().c_str(), arguments[1].intValue());
 			return true;
 		}
@@ -1255,7 +1641,11 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 				if(!stricmp(param0, "Player"))
 				{
+					// deprecated
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
+					returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
+					sxInventory::GetSingletonPtr()->UpdateItem(arguments[0].str().c_str(), true);
+					return true;
 				}
 				else
 				{
@@ -1264,7 +1654,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(Actor);
+				theInv = CCD->ActorManager()->Inventory(m_Actor);
 			}
 
 			returnValue = theInv->Set(arguments[0].str().c_str(), arguments[1].intValue());
@@ -1296,6 +1686,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 					theInv->SetValueLimits(param0, low, high);
 
+					sxInventory::GetSingletonPtr()->UpdateItem(param0);
 					return true;
 				}
 				else
@@ -1305,7 +1696,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(Actor);
+				theInv = CCD->ActorManager()->Inventory(m_Actor);
 			}
 
 			returnValue = theInv->Add(param0);
@@ -1332,6 +1723,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 
 				if(!stricmp(param0, "Player"))
 				{
+					// deprecated
 					theInv = CCD->ActorManager()->Inventory(CCD->Player()->GetActor());
 				}
 				else
@@ -1341,7 +1733,7 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 			}
 			else
 			{
-				theInv = CCD->ActorManager()->Inventory(Actor);
+				theInv = CCD->ActorManager()->Inventory(m_Actor);
 			}
 
 			theInv->SetValueLimits(arguments[0].str().c_str(), arguments[1].intValue(), arguments[2].intValue());
@@ -1393,17 +1785,22 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 	case RGF_SM_GETFLAG:
 		{
 			// GetFlag
-			int temp = arguments[0].intValue();
+			iparam = arguments[0].intValue();
 
-			if(temp >= 0 && temp < MAXFLAGS)
-				returnValue = CCD->Pawns()->GetPawnFlag(temp);
+			if(iparam >= 0 && iparam < MAXFLAGS)
+				returnValue = CCD->Level()->Pawns()->GetPawnFlag(iparam);
 
 			return true;
 		}
 	case RGF_SM_MOUSECONTROLLEDPLAYER:
 		{
+			// deprecated
 			// MouseControlledPlayer(true/false)
-			CCD->SetMouseControl(arguments[0].boolValue());
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(MouseControlledPlayer);
+			ma->args = arguments;
+			ma->action = MOUSECONTROLLEDPLAYER;
+			Enqueue(ma);
 			return true;
 		}
 	case RGF_SM_GETEVENTSTATE:
@@ -1415,7 +1812,11 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 		}
 	case RGF_SM_ENDSCRIPT:
 		{
-			alive=false;
+			SX_METHOD_ARGS *ma = new SX_METHOD_ARGS();
+			ma->method = Q_P_FUNC(EndScript);
+			ma->args = arguments;
+			ma->action = ENDSCRIPT;
+			Enqueue(ma);
 			return true;
 		}
 	default:
@@ -1431,35 +1832,55 @@ bool ScriptedObject::highmethod(const skString& methodName, skRValueArray& argum
 /* ------------------------------------------------------------------------------------ */
 void ScriptedObject::Push()
 {
+#if USE_METHOD_QUEUE_STACK
+	if(m_MethodQueueStack.empty())
+	{
+		m_MethodQueueStack.push(new std::queue<SX_METHOD_ARGS*>());
+		m_MethodQueueVariablesStack.push(new MethodQueueVariables());
+
+		m_MethodQueueVariablesStack.top()->Order		= Order;
+		m_MethodQueueVariablesStack.top()->Point		= m_Point;
+		m_MethodQueueVariablesStack.top()->NextOrder	= m_NextOrder;
+		m_MethodQueueVariablesStack.top()->DistOrder	= m_DistOrder;
+
+		m_MethodQueueVariablesStack.top()->CurrentPoint	= m_CurrentPoint;
+		m_MethodQueueVariablesStack.top()->ActionActive	= m_ActionActive;
+		m_MethodQueueVariablesStack.top()->ValidPoint	= m_ValidPoint;
+		m_MethodQueueVariablesStack.top()->Vec2Point	= m_Vec2Point;
+		m_MethodQueueVariablesStack.top()->DistActive	= m_DistActive;
+		m_MethodQueueVariablesStack.top()->MinDistance	= m_MinDistance;
+	}
+#else
 	ActionStack	*pool;
 
 	pool = GE_RAM_ALLOCATE_STRUCT(ActionStack);
 	memset(pool, 0x0, sizeof(ActionStack));
-	pool->next = Stack;
-	Stack = pool;
+	pool->next = m_Stack;
+	m_Stack = pool;
 
 	if(pool->next)
 		pool->next->prev = pool;
 
 	pool->Top		= Top;
 	pool->Bottom	= Bottom;
-	pool->Index		= Index;
+	pool->Index		= m_CurrentAction;
 
-	memcpy(pool->Order,		Order,		64);
-	memcpy(pool->Point,		Point,		64);
-	memcpy(pool->NextOrder, NextOrder,	64);
-	memcpy(pool->DistOrder, DistOrder,	64);
+	pool->Order		= Order;
+	pool->Point		= m_Point;
+	pool->NextOrder	= m_NextOrder;
+	pool->DistOrder	= m_DistOrder;
 
-	pool->CurrentPoint	= CurrentPoint;
-	pool->ActionActive	= ActionActive;
-	pool->ValidPoint	= ValidPoint;
-	pool->Vec2Point		= Vec2Point;
-	pool->DistActive	= DistActive;
-	pool->MinDistance	= MinDistance;
+	pool->CurrentPoint	= m_CurrentPoint;
+	pool->ActionActive	= m_ActionActive;
+	pool->ValidPoint	= m_ValidPoint;
+	pool->Vec2Point		= m_Vec2Point;
+	pool->DistActive	= m_DistActive;
+	pool->MinDistance	= m_MinDistance;
 
 	Top		= NULL;
 	Bottom	= NULL;
-	Index	= NULL;
+	m_CurrentAction	= NULL;
+#endif
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1467,7 +1888,35 @@ void ScriptedObject::Push()
 /* ------------------------------------------------------------------------------------ */
 void ScriptedObject::Pop()
 {
-	if(Stack)
+#if USE_METHOD_QUEUE_STACK
+	if(!m_MethodQueueStack.empty())
+	{
+		while(!m_MethodQueueStack.top()->empty())
+		{
+			delete m_MethodQueueStack.top()->front();
+			m_MethodQueueStack.top()->pop();
+		}
+
+		delete m_MethodQueueStack.top();
+		m_MethodQueueStack.pop();
+
+		Order		= m_MethodQueueVariablesStack.top()->Order;
+		m_Point		= m_MethodQueueVariablesStack.top()->Point;
+		m_NextOrder	= m_MethodQueueVariablesStack.top()->NextOrder;
+		m_DistOrder	= m_MethodQueueVariablesStack.top()->DistOrder;
+
+		m_CurrentPoint	= m_MethodQueueVariablesStack.top()->CurrentPoint;
+		m_ActionActive	= m_MethodQueueVariablesStack.top()->ActionActive;
+		m_ValidPoint	= m_MethodQueueVariablesStack.top()->ValidPoint;
+		m_Vec2Point		= m_MethodQueueVariablesStack.top()->Vec2Point;
+		m_DistActive	= m_MethodQueueVariablesStack.top()->DistActive;
+		m_MinDistance	= m_MethodQueueVariablesStack.top()->MinDistance;
+
+		delete m_MethodQueueVariablesStack.top();
+		m_MethodQueueVariablesStack.pop();
+	}
+#else
+	if(m_Stack)
 	{
 		ActionList *pool, *temp;
 		pool = Bottom;
@@ -1479,362 +1928,179 @@ void ScriptedObject::Pop()
 			pool = temp;
 		}
 
-		Bottom	= Stack->Bottom;
-		Top		= Stack->Top;
-		Index	= Stack->Index;
+		Bottom	= m_Stack->Bottom;
+		Top		= m_Stack->Top;
+		m_CurrentAction	= m_Stack->Index;
 
-		memcpy(Order,		Stack->Order,		64);
-		memcpy(Point,		Stack->Point,		64);
-		memcpy(NextOrder,	Stack->NextOrder,	64);
-		memcpy(DistOrder,	Stack->DistOrder,	64);
+		Order		= m_Stack->Order;
+		m_Point		= m_Stack->Point;
+		m_NextOrder	= m_Stack->NextOrder;
+		m_DistOrder	= m_Stack->DistOrder;
 
-		CurrentPoint	= Stack->CurrentPoint;
-		ActionActive	= Stack->ActionActive;
-		ValidPoint		= Stack->ValidPoint;
-		Vec2Point		= Stack->Vec2Point;
-		DistActive		= Stack->DistActive;
-		MinDistance		= Stack->MinDistance;
+		m_CurrentPoint	= m_Stack->CurrentPoint;
+		m_ActionActive	= m_Stack->ActionActive;
+		m_ValidPoint	= m_Stack->ValidPoint;
+		m_Vec2Point		= m_Stack->Vec2Point;
+		m_DistActive	= m_Stack->DistActive;
+		m_MinDistance	= m_Stack->MinDistance;
 
 		ActionStack *stemp;
-		stemp = Stack->next;
-		geRam_Free(Stack);
-		Stack = stemp;
+		stemp = m_Stack->next;
+		geRam_Free(m_Stack);
+		m_Stack = stemp;
 
-		if(Stack)
-			Stack->prev = NULL;
+		if(m_Stack)
+			m_Stack->prev = NULL;
 	}
+#endif
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	RemoveTriggerStack
 /* ------------------------------------------------------------------------------------ */
-void ScriptedObject::RemoveTriggerStack(TriggerStack *tpool)
+Q_METHOD_IMPL(MoveToPoint)
 {
-	if(tpool->prev)
-		tpool->prev->next = tpool->next;
-	else
-	{
-		Trigger = tpool->next;
-
-		if(Trigger)
-			tpool->next->prev = NULL;
-	}
-
-	geRam_Free(tpool);
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AddAction
-/* ------------------------------------------------------------------------------------ */
-void ScriptedObject::AddAction(int Action, const char *AnimName, float Speed, bool Flag,
-							   float Value1, float Value2, float Value3, float Value4,
-							   const char *Sound, const char *Trigger)
-{
-	ActionList	*pool;
-
-	pool = GE_RAM_ALLOCATE_STRUCT(ActionList);
-	memset(pool, 0x0, sizeof(ActionList));
-	pool->next = Bottom;
-	Bottom = pool;
-
-	if(pool->next)
-		pool->next->prev = pool;
-
-	if(!Top)
-		Top = pool;
-
-	pool->Action = Action;
-	pool->AnimName[0] = '\0';
-
-	if(!EffectC_IsStringNull(AnimName))
-		strcpy(pool->AnimName, AnimName);
-
-	pool->SoundName[0] = '\0';
-
-	if(!EffectC_IsStringNull(Sound))
-	{
-		strcpy(pool->SoundName, Sound);
-	}
-
-	pool->TriggerName[0] = '\0';
-
-	if(!EffectC_IsStringNull(Trigger))
-		strcpy(pool->TriggerName, Trigger);
-
-	pool->Speed = Speed;
-	pool->Flag = Flag;
-	pool->Value1 = Value1;
-	pool->Value2 = Value2;
-	pool->Value3 = Value3;
-	pool->Value4 = Value4;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AddEvent
-/* ------------------------------------------------------------------------------------ */
-void CPawn::AddEvent(const char *Event, bool State)
-{
-	EventStack *pool, *temp;
-	pool = Events;
-
-	while(pool!= NULL)
-	{
-		temp = pool->next;
-
-		if(!strcmp(pool->EventName, Event))
-		{
-			pool->State = State;
-			return;
-		}
-
-		pool = temp;
-	}
-
-	pool = GE_RAM_ALLOCATE_STRUCT(EventStack);
-	memset(pool, 0x0, sizeof(EventStack));
-	pool->next = Events;
-	Events = pool;
-
-	if(pool->next)
-		pool->next->prev = pool;
-
-	strcpy(pool->EventName, Event);
-	pool->State = State;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	GetEventState
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::GetEventState(const char *Event)
-{
-	EventStack *pool, *temp;
-	pool = Events;
-
-	while(pool != NULL)
-	{
-		temp = pool->next;
-
-		if(!strcmp(pool->EventName, Event))
-			return pool->State;
-
-		pool = temp;
-	}
-
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	CanSee
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const char *Bone)
-{
-	geVec3d Pos, TgtPos, temp, In;
-	float dotProduct;
-
-	CCD->ActorManager()->GetPosition(Actor, &Pos);
-	CCD->ActorManager()->InVector(Actor, &In);
-
-	if(!EffectC_IsStringNull(Bone))
-	{
-		geXForm3d Xf;
-
-		if(geActor_GetBoneTransform(Actor, Bone, &Xf) == GE_TRUE)
-		{
-			geVec3d_Copy(&(Xf.Translation), &Pos);
-			geXForm3d_GetIn(&Xf, &In);
-		}
-	}
-
-	CCD->ActorManager()->GetPosition(TargetActor, &TgtPos);
-	geVec3d_Subtract(&TgtPos, &Pos, &temp);
-	geVec3d_Normalize(&temp);
-	dotProduct = geVec3d_DotProduct(&temp, &In);
-
-	if(dotProduct > FOV)
-	{
-		if(CanSeeActorToActor(Actor, TargetActor))
-			return true;
-	}
-
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	CanSeePoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const char *Bone)
-{
-	geVec3d Pos, temp, In;
-	float dotProduct;
-
-	CCD->ActorManager()->GetPosition(Actor, &Pos);
-	CCD->ActorManager()->InVector(Actor, &In);
-
-	if(!EffectC_IsStringNull(Bone))
-	{
-		geXForm3d Xf;
-
-		if(geActor_GetBoneTransform(Actor, Bone, &Xf) == GE_TRUE)
-		{
-			geVec3d_Copy(&(Xf.Translation), &Pos);
-			geXForm3d_GetIn(&Xf, &In);
-		}
-	}
-
-	geVec3d_Subtract(TargetPoint, &Pos, &temp);
-	geVec3d_Normalize(&temp);
-	dotProduct = geVec3d_DotProduct(&temp, &In);
-
-	if(dotProduct > FOV)
-	{
-		if(CanSeeActorToPoint(Actor, TargetPoint))
-			return true;
-	}
-
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	PlayerDistance
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::PlayerDistance(float FOV, float distance, const geActor *Actor,
-						   const geVec3d &DeadPos, const char *Bone)
-{
-	bool flg = false;
-	bool fov = true;
-
-	if(FOV > -2.0f && Actor)
-		fov = CanSee(FOV, Actor, CCD->Player()->GetActor(), Bone);
-
-	if(fov)
-	{
-		if(distance >= 0.0f)
-		{
-			if(Actor)
-				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor()) < distance;
-			else
-				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor()) < distance;
-		}
-		else
-		{
-			if(Actor)
-				flg = CCD->ActorManager()->DistanceFrom(Actor, CCD->Player()->GetActor()) > fabs(distance);
-			else
-				flg = CCD->ActorManager()->DistanceFrom(DeadPos, CCD->Player()->GetActor()) > fabs(distance);
-		}
-	}
-
-	return flg;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	AreaOrder
-//
-//	detects if Entity1 is within:
-//	if DistanceMode=true: 2 distances defined and within 2 screen widths (from entity2)
-//	if DistanceMode=false: 2 screen heights and within 2 screen widths (from entity2)
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::Area(const char *FromActorName, const char *ToActorName, bool DistanceMode,
-				 float MinScr, float MaxScr, float MinDist, float MaxDist,
-				 bool IgnoreX, bool IgnoreY, bool IgnoreZ)
-{
-	geVec3d Pos, ToPos, ScreenPos;
-	RECT client;
-	POINT RectPos;
-	POINT MousePos;
-	bool flg = false;
-	float Distance;
-	int ScreenX, ScreenY;
-
-	if(!stricmp(FromActorName, "Mouse"))
-	{
-		if(!CCD->Engine()->FullScreen())
-		{
-			GetClientRect(CCD->Engine()->WindowHandle(),&client);
-			RectPos.x = client.left;
-			RectPos.y = client.top;
-			ClientToScreen(CCD->Engine()->WindowHandle(),&RectPos);
-		}
-		else
-		{
-			RectPos.x = 0;
-			RectPos.y = 0;
-		}
-
-		GetCursorPos(&MousePos);
-		CCD->MenuManager()->ShowCursor(true);
-		ScreenX = (int)MousePos.x - RectPos.x;
-		ScreenY = (int)MousePos.y - RectPos.y;
-		Pos.X = (float)ScreenX;
-		Pos.Y = (float)ScreenY;
-		Pos.Z = 0.0f;
-	}
-	else
-	{
-		if(!stricmp(FromActorName, "Player"))
-			Pos = CCD->Player()->Position();
-		else if(!stricmp(FromActorName, "Camera"))
-			CCD->CameraManager()->GetPosition(&Pos);
-		else
-			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(FromActorName),&Pos);
-
-		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
-		ScreenX = (int)ScreenPos.X;
-		ScreenY = (int)ScreenPos.Y;
-	}
-
-	if(!strcmp(ToActorName, ""))
-		DistanceMode = false;
-	else if(!stricmp(ToActorName, "Player"))
-		ToPos = CCD->Player()->Position();
-	else
-		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(ToActorName), &ToPos);
-
-	if(!stricmp(FromActorName, "Mouse")) //convert it to screen coordinates
-	{
-		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &ToPos, &ToPos);
-		ToPos.Z = 0.0f;
-	}
-
-	if(IgnoreX)
-		Pos.X = ToPos.X;
-	if(IgnoreY)
-		Pos.Y = ToPos.Y;
-	if(IgnoreZ)
-		Pos.Z = ToPos.Z;
-
-	Distance = geVec3d_DistanceBetween(&Pos, &ToPos);
-
-	if(DistanceMode)
-		flg = ((Distance >= MinDist) && (Distance <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
-	else
-		flg = ((ScreenY >= MinDist) && (ScreenY <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
-
-	if(flg)
+	if(!m_ValidPoint || !m_Actor)
 		return true;
+
+	if(MoveToPoint(timeElapsed, args))
+	{
+		return true;
+	}
 	else
-		return false;
+	{
+		if(m_AvoidMode && !m_AvoidOrder.empty())
+		{
+			Push();
+			Order = m_AvoidOrder;
+			m_RunOrder = true;
+			m_ActionActive = false;
+			m_DistActive = false;
+			return true;
+		}
+	}
+
+	return false;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	RotateToPoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateToPoint(void *Data, float dwTicks)
+Q_METHOD_IMPL(RotateToPoint)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
+	if(!m_ValidPoint || m_FacePlayer || !m_Actor)
+		return true;
 
-	if(Object->StartAction)
+	if(m_StartAction)
 	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-		Object->StartAction = false;
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
 	}
+
+	return RotateToPoint(
+		timeElapsed,
+		args[0].str().c_str(),
+		args[1].floatValue(),
+		args[2].boolValue());
+}
+
+Q_METHOD_IMPL(NewOrder)
+{
+	Order = args[0].str().c_str();
+	ClearActionList();
+
+	return true;
+}
+
+Q_METHOD_IMPL(NextOrder)
+{
+	if(!m_ValidPoint)
+		return true;
+
+	if(!m_NextOrder.empty())
+	{
+		Order = m_NextOrder;
+		m_RunOrder = true;
+
+#if USE_METHOD_QUEUE_STACK
+		DequeueTop();
+#else
+		ActionList *pool, *temp;
+		pool = Bottom;
+
+		while(pool != NULL)
+		{
+			temp = pool->next;
+			geRam_Free(pool);
+			pool = temp;
+		}
+
+		Top = NULL;
+		Bottom = NULL;
+		m_CurrentAction = NULL;
+#endif
+	}
+
+	return true;
+}
+
+// RotateToAlign(string animation, float rotationSpeed, bool xyRotation, string sound);
+Q_METHOD_IMPL(RotateToAlign)
+{
+	if(!m_ValidPoint || m_FacePlayer || !m_Actor)
+		return true;
 
 	geVec3d Pos, Orient;
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	geVec3d_Subtract(&Object->CurrentPoint, &Pos, &Orient);
 
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+		}
+
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(m_Point.c_str());
+
+		if(EntityType)
+		{
+			if(!stricmp(EntityType, "ScriptPoint"))
+			{
+				ScriptPoint *pProxy;
+				CCD->Level()->ScriptPoints()->LocateEntity(m_Point.c_str(), reinterpret_cast<void**>(&pProxy));
+
+				Orient.Z = GE_PIOVER180 * (pProxy->Angle.Z);
+				Orient.X = GE_PIOVER180 * (pProxy->Angle.X);
+				Orient.Y = GE_PIOVER180 * (pProxy->Angle.Y-90.0f);
+
+				CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+
+				geXForm3d Xf;
+
+				geXForm3d_SetZRotation(&Xf, Orient.Z);
+				geXForm3d_RotateX(&Xf, Orient.X);
+				geXForm3d_RotateY(&Xf, Orient.Y);
+
+				geXForm3d_GetIn(&Xf, &Orient);
+
+				geVec3d_Add(&Pos, &Orient, &m_TempPoint);
+			}
+		}
+	}
+
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+	geVec3d_Subtract(&m_TempPoint, &Pos, &Orient);
 	float l = geVec3d_Length(&Orient);
 	float RotateAmt = 0.0f;
 	float TiltAmt = 0.0f;
@@ -1842,12 +2108,10 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
-	}
-	{
-		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
 
+		Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+		Orient.Y = atan2(x, Orient.Z) + GE_PI;
+		CCD->ActorManager()->GetRotate(m_Actor, &Pos);
 
 		while(Pos.Y < 0.0f)		{ Pos.Y += GE_2PI; }
 		while(Pos.Y >= GE_2PI)	{ Pos.Y -= GE_2PI; }
@@ -1861,7 +2125,7 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 			RotateLeft = true;
 		}
 
-		if(RotateAmt > 0.0f)
+		if(RotateAmt > 0.f)
 		{
 			if(RotateAmt > GE_PI)
 			{
@@ -1872,7 +2136,7 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 			}
 
 			RotateAmt *= GE_180OVERPI;
-			float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+			float amount = args[1].floatValue() * (timeElapsed * 0.001f);
 
 			if(amount>RotateAmt)
 			{
@@ -1881,13 +2145,11 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 
 			RotateAmt -= amount;
 
-			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
-			else
-				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
+			if(RotateLeft)	CCD->ActorManager()->TurnRight(m_Actor, GE_PIOVER180 * amount);
+			else			CCD->ActorManager()->TurnLeft (m_Actor, GE_PIOVER180 * amount);
 		}
 
-		if(Object->Index->Flag)
+		if(args[2].boolValue())
 		{
 			while(Pos.X < 0.0f)		{ Pos.X += GE_2PI; }
 			while(Pos.X >= GE_2PI)	{ Pos.X -= GE_2PI; }
@@ -1912,7 +2174,7 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 				}
 
 				TiltAmt *= GE_180OVERPI;
-				float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+				float amount = args[1].floatValue() * (timeElapsed * 0.001f);
 
 				if(amount > TiltAmt)
 				{
@@ -1921,10 +2183,8 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 
 				TiltAmt -= amount;
 
-				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
-				else
-					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
+				if(TiltUp)	CCD->ActorManager()->TiltUp  (m_Actor, GE_PIOVER180 * amount);
+				else		CCD->ActorManager()->TiltDown(m_Actor, GE_PIOVER180 * amount);
 			}
 		}
 
@@ -1937,321 +2197,41 @@ bool CPawn::RotateToPoint(void *Data, float dwTicks)
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	RotateAroundPoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateAroundPoint(void *Data, float dwTicks)
+Q_METHOD_IMPL(NextPoint)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	if(Object->StartAction)
-	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-		Object->StartAction = false;
-		Object->Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
-	}
-
-	geVec3d Pos1;
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos1);
-	geVec3d LookRotation;
-	geFloat x,l;
-	geVec3d_Subtract(&Object->CurrentPoint, &Pos1, &LookRotation);
-	l = geVec3d_Length(&LookRotation);
-
-	// protect from Div by Zero
-	if(l > 0.0f)
-	{
-		x = LookRotation.X;
-		LookRotation.X = -(GE_PIOVER2 - (float)acos(LookRotation.Y / l));
-		LookRotation.Y = (float)atan2(x, LookRotation.Z) + GE_PI;
-		LookRotation.Z = 0.0;	// roll is zero - always!!?
-
-
-		LookRotation.X = 0.0f;
-		CCD->ActorManager()->Rotate(Object->Actor, LookRotation);
-	}
-
-	Object->Index->Value2 -= (dwTicks*0.001f);// /1000.0f);
-
-	if(Object->Index->Value2 <= 0.0f)
+	if(!m_ValidPoint)
 		return true;
 
-	float distance = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
-
-	if(Object->Index->Value1 != 0.0f)
-		distance = -distance;
-
-	if(CCD->ActorManager()->MoveLeft(Object->Actor, distance) != RGF_SUCCESS)
-		return true;
-
-	float Circle = CCD->ActorManager()->DistanceFrom(Object->CurrentPoint, Object->Actor);
-
-	if(Circle != Object->Circle)
-	{
-		geVec3d In;
-		CCD->ActorManager()->InVector(Object->Actor, &In);
-		float Amount = Circle - Object->Circle;
-
-		if(CCD->ActorManager()->MoveForward(Object->Actor, Amount) != RGF_SUCCESS)
-			return true;
-	}
-
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	MoveToPoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::MoveToPoint(void *Data, float dwTicks)
-{
-	geVec3d Pos, Orient, NewPos;
-	geXForm3d Xf;
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	Object->AvoidMode = false;
-
-	if(Object->StartAction)
-	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-		Object->StartAction = false;
-		CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-		geVec3d_Subtract(&Object->CurrentPoint, &Pos, &Object->Vec2Point);
-		Orient = Object->Vec2Point;
-		Object->Vec2Point.Y = 0.0f;
-		geVec3d_Normalize(&Object->Vec2Point);
-		float l = geVec3d_Length(&Orient);
-
-		if(l > 0.0f)
-		{
-			float x = Orient.X;
-			Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-			Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
-			Orient.Z = 0.0f;	// roll is zero - always!!?
-
-			geXForm3d_SetXRotation(&Xf, Orient.X);
-			geXForm3d_RotateY(&Xf, Orient.Y);
-			geXForm3d_GetIn(&Xf, &(Object->TempPoint));
-		}
-		else
-			return true;
-	}
-
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
-
-	if(fabs(Pos.X-Object->CurrentPoint.X) < distance && fabs(Pos.Z-Object->CurrentPoint.Z) < distance)
-		return true;
-
-	geVec3d_AddScaled(&Pos, &(Object->TempPoint), distance, &NewPos);
-
-	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
-
-	if(!result)
-		Object->AvoidMode = true;
-
-	return false;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	RotateToAlign
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateToAlign(void *Data, float dwTicks)
-{
-	geVec3d Pos, Orient;
-	ScriptedObject *Object = (ScriptedObject*)Data;
-
-	if(Object->StartAction)
-	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-		Object->StartAction = false;
-		const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
-
-		if(EntityType)
-		{
-			if(!stricmp(EntityType, "ScriptPoint"))
-			{
-				ScriptPoint *pProxy;
-				CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
-
-				Orient.Z = 0.0174532925199433f*(pProxy->Angle.Z);
-				Orient.X = 0.0174532925199433f*(pProxy->Angle.X);
-				Orient.Y = 0.0174532925199433f*(pProxy->Angle.Y-90.0f);
-
-				CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-
-				geXForm3d Xf;
-				geXForm3d_SetZRotation(&Xf, Orient.Z);
-				geXForm3d_RotateX(&Xf, Orient.X);
-				geXForm3d_RotateY(&Xf, Orient.Y);
-
-				geXForm3d_GetIn(&Xf, &Orient);
-				geVec3d_Add(&Pos, &Orient, &(Object->TempPoint));
-			}
-		}
-	}
-
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	geVec3d_Subtract(&Object->TempPoint, &Pos, &Orient);
-	float l = geVec3d_Length(&Orient);
-	float RotateAmt = 0.0f;
-	float TiltAmt = 0.0f;
-
-	if(l > 0.0f)
-	{
-		float x = Orient.X;
-		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
-		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
-
-		while(Pos.Y < 0.0f)
-		{
-			Pos.Y += GE_2PI;
-		}
-
-		while(Pos.Y >= GE_2PI)
-		{
-			Pos.Y -= GE_2PI;
-		}
-
-		bool RotateLeft = false;
-		RotateAmt = Pos.Y - Orient.Y;
-
-		if(RotateAmt < 0.0f)
-		{
-			RotateAmt = -RotateAmt;
-			RotateLeft = true;
-		}
-
-		if(RotateAmt > 0.f) //-2.f*GE_PI)
-		{
-			if(RotateAmt > GE_PI)
-			{
-				RotateAmt = GE_2PI - RotateAmt; //-= GE_PI;
-
-				if(RotateLeft)
-					RotateLeft = false;
-				else
-					RotateLeft = true;
-			}
-
-			RotateAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
-			float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
-
-			if(amount>RotateAmt)
-			{
-				amount = RotateAmt;
-			}
-
-			RotateAmt -= amount;
-
-			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
-			else
-				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
-		}
-
-		if(Object->Index->Flag)
-		{
-			while(Pos.X < 0.0f)
-			{
-				Pos.X += GE_2PI;
-			}
-
-			while(Pos.X >= GE_2PI)
-			{
-				Pos.X -= GE_2PI;
-			}
-
-			bool TiltUp = false;
-			TiltAmt = Pos.X - Orient.X;
-
-			if(TiltAmt < 0.0f)
-			{
-				TiltAmt = -TiltAmt;
-				TiltUp = true;
-			}
-
-			if(TiltAmt > 0.0f)
-			{
-				if(TiltAmt > GE_PI)
-				{
-					TiltAmt = GE_2PI - TiltAmt;//-= GE_PI;
-
-					if(TiltUp)
-						TiltUp = false;
-					else
-						TiltUp = true;
-				}
-
-				TiltAmt *= GE_180OVERPI; // /= 0.0174532925199433f;
-				float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
-
-				if(amount > TiltAmt)
-				{
-					amount = TiltAmt;
-				}
-
-				TiltAmt -= amount;
-
-				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
-				else
-					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
-			}
-		}
-
-		if(RotateAmt <= 0.0f && TiltAmt <= 0.0f)
-			return true;
-
-		return false;
-	}
-
-	return true;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	NextPoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::NextPoint(void *Data, float dwTicks)
-{
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(m_Point.c_str());
 
 	if(EntityType)
 	{
 		if(!stricmp(EntityType, "ScriptPoint"))
 		{
 			ScriptPoint *pProxy;
-			CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
-			Object->ValidPoint = false;
+			CCD->Level()->ScriptPoints()->LocateEntity(m_Point.c_str(), reinterpret_cast<void**>(&pProxy));
+			m_ValidPoint = false;
 
 			if(!EffectC_IsStringNull(pProxy->NextPoint))
 			{
-				strcpy(Object->Point, pProxy->NextPoint);
-				Object->NextOrder[0] = '\0';
+				m_Point = pProxy->NextPoint;
+				m_NextOrder.clear();
 
-				if(!EffectC_IsStringNull(pProxy->NextOrder))
-					strcpy(Object->NextOrder, pProxy->NextOrder);
-
-				if(!EffectC_IsStringNull(Object->Point))
+				if(!m_Point.empty())
 				{
-					const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
+					const char *EntityType = CCD->EntityRegistry()->GetEntityType(m_Point.c_str());
 
 					if(EntityType)
 					{
 						if(!stricmp(EntityType, "ScriptPoint"))
 						{
 							ScriptPoint *pProxy;
-							CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
-							Object->CurrentPoint = pProxy->origin;
-							Object->ValidPoint = true;
+							CCD->Level()->ScriptPoints()->LocateEntity(m_Point.c_str(), reinterpret_cast<void**>(&pProxy));
+
+							if(!EffectC_IsStringNull(pProxy->NextOrder))
+								m_NextOrder = pProxy->NextOrder;
+							m_CurrentPoint = pProxy->origin;
+							m_ValidPoint = true;
 						}
 					}
 				}
@@ -2262,172 +2242,279 @@ bool CPawn::NextPoint(void *Data, float dwTicks)
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	NextOrder
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::NextOrder(void *Data, float dwTicks)
+Q_METHOD_IMPL(Delay)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	if(!EffectC_IsStringNull(Object->NextOrder))
+	if(m_StartAction)
 	{
-		strcpy(Object->Order, Object->NextOrder);
-		Object->RunOrder = true;
-		ActionList *pool, *temp;
-		pool = Object->Bottom;
-
-		while(pool != NULL)
+		if(args[0].str().length() > 0 && m_Actor)
 		{
-			temp = pool->next;
-			geRam_Free(pool);
-			pool = temp;
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
 		}
 
-		Object->Top = NULL;
-		Object->Bottom = NULL;
-		Object->Index = NULL;
+		if(args.entries() > 2)
+		{
+			if(args[2].str() != "")
+			{
+				m_SoundID = PlaySound(args[2].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+		m_Time = 0.0f;
 	}
 
-	return true;
-}
+	m_Time += (timeElapsed * 0.001f);
 
-/* ------------------------------------------------------------------------------------ */
-//	Rotate
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::Rotate(void *Data, float dwTicks)
-{
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	bool flag = true;
-
-	if(Object->StartAction)
+	if(m_Time >= args[1].floatValue())
 	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-		Object->StartAction = false;
-	}
-
-	CCD->ActorManager()->GetRotate(Object->Actor, &Object->TempPoint);
-	float baseamount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
-
-	if(Object->Index->Value1 != 0.0f)
-	{
-		float amount = baseamount;
-
-		if(Object->Index->Value1 < 0.0f)
-		{
-			amount = -amount;
-
-			if(amount < Object->Index->Value1)
-				amount = Object->Index->Value1;
-		}
-		else
-		{
-			if(amount > Object->Index->Value1)
-				amount = Object->Index->Value1;
-		}
-
-		Object->Index->Value1 -= amount;
-		amount *= 0.0174532925199433f;
-		Object->TempPoint.X += amount;
-		flag = false;
-	}
-
-	if(Object->Index->Value2 != 0.0f)
-	{
-		float amount = baseamount;
-
-		if(Object->Index->Value2 < 0.0f)
-		{
-			amount = -amount;
-
-			if(amount < Object->Index->Value2)
-				amount = Object->Index->Value2;
-		}
-		else
-		{
-			if(amount > Object->Index->Value2)
-				amount = Object->Index->Value2;
-		}
-
-		Object->Index->Value2 -= amount;
-		amount *= 0.0174532925199433f;
-		Object->TempPoint.Y += amount;
-		flag = false;
-	}
-
-	if(Object->Index->Value3 != 0.0f)
-	{
-		float amount = baseamount;
-
-		if(Object->Index->Value3 < 0.0f)
-		{
-			amount = -amount;
-
-			if(amount < Object->Index->Value3)
-				amount = Object->Index->Value3;
-		}
-		else
-		{
-			if(amount > Object->Index->Value3)
-				amount = Object->Index->Value3;
-		}
-
-		Object->Index->Value3 -= amount;
-		amount *= 0.0174532925199433f;
-		Object->TempPoint.Z += amount;
-		flag = false;
-	}
-
-	CCD->ActorManager()->Rotate(Object->Actor, Object->TempPoint);
-
-	return flag;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	RotateMoveToPoint
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateMoveToPoint(void *Data, float dwTicks)
-{
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	geVec3d Pos, NewPos, In;
-
-	if(RotateToPoint(Data, dwTicks))
+		m_Time = 0.0f;
 		return true;
+	}
 
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Value1 * (dwTicks*0.001f); // /1000.0f);
-	CCD->ActorManager()->InVector(Object->Actor, &In);
-	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
-
-	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
 	return false;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	NextPath
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::NextPath(void *Data, float dwTicks)
+Q_METHOD_IMPL(PlayAnimation)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
+	if(!m_Actor)
+		return true;
 
-	const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+
+		if(args.entries() > 2)
+		{
+			if(args[2].str() != "")
+			{
+				m_SoundID = PlaySound(args[2].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+
+		if(args[1].boolValue())
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, true);
+		else
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			return true;
+		}
+	}
+
+	if(args[1].boolValue())
+	{
+		// check if animation is at end
+		if(CCD->ActorManager()->EndAnimation(m_Actor))
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(BlendToAnimation)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		m_StartAction = false;
+		if(args[0].str() != "")
+		{
+			if(args[1].floatValue() > 0.0f)
+			{
+				CCD->ActorManager()->SetTransitionMotion(m_Actor, args[0].str().c_str(), args[1].floatValue(), "");
+				CCD->ActorManager()->SetNextMotion(m_Actor, args[0].str().c_str());
+			}
+			else
+			{
+				CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+			}
+		}
+
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		if(args[2].boolValue())
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, true);
+		}
+		else
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			return true;
+		}
+	}
+
+	if(args[2].boolValue())
+	{
+		// check if animation is at end
+		if(CCD->ActorManager()->EndAnimation(m_Actor))
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(LoopAnimation)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+		}
+
+		if(args.entries() > 2)
+		{
+			if(args[2].str() != "")
+			{
+				m_SoundID = PlaySound(args[2].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+		m_Time = 0.0f;
+	}
+
+	m_Time += (timeElapsed * 0.001f);
+
+	if(m_Time >= args[1].floatValue())
+	{
+		m_Time = 0.0f;
+		return true;
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(Rotate)
+{
+	if(m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 5)
+		{
+			if(args[5].str() != "")
+			{
+				m_SoundID = PlaySound(args[5].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	geVec3d angle;
+	geVec3d_Set(&angle, args[2].floatValue(), args[3].floatValue(), args[4].floatValue());
+	bool ret = Rotate(timeElapsed, args[0].str().c_str(), args[1].floatValue(), &angle);
+	args[2] = angle.X;
+	args[3] = angle.Y;
+	args[4] = angle.Z;
+	return ret;
+}
+
+Q_METHOD_IMPL(RotateMoveToPoint)
+{
+	if(!m_ValidPoint || m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 4)
+		{
+			if(args[4].str() != "")
+			{
+				m_SoundID = PlaySound(args[4].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	return RotateMoveToPoint(
+		timeElapsed,
+		args[0].str().c_str(),
+		args[1].floatValue(),
+		args[2].floatValue(),
+		args[3].boolValue());
+}
+
+Q_METHOD_IMPL(RotateMove)
+{
+	if(m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 6)
+		{
+			if(args[6].str() != "")
+			{
+				m_SoundID = PlaySound(args[6].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	geVec3d angle;
+	geVec3d_Set(&angle, args[3].floatValue(), args[4].floatValue(), args[5].floatValue());
+
+	if(Rotate(timeElapsed, args[0].str().c_str(), args[1].floatValue(), &angle))
+		return true;
+
+	args[3] = angle.X;
+	args[4] = angle.Y;
+	args[5] = angle.Z;
+
+	geVec3d Pos, NewPos, In;
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+
+	float distance = args[2].floatValue() * (timeElapsed * 0.001f);
+	CCD->ActorManager()->InVector(m_Actor, &In);
+	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
+
+	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, m_Actor, false);
+	return false;
+}
+
+Q_METHOD_IMPL(NewPath)
+{
+	const char *EntityType = CCD->EntityRegistry()->GetEntityType(args[0].str().c_str());
 
 	if(EntityType)
 	{
 		if(!stricmp(EntityType, "ScriptPoint"))
 		{
 			ScriptPoint *pProxy;
-			CCD->ScriptPoints()->LocateEntity(Object->Index->AnimName, (void**)&pProxy);
-			Object->Order[0] = '\0';
-			strcpy(Object->Point, Object->Index->AnimName);
+			CCD->Level()->ScriptPoints()->LocateEntity(args[0].str().c_str(), reinterpret_cast<void**>(&pProxy));
+			Order.clear();
+			m_Point = args[0].str().c_str();
 
 			if(!EffectC_IsStringNull(pProxy->NextOrder))
 			{
-				strcpy(Object->Order, pProxy->NextOrder);
-				Object->RunOrder = true;
+				Order = pProxy->NextOrder;
+				m_RunOrder = true;
+
+#if USE_METHOD_QUEUE_STACK
+				DequeueTop();
+#else
 				ActionList *pool, *temp;
-				pool = Object->Bottom;
+				pool = Bottom;
 
 				while(pool != NULL)
 				{
@@ -2436,242 +2523,404 @@ bool CPawn::NextPath(void *Data, float dwTicks)
 					pool = temp;
 				}
 
-				Object->Top = NULL;
-				Object->Bottom = NULL;
-				Object->Index = NULL;
+				Top = NULL;
+				Bottom = NULL;
+				m_CurrentAction = NULL;
+#endif
 			}
 
-			Object->CurrentPoint = pProxy->origin;
-			Object->ValidPoint = true;
+			m_CurrentPoint = pProxy->origin;
+			m_ValidPoint = true;
 		}
 	}
 
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	RotateMove
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateMove(void *Data, float dwTicks)
+Q_METHOD_IMPL(RestartOrder)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	geVec3d Pos, NewPos, In;
-
-	if(Rotate(Data, dwTicks))
-		return true;
-
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Value4 * (dwTicks*0.001f);// /1000.0f);
-	CCD->ActorManager()->InVector(Object->Actor, &In);
-	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
-
-	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
+	ClearActionList();
+	// Note: despite the fact that the action is finished
+	// we have to return false here or we will cause an endless loop
+	// m_RunOrder set to true in ClearActionList() will do the rest
 	return false;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	Move
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::Move(void *Data, float dwTicks)
+Q_METHOD_IMPL(PlayerDistOrder)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-	geVec3d Pos, NewPos;
-	bool retflg = false;
+	m_MinDistance = args[0].floatValue();
 
-	if(!Object->Actor)
-		return false;
-
-	if(Object->StartAction)
+	if(m_MinDistance != 0.0f)
 	{
-		Object->TotalDist = 0.0f;
+		m_DistActive = true;
+		m_DistOrder = args[1].str().c_str();
+	}
+	else
+	{
+		m_DistActive = false;
+	}
 
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+	return true;
+}
 
-		Object->StartAction = false;
-		CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
+Q_METHOD_IMPL(AudibleRadius)
+{
+	m_AudibleRadius = args[0].floatValue();
 
-		if(Object->Direction == RGF_K_BACKWARD || Object->Direction == RGF_K_FORWARD)
-			CCD->ActorManager()->InVector(Object->Actor, &Object->Vec2Point);
-		else
+	return true;
+}
+
+Q_METHOD_IMPL(AddPainOrder)
+{
+	m_PainActive = true;
+	m_PainOrder = args[0].str().c_str();
+	m_PainPercent = args[1].intValue();
+	CPersistentAttributes *attributes = CCD->ActorManager()->Inventory(m_Actor);
+	m_OldAttributeAmount = attributes->Value(m_Attribute);
+
+	return true;
+}
+
+Q_METHOD_IMPL(FindTargetOrder)
+{
+	m_TargetDistance = args[0].floatValue();
+
+	if(m_TargetDistance != 0.0f)
+	{
+		m_TargetDisable = false;
+		m_TargetFind = true;
+		m_TargetOrder = args[1].str().c_str();
+		m_TargetAttr = args[2].str().c_str();
+	}
+	else
+	{
+		m_TargetFind = false;
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(FindPointOrder)
+{
+	m_PointFind = true;
+	m_PointOrder = args[0].str().c_str();
+
+	if(m_PointOrder.empty())
+		m_PointFind = false;
+
+	return true;
+}
+
+Q_METHOD_IMPL(NewPoint)
+{
+	if(args[0].str() != "")
+	{
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(args[0].str().c_str());
+
+		if(EntityType)
 		{
-			if(Object->Direction != 0)
-				CCD->ActorManager()->LeftVector(Object->Actor, &Object->Vec2Point);
-			else
+			if(!stricmp(EntityType, "ScriptPoint"))
 			{
-				geXForm3d thePosition;
-				geVec3d Rotate;
-				CCD->ActorManager()->GetRotate(Object->Actor, &Rotate);
+				m_Point = args[0].str().c_str();
+				ScriptPoint *pProxy;
+				CCD->Level()->ScriptPoints()->LocateEntity(m_Point.c_str(), reinterpret_cast<void**>(&pProxy));
+				m_CurrentPoint = pProxy->origin;
+				m_ValidPoint = true;
+				m_NextOrder.clear();
 
-				geXForm3d_SetZRotation(&thePosition,Rotate.Z+Object->Index->Value4*0.0174532925199433f);
-				geXForm3d_RotateX(&thePosition,		Rotate.X+Object->Index->Value2*0.0174532925199433f);
-				geXForm3d_RotateY(&thePosition,		Rotate.Y+Object->Index->Value3*0.0174532925199433f);
-				geXForm3d_GetIn(&thePosition, &(Object->Vec2Point));
+				if(!EffectC_IsStringNull(pProxy->NextOrder))
+					m_NextOrder = pProxy->NextOrder;
 			}
 		}
 	}
 
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-	float distance = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
-
-	if((distance+Object->TotalDist) >= Object->Index->Value1)
-	{
-		distance = Object->Index->Value1 - Object->TotalDist;
-		retflg = true;
-	}
-
-	Object->TotalDist += distance;
-
-	if(Object->Direction == RGF_K_BACKWARD || Object->Direction == RGF_K_RIGHT)
-		distance = -distance;
-
-	geVec3d_AddScaled(&Pos, &Object->Vec2Point, distance, &NewPos);
-
-	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, Object->Actor, false);
-
-	if(!result)
-		return true;
-
-	return retflg;
+	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	Jump
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::Jump(void *Data, float dwTicks)
+Q_METHOD_IMPL(MoveForward)
 {
-	ScriptedObject *Object = (ScriptedObject*)Data;
+	m_Direction = RGF_K_FORWARD;
 
-	if(Object->StartAction)
+	if(m_StartAction)
 	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+	}
 
-		Object->StartAction = false;
+	return Move(timeElapsed, args[0].str().c_str(), args[1].floatValue(), args[2].floatValue());
+}
+
+Q_METHOD_IMPL(MoveBackward)
+{
+	m_Direction = RGF_K_BACKWARD;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	return Move(timeElapsed, args[0].str().c_str(), args[1].floatValue(), args[2].floatValue());
+}
+
+Q_METHOD_IMPL(MoveLeft)
+{
+	m_Direction = RGF_K_LEFT;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	return Move(timeElapsed, args[0].str().c_str(), args[1].floatValue(), args[2].floatValue());
+}
+
+Q_METHOD_IMPL(MoveRight)
+{
+	m_Direction = RGF_K_RIGHT;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	return Move(timeElapsed, args[0].str().c_str(), args[1].floatValue(), args[2].floatValue());
+}
+
+Q_METHOD_IMPL(Move)
+{
+	m_Direction = 0;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 6)
+		{
+			if(args[6].str() != "")
+			{
+				m_SoundID = PlaySound(args[6].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	return Move(timeElapsed, args[0].str().c_str(), args[1].floatValue(), args[2].floatValue(),
+		args[3].floatValue(), args[4].floatValue(), args[5].floatValue());
+}
+
+Q_METHOD_IMPL(AvoidOrder)
+{
+	if(args[0].str() != "")
+		m_AvoidOrder = args[0].str().c_str();
+
+	return true;
+}
+
+Q_METHOD_IMPL(Return)
+{
+	// TODO
+#if USE_METHOD_QUEUE_STACK
+	if(!m_MethodQueueVariablesStack.empty())
+#else
+	if(m_Stack)
+#endif
+	{
+		Pop();
+		m_ActionActive = true;
+		m_StartAction = true;
+		m_TargetDisable = false;
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(Align)
+{
+	if(m_Actor)
+	{
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(m_Point.c_str());
+
+		if(EntityType)
+		{
+			if(!stricmp(EntityType, "ScriptPoint"))
+			{
+				ScriptPoint *pProxy;
+				geVec3d Orient;
+				CCD->Level()->ScriptPoints()->LocateEntity(m_Point.c_str(), reinterpret_cast<void**>(&pProxy));
+				Orient.Z = GE_PIOVER180 * (pProxy->Angle.Z);
+				Orient.X = GE_PIOVER180 * (pProxy->Angle.X);
+				Orient.Y = GE_PIOVER180 * (pProxy->Angle.Y - 90.0f);
+				CCD->ActorManager()->Rotate(m_Actor, Orient);
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(Jump)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+		}
+
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
 		geVec3d theUp;
 
-		CCD->ActorManager()->UpVector(Object->Actor, &theUp);
-		CCD->ActorManager()->SetForce(Object->Actor, 0, theUp, Object->Index->Speed, Object->Index->Speed);
+		CCD->ActorManager()->UpVector(m_Actor, &theUp);
+		CCD->ActorManager()->SetForce(m_Actor, 0, theUp, args[1].floatValue(), args[1].floatValue());
 
-		if(Object->Index->Flag)
+		if(args[2].boolValue())
 			return true;
 
 		return false;
 	}
 
-	if(CCD->ActorManager()->Falling(Object->Actor) == GE_TRUE)
+	if(CCD->ActorManager()->Falling(m_Actor) == GE_TRUE)
 		return false;
 
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	AddTriggerOrder
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::AddTriggerOrder(void *Data, float dwTicks)
+Q_METHOD_IMPL(AddTriggerOrder)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	if(!EffectC_IsStringNull(Object->Index->AnimName))
+	if(args[1].str() != "") // order to execute
 	{
-		if(!EffectC_IsStringNull(Object->Index->TriggerName))
+		if(args[0].str() != "") // triggername
 		{
-			TriggerStack *tpool, *ttemp;
-			tpool = Object->Trigger;
+			std::string TriggerName(args[0].str().c_str());
 
-			while(tpool != NULL)
+			// if trigger is already watched, update
+			if(m_WatchedTriggers.find(TriggerName) != m_WatchedTriggers.end())
 			{
-				ttemp = tpool->next;
+				m_WatchedTriggers[TriggerName]->OrderName	= args[1].str().c_str();
+				m_WatchedTriggers[TriggerName]->Type		= args[2].intValue();
+				m_WatchedTriggers[TriggerName]->Delay		= args[3].floatValue();
+				m_WatchedTriggers[TriggerName]->Flag		= args[4].boolValue();
+				m_WatchedTriggers[TriggerName]->PFlg		= args[5].intValue();
+				m_WatchedTriggers[TriggerName]->Time		= args[6].floatValue();
+				m_WatchedTriggers[TriggerName]->Low			= args[7].floatValue();
+				m_WatchedTriggers[TriggerName]->High		= args[8].floatValue();
+			}
+			else // create new entry
+			{
+				TriggerOrder *trigger = new TriggerOrder(
+					args[1].str().c_str(),
+					args[2].intValue(),
+					args[3].floatValue(),
+					args[4].boolValue(),
+					args[5].intValue(),
+					args[6].floatValue(),
+					args[7].floatValue(),
+					args[8].floatValue()
+					);
 
-				if(!strcmp(Object->Index->TriggerName, tpool->TriggerName))
+				if(trigger)
 				{
-					strcpy(tpool->OrderName, Object->Index->AnimName);
-					tpool->Delay = Object->Index->Speed;
-					tpool->Flag = Object->Index->Flag;
-					tpool->Type = (int)Object->Index->Value1;
-					tpool->PFlg = (int)Object->Index->Value2;
-					tpool->Low = Object->Index->Value3;
-					tpool->High = Object->Index->Value4;
-					tpool->Time = Object->Index->Value3;
-					return true;
+					m_WatchedTriggers[TriggerName] = trigger;
 				}
-
-				tpool = ttemp;
 			}
-
-			tpool = GE_RAM_ALLOCATE_STRUCT(TriggerStack);
-			memset(tpool, 0x0, sizeof(TriggerStack));
-			tpool->next = Object->Trigger;
-			tpool->prev = NULL;
-			Object->Trigger = tpool;
-
-			if(tpool->next)
-				tpool->next->prev = tpool;
-
-			strcpy(tpool->OrderName, Object->Index->AnimName);
-			strcpy(tpool->TriggerName, Object->Index->TriggerName);
-
-			tpool->Delay = Object->Index->Speed;
-			tpool->Flag = Object->Index->Flag;
-			tpool->Type = (int)Object->Index->Value1;
-			tpool->PFlg = (int)Object->Index->Value2;
-			tpool->Time = Object->Index->Value3;
-			tpool->Low = Object->Index->Value3;
-			tpool->High = Object->Index->Value4;
 		}
 	}
 
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	DelTriggerOrder
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::DelTriggerOrder(void *Data, float dwTicks)
+Q_METHOD_IMPL(DelTriggerOrder)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
-
-	if(!EffectC_IsStringNull(Object->Index->TriggerName))
+	if(args[0].str() != "")
 	{
-		TriggerStack *tpool, *ttemp;
-		tpool = Object->Trigger;
-
-		while(tpool != NULL)
+		std::string TriggerName(args[0].str().c_str());
+		if(m_WatchedTriggers.find(TriggerName) != m_WatchedTriggers.end())
 		{
-			ttemp = tpool->next;
-
-			if(!strcmp(Object->Index->TriggerName, tpool->TriggerName))
-			{
-				Object->RemoveTriggerStack(tpool);
-				return true;
-			}
-
-			tpool = ttemp;
+			SAFE_DELETE(m_WatchedTriggers[TriggerName]);
+			m_WatchedTriggers.erase(TriggerName);
 		}
 	}
 
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	RotateToPlayer
-/* ------------------------------------------------------------------------------------ */
-bool CPawn::RotateToPlayer(void *Data, float dwTicks)
+Q_METHOD_IMPL(SetEventState)
 {
-	ScriptedObject *Object = (ScriptedObject *)Data;
+	CCD->Level()->Pawns()->AddEvent(args[0].str().c_str(), args[1].boolValue());
 
-	if(Object->StartAction)
+	return true;
+}
+
+Q_METHOD_IMPL(FacePlayer)
+{
+	m_FacePlayer = args[0].boolValue();
+	m_FaceAxis = args[1].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(RotateToPlayer)
+{
+	if(m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
 	{
-		if(!EffectC_IsStringNull(Object->Index->AnimName))
-			CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
+		if(args[0].str() != "")
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+		}
 
-		Object->StartAction = false;
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
 	}
 
 	geVec3d Pos, Orient, Play;
+
 	Play = CCD->Player()->Position();
-	CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
 	geVec3d_Subtract(&Play, &Pos, &Orient);
+
 	float l = geVec3d_Length(&Orient);
 	float RotateAmt = 0.0f;
 	float TiltAmt = 0.0f;
@@ -2679,10 +2928,10 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 	if(l > 0.0f)
 	{
 		float x = Orient.X;
-		Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-		Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
-		CCD->ActorManager()->GetRotate(Object->Actor, &Pos);
 
+		Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+		Orient.Y = atan2(x, Orient.Z) + GE_PI;
+		CCD->ActorManager()->GetRotate(m_Actor, &Pos);
 
 		while(Pos.Y <  0.0f)	{ Pos.Y += GE_2PI; }
 		while(Pos.Y >= GE_2PI)	{ Pos.Y -= GE_2PI; }
@@ -2708,7 +2957,7 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 
 			RotateAmt *= GE_180OVERPI;
 
-			float amount = Object->Index->Speed * (dwTicks*0.001f); // /1000.0f);
+			float amount = args[1].floatValue() * (timeElapsed * 0.001f);
 
 			if(amount > RotateAmt)
 			{
@@ -2717,13 +2966,11 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 
 			RotateAmt -= amount;
 
-			if(RotateLeft)
-				CCD->ActorManager()->TurnRight(Object->Actor, 0.0174532925199433f*amount);
-			else
-				CCD->ActorManager()->TurnLeft(Object->Actor, 0.0174532925199433f*amount);
+			if(RotateLeft)	CCD->ActorManager()->TurnRight(m_Actor, GE_PIOVER180 * amount);
+			else			CCD->ActorManager()->TurnLeft (m_Actor, GE_PIOVER180 * amount);
 		}
 
-		if(Object->Index->Flag)
+		if(args[2].boolValue())
 		{
 			while(Pos.X < 0.0f)		{ Pos.X += GE_2PI; }
 			while(Pos.X >= GE_2PI)	{ Pos.X -= GE_2PI; }
@@ -2748,7 +2995,7 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 				}
 
 				TiltAmt *= GE_180OVERPI;
-				float amount = Object->Index->Speed * (dwTicks*0.001f);// /1000.0f);
+				float amount = args[1].floatValue() * (timeElapsed * 0.001f);
 
 				if(amount > TiltAmt)
 				{
@@ -2757,10 +3004,8 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 
 				TiltAmt -= amount;
 
-				if(TiltUp)
-					CCD->ActorManager()->TiltUp(Object->Actor, 0.0174532925199433f*amount);
-				else
-					CCD->ActorManager()->TiltDown(Object->Actor, 0.0174532925199433f*amount);
+				if(TiltUp)	CCD->ActorManager()->TiltUp  (m_Actor, GE_PIOVER180 * amount);
+				else		CCD->ActorManager()->TiltDown(m_Actor, GE_PIOVER180 * amount);
 			}
 		}
 
@@ -2773,1976 +3018,2544 @@ bool CPawn::RotateToPlayer(void *Data, float dwTicks)
 	return true;
 }
 
-/* ------------------------------------------------------------------------------------ */
-//	TickHigh
-/* ------------------------------------------------------------------------------------ */
-void CPawn::TickHigh(Pawn *pSource, ScriptedObject *Object, float dwTicks)
+Q_METHOD_IMPL(RotateAroundPoint)
 {
-	skRValueArray args; // change simkin
-	skRValue ret;
-	int yoffset = 0;
-	TriggerStack *tpool, *ttemp;
-	tpool = Object->Trigger;
+	if(!m_ValidPoint || m_FacePlayer || !m_Actor)
+		return true;
 
-	while(tpool!= NULL)
+	if(m_StartAction)
 	{
-		ttemp = tpool->next;
-
-		if(tpool->Type == PTIMER || tpool->Type == PSOUND)
+		if(args[0].str() != "")
 		{
-			tpool->Time -= (dwTicks*0.001f);// /1000.0f);
-
-			if(tpool->Time < 0.0f)
-				tpool->Time = 0.0f;
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
 		}
 
-		tpool = ttemp;
+		if(args.entries() > 3)
+		{
+			if(args[3].type() == skRValue::T_String && args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+		m_Time = 0.0f;
+		m_Circle = CCD->ActorManager()->DistanceFrom(m_CurrentPoint, m_Actor);
 	}
 
-	if(!EffectC_IsStringNull(Object->DeadOrder))
+	geVec3d Pos1;
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos1);
+
+	geVec3d LookRotation;
+	geFloat x, l;
+
+	geVec3d_Subtract(&m_CurrentPoint, &Pos1, &LookRotation);
+	l = geVec3d_Length(&LookRotation);
+
+	// protect from Div by Zero
+	if(l > 0.0f)
 	{
-		if(!EffectC_IsStringNull(Object->Attribute))
+		x = LookRotation.X;
+
+		LookRotation.X = -(GE_PIOVER2 - acos(LookRotation.Y / l));
+		LookRotation.Y = atan2(x, LookRotation.Z) + GE_PI;
+		LookRotation.Z = 0.0;	// roll is zero - always!!?
+
+		LookRotation.X = 0.0f;
+		CCD->ActorManager()->Rotate(m_Actor, LookRotation);
+	}
+
+	m_Time += (timeElapsed * 0.001f);
+
+	if(m_Time >= args[2].floatValue())
+	{
+		m_Time = 0.0f;
+		return true;
+	}
+
+	float distance = args[1].floatValue() * (timeElapsed * 0.001f);
+
+	if(args[args.entries()-1].boolValue())
+		distance = -distance;
+
+	if(CCD->ActorManager()->MoveLeft(m_Actor, distance) != RGF_SUCCESS)
+	{
+		m_Time = 0.0f;
+		return true;
+	}
+
+	float circle = CCD->ActorManager()->DistanceFrom(m_CurrentPoint, m_Actor);
+
+	if(circle != m_Circle)
+	{
+		geVec3d In;
+		CCD->ActorManager()->InVector(m_Actor, &In);
+		float Amount = circle - m_Circle;
+
+		if(CCD->ActorManager()->MoveForward(m_Actor, Amount) != RGF_SUCCESS)
 		{
-			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
+			m_Time = 0.0f;
+			return true;
+		}
+	}
 
-			if(theInv->Value(Object->Attribute) <= 0)
+	return false;
+}
+
+Q_METHOD_IMPL(TeleportToPoint)
+{
+	if(args[0].str() != "")
+	{
+		const char *EntityType = CCD->EntityRegistry()->GetEntityType(args[0].str().c_str());
+
+		if(EntityType)
+		{
+			if(!stricmp(EntityType, "ScriptPoint"))
 			{
-				strcpy(Object->Order, Object->DeadOrder);
-				Object->DeadOrder[0] = '\0';
-				Object->RunOrder = true;
-				Object->ActionActive = false;
-				ActionList *pool, *temp;
-				pool = Object->Bottom;
+				ScriptPoint *pProxy;
+				CCD->Level()->ScriptPoints()->LocateEntity(args[0].str().c_str(), reinterpret_cast<void**>(&pProxy));
 
-				while(pool != NULL)
+				geActor *tActor;
+				if(args[5].str() != "")
 				{
-					temp = pool->next;
-					geRam_Free(pool);
-					pool = temp;
+					if(args[5].str().equalsIgnoreCase("Player")) // Teleport Player
+						tActor = CCD->Player()->GetActor();
+					else	// Teleport Pawn
+						tActor = CCD->ActorManager()->GetByEntityName(args[5].str().c_str());
+				}
+				else
+				{
+					tActor = m_Actor; // Teleport Script-pawn
 				}
 
-				Object->Top = NULL;
-				Object->Bottom = NULL;
-				Object->Index = NULL;
+				if(!tActor)
+					return true;
+
+				geVec3d Pos = pProxy->origin;
+				Pos.X += args[1].floatValue();
+				Pos.Y += args[2].floatValue();
+				Pos.Z += args[3].floatValue();
+
+				CCD->ActorManager()->Position(tActor, Pos);
+
+				// rotate to match scriptpoint angle
+				if(args[4].boolValue())
+				{
+					geVec3d RealAngle;
+					geVec3d_Scale(&(pProxy->Angle), GE_PIOVER180, &RealAngle);
+					RealAngle.Y -= GE_PIOVER2;
+
+					CCD->ActorManager()->Rotate(tActor, RealAngle);
+
+					if(	CCD->Player()->GetActor() == tActor &&
+						CCD->Player()->GetViewPoint() == FIRSTPERSON)
+					{
+						CCD->CameraManager()->SetRotation(RealAngle);
+					}
+				}
 			}
 		}
 	}
 
-	if(Object->active)
+	return true;
+}
+
+Q_METHOD_IMPL(AnimationSpeed)
+{
+	if(m_Actor)
+		CCD->ActorManager()->SetAnimationSpeed(m_Actor, m_AnimSpeed * args[0].floatValue());
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetFlag)
+{
+	CCD->Level()->Pawns()->SetPawnFlag(args[0].intValue(), args[1].boolValue());
+
+	return true;
+}
+
+Q_METHOD_IMPL(ChangeMaterial)
+{
+	if(m_Actor)
 	{
-		bool runflag = false;
+		if(args[0].str() != "")
+			CCD->ActorManager()->ChangeMaterial(m_Actor, args[0].str().c_str());
+	}
 
-		do
+	return true;
+}
+
+Q_METHOD_IMPL(ChangeWeaponMaterial)
+{
+	if(m_WeaponActor)
+	{
+		if(args[0].str() != "")
+			CCD->ActorManager()->ChangeMaterial(m_WeaponActor, args[0].str().c_str());
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(AnimateStop)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+
+		if(args.entries() > 2)
 		{
-			runflag = false;
-
-			if(Object->TriggerWait)
+			if(args[2].str() != "")
 			{
-				Object->TriggerTime -= (dwTicks*0.001f);// /1000.0f);
+				m_SoundID = PlaySound(args[2].str().c_str(), m_SoundID, GE_FALSE);
+			}
+		}
 
-				if(Object->TriggerTime <= 0.0f && !Object->TargetDisable)
+		m_StartAction = false;
+		CCD->ActorManager()->SetHoldAtEnd(m_Actor, true);
+
+		if(args[1].floatValue() <= 0.0f)
+			return true;
+
+		m_Time = 0.0f;
+	}
+	else
+	{
+		if(m_Time >= args[1].floatValue())
+		{
+			m_Time = 0.0f;
+			return true;
+		}
+		else
+		{
+			if(CCD->ActorManager()->EndAnimation(m_Actor))
+			{
+				m_Time += (timeElapsed * 0.001f);
+			}
+		}
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(AttributeOrder)
+{
+	if(m_Actor && args[0].str() != "" && args[2].str() != "")
+	{
+		m_Attribute = args[0].str().c_str();
+		m_DeadOrder = args[2].str().c_str();
+		CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(m_Actor);
+		m_OldAttributeAmount = args[1].intValue();
+		theInv->AddAndSet(m_Attribute, m_OldAttributeAmount);
+		theInv->SetValueLimits(m_Attribute, 0, m_OldAttributeAmount);
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(Remove)
+{
+	if(m_Actor)
+	{
+		CCD->ActorManager()->GetPosition(m_Actor, &m_DeadPos);
+		CCD->ActorManager()->RemoveActorCheck(m_Actor);
+		geActor_Destroy(&m_Actor);
+		m_Actor = NULL;
+
+		if(m_WeaponActor)
+		{
+			CCD->ActorManager()->RemoveActorCheck(m_WeaponActor);
+			geActor_Destroy(&m_WeaponActor);
+			m_WeaponActor = NULL;
+		}
+	}
+
+	if(args[0].boolValue())
+	{
+		m_Alive = false;
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetKeyPause)
+{
+	CCD->SetKeyPaused(args[0].boolValue());
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetNoCollision)
+{
+	CCD->ActorManager()->SetNoCollide(m_Actor);
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetCollision)
+{
+	CCD->ActorManager()->SetCollide(m_Actor);
+
+	return true;
+}
+
+Q_METHOD_IMPL(AllowUseKey)
+{
+	m_UseKey = args[0].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetHudDraw)
+{
+	if(args[0].boolValue())
+		CCD->HUD()->Activate();
+	else
+		CCD->HUD()->Deactivate();
+
+	return true;
+}
+
+Q_METHOD_IMPL(HideFromRadar)
+{
+	if(m_Actor)
+	{
+		CCD->ActorManager()->SetHideRadar(m_Actor, args[0].boolValue());
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(Conversation)
+{
+	sxConversationManager::GetSingletonPtr()->StartConversation(m_Conversation);
+	return true;
+}
+
+Q_METHOD_IMPL(FadeIn)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		float alpha;
+
+		CCD->ActorManager()->GetAlpha(m_Actor, &alpha);
+
+		if(args[0].floatValue() > 0.0f && args[1].floatValue() > alpha)
+		{
+			args.append((args[1].floatValue() - alpha) / args[0].floatValue());
+		}
+		else
+		{
+			return true;
+		}
+
+		m_StartAction = false;
+	}
+	else
+	{
+		float alpha;
+		CCD->ActorManager()->GetAlpha(m_Actor, &alpha);
+
+		alpha += (args[2].floatValue() * (timeElapsed * 0.001f));
+
+		if(alpha >= args[1].floatValue())
+		{
+			alpha = args[1].floatValue();
+			CCD->ActorManager()->SetAlpha(m_Actor, alpha);
+			return true;
+		}
+
+		CCD->ActorManager()->SetAlpha(m_Actor, alpha);
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(FadeOut)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		float alpha;
+
+		CCD->ActorManager()->GetAlpha(m_Actor, &alpha);
+
+		if(args[0].floatValue() > 0.0f && args[1].floatValue() < alpha)
+		{
+			args.append((alpha - args[1].floatValue()) / args[0].floatValue());
+		}
+		else
+		{
+			return true;
+		}
+
+		m_StartAction = false;
+	}
+	else
+	{
+		float alpha;
+		CCD->ActorManager()->GetAlpha(m_Actor, &alpha);
+
+		alpha -= (args[2].floatValue() * (timeElapsed * 0.001f));
+
+		if(alpha <= args[1].floatValue())
+		{
+			alpha = args[1].floatValue();
+			CCD->ActorManager()->SetAlpha(m_Actor, alpha);
+			return true;
+		}
+
+		CCD->ActorManager()->SetAlpha(m_Actor, alpha);
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(SetFOV)
+{
+	// NOTE: FOV is stored as acos of the half angle for direct comparison with dot products
+	// acos(x) ~ (PI/2 - x - ...) (x = angle in radians)
+	// The approximation used here is not correct, but we've used it
+	// for quite a while now, so leave it like this...
+	// correct: FOV = GE_PIOVER2 - args[0].floatValue()*0.5f*GE_PIOVER180;
+
+	if(args[0].floatValue() > 360.f)
+	{
+		m_FOV = -1.f;
+	}
+	else if(args[0].floatValue() < 0.f)
+	{
+		m_FOV = 1.f;
+	}
+	else
+	{
+		m_FOV = (180.0f - args[0].floatValue())/180.0f;
+	}
+
+	m_FOVBone.clear();
+
+	if(args.entries() > 1)
+	{
+		if(args[1].str() != "")
+		{
+			m_FOVBone = args[1].str().c_str();
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(StepHeight)
+{
+	if(m_Actor)
+	{
+		if(args[0].floatValue() <= 0.0f)
+		{
+			CCD->ActorManager()->SetAutoStepUp(m_Actor, false);
+		}
+		else
+		{
+			CCD->ActorManager()->SetAutoStepUp(m_Actor, true);
+			CCD->ActorManager()->SetStepHeight(m_Actor, args[0].floatValue());
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetGroup)
+{
+	m_Group = args[0].str().c_str();
+	CCD->ActorManager()->SetGroup(m_Actor, m_Group);
+
+	return true;
+}
+
+Q_METHOD_IMPL(HostilePlayer)
+{
+	m_HostilePlayer = args[0].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(HostileDifferent)
+{
+	m_HostileDiff = args[0].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(HostileSame)
+{
+	m_HostileSame = args[0].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(Gravity)
+{
+	if(m_Actor)
+	{
+		geVec3d Gravity = { 0.f, 0.f, 0.f };
+
+		if(args[0].boolValue())
+			Gravity = CCD->Level()->GetGravity();
+
+		CCD->ActorManager()->SetGravity(m_Actor, Gravity);
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SoundLoop)
+{
+	m_SoundLoop = args[0].boolValue();
+
+	return true;
+}
+
+Q_METHOD_IMPL(Speak)
+{
+	if(sxConversationManager::GetSingletonPtr()->IsConversing())
+	{
+		skRValue r_val;
+		skRValueArray setIconArgs;
+		setIconArgs.append(skString(m_Icon.c_str()));
+		sxConversationManager::M_SetIcon(sxConversationManager::GetSingletonPtr(), setIconArgs, r_val, ScriptManager::GetContext());
+		skRValue pos(new RFSX::sxVector(GetSpeakBonePosition()), true);
+		args.append(pos);
+		return sxConversationManager::M_Speak(sxConversationManager::GetSingletonPtr(), args, r_val, ScriptManager::GetContext());
+	}
+	else
+	{
+		// TODO display text?
+		if(args.entries() > 1)
+		{
+			if(args[1].type() != skRValue::T_String)
+				return true;
+
+			if(args[1].str() != "")
+			{
+				if(m_StreamingAudio)
 				{
-					Object->TriggerWait = false;
-					strcpy(Object->Order, Object->TriggerOrder);
-					Object->RunOrder = true;
-					Object->ActionActive = false;
-					ActionList *pool, *temp;
-					pool = Object->Bottom;
-
-					while(pool != NULL)
-					{
-						temp = pool->next;
-						geRam_Free(pool);
-						pool = temp;
-					}
-
-					Object->Top = NULL;
-					Object->Bottom = NULL;
-					Object->Index = NULL;
+					m_StreamingAudio->Delete();
+					delete m_StreamingAudio;
 				}
+
+				m_StreamingAudio = new StreamingAudio((LPDIRECTSOUND)geSound_GetDSound());
+
+				if(m_StreamingAudio)
+				{
+					char filename[_MAX_PATH];
+					strcpy(filename, CCD->LanguageManager()->GetActiveLanguage()->GetDubbingDirectory().c_str());
+					strcat(filename, "\\");
+					strcat(filename, args[1].str().c_str());
+
+					if(!m_StreamingAudio->Create(filename))
+					{
+						SAFE_DELETE(m_StreamingAudio);
+					}
+					else
+					{
+						m_StreamingAudio->Play(false);
+					}
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(IsPushable)
+{
+	if(m_Actor)
+	{
+		m_Pushable = args[0].boolValue();
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(IsVehicle)
+{
+	if(m_Actor)
+	{
+		if(args[0].boolValue())
+			CCD->ActorManager()->SetType(m_Actor, ENTITY_VEHICLE);
+		else
+			CCD->ActorManager()->SetType(m_Actor, ENTITY_NPC);
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(MoveToTarget)
+{
+	if(!m_TargetActor || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		m_SavePoint = m_CurrentPoint;
+		CCD->ActorManager()->GetPosition(m_TargetActor, &m_CurrentPoint);
+		m_StartAction = false;
+	}
+
+	if(MoveToPoint(timeElapsed, args))
+	{
+		m_CurrentPoint = m_SavePoint;
+		return true;
+	}
+	else
+	{
+		if(m_AvoidMode && !m_AvoidOrder.empty())
+		{
+			Push();
+			Order = m_AvoidOrder;
+			m_RunOrder = true;
+			m_ActionActive = false;
+			m_DistActive = false;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(RotateToTarget)
+{
+	if(!m_TargetActor || m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		if(args.entries() > 3)
+		{
+			if(args[3].str() != "")
+			{
+				m_SoundID = PlaySound(args[3].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_SavePoint = m_CurrentPoint;
+		CCD->ActorManager()->GetPosition(m_TargetActor, &m_CurrentPoint);
+	}
+
+	if(RotateToPoint(
+		timeElapsed,
+		args[0].str().c_str(),
+		args[1].floatValue(),
+		args[2].boolValue()))
+	{
+		m_CurrentPoint = m_SavePoint;
+		return true;
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(RotateMoveToTarget)
+{
+	if(!m_TargetActor || m_FacePlayer || !m_Actor)
+		return true;
+
+	if(m_StartAction)
+	{
+		m_SavePoint = m_CurrentPoint;
+		CCD->ActorManager()->GetPosition(m_TargetActor, &m_CurrentPoint);
+
+		if(args.entries() > 4)
+		{
+			if(args[4].str() != "")
+			{
+				m_SoundID = PlaySound(args[4].str().c_str(), m_SoundID);
+			}
+		}
+	}
+
+	if(RotateMoveToPoint(
+		timeElapsed,
+		args[0].str().c_str(),
+		args[1].floatValue(),
+		args[2].floatValue(),
+		args[3].boolValue()))
+	{
+		m_CurrentPoint = m_SavePoint;
+		return true;
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(LowLevel)
+{
+	m_HighLevel = GE_FALSE;
+	m_lowTime = 0.0f;
+	m_ThinkTime = 0.0f;
+	m_ElapseTime = 0.0f;
+
+	// TODO
+	//this->Order = this->m_CurrentAction->AnimName;
+	Order = args[0].str().c_str();
+	m_RunOrder = false;
+	m_ActionActive = false;
+
+#if USE_METHOD_QUEUE_STACK
+	StopSound(m_SoundID);
+	DequeueTop();
+#else
+	ActionList *pool, *temp;
+	pool = this->Bottom;
+	while(pool != NULL)
+	{
+		temp = pool->next;
+		geRam_Free(pool);
+		pool = temp;
+	}
+
+	this->Top = NULL;
+	this->Bottom = NULL;
+	this->m_CurrentAction = NULL;
+#endif
+	return true;
+}
+
+Q_METHOD_IMPL(BoxWidth)
+{
+	if(m_Actor)
+	{
+		if(args[0].floatValue() > 0.0f)
+		{
+			geExtBox theBox;
+			CCD->ActorManager()->GetBoundingBox(m_Actor, &theBox);
+			CCD->ActorManager()->SetBBox(m_Actor, args[0].floatValue(), -theBox.Max.Y*2.0f, args[0].floatValue());
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(BoxHeight)
+{
+	if(m_Actor)
+	{
+		if(args[0].floatValue() > 0.0f)
+		{
+			geExtBox theBox;
+			CCD->ActorManager()->GetBoundingBox(m_Actor, &theBox);
+			CCD->ActorManager()->SetBBox(m_Actor, theBox.Max.X * 2.0f, -(args[0].floatValue()) * 2.0f, theBox.Max.Z * 2.0f);
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(Scale)
+{
+	if(m_Actor)
+	{
+		if(	args.entries() > 1 &&
+		   (args[0].floatValue() != args[1].floatValue() ||
+			args[0].floatValue() != args[2].floatValue() ||
+			args[1].floatValue() != args[2].floatValue()))
+		{
+			geVec3d Scale;
+
+			CCD->ActorManager()->GetScaleXYZ(m_Actor, &Scale);
+
+			Scale.X *= args[0].floatValue();
+			Scale.Y *= args[1].floatValue();
+			Scale.Z *= args[2].floatValue();
+
+			CCD->ActorManager()->SetScaleXYZ(m_Actor, Scale);
+
+			if(m_WeaponActor)
+			{
+				Scale.X = args[0].floatValue() * m_WScale.X;
+				Scale.Y = args[1].floatValue() * m_WScale.Y;
+				Scale.Z = args[2].floatValue() * m_WScale.Z;
+
+				CCD->ActorManager()->SetScaleXYZ(m_WeaponActor, Scale);
+			}
+		}
+		else
+		{
+			float scale;
+
+			CCD->ActorManager()->GetScale(m_Actor, &scale);
+			CCD->ActorManager()->SetScale(m_Actor, args[0].floatValue() * scale);
+
+			if(m_WeaponActor)
+			{
+				CCD->ActorManager()->SetScale(m_WeaponActor, args[0].floatValue() * m_WScale.X);
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetScale)
+{
+	if(m_Actor)
+	{
+		if(	args.entries() > 1 &&
+		   (args[0].floatValue() != args[1].floatValue() ||
+			args[0].floatValue() != args[2].floatValue() ||
+			args[1].floatValue() != args[2].floatValue()))
+		{
+			geVec3d Scale;
+
+			if(m_WeaponActor)
+			{
+				CCD->ActorManager()->GetScaleXYZ(m_Actor, &Scale);
+
+				Scale.X = args[0].floatValue() * (m_WScale.X / Scale.X);
+				Scale.Y = args[1].floatValue() * (m_WScale.Y / Scale.Y);
+				Scale.Z = args[2].floatValue() * (m_WScale.Z / Scale.Z);
+
+				CCD->ActorManager()->SetScaleXYZ(m_WeaponActor, Scale);
+			}
+
+			Scale.X = args[0].floatValue();
+			Scale.Y = args[1].floatValue();
+			Scale.Z = args[2].floatValue();
+
+			CCD->ActorManager()->SetScaleXYZ(m_Actor, Scale);
+		}
+		else
+		{
+			if(m_WeaponActor)
+			{
+				float scale;
+				CCD->ActorManager()->GetScale(m_Actor, &scale);
+				scale = args[0].floatValue() * (m_WScale.X / scale);
+				CCD->ActorManager()->SetScale(m_WeaponActor, scale);
+			}
+
+			CCD->ActorManager()->SetScale(m_Actor, args[0].floatValue());
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(FireProjectile)
+{
+	if(m_Actor)
+	{
+		if(args.entries() > 6)
+		{
+			if(args[6].str() != "")
+			{
+				m_SoundID = PlaySound(args[6].str().c_str(), m_SoundID);
+			}
+		}
+
+		geXForm3d Xf;
+		bool bone;
+
+		if(m_WeaponActor)
+			bone = geActor_GetBoneTransform(m_WeaponActor, args[1].str().c_str(), &Xf);
+		else
+			bone = geActor_GetBoneTransform(m_Actor, args[1].str().c_str(), &Xf);
+
+		if(bone)
+		{
+			geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
+
+			geVec3d_Copy(&Xf.Translation, &Pos);
+			CCD->ActorManager()->GetRotate(m_Actor, &theRotation);
+
+			geXForm3d_SetZRotation(&Xf, theRotation.Z);
+			geXForm3d_RotateX(&Xf, theRotation.X);
+			geXForm3d_RotateY(&Xf, theRotation.Y);
+
+			geXForm3d_GetIn(&Xf, &Direction);
+			geVec3d_AddScaled(&Pos, &Direction, 1000.0f, &TargetPoint);
+			geVec3d_AddScaled(&Pos, &Direction, args[4].floatValue(), &Pos);
+
+			geXForm3d_GetUp(&Xf, &Direction);
+			geVec3d_AddScaled(&Pos, &Direction, args[3].floatValue(), &Pos);
+
+			geXForm3d_GetLeft(&Xf, &Direction);
+			geVec3d_AddScaled(&Pos, &Direction, args[2].floatValue(), &Pos);
+
+			geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
+			float l = geVec3d_Length(&Orient);
+
+			if(l > 0.0f)
+			{
+				float x = Orient.X;
+				Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+				Orient.Y = atan2(x, Orient.Z) + GE_PI;
+				Orient.Z = 0.0f;	// roll is zero - always!!?
+
+				std::string Projectile, Attribute;
+				Projectile = args[0].str().c_str();
+				Attribute = args[5].str().c_str();
+
+				CCD->Weapons()->AddProjectile(Pos, Pos, Orient, Projectile, Attribute, Attribute);
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(AddExplosion)
+{
+	if(m_Actor)
+	{
+		geVec3d Pos;
+
+		if(geActor_DefHasBoneNamed(geActor_GetActorDef(m_Actor), args[1].str().c_str()))
+		{
+			Pos.X = args[2].floatValue();
+			Pos.Y = args[3].floatValue();
+			Pos.Z = args[4].floatValue();
+
+			CCD->Level()->ExplosionManager()->AddExplosion(args[0].str().c_str(), Pos, m_Actor, args[1].str().c_str());
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(TargetGroup)
+{
+	if(args[0].str() != "")
+		m_TargetGroup = args[0].str().c_str();
+
+	return true;
+}
+
+Q_METHOD_IMPL(TestDamageOrder)
+{
+	if(!m_Actor)
+		return true;
+
+	if(m_Attribute.empty())
+		return true;
+
+	if(args[1].str() == "")
+		return true;
+
+	CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(m_Actor);
+
+	int amt = abs(theInv->GetModifyAmt(m_Attribute));
+
+	if(args[0].intValue() <= amt)
+	{
+		Order = args[1].str().c_str();
+		m_RunOrder = true;
+
+		// clear queue
+#if USE_METHOD_QUEUE_STACK
+		DequeueTop();
+#else
+		ActionList *pool, *temp;
+		pool = this->Bottom;
+
+		while(pool != NULL)
+		{
+			temp = pool->next;
+			geRam_Free(pool);
+			pool = temp;
+		}
+
+		Top = NULL;
+		Bottom = NULL;
+		m_CurrentAction = NULL;
+#endif
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetLODDistance)
+{
+	if(m_Actor)
+	{
+		CCD->ActorManager()->SetLODdistance(
+			m_Actor,
+			args[0].floatValue(),
+			args[1].floatValue(),
+			args[2].floatValue(),
+			args[3].floatValue(),
+			args[4].floatValue());
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(AttachToActor)
+{
+	if(!m_Actor)
+		return true;
+
+	geActor *slaveActor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+	if(!slaveActor)
+		return true;
+
+	geVec3d Position, Rotation;
+	Position.X = args[3].floatValue();
+	Position.Y = args[4].floatValue();
+	Position.Z = args[5].floatValue();
+
+	Rotation.X = args[6].floatValue();
+	Rotation.Y = args[7].floatValue();
+	Rotation.Z = args[8].floatValue();
+
+	CCD->ActorManager()->ActorAttach(	slaveActor, args[1].str().c_str(),
+										m_Actor, args[2].str().c_str(),
+										Position, Rotation);
+
+	return true;
+}
+
+Q_METHOD_IMPL(DetachFromActor)
+{
+	if(m_Actor)
+	{
+		geActor *actor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+		if(!actor)
+			return true;
+
+		CCD->ActorManager()->DetachFromActor(m_Actor, actor);
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(AttachBlendActor)
+{
+	if(args.entries() > 1)
+	{
+		geActor *slaveActor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+		if(!slaveActor)
+			return true;
+
+		geActor *masterActor;
+
+		if(args[1].str().equalsIgnoreCase("Player"))
+			masterActor = CCD->Player()->GetActor();
+		else
+			masterActor = CCD->ActorManager()->GetByEntityName(args[1].str().c_str());
+
+		if(!masterActor)
+			return true;
+
+		CCD->ActorManager()->ActorAttachBlend(slaveActor, masterActor);
+	}
+	else
+	{
+		if(m_Actor)
+		{
+			geActor *slaveActor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+			if(!slaveActor)
+				return true;
+
+			CCD->ActorManager()->ActorAttachBlend(slaveActor, m_Actor);
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(DetachBlendActor)
+{
+	if(args.entries() > 1)
+	{
+		geActor *slaveActor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+		if(!slaveActor)
+			return true;
+
+		geActor *masterActor;
+
+		if(args[1].str().equalsIgnoreCase("Player"))
+			masterActor = CCD->Player()->GetActor();
+		else
+			masterActor = CCD->ActorManager()->GetByEntityName(args[1].str().c_str());
+
+		if(!masterActor)
+			return true;
+
+		CCD->ActorManager()->DetachBlendFromActor(masterActor, slaveActor);
+	}
+	else
+	{
+		if(m_Actor)
+		{
+			geActor *slaveActor = CCD->ActorManager()->GetByEntityName(args[0].str().c_str());
+
+			if(!slaveActor)
+				return true;
+
+			CCD->ActorManager()->DetachBlendFromActor(m_Actor, slaveActor);
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(AttachAccessory)
+{
+	geActor *masterActor = NULL;
+	std::string entityName;
+
+	if(args.entries() > 1)
+	{
+		entityName = args[1].str().c_str();
+
+		if(args[1].str().equalsIgnoreCase("Player"))
+			masterActor = CCD->Player()->GetActor();
+		else
+			masterActor = CCD->ActorManager()->GetByEntityName(entityName.c_str());
+	}
+	else
+	{
+		entityName = CCD->ActorManager()->GetEntityName(m_Actor);
+		masterActor = m_Actor;
+	}
+
+	if(masterActor)
+	{
+		unsigned int keynum = CCD->Level()->Pawns()->AccessoryCache.size();
+
+		for(unsigned int i=0; i<keynum; ++i)
+		{
+			if(CCD->Level()->Pawns()->AccessoryCache[i].Name == args[0].str().c_str())
+			{
+				entityName += args[0].str().c_str();
+
+				if(CCD->ActorManager()->GetByEntityName(entityName.c_str()))
+					break;
+
+				geActor *slaveActor = CCD->ActorManager()->SpawnActor(
+										CCD->Level()->Pawns()->AccessoryCache[i].ActorName,
+										m_Location,
+										CCD->Level()->Pawns()->AccessoryCache[i].Rotation,
+										"", "",
+										NULL);
+
+				if(!slaveActor)
+					break;
+
+				CCD->ActorManager()->SetEntityName(slaveActor, entityName.c_str());
+
+				if(CCD->Level()->Pawns()->AccessoryCache[i].EnvironmentMapping)
+				{
+					SetEnvironmentMapping(	slaveActor, true,
+											CCD->Level()->Pawns()->AccessoryCache[i].AllMaterial,
+											CCD->Level()->Pawns()->AccessoryCache[i].PercentMapping,
+											CCD->Level()->Pawns()->AccessoryCache[i].PercentMaterial);
+				}
+
+				CCD->ActorManager()->ActorAttachBlend(slaveActor, masterActor);
+				break;
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(DetachAccessory)
+{
+	geActor *masterActor = NULL;
+	std::string entityName;
+
+	if(args.entries() > 1)
+	{
+		entityName = args[1].str().c_str();
+
+		if(args[1].str().equalsIgnoreCase("Player"))
+			masterActor = CCD->Player()->GetActor();
+		else
+			masterActor = CCD->ActorManager()->GetByEntityName(entityName.c_str());
+	}
+	else
+	{
+		entityName = CCD->ActorManager()->GetEntityName(m_Actor);
+		masterActor = m_Actor;
+	}
+
+	if(masterActor)
+	{
+		entityName += args[0].str().c_str();
+		geActor *slaveActor = CCD->ActorManager()->GetByEntityName(entityName.c_str());
+
+		if(slaveActor)
+		{
+			CCD->ActorManager()->DetachBlendFromActor(masterActor, slaveActor);
+			CCD->ActorManager()->RemoveActorCheck(slaveActor);
+			geActor_Destroy(&slaveActor);
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(SetWeapon)
+{
+	if(m_Actor)
+	{
+		unsigned int keynum = CCD->Level()->Pawns()->WeaponCache.size();
+
+		for(unsigned int i=0; i<keynum; ++i)
+		{
+			if(CCD->Level()->Pawns()->WeaponCache[i].Name == args[0].str().c_str())
+			{
+				if(m_WeaponActor)
+				{
+					CCD->ActorManager()->RemoveActorCheck(m_WeaponActor);
+					geActor_Destroy(&m_WeaponActor);
+					m_WeaponActor = NULL;
+				}
+
+				m_WeaponActor = CCD->ActorManager()->SpawnActor(
+									CCD->Level()->Pawns()->WeaponCache[i].ActorName,
+									m_Location,
+									CCD->Level()->Pawns()->WeaponCache[i].Rotation,
+									"",
+									"",
+									NULL);
+
+				CCD->ActorManager()->SetActorDynamicLighting(
+					m_WeaponActor,
+					CCD->Level()->Pawns()->WeaponCache[i].FillColor,
+					CCD->Level()->Pawns()->WeaponCache[i].AmbientColor,
+					CCD->Level()->Pawns()->WeaponCache[i].AmbientLightFromFloor);
+
+				m_WRotation = CCD->Level()->Pawns()->WeaponCache[i].Rotation;
+
+				m_WScale.X = m_WScale.Y = m_WScale.Z = CCD->Level()->Pawns()->WeaponCache[i].Scale;
+
+				CCD->ActorManager()->SetScale(m_WeaponActor, m_WScale.X);
+
+				CCD->ActorManager()->SetNoCollide(m_WeaponActor);
+
+				if(CCD->Level()->Pawns()->WeaponCache[i].EnvironmentMapping)
+				{
+					SetEnvironmentMapping(
+						m_WeaponActor,
+						true,
+						CCD->Level()->Pawns()->WeaponCache[i].AllMaterial,
+						CCD->Level()->Pawns()->WeaponCache[i].PercentMapping,
+						CCD->Level()->Pawns()->WeaponCache[i].PercentMaterial);
+				}
+
+				break;
+			}
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(RemoveWeapon)
+{
+	if(m_Actor)
+	{
+		if(m_WeaponActor)
+		{
+			CCD->ActorManager()->RemoveActorCheck(m_WeaponActor);
+			geActor_Destroy(&m_WeaponActor);
+			m_WeaponActor = NULL;
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(debug)
+{
+	if(m_Console)
+	{
+		int index = -1;
+		int i;
+
+		for(i=0; i<DEBUGLINES; ++i)
+		{
+			if(EffectC_IsStringNull(m_ConsoleDebug[i]))
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if(index != -1)
+		{
+			strcpy(m_ConsoleDebug[index], args[0].str().c_str());
+		}
+		else
+		{
+			for(i=1; i<DEBUGLINES; ++i)
+			{
+				strcpy(m_ConsoleDebug[i-1], m_ConsoleDebug[i]);
+			}
+
+			strcpy(m_ConsoleDebug[DEBUGLINES-1], args[0].str().c_str());
+		}
+	}
+
+	return true;
+}
+
+Q_METHOD_IMPL(ShowTextDelay)
+{
+	if(m_StartAction)
+	{
+		m_StartAction = false;
+
+		if(args.entries() > 9)
+		{
+			if(m_Actor && args[2].str() != "")
+			{
+				CCD->ActorManager()->SetMotion(m_Actor, args[2].str().c_str());
+				CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			}
+
+			CCD->Level()->Pawns()->TextMessage[args[0].intValue()].ShowText = true;
+
+			if(args[6].str() != "")
+			{
+				PlaySound(args[6].str().c_str(), -1, GE_FALSE);
+			}
+		}
+		else
+		{
+			CCD->Level()->Pawns()->TextMessage[args[0].intValue()].ShowText = false;
+			return true;
+		}
+	}
+
+	m_Time += timeElapsed * 0.001f;
+
+	if(m_Time >= args[5].floatValue())
+	{
+		m_Time = 0.0f;
+		CCD->Level()->Pawns()->TextMessage[args[0].intValue()].ShowText = false;
+		return true;
+	}
+
+	return false;
+}
+
+Q_METHOD_IMPL(ShowText)
+{
+	if(m_Actor && args[2].str() != "")
+	{
+		CCD->ActorManager()->SetMotion(m_Actor, args[2].str().c_str());
+		CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+	}
+
+	if(args.entries() > 5)
+	{
+		if(args[5].str() != "")
+		{
+			PlaySound(args[5].str().c_str(), -1, GE_FALSE);
+		}
+	}
+
+	CCD->Level()->Pawns()->TextMessage[args[0].intValue()].ShowText = true;
+
+	return true;
+}
+
+Q_METHOD_IMPL(RemoveText)
+{
+	CCD->Level()->Pawns()->TextMessage[args[0].intValue()].ShowText = false;
+
+	return true;
+}
+
+Q_METHOD_IMPL(MouseControlledPlayer)
+{
+	// deprecated
+	CCD->SetMouseControl(args[0].boolValue());
+	return true;
+}
+
+Q_METHOD_IMPL(EndScript)
+{
+	m_Alive = false;
+	return true;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	CanSee
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::CanSee(float FOV, const geActor *Actor, const geActor *TargetActor, const std::string& Bone)
+{
+	geVec3d pos, targetPos, temp, in;
+	float dotProduct;
+
+	CCD->ActorManager()->GetPosition(Actor, &pos);
+	CCD->ActorManager()->InVector(Actor, &in);
+
+	if(!Bone.empty())
+	{
+		geXForm3d xf;
+
+		if(geActor_GetBoneTransform(Actor, Bone.c_str(), &xf) == GE_TRUE)
+		{
+			geVec3d_Copy(&xf.Translation, &pos);
+			geXForm3d_GetIn(&xf, &in);
+		}
+	}
+
+	CCD->ActorManager()->GetPosition(TargetActor, &targetPos);
+	geVec3d_Subtract(&targetPos, &pos, &temp);
+	geVec3d_Normalize(&temp);
+	dotProduct = geVec3d_DotProduct(&temp, &in);
+
+	if(dotProduct > FOV)
+	{
+		if(CanSeeActorToActor(Actor, TargetActor))
+			return true;
+	}
+
+	return false;
+}
+
+/* ------------------------------------------------------------------------------------ */
+//	CanSeePoint
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::CanSeePoint(float FOV, const geActor *Actor, const geVec3d *TargetPoint, const std::string& Bone)
+{
+	geVec3d pos, temp, in;
+	float dotProduct;
+
+	CCD->ActorManager()->GetPosition(Actor, &pos);
+	CCD->ActorManager()->InVector(Actor, &in);
+
+	if(!Bone.empty())
+	{
+		geXForm3d xf;
+
+		if(geActor_GetBoneTransform(Actor, Bone.c_str(), &xf) == GE_TRUE)
+		{
+			geVec3d_Copy(&xf.Translation, &pos);
+			geXForm3d_GetIn(&xf, &in);
+		}
+	}
+
+	geVec3d_Subtract(TargetPoint, &pos, &temp);
+	geVec3d_Normalize(&temp);
+	dotProduct = geVec3d_DotProduct(&temp, &in);
+
+	if(dotProduct > FOV)
+	{
+		if(CanSeeActorToPoint(Actor, TargetPoint))
+			return true;
+	}
+
+	return false;
+}
+
+/* ------------------------------------------------------------------------------------ */
+//	PlayerDistance
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::PlayerDistance(float minDistance)
+{
+	bool flg = false;
+	bool fov = true;
+
+	if(m_FOV > -2.0f && m_Actor)
+		fov = CanSee(m_FOV, m_Actor, CCD->Player()->GetActor(), m_FOVBone);
+
+	if(fov)
+	{
+		if(minDistance >= 0.0f)
+		{
+			if(m_Actor)
+				flg = CCD->ActorManager()->DistanceFrom(m_Actor, CCD->Player()->GetActor()) < minDistance;
+			else
+				flg = CCD->ActorManager()->DistanceFrom(m_DeadPos, CCD->Player()->GetActor()) < minDistance;
+		}
+		else
+		{
+			if(m_Actor)
+				flg = CCD->ActorManager()->DistanceFrom(m_Actor, CCD->Player()->GetActor()) > fabs(minDistance);
+			else
+				flg = CCD->ActorManager()->DistanceFrom(m_DeadPos, CCD->Player()->GetActor()) > fabs(minDistance);
+		}
+	}
+
+	return flg;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	MoveToPoint
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::MoveToPoint(float timeElapsed, skRValueArray& args)
+{
+	geVec3d Pos, Orient, NewPos;
+	geXForm3d Xf;
+
+	m_AvoidMode = false;
+
+	if(m_StartAction)
+	{
+		if(args[0].str() != "")
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, args[0].str().c_str());
+		}
+
+		if(args.entries() > 2)
+		{
+			if(args[2].str() != "")
+			{
+				m_SoundID = PlaySound(args[2].str().c_str(), m_SoundID);
+			}
+		}
+
+		m_StartAction = false;
+		CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+		geVec3d_Subtract(&m_CurrentPoint, &Pos, &m_Vec2Point);
+		Orient = m_Vec2Point;
+		m_Vec2Point.Y = 0.0f;
+		geVec3d_Normalize(&m_Vec2Point);
+		float l = geVec3d_Length(&Orient);
+
+		if(l > 0.0f)
+		{
+			float x = Orient.X;
+
+			Orient.X = GE_PIOVER2 - acos(Orient.Y / l);
+			Orient.Y = atan2(x, Orient.Z) + GE_PI;
+			Orient.Z = 0.0f;	// roll is zero - always!!?
+
+			geXForm3d_SetXRotation(&Xf, Orient.X);
+			geXForm3d_RotateY(&Xf, Orient.Y);
+
+			geXForm3d_GetIn(&Xf, &m_TempPoint);
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+
+	float distance = args[1].floatValue() * (timeElapsed * 0.001f);
+
+	if(	fabs(Pos.X - m_CurrentPoint.X) < distance &&
+		fabs(Pos.Z - m_CurrentPoint.Z) < distance)
+		return true;
+
+	geVec3d_AddScaled(&Pos, &m_TempPoint, distance, &NewPos);
+
+	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, m_Actor, false);
+
+	if(!result)
+		m_AvoidMode = true;
+
+	return false;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	RotateToPoint
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::RotateToPoint(
+	float timeElapsed,
+	const std::string& animation,
+	float rSpeed,
+	bool rotateXY)
+{
+	if(m_StartAction)
+	{
+		if(!animation.empty())
+		{
+			CCD->ActorManager()->SetMotion(m_Actor, animation);
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+		}
+
+		m_StartAction = false;
+	}
+
+	geVec3d pos, orient;
+	CCD->ActorManager()->GetPosition(m_Actor, &pos);
+	geVec3d_Subtract(&m_CurrentPoint, &pos, &orient);
+
+	float l = geVec3d_Length(&orient);
+	float rotateAmt = 0.0f;
+	float tiltAmt = 0.0f;
+
+	if(l > 0.0f)
+	{
+		float x = orient.X;
+		orient.X = GE_PIOVER2 - acos(orient.Y / l);
+		orient.Y = atan2(x, orient.Z) + GE_PI;
+	}
+
+	{
+		CCD->ActorManager()->GetRotate(m_Actor, &pos);
+
+		while(pos.Y < 0.0f)		{ pos.Y += GE_2PI; }
+		while(pos.Y >= GE_2PI)	{ pos.Y -= GE_2PI; }
+
+		bool rotateLeft = false;
+		rotateAmt = pos.Y - orient.Y;
+
+		if(rotateAmt < 0.0f)
+		{
+			rotateAmt = -rotateAmt;
+			rotateLeft = true;
+		}
+
+		if(rotateAmt > 0.0f)
+		{
+			if(rotateAmt > GE_PI)
+			{
+				rotateAmt = GE_2PI - rotateAmt;
+
+				if(rotateLeft)	{ rotateLeft = false; }
+				else			{ rotateLeft = true;  }
+			}
+
+			rotateAmt *= GE_180OVERPI;
+			float amount = rSpeed * (timeElapsed * 0.001f);
+
+			if(amount > rotateAmt)
+			{
+				amount = rotateAmt;
+			}
+
+			rotateAmt -= amount;
+
+			if(rotateLeft)	CCD->ActorManager()->TurnRight(m_Actor, GE_PIOVER180 * amount);
+			else			CCD->ActorManager()->TurnLeft (m_Actor, GE_PIOVER180 * amount);
+		}
+
+		if(rotateXY)
+		{
+			while(pos.X < 0.0f)		{ pos.X += GE_2PI; }
+			while(pos.X >= GE_2PI)	{ pos.X -= GE_2PI; }
+
+			bool tiltUp = false;
+			tiltAmt = pos.X - orient.X;
+
+			if(tiltAmt < 0.0f)
+			{
+				tiltAmt = -tiltAmt;
+				tiltUp = true;
+			}
+
+			if(tiltAmt > 0.0f)
+			{
+				if(tiltAmt > GE_PI)
+				{
+					tiltAmt = GE_2PI - tiltAmt;
+
+					if(tiltUp)	{ tiltUp = false; }
+					else		{ tiltUp = true;  }
+				}
+
+				tiltAmt *= GE_180OVERPI;
+				float amount = rSpeed * (timeElapsed * 0.001f);
+
+				if(amount > tiltAmt)
+				{
+					amount = tiltAmt;
+				}
+
+				tiltAmt -= amount;
+
+				if(tiltUp)	CCD->ActorManager()->TiltUp  (m_Actor, GE_PIOVER180 * amount);
+				else		CCD->ActorManager()->TiltDown(m_Actor, GE_PIOVER180 * amount);
+			}
+		}
+
+		if(rotateAmt <= 0.0f && tiltAmt <= 0.0f)
+			return true;
+
+		return false;
+	}
+
+	return true;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	Rotate
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::Rotate(
+	float timeElapsed,
+	const std::string& animation,
+	float speed,
+	geVec3d *angle)
+{
+	if(m_StartAction)
+	{
+		if(!animation.empty())
+		{
+			CCD->ActorManager()->SetMotion(m_Actor, animation);
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+		}
+
+		m_StartAction = false;
+	}
+
+	CCD->ActorManager()->GetRotate(m_Actor, &m_TempPoint);
+
+	float baseamount = speed * (timeElapsed * 0.001f);
+
+	bool flag = true;
+
+	if(angle->X != 0.0f)
+	{
+		float amount = baseamount;
+
+		if(angle->X < 0.0f)
+		{
+			amount = -amount;
+
+			if(amount < angle->X)
+				amount = angle->X;
+		}
+		else
+		{
+			if(amount > angle->X)
+				amount = angle->X;
+		}
+
+		angle->X -= amount;
+		amount *= GE_PIOVER180;
+		m_TempPoint.X += amount;
+		flag = false;
+	}
+
+	if(angle->Y != 0.0f)
+	{
+		float amount = baseamount;
+
+		if(angle->Y < 0.0f)
+		{
+			amount = -amount;
+
+			if(amount < angle->Y)
+				amount = angle->Y;
+		}
+		else
+		{
+			if(amount > angle->Y)
+				amount = angle->Y;
+		}
+
+		angle->Y -= amount;
+		amount *= GE_PIOVER180;
+		m_TempPoint.Y += amount;
+		flag = false;
+	}
+
+	if(angle->Z != 0.0f)
+	{
+		float amount = baseamount;
+
+		if(angle->Z < 0.0f)
+		{
+			amount = -amount;
+
+			if(amount < angle->Z)
+				amount = angle->Z;
+		}
+		else
+		{
+			if(amount > angle->Z)
+				amount = angle->Z;
+		}
+
+		angle->Z -= amount;
+		amount *= GE_PIOVER180;
+		m_TempPoint.Z += amount;
+		flag = false;
+	}
+
+	CCD->ActorManager()->Rotate(m_Actor, m_TempPoint);
+
+	return flag;
+}
+
+/* ------------------------------------------------------------------------------------ */
+//	RotateMoveToPoint
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::RotateMoveToPoint(
+	float timeElapsed,
+	const std::string& animation,
+	float rSpeed,
+	float speed,
+	bool rotateXY)
+{
+	if(RotateToPoint(timeElapsed, animation, rSpeed, rotateXY))
+		return true;
+
+	geVec3d Pos, NewPos, In;
+
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+	float distance = speed * (timeElapsed * 0.001f);
+	CCD->ActorManager()->InVector(m_Actor, &In);
+	geVec3d_AddScaled(&Pos, &In, distance, &NewPos);
+
+	CCD->ActorManager()->ValidateMove(Pos, NewPos, m_Actor, false);
+
+	return false;
+}
+
+/* ------------------------------------------------------------------------------------ */
+//	Move
+/* ------------------------------------------------------------------------------------ */
+bool ScriptedObject::Move(
+	float timeElapsed,
+	const std::string& animation,
+	float speed,
+	float totalDistance,
+	float angleX,
+	float angleY,
+	float angleZ)
+{
+	if(!m_Actor)
+		return true;
+
+	geVec3d Pos, NewPos;
+	bool retflg = false;
+
+	if(m_StartAction)
+	{
+		m_TotalDist = 0.0f;
+
+		if(!animation.empty())
+		{
+			CCD->ActorManager()->SetHoldAtEnd(m_Actor, false);
+			CCD->ActorManager()->SetMotion(m_Actor, animation);
+		}
+
+		m_StartAction = false;
+		CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+
+		if(m_Direction == RGF_K_BACKWARD || m_Direction == RGF_K_FORWARD)
+		{
+			CCD->ActorManager()->InVector(m_Actor, &m_Vec2Point);
+		}
+		else
+		{
+			if(m_Direction != 0)
+			{
+				CCD->ActorManager()->LeftVector(m_Actor, &m_Vec2Point);
 			}
 			else
 			{
-				if(Object->Trigger && !Object->TargetDisable)
-				{
-					TriggerStack *tpool, *ttemp;
+				geXForm3d thePosition;
+				geVec3d Rotate;
+				CCD->ActorManager()->GetRotate(m_Actor, &Rotate);
 
-					bool flag;
-					tpool = Object->Trigger;
+				geXForm3d_SetZRotation(&thePosition,Rotate.Z + angleZ * GE_PIOVER180);
+				geXForm3d_RotateX(&thePosition,		Rotate.X + angleX * GE_PIOVER180);
+				geXForm3d_RotateY(&thePosition,		Rotate.Y + angleY * GE_PIOVER180);
 
-					while(tpool != NULL)
-					{
-						ttemp = tpool->next;
-
-						switch(tpool->Type)
-						{
-						case PTRIGGER:
-							flag = GetTriggerState(tpool->TriggerName);
-							break;
-						case PFLAG:
-							flag = (GetPawnFlag(tpool->PFlg)==tpool->Flag);
-							break;
-						case PTIMER:
-							flag = (tpool->Time==0.0f);
-							break;
-						case PDIST:
-							flag = PlayerDistance(Object->FOV, tpool->Time, Object->Actor, Object->DeadPos, Object->FOVBone);
-							break;
-						case PCOLLIDE:
-							flag = Object->collision;
-							break;
-						case PSOUND:
-							flag = false;
-							if(tpool->Time == 0.0f)
-							{
-								tpool->Time=EffectC_Frand(tpool->Low, tpool->High);
-								Snd Sound;
-
-								memset( &Sound, 0, sizeof( Sound ) );
-								{
-									if(Object->Actor)
-										CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
-									else
-										Sound.Pos = Object->DeadPos;
-								}
-								Sound.Min = Object->AudibleRadius;
-								Sound.Loop = GE_FALSE;
-								Sound.SoundDef = SPool_Sound(tpool->OrderName);
-								CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
-							}
-							break;
-						}
-						if(flag)
-						{
-							if(tpool->Delay > 0.0f)
-							{
-								Object->TriggerWait = true;
-								Object->TriggerTime = tpool->Delay;
-								strcpy(Object->TriggerOrder, tpool->OrderName);
-								Object->RemoveTriggerStack(tpool);
-							}
-							else
-							{
-								strcpy(Object->Order, tpool->OrderName);
-								Object->RunOrder = true;
-								Object->ActionActive = false;
-								ActionList *pool, *temp;
-								pool = Object->Bottom;
-
-								while(pool != NULL)
-								{
-									temp = pool->next;
-									geRam_Free(pool);
-									pool = temp;
-								}
-
-								Object->Top = NULL;
-								Object->Bottom = NULL;
-								Object->Index = NULL;
-								Object->RemoveTriggerStack(tpool);
-							}
-							break;
-						}
-
-						tpool = ttemp;
-					}
-				}
+				geXForm3d_GetIn(&thePosition, &m_Vec2Point);
 			}
-			if(Object->PointFind)
-			{
-				if(Object->FOV > -2.0f && Object->Actor)
-				{
-					float dist = 9000000.0f;// only ScripPoints within 3000 texels
-					bool done = false;
-
-					geEntity_EntitySet *pSet;
-					geEntity *pEntity;
-
-					// Ok, check to see if there are ScriptPoints in this world
-					pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
-
-					if(pSet)
-					{
-						// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
-						for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
-							pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
-						{
-							ScriptPoint *pSource = (ScriptPoint*)geEntity_GetUserData(pEntity);
-
-							// search for nearest visible ScripPoint
-							if(CanSeePoint(Object->FOV, Object->Actor, &(pSource->origin), Object->FOVBone))
-							{
-								float newdist;
-								geVec3d Pos, Dist;
-
-								//calc newdist
-								CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-								geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
-								newdist = geVec3d_LengthSquared(&Dist);
-
-								if(newdist < dist)
-								{
-									dist = newdist;
-									strcpy(Object->Point, pSource->szEntityName);
-									Object->CurrentPoint= pSource->origin;
-									Object->ValidPoint = true;
-									done = true;
-								}
-							}
-						}
-					}
-
-					if(done)
-					{
-						strcpy(Object->Order, Object->PointOrder);
-						Object->RunOrder = true;
-						Object->ActionActive = false;
-						ActionList *pool, *temp;
-						pool = Object->Bottom;
-
-						while(pool != NULL)
-						{
-							temp = pool->next;
-							geRam_Free(pool);
-							pool = temp;
-						}
-
-						Object->Top = NULL;
-						Object->Bottom = NULL;
-						Object->Index = NULL;
-						Object->PointFind = false;
-					}
-				}
-			}
-
-			if(Object->TargetFind && !Object->TargetDisable)
-			{
-				if(Object->FOV > -2.0f && Object->Actor)
-				{
-					float distance = Object->TargetDistance+100.f;
-					bool done = false;
-
-					if(Object->HostilePlayer)
-					{
-						if(CanSee(Object->FOV, Object->Actor, CCD->Player()->GetActor(), Object->FOVBone))
-						{
-							float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, CCD->Player()->GetActor());
-
-							if(dist < Object->TargetDistance)
-							{
-								Object->TargetActor = CCD->Player()->GetActor();
-								done = true;
-								distance = dist;
-							}
-						}
-					}
-
-					geActor *ActorsInRange[512];
-					geVec3d Pos;
-
-					CCD->ActorManager()->GetPosition(Object->Actor, &Pos);
-					int nActorCount = CCD->ActorManager()->GetActorsInRange(Pos, Object->TargetDistance,
-																			512, &ActorsInRange[0]);
-
-					if(nActorCount != 0)
-					{
-						if(Object->HostileDiff)
-						{
-							for(int nTemp=0; nTemp<nActorCount; nTemp++)
-							{
-								if(ActorsInRange[nTemp] == Object->Actor)
-									continue;
-
-								int nType;
-								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-
-								if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE)
-									&& CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
-								{
-									bool TG = false;
-
-									if(!EffectC_IsStringNull(Object->TargetGroup))
-									{
-										if(!strcmp(Object->TargetGroup, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
-											TG = true;
-									}
-									else
-									{
-										if(strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])) != 0)
-											TG = true;
-									}
-
-									if(TG)
-									{
-										CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
-
-										if(theInv->Has(Object->TargetAttr))
-										{
-											if(theInv->Value(Object->TargetAttr) > 0)
-											{
-												if(CanSee(Object->FOV, Object->Actor, ActorsInRange[nTemp], Object->FOVBone))
-												{
-													float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, ActorsInRange[nTemp]);
-
-													if(dist < Object->TargetDistance)
-													{
-														done = true;
-
-														if(distance > dist)
-														{
-															distance = dist;
-															Object->TargetActor = ActorsInRange[nTemp];
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-
-						if(Object->HostileSame)
-						{
-							for(int nTemp=0; nTemp<nActorCount; nTemp++)
-							{
-								if(ActorsInRange[nTemp]==Object->Actor)
-									continue;
-
-								int nType;
-								CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
-
-								if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE)
-									&& CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
-								{
-									if(!strcmp(Object->Group, CCD->ActorManager()->GetGroup(ActorsInRange[nTemp])))
-									{
-										CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
-
-										if(theInv->Has(Object->TargetAttr))
-										{
-											if(theInv->Value(Object->TargetAttr) > 0)
-											{
-												if(CanSee(Object->FOV, Object->Actor, ActorsInRange[nTemp], Object->FOVBone))
-												{
-													float dist = CCD->ActorManager()->DistanceFrom(Object->Actor, ActorsInRange[nTemp]);
-
-													if(dist < Object->TargetDistance)
-													{
-														done = true;
-
-														if(distance > dist)
-														{
-															distance = dist;
-															Object->TargetActor = ActorsInRange[nTemp];
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-					if(done)
-					{
-						strcpy(Object->Order, Object->TargetOrder);
-						Object->RunOrder = true;
-						Object->ActionActive = false;
-						ActionList *pool, *temp;
-						pool = Object->Bottom;
-
-						while(pool != NULL)
-						{
-							temp = pool->next;
-							geRam_Free(pool);
-							pool = temp;
-						}
-
-						Object->Top = NULL;
-						Object->Bottom = NULL;
-						Object->Index = NULL;
-						Object->TargetFind = false;
-						CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->LastTargetPoint);
-					}
-				}
-			}
-
-			if(Object->DistActive && !Object->TargetDisable)
-			{
-				bool flg = PlayerDistance(Object->FOV, Object->MinDistance, Object->Actor,
-											Object->DeadPos, Object->FOVBone);
-
-				if(flg)
-				{
-					strcpy(Object->Order, Object->DistOrder);
-					Object->RunOrder = true;
-					Object->ActionActive = false;
-					ActionList *pool, *temp;
-					pool = Object->Bottom;
-
-					while(pool != NULL)
-					{
-						temp = pool->next;
-						geRam_Free(pool);
-						pool = temp;
-					}
-
-					Object->Top = NULL;
-					Object->Bottom = NULL;
-					Object->Index = NULL;
-					Object->DistActive = false;
-				}
-			}
-
-			if(Object->PainActive && !Object->TargetDisable)
-			{
-				CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
-				int current = theInv->Value(Object->Attribute);
-
-				if(current > 0)
-				{
-					if(current < Object->OldAttributeAmount)
-					{
-						if((int)EffectC_Frand(1.0f, 10.0f) <= (Object->PainPercent/10))
-						{
-							if(!EffectC_IsStringNull(Object->PainOrder))
-							{
-								Object->Push();
-								strcpy(Object->Order, Object->PainOrder);
-								Object->RunOrder = true;
-								Object->ActionActive = false;
-								Object->TargetDisable = true;
-								runflag = true;
-							}
-						}
-					}
-				}
-
-				Object->OldAttributeAmount = current;
-			}
-
-			if(Object->RunOrder)
-			{
-				bool methoderror = false;
-
-				try
-				{
-					Object->method(skString(Object->Order), args, ret, ScriptManager::GetContext());
-				}
-				catch(skRuntimeException e)
-				{
-					if(!strcmp(Object->Indicate, "+"))
-						strcpy(Object->Indicate, " ");
-					else
-						strcpy(Object->Indicate, "+");
-
-					if(Object->console)
-						strcpy(Object->ConsoleError, e.toString());
-      			}
-				catch(skParseException e)
-				{
-					if(!strcmp(Object->Indicate, "+"))
-						strcpy(Object->Indicate, " ");
-					else
-						strcpy(Object->Indicate, "+");
-
-					if(Object->console)
-						strcpy(Object->ConsoleError, e.toString());
-				}
-				catch (...)
-				{
-					char szBug[256];
-					sprintf(szBug, "Script Error for %s in Order %s", Object->szName, Object->Order);
-					CCD->ReportError(szBug, false);
-
-					if(Object->console)
-						strcpy(Object->ConsoleError, szBug);
-
-					methoderror = true;
-				}
-
-				Object->RunOrder = false;
-				Object->Index = NULL;
-
-				if(!methoderror)
-					Object->ActionActive = false;
-				else
-					break;
-			}
-
-			if(!Object->ActionActive)
-			{
-				if(!Object->Index)
-					Object->Index = Object->Top;
-				else
-					Object->Index = Object->Index->prev;
-
-				Object->ActionActive = true;
-				Object->StartAction = true;
-
-				if(Object->SoundIndex != -1 && !Object->SoundLoop)
-				{
-					CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
-					Object->SoundIndex = -1;
-				}
-
-				if(Object->Index)
-				{
-					if(!EffectC_IsStringNull(Object->Index->SoundName))
-					{
-						if(Object->SoundIndex != -1)
-						{
-							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
-							Object->SoundIndex = -1;
-						}
-
-						Snd Sound;
-
-						memset(&Sound, 0, sizeof(Sound));
-						{
-							if(Object->Actor)
-								CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
-							else
-								Sound.Pos = Object->DeadPos;
-						}
-
-						Sound.Min = Object->AudibleRadius;
-						Sound.Loop = GE_TRUE;
-
-						if(Object->Index->Action == STOPANIMATION)
-							Sound.Loop = GE_FALSE;
-
-						Sound.SoundDef = SPool_Sound(Object->Index->SoundName);
-						Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
-					}
-				}
-			}
-			else
-			{
-				if(!Object->Index)
-				{
-					if(Object->Stack)
-					{
-						Object->Pop();
-						Object->ActionActive = true;
-						Object->TargetDisable = false;
-						Object->StartAction = true;
-
-						if(Object->SoundIndex != -1 && !Object->SoundLoop)
-						{
-							CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
-							Object->SoundIndex = -1;
-						}
-
-						if(!EffectC_IsStringNull(Object->Index->SoundName))
-						{
-							if(Object->SoundIndex != -1)
-							{
-								CCD->EffectManager()->Item_Delete(EFF_SND, Object->SoundIndex);
-								Object->SoundIndex = -1;
-							}
-
-							Snd Sound;
-
-							memset( &Sound, 0, sizeof( Sound ) );
-
-							if(Object->Actor)
-								CCD->ActorManager()->GetPosition(Object->Actor, &Sound.Pos);
-							else
-								Sound.Pos = Object->DeadPos;
-
-							Sound.Min = Object->AudibleRadius;
-							Sound.Loop = GE_TRUE;
-
-							if(Object->Index->Action == STOPANIMATION)
-								Sound.Loop = GE_FALSE;
-
-							Sound.SoundDef = SPool_Sound(Object->Index->SoundName);
-							Object->SoundIndex = CCD->EffectManager()->Item_Add(EFF_SND, (void*)&Sound);
-						}
-					}
-				}
-			}
-
-			if(Object->Index)
-			{
-				if(Object->console)
-				{
-					char szBug[256];
-					sprintf(szBug, "%s %s %s %s",Object->szName, Object->Order, ActionText[Object->Index->Action], Object->Point);
-					strcpy(Object->ConsoleHeader, szBug);
-				}
-
-				if(Object->FacePlayer && Object->Actor)
-				{
-					geVec3d Pos = CCD->Player()->Position();
-					geVec3d Pos1;
-					CCD->ActorManager()->GetPosition(Object->Actor, &Pos1);
-					geVec3d LookRotation;
-					geFloat x,l;
-					geVec3d_Subtract(&Pos, &Pos1, &LookRotation);
-					l = geVec3d_Length(&LookRotation);
-
-					// protect from Div by Zero
-					if(l > 0.0f)
-					{
-						x = LookRotation.X;
-						LookRotation.X = -(GE_PIOVER2 - (float)acos(LookRotation.Y / l));
-						LookRotation.Y = (float)atan2(x, LookRotation.Z) + GE_PI;
-						LookRotation.Z = 0.0f;	// roll is zero - always!!?
-
-						if(!Object->FaceAxis)
-							LookRotation.X = 0.0f;
-
-						CCD->ActorManager()->Rotate(Object->Actor, LookRotation);
-					}
-				}
-
-				ActionList *pool, *temp;
-				geVec3d Gravity = { 0.f, 0.f, 0.f };
-
-				switch(Object->Index->Action)
-				{
-				case ROTATETOPOINT:
-					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
-					{
-						if(RotateToPoint((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case MOVETOPOINT:
-					if(Object->ValidPoint && Object->Actor)
-					{
-						if(MoveToPoint((void*)Object, dwTicks))
-						{
-							Object->ActionActive = false;
-						}
-						else
-						{
-							if(Object->AvoidMode && !EffectC_IsStringNull(Object->AvoidOrder))
-							{
-								Object->Push();
-								strcpy(Object->Order, Object->AvoidOrder);
-								Object->RunOrder = true;
-								Object->ActionActive = false;
-								Object->DistActive = false;
-								runflag = true;
-							}
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case NEWORDER:
-					strcpy(Object->Order, Object->Index->AnimName);
-					Object->RunOrder = true;
-					Object->ActionActive = false;
-					pool = Object->Bottom;
-					while(pool != NULL)
-					{
-						temp = pool->next;
-						geRam_Free(pool);
-						pool = temp;
-					}
-					Object->Top = NULL;
-					Object->Bottom = NULL;
-					Object->Index = NULL;
-					runflag = true;
-					break;
-				case NEXTORDER:
-					if(Object->ValidPoint)
-					{
-						if(NextOrder((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ROTATETOALIGN:
-					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
-					{
-						if(RotateToAlign((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ROTATE:
-					if(!Object->FacePlayer && Object->Actor)
-					{
-						if(Rotate((void *)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case NEXTPOINT:
-					if(Object->ValidPoint)
-					{
-						if(NextPoint((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					runflag = true;
-					break;
-				case DELAY:
-					if(Object->StartAction)
-					{
-						if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
-							CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-						Object->StartAction = false;
-					}
-					Object->Time += (dwTicks*0.001f);// /1000.0f);
-					if(Object->Time >= Object->Index->Speed)
-					{
-						Object->Time = 0.0f;
-						Object->ActionActive = false;
-					}
-					break;
-				case SHOWTEXTDELAY:
-					if(Object->StartAction)
-					{
-						Object->StartAction = false;
-
-						if(Object->Index->Flag)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
-								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = true;
-						}
-						else
-						{
-							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
-							Object->ActionActive = false;
-							break;
-						}
-					}
-					Object->Time += (dwTicks*0.001f);
-					if((Object->Time>=Object->Index->Speed) || !(Object->Index->Flag))
-					{
-						Object->Time = 0.0f;
-						CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
-						Object->ActionActive = false;
-					}
-					break;
-				case SHOWTEXT:
-					if(Object->StartAction)
-					{
-						if(Object->Index->Flag)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
-								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = true;
-						}
-						else
-							CCD->Pawns()->TextMessage[int(Object->Index->Value1)].ShowText = false;
-
-						Object->StartAction = false;
-						Object->ActionActive = false;
-					}
-					break;
-				case PLAYANIMATION:
-					if(Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName))
-								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-							Object->StartAction = false;
-
-							if(Object->Index->Flag)
-								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
-							else
-								Object->ActionActive = false;
-						}
-
-						if(Object->Index->Flag)
-						{
-							if(CCD->ActorManager()->EndAnimation(Object->Actor))
-							{
-								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, false);
-								Object->ActionActive = false;
-							}
-						}
-						else
-							runflag = true;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case BLENDTOANIMATION:
-					if(Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName))
-							{
-								if(Object->Index->Speed > 0.0f)
-								{
-									CCD->ActorManager()->SetTransitionMotion(Object->Actor, Object->Index->AnimName, Object->Index->Speed, NULL);
-									CCD->ActorManager()->SetNextMotion(Object->Actor, Object->Index->AnimName);
-								}
-								else
-									CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-								Object->StartAction = false;
-
-								if(Object->Index->Flag)
-									CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
-								else
-									Object->ActionActive = false;
-							}
-
-						}
-
-						if(Object->Index->Flag)
-						{
-							if(CCD->ActorManager()->EndAnimation(Object->Actor))
-							{
-								CCD->ActorManager()->SetHoldAtEnd(Object->Actor, false);
-								Object->ActionActive = false;
-							}
-						}
-						else
-							runflag = true;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case LOOPANIMATION:
-					if(Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName))
-								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-							Object->StartAction = false;
-						}
-						Object->Time += (dwTicks*0.001f);// /1000.0f);
-						if(Object->Time >= Object->Index->Speed)
-						{
-							Object->Time = 0.0f;
-							Object->ActionActive = false;
-							runflag = true;
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ROTATEMOVETOPOINT:
-					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
-					{
-						if(RotateMoveToPoint((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case NEWPATH:
-					if(NextPath((void*)Object, dwTicks))
-					{
-						Object->ActionActive = false;
-						runflag = true;
-					}
-					break;
-				case RESTARTORDER:
-					Object->RunOrder = true;
-					Object->ActionActive = false;
-					pool = Object->Bottom;
-					while(pool != NULL)
-					{
-						temp = pool->next;
-						geRam_Free(pool);
-						pool = temp;
-					}
-					Object->Top = NULL;
-					Object->Bottom = NULL;
-					Object->Index = NULL;
-					break;
-				case ROTATEMOVE:
-					if(!Object->FacePlayer && Object->Actor)
-					{
-						if(RotateMove((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case NEWPOINT:
-					if(!EffectC_IsStringNull(Object->Index->AnimName))
-					{
-						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
-						if(EntityType)
-						{
-							if(!stricmp(EntityType, "ScriptPoint"))
-							{
-								strcpy(Object->Point, Object->Index->AnimName);
-								ScriptPoint *pProxy;
-								CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
-								Object->CurrentPoint = pProxy->origin;
-								Object->ValidPoint = true;
-								Object->NextOrder[0] = '\0';
-
-								if(!EffectC_IsStringNull(pProxy->NextOrder))
-									strcpy(Object->NextOrder, pProxy->NextOrder);
-							}
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case MOVEFORWARD:
-					Object->Direction = RGF_K_FORWARD;
-					if(Move((void*)Object, dwTicks))
-						Object->ActionActive = false;
-					break;
-				case MOVEBACKWARD:
-					Object->Direction = RGF_K_BACKWARD;
-					if(Move((void*)Object, dwTicks))
-						Object->ActionActive = false;
-					break;
-				case MOVELEFT:
-					Object->Direction = RGF_K_LEFT;
-					if(Move((void*)Object, dwTicks))
-						Object->ActionActive = false;
-					break;
-				case MOVERIGHT:
-					Object->Direction = RGF_K_RIGHT;
-					if(Move((void*)Object, dwTicks))
-						Object->ActionActive = false;
-					break;
-				case MOVE:
-					Object->Direction = 0;
-					if(Move((void*)Object, dwTicks))
-						Object->ActionActive = false;
-					break;
-				case AVOIDORDER:
-					if(!EffectC_IsStringNull(Object->Index->AnimName))
-						strcpy(Object->AvoidOrder, Object->Index->AnimName);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case RETURN:
-					if(Object->Stack)
-					{
-						Object->Pop();
-						Object->ActionActive = true;
-						Object->StartAction = true;
-						Object->TargetDisable = false;
-					}
-					runflag = true;
-					break;
-				case JUMPCMD:
-					if(Object->Actor)
-					{
-						if(Jump((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ADDTRIGGERORDER:
-					AddTriggerOrder((void*)Object, dwTicks);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case DELTRIGGERORDER:
-					DelTriggerOrder((void*)Object, dwTicks);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETEVENTSTATE:
-					AddEvent(Object->Index->AnimName, Object->Index->Flag);
-					Object->ActionActive = false;
-					break;
-				case FACEPLAYER:
-					Object->FacePlayer = Object->Index->Flag;
-					Object->FaceAxis = true;
-					if(Object->Index->Speed < 1.0f)
-						Object->FaceAxis = false;
-					Object->ActionActive = false;
-					break;
-				case ROTATETOPLAYER:
-					if(!Object->FacePlayer && Object->Actor)
-					{
-						if(RotateToPlayer((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ROTATEAROUNDPOINT:
-					if(Object->ValidPoint && !Object->FacePlayer && Object->Actor)
-					{
-						if(RotateAroundPoint((void*)Object, dwTicks))
-							Object->ActionActive = false;
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case TELEPORTTOPOINT:
-					if(!EffectC_IsStringNull(Object->Index->AnimName) && Object->Actor)
-					{
-						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Index->AnimName);
-
-						if(EntityType)
-						{
-							if(!stricmp(EntityType, "ScriptPoint"))
-							{
-								ScriptPoint *pProxy;
-								CCD->ScriptPoints()->LocateEntity(Object->Index->AnimName, (void**)&pProxy);
-
-								geActor *tActor;
-								if(!EffectC_IsStringNull(Object->Index->TriggerName))
-								{
-									if(!stricmp(Object->Index->TriggerName, "Player")) // Teleport Player
-										tActor = CCD->Player()->GetActor();
-									else  // Teleport Pawn
-										tActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
-								}
-								else
-									tActor = Object->Actor; // Teleport Script-pawn
-
-								geVec3d Pos = pProxy->origin;
-								Pos.X += Object->Index->Value1;
-								Pos.Y += Object->Index->Value2;
-								Pos.Z += Object->Index->Value3;
-								CCD->ActorManager()->Position(tActor, Pos);
-
-								// rotate to match scriptpoint angle
-								if(Object->Index->Flag)
-								{
-									geVec3d RealAngle;
-									geVec3d_Scale(&(pProxy->Angle), 0.0174532925199433f, &RealAngle);
-									RealAngle.Y -= GE_PIOVER2;
-
-									CCD->ActorManager()->Rotate(tActor, RealAngle);
-
-									if(CCD->Player()->GetActor() == tActor
-										&& CCD->Player()->GetViewPoint() == FIRSTPERSON)
-									{
-										CCD->CameraManager()->Rotate(RealAngle);
-									}
-								}
-							}
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ANIMATIONSPEED:
-					if(Object->Actor)
-						CCD->ActorManager()->SetAnimationSpeed(Object->Actor, Object->AnimSpeed*Object->Index->Speed);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETFLAG:
-					SetPawnFlag((int)Object->Index->Speed, Object->Index->Flag);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case STOPANIMATION:
-					if(Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName))
-								CCD->ActorManager()->SetMotion(Object->Actor, Object->Index->AnimName);
-
-							Object->StartAction = false;
-							CCD->ActorManager()->SetHoldAtEnd(Object->Actor, true);
-
-							if(Object->Index->Speed < 0.0f)
-								Object->ActionActive = false;
-						}
-						else
-						{
-							if(Object->Index->Speed <= 0.0f)
-							{
-								Object->ActionActive = false;
-							}
-							else
-							{
-								if(CCD->ActorManager()->EndAnimation(Object->Actor))
-								{
-									Object->Index->Speed -= (dwTicks*0.001f);
-								}
-							}
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ATTRIBUTEORDER:
-					if(!EffectC_IsStringNull(Object->Index->AnimName) && !EffectC_IsStringNull(Object->Index->TriggerName) && Object->Actor)
-					{
-						strcpy(Object->DeadOrder, Object->Index->TriggerName);
-						strcpy(Object->Attribute, Object->Index->AnimName);
-						CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
-						theInv->AddAndSet(Object->Attribute, (int)Object->Index->Speed);
-						theInv->SetValueLimits(Object->Attribute, 0, (int)Object->Index->Speed);
-						Object->OldAttributeAmount = (int)Object->Index->Speed;
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case REMOVE:
-					if(Object->Actor)
-					{
-						CCD->ActorManager()->GetPosition(Object->Actor, &Object->DeadPos);
-						CCD->ActorManager()->RemoveActorCheck(Object->Actor);
-						geActor_Destroy(&Object->Actor);
-						Object->Actor = NULL;
-
-						if(Object->WeaponActor)
-						{
-							CCD->ActorManager()->RemoveActorCheck(Object->WeaponActor);
-							geActor_Destroy(&Object->WeaponActor);
-							Object->WeaponActor = NULL;
-						}
-					}
-					Object->ActionActive = false;
-					if(Object->Index->Flag)
-						Object->alive = false;
-					break;
-				case SETNOCOLLISION:
-					if(Object->Actor)
-					{
-						if(!Object->Index->Flag)
-							CCD->ActorManager()->SetNoCollide(Object->Actor);
-						else
-							CCD->ActorManager()->SetCollide(Object->Actor);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ALLOWUSE:
-					Object->UseKey = Object->Index->Flag;
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case CONVERSATION:
-					CCD->Pawns()->RunConverse(Object->Converse, Object->szName, Object->Icon);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case FADEIN:
-					if(Object->Actor)
-					{
-						geFloat fAlpha;
-
-						if(Object->StartAction)
-						{
-							CCD->ActorManager()->GetAlpha(Object->Actor, &fAlpha);
-							Object->Index->Value2 = fAlpha;
-
-							if(Object->Index->Value1>Object->Index->Value2)
-							{
-								Object->Index->Value3 = (Object->Index->Value1-Object->Index->Value2)/Object->Index->Speed;
-							}
-							else
-								Object->ActionActive = false;
-
-							Object->StartAction = false;
-						}
-						else
-						{
-							Object->Index->Value2 += (Object->Index->Value3*(dwTicks*0.001f));
-
-							if(Object->Index->Value2 >= Object->Index->Value1)
-							{
-								Object->Index->Value2 = Object->Index->Value1;
-								Object->ActionActive = false;
-							}
-
-							CCD->ActorManager()->SetAlpha(Object->Actor, Object->Index->Value2);
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case FADEOUT:
-					if(Object->Actor)
-					{
-						geFloat fAlpha;
-
-						if(Object->StartAction)
-						{
-							CCD->ActorManager()->GetAlpha(Object->Actor, &fAlpha);
-							Object->Index->Value2 = fAlpha;
-
-							if(Object->Index->Value1 < Object->Index->Value2)
-							{
-								Object->Index->Value3 = (Object->Index->Value2-Object->Index->Value1)/Object->Index->Speed;
-							}
-							else
-								Object->ActionActive = false;
-
-							Object->StartAction = false;
-						}
-						else
-						{
-							Object->Index->Value2 -= (Object->Index->Value3*(dwTicks*0.001f));
-
-							if(Object->Index->Value2 <= Object->Index->Value1)
-							{
-								Object->Index->Value2 = Object->Index->Value1;
-								Object->ActionActive = false;
-							}
-
-							CCD->ActorManager()->SetAlpha(Object->Actor, Object->Index->Value2);
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case FIELDOFVIEW:
-					Object->FOV = Object->Index->Speed*0.5f; // /2.0f;
-					Object->FOV = (90.0f-Object->FOV)/90.0f;
-					Object->FOVBone[0] = '\0';
-					if(!EffectC_IsStringNull(Object->Index->AnimName))
-						strcpy(Object->FOVBone, Object->Index->AnimName);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case STEPHEIGHT:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed <= 0.0f)
-							CCD->ActorManager()->SetAutoStepUp(Object->Actor, false);
-						else
-						{
-							CCD->ActorManager()->SetAutoStepUp(Object->Actor, true);
-							CCD->ActorManager()->SetStepHeight(Object->Actor, Object->Index->Speed);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETGROUP:
-					if(!EffectC_IsStringNull(Object->Index->AnimName))
-					{
-						strcpy(Object->Group, Object->Index->AnimName);
-						CCD->ActorManager()->SetGroup(Object->Actor, Object->Group);
-					}
-					else
-					{
-						Object->Group[0] = '\0';
-						CCD->ActorManager()->SetGroup(Object->Actor, NULL);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case HOSTILEPLAYER:
-					Object->HostilePlayer = Object->Index->Flag;
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case HOSTILEDIFF:
-					Object->HostileDiff = Object->Index->Flag;
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case HOSTILESAME:
-					Object->HostileSame = Object->Index->Flag;
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ROTATETOTARGET:
-					if(Object->TargetActor && !Object->FacePlayer && Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							Object->SavePoint = Object->CurrentPoint;
-							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
-						}
-						if(RotateToPoint((void*)Object, dwTicks))
-						{
-							Object->ActionActive = false;
-							Object->CurrentPoint = Object->SavePoint;
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case MOVETOTARGET:
-					if(Object->TargetActor && Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							Object->SavePoint = Object->CurrentPoint;
-							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
-						}
-						if(MoveToPoint((void*)Object, dwTicks))
-						{
-							Object->ActionActive = false;
-							Object->CurrentPoint = Object->SavePoint;
-						}
-						else
-						{
-							if(Object->AvoidMode && !EffectC_IsStringNull(Object->AvoidOrder))
-							{
-								Object->Push();
-								strcpy(Object->Order, Object->AvoidOrder);
-								Object->RunOrder = true;
-								Object->ActionActive = false;
-								Object->DistActive = false;
-								runflag = true;
-							}
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case ROTATEMOVETOTARGET:
-					if(Object->TargetActor && !Object->FacePlayer && Object->Actor)
-					{
-						if(Object->StartAction)
-						{
-							Object->SavePoint = Object->CurrentPoint;
-							CCD->ActorManager()->GetPosition(Object->TargetActor, &Object->CurrentPoint);
-						}
-
-						if(RotateMoveToPoint((void*)Object, dwTicks))
-						{
-							Object->ActionActive = false;
-							Object->CurrentPoint = Object->SavePoint;
-						}
-					}
-					else
-						Object->ActionActive = false;
-					break;
-				case LOWLEVEL:
-					Object->highlevel = false;
-					Object->ActionActive = false;
-					Object->lowTime = 0.0f;
-					Object->ThinkTime = 0.0f;
-					Object->ElapseTime = 0.0f;
-					strcpy(Object->Order, Object->Index->AnimName);
-					Object->RunOrder = false;
-					pool = Object->Bottom;
-					while(pool != NULL)
-					{
-						temp = pool->next;
-						geRam_Free(pool);
-						pool = temp;
-					}
-					Object->Top = NULL;
-					Object->Bottom = NULL;
-					Object->Index = NULL;
-					break;
-				case BOXWIDTH:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed > 0.0f)
-						{
-							geExtBox theBox;
-							CCD->ActorManager()->GetBoundingBox(Object->Actor, &theBox);
-							CCD->ActorManager()->SetBBox(Object->Actor, Object->Index->Speed, -theBox.Max.Y*2.0f, Object->Index->Speed);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case BOXHEIGHT:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed > 0.0f)
-						{
-							geExtBox theBox;
-							CCD->ActorManager()->GetBoundingBox(Object->Actor, &theBox);
-							CCD->ActorManager()->SetBBox(Object->Actor, theBox.Max.X*2.0f, -(Object->Index->Speed)*2.0f, theBox.Max.Z*2.0f);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SCALE:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed != Object->Index->Value1
-							|| Object->Index->Speed != Object->Index->Value2
-							|| Object->Index->Value1 != Object->Index->Value2)
-						{
-							geVec3d Scale;
-
-							CCD->ActorManager()->GetScaleXYZ(Object->Actor, &Scale);
-
-							Scale.X *= Object->Index->Speed;
-							Scale.Y *= Object->Index->Value1;
-							Scale.Z *= Object->Index->Value2;
-
-							CCD->ActorManager()->SetScaleXYZ(Object->Actor, Scale);
-
-							if(Object->WeaponActor)
-							{
-								Scale.X = Object->Index->Speed*Object->WScale.X;
-								Scale.Y = Object->Index->Value1*Object->WScale.Y;
-								Scale.Z = Object->Index->Value2*Object->WScale.Z;
-
-								CCD->ActorManager()->SetScaleXYZ(Object->WeaponActor, Scale);
-							}
-						}
-						else
-						{
-							float scale;
-							CCD->ActorManager()->GetScale(Object->Actor, &scale);
-							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed*scale);
-
-							if(Object->WeaponActor)
-								CCD->ActorManager()->SetScale(Object->WeaponActor, Object->Index->Speed*Object->WScale.X);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETSCALE:
-					if(Object->Actor)
-					{
-						if(Object->Index->Speed != Object->Index->Value1
-							|| Object->Index->Speed != Object->Index->Value2
-							|| Object->Index->Value1 != Object->Index->Value2)
-						{
-							geVec3d Scale;
-
-							if(Object->WeaponActor)
-							{
-								CCD->ActorManager()->GetScaleXYZ(Object->Actor, &Scale);
-
-								Scale.X = Object->Index->Speed*(Object->WScale.X/Scale.X);
-								Scale.Y = Object->Index->Value1*(Object->WScale.Y/Scale.Y);
-								Scale.Z = Object->Index->Value2*(Object->WScale.Z/Scale.Z);
-
-								CCD->ActorManager()->SetScaleXYZ(Object->WeaponActor, Scale);
-							}
-
-							Scale.X = Object->Index->Speed;
-							Scale.Y = Object->Index->Value1;
-							Scale.Z = Object->Index->Value2;
-
-							CCD->ActorManager()->SetScaleXYZ(Object->Actor, Scale);
-						}
-						else
-						{
-							if(Object->WeaponActor)
-							{
-								float scale;
-								CCD->ActorManager()->GetScale(Object->Actor, &scale);
-								scale = Object->Index->Speed*(Object->WScale.X/scale);
-								CCD->ActorManager()->SetScale(Object->WeaponActor, scale);
-							}
-
-							CCD->ActorManager()->SetScale(Object->Actor, Object->Index->Speed);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case GRAVITY:
-					if(Object->Actor)
-					{
-						Gravity.X = Gravity.Y = Gravity.Z = 0.0f;
-
-						if(Object->Index->Flag)
-							Gravity = CCD->Player()->GetGravity();
-
-						CCD->ActorManager()->SetGravity(Object->Actor, Gravity);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ISVEHICLE:
-					if(Object->Actor)
-					{
-						if(Object->Index->Flag)
-							CCD->ActorManager()->SetType(Object->Actor, ENTITY_VEHICLE);
-						else
-							CCD->ActorManager()->SetType(Object->Actor, ENTITY_NPC);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ISPUSHABLE:
-					if(Object->Actor)
-					{
-						if(Object->Index->Flag)
-							Object->pushable = true;
-						else
-							Object->pushable = false;
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case HIDEFROMRADAR:
-					if(Object->Actor)
-					{
-						CCD->ActorManager()->SetHideRadar(Object->Actor, Object->Index->Flag);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case FIREPROJECTILE:
-					{
-						if(Object->Actor)
-						{
-							char *Strn = Object->Index->AnimName;
-							char Proj[64];
-							geXForm3d Xf;
-							geVec3d theRotation, Pos, Direction, Orient, TargetPoint;
-							strncpy(Proj, Strn, (int)Object->Index->Speed);
-							Proj[(int)Object->Index->Speed] = '\0';
-							Strn = Strn + (int)Object->Index->Speed;
-							bool bone;
-
-							if(Object->WeaponActor)
-								bone = geActor_GetBoneTransform(Object->WeaponActor, Object->Index->TriggerName, &Xf);
-							else
-								bone = geActor_GetBoneTransform(Object->Actor, Object->Index->TriggerName, &Xf);
-
-							if(bone)
-							{
-								geVec3d_Copy(&(Xf.Translation), &Pos);
-								CCD->ActorManager()->GetRotate(Object->Actor, &theRotation);
-
-								geXForm3d_SetZRotation(&Xf, theRotation.Z);
-								geXForm3d_RotateX(&Xf, theRotation.X);
-								geXForm3d_RotateY(&Xf, theRotation.Y);
-
-								geXForm3d_GetIn(&Xf, &Direction);
-								geVec3d_AddScaled(&Pos, &Direction, 1000.0f, &TargetPoint);
-								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value3, &Pos);
-
-								geXForm3d_GetUp(&Xf, &Direction);
-								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value2, &Pos);
-
-								geXForm3d_GetLeft(&Xf, &Direction);
-								geVec3d_AddScaled(&Pos, &Direction, Object->Index->Value1, &Pos);
-
-
-								geVec3d_Subtract(&TargetPoint, &Pos, &Orient);
-								float l = geVec3d_Length(&Orient);
-
-								if(l > 0.0f)
-								{
-									float x = Orient.X;
-									Orient.X = GE_PIOVER2 - (float)acos(Orient.Y / l);
-									Orient.Y = (float)atan2(x, Orient.Z) + GE_PI;
-									Orient.Z = 0.0f;	// roll is zero - always!!?
-
-									CCD->Weapons()->Add_Projectile(Pos, Pos, Orient, Proj, Strn, Strn);
-								}
-							}
-						}
-
-						Object->ActionActive = false;
-						runflag = true;
-					}
-					break;
-				case ADDEFFECT:
-					{
-						if(Object->Actor)
-						{
-							geVec3d Pos;
-
-							if(geActor_DefHasBoneNamed(geActor_GetActorDef(Object->Actor), Object->Index->TriggerName))
-							{
-								Pos.X = Object->Index->Value1;
-								Pos.Y = Object->Index->Value2;
-								Pos.Z = Object->Index->Value3;
-
-								CCD->Explosions()->AddExplosion(Object->Index->AnimName, Pos, Object->Actor, Object->Index->TriggerName);
-							}
-						}
-
-						Object->ActionActive = false;
-						runflag = true;
-					}
-					break;
-				case TARGETGROUP:
-					if(!EffectC_IsStringNull(Object->Index->AnimName))
-						strcpy(Object->TargetGroup, Object->Index->AnimName);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case TESTDAMAGEORDER:
-					if(Object->Actor)
-					{
-						if(!EffectC_IsStringNull(Object->Attribute))
-						{
-							if(!EffectC_IsStringNull(Object->Index->AnimName))
-							{
-								CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(Object->Actor);
-								int amt = abs(theInv->GetModifyAmt(Object->Attribute));
-								if((int)Object->Index->Speed<=amt)
-								{
-									strcpy(Object->Order, Object->Index->AnimName);
-									Object->RunOrder = true;
-									pool = Object->Bottom;
-
-									while(pool != NULL)
-									{
-										temp = pool->next;
-										geRam_Free(pool);
-										pool = temp;
-									}
-
-									Object->Top = NULL;
-									Object->Bottom = NULL;
-									Object->Index = NULL;
-								}
-							}
-						}
-					}
-					Object->ActionActive = false;
-					runflag = false;
-					break;
-				case CHANGEMATERIAL:
-					if(Object->Actor)
-					{
-						if(!EffectC_IsStringNull(Object->Index->AnimName))
-							CCD->ActorManager()->ChangeMaterial(Object->Actor, Object->Index->AnimName);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ATTACHTOACTOR:
-					if(Object->Actor)
-					{
-						char master[64], masterbone[64], slavebone[64];
-						char numeric[128];
-						char *szAtom;
-						geVec3d Position, Rotation;
-						geActor *MasterActor;
-
-						strncpy(master, Object->Index->AnimName, (int)Object->Index->Speed);
-						master[(int)Object->Index->Speed] = '\0';
-
-						strncpy(masterbone, (Object->Index->AnimName+(int)Object->Index->Speed), (int)Object->Index->Value1);
-						masterbone[(int)Object->Index->Value1] = '\0';
-
-						strcpy(slavebone, (Object->Index->AnimName+(int)Object->Index->Speed+(int)Object->Index->Value1));
-						strcpy(numeric, Object->Index->TriggerName);
-
-						szAtom = strtok(numeric," ");
-						Position.X = (float)atof(szAtom);
-						szAtom = strtok(NULL," \n");
-						Position.Y = (float)atof(szAtom);
-						szAtom = strtok(NULL," \n");
-						Position.Z = (float)atof(szAtom);
-
-						szAtom = strtok(NULL," \n");
-						Rotation.X = (float)atof(szAtom)*0.0174532925199433f;
-						szAtom = strtok(NULL," \n");
-						Rotation.Y = (float)atof(szAtom)*0.0174532925199433f;
-						szAtom = strtok(NULL," \n");
-						Rotation.Z = (float)atof(szAtom)*0.0174532925199433f;
-
-
-
-						MasterActor = CCD->ActorManager()->GetByEntityName(master);
-
-						if(!MasterActor)
-							break;
-
-						CCD->ActorManager()->ActorAttach(MasterActor,  masterbone,
-														Object->Actor, slavebone,
-														Position, Rotation);
-						Object->ActionActive = false;
-						runflag = true;
-					}
-					else
-					{
-						Object->ActionActive = false;
-						runflag = true;
-					}
-					break;
-				case DETACHFROMACTOR:
-					if(Object->Actor)
-					{
-						geActor *Actor;
-						Actor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
-
-						if(!Actor)
-							break;
-
-						CCD->ActorManager()->DetachFromActor(Object->Actor, Actor);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ATTACHBLENDACTOR:
-					if(!EffectC_IsStringNull(Object->Index->TriggerName))
-					{
-						geActor *SlaveActor;
-						SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
-						if(!SlaveActor)
-							break;
-
-						geActor *MasterActor;
-						if(!stricmp(Object->Index->TriggerName, "Player"))
-							MasterActor = CCD->Player()->GetActor();
-						else
-							MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
-
-						if(!MasterActor)
-							break;
-
-						CCD->ActorManager()->ActorAttachBlend(SlaveActor, MasterActor);
-					}
-					else
-					{
-						if(Object->Actor)
-						{
-							geActor *SlaveActor;
-							SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
-
-							if(!SlaveActor)
-								break;
-
-							CCD->ActorManager()->ActorAttachBlend(SlaveActor, Object->Actor);
-
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case DETACHBLENDACTOR:
-					if(!EffectC_IsStringNull(Object->Index->TriggerName))
-					{
-						geActor *SlaveActor;
-						SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
-						if(SlaveActor)
-							break;
-
-						geActor *MasterActor;
-						if(!stricmp(Object->Index->TriggerName, "Player"))
-							MasterActor = CCD->Player()->GetActor();
-						else
-							MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
-
-						if(!MasterActor)
-							break;
-
-						CCD->ActorManager()->DetachBlendFromActor(MasterActor, SlaveActor);
-					}
-					else
-					{
-						if(Object->Actor)
-						{
-							geActor *SlaveActor;
-							SlaveActor = CCD->ActorManager()->GetByEntityName(Object->Index->AnimName);
-
-							if(!SlaveActor)
-								break;
-
-							CCD->ActorManager()->DetachBlendFromActor(Object->Actor, SlaveActor);
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case ATTACHACCESSORY:
-					{
-						geActor *MasterActor = NULL;
-						std::string EntityName;
-						if(!EffectC_IsStringNull(Object->Index->TriggerName))
-						{
-							EntityName = Object->Index->TriggerName;
-							if(!stricmp(Object->Index->TriggerName, "Player"))
-								MasterActor = CCD->Player()->GetActor();
-							else
-								MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
-						}
-						else
-						{
-							EntityName = CCD->ActorManager()->GetEntityName(Object->Actor);
-							MasterActor = Object->Actor;
-						}
-
-						if(MasterActor)
-						{
-							unsigned int keynum = AccessoryCache.size();
-							if(keynum>0)
-							{
-								for(unsigned int i=0; i<keynum; i++)
-								{
-									if(!strcmp(AccessoryCache[i].Name.c_str(), Object->Index->AnimName))
-									{
-										geActor *SlaveActor;
-										SlaveActor = CCD->ActorManager()->SpawnActor(AccessoryCache[i].ActorName,
-											Object->Location, AccessoryCache[i].Rotation, "", "", NULL);
-
-										if(!SlaveActor)
-											break;
-
-										EntityName += Object->Index->AnimName;
-										CCD->ActorManager()->SetEntityName(SlaveActor, EntityName.c_str());
-
-										if(AccessoryCache[i].EnvironmentMapping)
-											SetEnvironmentMapping(	SlaveActor, true,
-																	AccessoryCache[i].AllMaterial,
-																	AccessoryCache[i].PercentMapping,
-																	AccessoryCache[i].PercentMaterial);
-
-										CCD->ActorManager()->ActorAttachBlend(SlaveActor, MasterActor);
-										break;
-									}
-								}
-							}
-						}
-						Object->ActionActive = false;
-						runflag = true;
-						break;
-					}
-				case DETACHACCESSORY:
-					{
-						geActor *MasterActor = NULL;
-						std::string EntityName;
-						if(!EffectC_IsStringNull(Object->Index->TriggerName))
-						{
-							EntityName = Object->Index->TriggerName;
-							if(!stricmp(Object->Index->TriggerName, "Player"))
-								MasterActor = CCD->Player()->GetActor();
-							else
-								MasterActor = CCD->ActorManager()->GetByEntityName(Object->Index->TriggerName);
-						}
-						else
-						{
-							EntityName = CCD->ActorManager()->GetEntityName(Object->Actor);
-							MasterActor = Object->Actor;
-						}
-
-						if(MasterActor)
-						{
-							EntityName += Object->Index->AnimName;
-							geActor *SlaveActor = CCD->ActorManager()->GetByEntityName(EntityName.c_str());
-							if(SlaveActor)
-							{
-								CCD->ActorManager()->DetachBlendFromActor(MasterActor, SlaveActor);
-								CCD->ActorManager()->RemoveActor(SlaveActor);
-								geActor_Destroy(&SlaveActor);
-							}
-						}
-
-						Object->ActionActive = false;
-						runflag = true;
-						break;
-					}
-				case ALIGN:
-					if(Object->Actor)
-					{
-						const char *EntityType = CCD->EntityRegistry()->GetEntityType(Object->Point);
-
-						if(EntityType)
-						{
-							if(!stricmp(EntityType, "ScriptPoint"))
-							{
-								ScriptPoint *pProxy;
-								geVec3d Orient;
-								CCD->ScriptPoints()->LocateEntity(Object->Point, (void**)&pProxy);
-								Orient.Z = 0.0174532925199433f*(pProxy->Angle.Z);
-								Orient.X = 0.0174532925199433f*(pProxy->Angle.X);
-								Orient.Y = 0.0174532925199433f*(pProxy->Angle.Y-90.0f);
-								CCD->ActorManager()->Rotate(Object->Actor, Orient);
-							}
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETKEYPAUSE:
-					CCD->SetKeyPaused(Object->Index->Flag);
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETHUDDRAW:
-					if(Object->Index->Flag)
-						CCD->HUD()->Activate();
-					else
-						CCD->HUD()->Deactivate();
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SOUNDLOOP:
-					Object->SoundLoop = Object->Index->Flag;
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case REMOVEWEAPON:
-					if(Object->Actor)
-					{
-						if(Object->WeaponActor)
-						{
-							CCD->ActorManager()->RemoveActor(Object->WeaponActor);
-							geActor_Destroy(&Object->WeaponActor);
-							Object->WeaponActor = NULL;
-						}
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETLODDISTANCE:
-					if(Object->Actor)
-					{
-						CCD->ActorManager()->SetLODdistance(Object->Actor, Object->Index->Speed,
-							Object->Index->Value1, Object->Index->Value2, Object->Index->Value3,
-							Object->Index->Value4);
-					}
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				case SETWEAPON:
-					if(Object->Actor)
-					{
-						unsigned int keynum = WeaponCache.size();
-						if(keynum>0)
-						{
-							for(unsigned int i=0; i<keynum; i++)
-							{
-								if(!strcmp(WeaponCache[i].Name.c_str(), Object->Index->AnimName))
-								{
-									if(Object->WeaponActor)
-									{
-										CCD->ActorManager()->RemoveActor(Object->WeaponActor);
-										geActor_Destroy(&Object->WeaponActor);
-										Object->WeaponActor = NULL;
-									}
-
-									Object->WeaponActor = CCD->ActorManager()->SpawnActor(WeaponCache[i].ActorName,
-										Object->Location, WeaponCache[i].Rotation, "", "", NULL);
-									CCD->ActorManager()->SetActorDynamicLighting(Object->WeaponActor, WeaponCache[i].FillColor, WeaponCache[i].AmbientColor, WeaponCache[i].AmbientLightFromFloor);
-									Object->WRotation = WeaponCache[i].Rotation;
-									Object->WScale.X = Object->WScale.Y = Object->WScale.Z = WeaponCache[i].Scale;
-									CCD->ActorManager()->SetScale(Object->WeaponActor, Object->WScale.X);
-									CCD->ActorManager()->SetNoCollide(Object->WeaponActor);
-									if(WeaponCache[i].EnvironmentMapping)
-										SetEnvironmentMapping(Object->WeaponActor, true, WeaponCache[i].AllMaterial, WeaponCache[i].PercentMapping, WeaponCache[i].PercentMaterial);
-									break;
-								}
-							}
-						}
-					}
-
-					Object->ActionActive = false;
-					runflag = true;
-					break;
-				}
-			}
-
-		} while(runflag);
+		}
+	}
+
+	CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+
+	float distance = speed * (timeElapsed * 0.001f);
+
+	if((distance + m_TotalDist) >= totalDistance)
+	{
+		distance = totalDistance - m_TotalDist;
+		retflg = true;
+	}
+
+	m_TotalDist += distance;
+
+	if(m_Direction == RGF_K_BACKWARD || m_Direction == RGF_K_RIGHT)
+		distance = -distance;
+
+	geVec3d_AddScaled(&Pos, &m_Vec2Point, distance, &NewPos);
+
+	bool result = CCD->ActorManager()->ValidateMove(Pos, NewPos, m_Actor, false);
+
+	if(!result)
+		return true;
+
+	return retflg;
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	AreaOrder
+//
+//	detects if Entity1 is within:
+//	if DistanceMode=true: 2 distances defined and within 2 screen widths (from entity2)
+//	if DistanceMode=false: 2 screen heights and within 2 screen widths (from entity2)
+/* ------------------------------------------------------------------------------------ */
+bool CPawnManager::Area(
+	const std::string& FromActorName,
+	const std::string& ToActorName,
+	bool DistanceMode,
+	float MinScr, float MaxScr,
+	float MinDist, float MaxDist,
+	bool IgnoreX, bool IgnoreY, bool IgnoreZ)
+{
+	geVec3d Pos, ScreenPos;
+	int ScreenX, ScreenY;
+
+	if(FromActorName == "Mouse")
+	{
+		POINT MousePos;
+
+		CCD->Input()->GetMousePos(&MousePos.x, &MousePos.y);
+		CCD->GUIManager()->ShowCursor();
+		ScreenX = static_cast<int>(MousePos.x);
+		ScreenY = static_cast<int>(MousePos.y);
+		Pos.X = static_cast<float>(MousePos.x);
+		Pos.Y = static_cast<float>(MousePos.y);
+		Pos.Z = 0.0f;
+	}
+	else
+	{
+		if(FromActorName == "Player")
+		{
+			Pos = CCD->Player()->Position();
+		}
+		else if(FromActorName == "Camera")
+		{
+			CCD->CameraManager()->GetPosition(&Pos);
+		}
+		else
+		{
+			CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(FromActorName.c_str()), &Pos);
+		}
+
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &Pos, &ScreenPos);
+		ScreenX = static_cast<int>(ScreenPos.X);
+		ScreenY = static_cast<int>(ScreenPos.Y);
+	}
+
+	geVec3d ToPos;
+
+	if(ToActorName.empty())
+	{
+		DistanceMode = false;
+	}
+	else if(ToActorName == "Player")
+	{
+		ToPos = CCD->Player()->Position();
+	}
+	else
+	{
+		CCD->ActorManager()->GetPosition(CCD->ActorManager()->GetByEntityName(ToActorName.c_str()), &ToPos);
+	}
+
+	if(FromActorName == "Mouse") //convert it to screen coordinates
+	{
+		geCamera_TransformAndProject(CCD->CameraManager()->Camera(), &ToPos, &ToPos);
+		ToPos.Z = 0.0f;
+	}
+
+	if(DistanceMode)
+	{
+		if(IgnoreX)		Pos.X = ToPos.X;
+		if(IgnoreY)		Pos.Y = ToPos.Y;
+		if(IgnoreZ)		Pos.Z = ToPos.Z;
+
+		float DistanceSq = geVec3d_DistanceBetweenSquared(&Pos, &ToPos);
+
+		return ((DistanceSq >= MinDist*MinDist) && (DistanceSq <= MaxDist*MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
+	}
+	else
+	{
+		return ((ScreenY >= MinDist) && (ScreenY <= MaxDist) && (ScreenX >= MinScr) && (ScreenX <= MaxScr));
 	}
 }
 
+
+/* ------------------------------------------------------------------------------------ */
+//	ClearWatchedTriggers
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::ClearWatchedTriggers()
+{
+	stdext::hash_map<std::string, TriggerOrder*>::iterator iter = m_WatchedTriggers.begin();
+
+	for(; iter!=m_WatchedTriggers.end(); ++iter)
+	{
+		delete (iter->second);
+	}
+
+	m_WatchedTriggers.clear();
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::UpdateWatchedTriggers(float timeElapsed)
+{
+	stdext::hash_map<std::string, TriggerOrder*>::iterator iter = m_WatchedTriggers.begin();
+	for(; iter!=m_WatchedTriggers.end(); ++iter)
+	{
+		if(iter->second->Type == PTIMER || iter->second->Type == PSOUND)
+		{
+			iter->second->Time -= (timeElapsed * 0.001f);
+
+			if(iter->second->Time < 0.0f)
+				iter->second->Time = 0.0f;
+		}
+	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::CheckWatchedTriggers()
+{
+	if(!m_TargetDisable)
+	{
+		bool flag = false;
+
+		stdext::hash_map<std::string, TriggerOrder*>::iterator iter = m_WatchedTriggers.begin();
+		for(; iter!=m_WatchedTriggers.end(); ++iter)
+		{
+			switch(iter->second->Type)
+			{
+			case PTRIGGER:
+				flag = GetTriggerState(iter->first.c_str());
+				break;
+			case PFLAG:
+				flag = (CCD->Level()->Pawns()->GetPawnFlag(iter->second->PFlg) == iter->second->Flag);
+				break;
+			case PTIMER:
+				flag = (iter->second->Time == 0.0f);
+				break;
+			case PDIST:
+				flag = PlayerDistance(iter->second->Time);
+				break;
+			case PCOLLIDE:
+				flag = m_Collision;
+				break;
+			case PSOUND:
+				flag = false;
+				if(iter->second->Time == 0.0f)
+				{
+					iter->second->Time = EffectC_Frand(iter->second->Low, iter->second->High);
+					PlaySound(iter->second->OrderName.c_str(), -1, GE_FALSE);
+				}
+				break;
+			}
+
+			if(flag)
+			{
+				if(iter->second->Delay > 0.0f)
+				{
+					m_TriggerWait = true;
+					m_TriggerTime = iter->second->Delay;
+					m_TriggerOrder = iter->second->OrderName;
+				}
+				else
+				{
+					Order = iter->second->OrderName;
+					ClearActionList();
+				}
+
+				delete (iter->second);
+				m_WatchedTriggers.erase(iter);
+
+				break;
+			}
+		}
+	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::FindScriptPoint()
+{
+	if(m_FOV > -2.0f && m_Actor)
+	{
+		float dist = 9000000.0f;	// only ScripPoints within 3000 texels
+		bool done = false;
+
+		geEntity_EntitySet *pSet;
+		geEntity *pEntity;
+
+		// Ok, check to see if there are ScriptPoints in this world
+		pSet = geWorld_GetEntitySet(CCD->World(), "ScriptPoint");
+
+		if(pSet)
+		{
+			// Ok, we have ScriptPoints somewhere.  Dig through 'em all.
+			for(pEntity=geEntity_EntitySetGetNextEntity(pSet, NULL); pEntity;
+				pEntity=geEntity_EntitySetGetNextEntity(pSet, pEntity))
+			{
+				ScriptPoint *pSource = static_cast<ScriptPoint*>(geEntity_GetUserData(pEntity));
+
+				// search for nearest visible ScripPoint
+				if(CanSeePoint(m_FOV, m_Actor, &(pSource->origin), m_FOVBone))
+				{
+					float newdist;
+					geVec3d Pos, Dist;
+
+					// calculate newdist
+					CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+					geVec3d_Subtract(&pSource->origin, &Pos, &Dist);
+					newdist = geVec3d_LengthSquared(&Dist);
+
+					if(newdist < dist)
+					{
+						dist = newdist;
+						m_Point = pSource->szEntityName;
+						m_CurrentPoint= pSource->origin;
+						m_ValidPoint = true;
+						done = true;
+					}
+				}
+			}
+		}
+
+		if(done)
+		{
+			Order = m_PointOrder;
+			ClearActionList();
+			m_PointFind = false;
+		}
+	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::FindTarget()
+{
+	if(m_FOV > -2.0f && m_Actor)
+	{
+		float distance = m_TargetDistance + 100.f;
+		bool done = false;
+
+		if(m_HostilePlayer)
+		{
+			if(CanSee(m_FOV, m_Actor, CCD->Player()->GetActor(), m_FOVBone))
+			{
+				float dist = CCD->ActorManager()->DistanceFrom(m_Actor, CCD->Player()->GetActor());
+
+				if(dist < m_TargetDistance)
+				{
+					m_TargetActor = CCD->Player()->GetActor();
+					done = true;
+					distance = dist;
+				}
+			}
+		}
+
+		geActor *ActorsInRange[512];
+		geVec3d Pos;
+
+		CCD->ActorManager()->GetPosition(m_Actor, &Pos);
+		int nActorCount = CCD->ActorManager()->GetActorsInRange(Pos, m_TargetDistance, 512, &ActorsInRange[0]);
+
+		if(nActorCount != 0)
+		{
+			if(m_HostileDiff)
+			{
+				for(int nTemp=0; nTemp<nActorCount; ++nTemp)
+				{
+					if(ActorsInRange[nTemp] == m_Actor)
+						continue;
+
+					int nType;
+					CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
+
+					if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE) &&
+						!CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]).empty())
+					{
+						bool TG = false;
+
+						if(!m_TargetGroup.empty())
+						{
+							if(m_TargetGroup == CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+								TG = true;
+						}
+						else
+						{
+							if(m_Group != CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+								TG = true;
+						}
+
+						if(TG)
+						{
+							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
+
+							if(theInv->Has(m_TargetAttr))
+							{
+								if(theInv->Value(m_TargetAttr) > 0)
+								{
+									if(CanSee(m_FOV, m_Actor, ActorsInRange[nTemp], m_FOVBone))
+									{
+										float dist = CCD->ActorManager()->DistanceFrom(m_Actor, ActorsInRange[nTemp]);
+
+										if(dist < m_TargetDistance)
+										{
+											done = true;
+
+											if(distance > dist)
+											{
+												distance = dist;
+												m_TargetActor = ActorsInRange[nTemp];
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if(m_HostileSame)
+			{
+				for(int nTemp=0; nTemp<nActorCount; ++nTemp)
+				{
+					if(ActorsInRange[nTemp] == m_Actor)
+						continue;
+
+					int nType;
+					CCD->ActorManager()->GetType(ActorsInRange[nTemp], &nType);
+
+					if((nType == ENTITY_NPC || nType == ENTITY_VEHICLE) &&
+						!CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]).empty())
+					{
+						if(m_Group == CCD->ActorManager()->GetGroup(ActorsInRange[nTemp]))
+						{
+							CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(ActorsInRange[nTemp]);
+
+							if(theInv->Has(m_TargetAttr))
+							{
+								if(theInv->Value(m_TargetAttr) > 0)
+								{
+									if(CanSee(m_FOV, m_Actor, ActorsInRange[nTemp], m_FOVBone))
+									{
+										float dist = CCD->ActorManager()->DistanceFrom(m_Actor, ActorsInRange[nTemp]);
+
+										if(dist < m_TargetDistance)
+										{
+											done = true;
+
+											if(distance > dist)
+											{
+												distance = dist;
+												m_TargetActor = ActorsInRange[nTemp];
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(done)
+		{
+			Order = m_TargetOrder;
+			ClearActionList();
+
+			m_TargetFind = false;
+			CCD->ActorManager()->GetPosition(m_TargetActor, &m_LastTargetPoint);
+		}
+	}
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::ClearActionList()
+{
+	m_RunOrder = true;
+	m_ActionActive = false;
+
+#if USE_METHOD_QUEUE_STACK
+	DequeueTop();
+
+#else
+	ActionList *pool, *temp;
+	pool = Bottom;
+
+	while(pool != NULL)
+	{
+		temp = pool->next;
+		geRam_Free(pool);
+		pool = temp;
+	}
+
+	Top = NULL;
+	Bottom = NULL;
+	m_CurrentAction = NULL;
+#endif
+}
+
+
+/* ------------------------------------------------------------------------------------ */
+//	UpdateHigh
+/* ------------------------------------------------------------------------------------ */
+void ScriptedObject::UpdateHigh(float dwTicks)
+{
+	UpdateWatchedTriggers(dwTicks);
+
+	// check if object has died
+	if(!m_DeadOrder.empty())
+	{
+		if(!m_Attribute.empty())
+		{
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(m_Actor);
+
+			if(theInv->Value(m_Attribute) <= 0)
+			{
+				Order = m_DeadOrder;
+				m_DeadOrder.clear();
+
+				ClearActionList();
+			}
+		}
+	}
+
+	if(!m_Active)
+		return;
+
+	skRValueArray args;
+	skRValue ret;
+
+	bool runflag = false;
+
+	do
+	{
+		runflag = false;
+
+		if(m_TriggerWait)
+		{
+			m_TriggerTime -= (dwTicks * 0.001f);
+
+			if(m_TriggerTime <= 0.0f && !m_TargetDisable)
+			{
+				m_TriggerWait = false;
+				Order = m_TriggerOrder;
+				ClearActionList();
+			}
+		}
+		else
+		{
+			CheckWatchedTriggers();
+		}
+
+		if(m_PointFind)
+		{
+			FindScriptPoint();
+		}
+
+		if(m_TargetFind && !m_TargetDisable)
+		{
+			FindTarget();
+		}
+
+		if(m_DistActive && !m_TargetDisable)
+		{
+			if(PlayerDistance(m_MinDistance))
+			{
+				Order = m_DistOrder;
+				ClearActionList();
+
+				m_DistActive = false;
+			}
+		}
+
+		if(m_PainActive && !m_TargetDisable)
+		{
+			CPersistentAttributes *theInv = CCD->ActorManager()->Inventory(m_Actor);
+			int current = theInv->Value(m_Attribute);
+
+			if(current > 0)
+			{
+				if(current < m_OldAttributeAmount)
+				{
+					if(EffectC_rand(1, 10) <= (m_PainPercent/10))
+					{
+						if(!m_PainOrder.empty())
+						{
+							Push();
+							Order = m_PainOrder;
+							m_RunOrder = true;
+							m_ActionActive = false;
+							m_TargetDisable = true;
+							runflag = true;
+						}
+					}
+				}
+			}
+
+			m_OldAttributeAmount = current;
+		}
+
+		if(m_RunOrder)
+		{
+			bool methoderror = false;
+
+			try
+			{
+				method(skString(Order.c_str()), args, ret, ScriptManager::GetContext());
+			}
+			catch(skRuntimeException &e)
+			{
+				if(!strcmp(m_Indicate, "+"))
+					strcpy(m_Indicate, " ");
+				else
+					strcpy(m_Indicate, "+");
+
+				if(m_Console)
+					strcpy(m_ConsoleError, e.toString());
+			}
+			catch(skParseException &e)
+			{
+				if(!strcmp(m_Indicate, "+"))
+					strcpy(m_Indicate, " ");
+				else
+					strcpy(m_Indicate, "+");
+
+				if(m_Console)
+					strcpy(m_ConsoleError, e.toString());
+			}
+			catch(...)
+			{
+				std::string text = "Script Error for " + szName + " in Order " + Order;
+				CCD->Log()->Error(text);
+
+				if(m_Console)
+					strcpy(m_ConsoleError, text.c_str());
+
+				methoderror = true;
+			}
+
+			m_RunOrder = false;
+
+#if USE_METHOD_QUEUE_STACK
+#else
+			this->m_CurrentAction = NULL;
+#endif
+
+			if(!methoderror)
+				m_ActionActive = false;
+			else
+				break;
+		}
+
+		if(!m_ActionActive)
+		{
+#if USE_METHOD_QUEUE_STACK
+			// nothing to do
+#else
+			if(!this->m_CurrentAction)
+				this->m_CurrentAction = this->Top;
+			else
+				this->m_CurrentAction = this->m_CurrentAction->prev;
+#endif
+
+			m_ActionActive = true;
+			m_StartAction = true;
+
+			if(!m_SoundLoop)
+			{
+				StopSound(m_SoundID);
+			}
+		}
+		else // m_ActionActive == true
+		{
+			if(m_MethodQueueStack.size() > 1)
+			{
+				if(m_MethodQueueStack.top()->empty())
+				{
+					Pop();
+					m_TargetDisable = false;
+					m_StartAction = true;
+				}
+			}
+		}
+
+		if(m_FacePlayer && m_Actor)
+		{
+			geVec3d Pos = CCD->Player()->Position();
+			geVec3d Pos1;
+			CCD->ActorManager()->GetPosition(m_Actor, &Pos1);
+			geVec3d LookRotation;
+			geFloat x, l;
+			geVec3d_Subtract(&Pos, &Pos1, &LookRotation);
+			l = geVec3d_Length(&LookRotation);
+
+			// protect from Div by Zero
+			if(l > 0.0f)
+			{
+				x = LookRotation.X;
+
+				LookRotation.X = -(GE_PIOVER2 - acos(LookRotation.Y / l));
+				LookRotation.Y = atan2(x, LookRotation.Z) + GE_PI;
+				LookRotation.Z = 0.0f;	// roll is zero - always!!?
+
+				if(!m_FaceAxis)
+					LookRotation.X = 0.0f;
+
+				CCD->ActorManager()->Rotate(m_Actor, LookRotation);
+			}
+		}
+
+		if(!m_MethodQueueStack.empty())
+		{
+			if(!m_MethodQueueStack.top()->empty())
+			{
+				if(m_Console)
+				{
+					std::string text = szName + " " + Order + " " +
+										ActionText[m_MethodQueueStack.top()->front()->action] +
+										" " + m_Point;
+					strcpy(m_ConsoleHeader, text.c_str());
+				}
+
+				if((this->*(m_MethodQueueStack.top()->front()->method))(dwTicks, m_MethodQueueStack.top()->front()->args))
+				{
+					Dequeue();
+					runflag = m_Alive;
+					m_ActionActive = false;
+				}
+				else
+				{
+					m_ActionActive = true;
+				}
+			}
+		}
+	} while(runflag);
+}
+
+#undef SX_IMPL_TYPE
 
 /* ----------------------------------- END OF FILE ------------------------------------ */
