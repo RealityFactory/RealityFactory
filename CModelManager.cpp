@@ -1259,7 +1259,7 @@ int CModelManager::ProcessModelTick(int nEntry, geFloat dwTicks)
 					char Arg[6][128];
 
 					memset(Arg, 0, sizeof(Arg));
-					sscanf(Eventstring, "%s %s %s %s %s %s", &Arg[0], &Arg[1], &Arg[2], &Arg[3], &Arg[4], &Arg[5]);
+					sscanf(Eventstring, "%127s %127s %127s %127s %127s %127s", &Arg[0], &Arg[1], &Arg[2], &Arg[3], &Arg[4], &Arg[5]);
 
 					switch(Arg[0][0])
 					{

@@ -118,7 +118,7 @@ CAutoDoors::CAutoDoors() :
 					char Arg[6][128];
 					memset(Arg, 0, sizeof(Arg));
 					sscanf(Eventstring,
-							"%s %s %s %s %s %s",
+							"%127s %127s %127s %127s %127s %127s",
 							&Arg[0], &Arg[1], &Arg[2], &Arg[3], &Arg[4], &Arg[5]);
 
 					if(Arg[0][0] == 'S')
