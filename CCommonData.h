@@ -12,17 +12,24 @@
 #ifndef __RGF_CCOMMONDATA_H_
 #define __RGF_CCOMMONDATA_H_
 
+class CLevel;
 class CPlayer;
 class CActorManager;
 class CModelManager;
 class CWeapon;
 class CEntityRegistry;
+class CExplosionManager;
 class EffManager;
 class CPreEffect;
+class CLanguageManager;
 class CArmour;
 class CAudioManager;
 class CCDAudio;
+class CGameStateManager;
+class CGUIManager;
 class CHeadsUpDisplay;
+class sxConversationManager;
+class sxInventory;
 class CMIDIAudio;
 class CPolyShadow;
 class qxTerrainMgr;
@@ -45,302 +52,166 @@ public:
 	/**
 	 * @brief Initialize common components
 	 */
-	int InitializeCommon(HINSTANCE hInstance, char *szStartLevel, bool CommandLine);
-	void ShutdownCommon();						///< Shut down common components
+	int Initialize(HINSTANCE hInstance, char *szStartLevel, bool commandLine);
+	void Shutdown();						///< Shut down common components
 
-	int InitializeLevel(const char *szLevelName);	///< Load and initialize level
-	void ShutdownLevel();							///< Clean up & shutdown level
+	void StartGame(bool commandLine);
 
-	bool HandleGameInput();						///< Process MENU commands, etc.
-	bool HandleMenuInput();						///< Process keystrokes in GAME LOOP
-	int SaveTo(FILE *SaveFD);
-	int RestoreFrom(FILE *RestoreFD);
-	void Play(const char *szFile, int XPos, int YPos, bool Center);
-	int DispatchTick();							///< Send time tick to components
+	int SaveTo(FILE *saveFD);
+	int RestoreFrom(FILE *restoreFD);
+
+	/**
+	 * @brief Play a GIF or AVI file
+	 */
+	void Play(const char *szFilename, int xPos, int yPos, bool center);
+
 	bool ProcessLevelChange();					///< Process a level change
-	void RenderComponents();					///< Render all components
-
-	void InitJoysticks();
-	void CloseJoysticks();
-	int	 PollJoystickAxis(int jn, int a);
-	bool CheckJoystickButton(int jn, int bn);
-	int  GetNumJoys();
-
-
 
 	void PlayOpeningCutScene();					///< Play opening cut scene
 	void CheckMediaPlayers();					///< Poll all media players
 
-	/**
-	 * @brief Open RealityFactory file
-	 */
-	FILE *OpenRFFile(int nFileType, const char *szFilename, const char *szHow);
-	/**
-	 * @brief Use geVFile for RF file opening
-	 */
-	bool OpenRFFile(geVFile **theFP, int nFileType, const char *szFilename, int nHow);
-	bool FileExist(int nFileType, const char *szFilename);
-	char *GetDirectory(int nDirectoryType);		///< Get configured directory
+	DWORD GetTimePassed_D();						///< Get amount of time passed, in msec
+	float GetTimePassed_F();						///< Get amount of time passed, in msec
+	DWORD FreeRunningCounter();						///< Return system free-running counter
+	float FreeRunningCounter_F();					///< Same as aboe, only floating-point
+	void ResetClock();								///< Reset the internal timer
+	void Spin(DWORD dwMilliseconds);				///< Waste time
 
-	DWORD GetTimePassed_D();					///< Get amount of time passed, in msec
-	geFloat GetTimePassed_F();					///< Get amount of time passed, in msec
-	DWORD FreeRunningCounter();					///< Return system free-running counter
-	geFloat FreeRunningCounter_F();				///< Same as aboe, only floating-point
-	void ResetClock();							///< Reset the internal timer
-	void Spin(DWORD dwMilliseconds);			///< Waste time
-
-	void SetChangeLevelData(struct _ChangeLevel *pItem);	///< Set change level data
+	void SetChangeLevelData(const _ChangeLevel *entity);	///< Set change level data
 	void SetLevelData();
 
 	// Inline data accessor member functions
-	inline bool ReportError(const char *szMsg, bool bBox) // changed QD 12/15/05
-	{
-		if(theGameEngine == NULL)
-		{
-			OutputDebugString(szMsg);
-			OutputDebugString("\n");
-			return false;
-		}
-		else
-			return theGameEngine->ReportError(szMsg, bBox);
-	}
 
-	inline CGenesisEngine *Engine()				{ return theGameEngine;			}
-	inline NetPlayerMgr *NetPlayerManager()		{ return theNetPlayerMgr;		}
-	inline geWorld *World()						{ return theGameEngine->World();}
-	inline CInput *Input()						{ return theUserInput;			}
-	inline CPlayer *Player()					{ return thePlayer;				}
-	inline CAutoDoors *Doors()					{ return theAutoDoors;			}
-	inline CMovingPlatforms *Platforms()		{ return thePlatforms;			}
-	inline CTeleporter *Teleporters()			{ return theTeleports;			}
-	inline CMorphingFields *MorphingFields()	{ return theFields;				}
-	inline CCDAudio *CDPlayer()					{ return theCDPlayer;			}
-	inline CMIDIAudio *MIDIPlayer()				{ return theMIDIPlayer;			}
-	inline C3DAudioSource *Audio3D()			{ return the3DAudio;			}
-	inline CParticleSystem *Particles()			{ return theParticles;			}
-	inline CStaticEntity *Props()				{ return theProps;				}
-	inline CStaticMesh *Meshes()				{ return theMeshes;				}
-	inline CSoundtrackToggle *SoundtrackToggles() { return theSTToggles;		}
-	inline CAudioStream *AudioStreams()			{ return theStreams;			}
-	inline CVideoTexture *VideoTextures()		{ return theVidText;			}
-	inline CCorona *Coronas()					{ return theCorona;				}
-	inline CDynalite *DynamicLights()			{ return theDynalite;			}
-	inline CElectric *ElectricEffects()			{ return theElectric;			}
-	inline CProcedural *ProceduralTextures()	{ return theProcTexture;		}
-	inline CHeadsUpDisplay *HUD()				{ return theHUD;				}
-	inline CPathDatabase *PathDatabase()		{ return thePathDatabase;		}
-	inline CEntityRegistry *EntityRegistry()	{ return theRegistry;			}
-	inline CPathFollower *PathFollower()		{ return theFollower;			}
-	inline EffManager *EffectManager()			{ return theEffect;				}
-	inline CRain *RainEffect()					{ return theRain;				}
-	inline CSpout *SpoutEffect()				{ return theSpout;				}
-	inline CActorSpout *ActorSpoutEffect()		{ return theActorSpout;			}
-	inline CMorph * Morphs()					{ return theMorph;				}
-	inline CCutScene *CutScenes()				{ return theCutScene;			}
-	inline CActMaterial *ActMaterials()			{ return theActMaterial;		}
-	inline qxTerrainMgr *TerrainMgr()			{ return theTerrainMgr;			}
-	inline CArmour *Armours()					{ return theArmour;				}
-	inline CLiftBelt *LiftBelts()				{ return theLiftBelt;			}
-	inline CWindGenerator *WindGenerator()		{ return theWindGenerator;		}
-	inline CFloat *FloatEffect()				{ return theFloat;				}
-	inline Chaos *ChaosEffect()					{ return theChaos;				}
-	inline CFlame *FlameEffect()				{ return theFlame;				}
-	inline CRFMenu *MenuManager()				{ return theMenu;				}
-	inline CAttribute *Attributes()				{ return theAttribute;			}
-	inline Collider *Collision()				{ return theCollider;			}
-	inline CActorManager *ActorManager()		{ return theActorManager;		}
-	inline CModelManager *ModelManager()		{ return theModelManager;		}
-	inline CAudioManager *AudioManager()		{ return theAudioManager;		}
-	inline CCameraManager *CameraManager()		{ return theCameraManager;		}
-	inline CTriggers *Triggers()				{ return theTriggers;			}
-	inline CLogic *Logic()						{ return theLogic;				}
-	inline CDamage *Damage()					{ return theDamage;				}
-	inline CScriptPoint *ScriptPoints()			{ return theScriptPoints;		}
-	inline CPawn *Pawns()						{ return thePawn;				}
-	inline CCountDown *CountDownTimers()		{ return theCountDownTimer;		}
-	inline CChangeAttribute *ChangeAttributes() { return theChangeAttribute;	}
-	inline bool InGameMode()					{ return m_InGameLoop;			}
-	// Time inlines
-	inline DWORD LastElapsedTime_D()			{ return LastTimePassed_D;		}
-	inline geFloat LastElapsedTime_F()			{ return LastTimePassed_F;		}
-	inline __int64 CurrentGameTime_L()			{ return LastTimePoll;			}
-	inline DWORD CurrentGameTime_D()			{ return (DWORD)LastTimePoll;	}
-	inline geFloat CurrentGameTime_F()			{ return (float)LastTimePoll;	}
-	//	Game state inlines
-	inline void GoToGameMode()					{ m_InGameLoop = true;			}
-	inline void GoToMenuMode()					{ m_InGameLoop = false;			}
-	inline int SetDebugLevel(int theLevel)
-	{ int nOldLevel = m_DebugLevel; m_DebugLevel = theLevel; return nOldLevel;	}
-	inline int DebugLevel()						{ return m_DebugLevel;			}
-	// Update #1
-	inline const char *MenuIni()				{ return m_MenuDirectory;		}
-	inline bool HeadBob()						{ return m_headbob;				}
-	inline bool WeaponPosition()				{ return m_weaponposition;		}
+	inline CGenesisEngine*		Engine()			{ return m_GameEngine;			}
+	inline geWorld*				World()				{ return m_GameEngine->World(); }
+	inline CGUIManager*			GUIManager()		{ return m_GUIManager;			}
+	inline CLanguageManager*	LanguageManager()	{ return m_LanguageManager;		}
+	// start multiplayer
+	inline NetPlayerMgr*		NetPlayerManager()	{ return m_NetPlayerManager;	}
+	// end multiplayer
+	inline CAudioManager*		AudioManager()		{ return m_AudioManager;		}
+	inline CCameraManager*		CameraManager()		{ return m_CameraManager;		}
+	inline Collider*			Collision()			{ return m_Collider;			}
+	inline CRFMenu*				MenuManager()		{ return m_Menu;				}
+	inline CInput*				Input()				{ return m_InputManager;		}
+	inline CCDAudio*			CDPlayer()			{ return m_CDPlayer;			}
+	inline CMIDIAudio*			MIDIPlayer()		{ return m_MIDIPlayer;			}
+	inline CArmour*				Armours()			{ return m_Armour;				}
+
+	inline qxTerrainMgr*		TerrainManager();
+
+	inline CLevel*		Level()				{ return m_Level;					}
+	CPlayer*			Player();//			{ return m_Level->Player();			}
+	CActorManager*		ActorManager();//	{ return m_Level->ActorManager();	}
+	CModelManager*		ModelManager();//	{ return m_Level->ModelManager();	}
+	CWeapon*			Weapons();//		{ return m_Level->WeaponManager();	}
+	CHeadsUpDisplay*	HUD();//			{ return m_Level->HUD();			}
+	CEntityRegistry*	EntityRegistry();//	{ return m_Level->EntityRegistry();	}
+	EffManager*			EffectManager();//	{ return m_Level->EffectManager();	}
+	CPreEffect*			Effect();//			{ return m_Level->PreEffects();		}
+
+	inline CPolyShadow*	PlyShdw()				{ return m_PolyShadow;			}
+
+	inline const char* StartName() const		{ return m_StartPointName;		}
+	inline const char* SplashScreen() const		{ return m_SplashScreen;		}
+	inline const char* SplashAudio() const		{ return m_SplashAudio;			}
+	inline const char* CutScene() const			{ return m_CutScene;			}
+	inline const char* SplashScreen1() const	{ return m_SplashScreen1;		}
+	inline const char* SplashAudio1() const		{ return m_SplashAudio1;		}
+	inline const char* CutScene1() const		{ return m_CutScene1;			}
+
+	inline bool HeadBob() const					{ return m_HeadBob;				}
+	inline bool PositionWeapon() const			{ return m_PositionWeapon;		}
+	inline bool GetAlterKey() const				{ return m_AlterKey;			}
+
 	// Control change level flag
 	inline void SetChangeLevel(bool fHit)		{ m_ChangeLevel = fHit;			}
-	inline bool ChangeLevel()					{ return m_ChangeLevel;			}
-	inline CMessage *Messages()					{ return theMessage;			}
-	inline CWeapon *Weapons()					{ return theWeapon;				}
-	inline CFirePoint *FirePoints()				{ return theFirePoint;			}
-	inline CDecal *Decals()						{ return theDecal;				}
-	inline CWallDecal *WallDecals()				{ return theWallDecal;			}
-	inline CLevelController *LevelControllers() { return theLevelController;	}
-	inline CFlipBook *FlipBooks()				{ return theFlipBook;			}
-	inline CFoliage *Foliage()					{ return theFoliage;			}
-	inline CFlipTree *FlipTree()				{ return theFlipTree;			}
-	inline PWXImageManager *PWXImMgr()			{ return thePWXImage;			}
-	inline CPolyShadow *PlyShdw()				{ return thePolyShadow;			}
-	inline CAreaChecker *AreaCheck()			{ return theAreaCheck;			}
-	inline CExplosionInit *Explosions()			{ return theExplosion;			}
-	inline CExplosion *CExplosions()			{ return theCExplosion;			}
-	inline CPreEffect *Effect()					{ return thePreEffect;			}
-	inline CChangeLevel *Changelevel()			{ return theChangeLevel;		}
-	inline CShake *SShake()						{ return theShake;				}
-	inline CFixedCamera *FixedCameras()			{ return theFixedCamera;		}
-	inline geVec3d PRotation()					{ return m_playerotation;		}
-	inline geVec3d CRotation()					{ return theRotation;			}
-	inline geVec3d POffset()					{ return Offset;				}
-	inline const char *StartName()				{ return m_StartPointName;		}
-	inline const char *SplashScreen()			{ return m_SplashScreen;		}
-	inline const char *SplashAudio()			{ return m_SplashAudio;			}
-	inline const char *CutScene()				{ return m_CutScene;			}
-	inline const char *SplashScreen1()			{ return m_SplashScreen1;		}
-	inline const char *SplashAudio1()			{ return m_SplashAudio1;		}
-	inline const char *CutScene1()				{ return m_CutScene1;			}
-	inline bool GetNSelect()					{ return NSelect;				}
-	inline bool GetCSelect()					{ return CSelect;				}
-	inline bool GetSaving()						{ return saving;				}
-	inline void SetSaving(bool flag)			{ saving = flag;				}
-	inline CViewSwitch *ViewSwitchs()			{ return theViewSwitch;			}
-	inline CInventory *Inventory()				{ return theInventory;			}
-	inline CLiquid *Liquids()					{ return theLiquid;				}
-	inline CDSpotLight *CDSpot()				{ return theCDSpot;				}
-	inline bool GetLogging()					{ return Logging;				}
-	inline bool GetPaused()						{ return Paused;				}
-	inline void SetPaused(bool flag)			{ Paused = flag;				}
-	inline float GetAudibleRadius()				{ return kAudibleRadius;		}
-	inline void SetAudibleRadius(float radius)	{ kAudibleRadius = radius;		}
-	inline float GetTicksGoneBy()				{ return dwTicksGoneBy;			}
-	inline COverlay *Overlays()					{ return theOverlay;			}
-	inline void SetKeyPaused(bool flag)			{ KeyPaused = flag;				}
-	inline bool GetCDifficult()					{ return CDifficult;			}
-	inline int GetDifficultLevel()				{ return DifficultLevel;		}
-	inline void SetDifficultLevel(int level)	{ DifficultLevel = level;		}
-	inline bool GetCmdLine()					{ return CmdLine;				}
-	inline GE_RGBA GetFogColor()				{ return cColor;				}
-	inline bool GetUseEffect()					{ return UseEffect;				}
-	inline const char *NextLevel()				{ return m_NewLevel;			}
-	inline void SetLevelDirectory(const char *szArg)
-						{ if(szArg != NULL)	strcpy(m_LevelDirectory, szArg);	}
-	inline bool GetHasFocus()					{ return HasFocus;				}
-	inline void SetHasFocus(bool flag)			{ HasFocus = flag;				}
+	inline bool ChangeLevel() const				{ return m_ChangeLevel;			}
+
+	inline bool GetSaving() const				{ return m_Saving;				}
+	inline void SetSaving(bool flag)			{ m_Saving = flag;				}
+
+	inline bool GetCharacterSelection() const	{ return m_CharacterSelection;	}
+	inline bool GetNameSelection() const		{ return m_NameSelection;		}
+
+	inline bool GetPaused() const				{ return m_Paused;				}
+	inline void SetPaused(bool flag)			{ m_Paused = flag;				}
+
+	inline bool GetKeyPaused() const			{ return m_KeyPaused;			}
+	inline void SetKeyPaused(bool flag)			{ m_KeyPaused = flag;			}
+
+	inline bool GetDifficultSelection() const	{ return m_DifficultSelection;	}
+	inline int GetDifficultLevel() const		{ return m_DifficultLevel;		}
+	inline void SetDifficultLevel(int level)	{ m_DifficultLevel = level;		}
+
+	inline bool GetCmdLine() const				{ return m_CmdLine;				}
+
+	inline GE_RGBA GetFogColor()				{ return m_EffectColor;			}
+	inline bool GetUseEffect() const			{ return m_UseEffect;			}
+	inline const char* NextLevel() const		{ return m_NewLevel;			}
+
+	inline bool GetHasFocus() const				{ return m_HasFocus;			}
+	inline void SetHasFocus(bool flag)			{ m_HasFocus = flag;			}
+
+	// Time inlines
+	inline DWORD LastElapsedTime_D() const		{ return m_LastTimePassed_D;	}
+	inline float LastElapsedTime_F() const		{ return m_LastTimePassed_F;	}
+	inline __int64 CurrentGameTime_L() const	{ return m_LastTimePoll;		}
+	inline DWORD CurrentGameTime_D()			{ return static_cast<DWORD>(m_LastTimePoll); }
+	inline float CurrentGameTime_F()			{ return static_cast<float>(m_LastTimePoll); }
+	inline float GetTicksGoneBy() const			{ return m_dwTicksGoneBy;		}
+
 // start multiplayer
-	inline bool GetConsole()					{ return consoleflag;			}
-	inline bool GetNetwork()					{ return network;				}
+
+	inline bool GetNetwork() const				{ return m_Network;				}
 	void ShutDownNetWork();
 	bool GetMultiPlayer();
 	void SetMultiPlayer(bool multi, bool Server);
-	inline bool GetServer()						{ return server;				}
+	inline bool GetServer() const				{ return m_Server;				}
 // end multiplayer
-	inline int GetLanguage()					{ return m_Language;			}
-	inline void SetLanguage(int language)		{ m_Language = language;		}
-	inline float GetLODdistance(int index)		{ return LODdistance[index];	}
-	inline bool GetLODAnimation()				{ return LODAnimation;			}
-	inline bool GetMouseControl()				{ return m_MouseControl;		}
+
+	inline bool GetMouseControl() const			{ return m_MouseControl;		}
 	inline void SetMouseControl(bool flag)		{ m_MouseControl = flag;		}
-	inline bool GetUseDialog()					{ return UseDialog;				}
-	inline const char *GetDefaultPlayerName()	{ return m_PlayerName;			}
+	inline bool GetInGameCursor() const			{ return m_InGameCursor;		}
+
+	inline bool GetUseLevelDialog() const		{ return m_UseLevelDialog;		}
+	inline const std::string& GetDefaultPlayerName()	{ return m_PlayerName;	}
+	inline const std::string& GetDefaultPlayerAvatar()	{ return m_PlayerAvatar;}
+
+	inline bool	ShowTrack() const				{ return m_ShowTrack;			}
+	inline bool	SaveAttributesAsText() const	{ return m_SaveAttributesAsText;}
 
 private:
-	CGenesisEngine		*theGameEngine;		///< Genesis engine class
+	CGUIManager*			m_GUIManager;
+	CGameStateManager*		m_GameStateManager;
+	CLanguageManager*		m_LanguageManager;
+
+	CGenesisEngine*			m_GameEngine;		///< Genesis engine class
 // start multiplayer
-	NetPlayerMgr		*theNetPlayerMgr;
+	NetPlayerMgr*			m_NetPlayerManager;
 // end multiplayer
-	CInput				*theUserInput;		///< User input class
-	CPlayer				*thePlayer;			///< Player avatar class
-	CAutoDoors			*theAutoDoors;		///< Automatic doors class
-	CMovingPlatforms	*thePlatforms;		///< Moving platforms class
-	CTeleporter			*theTeleports;		///< Teleporter class
-	CMorphingFields		*theFields;			///< Morphing fields class
-	CCDAudio			*theCDPlayer;		///< CD Audio player class
-	CMIDIAudio			*theMIDIPlayer;		///< MIDI Audio player class
-	C3DAudioSource		*the3DAudio;		///< 3D Audio Source class
-	CParticleSystem		*theParticles;		///< Particle systems handler class
-	CStaticEntity		*theProps;			///< Static entity handler class
-	CStaticMesh			*theMeshes;			///< new staticmesh system
-	CSoundtrackToggle	*theSTToggles;		///< Soundtrack toggle handler class
-	CAudioStream		*theStreams;		///< Streaming audio handler
-	CVideoTexture		*theVidText;		///< Video texture handler
-	CCorona				*theCorona;			///< Corona effects class
-	CDynalite			*theDynalite;		///< Dynamic light class
-	CElectric			*theElectric;		///< Electric bolt class
-	CProcedural			*theProcTexture;	///< Procedural texture class
-	CHeadsUpDisplay		*theHUD;			///< Heads-up display class
-	CPathDatabase		*thePathDatabase;	///< Path database
-	CPathFollower		*theFollower;		///< Path follower class
-	CEntityRegistry		*theRegistry;		///< Entity registry class
-	EffManager			*theEffect;			///< Effects Manager
-	CRain				*theRain;			///< Rain Effect
-	CSpout				*theSpout;			///< Spout Effect
-	CActorSpout			*theActorSpout;
-	CWindGenerator		*theWindGenerator;
-	CFloat				*theFloat;			///< Floating Effect
-	CFlame				*theFlame;			///< Flame Effect
-	Chaos				*theChaos;			///< Chaos Procedural
-	CRFMenu				*theMenu;			///< Menu Manager
-	Collider			*theCollider;		///< Collision detection subsystem
-	CActorManager		*theActorManager;	///< Actor manager subsystem
-	CModelManager		*theModelManager;	///< Model manager subsystem
-	CAudioManager		*theAudioManager;	///< Audio manager subsystem
-	CCameraManager		*theCameraManager;	///< Camera manager subsystem
-	CTriggers			*theTriggers;		///< Triggers class
-	CLogic				*theLogic;			///< Trigger Logic
-	CMessage			*theMessage;
-	CWeapon				*theWeapon;
-	CFirePoint			*theFirePoint;
-	CFlipBook			*theFlipBook;
-	CFoliage			*theFoliage;		// Pickles Jul 04
-	CFlipTree			*theFlipTree;		// Pickles Jul 04
-	PWXImageManager		*thePWXImage;		// PWX
-	CPolyShadow			*thePolyShadow;		// PWX
-	CAreaChecker		*theAreaCheck;		// PWX
-	CDecal				*theDecal;
-	CWallDecal			*theWallDecal;
-	CLevelController	*theLevelController;
-	CAttribute			*theAttribute;
-	CDamage				*theDamage;
-	CExplosionInit		*theExplosion;
-	CExplosion			*theCExplosion;
-	CPreEffect			*thePreEffect;
-	CChangeLevel		*theChangeLevel;
-	CShake				*theShake;
-	CFixedCamera		*theFixedCamera;
-	CViewSwitch			*theViewSwitch;
-	CInventory			*theInventory;
-	CLiquid				*theLiquid;
-	COverlay			*theOverlay;
-	CScriptPoint		*theScriptPoints;
-	CPawn				*thePawn;
-	CCountDown			*theCountDownTimer;
-	CChangeAttribute	*theChangeAttribute;
-	CMorph				*theMorph;
-	CCutScene			*theCutScene;
-	CActMaterial		*theActMaterial;
-	qxTerrainMgr		*theTerrainMgr;
-	CArmour				*theArmour;
-	CLiftBelt			*theLiftBelt;
-	CDSpotLight			*theCDSpot;
-	Joystick			*joysticks[4];		// pickles Jul 04
-	float kAudibleRadius;
+	CInput*					m_InputManager;		///< User input class
+	CLevel*					m_Level;
+	CCDAudio*				m_CDPlayer;			///< CD Audio player class
+	CMIDIAudio*				m_MIDIPlayer;		///< MIDI Audio player class
+	CRFMenu*				m_Menu;				///< Menu Manager
+	Collider*				m_Collider;			///< Collision detection subsystem
+	CAudioManager*			m_AudioManager;		///< Audio manager subsystem
+	CCameraManager*			m_CameraManager;	///< Camera manager subsystem
+	CPolyShadow*			m_PolyShadow;
+	sxInventory*			m_Inventory;
+	sxConversationManager*	m_ConversationManager;
+	CArmour*				m_Armour;
+
+
 	// Timekeeping information
-	__int64		PerformanceFrequency;		///< Performance Counter Frequency
-	__int64		LastTimePoll;				///< Last time we polled the time
-	DWORD		LastTimePassed_D;			///< Last elapsed time as DWORD
-	geFloat		LastTimePassed_F;			///< Last elapsed time as FLOAT
-	//	Global game state information
-	bool		m_InGameLoop;				///< Game loop/menu loop flag
+	__int64		m_LastTimePoll;				///< Last time we polled the time
+	DWORD		m_LastTimePassed_D;			///< Last elapsed time as DWORD
+	float		m_LastTimePassed_F;			///< Last elapsed time as FLOAT
+	// Global game state information
+#if 0
 	DWORD		m_TotalPlayTime;			///< Total game time, this session
-	int			m_DebugLevel;				///< Internal debug output level
+#endif
 
 	// Level change information
 	bool		m_ChangeLevel;				///< We hit a level change
@@ -352,77 +223,64 @@ private:
 	char		m_SplashAudio1[256];		///< Audio to play with splash screen
 	char		m_CutScene1[256];			///< Cut scene to play from changelevel
 	char		m_Message[256];
-	int			m_Font;
-	bool		m_MouseControl;				///< use mouse to control player
-	geVec3d		m_playerotation;
-	geVec3d		theRotation;
-	geVec3d		Offset;
+	std::string	m_Font;
+	geVec3d		m_PlayerRotation;
+	geVec3d		m_CameraRotation;
+	geVec3d		m_PlayerOffset;
 	char		m_StartPointName[256];
-	bool		KeepAttributes;
-	bool		SplashHold;
-	float		m_defaultdistance, m_cameraX, m_cameraY;
-	geVec3d		theTranslation, theRotate;
-	int			ViewPoint;
-	int			Slot[40];
-    int			CurrentWeapon;
-	bool		Paused;
-	bool		KeyPaused;
-	bool		CDifficult;
-	int			DifficultLevel;
-	geFloat		dwTicksGoneBy;
-	bool		UseEffect;
-	GE_RGBA		cColor;
-	bool		UseAngle;
-	bool		ShowTrack;
-	//	Configuration data
-	char	m_PlayerAvatar[256];			///< Player avatar actor file
-	char	m_ActorDirectory[256];			///< Actor directory
-	char	m_BitmapDirectory[256];			///< Bitmap directory
-	char	m_LevelDirectory[256];			///< Level directory
-	char	m_AudioDirectory[256];			///< Audio directory
-	char	m_VideoDirectory[256];			///< Video directory
-	char	m_AudioStreamDirectory[256];	///< Audio stream directory
-	char	m_MIDIDirectory[256];			///< MIDI file directory
-	char	m_MenuDirectory[256];			///< menu ini file directory
-	char	m_VirtualFile[256];
-	char	m_PlayerName[64];
-	bool	NSelect;
-	bool	CSelect;
-	bool	UseDialog;
-	bool	m_bUseDInput; ///< dinput may conflict with hid.dll on win98, flag to disable
-	bool	m_headbob;
-	bool	m_weaponposition;
-	bool	jumpkey;
-	bool	runkey;
-	bool	crouchkey;
-	bool	zoomkey;
-	bool	lightkey;
-	bool	loadkey;
-	bool	savekey;
-	bool	saving;
-	bool	usekey;
-	bool	invkey;
-	bool	dropkey;
-	bool	reloadkey;
-	geVFile *VFS;
+	bool		m_KeepAttributes;
+	bool		m_SplashHold;
+	float		m_DefaultDistance, m_CameraX, m_CameraY;
+	geVec3d		m_CameraTranslationOffset;
+	geVec3d		m_CameraRotationOffset;
+	int			m_ViewPoint;
+	bool		m_UseEffect;	// use fog effect at level change
+	GE_RGBA		m_EffectColor;	// fog color
+	bool		m_UseAngle;
+
+	std::string	m_Slot[40];		// MAX_WEAPONS = 40 !
+	std::string	m_CurrentWeapon;
+
+	bool		m_Paused;
+	bool		m_KeyPaused;
+	bool		m_MouseControl;				///< use mouse to control player
+	bool		m_InGameCursor;
+
+	float		m_dwTicksGoneBy;
+
+	bool		m_ShowTrack;
+
+	// Configuration data
+	std::string	m_PlayerName;
+	std::string	m_PlayerAvatar;				///< Player avatar actor file
+	bool	m_NameSelection;
+	bool	m_DifficultSelection;
+	int		m_DifficultLevel;
+	bool	m_CharacterSelection;
+	bool	m_SaveAttributesAsText;
+
+	bool	m_UseLevelDialog;
+
+	bool	m_HeadBob;
+	bool	m_PositionWeapon;				///< do in-game weapon positioning
+	bool	m_AlterKey;
+
 // start multiplayer
-	bool	consolekey;
-	bool	consoleflag;
-	bool	network;
-	bool	multiplayer;
-	bool	server;
+	bool	m_Saving;
+	bool	m_Network;
+	bool	m_Multiplayer;
+	bool	m_Server;
 // end multiplayer
 
 	static void CALLBACK TimerFunction(UINT uID, UINT uMsg, DWORD dwUser,
 						DWORD dw1, DWORD dw2);		///< Static timer callback
 	int		m_nTimerID;
-	__int64 TimeCounter;
-	bool	HasFocus;
-	bool	CmdLine;
-	int		m_Language;
-	bool	Logging;
-	float	LODdistance[5];
-	bool	LODAnimation;
+	__int64 m_TimeCounter;
+	bool	m_HasFocus;
+	bool	m_CmdLine;
+
+	float	m_LODdistance[5];
+	bool	m_LODAnimation;
 };
 
 #endif
