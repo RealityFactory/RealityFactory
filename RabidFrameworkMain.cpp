@@ -33,10 +33,10 @@ static void DisplaySplashScreen(const char *splashScreen,
 /* ------------------------------------------------------------------------------------ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszCmdParam, int /*nCmdShow*/)
 {
+	char szCurrentDir[512];
 
-	char m_currentdir[512];
-	_getcwd(m_currentdir, 512);
-	chdir(m_currentdir);
+	_getcwd(szCurrentDir, 512);
+	chdir(szCurrentDir);
 
 	// _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	// _CrtSetBreakAlloc(24312);
@@ -210,23 +210,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	}
 
 	// Center the invisible mouse cursor
-	RECT client;
-	POINT pos;
-
-	if(CCD->Engine()->FullScreen())
-    {
-		pos.x = CCD->Engine()->Width()/2;	// calculate the center of the screen
-		pos.y = CCD->Engine()->Height()/2;	// calculate the center of the screen
-		SetCursorPos(pos.x, pos.y);			// set the cursor in the center of the screen
-    }
-	else
-    {
-		GetClientRect(CCD->Engine()->WindowHandle(),&client);	// get the client area of the window
-		pos.x = client.right/2;									// calculate the center of the client area
-		pos.y = client.bottom/2;								// calculate the center of the client area
-		ClientToScreen(CCD->Engine()->WindowHandle(),&pos);		// convert to SCREEN coordinates
-		SetCursorPos(pos.x,pos.y);								// put the cursor in the middle of the window
-    }
 
 	if(commandLine)
 	{
@@ -234,37 +217,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 		log->SetPriority(LP_DEBUG);
 		log->Debug("Launching Preview from Editor, bypassing Genesis3D Logo for DEBUG purposes ONLY...");
 		log->Debug("Previewing Level as SinglePlayer Client...");
-
-		// show logos
-		DisplayAllSplashScreens();
-
-		CCD->MenuManager()->SetLevelName(szFirstLevel);
-		CCD->MenuManager()->DoGame(true);
 	}
 	// direct multiplayer launch from command line
 	// TODO:  update the server IP & Port and launch the multiplayer game instead
 	// TODO:  provide for dedicated server launching as well as remote client launching
 	else if(multiplayerLaunch)
 	{
-		// show logos
-		DisplayAllSplashScreens();
-
 		// launch our network game
 		// TODO:  first have to set the serverip & port from our command line variables
 		log->Debug("Launching Game as Multiplayer Client...");
-		CCD->MenuManager()->SetLevelName(szFirstLevel);
-		CCD->MenuManager()->DoGame(true);
-	}
-	else
-	{
-
-		// show logos
-		DisplayAllSplashScreens();
 	}
 
-	CCD->MenuManager()->DoMenu(szFirstLevel);
+	// show logos
+	DisplayAllSplashScreens();
+
+	CCD->MenuManager()->SetLevelName(szFirstLevel);
+
+	CCD->StartGame(commandLine || multiplayerLaunch);
+
 	log->Notice("Shutting Down Reality Factory Game Shell...");
-	CCD->ShutdownLevel();					// Kill off level-specific entities
 
 	delete CCD;								// Kill off the engine and such
 
