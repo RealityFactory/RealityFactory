@@ -70,11 +70,6 @@ enum
 
 #define _CRTDBG_MAP_ALLOC
 
-#define RF_VERSION_MAJOR	0
-#define RF_VERSION_MINOR	76
-#define RF_VMAJS			"0"
-#define RF_VMINS			"76   "
-
 #define SAFE_DELETE(p)		{ delete (p);	(p)=NULL; }
 #define SAFE_DELETE_A(p)	{ delete[] (p);	(p)=NULL; }
 #define SAFE_FREE(p)		{ free(p);		(p)=NULL; }

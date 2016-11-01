@@ -17,6 +17,7 @@
 #define _THE_MASTER_MODULE_
 
 #include "RabidFramework.h"
+#include "RGFVersion.h" // auto-generated from resource file
 #include <process.h>
 
 static const char *GetOSName(LPOSVERSIONINFO versionInfo);
@@ -52,8 +53,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR lpszC
 	log->SetPriority(LP_DEBUG);
 #endif
 
+	char pad[] = "                        ";
+	int padLength = static_cast<int>(strlen(pad)) - static_cast<int>(strlen(RGF_VERSION_STR));
+	pad[(padLength < 0) ? 0 : padLength] = 0;
+
 	log->Print("-----------------------------------------------"	);
-	log->Print("--- Reality Factory " RF_VMAJS "." RF_VMINS "                 ---");
+	log->Print("--- Reality Factory %s%s---", RGF_VERSION_STR, pad	);
 	log->Print("--- Build Date: "__DATE__", Time: "__TIME__" ---"	);
 	log->Print("--- For more information, visit:            ---"	);
 	log->Print("---    http://www.realityfactory.info       ---"	);
