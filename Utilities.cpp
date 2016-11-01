@@ -10,6 +10,7 @@
 
 #include "RabidFramework.h"
 #include "CFileManager.h"
+#include "CLevel.h"
 #include "CAttribute.h"
 #include "CAutoDoors.h"
 #include "CChangeLevel.h"
@@ -19,6 +20,7 @@
 #include "CLiftBelt.h"
 #include "CLogic.h"
 #include "CPawn.h"
+#include "CPawnManager.h"
 #include "CStaticEntity.h"
 #include "CTeleporter.h"
 #include "CTriggers.h"
@@ -38,46 +40,46 @@ static unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned coun
 //   origin offset vector by the same transform (including
 //   translation) applied to the model.
 /* ------------------------------------------------------------------------------------ */
-bool SetOriginOffset(const char *EntityName, const char *BoneName,
-					 const geWorld_Model *Model, geVec3d *OriginOffset)
+bool SetOriginOffset(const char *entityName, const char *boneName,
+					 const geWorld_Model *model, geVec3d *originOffset)
 {
-	if(!EffectC_IsStringNull(EntityName))
+	if(!EffectC_IsStringNull(entityName))
 	{
-		if(!stricmp(EntityName, "Player"))
+		if(!stricmp(entityName, "Player"))
 		{
-			geXForm3d Xf;
+			geXForm3d xf;
 
-			if(EffectC_IsStringNull(BoneName))
-				BoneName = NULL;
+			if(EffectC_IsStringNull(boneName))
+				boneName = NULL;
 
-			if(geActor_GetBoneTransform(CCD->Player()->GetActor(), BoneName, &Xf )==GE_TRUE)
+			if(geActor_GetBoneTransform(CCD->Player()->GetActor(), boneName, &xf) == GE_TRUE)
 			{
-				geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+				geVec3d_Copy(&(xf.Translation), originOffset);
 				return true;
 			}
 
 			return false;
 		}
 
-		const char *EntityType = CCD->EntityRegistry()->GetEntityType(EntityName);
+		const char *entityType = CCD->EntityRegistry()->GetEntityType(entityName);
 
-		if(EntityType)
+		if(entityType)
 		{
-			if(!stricmp(EntityType, "StaticEntityProxy"))
+			if(!stricmp(entityType, "StaticEntityProxy"))
 			{
 				StaticEntityProxy *pProxy;
-				CCD->Props()->LocateEntity(EntityName, (void**)&pProxy);
+				CCD->Level()->Props()->LocateEntity(entityName, reinterpret_cast<void**>(&pProxy));
 
 				if(pProxy->Actor)
 				{
-					geXForm3d Xf;
+					geXForm3d xf;
 
-					if(EffectC_IsStringNull(BoneName))
-						BoneName = NULL;
+					if(EffectC_IsStringNull(boneName))
+						boneName = NULL;
 
-					if(geActor_GetBoneTransform(pProxy->Actor, BoneName, &Xf )==GE_TRUE)
+					if(geActor_GetBoneTransform(pProxy->Actor, boneName, &xf) == GE_TRUE)
 					{
-						geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+						geVec3d_Copy(&(xf.Translation), originOffset);
 						return true;
 					}
 
@@ -85,21 +87,21 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 				}
 			}
 
-			if(!stricmp(EntityType, "Attribute"))
+			if(!stricmp(entityType, "Attribute"))
 			{
 				Attribute *pProxy;
-				CCD->Attributes()->LocateEntity(EntityName, (void**)&pProxy);
+				CCD->Level()->Attributes()->LocateEntity(entityName, reinterpret_cast<void**>(&pProxy));
 
 				if(pProxy->Actor)
 				{
-					geXForm3d Xf;
+					geXForm3d xf;
 
-					if(EffectC_IsStringNull(BoneName))
-						BoneName = NULL;
+					if(EffectC_IsStringNull(boneName))
+						boneName = NULL;
 
-					if(geActor_GetBoneTransform(pProxy->Actor, BoneName, &Xf )==GE_TRUE)
+					if(geActor_GetBoneTransform(pProxy->Actor, boneName, &xf) == GE_TRUE)
 					{
-						geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+						geVec3d_Copy(&(xf.Translation), originOffset);
 						return true;
 					}
 
@@ -107,22 +109,22 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 				}
 			}
 
-			if(!stricmp(EntityType, "Pawn"))
+			if(!stricmp(entityType, "Pawn"))
 			{
 				Pawn *pProxy;
-				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
-				ScriptedObject *Object = (ScriptedObject *)pProxy->Data;
+				CCD->Level()->Pawns()->LocateEntity(entityName, reinterpret_cast<void**>(&pProxy));
+				ScriptedObject *object = static_cast<ScriptedObject*>(pProxy->Data);
 
-				if(Object->Actor)
+				if(object->m_Actor)
 				{
-					geXForm3d Xf;
+					geXForm3d xf;
 
-					if(EffectC_IsStringNull(BoneName))
-						BoneName = NULL;
+					if(EffectC_IsStringNull(boneName))
+						boneName = NULL;
 
-					if(geActor_GetBoneTransform(Object->Actor, BoneName, &Xf )==GE_TRUE)
+					if(geActor_GetBoneTransform(object->m_Actor, boneName, &xf) == GE_TRUE)
 					{
-						geVec3d_Copy( &( Xf.Translation ), OriginOffset );
+						geVec3d_Copy(&(xf.Translation), originOffset);
 						return true;
 					}
 
@@ -130,25 +132,25 @@ bool SetOriginOffset(const char *EntityName, const char *BoneName,
 				}
 				else
 				{
-					geVec3d_Copy( &Object->Location, OriginOffset );
+					geVec3d_Copy(&object->m_Location, originOffset);
 					return true;
 				}
 			}
 		}
 	}
-	else if(Model)
+	else if(model)
 	{
-		geXForm3d Xf1;
-		geWorld_GetModelXForm(CCD->World(), Model, &Xf1);
+		geXForm3d xf;
+		geWorld_GetModelXForm(CCD->World(), model, &xf);
 
-		if(Xf1.Translation.X == 10000.0f && Xf1.Translation.Y == 10000.0f && Xf1.Translation.Z == 10000.0f)
+		if(xf.Translation.X >= 10000.0f && xf.Translation.Y >= 10000.0f && xf.Translation.Z >= 10000.0f)
 			return false;
 
-		geXForm3d_Transform(&Xf1, OriginOffset, OriginOffset);
+		geXForm3d_Transform(&xf, originOffset, originOffset);
 
-		geVec3d ModelOrigin;
-		geWorld_GetModelRotationalCenter(CCD->World(), Model, &ModelOrigin);
-		geVec3d_Add(OriginOffset, &ModelOrigin, OriginOffset);
+		geVec3d modelOrigin;
+		geWorld_GetModelRotationalCenter(CCD->World(), model, &modelOrigin);
+		geVec3d_Add(originOffset, &modelOrigin, originOffset);
 		return true;
 	}
 
@@ -183,7 +185,7 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 			if(!stricmp(EntityType, "StaticEntityProxy"))
 			{
 				StaticEntityProxy *pProxy;
-				CCD->Props()->LocateEntity(EntityName, (void**)&pProxy);
+				CCD->Level()->Props()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy));
 
 				if(pProxy->Actor)
 				{
@@ -197,7 +199,7 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 			if(!stricmp(EntityType, "Attribute"))
 			{
 				Attribute *pProxy;
-				CCD->Attributes()->LocateEntity(EntityName, (void**)&pProxy);
+				CCD->Level()->Attributes()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy));
 
 				if(pProxy->Actor)
 				{
@@ -211,12 +213,12 @@ bool SetAngle(const char *EntityName, const char *BoneName, geVec3d *Angle)
 			if(!stricmp(EntityType, "Pawn"))
 			{
 				Pawn *pProxy;
-				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
-				ScriptedObject *Object = (ScriptedObject *)pProxy->Data;
+				CCD->Level()->Pawns()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy));
+				ScriptedObject *Object = static_cast<ScriptedObject*>(pProxy->Data);
 
-				if(Object->Actor)
+				if(Object->m_Actor)
 				{
-					if(CCD->ActorManager()->GetRotation(Object->Actor, Angle) == RGF_SUCCESS)
+					if(CCD->ActorManager()->GetRotation(Object->m_Actor, Angle) == RGF_SUCCESS)
 					{
 						Angle->Y += GE_PI;
 						return true;
@@ -261,7 +263,7 @@ bool GetTriggerState(const char *TriggerName)
 
 	if(!stricmp(TriggerName, "InFirstPerson"))
 	{
-		return CCD->Player()->InFirstPerson();
+		return CCD->Player()->FirstPersonView();
 	}
 
 	const char *EntityType = CCD->EntityRegistry()->GetEntityType(TriggerName);
@@ -271,61 +273,61 @@ bool GetTriggerState(const char *TriggerName)
 		if(!stricmp(EntityType, "Trigger"))
 		{
 			Trigger *pProxy;
-			CCD->Triggers()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->Triggers()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "LogicGate"))
 		{
 			LogicGate *pProxy;
-			CCD->Logic()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->LogicGates()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "StaticEntityProxy"))
 		{
 			StaticEntityProxy *pProxy;
-			CCD->Props()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->Props()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "Attribute"))
 		{
 			Attribute *pProxy;
-			CCD->Attributes()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->Attributes()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "DestroyableModel"))
 		{
 			DestroyableModel *pProxy;
-			CCD->Damage()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->Damage()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "ElectricBolt"))
 		{
 			ElectricBolt *pProxy = NULL;
-			CCD->ElectricEffects()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->ElectricBolts()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "CountDownTimer"))
 		{
 			CountDownTimer *pProxy;
-			CCD->CountDownTimers()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->CountDownTimers()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 
 		if(!stricmp(EntityType, "LiftBelt"))
 		{
 			LiftBelt *pProxy;
-			CCD->LiftBelts()->LocateEntity(TriggerName, (void**)&pProxy);
+			CCD->Level()->LiftBelts()->LocateEntity(TriggerName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->bState;
 		}
 	}
 
-	return CCD->Pawns()->GetEventState(TriggerName);
+	return CCD->Level()->Pawns()->GetEventState(TriggerName);
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -343,49 +345,49 @@ bool GetCallBackState(const char *CallBackName)
 		if(!stricmp(EntityType, "Trigger"))
 		{
 			Trigger *pProxy;
-			CCD->Triggers()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Triggers()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "Door"))
 		{
 			Door *pProxy;
-			CCD->Doors()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Doors()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "Attribute"))
 		{
 			Attribute *pProxy;
-			CCD->Attributes()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Attributes()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "StaticEntityProxy"))
 		{
 			StaticEntityProxy *pProxy;
-			CCD->Props()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Props()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "DestroyableModel"))
 		{
 			DestroyableModel *pProxy;
-			CCD->Damage()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Damage()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "ChangeLevel"))
 		{
 			ChangeLevel *pProxy;
-			CCD->Changelevel()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->ChangeLevels()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 
 		if(!stricmp(EntityType, "Teleporter"))
 		{
 			Teleporter *pProxy;
-			CCD->Teleporters()->LocateEntity(CallBackName, (void**)&pProxy);
+			CCD->Level()->Teleporters()->LocateEntity(CallBackName, reinterpret_cast<void**>(&pProxy));
 			return pProxy->CallBack;
 		}
 	}
@@ -398,28 +400,28 @@ bool GetCallBackState(const char *CallBackName)
 //
 // Determines if a string is NULL, accounting for additional editor posibilities.
 /* ------------------------------------------------------------------------------------ */
-geBoolean EffectC_IsStringNull(const char *String )
+geBoolean EffectC_IsStringNull(const char *string )
 {
 	// first way
-	if(String == NULL)
+	if(string == NULL)
 	{
 		return GE_TRUE;
 	}
 
 	// second way
-	if(strlen(String) < 1)
+	if(strlen(string) < 1)
 	{
 		return GE_TRUE;
 	}
 
 	// third way
-	if(strnicmp(String, "<null>", 6) == 0)
+	if(strnicmp(string, "<null>", 6) == 0)
 	{
 		return GE_TRUE;
 	}
 
 	// fourth way
-	if(strnicmp(String, "NULL", 4) == 0)
+	if(strnicmp(string, "NULL", 4) == 0)
 	{
 		return GE_TRUE;
 	}
@@ -588,6 +590,8 @@ geBoolean EffectC_IsBoxVisible(geWorld *World, const geCamera *Camera, const geE
 /* ------------------------------------------------------------------------------------ */
 int EffectC_rand(int Low, int High)
 {
+	assert(High >= Low);
+
 	// if they are the same then just return one of them
 	if(High == Low)
 	{
@@ -595,8 +599,13 @@ int EffectC_rand(int Low, int High)
 	}
 
 	// pick a random int from whithin the range
-	return ((rand()%(High - Low +1)) + Low);
 
+	// do not use (uses lower-order bits):
+	//return ((rand()%(High - Low + 1)) + Low);
+
+	// instead use:
+	float Range = static_cast<float>(High - Low + 1);
+	return (static_cast<int>(Range * static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) + 1.0f)) + Low);
 }
 
 
@@ -607,7 +616,7 @@ int EffectC_rand(int Low, int High)
 /* ------------------------------------------------------------------------------------ */
 float EffectC_Frand(float Low, float High)
 {
-	float	Range;
+	assert(High >= Low);
 
 	// if they are the same then just return one of them
 	if(High == Low)
@@ -615,10 +624,11 @@ float EffectC_Frand(float Low, float High)
 		return Low;
 	}
 
-	// pick a random float from whithin the range
-	Range = High - Low;
-	return ((float)(((rand() % 1000) + 1))) / 1000.0f * Range + Low;
+	float Range = High - Low;
 
+	// pick a random float from whithin the range
+	//return ((float)(((rand() % 1000) + 1))) / 1000.0f * Range + Low;
+	return (Range * static_cast<float>(rand()) / static_cast<float>(RAND_MAX) + Low);
 }
 
 
@@ -904,6 +914,8 @@ unsigned DLL_CALLCONV VFS_Read(void *buffer, unsigned size, unsigned count, fi_h
 void CollisionCalcRatio(const GE_Collision &a_Collision, const geVec3d &a_OldPos,
 						const geVec3d &a_NewPos, float *a_Ratio)
 {
+	assert(a_Ratio);
+
 	float fd = geVec3d_DotProduct(&a_OldPos, &(a_Collision.Plane.Normal)) - a_Collision.Plane.Dist;
 	float bd = geVec3d_DotProduct(&a_NewPos, &(a_Collision.Plane.Normal)) - a_Collision.Plane.Dist;
 
@@ -1041,10 +1053,14 @@ geBoolean CanSeePointToPoint(const geVec3d *Pos1, const geVec3d *Pos2)
 
 	if(geWorld_LeafMightSeeLeaf(CCD->World(), Leaf1, Leaf2, 0))
 	{
-		return !geWorld_Collision(CCD->World(), &RayMins, &RayMaxs, Pos1, Pos2, GE_CONTENTS_CANNOT_OCCUPY, GE_COLLIDE_MODELS, 0, NULL, NULL, &Collision);
+		return !geWorld_Collision(CCD->World(), &RayMins, &RayMaxs,
+									Pos1, Pos2,
+									GE_CONTENTS_CANNOT_OCCUPY, GE_COLLIDE_MODELS,
+									0, NULL, NULL,
+									&Collision);
 	}
 
-	return(GE_FALSE);
+	return GE_FALSE;
 }
 
 /* ------------------------------------------------------------------------------------ */
@@ -1058,6 +1074,7 @@ geBoolean CanSeeActorToPoint(const geActor *Actor, const geVec3d *Pos2)
 	CCD->ActorManager()->GetBoundingBox(Actor, &theBox);
 	CCD->ActorManager()->GetPosition(Actor, &thePosition);
 	thePosition.Y += (theBox.Max.Y * 0.75f);
+
 	return CanSeePointToPoint(&thePosition, Pos2);
 }
 
@@ -1121,33 +1138,31 @@ geActor *GetEntityActor(const char *EntityName)
 			if(!stricmp(EntityType, "StaticEntityProxy"))
 			{
 				StaticEntityProxy *pProxy;
-				CCD->Props()->LocateEntity(EntityName, (void**)&pProxy);
+				if(CCD->Level()->Props()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy)) == RGF_NOT_FOUND)
+					return NULL;
 
-				if(pProxy->Actor)
-					return pProxy->Actor;
-
-				return NULL;
+				return pProxy->Actor;
 			}
 
 			if(!stricmp(EntityType, "Attribute"))
 			{
 				Attribute *pProxy;
-				CCD->Attributes()->LocateEntity(EntityName, (void**)&pProxy);
+				if(CCD->Level()->Attributes()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy)) == RGF_NOT_FOUND)
+					return NULL;
 
-				if(pProxy->Actor)
-					return pProxy->Actor;
-
-				return NULL;
+				return pProxy->Actor;
 			}
 
 			if(!stricmp(EntityType, "Pawn"))
 			{
 				Pawn *pProxy;
-				CCD->Pawns()->LocateEntity(EntityName, (void**)&pProxy);
-				ScriptedObject *Object = (ScriptedObject*)pProxy->Data;
+				if(CCD->Level()->Pawns()->LocateEntity(EntityName, reinterpret_cast<void**>(&pProxy)) == RGF_NOT_FOUND)
+					return NULL;
 
-				if(Object->Actor)
-					return Object->Actor;
+				ScriptedObject *Object = static_cast<ScriptedObject*>(pProxy->Data);
+
+				if(Object)
+					return Object->m_Actor;
 
 				return NULL;
 			}
