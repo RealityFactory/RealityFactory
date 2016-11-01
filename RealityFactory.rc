@@ -107,18 +107,17 @@ END
 //
 // Version
 //
-
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x3fL
+ FILEVERSION 0,78,0,0
+ PRODUCTVERSION 0,78,0,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
- FILEFLAGS 0x1L
+ FILEFLAGS VS_FF_DEBUG | VS_FF_PRERELEASE
 #else
- FILEFLAGS 0x0L
+ FILEFLAGS 0x0L | VS_FF_PRERELEASE
 #endif
- FILEOS 0x40004L
- FILETYPE 0x1L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
  FILESUBTYPE 0x0L
 BEGIN
     BLOCK "StringFileInfo"
@@ -127,15 +126,15 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "none\0"
-            VALUE "FileDescription", "RealityFactory\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileDescription", "Reality Factory\0"
+            VALUE "FileVersion", "0.78.0.0\0"
             VALUE "InternalName", "RealityFactory\0"
-            VALUE "LegalCopyright", "Copyright © 2008\0"
+            VALUE "LegalCopyright", "Copyright © 2016\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RealityFactory.exe\0"
             VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "none RealityFactory\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductName", "Reality Factory\0"
+            VALUE "ProductVersion", "0.78.0.0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
