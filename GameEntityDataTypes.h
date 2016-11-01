@@ -23,7 +23,7 @@
 //	Sun - Entity that gives special kind of, sun-like, lighting.
 //
 
-#pragma GE_Type("..\\icons\\wm_sun.bmp")
+#pragma GE_Type("..\\icons\\sf_sun.bmp")
 typedef struct   Sun
 {
 #pragma	GE_Published
@@ -58,7 +58,7 @@ typedef struct   Sun
 //	FlipTree
 //
 
-#pragma GE_Type("..\\icons\\Foglight.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct _FlipTree
 {
 #pragma GE_Private
@@ -123,7 +123,7 @@ typedef struct _FlipTree
 //	AreaSwitch
 //
 
-#pragma GE_Type("..\\icons\\Foglight.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct _AreaSwitch
 {
 #pragma GE_Published
@@ -148,7 +148,7 @@ typedef struct _AreaSwitch
 //	SunLight - another sun entity with a different type of light
 //
 
-#pragma GE_Type("..\\icons\\wm_sunlight.bmp")
+#pragma GE_Type("..\\icons\\sf_sun.bmp")
 typedef struct tagSunLight
 {
 #pragma GE_Published
@@ -376,7 +376,7 @@ typedef struct _MovingPlatform
 //	Level Controller
 //
 
-#pragma GE_Type("..\\icons\\model.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct _LevelController
 {
 #pragma GE_Private
@@ -803,7 +803,7 @@ typedef struct _StaticEntityProxy
 //	Foliage
 //
 
-#pragma GE_Type("..\\icons\\Foglight.ico")
+#pragma GE_Type("..\\icons\\foliage.bmp")
 typedef struct _Foliage
 {
 #pragma GE_Private
@@ -1008,7 +1008,7 @@ typedef struct _ChangeLevel
 	char			*szNewLevel;		// Filename for new level
 	char			*szCutScene;		// Cut scene to play before level change, if any
 	char			*szMessage;
-	int				Font;
+	char			*Font;
 	geBoolean		UseOffset;
 	geBoolean		UseAngle;
 	char			*StartPointName;
@@ -1027,7 +1027,7 @@ typedef struct _ChangeLevel
 #pragma GE_DefaultValue(szCutScene, "")
 #pragma GE_DefaultValue(szMessage, "")
 #pragma GE_DefaultValue(Trigger, "")
-#pragma GE_DefaultValue(Font, "3")
+#pragma GE_DefaultValue(Font, "")
 #pragma GE_DefaultValue(UseOffset, "False")
 #pragma GE_DefaultValue(UseAngle, "False")
 #pragma GE_DefaultValue(StartPointName, "")
@@ -1045,7 +1045,7 @@ typedef struct _ChangeLevel
 #pragma GE_Documentation(szNewLevel, "Name of level file to load")
 #pragma GE_Documentation(szCutScene, "Inter-level cut scene to play, if any")
 #pragma GE_Documentation(szMessage, "Message to display instead of Splash Screen")
-#pragma GE_Documentation(Font, "Size of Message font")
+#pragma GE_Documentation(Font, "Message font")
 #pragma GE_Documentation(Trigger, "Name of trigger entity to use")
 #pragma GE_Documentation(StartPointName, "Entity Name of PlayerStart to use")
 #pragma GE_Documentation(UseOffset, "if True then Offset Player at Start Position")
@@ -1066,7 +1066,7 @@ typedef struct _ChangeLevel
 //	..a change in the playing soundtrack
 //
 
-#pragma GE_Type("..\\icons\\a_3d.bmp")
+#pragma GE_Type("..\\icons\\a_track.bmp")
 typedef struct _SoundtrackToggle
 {
 #pragma GE_Private
@@ -1187,10 +1187,6 @@ typedef struct _EnvironmentSetup
 	geVec3d		origin;					// Required origin
 	geVec3d		WindSpeed;
 	geVec3d		Gravity;				// gravity
-	geFloat		Speed;					// Player speed
-	geFloat		JumpSpeed;				// Player jump speed
-	geFloat		StepHeight;				// Player stair step-up height
-	geBoolean	RealJumping;
 	geBoolean	EnableDistanceFog;		// Enable engine distance fog
 	GE_RGBA		DistanceFogColor;		// Color of distance fog
 	geFloat		FogStartDistLow;		// Start of fog from camera, in world units
@@ -1203,8 +1199,6 @@ typedef struct _EnvironmentSetup
 	geFloat		MinShakeDist;
 	geFloat		AudibleRadius;
 
-	geFloat		SlideSlope;
-	geFloat		SlideSpeed;
 	geFloat		LODdistance1;
 	geFloat		LODdistance2;
 	geFloat		LODdistance3;
@@ -1215,14 +1209,17 @@ typedef struct _EnvironmentSetup
 	GE_RGBA		SShadowsColor;
 	geFloat		SShadowsAlpha;
 	int			SShadowsMaxLightToUse;
+
+	int			SpeedCoeffLava;
+	int			SpeedCoeffSlowMotion;
+	int			SpeedCoeffFastMotion;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(WindSpeed, "0.0 0.0 0.0")
 #pragma GE_DefaultValue(Gravity, "0.0 0.0 0.0")
-#pragma GE_DefaultValue(Speed, "0")
-#pragma GE_DefaultValue(JumpSpeed, "0")
-#pragma GE_DefaultValue(StepHeight, "0")
+#pragma GE_DefaultValue(SpeedCoeffLava, "55")
+#pragma GE_DefaultValue(SpeedCoeffSlowMotion, "25")
+#pragma GE_DefaultValue(SpeedCoeffFastMotion, "200")
 #pragma GE_DefaultValue(EnableDistanceFog, "False")
-#pragma GE_DefaultValue(RealJumping, "False")
 #pragma GE_DefaultValue(DistanceFogColor, "255 255 255")
 #pragma GE_DefaultValue(FogStartDistLow, "50.0")
 #pragma GE_DefaultValue(FogStartDistHigh, "50.0")
@@ -1233,8 +1230,6 @@ typedef struct _EnvironmentSetup
 #pragma GE_DefaultValue(FarClipPlaneDistHigh, "500.0")
 #pragma GE_DefaultValue(MinShakeDist, "50.0")
 #pragma GE_DefaultValue(AudibleRadius, "500.0")
-#pragma GE_DefaultValue(SlideSlope, "0.8")
-#pragma GE_DefaultValue(SlideSpeed, "40")
 #pragma GE_DefaultValue(LODdistance1, "0.0")
 #pragma GE_DefaultValue(LODdistance2, "0.0")
 #pragma GE_DefaultValue(LODdistance3, "0.0")
@@ -1247,10 +1242,9 @@ typedef struct _EnvironmentSetup
 
 #pragma GE_Documentation(WindSpeed, "Strength of wind")
 #pragma GE_Documentation(Gravity, "Gravity vector")
-#pragma GE_Documentation(RealJumping, "if true use realistic jumping")
-#pragma GE_Documentation(Speed, "Player speed of motion")
-#pragma GE_Documentation(JumpSpeed, "Player upward jump speed")
-#pragma GE_Documentation(StepHeight, "Highest step a player automatically climbs")
+#pragma GE_Documentation(SpeedCoeffLava, "Percentage of speed when in lava")
+#pragma GE_Documentation(SpeedCoeffSlowMotion, "Percentage of speed when in slow motion zone")
+#pragma GE_Documentation(SpeedCoeffFastMotion, "Percentage of speed when in fast motion zone")
 #pragma GE_Documentation(EnableDistanceFog, "TRUE to enable distance fogging")
 #pragma GE_Documentation(DistanceFogColor, "Color for distance fog")
 #pragma GE_Documentation(FogStartDistLow, "Min start distance from camera for fog")
@@ -1262,8 +1256,6 @@ typedef struct _EnvironmentSetup
 #pragma GE_Documentation(FarClipPlaneDistHigh, "Max distance past which nothing will be rendered")
 #pragma GE_Documentation(MinShakeDist, "Distance inside which explosion shake is at maximum")
 #pragma GE_Documentation(AudibleRadius, "Maximum distance sound is audible")
-#pragma GE_Documentation(SlideSlope, "Min Slope required to start sliding (1 - flat, 0 - verticle")
-#pragma GE_Documentation(SlideSpeed, "Speed factor for slope sliding")
 #pragma GE_Documentation(LODAnimation, "if True then LOD actors have their own animations")
 #pragma GE_Documentation(SShadowsColor, "color of stencil shadows")
 #pragma GE_Documentation(SShadowsAlpha, "alpha of stencil shadows")
@@ -1656,7 +1648,7 @@ typedef struct _PlayerSetup
 	geBoolean	UseDeathFog;
 	GE_RGBA		DeathFogColor;
 	char		*DeathMessage;
-	int			DeathFontSize;
+	char		*DeathFont;
 	char		*Deathlevel;
 	geFloat		ShadowSize;
 	geFloat		ShadowAlpha;
@@ -1665,6 +1657,12 @@ typedef struct _PlayerSetup
 	geBoolean	UseProjectedShadows;
 	geBoolean	UseStencilShadows;
 	geBoolean	KeepAttrAtDeath;
+	geFloat		Speed;					// Player speed
+	geFloat		JumpSpeed;				// Player jump speed
+	geFloat		StepHeight;				// Player stair step-up height
+	geBoolean	RealJumping;
+	geFloat		SlideSlope;
+	geFloat		SlideSpeed;
 #pragma GE_Origin(origin)
 #pragma GE_DefaultValue(ActorName, "")
 #pragma GE_DefaultValue(HUDInfoFile, "hud.ini")
@@ -1682,7 +1680,7 @@ typedef struct _PlayerSetup
 #pragma GE_DefaultValue(UseDeathFog, "False")
 #pragma GE_DefaultValue(DeathFogColor, "255 0 0")
 #pragma GE_DefaultValue(DeathMessage, "")
-#pragma GE_DefaultValue(DeathFontSize, "0")
+#pragma GE_DefaultValue(DeathFont, "")
 #pragma GE_DefaultValue(Deathlevel, "")
 #pragma GE_DefaultValue(ShadowSize, "0")
 #pragma GE_DefaultValue(ShadowAlpha, "0.0")
@@ -1691,6 +1689,12 @@ typedef struct _PlayerSetup
 #pragma GE_DefaultValue(UseProjectedShadows, "False")
 #pragma GE_DefaultValue(UseStencilShadows, "False")
 #pragma GE_DefaultValue(KeepAttrAtDeath, "False")
+#pragma GE_DefaultValue(Speed, "0")
+#pragma GE_DefaultValue(JumpSpeed, "0")
+#pragma GE_DefaultValue(StepHeight, "0")
+#pragma GE_DefaultValue(RealJumping, "False")
+#pragma GE_DefaultValue(SlideSlope, "0.8")
+#pragma GE_DefaultValue(SlideSpeed, "40")
 
 #pragma GE_Documentation(ActorName, "Name of actor to use as player in this level")
 #pragma GE_Documentation(HUDInfoFile, "HUD configuration file")
@@ -1710,7 +1714,7 @@ typedef struct _PlayerSetup
 #pragma GE_Documentation(UseDeathFog, "If true use fog swirl at death")
 #pragma GE_Documentation(DeathFogColor, "Color of fog used at death")
 #pragma GE_Documentation(DeathMessage, "Message to display at death")
-#pragma GE_Documentation(DeathFontSize, "Font size of death message")
+#pragma GE_Documentation(DeathFont, "Font of death message")
 #pragma GE_Documentation(Deathlevel, "Level to change to at death")
 #pragma GE_Documentation(ShadowSize, "Size of actor shadow, 0 is none")
 #pragma GE_Documentation(ShadowAlpha, "Transparency of actor shadow (0 to 255)")
@@ -1719,6 +1723,12 @@ typedef struct _PlayerSetup
 #pragma GE_Documentation(UseProjectedShadows, "use projected shadows for the player")
 #pragma GE_Documentation(UseStencilShadows, "use stencil shadows for the player")
 #pragma GE_Documentation(KeepAttrAtDeath, "if TRUE then retain all current attributes after dying")
+#pragma GE_Documentation(RealJumping, "if true use realistic jumping")
+#pragma GE_Documentation(Speed, "Player speed of motion")
+#pragma GE_Documentation(JumpSpeed, "Player upward jump speed")
+#pragma GE_Documentation(StepHeight, "Highest step a player automatically climbs")
+#pragma GE_Documentation(SlideSlope, "Min Slope required to start sliding (1 - flat, 0 - verticle")
+#pragma GE_Documentation(SlideSpeed, "Speed factor for slope sliding")
 } PlayerSetup;
 
 
@@ -1726,7 +1736,7 @@ typedef struct _PlayerSetup
 //	Floating Particles Entity
 //
 
-#pragma GE_Type("..\\icons\\wm_floatpart.bmp")
+#pragma GE_Type("..\\icons\\sf_floatpart.bmp")
 typedef struct FloatingParticles
 {
 #pragma	GE_Private
@@ -2764,7 +2774,7 @@ typedef struct FlipBook
 //	Explosion entity
 //
 
-#pragma GE_Type("..\\icons\\model.ico")
+#pragma GE_Type("..\\icons\\sf_explosion.bmp")
 typedef struct _Explosion
 {
 #pragma GE_Private
@@ -3074,13 +3084,14 @@ typedef struct _Pawn
 {
 #pragma GE_Private
 	void		*Data;
-	void		*Converse;
+	//void		*Converse;
 #pragma GE_Published
 	geVec3d		origin;
 	geVec3d		Angle;
 	char		*szEntityName;	// Name of this entity
 	char		*PawnType;
 	char		*ScriptName;
+	char		*ConvLayout;
 	char		*ConvScriptName;
 	char		*ConvOrder;
 	char		*SpawnOrder;
@@ -3093,6 +3104,7 @@ typedef struct _Pawn
 #pragma GE_DefaultValue(szEntityName, "")
 #pragma GE_DefaultValue(PawnType, "")
 #pragma GE_DefaultValue(ScriptName, "")
+#pragma GE_DefaultValue(ConvLayout, "")
 #pragma GE_DefaultValue(ConvScriptName, "")
 #pragma GE_DefaultValue(ConvOrder, "")
 #pragma GE_DefaultValue(SpawnOrder, "")
@@ -3117,7 +3129,7 @@ typedef struct _Pawn
 //	CountDownTimer
 //
 
-#pragma GE_Type("..\\icons\\model.ico")
+#pragma GE_Type("..\\icons\\countdown.bmp")
 typedef struct _CountDownTimer
 {
 #pragma GE_Private
@@ -3413,7 +3425,7 @@ typedef struct EM_Morph
 //	CutScene entity
 //
 
-#pragma GE_Type("..\\icons\\model.ico")
+#pragma GE_Type("..\\icons\\cutscene.bmp")
 typedef struct CutScene
 {
 #pragma GE_Private
@@ -3673,7 +3685,7 @@ typedef struct _WindGenerator
 
 //	CurvePointEnt
 
-#pragma GE_Type("..\\icons\\Player.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct CurvePointEnt
 {
 #pragma GE_Published
@@ -3684,7 +3696,7 @@ typedef struct CurvePointEnt
 
 //	CurveEnt
 
-#pragma GE_Type("..\\icons\\Player.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct CurveEnt
 {
 #pragma GE_Published
@@ -3696,7 +3708,7 @@ typedef struct CurveEnt
 
 //	CurvePatchEnt
 
-#pragma GE_Type("..\\icons\\Player.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct CurvePatchEnt
 {
 #pragma GE_Published
@@ -3708,7 +3720,7 @@ typedef struct CurvePatchEnt
 
 //	CurvedSurfaceEnt
 
-#pragma GE_Type("..\\icons\\Player.ico")
+#pragma GE_Type("..\\icons\\default.bmp")
 typedef struct CurvedSurfaceEnt
 {
 #pragma GE_Published
