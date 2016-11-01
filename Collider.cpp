@@ -2441,7 +2441,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 								 char *BoneHit, bool BoneLevel)
 {
 	GE_Contents Contents;
-	int Result, Result1;
+	int Result;
 
 	memset(Collision, 0, sizeof(GE_Collision));
 
@@ -2517,7 +2517,7 @@ bool Collider::CheckForBoneCollision(geVec3d *Min, geVec3d *Max,
 
 	if((Min != NULL) && (Max != NULL) && (Result != GE_TRUE))
 	{
-		Result1 = geWorld_GetContents(CCD->World(), &NewPosition,
+		int Result1 = geWorld_GetContents(CCD->World(), &NewPosition,
 										Min, Max,
 										GE_COLLIDE_MODELS, 0xffffffff,
 										NULL, NULL,
