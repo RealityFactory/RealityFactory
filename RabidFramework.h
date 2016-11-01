@@ -59,7 +59,8 @@ enum
 	FIRSTPERSON = 0,
 	THIRDPERSON,
 	ISOMETRIC,
-	FIXEDCAMERA
+	FIXEDCAMERA,
+	FREEFLOATING
 };
 
 #define QXASSERT assert
@@ -104,13 +105,11 @@ enum
 #include <control.h>
 #include <uuids.h>
 
-//	Genesis3D includes
 #include <FreeImage.h>
-#include <Genesis.h>
-#include <font.h>
+#include <OIS.h>
 
-#include <joystick.h>
-#pragma comment(lib,"dinput8.lib")
+//	Genesis3D includes
+#include <Genesis.h>
 
 //	Additional data types
 
@@ -125,98 +124,32 @@ typedef struct
 class CCommonData;
 
 #include "CLog.h"
-#include "IniFile.h"
-#include "Mixer.h"
-#include "Qx\\qxTerrainMgr.h"
 #include "GameEntityDataTypes.h"		// Just what it says!  GEdit-usable.
 #include "RGFStatus.h"					// Status codes
 #include "RGFEvents.h"					// Event codes, etc.
 #include "RGFTypes.h"					// Types, defs, etc.
 #include "RGFConstants.h"				// Constants
 #include "CRGFComponent.h"				// RGF base component interface
-#include "CAnimGif.h"
 #include "Collider.h"					// Collision utility class
 #include "CCameraManager.h"				// Camera Manager class
-#include "CAudioManager.h"				// Audio entity manager subsystem
-#include "OggAudio.h"
-#include "CMp3.h"
 #include "CActorManager.h"				// Actor management subsystem
 #include "CModelManager.h"				// Model management subsystem
+#include "EffManager.h"					// Ralph Deane's Effects Manager
+#include "Utilities.h"					// Ralph Deane's Utility Code
 #include "CPersistentAttributes.h"		// Persistent attributes class
 #include "CGenesisEngine.h"				// Genesis3D engine wrapper
 #include "CEntityRegistry.h"			// Entity registry class
-#include "CMIDIAudio.h"					// General MIDI playback
-#include "CCDAudio.h"					// CD Audio soundtrack class
 #include "CPlayer.h"					// Player avatar class
+#include "CWeapon.h"
 #include "CInput.h"						// Input subsystem class
-#include "CAutoDoors.h"					// Automatic door subsystem class
-#include "CMovingPlatforms.h"			// Moving platforms subsystem class
-#include "CTeleporter.h"				// Teleporter support
-#include "CMorphingFields.h"			// Morphing field class
-#include "C3DAudioSource.h"				// 3D Audio Source class
-#include "CParticleSystem.h"			// Particle system handler class
-#include "CStaticEntity.h"				// Static entity handler class
+#include "CAnimGif.h"
 #include "CAVIPlayer.h"					// AVI player class
 #include "CAudioStream.h"				// Streaming audio handler
-#include "CSoundtrackToggle.h"			// Soundtrack switcher
-#include "CVideoTexture.h"				// Video texture handler
-#include "CCorona.h"					// Ralph Deane's Corona component
-#include "CDynalite.h"					// Ralph Deane's Dynamic Light component
-#include "CElectric.h"					// Ralph Deane's electrical bolt component
-#include "CProcedural.h"				// Ralph Deane's procedural textures component
-#include "CHeadsUpDisplay.h"			// Heads-up display component
-#include "CPathDatabase.h"				// Path database component
-#include "CPathFollower.h"				// Motion binding component
-#include "EffManager.h"					// Ralph Deane's Effects Manager
-#include "CRain.h"						// Ralph Deane's Rain Effect
-#include "CSpout.h"						// Ralph Deane's Spout Effect
-#include "CFloating.h"					// Ralph Deane's Floating Effect
-#include "Chaos.h"						// Ralph Deane's Chaos Effect
-#include "CFlame.h"						// Ralph Deane's Flame Entity
 #include "CMenu.h"						// Ralph Deane's Menu Manager
-#include "Utilities.h"					// Ralph Deane's Utility Code
-#include "CScriptPoint.h"
-#include "CPawn.h"
-#include "CCountDown.h"
-#include "CChange.h"
-#include "CMorph.h"
-#include "CutScene.h"
-#include "CActMaterial.h"
-#include "CArmour.h"
-#include "CLiftBelt.h"
-#include "CTriggers.h"					// Ralph Deane's Generic Triggers
-#include "CLogic.h"						// Ralph Deane's Trigger Logic
-#include "CMessage.h"
-#include "CWeapon.h"
-#include "CDecal.h"
-#include "CWallDecal.h"
-#include "CAttribute.h"
-#include "CDamage.h"
-#include "CFirePoint.h"
-#include "CFlipBook.h"
 #include "CExplosion.h"
 #include "CEffects.h"
-#include "CChangeLevel.h"
-#include "CShake.h"
-#include "CFixedCamera.h"
-#include "CViewSwitch.h"
-#include "CInventory.h"
-#include "CLiquid.h"
-#include "COverlay.h"
-#include "CDSpotLight.h"
-#include "CStaticMesh.h"
-
-#include "PWXImageManager.h"
-#include "CPolyShadow.h"	// Fake Shadow
-#include "CFlipTree.h"		// Pickles Jul 04
-#include "CFoliage.h"		// Pickles Jul 04
-#include "CAreaChecker.h"	// Pickles Oct 04
-
 #include "CNetwork.h"
 #include "CLevelController.h"
-
-#include "CWindGenerator.h"
-
 #include "CCommonData.h"				// Common data handler component
 
 
