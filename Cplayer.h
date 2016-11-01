@@ -13,6 +13,8 @@
 #ifndef __RGF_CPLAYER_H__
 #define __RGF_CPLAYER_H__
 
+#include "RFSX\\RFSX.h"
+
 enum
 {
 	IDLE = 0,
@@ -228,68 +230,79 @@ enum
 #define ANIMSWIMBACK			CCD->Weapons()->PlayerAnim(SWIMBACK)
 
 
+class StreamingAudio;
 class CAudioStream;
 class CPersistentAttributes;
+
+#ifdef SX_IMPL_TYPE
+#undef SX_IMPL_TYPE
+#endif
+#define SX_IMPL_TYPE CPlayer
+
+#define SXPLAYER_METHODS 43
 
 /**
  * @brief CPlayer handles the player character
  */
-class CPlayer
+class CPlayer : public skExecutable
 {
 public:
 	CPlayer();
 	~CPlayer();
 
-	int LoadAvatar(const char *szFile, const char *Name);///< Load player character avatar
-	int LoadConfiguration();				///< Load player configuration from PlayerSetup entity
-	int LoadEnvironmentalAudio();			///< Load sounds for player movement
-	int MoveToStart();						///< Move player to start
+	int LoadAvatar(const std::string& file, const std::string& name);///< Load player character avatar
+	int LoadConfiguration();										///< Load player configuration from PlayerSetup entity
+	int LoadAttributesConfiguration(const std::string& filename);	///< Load player attribute definitions
+	int LoadEnvironmentalAudio();									///< Load sounds for player movement
+	int MoveToStart();												///< Move player to start
 
-	void CheckMouseLook();					///< Process mouse-look
-	void CheckKeyLook(int keyrotate);		///< Process key-look update #2
+	void CheckMouseLook();									///< Process mouse-look
+	void CheckKeyLook(int keyRotate, float timeElapsed);	///< Process key-look
 
-	int ProcessMove(bool bPlayerMoved);		///< Move player character
-	int Move(int nHow, geFloat fSpeed);
+	int ProcessMove(bool playerMoved);		///< Move player character
+	int Move(int how, float speed);
 	void StartJump();						///< Initiate a jump
 
-	void Tick(geFloat dwTicks);
+	void Tick(float timeElapsed);
 
 	geXForm3d ViewPoint();					///< Return players viewpoint
-	void GetExtBoxWS(geExtBox *theBox);		///< Get ExtBox in worldspace
-	void GetIn(geVec3d *In);				///< Get actors heading
-	void GetLeft(geVec3d *Left);
+	void GetExtBoxWS(geExtBox* box);		///< Get ExtBox in worldspace
+	void GetIn(geVec3d* in);				///< Get actors heading
+	void GetLeft(geVec3d* left);
 
-	int SaveTo(FILE *SaveFD);				///< Save player
-	int SaveAttributesAscii(const char *szSaveFile);
-	int RestoreFrom(FILE *RestoreFD);		///< Load player
+	int SaveTo(FILE* saveFD);				///< Save player
+	int RestoreFrom(FILE* restoreFD);		///< Load player
 
 	void SwitchCamera(int mode);
 	void LookMode(bool bLookOn);			///< Set/unset third-person lookmode
 	void SwitchToFirstPerson();				///< First-person mode
 	void SwitchToThirdPerson();				///< Third-person mode
 
-	int SaveAttributes(const char *szSaveFile);	///< Save inventory and attributes
-	int LoadAttributes(const char *szSaveFile);	///< Load inventory and attributes
+	int SaveAttributesAscii(const std::string& saveFile);
+	int SaveAttributes(const std::string& saveFile);	///< Save inventory and attributes
+	int LoadAttributes(const std::string& saveFile);	///< Load inventory and attributes
+
+	CPersistentAttributes* GetAttributes()	{ return m_Attr; }
+
+	bool GetUseAttribute(const std::string& attr);
+	bool SetUseAttribute(const std::string& attr);
+	bool DelUseAttribute(const std::string& attr);
+
 
 	void Backtrack();						///< Force player to previous position in position history
-
-	void ShowFog();							///< Activate fog, if used
-	void DisableFog();						///< Unconditionally disable fog
-
-	void ActivateClipPlane();				///< Activate clip plane, if used
-	void DisableClipPlane();				///< Unconditionally disable clip plane
 
 	bool DoMovements(void);
 
 	void UseItem();
 
-	char *GetDieAnim();
-	char *GetInjuryAnim();
+	std::string GetDieAnim();
+	std::string GetInjuryAnim();
 
 	void SetCrouch(bool value);
-	bool GetCrouch()					{ return m_crouch;				}
-	void FlipCrouch()					{ m_crouch = !m_crouch;			}
-	void Moving(int nValue)				{ m_Moving = nValue;			}
+	bool GetCrouch() const				{ return m_Crouch;				}
+	void FlipCrouch()					{ m_Crouch = !m_Crouch;			}
+
+	void Moving(int value)				{ m_Moving = value;				}
 	int GetMoving() const				{ return m_Moving;				}
 
 	int GetSlideWalk() const			{ return m_SlideWalk;			}
@@ -299,213 +312,298 @@ public:
 
 	geVec3d Position();
 	float LastMovementSpeed() const		{ return m_LastMovementSpeed;	}
-	bool InFirstPerson()				{ return m_FirstPersonView;		}
 
 	bool FirstPersonView() const		{ return m_FirstPersonView;		}
 
 	// Weapon
-	geActor	*GetActor()					{ return Actor;					}
-	geVec3d GetGravity()				{ return m_Gravity;				}
-	void SetGravity(const geVec3d *vec);
-	geVec3d GetWind()					{ return m_Wind;				}
-	void SetWind(const geVec3d *vec);
-	void ModifyWind(const geVec3d *vec);
-	geVec3d GetInitialWind()			{ return m_InitialWind;			}
-	void SetInitialWind(const geVec3d *vec);
-	int GetViewPoint()					{ return m_PlayerViewPoint;		}
-	EnvironmentSetup *GetEnvSetup()		{ return EnvSetup;				}
-	int LastDirection()					{ return m_lastdirection;		}
-	bool GetAlive()						{ return Alive;					}
-	void SetAlive(bool flag)			{ Alive = flag;					}
-	void SetRunning(geBoolean Running)	{ m_Running = Running;			}
-	void FlipRunning()					{ m_Running = !m_Running;		}
-	void SetJumping(geBoolean Jumping)	{ m_Jumping = Jumping;			}
-	char *GetAnimations(int index)		{ return Animations[index];		}
-	bool GetDying()						{ return Dying;					}
-	void FlipLight()					{ lighton = !lighton;			}
-	bool GetUseAttribute(const char *Attr);
-	bool SetUseAttribute(const char *Attr);
-	bool DelUseAttribute(const char *Attr);
+	geActor* GetActor()					{ return m_Actor;				}
+	int GetViewPoint() const			{ return m_ViewPoint;			}
+	int LastDirection() const			{ return m_LastDirection;		}
 
-	bool GetMonitorState()			{ return monitorstate;			}
-	bool GetMonitorMode()			{ return monitormode;			}
-	bool GetDeathSpace()			{ return deathspace;			}
-	int GetMirror()					{ return mirror;				}
-	bool GetAlterKey()				{ return alterkey;				}
-	bool GetRestoreOxy()			{ return restoreoxy;			}
-	void SetRestoreOxy(bool flag)	{ restoreoxy = flag;			}
-	int GetHeadBobbing()			{ return HeadBobbing;			}
-	bool GetContinue()				{ return ContinueAfterDeath;	}
-	int LightValue()				{ return (int)CurrentLiteLife;	}
-	int LightLife()					{ return (int)LiteLife;			}
+	void SetRunning(geBoolean running)	{ m_Running = running;			}
+	void FlipRunning()					{ m_Running = !m_Running;		}
+
+	void SetJumping(geBoolean jumping)	{ m_Jumping = jumping;			}
+
+	const std::string& GetAnimations(int index) const	{ return m_Animations[index];	}
+
+	bool GetAlive() const				{ return m_Alive;				}
+	void SetAlive(bool flag)			{ m_Alive = flag;				}
+
+	bool GetDying() const				{ return m_Dying;				}
+	void SetDying(bool flag)			{ m_Dying = flag;				}
+
+	bool GetMonitorState() const	{ return m_MonitorState;		}
+	void SetMonitorState(bool flag)	{ m_MonitorState = flag;		}
+	bool GetMonitorMode() const		{ return m_MonitorMode;			}
+
+	bool GetDeathSpace() const		{ return m_DeathSpace;			}
+	void SetDeathSpace(bool flag)	{ m_DeathSpace = flag;			}
+
+	int GetMirror() const			{ return m_Mirror;				}
+
+	bool GetRestoreOxy() const		{ return m_RestoreOxy;			}
+	void SetRestoreOxy(bool flag)	{ m_RestoreOxy = flag;			}
+
+	int GetHeadBobbing() const		{ return m_HeadBobbing;			}
+
+	bool GetContinue() const		{ return m_ContinueAfterDeath;	}
+
+	int LightValue() const			{ return static_cast<int>(m_CurrentLiteLife);	}
+	int LightLife() const			{ return static_cast<int>(m_LiteLife);			}
+	void FlipLight()				{ m_LightOn = !m_LightOn;		}
 	void ModifyLight(int amount);
 
 	float GetScale() const			{ return m_Scale;				}
 	float GetHeight() const			{ return m_CurrentHeight;		}
 
-	int PlayerViewPoint()			{ return m_PlayerViewPoint;		}
-	float GetSlideSlope()			{ return slideslope;			}
-	float GetSlideSpeed()			{ return slidespeed;			}
-	char *GetActorName()			{ return ActorName;				}
-	void SetPlayerName(const char *Name);
-	char *GetPlayerName()			{ return m_PlayerName;			}
+	float GetSlideSlope() const		{ return m_SlideSlope;			}
+	float GetSlideSpeed() const		{ return m_SlideSpeed;			}
+
+	// start multiplayer
+	const char* GetActorName() const	{ return m_ActorName;			}
+	// end multiplayer
+	void SetPlayerName(const std::string& name)	{m_PlayerName =name;	}
+	const std::string& GetPlayerName()  const	{ return m_PlayerName;	}
+
+	inline const std::string& GetIcon() const	{ return m_Icon;		}
+	inline void SetIcon(const std::string& icon) { m_Icon = icon;	}
 
 	void AddPosition();				///< Add current position to position history
 
+	int  PlaySound(const char* sound, int soundHandle = -1, geBoolean loop = GE_TRUE, float radius = -1.0f);
+	void UpdateSounds();
+	void StopSound(int soundHandle);
+
+	void SetSpeakBone(const std::string& bone) { m_SpeakBone = bone; }
+	const std::string& GetSpeakBone() const { return m_SpeakBone; }
+	geVec3d GetSpeakBonePosition();
+
+	Q_METHOD_DECL(Speak);
+
 private:
-	geSound_Def *LoadAudioClip(const char *szFilename);	///< Load audio clip
+	geSound_Def* LoadAudioClip(const std::string& filename);	///< Load audio clip
 	void SetJump();
 
 private:
-	int			m_PlayerViewPoint;		///< 0=first-person, 1=third-person
+	std::string m_Icon;
+	int			m_ViewPoint;			///< 0=first-person, 1=third-person
 	bool		m_JumpActive;			///< Player is jumping
 	bool		m_FirstPersonView;		///< Player in first-person view
 	bool		m_LookMode;				///< TRUE if in third-person "look mode"
 	int			m_Moving;				///< Non-zero if in third-person and moving
 	geBoolean	m_Running;				///< Demande de course
 	geBoolean	m_Jumping;				///< Demande de saut
-	geFloat		m_JumpSpeed;			///< Speed of jump
-	geFloat		m_CurrentHeight;		///< Player current height (mod if crouching)
-	geFloat		m_CurrentSpeed;			///< Player current speed
-	geFloat		m_CoeffSpeed;
-	geFloat		m_Speed;				///< Player normal speed
-	geFloat		m_StepHeight;			///< Max. step-up height
+	float		m_JumpSpeed;			///< Speed of jump
+	float		m_CurrentHeight;		///< Player current height (mod if crouching)
+	float		m_CurrentSpeed;			///< Player current speed
+	float		m_SpeedCoeff;
+	float		m_SpeedCoeffBackward;
+	float		m_SpeedCoeffSideward;
+	float		m_SpeedCoeffRun;
+	float		m_Speed;				///< Player normal speed
+	float		m_StepHeight;			///< Max. step-up height
 	geVec3d		m_Translation;			///< Actor translation
-	geActor		*Actor;					///< Genesis actor for player
-	geVec3d		m_Gravity;				///< Current gravity level
-	geVec3d		m_Wind;
-	geVec3d		m_InitialWind;
-	geFloat		m_LastMovementSpeed;	///< Velocity of our last motion
-	CPersistentAttributes *m_Attr;		///< Player attributes
+	geActor*	m_Actor;				///< Genesis actor for player
+	float		m_LastMovementSpeed;	///< Velocity of our last motion
+	CPersistentAttributes* m_Attr;		///< Player attributes
 	geVec3d		m_PositionHistory[50];	///< Last 50 places the player was
 	int			m_PositionHistoryPtr;	///< Pointer into position history array
-	geSound_Def *DefaultMotion[3];		///< Default motion sound
-	geSound		*DefaultMotionHandle;	///< Default motion sound handle
-	geSound_Def *Contents[16][3];		///< Sounds for each 'environment type'
-	geSound		*ContentsHandles[16];	///< Sound handles for each 'environment type'
-	geFloat		m_Scale;				///< Actor scale factor
-	bool		m_FogActive;			///< This player gets fog
-	bool		m_ClipActive;			///< This player gets far-plane clipping
+	geSound_Def* m_DefaultMotion[3];	///< Default motion sound
+	geSound*	m_DefaultMotionHandle;	///< Default motion sound handle
+	geSound_Def* m_Contents[16][3];		///< Sounds for each 'environment type'
+	geSound*	m_ContentsHandles[16];	///< Sound handles for each 'environment type'
+	float		m_Scale;				///< Actor scale factor
 
 	int			m_SlideWalk;
-	bool		m_crouch;
-	bool		m_oldcrouch;
-	bool		m_run;
+	bool		m_Crouch;
+	bool		m_OldCrouch;
+	bool		m_Run;
 
+	bool		m_HeadBobbing;
 	float		m_HeadBobSpeed;			///< Speed of head bob
 	float		m_HeadBobLimit;			///< Max. amount of head bob
 
-	int			LookFlags;
-	geVec3d		LookRotation;
-	geVec3d		LookPosition;
-	EnvironmentSetup *EnvSetup;
-	int			m_lastdirection;
-	bool		Alive;
-	bool		RealJumping;
+	int			m_LookFlags;
+	geVec3d		m_LookRotation;
+	geVec3d		m_LookPosition;
+	int			m_LastDirection;
+	bool		m_Alive;
+	bool		m_RealJumping;
 
-	bool		lightactive;
-	bool		lighton;
-	int			lighteffect;
-	bool		LiteSpot;
-	geFloat		LiteArc;
-	geVec3d		LiteOffset;
-	int			LiteStyle;
-	geFloat		LiteRadiusMin;
-	geFloat		LiteRadiusMax;
-	GE_RGBA		LiteColorMin;
-	GE_RGBA		LiteColorMax;
-	geFloat		LiteIntensity;
-	geFloat		LiteLife;
-	geFloat		CurrentLiteLife;
-	bool		DecayLite;
-	geFloat		LiteDecay;
-	geFloat		CurrentLiteDecay;
-	geFloat		LiteTime;
-	geFloat		LiteDecayTime;
-	char		LiteBone[64];
+	bool		m_LightActive;
+	bool		m_LightOn;
+	int			m_LightEffect;
 
-	char		StaminaName[64];
-	geFloat		StaminaDelay;
-	geFloat		StaminaTime;
-	char		StaminaName1[20][64];
-	geFloat		StaminaDelay1[20];
-	geFloat		StaminaTime1[20];
+	bool		m_LiteSpot;
+	float		m_LiteArc;
+	geVec3d		m_LiteOffset;
+	int			m_LiteStyle;
 
-	bool Allow3rdLook;
-	char Animations[ANIMMAX][64];
+	float		m_LiteRadiusMin;
+	float		m_LiteRadiusMax;
+	GE_RGBA		m_LiteColorMin;
+	GE_RGBA		m_LiteColorMax;
+	float		m_LiteIntensity;
+	float		m_LiteLife;
+	float		m_CurrentLiteLife;
+	bool		m_DecayLite;
+	float		m_LiteDecay;
+	float		m_CurrentLiteDecay;
+	float		m_LiteTime;
+	float		m_LiteDecayTime;
+	std::string	m_LiteBone;
 
-	int			LastHealth;
-	bool		Injured;
-	bool		Dying;
-	char		DieAnim[5][64];
-	int			DieAnimAmt;
-	char		InjuryAnim[5][64];
-	int			InjuryAnimAmt;
-	char		LastMotion[64];
+	std::string	m_StaminaName;
+	float		m_StaminaDelay;
+	float		m_StaminaTime;
 
-	geSound_Def *DieSound[5];
-	int			DieSoundAmt;
+	std::string	m_StaminaName1[20];
+	float		m_StaminaDelay1[20];
+	float		m_StaminaTime1[20];
 
-	geSound_Def *InjurySound[5];
-	int			InjurySoundAmt;
+	bool		m_Allow3rdLook;
+	std::string	m_Animations[ANIMMAX];
 
-	geSound_Def *LandSound[5];
-	int			LandSoundAmt;
+	int			m_LastHealth;
+	bool		m_Injured;
+	bool		m_Dying;
+	std::string	m_DieAnim[5];
+	int			m_DieAnimAmt;
+	std::string	m_InjuryAnim[5];
+	int			m_InjuryAnimAmt;
+	std::string	m_LastMotion;
 
-	bool		Falling;
-	bool		OldFalling;
-	bool		FallInjure;
-	geVec3d		FallStart;
-	float		MinFallDist;
-	float		MaxFallDist;
-	float		FallDamage;
+	geSound_Def *m_DieSound[5];
+	int			m_DieSoundAmt;
 
-	GE_RGBA		FillColor;
-	GE_RGBA		AmbientColor;
-	geBoolean	AmbientLightFromFloor;
-	geBoolean	EnvironmentMapping;
-	geBoolean	AllMaterial;
-	geFloat		PercentMapping;
-	geFloat		PercentMaterial;
-	float		UseRange;
-	char		UseAttribute[10][64];
-	float		BoxWidth;
-	float		LiquidTime;
-	int			InLiquid;
-	int			SwimSound;
-	int			SurfaceSound;
-	int			InLiquidSound;
-	bool		OnLadder;
-	char		ActorName[50];
-	char		m_PlayerName[64];
-	char		FallDamageAttr[64];
-	float		TranTime[TRANSMAX];
-	bool		alwaysrun;
-	bool		nocrouchjump;
-	int			mirror;
+	geSound_Def *m_InjurySound[5];
+	int			m_InjurySoundAmt;
 
-	float		MinJumpOnDist;
-	float		MaxJumpOnDist;
-	float		JumpOnDamage;
-	char		JumpOnDamageAttr[64];
+	geSound_Def *m_LandSound[5];
+	int			m_LandSoundAmt;
 
-	bool		LockView;
-	bool		monitorstate;
-	bool		monitormode;
-	bool		alterkey;
-	bool		restoreoxy;
-	char		ChangeMaterial[64];
-	bool		HeadBobbing;
-	bool		ContinueAfterDeath;
-	bool		deathspace;
-	float		slideslope;
-	float		slidespeed;
-	bool		firstframe;
-	char		szCDTrack[64];
-	char		szMIDIFile[64];
-	char		szStreamingAudio[64];
-	bool		bSoundtrackLoops;
+	std::string m_SpeakBone;
+
+	bool		m_Falling;
+	bool		m_OldFalling;
+	bool		m_FallInjure;
+	geVec3d		m_FallStart;
+	float		m_MinFallDist;
+	float		m_MaxFallDist;
+	float		m_FallDamage;
+
+	GE_RGBA		m_FillColor;
+	GE_RGBA		m_AmbientColor;
+	geBoolean	m_AmbientLightFromFloor;
+	geBoolean	m_EnvironmentMapping;
+	geBoolean	m_AllMaterial;
+	float		m_PercentMapping;
+	float		m_PercentMaterial;
+
+	float		m_UseRange;
+	std::string	m_UseAttribute[10];
+	float		m_BoxWidth;
+	float		m_LiquidTime;
+	int			m_InLiquid;
+	int			m_SwimSound;
+	int			m_SurfaceSound;
+	int			m_InLiquidSound;
+	bool		m_OnLadder;
+	std::set<int> m_SoundHandles;
+
+	char		m_ActorName[50];
+	std::string	m_PlayerName;
+
+	std::string	m_FallDamageAttr;
+	float		m_TranTime[TRANSMAX];
+	bool		m_AlwaysRun;
+	bool		m_NoCrouchJump;
+	int			m_Mirror;
+
+	float		m_MinJumpOnDist;
+	float		m_MaxJumpOnDist;
+	float		m_JumpOnDamage;
+	std::string	m_JumpOnDamageAttr;
+
+	bool		m_LockView;
+	bool		m_MonitorState;
+	bool		m_MonitorMode;
+	bool		m_RestoreOxy;
+	std::string	m_ChangeMaterial;
+	bool		m_ContinueAfterDeath;
+	bool		m_DeathSpace;
+
+	float		m_SlideSlope;
+	float		m_SlideSpeed;
+
+	StreamingAudio *m_StreamingAudio; // speaking
+
+	bool		m_FirstFrame;
+	// soundtrack
+	std::string	m_szCDTrack;
+	std::string	m_szMIDIFile;
+	std::string	m_szStreamingAudio;
+	bool		m_bSoundtrackLoops;
+
+public:
+	static void InitMHT();
+	virtual bool getValue(const skString& name, const skString& att, skRValue& val);
+	virtual bool method(const skString& m_name, skRValueArray& args, skRValue& r_val, skExecutableContext& ctxt);
+	virtual int executableType() const { return RFSXG_PLAYER; }
+
+protected:
+	SX_METHOD_DECL(GetName);
+	SX_METHOD_DECL(SetWeapon);
+	SX_METHOD_DECL(SetWeaponMatFromFlip);
+	SX_METHOD_DECL(ChangeWeaponMaterial);
+	SX_METHOD_DECL(SetUseItem);
+	SX_METHOD_DECL(ClearUseItem);
+	SX_METHOD_DECL(HasAttribute);
+	SX_METHOD_DECL(SetAttribute);
+	SX_METHOD_DECL(GetAttribute);
+	SX_METHOD_DECL(ModifyAttribute);
+	SX_METHOD_DECL(AddAttribute);
+	SX_METHOD_DECL(SetAttributeValueLimits);
+	SX_METHOD_DECL(GetAttributeLowLimit);
+	SX_METHOD_DECL(GetAttributeHighLimit);
+	SX_METHOD_DECL(PowerUp);
+	SX_METHOD_DECL(GetPowerUpLevel);
+	SX_METHOD_DECL(SetMouseControlled);
+	SX_METHOD_DECL(AttachBlendActor);
+	SX_METHOD_DECL(DetachBlendActor);
+	SX_METHOD_DECL(AttachAccessory);
+
+	SX_METHOD_DECL(DetachAccessory);
+	SX_METHOD_DECL(Render);
+	SX_METHOD_DECL(MatchEntityAngles);
+	SX_METHOD_DECL(ChangeMaterial);
+	SX_METHOD_DECL(SetLighting);
+	SX_METHOD_DECL(SetAlpha);
+	SX_METHOD_DECL(GetAlpha);
+	SX_METHOD_DECL(SetScale);
+	SX_METHOD_DECL(SetPosition);
+	SX_METHOD_DECL(GetPosition);
+	SX_METHOD_DECL(SetRotation);
+	SX_METHOD_DECL(GetRotation);
+	SX_METHOD_DECL(Move);
+	SX_METHOD_DECL(Rotate);
+	SX_METHOD_DECL(GetScreenPosition);
+	SX_METHOD_DECL(GetGroundTexture);
+	SX_METHOD_DECL(AttachWindow);
+	SX_METHOD_DECL(DetachWindow);
+	SX_METHOD_DECL(Speak);
+	SX_METHOD_DECL(PlaySound);
+
+	SX_METHOD_DECL(SetIcon);
+	SX_METHOD_DECL(GetIcon);
+	SX_METHOD_DECL(SaveAttributes);
+
+private:
+	static RFSX::sxMHT<SX_IMPL_TYPE> h_method;
 };
+
+#undef SX_IMPL_TYPE
 
 #endif
 
