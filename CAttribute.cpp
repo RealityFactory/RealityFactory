@@ -129,7 +129,7 @@ void CAttribute::AddAttributeEntity(Attribute *pAttribute)
 {
 	if(EffectC_IsStringNull(pAttribute->szEntityName))
 	{
-		char DefaultName[128];
+	    static char DefaultName[16];
 		sprintf(DefaultName, "Attribute%04d", m_DynamicAttributes);
 		pAttribute->szEntityName = DefaultName;
 		++m_DynamicAttributes;
