@@ -72,7 +72,6 @@ void CollisionCalcImpactPoint(const GE_Collision &a_Collision, const geVec3d &a_
 								float a_Ratio, geVec3d *a_Impact);
 void CollisionCalcVelocityImpact(const GE_Collision &a_Collision, const geVec3d &a_OldVelocity,
 									float a_Elasticity, float a_Friction, geVec3d *a_NewVelocity);
-geVec3d Extract(char *Vector);
 
 //===========================
 // Bit manipulation
@@ -98,7 +97,6 @@ geBoolean CanSeePointToActor(const geVec3d *Pos2,   const geActor *Actor);
 geBoolean CanSeeActorToActor(const geActor *Actor1, const geActor *Actor2);
 
 geActor *GetEntityActor(const char *EntityName);
-geFloat Length(geVec3d &vec);
 void SetEnvironmentMapping(geActor *Actor, bool Enable, bool AllMaterial, float Percent, float PercentMaterial);
 const char *RootBoneName(const geActor *Actor);
 

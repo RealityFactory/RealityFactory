@@ -984,36 +984,6 @@ void CollisionCalcVelocityImpact(const GE_Collision &a_Collision, const geVec3d 
 }
 
 /* ------------------------------------------------------------------------------------ */
-//	Extract
-/* ------------------------------------------------------------------------------------ */
-geVec3d Extract(char *Vector)
-{
-	geVec3d values = {0.0f, 0.0f, 0.0f};
-	char *temp = NULL;
-
-	temp = strtok(Vector, " ");
-
-	if(temp)
-	{
-		values.X = (float)atof(temp);
-		temp = strtok(NULL," \n");
-
-		if(temp)
-		{
-			values.Y = (float)atof(temp);
-			temp = strtok(NULL," \n");
-
-			if(temp)
-			{
-				values.Z = (float)atof(temp);
-			}
-		}
-	}
-
-	return values;
-}
-
-/* ------------------------------------------------------------------------------------ */
 // ToVec3d
 /* ------------------------------------------------------------------------------------ */
 geVec3d ToVec3d(const std::string &source)
@@ -1185,14 +1155,6 @@ geActor *GetEntityActor(const char *EntityName)
 	}
 
 	return NULL;
-}
-
-/* ------------------------------------------------------------------------------------ */
-//	Length
-/* ------------------------------------------------------------------------------------ */
-geFloat Length(geVec3d &vec)
-{
-	return geVec3d_Length(&vec);
 }
 
 /* ------------------------------------------------------------------------------------ */
