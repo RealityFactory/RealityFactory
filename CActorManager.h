@@ -11,13 +11,14 @@
 #ifndef __CACTOR_MANAGER__
 #define __CACTOR_MANAGER__
 
+#include <hash_map>
+
 class CPersistentAttributes;			// Forward ref.
 
 // Setup defines
-#define	ACTOR_LIST_SIZE		1024		///< Max # of actors per level
 #define	PASSENGER_LIST_SIZE	64			///< Max # of passengers in a vehicle
-#define ATTACHACTORS		16			///< Max # of attached actors
-#define ATTACHBLENDACTORS	16			///< Max # of attached blending actors
+#define ATTACH_ACTORS		16			///< Max # of attached actors
+#define ATTACH_BLEND_ACTORS	16			///< Max # of attached blending actors
 
 /* 07/15/2004 Wendell Buckner
 	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
@@ -58,197 +59,136 @@ enum
 
 struct Attachment
 {
-	char MasterBone[64];
-	char SlaveBone[64];
-	geActor *AttachedActor;
-	geVec3d Offset;
-	bool CollFlag;
-	int RenderFlag;
+	geActor*	AttachedActor;
+	geVec3d		Offset;
+	bool		CollFlag;
+	int			RenderFlag;
+	char		MasterBone[256];
+	char		SlaveBone[256];
+};
+
+
+struct WindowAttachment
+{
+	CEGUI::Window*	Window;
+	float OffsetX, OffsetY;
 };
 
 /************************************************************************************//**
  * @brief This struct holds information for each instance of an actor
  ****************************************************************************************/
-struct ActorInstanceList
+struct ActorInstance
 {
-	geActor *Actor;						///< The actor itself
-	geActor_Def *theDef;				///< Pointer to loaded actor def
-	geActor_Def *theLODDef[3];			///< Actor definition
-	geActor *LODActor[3];				///< Level of detail actors
-	geBitmap *Bitmap;
-	float LODdistance[5];
-	int LODLevel;
-	geVec3d localTranslation;			///< Actor translation
-	geVec3d OldTranslation;				///< Actors previous position
-	geVec3d localRotation;				///< Actor rotation
-	geVec3d BaseRotation;				///< Actor baseline rotation
+	geActor*		Actor;				///< The actor itself
+	geActor_Def*	theDef;				///< Pointer to loaded actor def
+	geActor_Def*	theLODDef[3];		///< Actor definition
+	geActor*		LODActor[3];		///< Level of detail actors
+	geBitmap*		Bitmap;
+	float			LODdistance[5];
+	int				LODLevel;
+	geVec3d			localTranslation;	///< Actor translation
+	geVec3d			OldTranslation;		///< Actors previous position
+	geVec3d			localRotation;		///< Actor rotation
+	geVec3d			BaseRotation;		///< Actor baseline rotation
 
-	// default channel
-	geFloat AnimationTime;				///< Time in current animation
-	geFloat PrevAnimationTime;
-	geMotion *pMotion;
-	geMotion *pBMotion;
+	bool			AllowTilt;				///< allow actor to tilt up/down
+	float			TiltX;
+	bool			BoxChange;				///< allow BB to change
+	bool			NoCollision;			///< allow no collision detection
+	float			ActorAnimationSpeed;	///< Speed of actor animation
+	geVec3d			Scale;					///< Actors current XYZ scale
+	float			Health;					///< Actors health, 0 = destroyed
+	geVec3d			Gravity;				///< Gravity acting on actor
+	float			GravityTime;			///< Time gravity has been effective (for falling)
+	float			StepHeight;				///< Max. Y delta for moving up during motion
+	bool			ForceEnabled;
+	geVec3d			ForceVector[4];			///< Current force vector acting on actor
+	float			ForceLevel[4];			///< Current level force is acting at
+	float			ForceDecay[4];			///< Decay speed of force, in units/second
+	float			ShadowSize;				///< Size of bitmap shadow
+	float			ShadowAlpha;			///< Alpha of shadow
+	geBitmap*		ShadowBitmap;			///< Bitmap to use for shadow
+	bool			ProjectedShadows;		///< flag to enable projected shadows for this actor
+	bool			Moving;
+	int				CurrentZone;
+	int				OldZone;
+	int				GravityCoeff;
+	Liquid*			LQ;
+	std::string		szEntityName;
 
-#if 0
-// adding support for multiple animation 'channels' which
-// allow designers to create multi-threaded animations blended from sub-motions
+	bool			Attached;
+	geVec3d			MasterRotation;
+	std::vector<Attachment>	AttachedActors;
 
-	// channel 2
-	geFloat AnimationTime1;				// Time in current animation
-	geFloat PrevAnimationTime1;
-	geMotion *pMotion1;
-	geMotion *pBMotion1;
+	bool			AttachedB;
+	std::vector<geActor*>	AttachedBlendActors;
 
-	// channel 3
-	geFloat AnimationTime2;				// Time in current animation
-	geFloat PrevAnimationTime2;
-	geMotion *pMotion2;
-	geMotion *pBMotion2;
+	int				RenderFlag;
+	geWorld_Model*	PassengerModel;
+	float			StartTime;
+	GE_Collision	GravityCollision;
+	bool			HideRadar;
+	std::string		Group;
+	GE_RGBA			FillColor;
+	GE_RGBA			AmbientColor;
+	geBoolean		AmbientLightFromFloor;
 
-	// channel 4
-	geFloat AnimationTime3;				// Time in current animation
-	geFloat PrevAnimationTime3;
-	geMotion *pMotion3;
-	geMotion *pBMotion3;
+	std::string		MotionName;				///< Name of current motion
+	std::string		NextMotionName;			///< Name of next motion in queue
+	std::string		DefaultMotionName;		///< Default motion for this actor
+	std::string		BlendMotionName;
+	std::string		BlendNextMotionName;
+	float			BlendAmount;
+	float			BlendNextAmount;
+	bool			BlendFlag;
+	bool			BlendNextFlag;
+	bool			HoldAtEnd;
+	bool			TransitionFlag;
 
-	// channel 5
-	geFloat AnimationTime4;				// Time in current animation
-	geFloat PrevAnimationTime4;
-	geMotion *pMotion4;
-	geMotion *pBMotion4;
-// end channel animation info
-#endif
-	bool AllowTilt;						///< allow actor to tilt up/down
-	geFloat TiltX;
-	bool BoxChange;						///< allow BB to change
-	bool NoCollision;					///< allow no collision detection
-	geFloat ActorAnimationSpeed;		///< Speed of actor animation
-	geVec3d Scale;						///< Actors current XYZ scale
-	geFloat Health;						///< Actors health, 0 = destroyed
-	geVec3d Gravity;					///< Gravity acting on actor
-	geFloat GravityTime;				///< Time gravity has been effective (for falling)
-	geFloat StepHeight;					///< Max. Y delta for moving up during motion
-	bool ForceEnabled;
-	geVec3d ForceVector[4];				///< Current force vector acting on actor
-	geFloat ForceLevel[4];				///< Current level force is acting at
-	geFloat ForceDecay[4];				///< Decay speed of force, in units/second
-	geVec3d PositionHistory[128];		///< Actors position history
-	float ShadowSize;					///< Size of bitmap shadow
-	geFloat ShadowAlpha;				///< Alpha of shadow
-	geBitmap *ShadowBitmap;				///< Bitmap to use for shadow
-	bool ProjectedShadows;				///< flag to enable projected shadows for this actor
-	bool Moving;
-	int CurrentZone;
-	int OldZone;
-	int GravityCoeff;
-	Liquid *LQ;
-	char szEntityName[128];
-
-	bool Attached;
-	geVec3d masterRotation;
-	Attachment AttachedActors[ATTACHACTORS];
-
-	bool AttachedB;
-	geActor *AttachedBlendActors[ATTACHBLENDACTORS];
-
-	int RenderFlag;
-	geWorld_Model *PassengerModel;
-	float StartTime;
-	GE_Collision GravityCollision;
-	bool HideRadar;
-	char Group[64];
-	GE_RGBA FillColor;
-	GE_RGBA AmbientColor;
-
-	geBoolean AmbientLightFromFloor;
-
-	// default animation channel (channel 1)
-	char szMotionName[128];				///< Name of current motion
-	char szNextMotionName[128];			///< Name of next motion in queue
-	char szDefaultMotionName[128];		///< Default motion for this actor
-	char szBlendMotionName[128];
-	float BlendAmount;
-	bool BlendFlag;
-	char szBlendNextMotionName[128];
-	float BlendNextAmount;
-	bool BlendNextFlag;
-	bool HoldAtEnd;
-	bool TransitionFlag;
+	float			AnimationTime;			///< Time in current animation
+	float			PrevAnimationTime;
+	geMotion*		pMotion;
+	geMotion*		pBMotion;
 
 #if 0
-// support for multiple animation channels
-// each channel provides full support for blending, etc
+	// support for multiple animation channels
+	// each channel provides full support for blending, etc
 
-	// channel 2 (upper body)
-	char szMotionName1[128];			// Name of current motion
-	char szNextMotionName1[128];		// Name of next motion in queue
-	char szDefaultMotionName1[128];		// Default motion for this actor
-	char szBlendMotionName1[128];
-	float BlendAmount1;
-	bool BlendFlag1;
-	char szBlendNextMotionName1[128];
-	float BlendNextAmount1;
-	bool BlendNextFlag1;
-	bool HoldAtEnd1;
-	bool TransitionFlag1;
+	std::string		MotionName[ANIMATION_CHANNELS];			///< Name of current motion
+	std::string		NextMotionName[ANIMATION_CHANNELS];		///< Name of next motion in queue
+	std::string		DefaultMotionName[ANIMATION_CHANNELS];	///< Default motion for this actor
+	std::string		BlendMotionName[ANIMATION_CHANNELS];
+	std::string		BlendNextMotionName[ANIMATION_CHANNELS];
+	float			BlendAmount[ANIMATION_CHANNELS];
+	float			BlendNextAmount[ANIMATION_CHANNELS];
+	bool			BlendFlag[ANIMATION_CHANNELS];
+	bool			BlendNextFlag[ANIMATION_CHANNELS];
+	bool			HoldAtEnd[ANIMATION_CHANNELS];
+	bool			TransitionFlag[ANIMATION_CHANNELS];
 
-	// channel 3 (head)
-	char szMotionName2[128];			// Name of current motion
-	char szNextMotionName2[128];		// Name of next motion in queue
-	char szDefaultMotionName2[128];		// Default motion for this actor
-	char szBlendMotionName2[128];
-	float BlendAmount2;
-	bool BlendFlag2;
-	char szBlendNextMotionName2[128];
-	float BlendNextAmount2;
-	bool BlendNextFlag2;
-	bool HoldAtEnd2;
-	bool TransitionFlag2;
-
-	// channel 4 (user custom 1)
-	char szMotionName3[128];			// Name of current motion
-	char szNextMotionName3[128];		// Name of next motion in queue
-	char szDefaultMotionName3[128];		// Default motion for this actor
-	char szBlendMotionName3[128];
-	float BlendAmount3;
-	bool BlendFlag3;
-	char szBlendNextMotionName3[128];
-	float BlendNextAmount3;
-	bool BlendNextFlag3;
-	bool HoldAtEnd3;
-	bool TransitionFlag3;
-
-	// channel 5 (user custom 2)
-	char szMotionName4[128];			// Name of current motion
-	char szNextMotionName4[128];		// Name of next motion in queue
-	char szDefaultMotionName4[128];		// Default motion for this actor
-	char szBlendMotionName4[128];
-	float BlendAmount4;
-	bool BlendFlag4;
-	char szBlendNextMotionName4[128];
-	float BlendNextAmount4;
-	bool BlendNextFlag4;
-	bool HoldAtEnd4;
-	bool TransitionFlag4;
+	float			AnimationTime[ANIMATION_CHANNELS];		///< Time in current animation
+	float			PrevAnimationTime[ANIMATION_CHANNELS];
+	geMotion*		pMotion[ANIMATION_CHANNELS];
+	geMotion*		pBMotion[ANIMATION_CHANNELS];
 #endif
 
-	int CollDetLevel;
-	bool slide;
-	bool fAutoStepUp;							///< Actor auto step up flag
-	geFloat MaxStepHeight;						///< Actors max step height, in world units
-	geActor *Vehicle;							///< If riding on anything
-	geActor *Passengers[PASSENGER_LIST_SIZE];	///< If vehicle, riders
-	int ActorType;								///< Actor type
-	bool NeedsNewBB;							///< TRUE means needs new EXTBOX
-	CPersistentAttributes *Inventory;			///< Actor's inventory
-	struct ActorInstanceList *pNext;			///< Next actor instance in list
+	int				CollDetLevel;
+	bool			slide;
+	bool			AutoStepUp;						///< Actor auto step up flag
+	float			MaxStepHeight;					///< Actors max step height, in world units
+	geActor*		Vehicle;						///< If riding on anything
+	geActor*		Passengers[PASSENGER_LIST_SIZE];///< If vehicle, riders
+	int				ActorType;						///< Actor type
+	bool			NeedsNewBB;						///< TRUE means needs new EXTBOX
+	CPersistentAttributes* Inventory;				///< Actor's inventory
+	struct ActorInstance* pNext;					///< Next actor instance in list
 
 /* 07/15/2004 Wendell Buckner
 	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
 	CollideObjectInformation* CollideObjects[COLMaxBBox];
-	char LastBoneHit[256];						///< Name of last bone collided, if any
+	std::string		LastBoneHit;					///< Name of last bone collided, if any
 };
 
 /************************************************************************************//**
@@ -256,19 +196,13 @@ struct ActorInstanceList
  ****************************************************************************************/
 struct LoadedActorList
 {
-	geActor_Def			*theActorDef[4];	///< Actor definition
-	geActor				*Actor[4];
-	geBitmap			*Bitmap;
-	geVec3d				BaseRotation;		///< Baseline rotation
-	geFloat				BaseScale;			///< Baseline scale
-	geFloat				BaseHealth;			///< Baseline health
-	char				*szFilename;		///< Filename actor was from
-	char				*szDefaultMotion;	///< Default motion for actors
-	int					ActorType;			///< Type of actor this is
-	int					InstanceCount;		///< # of actors in instance list
-	ActorInstanceList	*IList;				///< List of instance for this actor
+	geActor_Def*		ActorDef[4];		///< Actor definition
+	geActor*			Actor[4];
+	geBitmap*			Bitmap;
+	ActorInstance*		IList;				///< List of instance for this actor
 };
 
+class CIniFile;
 
 /************************************************************************************//**
  *
@@ -285,55 +219,55 @@ public:
 	// COLLISION
 	// -----------------------------------------------------------------------------------
 
-	int SetCollide(const geActor *theActor);
-	int SetNoCollide(const geActor *theActor);
-	int SetColDetLevel(const geActor *theActor, int ColDetLevel);
-	int GetColDetLevel(const geActor *theActor, int *ColDetLevel);
+	int SetCollide(const geActor* actor);
+	int SetNoCollide(const geActor* actor);
+	int SetColDetLevel(const geActor* actor, int colDetLevel);
+	int GetColDetLevel(const geActor* actor, int *colDetLevel);
 
 	// Set/Get bounding box
-	void SetBBox(geActor *theActor, float SizeX, float SizeY, float SizeZ);
-	void SetBoundingBox(const geActor *theActor, const char *Animation);
-	int GetBoundingBox(const geActor *theActor, geExtBox *theBox);
-	int SetBoxChange(const geActor *theActor, bool Flag); // allow bbox to change?
+	void SetBBox(geActor* actor, float sizeX, float sizeY, float sizeZ);
+	void SetBoundingBox(const geActor* actor, const std::string& animation);
+	int GetBoundingBox(const geActor* actor, geExtBox* box);
+	int SetBoxChange(const geActor* actor, bool flag); // allow bbox to change?
 
 	// Actor-actor collision check
-	geBoolean DoesBoxHitActor(const geVec3d &thePoint, const geExtBox &theBox, geActor **theActor);
-	geBoolean DoesBoxHitActor(const geVec3d &thePoint, const geExtBox &theBox, geActor **theActor,
-							  const geActor *ActorToExclude);
+	geBoolean DoesBoxHitActor(const geVec3d& point, const geExtBox& box, geActor** actor);
+	geBoolean DoesBoxHitActor(const geVec3d& point, const geExtBox& box, geActor** actor,
+							  const geActor* actorToExclude);
 
 
 	/* 07/15/2004 Wendell Buckner
 	BUG FIX - Bone Collisions fail because we expect to hit the bone immediately after hitting the
 	overall bounding box. So tag the actor as being hit at the bounding box level and after that check ONLY
 	the bone bounding boxes until the whatever hit the overall bounding box no longer exists. */
-	CollideObjectInformation *AddCollideObject(CollideObjectLevels CollideObjectLevel,
-												ActorInstanceList *ActorInstance,
-												CollideObjectInformation *CollideObject);
+	CollideObjectInformation* AddCollideObject(CollideObjectLevels collideObjectLevel,
+												ActorInstance* actorInstance,
+												CollideObjectInformation* collideObject);
 
-	geBoolean RemoveCollideObject(CollideObjectLevels CollideObjectLevel,
-									ActorInstanceList *ActorInstance,
-									void *theCollideObject);
+	geBoolean RemoveCollideObject(CollideObjectLevels collideObjectLevel,
+									ActorInstance* actorInstance,
+									void* collideObject);
 
-	CollideObjectInformation *GetCollideObject(CollideObjectLevels CollideObjectLevel,
-												ActorInstanceList *ActorInstance,
-												void *theCollideObject);
+	CollideObjectInformation* GetCollideObject(CollideObjectLevels collideObjectLevel,
+												ActorInstance* actorInstance,
+												void* collideObject);
 
-	geBoolean DoesRayHitActor(const geVec3d &OldPosition, const geVec3d &NewPosition,
-								geActor **theActor,	const geActor *ActorToExclude,
-								geFloat *Percent, geVec3d *Normal);
+	geBoolean DoesRayHitActor(const geVec3d& oldPosition, const geVec3d& newPosition,
+								geActor** actor, const geActor* actorToExclude,
+								float* percent, geVec3d* normal);
 
-	geBoolean DoesRayHitActor(const geVec3d &OldPosition, const geVec3d &NewPosition,
-								geActor **theActor, const geActor *ActorToExclude,
-								geFloat *Percent, geVec3d *Normal,
-								void *CollisionObject);
+	geBoolean DoesRayHitActor(const geVec3d& oldPosition, const geVec3d& newPosition,
+								geActor** actor, const geActor* actorToExclude,
+								float* percent, geVec3d* normal,
+								void* collisionObject);
 
-    geBoolean DidRayHitActor(const geVec3d &OldPosition, const geVec3d &NewPosition,
-								geActor **theActor, const geActor *ActorToExclude,
-								geFloat *Percent, geVec3d *Normal,
-								void *CollisionObj);
+	geBoolean DidRayHitActor(const geVec3d& oldPosition, const geVec3d& newPosition,
+								geActor** actor, const geActor* actorToExclude,
+								float* percent, geVec3d* normal,
+								void* collisionObj);
 
-    geBoolean SetLastBoneHit(const geActor *theActor, const char *LastBoneHit);
-    char *GetLastBoneHit(const geActor *theActor);
+	geBoolean SetLastBoneHit(const geActor* actor, const std::string& lastBoneHit);
+	std::string GetLastBoneHit(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// LOAD
@@ -342,13 +276,13 @@ public:
 	/**
 	 * @brief Load an actor from a file
 	 */
-	geActor *LoadActor(const char *szFilename, geActor *OldActor);
+	geActor* LoadActor(const std::string& filename, geActor* oldActor);
 
 	/**
 	 * @brief Spawn an actor w/ parms
 	 */
-	geActor *SpawnActor(const char *szFilename, const geVec3d &Position, const geVec3d &Rotation,
-						const char *DefaultMotion, const char *CurrentMotion, geActor *OldActor);
+	geActor* SpawnActor(const std::string& filename, const geVec3d& position, const geVec3d& rotation,
+						const std::string& defaultMotion, const std::string& currentMotion, geActor* oldActor);
 
 	// -----------------------------------------------------------------------------------
 	// REMOVE
@@ -357,8 +291,8 @@ public:
 	/**
 	 * @brief Remove an actor
 	 */
-	int RemoveActor(const geActor *theActor);
-	int RemoveActorCheck(const geActor *theActor);
+	int RemoveActor(const geActor* actor);
+	int RemoveActorCheck(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// ACTORTYPE
@@ -367,139 +301,163 @@ public:
 	/**
 	 * @brief Set actor type
 	 */
-	int SetType(const geActor *theActor, int nType);
+	int SetType(const geActor* actor, int type);
 
 	/**
 	 * @brief Get actor type
 	 */
-	int GetType(const geActor *theActor, int *nType);
+	int GetType(const geActor* actor, int* type);
 
-	bool IsActor(const geActor *theActor);
+	bool IsActor(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// POSITION/ROTATION
 	// -----------------------------------------------------------------------------------
 
-	// position/rotate an actor
-	int Position(const geActor *theActor, const geVec3d &Position);
-	int Rotate(const geActor *theActor, const geVec3d &Rotation);
+	/**
+	 * @brief Position actor
+	 */
+	int Position(const geActor* actor, const geVec3d& position);
+
+	/**
+	 * @brief Rotate actor
+	 */
+	int Rotate(const geActor* actor, const geVec3d& rotation);
 
 	// Get position/rotation
-	int GetPosition(const geActor *theActor, geVec3d *thePosition);
-	int GetRotation(const geActor *theActor, geVec3d *theRotation);
-	int GetRotate(const geActor *theActor, geVec3d *theRotation);
+	int GetPosition(const geActor* actor, geVec3d* position);
+	int GetRotation(const geActor* actor, geVec3d* rotation);
+	int GetRotate(const geActor* actor, geVec3d* rotation);
 
 	// Set/Get Aligning Rotation
-	int SetAligningRotation(const geActor *theActor, const geVec3d &Rotation);
-	int GetAligningRotation(const geActor *theActor, geVec3d *Rotation);
+	int SetAligningRotation(const geActor* actor, const geVec3d& rotation);
+	int GetAligningRotation(const geActor* actor, geVec3d* rotation);
 
-	int AddTranslation(const geActor *theActor, const geVec3d &Amount);		///< Add translation to actor
-	int AddRotation(const geActor *theActor, const geVec3d &Amount);		///< Add rotation to actor
-	int RotateToFacePoint(const geActor *theActor, const geVec3d &Position);///< Rotate to face point
+	int AddTranslation(const geActor* actor, const geVec3d& amount);		///< Add translation to actor
+	int AddRotation(const geActor* actor, const geVec3d& amount);			///< Add rotation to actor
+	int RotateToFacePoint(const geActor* actor, const geVec3d& position);	///< Rotate to face point
 
 	// Turn actor LEFT/RIGHT
-	int TurnLeft(const geActor *theActor, geFloat theAmount);
-	int TurnRight(const geActor *theActor, geFloat theAmount);
+	int TurnLeft(const geActor* actor, float amount);
+	int TurnRight(const geActor* actor, float amount);
 
 	// Get Bone Position/Rotation
-	int GetBonePosition(const geActor *theActor, const char *szBone, geVec3d *thePosition);
-	int GetBoneRotation(const geActor *theActor, const char *szBone, geVec3d *theRotation);
+	int GetBonePosition(const geActor* actor, const std::string& bone, geVec3d* position);
+	int GetBoneRotation(const geActor* actor, const std::string& bone, geVec3d* rotation);
 
 	// -----------------------------------------------------------------------------------
 	// FALLING
 	// -----------------------------------------------------------------------------------
 
-	geBoolean Falling(const geActor *theActor);						///< Is actor falling?
-	int ReallyFall(const geActor *theActor);
-	int CheckReallyFall(const geActor *theActor, const geVec3d &StartPos);
+	geBoolean Falling(const geActor* actor);						///< Is actor falling?
+	int ReallyFall(const geActor* actor);
+	int CheckReallyFall(const geActor* actor, const geVec3d& startPos);
 
 	// -----------------------------------------------------------------------------------
 	// ORIENTATION
 	// -----------------------------------------------------------------------------------
 
 	// Get UP/IN/LEFT vector
-	int UpVector(const geActor *theActor, geVec3d *UpVector);		///< Get UP vector
-	int InVector(const geActor *theActor, geVec3d *InVector);		///< Get IN vector
-	int LeftVector(const geActor *theActor, geVec3d *LeftVector);	///< Get LEFT vector
+	int UpVector(const geActor* actor, geVec3d* upVector);		///< Get UP vector
+	int InVector(const geActor* actor, geVec3d* inVector);		///< Get IN vector
+	int LeftVector(const geActor* actor, geVec3d* leftVector);	///< Get LEFT vector
 
 	// -----------------------------------------------------------------------------------
 	// STEP UP
 	// -----------------------------------------------------------------------------------
 
-	int SetAutoStepUp(const geActor *theActor, bool fEnable);		///< Set actor auto step up
-	int SetStepHeight(const geActor *theActor, geFloat MaxStep);	///< Set actor step-up height
-	int GetStepHeight(const geActor *theActor, geFloat *MaxStep);
+	int SetAutoStepUp(const geActor* actor, bool enable);		///< Set actor auto step up
+	int SetStepHeight(const geActor* actor, float maxStep);		///< Set actor step-up height
+	int GetStepHeight(const geActor* actor, float* maxStep);	///< Get actor step-up height
 
 	// -----------------------------------------------------------------------------------
 	// MOVING
 	// -----------------------------------------------------------------------------------
 
-	void SetMoving(const geActor *theActor);
-	bool GetMoving(const geActor *theActor);
+	void SetMoving(const geActor* actor);
+	bool GetMoving(const geActor* actor);
 
-	int MoveForward(const geActor *theActor, geFloat Speed);		///< Move actor forward
-	int MoveBackward(const geActor *theActor, geFloat Speed);		///< Move actor backward
-	int MoveLeft(const geActor *theActor, geFloat Speed);			///< Move actor left
-	int MoveRight(const geActor *theActor, geFloat Speed);			///< Move actor right
+	int MoveForward(const geActor* actor, float speed);			///< Move actor forward
+	int MoveBackward(const geActor* actor, float speed);		///< Move actor backward
+	int MoveLeft(const geActor* actor, float speed);			///< Move actor left
+	int MoveRight(const geActor* actor, float speed);			///< Move actor right
 	// Move actor to nowhere (to a galaxy far, far away...)
-	int MoveAway(const geActor *theActor);
+	int MoveAway(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// ANIMATION METHODS
 	// -----------------------------------------------------------------------------------
 
-	int SetAnimationSpeed(const geActor *theActor, geFloat Speed);		// Set animation speed
+	int SetAnimationSpeed(const geActor* actor, float speed);		///< Set animation speed
 
-	char *GetMotion(const geActor *theActor);
-	int SetMotion(const geActor *theActor, const char *MotionName, int Channel = ANIMATION_CHANNEL_ROOT);		///< Set actor motion
-	int SetNextMotion(const geActor *theActor, const char *MotionName, int Channel = ANIMATION_CHANNEL_ROOT);	///< Prepare next motion
-	int SetDefaultMotion(const geActor *theActor, const char *MotionName, int Channel = ANIMATION_CHANNEL_ROOT);///< Set default motion
-	int ClearMotionToDefault(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);				///< Force motion to default motion
+	std::string GetMotion(const geActor* actor);
+
+	// TODO: support for animation channels
+	/**
+	 * @brief Set actor motion
+	 */
+	int SetMotion(const geActor* actor, const std::string& motionName, int channel = ANIMATION_CHANNEL_ROOT);
+
+	/**
+	 * @brief Prepare next motion
+	 */
+	int SetNextMotion(const geActor* actor, const std::string& motionName, int channel = ANIMATION_CHANNEL_ROOT);
+
+	/**
+	 * @brief Set default motion
+	 */
+	int SetDefaultMotion(const geActor* actor, const std::string& motionName, int channel = ANIMATION_CHANNEL_ROOT);
+
+	/**
+	 * @brief Force motion to default motion
+	 */
+	int ClearMotionToDefault(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
 
 	/**
 	 * @brief creates a new pose from 2 animations, keeps existing animation timing (if mid-animation)
 	 */
-	int SetBlendMot(const geActor *theActor, const char *name1, const char *name2,
-					float Amount, int Channel = ANIMATION_CHANNEL_ROOT);
+	int SetBlendMot(const geActor* actor, const std::string& name1, const std::string& name2,
+					float amount, int channel = ANIMATION_CHANNEL_ROOT);
+
 	/**
 	 * @brief creates a new pose from 2 animations, CLEARS animation timing
 	 */
-	int SetBlendMotion(const geActor *theActor, const char *name1, const char *name2,
-							float Amount, int Channel = ANIMATION_CHANNEL_ROOT);
-	int SetBlendNextMotion(const geActor *theActor, const char *name1, const char *name2,
-							float Amount, int Channel = ANIMATION_CHANNEL_ROOT);
+	int SetBlendMotion(const geActor* actor, const std::string& name1, const std::string& name2,
+							float amount, int channel = ANIMATION_CHANNEL_ROOT);
+	int SetBlendNextMotion(const geActor* actor, const std::string& name1, const std::string& name2,
+							float amount, int channel = ANIMATION_CHANNEL_ROOT);
 
-	void SetHoldAtEnd(const geActor *theActor, bool State, int Channel = ANIMATION_CHANNEL_ROOT);
-	bool EndAnimation(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
+	void SetHoldAtEnd(const geActor* actor, bool state, int channel = ANIMATION_CHANNEL_ROOT);
+	bool EndAnimation(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
 
 	// start multiplayer
-	void SetAnimationTime(const geActor *theActor, float time, int Channel = ANIMATION_CHANNEL_ROOT);
+	void SetAnimationTime(const geActor* actor, float time, int channel = ANIMATION_CHANNEL_ROOT);
 	// end multiplayer
-	float GetAnimationTime(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
+	float GetAnimationTime(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
 
-	geMotion *GetpMotion(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
-	geMotion *GetpBMotion(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
+	geMotion* GetpMotion(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
+	geMotion* GetpBMotion(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
 
-	float GetBlendAmount(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
-	int CheckAnimation(const geActor *theActor, const char *Animation, int Channel = ANIMATION_CHANNEL_ROOT);
+	float GetBlendAmount(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
+	int CheckAnimation(const geActor* actor, const std::string& animation, int channel = ANIMATION_CHANNEL_ROOT);
 
-	int SetTransitionMotion(const geActor *theActor, const char *name1, float Amount,
-							const char *name2, int Channel = ANIMATION_CHANNEL_ROOT);
-	bool CheckTransitionMotion(const geActor *theActor, const char *name1,
-								int Channel = ANIMATION_CHANNEL_ROOT);
-	float GetStartTime(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
-	bool GetTransitionFlag(const geActor *theActor, int Channel = ANIMATION_CHANNEL_ROOT);
+	int SetTransitionMotion(const geActor* actor, const std::string& name1, float amount,
+							const std::string& name2, int channel = ANIMATION_CHANNEL_ROOT);
+	bool CheckTransitionMotion(const geActor* actor, const std::string& name1,
+								int channel = ANIMATION_CHANNEL_ROOT);
+	float GetStartTime(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
+	bool GetTransitionFlag(const geActor* actor, int channel = ANIMATION_CHANNEL_ROOT);
 
 	// -----------------------------------------------------------------------------------
 	// LIGHTING
 	// -----------------------------------------------------------------------------------
 
 	// Actor lighting control, Oh Joy.
-	int SetActorDynamicLighting(const geActor *theActor, const GE_RGBA &FillColor,
-								const GE_RGBA &AmbientColor, geBoolean AmbientLightFromFloor);
-	int GetActorDynamicLighting(const geActor *theActor, GE_RGBA *FillColor,
-								GE_RGBA *AmbientColor, geBoolean *AmbientLightFromFloor);
-	int ResetActorDynamicLighting(const geActor *theActor);
+	int SetActorDynamicLighting(const geActor* actor, const GE_RGBA& fillColor,
+								const GE_RGBA& ambientColor, geBoolean ambientLightFromFloor);
+	int GetActorDynamicLighting(const geActor* actor, GE_RGBA* fillColor,
+								GE_RGBA* ambientColor, geBoolean* ambientLightFromFloor);
+	int ResetActorDynamicLighting(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// FORCE
@@ -507,31 +465,33 @@ public:
 
 	// It's possible to add a FORCE to an actor.  This FORCE (seperate from gravity)
 	// ..effects an actors translation over time.
-	int SetForce(const geActor *theActor, int nForceNumber, const geVec3d &fVector,
-					geFloat InitialValue, geFloat Decay);
-	int GetForce(const geActor *theActor, int nForceNumber, geVec3d *ForceVector,
-					geFloat *ForceLevel, geFloat *ForceDecay);
+	int SetForce(const geActor* actor, int forceNumber, const geVec3d& forceVector,
+					float forceLevel, float forceDecay);
 
-	int RemoveForce(const geActor *theActor, int nForceNumber);
-	geBoolean ForceActive(const geActor *theActor, int nForceNumber);
-	void SetForceEnabled(const geActor *theActor, bool enable);
+	int GetForce(const geActor* actor, int forceNumber, geVec3d* forceVector,
+					float* forceLevel, float* forceDecay);
+
+	int RemoveForce(const geActor* actor, int forceNumber);
+	geBoolean ForceActive(const geActor* actor, int forceNumber);
+
+	void SetForceEnabled(const geActor* actor, bool enable);
 
 	// -----------------------------------------------------------------------------------
 	// ZONE
 	// -----------------------------------------------------------------------------------
 
 	// Functions for probing the actors environment
-	int GetActorZone(const geActor *theActor, int *ZoneType);				///< Get actor's zone
-	int GetActorOldZone(const geActor *theActor, int *ZoneType);
-	Liquid *GetLiquid(const geActor *theActor);
+	int GetActorZone(const geActor* actor, int* zoneType);				///< Get actor's zone
+	int GetActorOldZone(const geActor* actor, int* zoneType);
+	Liquid* GetLiquid(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// ENTITYNAME
 	// -----------------------------------------------------------------------------------
 
-	int SetEntityName(const geActor *theActor, const char *name);
-	const char *GetEntityName(const geActor *theActor);
-	geActor *GetByEntityName(const char *name);
+	int SetEntityName(const geActor* actor, const std::string& name);
+	std::string GetEntityName(const geActor* actor);
+	geActor* GetByEntityName(const char* name);
 
 	// -----------------------------------------------------------------------------------
 	// SCALE
@@ -539,41 +499,43 @@ public:
 
 	// Important note: to set the BASELINE for scale, etc. for all actors
 	// ..of a specific type use nHandle = (-1).
-	int SetScale(const geActor *theActor, geFloat Scale);			///< Scale actor
-	int GetScale(const geActor *theActor, geFloat *Scale);			///< Get actor scale (max of x,y,z)
-	int SetScaleX(const geActor *theActor, geFloat Scale);
-	int SetScaleY(const geActor *theActor, geFloat Scale);
-	int SetScaleZ(const geActor *theActor, geFloat Scale);
-	int SetScaleXYZ(const geActor *theActor, const geVec3d &Scale);
+	int SetScale(const geActor* actor, float scale);			///< Scale actor
+	int GetScale(const geActor* actor, float *scale);			///< Get actor scale (max of x,y,z)
 
-	int GetScaleX(const geActor *theActor, geFloat *Scale);
-	int GetScaleY(const geActor *theActor, geFloat *Scale);
-	int GetScaleZ(const geActor *theActor, geFloat *Scale);
-	int GetScaleXYZ(const geActor *theActor, geVec3d *Scale);
+	int SetScaleX(const geActor* actor, float scale);
+	int SetScaleY(const geActor* actor, float scale);
+	int SetScaleZ(const geActor* actor, float scale);
+	int SetScaleXYZ(const geActor* actor, const geVec3d& scale);
+
+	int GetScaleX(const geActor* actor, float* scale);
+	int GetScaleY(const geActor* actor, float* scale);
+	int GetScaleZ(const geActor* actor, float* scale);
+	int GetScaleXYZ(const geActor* actor, geVec3d* scale);
 
 	// -----------------------------------------------------------------------------------
 	// ALPHA
 	// -----------------------------------------------------------------------------------
 
-	int SetAlpha(const geActor *theActor, geFloat Alpha);		///< Set actor alpha
-	int GetAlpha(const geActor *theActor, geFloat *Alpha);		///< Get actor alpha
+	int SetAlpha(const geActor* actor, float alpha);		///< Set actor alpha
+	int GetAlpha(const geActor* actor, float* alpha);		///< Get actor alpha
 
 	// -----------------------------------------------------------------------------------
 	// HEALTH
 	// -----------------------------------------------------------------------------------
 
-	int SetHealth(const geActor *theActor, geFloat Health);		///< Set actor's health
-	int ModifyHealth(const geActor *theActor, geFloat Amount);	///< Modify actor's health
-	int GetHealth(const geActor *theActor, geFloat *Health);	///< Get actor's health
+	int SetHealth(const geActor* actor, float health);		///< Set actor's health
+	int ModifyHealth(const geActor* actor, float amount);	///< Modify actor's health
+	int GetHealth(const geActor* actor, float* health);		///< Get actor's health
 
 	// -----------------------------------------------------------------------------------
 	// GRAVITY
 	// -----------------------------------------------------------------------------------
 
-	int SetGravity(const geActor *theActor, geVec3d Gravity);	///< Set gravity for actor
-	int GetGravity(const geActor *theActor, geVec3d *Gravity);	///< Get gravity
-	int SetGravityTime(const geActor *theActor, geFloat Gravitytime);
-	int GetGravityCollision(const geActor *theActor, GE_Collision *Collision);
+	int SetGravity(const geActor* actor, geVec3d gravity);	///< Set gravity for actor
+	int GetGravity(const geActor* actor, geVec3d* gravity);	///< Get gravity
+
+	int SetGravityTime(const geActor* actor, float gravityTime);
+	int GetGravityCollision(const geActor* actor, GE_Collision* collision);
 
 	// -----------------------------------------------------------------------------------
 	// SPATIAL RELATION
@@ -582,29 +544,32 @@ public:
 	/**
 	 * @brief Is actor in front of me?
 	 */
-	bool IsInFrontOf(const geActor *theActor, const geActor *theOtherActor);
+	bool IsInFrontOf(const geActor* actor, const geActor* otherActor);
+
 	/**
 	 * @brief Get distance between 2 actors
 	 */
-	geFloat DistanceFrom(const geActor *theActor, const geActor *theOtherActor);
+	float DistanceFrom(const geActor* actor, const geActor* otherActor);
+
 	/**
 	 * @brief Get distance between a point and an actor
 	 */
-	geFloat DistanceFrom(const geVec3d &Point, const geActor *theActor);
+	float DistanceFrom(const geVec3d& point, const geActor* actor);
+
 	/**
 	 * @ brief Fill a list with pointers to all actors within a specific range of a particular point
 	 */
-	int GetActorsInRange(const geVec3d &Point, geFloat Range, int nListSize, geActor **ActorList);
+	int GetActorsInRange(const geVec3d& point, float range, int listSize, geActor** actorList);
 
 	// -----------------------------------------------------------------------------------
 	// VEHICLE/PASSENGER
 	// -----------------------------------------------------------------------------------
 
 	// Actor on model stuff
-	void SetVehicle(const geActor *theActor, geActor *theVehicle);
-	geActor *GetVehicle(const geActor *theActor);
-	int SetPassenger(geActor *thePassenger, geActor *theVehicle);
-	int RemovePassenger(const geActor *thePassenger);
+	void SetVehicle(const geActor* actor, geActor* vehicle);
+	geActor* GetVehicle(const geActor* actor);
+	int SetPassenger(geActor* passenger, geActor* vehicle);
+	int RemovePassenger(const geActor* passenger);
 
 	// -----------------------------------------------------------------------------------
 	// INVENTORY
@@ -613,37 +578,37 @@ public:
 	/**
 	 * @brief Inventory list access
 	 */
-	CPersistentAttributes *Inventory(const geActor *theActor);
+	CPersistentAttributes* Inventory(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
-	// TICK
+	// UPDATE
 	// -----------------------------------------------------------------------------------
 
 	// Dispatch time to all actors
-	void Tick(geFloat dwTicks);			///< Process passage of time
+	void Update(float timeElapsed);			///< Process passage of time
 
 	// -----------------------------------------------------------------------------------
 	// TILT
 	// -----------------------------------------------------------------------------------
 
-	int SetTilt(const geActor *theActor, bool Flag);
-	int TiltUp(const geActor *theActor, geFloat theAmount);
-	int TiltDown(const geActor *theActor, geFloat theAmount);
-	float GetTiltX(const geActor *theActor);
+	int SetTilt(const geActor* actor, bool flag);
+	int TiltUp(const geActor* actor, float amount);
+	int TiltDown(const geActor* actor, float amount);
+	float GetTiltX(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// RADAR
 	// -----------------------------------------------------------------------------------
 
-	int SetHideRadar(const geActor *theActor, bool flag);
-	int GetHideRadar(const geActor *theActor, bool *flag);
+	int SetHideRadar(const geActor* actor, bool flag);
+	int GetHideRadar(const geActor* actor, bool* flag);
 
 	// -----------------------------------------------------------------------------------
 	// GROUP
 	// -----------------------------------------------------------------------------------
 
-	int SetGroup(const geActor *theActor, const char *name);
-	const char *GetGroup(const geActor *theActor);
+	int SetGroup(const geActor* actor, const std::string& name);
+	std::string GetGroup(const geActor* actor);
 
 	// -----------------------------------------------------------------------------------
 	// SHADOWS
@@ -653,22 +618,29 @@ public:
 	/**
 	 * @brief Set the size of the actor's shadow bitmap;
 	 */
-	int SetShadow(const geActor *theActor, geFloat Size);
+	int SetShadow(const geActor* actor, float size);
+
 	/**
 	 * @brief Set the alpha of the actor's shadow bitmap
 	 */
-	int SetShadowAlpha(const geActor *theActor, geFloat Alpha);
-	int SetShadowBitmap(const geActor *theActor, geBitmap *Bitmap);
+	int SetShadowAlpha(const geActor* actor, float alpha);
+
+	/**
+	 * @brief Set the bitmap used for the actor's shadow
+	 */
+	int SetShadowBitmap(const geActor* actor, geBitmap* bitmap);
+
 	// PROJECTED SHADOW
 	/**
 	 * @brief Enable/Disable projected shadows for a particular actor
 	 */
-	int SetProjectedShadows(const geActor *theActor, bool flag);
+	int SetProjectedShadows(const geActor* actor, bool flag);
+
 	// STENCIL SHADOW
 	/**
 	 * @brief Enable/Disable stencil shadows for a particular actor
 	 */
-	geBoolean SetStencilShadows(const geActor *theActor, geBoolean flag);
+	geBoolean SetStencilShadows(const geActor* actor, geBoolean flag);
 
 	// -----------------------------------------------------------------------------------
 	// ATTACH/DETACH
@@ -686,30 +658,30 @@ public:
 	 * slave actor will rotate to follow the master actor's rotation. The slave
 	 * actor will move with the master actor to maintain its attachment.
 	 */
-	void ActorAttach(geActor *Slave, const char *SlaveBoneName,
-					 const geActor *Master, const char *MasterBoneName,
-					 const geVec3d &AttachOffset, const geVec3d &Angle);
+	void ActorAttach(geActor* slave, const char* slaveBoneName,
+					 const geActor* master, const char* masterBoneName,
+					 const geVec3d& attachOffset, const geVec3d& angle);
 
 	/**
 	 * @brief Detach a slave actor from its master actor
 	 */
-	void DetachFromActor(const geActor *Master, const geActor *Slave);
+	void DetachFromActor(const geActor* master, const geActor* slave);
 
 	/**
 	 * @brief Attach a slave actor to a master actor, using the master's animation
 	 */
-	void ActorAttachBlend(geActor *Slave, const geActor *Master);
+	void ActorAttachBlend(geActor* slave, const geActor* master);
 
 	/**
 	 * @brief Detach a blending slave actor from its master actor
 	 */
-	void DetachBlendFromActor(const geActor *Master, const geActor *Slave);
+	void DetachBlendFromActor(const geActor* master, const geActor* slave);
 
 private:
 	/**
 	 * @brief Detach a slave actor from its master when the master actor gets removed
 	 */
-	void ActorDetach(const geActor *Slave);
+	void ActorDetach(const geActor* slave);
 
 public:
 
@@ -720,64 +692,65 @@ public:
 	/**
 	 * @brief Set level of detail distances of a particular actor
 	 */
-	int SetLODdistance(const geActor *theActor, float LOD1, float LOD2, float LOD3,
+	int SetLODdistance(const geActor* actor, float LOD1, float LOD2, float LOD3,
 						float LOD4, float LOD5);
 	/**
 	 * @brief Get the current level of detail of a particular actor
 	 */
-	int GetLODLevel(const geActor *theActor, int *Level);
+	int GetLODLevel(const geActor* actor, int* level);
 
 	// -----------------------------------------------------------------------------------
 	// MISC METHODS
 	// -----------------------------------------------------------------------------------
 
-	int SetSlide(const geActor *theActor, bool Flag);
-	int GetAnimationHeight(const geActor *theActor, const char *Animation, float *Height);
-	int SetAnimationHeight(const geActor *theActor, const char *Animation, bool Camera);
-	geBoolean ValidateMove(const geVec3d &StartPos, const geVec3d &EndPos,
-							const geActor *theActor, bool slide);
-	int CountActors();
-	int ChangeMaterial(const geActor *theActor, const char *Change);
-	int SetRoot(const geActor *theActor, const char *BoneName);
-	int SetActorFlags(const geActor *theActor, int Flag);
-
+	int SetSlide(const geActor* actor, bool flag);
+	int GetAnimationHeight(const geActor* actor, const std::string& animation, float* height);
+	int SetAnimationHeight(const geActor* actor, const std::string& animation, bool camera);
+	geBoolean ValidateMove(const geVec3d& startPos, const geVec3d& endPos,
+							const geActor* actor, bool slide);
+	int CountActors() const;
+	int ChangeMaterial(const geActor* actor, const std::string& change);
+	int SetRoot(const geActor* actor, const std::string& boneName);
+	int SetActorFlags(const geActor* actor, int flag);
 
 private:
 	// -----------------------------------------------------------------------------------
 	// Private member functions
 	// -----------------------------------------------------------------------------------
 
-	geActor *AddNewInstance(LoadedActorList *theEntry, geActor *OldActor);
-	int  RemoveInstance(const geActor *theActor);		///< Delete instance of actor
-	void RemoveAllActors(LoadedActorList *theEntry);
+	geActor* AddNewInstance(LoadedActorList* entry, geActor* oldActor);
+	int  RemoveInstance(const geActor* actor);			///< Delete instance of actor
+	void RemoveAllActors(LoadedActorList* entry);
 
-	ActorInstanceList *LocateInstance(const geActor *theActor, const LoadedActorList *theEntry);
-	ActorInstanceList *LocateInstance(const geActor *theActor);
+	inline ActorInstance* LocateInstance(const geActor* actor);
 
-	void AdvanceInstanceTime(ActorInstanceList *theEntry,	geFloat dwTicks);
-	void TimeAdvanceAllInstances(LoadedActorList *theEntry,	geFloat dwTicks);
-	void UpdateActorState(ActorInstanceList *theEntry);
+	void AdvanceInstanceTime(ActorInstance* entry, float timeElapsed);
+	void TimeAdvanceAllInstances(LoadedActorList* entry, float timeElapsed);
+	void UpdateActorState(ActorInstance* entry);
 
-	void ProcessGravity(ActorInstanceList *theEntry, geFloat dwTicks);
-	void ProcessForce(ActorInstanceList *theEntry, geFloat dwTicks);
-	int Move(ActorInstanceList *pEntry, int nHow, geFloat fSpeed);		///< Velocity-based motion for actor
-	bool CheckForStepUp(ActorInstanceList *pEntry, geVec3d NewPosition);
-	int GetCurrentZone(ActorInstanceList *pEntry);	// Get brush zone types
-	geBoolean ValidateMotion(geVec3d StartPos, geVec3d EndPos,
-		ActorInstanceList *pEntry, bool fStepUpOK, bool slide);			///< Validate and handle motion
+	void ProcessGravity(ActorInstance* entry, float timeElapsed);
+	void ProcessForce(ActorInstance* entry, float timeElapsed);
 
-	void MoveAllVehicles(LoadedActorList *theEntry, float dwTicks);		///< Move vehicle actors
-	int TranslateAllPassengers(ActorInstanceList *pEntry);
+	int Move(ActorInstance* entry, int how, float speed);			///< Velocity-based motion for actor
+	bool CheckForStepUp(ActorInstance* entry, geVec3d newPosition);
+	int GetCurrentZone(ActorInstance* entry);						///< Get brush zone types
+	geBoolean ValidateMotion(geVec3d startPos, geVec3d endPos,
+		ActorInstance* entry, bool stepUpOK, bool slide);			///< Validate and handle motion
+
+	void MoveAllVehicles(LoadedActorList* entry, float timeElapsed);///< Move vehicle actors
+	int TranslateAllPassengers(ActorInstance* entry);
 
 private:
 	// -----------------------------------------------------------------------------------
 	// Private member variables
 	// -----------------------------------------------------------------------------------
 
-	LoadedActorList *MainList[ACTOR_LIST_SIZE];	///< Database of loaded actors
-	int m_GlobalInstanceCount;					///< Level instance counter
-	CIniFile AttrFile;
-	bool ValidAttr;
+	stdext::hash_map<std::string, LoadedActorList*>		m_LoadedActorFiles;
+	stdext::hash_map<const geActor*, ActorInstance*>	m_ActorLookUp;
+
+	int m_InstanceCount;							///< Level instance counter
+	CIniFile* m_MaterialIniFile;
+	bool m_ValidIniFile;
 };
 
 #endif
