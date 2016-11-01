@@ -11,69 +11,56 @@
 #ifndef __RGF_CWEAPON_H_
 #define __RGF_CWEAPON_H_
 
+#include <hash_map>
 /**
  * @brief Projectile definition
  */
-typedef struct Proj
+typedef struct Projectile
 {
-	Proj    	*next;
-	Proj    	*prev;
-	geActor		*Actor;
-	char		*Name;
-	geVec3d		Pos;
-	geVec3d		Angles;
-	geVec3d		In;
-	geVec3d		Rotation;
-	geVec3d		Direction;
-	geExtBox	ExtBox;
-	bool		Gravity;
-	bool		 Bounce;
-	geSound_Def *BounceSoundDef;
-	geSound_Def *MoveSoundDef;
-	geSound_Def *ImpactSoundDef;
-	int			MoveSoundEffect;
-	int			Effect[5];
-	int			EffectType[5];
-	char		*EffectBone[5];
-	geFloat		LifeTime;
-	int			Decal;
-	char		*Explosion;
-	char		*ActorExplosion;
-	bool		ShowBoth;
-	bool		AttachActor;
-	bool		BoneLevel;
-	float		ShakeAmt;
-	float		ShakeDecay;
-	float		Damage;
-	float		RadiusDamage;
-	float		Radius;
-	char		*Attribute;
-	float		AltDamage;
-	char		*AltAttribute;
-} Proj;
+	Projectile*		next;
+	Projectile*		prev;
+	geActor*		Actor;
+	geSound_Def*	BounceSoundDef;
+	geSound_Def*	MoveSoundDef;
+	geSound_Def*	ImpactSoundDef;
+	geVec3d			Pos;
+	geVec3d			Angles;
+	geVec3d			In;
+	geVec3d			Rotation;
+	geVec3d			Direction;
+	geExtBox		ExtBox;
+	float			LifeTime;
+	float			ShakeAmt;
+	float			ShakeDecay;
+	float			Damage;
+	float			AltDamage;
+	float			RadiusDamage;
+	float			Radius;
+	int				MoveSoundEffect;
+	int				Decal;
+	int				Effect[5];
+	int				EffectType[5];
+	bool			Gravity;
+	bool			Bounce;
+	bool			ShowBoth;
+	bool			AttachActor;
+	bool			BoneLevel;
+	std::string		EffectBone[5];
+	std::string		Explosion;
+	std::string		ActorExplosion;
+	std::string		Attribute;
+	std::string		AltAttribute;
+	std::string		Name;
+
+} Projectile;
 
 /**
  * @brief Projectile definition
  */
-typedef struct DefaultProj
+typedef struct ProjectileDefinition
 {
-	bool		active;
-	char		Name[64];
-	char		Actorfile[64];
 	geVec3d		Rotation;
-	char		ActorAnimation[64];
-	geBoolean	Gravity;
-	geBoolean	Bounce;
-	char		BounceSound[64];
-	char		MoveSound[64];
-	char		ImpactSound[64];
-	geFloat		LifeTime;
-	int			Decal;
-	char		Explosion[64];
-	char		ActorExplosion[64];
-	bool		ShowBoth;
-	bool		AttachActor;
-	bool		BoneLevel;
+	float		LifeTime;
 	float		ShakeAmt;
 	float		ShakeDecay;
 	float		Damage;
@@ -83,10 +70,23 @@ typedef struct DefaultProj
 	float		Scale;
 	float		BoxSize;
 	float		Speed;
-	char		Effect[5][64];
-	char		EffectBone[5][64];
+	int			Decal;
+	geBoolean	Gravity;
+	geBoolean	Bounce;
+	bool		ShowBoth;
+	bool		AttachActor;
+	bool		BoneLevel;
+	std::string	EffectName[5];
+	std::string	EffectBone[5];
+	std::string	Explosion;
+	std::string	ActorExplosion;
+	std::string	BounceSound;
+	std::string	MoveSound;
+	std::string	ImpactSound;
+	std::string	ActorFile;
+	std::string	ActorAnimation;
 
-} DefaultProj;
+} ProjectileDefinition;
 
 /**
  * @brief Weapon types
@@ -102,35 +102,35 @@ typedef enum
 /**
  * @brief Default Weapon dfinition
  */
-typedef struct DefaultWeapons
+typedef struct WeaponDefinition
 {
-	bool		active;
-	char		Name[64];
+	char		Name[256];
 	int			Slot;
 	float		FireRate;
+	float		MaxDeviationRadius;
 	WeaponType	Catagory;
-	char		Projectile[64];
-	char		AttackSound[64];
-	char		HitSound[64];
-	char		EmptySound[64];
-	char		UseSound[64];
+	std::string	Projectile;
+	std::string	AttackSound;
+	std::string	HitSound;
+	std::string	EmptySound;
+	std::string	UseSound;
+	std::string	MeleeExplosion;
+	std::string	Attribute;
+	std::string	AltAttribute;
 	float		MeleeDamage;
-	char		MeleeExplosion[64];
-	char		Attribute[64];
-    char		AltAttribute[64];
 	float		MeleeAltDamage;
-	bool		WorksUnderwater;
 	int			FixedView;
 	int			ShotperMag;
 	int			ShotFired;
-	char		ReloadSound[64];
-	bool		LooseMag;
 	int			MagAmt;
-	char		MuzzleFlash3rd[64];
-	char		Ammunition[64];
+	bool		LooseMag;
+	bool		WorksUnderwater;
+	std::string	MuzzleFlash;
+	std::string	MuzzleFlash3rd;
+	std::string	Ammunition;
+	std::string	ReloadSound;
 	int			AmmoPerShot;
 	bool		MeleeAmmo;
-	char		MuzzleFlash[64];
 	geBitmap*	CrossHair;
 	bool		CrossHairFixed;
 	bool		AllowLit;
@@ -139,19 +139,19 @@ typedef struct DefaultWeapons
 	geBitmap*	ZoomOverlay;
 	bool		MoveZoom;
 
-	char		DropActor[128];
+	char		DropActor[256];
 	geVec3d		DropActorRotation;
 	geVec3d		DropActorOffset;
-	float		DropScale;
 	geVec3d		DropFillColor;
 	geVec3d		DropAmbientColor;
 	geBoolean	DropAmbientLightFromFloor;
 	geBoolean	DropEnvironmentMapping;
 	geBoolean	DropAllMaterial;
-	float		DropPercentMapping;
-	float		DropPercentMaterial;
 	geBoolean	DropGravity;
 	geBoolean	DropHideFromRadar;
+	float		DropPercentMapping;
+	float		DropPercentMaterial;
+	float		DropScale;
 
 	geActor*	VActor;
 	geActor_Def* VActorDef;
@@ -159,47 +159,46 @@ typedef struct DefaultWeapons
 	geVec3d		VActorOffset;
 	float		VScale;
 	float		VAnimSpeed;
-	char		VArm[64];
-	char		VIdle[64];
-	char		VAttack[64];
-	char		VAltAttack[64];
-	char		VHit[64];
-	char		VAltHit[64];
-	char		VWalk[64];
-	char		VReload[64];
-	char		VKeyReload[64];
-	char		VAttackEmpty[64];
-	char		VUse[64];
+	std::string	VArm;
+	std::string	VIdle;
+	std::string	VAttack;
+	std::string	VAltAttack;
+	std::string	VHit;
+	std::string	VAltHit;
+	std::string	VWalk;
+	std::string	VReload;
+	std::string	VKeyReload;
+	std::string	VAttackEmpty;
+	std::string	VUse;
 	geVec3d		VOffset;
 	geVec3d		VMOffset;
-	char		VBone[64];
+	char		VBone[256];
 	float		JerkAmt;
 	float		JerkDecay;
 	float		BobAmt;
 
-	geActor		*PActor;
-	geActor_Def	*PActorDef;
+	geActor*	PActor;
+	geActor_Def*PActorDef;
 	geVec3d		PActorRotation;
 	geVec3d		POffset;
-	char		PBone[64];
+	char		PBone[256];
 	float		PScale;
-	char		Animations[ANIMMAX][64];
 	float		PMOffset;
-	char		DieAnim[5][64];
+	std::string	Animations[ANIMMAX];
+	std::string	DieAnim[5];
+	std::string	InjuryAnim[5];
 	int			DieAnimAmt;
-	char		InjuryAnim[5][64];
 	int			InjuryAnimAmt;
-	geFloat		F, H, J;
-	geFloat		G, K, L, Z;
+	float		F, H, J;
+	float		G, K, L, Z;
 
-} DefaultWeapons;
+} WeaponDefinition;
 
 /**
  * @brief Max # of weapons
  * @note if MAX_WEAPONS changes, size of Slot in CCommonData must change too
  */
 #define MAX_WEAPONS		40
-#define MAX_PROJD       50
 
 /**
  * @brief Possible actions of 1st person weapons
@@ -230,7 +229,7 @@ public:
 	CWeapon();
 	~CWeapon();
 
-	void Tick(geFloat dwTicks);
+	void Tick(float timeElapsed);
 
 	/**
 	 * @brief Correct internal timing to match current time, to make up for time
@@ -244,20 +243,24 @@ public:
 
 	void DoAttack();
 
-	int SaveTo(FILE *SaveFD);
-	int RestoreFrom(FILE *RestoreFD);
+	int SaveTo(FILE* saveFD);
 
-	void ChangeWeapon(const char *name);
-	char *DieAnim();
-	char *InjuryAnim();
+	int RestoreFrom(FILE* restoreFD);
 
-	void SetWeapon(int value);
+	std::string DieAnim();
+
+	std::string InjuryAnim();
+
+	void SetWeapon(int slot);
+
+	void SetWeapon(const std::string& weapon);
+
 	void WeaponData();
 
 	void Attack(bool Alternate);
 
-	void Add_Projectile(const geVec3d &Pos, const geVec3d &Front, const geVec3d &Orient,
-						const char *Projectile, char *PAttribute, char *PAltAttribute);
+	void AddProjectile(const geVec3d& pos, const geVec3d& front, const geVec3d& orient,
+		const std::string& projName, const std::string& PAttribute, const std::string& PAltAttribute);
 
 	bool CrossHair();
 
@@ -273,85 +276,122 @@ public:
 
 	void Rendering(bool flag);
 
-	void ReSetWeapon(int value);
+	void ResetWeapon(const std::string& value);
 
 	void ClearWeapon();
-	char *PlayerAnim(int index);
-	int GetSlot(int index)				{ return Slot[index];	}
-	void SetSlot(int index, int flag)	{ Slot[index] = flag;	}
-	int GetCurrent()					{ return CurrentWeapon;	}
-	void SetCurrent(int value)			{ CurrentWeapon = value;}
 
-	geActor	*GetVActor();
-	geActor	*GetPActor();
+	const std::string& PlayerAnim(int index);
 
-	geVec3d GetCrossPoint()			{ return CrossPoint; }
+	const std::string& GetSlot(int index) const			{ return m_Slot[index];		}
+
+	void SetSlot(int index, const std::string& flag)	{ m_Slot[index] = flag;		}
+
+	const std::string& GetCurrent() const		{ return m_CurrentWeapon;	}
+
+	void SetCurrent(const std::string& value)	{ m_CurrentWeapon = value;	}
+
+	/**
+	 * @brief Get 1st person actor of the currently active weapon
+	 */
+	geActor* GetVActor();
+
+	/**
+	 * @brief Get 3rd person actor of the currently active weapon
+	 */
+	geActor* GetPActor();
+
+	geVec3d GetCrossPoint() const		{ return m_CrossPoint; }
 
 	void KeyReload();
 
 	void DropWeapon();
 
 	void Use();
-	void SetView(int value)			{ ViewPoint = value; OldViewPoint = value;	}
-	const char *GetWeaponName()		{ return WeaponD[CurrentWeapon].Name;		}
-	const char *GetWeaponAmmo()		{ return WeaponD[CurrentWeapon].Ammunition; }
-	int GetMagSize()				{ return WeaponD[CurrentWeapon].ShotperMag;	}
-	int GetShotFired()				{ return WeaponD[CurrentWeapon].ShotFired;	}
-	int GetMagAmt()					{ return WeaponD[CurrentWeapon].MagAmt;		}
-	geVec3d GetLitColor()			{ return WeaponD[CurrentWeapon].LitColor;	}
-	bool GetAllowLit()				{ return WeaponD[CurrentWeapon].AllowLit;	}
-	bool GetAllowMoveZoom()			{ return WeaponD[CurrentWeapon].MoveZoom;	}
 
-	bool GetAttackFlag()			{ return AttackFlag;}
-	void SetAttackFlag(bool flag)	{ AttackFlag = flag;}
+	void SetView(int value)				{	m_ViewPoint = value; m_OldViewPoint = value;	}
 
-	geVec3d GetProjectedPoint()		{ return ProjectedPoint; }
+	const std::string& GetWeaponName() const	{	return m_CurrentWeapon;	}
+
+	const std::string& GetWeaponAmmo()	{	if(m_CurrentWeapon.empty()) return m_CurrentWeapon;
+											return m_Weapons[m_CurrentWeapon]->Ammunition;	}
+
+	int GetMagSize()					{	if(m_CurrentWeapon.empty()) return 0;
+											return m_Weapons[m_CurrentWeapon]->ShotperMag;	}
+
+	int GetShotFired()					{	if(m_CurrentWeapon.empty()) return 0;
+											return m_Weapons[m_CurrentWeapon]->ShotFired;	}
+
+	int GetMagAmt()						{	if(m_CurrentWeapon.empty()) return 0;
+											return m_Weapons[m_CurrentWeapon]->MagAmt;		}
+
+	geVec3d GetLitColor()				{	if(m_CurrentWeapon.empty())
+											{
+												geVec3d LitColor = {255.0f, 255.0f, 255.0f};
+												return LitColor;
+											}
+											return m_Weapons[m_CurrentWeapon]->LitColor;	}
+
+	bool GetAllowLit()					{	if(m_CurrentWeapon.empty()) return false;
+											return m_Weapons[m_CurrentWeapon]->AllowLit;	}
+
+	bool GetAllowMoveZoom()				{	if(m_CurrentWeapon.empty()) return true;
+											return m_Weapons[m_CurrentWeapon]->MoveZoom;	}
+
+	bool GetAttackFlag() const			{	return m_AttackFlag;		}
+
+	void SetAttackFlag(bool flag)		{	m_AttackFlag = flag;		}
+
+	geVec3d GetProjectedPoint() const	{	return m_ProjectedPoint;	}
 
 	int GetFixedView();
 
 private:
-	void DisplayThirdPerson(int index);
-	void DisplayFirstPerson(int index);
-	void Sound(bool Attack, const geVec3d &Origin, bool Empty);
+	void DisplayThirdPerson(const std::string& weaponName);
+
+	void DisplayFirstPerson(const std::string& weaponName);
+
+	void Sound(bool attack, const geVec3d& origin, bool empty);
 
 	void MeleeAttack();
 
 	void ProjectileAttack();
 
-	int PlaySound(geSound_Def *SoundDef, const geVec3d &Pos, bool Loop);
+	int PlaySound(geSound_Def* soundDef, const geVec3d& pos, bool loop);
 
 	void LoadDefaults();
 
 	void DoChange();
 
-	void SpawnWeaponAttribute(int index);
+	void SpawnWeaponAttribute(const std::string& weaponName);
 
 private:
-	int				Slot[MAX_WEAPONS];
-	int				ViewPoint;
-	int				OldViewPoint;
-	bool			dropflag;
-	int				CurrentWeapon;
-	int				AttackTime;
-	bool			AttackFlag;
-	bool			AltAttack;
+	bool			m_DropFlag;
+	bool			m_Holstered;
+	bool			m_AttackFlag;
+	bool			m_AltAttack;
+	int				m_AttackTime;
+	int				m_ViewPoint;
+	int				m_OldViewPoint;
 
-	float			VAnimTime;
-	float			VMCounter;
-	int				VSequence;
-	bool			VBlend;
-	geMotion		*VBactorMotion;
-	geFloat			VBScale;
-	geFloat			VBDiff;
-	geFloat			VBOrigin;
-	bool			MFlash;
+	int				m_VSequence;
+	float			m_VAnimTime;
+	float			m_VMCounter;
+	float			m_VBScale;
+	float			m_VBDiff;
+	float			m_VBOrigin;
+	geMotion*		m_VBactorMotion;
+	bool			m_VBlend;
+	bool			m_MFlash;
+	geVec3d			m_CrossPoint;
+	geVec3d			m_ProjectedPoint;
+	Projectile*		m_Bottom;
 
-	Proj			*Bottom;
-	DefaultProj		ProjD[MAX_PROJD];
-	DefaultWeapons	WeaponD[MAX_WEAPONS];
+	std::string		m_CurrentWeapon;
+	std::string		m_Slot[MAX_WEAPONS];
 
-	geVec3d			CrossPoint;
-	geVec3d			ProjectedPoint;
+	stdext::hash_map<std::string, ProjectileDefinition*> m_Projectiles;
+	stdext::hash_map<std::string, WeaponDefinition*> m_Weapons;
+
 };
 
 #endif
